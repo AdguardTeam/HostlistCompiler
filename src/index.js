@@ -14,7 +14,8 @@ See the repo README for the details on it.
  */
 function prepareHeader(configuration) {
     const lines = [
-        `! Name: ${configuration.name}`,
+        '!',
+        `! Title: ${configuration.name}`,
     ];
 
     if (!_.isEmpty(configuration.description)) {
@@ -27,7 +28,7 @@ function prepareHeader(configuration) {
         lines.push(`! License: ${configuration.license}`);
     }
 
-    lines.push(`! Date: ${(new Date()).toISOString()}`);
+    lines.push(`! Last modified: ${(new Date()).toISOString()}`);
     lines.push('!');
 
     // Compiler info
