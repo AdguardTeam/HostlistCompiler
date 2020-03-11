@@ -5,6 +5,7 @@
 This is a simple tool that makes it easier to compile a [hosts blocklist](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists) compatible with AdGuard Home or any other AdGuard product with **DNS filtering**.
 
 - [Usage](#usage)
+  - [Configuration](#configuration)
   - [Command-line](#command-line)
   - [API](#api)
 - [Transformations](#transformations)
@@ -16,7 +17,21 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
 
 ## <a id="usage"></a> Usage
 
-First of all, you need to prepare your hostlist configuration.
+First of all, install the `hostlist-compiler`:
+
+```bash
+npm i -g @adguard/hostlist-compiler
+```
+
+Prepare the list configuration (read more about that below) and run the compiler:
+
+```bash
+hostlist-compiler -c configuration.json -o output.txt
+```
+
+### <a id="configuration"></a> Configuration
+
+Configuration defines your filter list sources, and the transformations that are applied to the sources.
 
 Here is an example of this configuration:
 
@@ -25,7 +40,7 @@ Here is an example of this configuration:
   "name": "List name",
   "description": "List description",
   "homepage": "https://example.org/",
-  "homepage": "GPLv3",
+  "license": "GPLv3",
   "sources": [
     {
       "name": "Local rules",
@@ -78,11 +93,7 @@ Here is an example of a minimal configuration:
 
 ### <a id="command-line"></a> Command-line
 
-```
-npm i -g @adguard/hostlist-compiler
-```
-
-Then use it from the command-line.
+Command-line arguments.
 
 ```
 Usage: hostlist-compiler [options]
