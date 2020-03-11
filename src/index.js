@@ -32,7 +32,6 @@ function prepareHeader(configuration) {
 
     // Compiler info
     lines.push(`! Compiled by ${packageJson.name} v${packageJson.version}`);
-    lines.push(`! ${packageJson.repository}`);
     lines.push('');
     return lines;
 }

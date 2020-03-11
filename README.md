@@ -76,11 +76,51 @@ Here is an example of a minimal configuration:
 
 ### <a id="command-line"></a> Command-line
 
-- TBD
+```
+npm i -g @adguard/hostlist-compiler
+```
+
+Then use it from the command-line.
+
+```
+Usage: hostlist-compiler [options]
+
+Options:
+  --version      Show version number                                   [boolean]
+  --config, -c   Path to the compiler configuration file     [string] [required]
+  --output, -o   Path to the output file                     [string] [required]
+  --verbose, -v  Run with verbose logging                              [boolean]
+  -h, --help     Show help                                             [boolean]
+
+Examples:
+  hostlist-compiler -c config.json -o       compile a blocklist and write the
+  output.txt                                output to output.txt
+```
 
 ### <a id="api"></a> API
 
-- TBD
+```
+npm i @adguard/hostlist-compiler
+```
+
+```
+const compile = require('@adguard/hostlist-compiler');
+
+const configuration = {
+    "name": "test list",
+    "sources": [
+        {
+            "source": "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt"
+        }
+    ]
+}
+
+async function main() {
+    const compiled = compile(configuration);
+}
+
+main();
+```
 
 ## <a id="transformations"></a> Transformations
 
@@ -158,13 +198,3 @@ Here's what will be left after the transformation:
 ! rule1 comment 2
 rule1
 ```
-
-## TODO
-
-- [x] License
-- [x] Implementation
-- [ ] Readme
-- [x] Adblock rules validation should check for public suffix blocking
-- [x] Add "license" to the configuration
-- [x] Implement "Compress" transformation
-- [ ] Publish to npm.js
