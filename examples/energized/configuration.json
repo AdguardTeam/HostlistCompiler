@@ -1,0 +1,13 @@
+{
+  "name": "Energized Pro",
+  "description": "This Energized System is designed for Unix-like systems, gets a list of domains that serve ads, tracking scripts and malware from multiple reputable sources and creates a hosts file that prevents your system from connecting to them.",
+  "homepage": "https://energized.pro/",
+  "sources": [
+    {
+      "name": "Energized Pro",
+      "source": "https://block.energized.pro/ultimate/formats/hosts",
+      "type": "hosts",
+      "transformations": ["Compress"]
+    }
+  ]
+}
