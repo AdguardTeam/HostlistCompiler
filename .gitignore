@@ -1,0 +1,6 @@
+.vscode
+.DS_Store
+node_modules
+examples/sdn/filter.txt*
+examples/energized/filter.txt
+examples/energized/hosts
