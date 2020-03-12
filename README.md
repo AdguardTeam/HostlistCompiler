@@ -95,7 +95,7 @@ Here is an example of a minimal configuration:
 
 Command-line arguments.
 
-```
+```bash
 Usage: hostlist-compiler [options]
 
 Options:
@@ -112,24 +112,26 @@ Examples:
 
 ### <a id="api"></a> API
 
-```
+```bash
 npm i @adguard/hostlist-compiler
 ```
 
-```
-const compile = require('@adguard/hostlist-compiler');
+```javascript
+const compile = require("@adguard/hostlist-compiler");
 
 const configuration = {
-    "name": "test list",
-    "sources": [
-        {
-            "source": "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt"
-        }
-    ]
-}
+  name: "test list",
+  sources: [
+    {
+      source:
+        "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt"
+    }
+  ]
+};
 
 async function main() {
-    const compiled = compile(configuration);
+  const compiled = await compile(configuration);
+  console.log(compiled.join("\n"));
 }
 
 main();
