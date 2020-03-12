@@ -20,7 +20,7 @@ function deduplicate(rules) {
     }
 
     // Clone the original array before modifying it
-    const filtered = [].concat(rules);
+    const filtered = [...rules];
     let prevRuleRemoved = false;
     const rulesIndex = {};
 

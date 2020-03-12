@@ -20,22 +20,25 @@ describe('Exclusions', () => {
         // Mock exclusions
         const scope = nock('https://example.org')
             .get('/exclusions.txt')
-            .reply(200, 'rule1');
+            .reply(200, 'rule1')
+            .get('/exclusions2.txt')
+            .reply(200, 'rule2');
         mock({
             'test/dir': {
-                'exclusions.txt': 'rule2',
+                'exclusions.txt': 'rule3',
             },
         });
 
         // Prepare the rules collection
-        const rules = ['rule1', 'rule2', 'rule3', 'rule4', ''];
+        const rules = ['rule1', 'rule2', 'rule3', 'rule4', 'rule5', ''];
 
         // Exclude!
-        const filtered = await exclude(rules, ['rule3'], ['https://example.org/exclusions.txt', 'test/dir/exclusions.txt']);
+        const filtered = await exclude(rules, ['rule4'],
+            ['https://example.org/exclusions.txt', 'https://example.org/exclusions2.txt', 'test/dir/exclusions.txt']);
 
         // Assert
         expect(filtered).toHaveLength(2);
-        expect(filtered).toContain('rule4');
+        expect(filtered).toContain('rule5');
         expect(filtered).toContain('');
 
         // Make sure scope URLs were requested

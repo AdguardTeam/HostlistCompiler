@@ -86,9 +86,11 @@ function validEtcHostsRule(ruleText) {
  * @returns {Boolean} - adblock-style rule
  */
 function validAdblockRule(ruleText) {
-    const props = ruleUtils.loadAdblockRuleProperties(ruleText);
-    if (props == null) {
-        consola.debug(`This is not a valid adblock rule: ${ruleText}`);
+    let props;
+    try {
+        props = ruleUtils.loadAdblockRuleProperties(ruleText);
+    } catch (ex) {
+        consola.debug(`This is not a valid adblock rule: ${ruleText}: ${ex}`);
         return false;
     }
 
@@ -177,7 +179,7 @@ function valid(ruleText) {
  */
 function validate(rules) {
     // Clone the original array before modifying it
-    const filtered = [].concat(rules);
+    const filtered = [...rules];
     let prevRuleRemoved = false;
 
     for (let iFiltered = filtered.length - 1; iFiltered >= 0; iFiltered -= 1) {
