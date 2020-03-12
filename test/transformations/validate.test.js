@@ -30,6 +30,8 @@ describe('Validate', () => {
 ||org^
 ||example.org^$third-party
 ||example.org^$important
+||an.yandex
+||an.yandex.
 ://example.org`.split(/\r?\n/);
         const filtered = validate(rules);
 
@@ -39,6 +41,8 @@ describe('Validate', () => {
             '||example.org^',
             '||ex*.org^', // valid because contains special characters
             '||example.org^$important',
+            '||an.yandex',
+            '||an.yandex.',
             '://example.org',
         ]);
     });
