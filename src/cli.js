@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-const fs = require('fs');
+const fs = require('fs').promises;
 const consola = require('consola');
 const compile = require('./index');
 const packageJson = require('../package.json');
@@ -37,18 +37,17 @@ if (argv.verbose) {
 
 consola.info(`Starting ${packageJson.name} v${packageJson.version}`);
 
-if (!fs.existsSync(argv.config)) {
-    consola.error(`File ${argv.config} not found!`);
-    return 1;
-}
-
 async function main() {
     try {
-        const config = JSON.parse(fs.readFileSync(argv.config).toString());
+        // Check if file exists
+        await fs.access(argv.config);
+
+        const configStr = (await fs.readFile(argv.config)).toString();
+        const config = JSON.parse(configStr);
         const lines = await compile(config);
 
         consola.info(`Writing output to ${argv.output}`);
-        fs.writeFileSync(argv.output, lines.join('\n'));
+        await fs.writeFile(argv.output, lines.join('\n'));
         consola.info('Finished compiling');
     } catch (ex) {
         consola.error(ex);

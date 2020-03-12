@@ -24,7 +24,7 @@ const MAX_PATTERN_LENGTH = 5;
  *
  * @param {String} hostname - hostname to check
  * @param {String} ruleText - original rule text (for logging)
- * @returns {boolean} true if the hostname is okay to be in the blocklist.
+ * @returns {Boolean} true if the hostname is okay to be in the blocklist.
  */
 function validHostname(hostname, ruleText) {
     const result = tldts.parse(hostname);
@@ -51,7 +51,7 @@ function validHostname(hostname, ruleText) {
  * 3. Prohibit rules that contain invalid domain names
  *
  * @param {String} ruleText - rule text
- * @returns {boolean} true if the rule is a valid /etc/hosts rule
+ * @returns {Boolean} true if the rule is a valid /etc/hosts rule
  */
 function validEtcHostsRule(ruleText) {
     let props;
@@ -83,7 +83,7 @@ function validEtcHostsRule(ruleText) {
  * valid and does not block too much.
  *
  * @param {String} ruleText - rule text
- * @returns {boolean} - adblock-style rule
+ * @returns {Boolean} - adblock-style rule
  */
 function validAdblockRule(ruleText) {
     const props = ruleUtils.loadAdblockRuleProperties(ruleText);
@@ -135,7 +135,9 @@ function validAdblockRule(ruleText) {
 
     // 4. Validate domain name
     // Note that we don't check rules that contain wildcard characters
-    if (_.startsWith(props.pattern, '||') && props.pattern.indexOf('*') === -1) {
+    if (_.startsWith(props.pattern, '||')
+        && props.pattern.indexOf('^') !== -1
+        && props.pattern.indexOf('*') === -1) {
         const hostname = utils.substringBetween(ruleText, '||', '^');
         if (!validHostname(hostname, ruleText)) {
             return false;
@@ -154,7 +156,7 @@ function validAdblockRule(ruleText) {
  * For adblock-style rules: {@see validAdblockRule}
  *
  * @param {String} ruleText - rule to check
- * @returns {boolean} true if rule is a comment
+ * @returns {Boolean} true if rule is a comment
  */
 function valid(ruleText) {
     if (ruleUtils.isComment(ruleText) || _.isEmpty(_.trim(ruleText))) {

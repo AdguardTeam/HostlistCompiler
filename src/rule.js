@@ -7,20 +7,18 @@ const utils = require('./utils');
 
 /**
 * @param {*} rule - rule to check
-* @returns {boolean} true if rule is a comment
+* @returns {Boolean} true if rule is a comment
 */
 function isComment(rule) {
-    return _.startsWith(rule, '! ')
-        || rule === '!'
+    return _.startsWith(rule, '!')
         || _.startsWith(rule, '# ')
         || rule === '#'
-        || _.startsWith(rule, '####')
-        || _.startsWith(rule, '!!!!');
+        || _.startsWith(rule, '####');
 }
 
 /**
  * @param {String} ruleText - rule to check
- * @returns {boolean} true if this is a /etc/hosts rule
+ * @returns {Boolean} true if this is a /etc/hosts rule
  */
 function isEtcHostsRule(ruleText) {
     return /^([a-f0-9.:\][]+)(%[a-z0-9]+)?\s+([^#]+)(#.*)?$/.test(ruleText);
@@ -31,7 +29,7 @@ function isEtcHostsRule(ruleText) {
  * @typedef {Object} AdblockRuleTokens
  * @property {String} pattern - rule pattern
  * @property {String} options - modifiers
- * @property {boolean} whitelist - whether the rule is whitelist or not
+ * @property {Boolean} whitelist - whether the rule is whitelist or not
  */
 
 /**
@@ -102,14 +100,14 @@ function loadEtcHostsRuleProperties(ruleText) {
         rule = rule.substring(0, rule.indexOf('#'));
     }
 
-    const parts = _.trim(rule).split(/\s+/);
-    if (parts.length < 2) {
+    const [, ...hostnames] = _.trim(rule).split(/\s+/);
+    if (hostnames.length < 1) {
         throw new TypeError(`Invalid /etc/hosts rule: ${ruleText}`);
     }
 
     return {
         ruleText,
-        hostnames: parts.slice(1),
+        hostnames,
     };
 }
 
@@ -118,8 +116,8 @@ function loadEtcHostsRuleProperties(ruleText) {
  * @typedef {Object} AdblockRule
  * @property {String} ruleText - original rule text
  * @property {String} pattern - matching pattern
- * @property {Array<{String,String}>} options - list of rule modifiers
- * @property {boolean} whitelist - whether this is an exception rule or not
+ * @property {Array<{{name: string, value: string}}>} options - list of rule modifiers
+ * @property {Boolean} whitelist - whether this is an exception rule or not
  */
 
 /**
@@ -163,7 +161,7 @@ function loadAdblockRuleProperties(ruleText) {
  *
  * @param {AdblockRule} ruleProps - rule properies
  * @param {String} name - modifier name
- * @returns {name: string,value: string} modifier info or null if not found
+ * @returns {{name: string, value: string} | null} modifier info or null if not found
  */
 function findModifier(ruleProps, name) {
     if (!ruleProps.options) {
@@ -185,7 +183,7 @@ function findModifier(ruleProps, name) {
  *
  * @param {AdblockRule} ruleProps - rule properties
  * @param {String} name - modifier name
- * @returns {boolean} true if there was such a modifier and it was removed
+ * @returns {Boolean} true if there was such a modifier and it was removed
  */
 function removeModifier(ruleProps, name) {
     if (!ruleProps.options) {

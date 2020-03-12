@@ -11,7 +11,7 @@
       "exclusions_sources": [
         "https://raw.githubusercontent.com/AdguardTeam/AdGuardSDNSFilter/master/Filters/exclusions.txt"
       ],
-      "transformations": ["RemoveComments", "Validate"]
+      "transformations": ["RemoveModifiers", "Validate"]
     },
     {
       "name": "AdGuard Russian filter ad servers first-party",
@@ -20,7 +20,7 @@
       "exclusions_sources": [
         "https://raw.githubusercontent.com/AdguardTeam/AdGuardSDNSFilter/master/Filters/exclusions.txt"
       ],
-      "transformations": ["Validate"]
+      "transformations": ["RemoveModifiers", "Validate"]
     },
     {
       "name": "AdGuard Russian filter news exchange servers",

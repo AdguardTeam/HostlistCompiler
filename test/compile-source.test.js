@@ -1,8 +1,14 @@
 const nock = require('nock');
 const mock = require('mock-fs');
 const compileSource = require('../src/compile-source');
+const { TRANSFORMATIONS } = require('../src/transformations/transform');
 
 describe('Source compiler', () => {
+    afterEach(() => {
+        // make sure FS is restored after running tests
+        mock.restore();
+    });
+
     it('compile a simple URL source', async () => {
         const scope = nock('https://example.org')
             .get('/filter.txt')
@@ -16,6 +22,8 @@ describe('Source compiler', () => {
         const rules = await compileSource(source);
         expect(rules).toHaveLength(1);
         expect(rules).toContain('testrule');
+
+        // Make sure scope URLs were requested
         scope.done();
     });
 
@@ -25,7 +33,6 @@ describe('Source compiler', () => {
                 'rules.txt': 'testrule',
             },
         });
-
         const source = {
             name: 'test source',
             source: 'test/dir/rules.txt',
@@ -34,8 +41,6 @@ describe('Source compiler', () => {
         const rules = await compileSource(source);
         expect(rules).toHaveLength(1);
         expect(rules).toContain('testrule');
-
-        mock.restore();
     });
 
     it('compile a source and apply transformations', async () => {
@@ -58,13 +63,18 @@ describe('Source compiler', () => {
                 'exclusions.txt': exclusions,
             },
         });
-
         // STEP 3: Init source
         const source = {
             name: 'test source',
             source: 'https://example.org/filter.txt',
             exclusions: ['rule4'],
             exclusions_sources: ['test/dir/exclusions.txt'],
+            transformations: [
+                TRANSFORMATIONS.Deduplicate,
+                TRANSFORMATIONS.Validate,
+                TRANSFORMATIONS.RemoveComments,
+                TRANSFORMATIONS.RemoveModifiers,
+            ],
         };
 
         // STEP 4: Compile source
@@ -72,8 +82,7 @@ describe('Source compiler', () => {
         expect(compiled).toHaveLength(1);
         expect(compiled).toContain('||rule2');
 
-        // Clear
+        // Make sure scope URLs were requested
         scope.done();
-        mock.restore();
     });
 });

@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const fs = require('fs');
+const fs = require('fs').promises;
 const axios = require('axios');
 
 function isURL(str) {
@@ -26,7 +26,7 @@ async function download(urlOrPath) {
         const response = await axios.get(url.toString(), { responseType: 'text' });
         str = response.data;
     } else {
-        str = fs.readFileSync(urlOrPath).toString();
+        str = (await fs.readFile(urlOrPath)).toString();
     }
 
     return str;
@@ -60,7 +60,7 @@ function substringBetween(str, startTag, endTag) {
  * @param {String} str - string to split
  * @param {String} delimiter - delimiter
  * @param {String} escapeCharacter - escape character
- * @param {boolean} preserveAllTokens - if true, preserve empty parts
+ * @param {Boolean} preserveAllTokens - if true, preserve empty parts
  * @return {Array<string>} array of string parts
  */
 function splitByDelimiterWithEscapeCharacter(

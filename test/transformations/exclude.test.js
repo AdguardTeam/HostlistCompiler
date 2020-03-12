@@ -3,6 +3,11 @@ const mock = require('mock-fs');
 const exclude = require('../../src/transformations/exclude');
 
 describe('Exclusions', () => {
+    afterEach(() => {
+        // make sure FS is restored after running tests
+        mock.restore();
+    });
+
     it('simple exclusion', async () => {
         const rules = ['rule1', 'rule2'];
         const filtered = await exclude(rules, ['rule2']);
@@ -33,7 +38,7 @@ describe('Exclusions', () => {
         expect(filtered).toContain('rule4');
         expect(filtered).toContain('');
 
+        // Make sure scope URLs were requested
         scope.done();
-        mock.restore();
     });
 });
