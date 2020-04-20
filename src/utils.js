@@ -102,13 +102,18 @@ function splitByDelimiterWithEscapeCharacter(
 }
 
 /**
- * Simple wildcard matching
+ * Wildcard is used by the exclusions transformation.
  */
 class Wildcard {
     /**
-     * Creates an instaance of a Wildcard
+     * Creates an instaance of a Wildcard.
      *
-     * @param {*} str wildcard string
+     * Depending on the constructor parameter its behavior may be different:
+     * 1. By default, it just checks if "str" is included into the test string.
+     * 2. If "str" contains any "*" character, it is used as a "wildcard"
+     * 3. If "str" looks like "/regex/" , it is used as a full scale regular expression.
+     *
+     * @param {String} str plain string, wildcard string or regex string
      */
     constructor(str) {
         if (!str) {
@@ -127,10 +132,13 @@ class Wildcard {
          */
         this.plainStr = str;
 
-        if (str.includes('*')) {
+        if (str.startsWith('/') && str.endsWith('/') && str.length > 2) {
+            const re = str.substring(1, str.length - 1);
+            this.regex = new RegExp(re, 'mi');
+        } else if (str.includes('*')) {
             // Creates a RegExp from the given string, converting asterisks to .* expressions,
             // and escaping all other characters.
-            this.regex = new RegExp(`^${str.split(/\*+/).map(_.escapeRegExp).join('.*')}$`);
+            this.regex = new RegExp(`^${str.split(/\*+/).map(_.escapeRegExp).join('.*')}$`, 'i');
         }
     }
 

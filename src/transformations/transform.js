@@ -32,7 +32,7 @@ async function transform(rules, exclusions, exclusionsSources, transformations) 
         transformations = [];
     }
 
-    let transformed = rules;
+    let transformed = await exclude(rules, exclusions, exclusionsSources);
     if (transformations.indexOf(TRANSFORMATIONS.RemoveComments) !== -1) {
         transformed = removeComments(transformed);
     }
@@ -48,7 +48,6 @@ async function transform(rules, exclusions, exclusionsSources, transformations) 
     if (transformations.indexOf(TRANSFORMATIONS.Deduplicate) !== -1) {
         transformed = deduplicate(transformed);
     }
-    transformed = await exclude(transformed, exclusions, exclusionsSources);
     return transformed;
 }
 

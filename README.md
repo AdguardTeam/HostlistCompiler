@@ -91,6 +91,12 @@ Here is an example of a minimal configuration:
 }
 ```
 
+Please note, that exclusion may be a plain string, wildcard, or a regular expression.
+
+* `plainstring` - every rule that contains `plainstring` will be removed
+* `*.plainstring` - every rule that matches this wildcard will be removed
+* `/regex/` - every rule that matches this regular expression, will be removed. By default, regular expressions are case-insensitive.
+
 ### <a id="command-line"></a> Command-line
 
 Command-line arguments.

@@ -27,6 +27,7 @@ const { argv } = require('yargs')
         description: 'Run with verbose logging',
     })
     .demandOption(['c', 'o'])
+    .version()
     .help('h')
     .alias('h', 'help');
 

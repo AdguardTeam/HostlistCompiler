@@ -4,3 +4,4 @@ node_modules
 examples/sdn/filter.txt*
 examples/energized/filter.txt
 examples/energized/hosts
+examples/china/filter.txt
