@@ -138,7 +138,7 @@ class Wildcard {
         } else if (str.includes('*')) {
             // Creates a RegExp from the given string, converting asterisks to .* expressions,
             // and escaping all other characters.
-            this.regex = new RegExp(`^${str.split(/\*+/).map(_.escapeRegExp).join('.*')}$`, 'i');
+            this.regex = new RegExp(`^${str.split(/\*+/).map(_.escapeRegExp).join('[\\s\\S]*')}$`, 'i');
         }
     }
 
