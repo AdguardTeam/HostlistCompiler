@@ -6,7 +6,7 @@ describe('Transform', () => {
 rule1
 rule2
 # another comment`.split(/\r?\n/);
-        const filtered = await transform(rules, [], [], []);
+        const filtered = await transform(rules, {}, []);
         expect(filtered).toHaveLength(4);
         expect(filtered).toEqual(rules);
     });
@@ -23,7 +23,15 @@ dupl1
             'rule2',
             '', // empty exclusions are ignored
         ];
-        const filtered = await transform(rules, exclusions, null, ['RemoveComments', 'Validate', 'Deduplicate']);
+        const inclusions = [
+            'rule1',
+            'dupl1',
+        ];
+        const configuration = {
+            exclusions,
+            inclusions,
+        };
+        const filtered = await transform(rules, configuration, ['RemoveComments', 'Validate', 'Deduplicate']);
         expect(filtered).toHaveLength(2);
         expect(filtered).toEqual(['rule1', 'dupl1']);
     });

@@ -94,8 +94,7 @@ async function compile(configuration) {
     // Now let's apply the final transformations to the list
     // Use empty list by default for transformations here
     const transformations = configuration.transformations || [];
-    finalList = await transform(finalList, configuration.exclusions,
-        configuration.exclusions_sources, transformations);
+    finalList = await transform(finalList, configuration, transformations);
 
     // Now prepend the list header and we're good to go
     const header = prepareHeader(configuration);

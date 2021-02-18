@@ -25,8 +25,7 @@ async function compileSource(source) {
     let rules = str.split(/\r?\n/);
     consola.info(`Original length is ${rules.length}`);
 
-    rules = await transform(rules, source.exclusions,
-        source.exclusions_sources, source.transformations);
+    rules = await transform(rules, source, source.transformations);
 
     consola.info(`Length after applying transformations is ${rules.length}`);
     return rules;

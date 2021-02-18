@@ -48,7 +48,9 @@ Here is an example of this configuration:
       "type": "adblock",
       "transformations": ["RemoveComments", "Compress"],
       "exclusions": ["excluded rule 1"],
-      "exclusions_sources": ["exclusions.txt"]
+      "exclusions_sources": ["exclusions.txt"],
+      "inclusions": ["*"],
+      "inclusions_sources": ["inclusions.txt"]
     },
     {
       "name": "Remote rules",
@@ -59,7 +61,9 @@ Here is an example of this configuration:
   ],
   "transformations": ["Deduplicate"],
   "exclusions": ["excluded rule 1", "excluded rule 2"],
-  "exclusions_sources": ["global_exclusions.txt"]
+  "exclusions_sources": ["global_exclusions.txt"],
+  "inclusions": ["*"],
+  "inclusions_sources": ["global_inclusions.txt"]
 }
 ```
 
@@ -72,11 +76,15 @@ Here is an example of this configuration:
   - `.name` - (optional) name of the source.
   - `.type` - (optional) type of the source. It could be `adblock` for Adblock-style lists or `hosts` for /etc/hosts style lists. If not specified, `adblock` is assumed.
   - `.transformations` - (optional) a list of transformations to apply to the source rules. By default, **no transformations** are applied. Learn more about possible transformations [here](#transformations).
-  - `.exclusions` - (optional) a list of the rules (or wildcards) to exclude from the source.
-  - `.exclusions_sources` (optional) a list of files with exclusions.
+  - `.exclusions` - (optional) a list of rules (or wildcards) to exclude from the source.
+  - `.exclusions_sources` - (optional) a list of files with exclusions.
+  - `.inclusions` - (optional) a list of wildcards to include from the source. All rules that don't match these wildcards won't be included.
+  - `.inclusions_sources` - (optional) a list of files with inclusions.
 - `transformations` - (optional) a list of transformations to apply to the final list of rules. By default, **no transformations** are applied. Learn more about possible transformations [here](#transformations).
-- `exclusions` - (optional) a list of the rules (or wildcards) to exclude from the source.
+- `exclusions` - (optional) a list of rules (or wildcards) to exclude from the source.
 - `exclusions_sources` - (optional) a list of files with exclusions.
+- `.inclusions` - (optional) a list of wildcards to include from the source. All rules that don't match these wildcards won't be included.
+- `.inclusions_sources` - (optional) a list of files with inclusions.
 
 Here is an example of a minimal configuration:
 
@@ -91,11 +99,12 @@ Here is an example of a minimal configuration:
 }
 ```
 
-Please note, that exclusion may be a plain string, wildcard, or a regular expression.
+Please note, that exclusion or inclusion rules may be a plain string, wildcard, or a regular expression.
 
-* `plainstring` - every rule that contains `plainstring` will be removed
-* `*.plainstring` - every rule that matches this wildcard will be removed
-* `/regex/` - every rule that matches this regular expression, will be removed. By default, regular expressions are case-insensitive.
+- `plainstring` - every rule that contains `plainstring` will match the rule
+- `*.plainstring` - every rule that matches this wildcard will match the rule
+- `/regex/` - every rule that matches this regular expression, will match the rule. By default, regular expressions are case-insensitive.
+- `! comment` - comments will be ignored.
 
 ### <a id="command-line"></a> Command-line
 
@@ -122,20 +131,21 @@ Examples:
 npm i @adguard/hostlist-compiler
 ```
 
-```
-const compile = require('@adguard/hostlist-compiler');
+```javascript
+const compile = require("@adguard/hostlist-compiler");
 
 const configuration = {
-    "name": "test list",
-    "sources": [
-        {
-            "source": "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt"
-        }
-    ]
-}
+  name: "test list",
+  sources: [
+    {
+      source:
+        "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
+    },
+  ],
+};
 
 async function main() {
-    const compiled = compile(configuration);
+  const compiled = compile(configuration);
 }
 
 main();

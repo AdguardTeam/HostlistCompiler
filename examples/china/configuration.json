@@ -8,9 +8,20 @@
       "name": "EasyList China ad servers",
       "source": "https://easylist-downloads.adblockplus.org/easylistchina.txt",
       "type": "adblock",
-      "exclusions": ["/(?!^(\\|\\||@@\\|\\|))^.+/", "$third-party"],
-      "transformations": ["RemoveModifiers", "Validate"]
+      "exclusions": [
+        "/(?!^(\\|\\||@@\\|\\|))^.+/",
+        "$third-party"
+      ],
+      "inclusions": [
+        "/^\\|\\|[a-z0-9-.]+\\^?(\\$third-party)?$/"
+      ],
+      "transformations": [
+        "RemoveModifiers",
+        "Validate"
+      ]
     }
   ],
-  "transformations": ["Deduplicate"]
+  "transformations": [
+    "Deduplicate"
+  ]
 }

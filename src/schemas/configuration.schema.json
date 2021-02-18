@@ -26,7 +26,9 @@
       "description": "An array of the filter list sources",
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/definitions/source" }
+      "items": {
+        "$ref": "#/definitions/source"
+      }
     },
     "transformations": {
       "description": "A list of the transformations that will be applied",
@@ -45,15 +47,36 @@
     "exclusions": {
       "description": "A list of rules (or wildcards) to exclude from the source.",
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "exclusions_sources": {
       "description": "An array of exclusions sources.",
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
+    },
+    "inclusions": {
+      "description": "A list of wildcards to include from the source. All rules that don't match these wildcards won't be included.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inclusions_sources": {
+      "description": "A list of files with inclusions.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
-  "required": ["name", "sources"],
+  "required": [
+    "name",
+    "sources"
+  ],
   "additionalProperties": false,
   "definitions": {
     "source": {
@@ -73,7 +96,10 @@
         "type": {
           "description": "Type of the source",
           "type": "string",
-          "enum": ["adblock", "hosts"]
+          "enum": [
+            "adblock",
+            "hosts"
+          ]
         },
         "transformations": {
           "description": "A list of the transformations that will be applied",
@@ -92,15 +118,35 @@
         "exclusions": {
           "description": "A list of rules (or wildcards) to exclude from the source.",
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "exclusions_sources": {
           "description": "An array of exclusions sources.",
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
+        },
+        "inclusions": {
+          "description": "A list of wildcards to include from the source. All rules that don't match these wildcards won't be included.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inclusions_sources": {
+          "description": "A list of files with inclusions.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
-      "required": ["source"],
+      "required": [
+        "source"
+      ],
       "additionalProperties": false
     }
   }

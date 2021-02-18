@@ -1,51 +1,6 @@
 const _ = require('lodash');
 const consola = require('consola');
-const utils = require('../utils');
-const ruleUtils = require('../rule');
-
-/**
- * Loads exclusions from the specified sources
- *
- * @param {Array<String>} exclusionsSources - exclusions sources
- * @returns {Array<String>} array with all the exclusions
- */
-async function loadExclusions(exclusionsSources) {
-    let exclusions = [];
-    if (_.isEmpty(exclusionsSources)) {
-        return exclusions;
-    }
-
-    await Promise.all(exclusionsSources.map(async (s) => {
-        const rulesStr = await utils.download(s);
-        const rules = rulesStr
-            .split(/\r?\n/)
-            .filter((el) => el.trim().length > 0 && !ruleUtils.isComment(el));
-        exclusions = exclusions.concat(rules);
-    }));
-
-    consola.info(`Loaded ${exclusions.length} exclusions from external sources`);
-    return exclusions;
-}
-
-/**
- * Creates a list of exclusions wildcards
- *
- * @param {Array<String>} exclusions - array of exclusions to apply
- * @param {Array<String>} exclusionsSources - array of exclusion sources
- * (can be local or remote files)
- * @returns {Array<utils.Wildcard>} a list of wildcards to apply
- */
-async function prepareExclusionWildcards(exclusions, exclusionsSources) {
-    let exclusionsArr = [];
-    if (!_.isEmpty(exclusions)) {
-        exclusionsArr = exclusionsArr.concat(exclusions);
-    }
-    const loadedExclusions = await loadExclusions(exclusionsSources);
-    exclusionsArr = exclusionsArr.concat(loadedExclusions);
-    exclusionsArr = _.compact(_.uniq(exclusionsArr));
-
-    return exclusionsArr.map((str) => new utils.Wildcard(str));
-}
+const filterUtils = require('../filter');
 
 /**
  * Scans the specified array of rules and removes all that match the specified exclusions.
@@ -62,10 +17,11 @@ async function exclude(rules, exclusions, exclusionsSources) {
         return rules;
     }
 
-    const wildcards = await prepareExclusionWildcards(exclusions, exclusionsSources);
+    const wildcards = await filterUtils.prepareWildcards(exclusions, exclusionsSources);
     if (_.isEmpty(wildcards)) {
         return rules;
     }
+    consola.info(`Filtering the list of rules using ${wildcards.length} exclusion rules`);
 
     const filtered = rules.filter((rule) => {
         const excluded = wildcards.some((w) => {
@@ -78,7 +34,7 @@ async function exclude(rules, exclusions, exclusionsSources) {
         return !excluded;
     });
 
-    consola.info(`Excluded ${rules.length - filtered.length} rules`);
+    consola.info(`Excluded ${rules.length - filtered.length} rules. ${filtered.length} rules left.`);
     return filtered;
 }
 
