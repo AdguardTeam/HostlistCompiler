@@ -14,6 +14,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [RemoveModifiers](#remove-modifiers)
   - [Validate](#validate)
   - [Deduplicate](#deduplicate)
+- [How to build](#how-to-build)
 
 ## <a id="usage"></a> Usage
 
@@ -229,3 +230,10 @@ Here's what will be left after the transformation:
 ! rule1 comment 2
 rule1
 ```
+
+## <a id="how-to-build"></a> How to build
+
+* `yarn install` - installs dependencies
+* `yarn lint` - runs eslint
+* `yarn test` - runs tests
+* `node src/cli.js -c examples/sdn/configuration.json -o filter.txt` - runs compiler with the example configuration

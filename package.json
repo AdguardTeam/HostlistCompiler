@@ -1,6 +1,6 @@
 {
   "name": "@adguard/hostlist-compiler",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "A simple tool that compiles hosts blocklists from multiple sources",
   "main": "src/index.js",
   "repository": "https://github.com/AdguardTeam/HostlistCompiler",
@@ -11,7 +11,8 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "test": "jest --runInBand ."
+    "test": "jest --runInBand .",
+    "compile": "node src/cli.js"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
