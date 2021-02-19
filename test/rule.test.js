@@ -50,12 +50,14 @@ describe('Rule utils', () => {
         expect(props.pattern).toBe('||example.org^');
         expect(props.options).toBe(null);
         expect(props.ruleText).toBe('||example.org^');
+        expect(props.hostname).toBe('example.org');
 
         props = ruleUtils.loadAdblockRuleProperties('@@||example.org^');
         expect(props.whitelist).toBe(true);
         expect(props.pattern).toBe('||example.org^');
         expect(props.options).toBe(null);
         expect(props.ruleText).toBe('@@||example.org^');
+        expect(props.hostname).toBe('example.org');
 
         props = ruleUtils.loadAdblockRuleProperties('||example.org^$third-party');
         expect(props.whitelist).toBe(false);
@@ -63,6 +65,7 @@ describe('Rule utils', () => {
         expect(props.options).toHaveLength(1);
         expect(props.options[0].name).toBe('third-party');
         expect(props.ruleText).toBe('||example.org^$third-party');
+        expect(props.hostname).toBe('example.org');
 
         props = ruleUtils.loadAdblockRuleProperties('||example.org^$third-party,domain=ex1.org|ex2.org');
         expect(props.whitelist).toBe(false);
@@ -73,6 +76,7 @@ describe('Rule utils', () => {
         expect(props.options[1].name).toBe('domain');
         expect(props.options[1].value).toBe('ex1.org|ex2.org');
         expect(props.ruleText).toBe('||example.org^$third-party,domain=ex1.org|ex2.org');
+        expect(props.hostname).toBe('example.org');
 
         props = ruleUtils.loadAdblockRuleProperties('@@/example.org$/');
         expect(props.whitelist).toBe(true);

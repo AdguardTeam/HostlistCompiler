@@ -215,5 +215,5 @@
       "type": "adblock"
     }
   ],
-  "transformations": ["Deduplicate"]
+  "transformations": ["Deduplicate", "Compress"]
 }

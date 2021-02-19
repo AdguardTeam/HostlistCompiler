@@ -59,7 +59,7 @@ Here is an example of this configuration:
       "exclusions": ["excluded rule 1"]
     }
   ],
-  "transformations": ["Deduplicate"],
+  "transformations": ["Deduplicate", "Compress"],
   "exclusions": ["excluded rule 1", "excluded rule 2"],
   "exclusions_sources": ["global_exclusions.txt"],
   "inclusions": ["*"],
@@ -98,6 +98,8 @@ Here is an example of a minimal configuration:
   ]
 }
 ```
+
+**Exclusion and inclusion rules**
 
 Please note, that exclusion or inclusion rules may be a plain string, wildcard, or a regular expression.
 
@@ -169,7 +171,7 @@ This is a very simple transformation that simply removes comments (e.g. all rule
 
 ### <a id="compress"></a> Compress
 
-> **IMPORTANT:** this transformation converts `hosts` lists into `adblock` lists. If the source type is `adblock`, it will do nothing.
+> **IMPORTANT:** this transformation converts `hosts` lists into `adblock` lists.
 
 Here's what it does:
 

@@ -118,7 +118,22 @@ function loadEtcHostsRuleProperties(ruleText) {
  * @property {String} pattern - matching pattern
  * @property {Array<{{name: string, value: string}}>} options - list of rule modifiers
  * @property {Boolean} whitelist - whether this is an exception rule or not
+ * @property {String} hostname - hostname can only be extracted from the rules
+ *                               that look like `||[a-z0-9-.]^.*`
  */
+
+/**
+ * Extracts hostname from the adblock rule pattern
+ *
+ * @param {String} pattern adblock rule pattern string
+ * @returns {String} hostname or null if cannot be extracted
+ */
+function extractHostname(pattern) {
+    pattern.match(/^||([a-z0-9-.])\^$/);
+    const match = pattern.match(/^\|\|([a-z0-9-.]+)\^$/);
+    const hostname = match ? match[1] : null;
+    return hostname ?? null;
+}
 
 /**
  * Extracts rule properties from an adblock-style rule.
@@ -131,8 +146,9 @@ function loadAdblockRuleProperties(ruleText) {
     const rule = {
         ruleText,
         pattern: tokens.pattern,
-        options: null, // to be filled later
         whitelist: tokens.whitelist,
+        options: null, // to be filled later
+        hostname: extractHostname(tokens.pattern),
     };
 
     if (tokens.options) {
