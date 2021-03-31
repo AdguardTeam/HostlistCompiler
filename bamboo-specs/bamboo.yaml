@@ -5,7 +5,7 @@ plan:
   key: HBRTSPECS
   name: hostlist-compiler - test
 variables:
-  dockerNode: adguard/jsl-builder:15.8.0--1.22.5--1
+  dockerJslBuilder: adguard/jsl-builder:15.8.0--1.22.5--1
 
 stages:
   - Test:
@@ -17,11 +17,9 @@ stages:
 Test:
   key: TEST
   docker:
-    image: "${bamboo.dockerNode}"
+    image: "${bamboo.dockerJslBuilder}"
     volumes:
-      ${bamboo.tmp.directory}/yarn: "${bamboo.yarnCache}"
-    docker-run-arguments:
-      - --net=host
+      ${system.YARN_DIR}: "${bamboo.cacheYarn}"
   tasks:
     - checkout:
         force-clean-build: 'true'
@@ -36,11 +34,6 @@ Test:
             yarn test
 
   final-tasks:
-    - script:
-        interpreter: SHELL
-        scripts:
-          - |-
-            chown -R "${bamboo.hostUid}":"${bamboo.hostGid}" "${bamboo.yarnCache}"
     - clean
   requirements:
     - adg-docker: 'true'
