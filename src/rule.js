@@ -132,7 +132,7 @@ function extractHostname(pattern) {
     pattern.match(/^||([a-z0-9-.])\^$/);
     const match = pattern.match(/^\|\|([a-z0-9-.]+)\^$/);
     const hostname = match ? match[1] : null;
-    return hostname ?? null;
+    return hostname || null;
 }
 
 /**
