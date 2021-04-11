@@ -20,6 +20,20 @@ describe('Validate', () => {
         expect(filtered).toContain('0.0.0.0 doubleclick.net doubleclick.com');
     });
 
+    it('remove preceding comments', () => {
+        const rules = `! rule comment
+
+||invalid/rule
+! comment
+||valid.com^`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '! comment',
+            '||valid.com^',
+        ]);
+    });
+
     it('adblock-style rules', () => {
         const rules = `! here goes a comment
 
@@ -30,7 +44,9 @@ describe('Validate', () => {
 ||org^
 ||example.org^$third-party
 ||example.org^$important
-://example.org`.split(/\r?\n/);
+://example.org
+@@||example.com^*-tracking.js
+@@||example.com^-tracking.js`.split(/\r?\n/);
         const filtered = validate(rules);
 
         expect(filtered).toEqual([

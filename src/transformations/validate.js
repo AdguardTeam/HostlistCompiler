@@ -137,11 +137,23 @@ function validAdblockRule(ruleText) {
 
     // 4. Validate domain name
     // Note that we don't check rules that contain wildcard characters
+    const sepIdx = props.pattern.indexOf('^');
+    const wildcardIdx = props.pattern.indexOf('*');
+    if (sepIdx !== -1 && wildcardIdx !== -1 && wildcardIdx > sepIdx) {
+        // Smth like ||example.org^test* -- invalid
+        return false;
+    }
+
     if (_.startsWith(props.pattern, '||')
-        && props.pattern.indexOf('^') !== -1
-        && props.pattern.indexOf('*') === -1) {
+        && sepIdx !== -1
+        && wildcardIdx === -1) {
         const hostname = utils.substringBetween(ruleText, '||', '^');
         if (!validHostname(hostname, ruleText)) {
+            return false;
+        }
+
+        // If there's something after ^ in the pattern - something went wrong
+        if (props.pattern.length > (sepIdx + 1)) {
             return false;
         }
     }
