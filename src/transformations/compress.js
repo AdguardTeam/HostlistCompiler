@@ -58,6 +58,16 @@ function toAdblockRules(ruleText) {
         return adblockRules;
     }
 
+    // simple domain names should also be compressed (and converted)
+    if (ruleUtils.isJustDomain(ruleText)) {
+        return [{
+            ruleText: `||${ruleText}^`,
+            canCompress: true,
+            hostname: ruleText,
+            originalRuleText: ruleText,
+        }];
+    }
+
     // try parsing an adblock rule and check if it can be compressed
     try {
         const props = ruleUtils.loadAdblockRuleProperties(ruleText);

@@ -113,4 +113,16 @@ describe('Rule utils', () => {
         expect(props.options).toHaveLength(0);
         expect(ruleUtils.adblockRuleToString(props)).toBe('||example.org^');
     });
+
+    it('isJustDomain should work', () => {
+        expect(ruleUtils.isJustDomain('example.org')).toBe(true);
+        expect(ruleUtils.isJustDomain('subdomain.example.org')).toBe(true);
+        expect(ruleUtils.isJustDomain('sub.sub.example.org')).toBe(true);
+
+        expect(ruleUtils.isJustDomain('')).toBe(false);
+        expect(ruleUtils.isJustDomain('example')).toBe(false);
+        expect(ruleUtils.isJustDomain('123*org')).toBe(false);
+        expect(ruleUtils.isJustDomain('||example.org^')).toBe(false);
+        expect(ruleUtils.isJustDomain('123 org')).toBe(false);
+    });
 });

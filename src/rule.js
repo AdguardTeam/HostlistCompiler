@@ -1,27 +1,39 @@
 const _ = require('lodash');
 const utils = require('./utils');
 
+const domainRegex = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;
+const etcHostsRegex = /^([a-f0-9.:\][]+)(%[a-z0-9]+)?\s+([^#]+)(#.*)?$/;
+
 /**
  * Helper utils for working with filtering rules
  */
 
 /**
-* @param {String} rule - rule to check
+* @param {String} ruleText - rule to check
 * @returns {Boolean} true if rule is a comment
 */
-function isComment(rule) {
-    return _.startsWith(rule, '!')
-        || _.startsWith(rule, '# ')
-        || rule === '#'
-        || _.startsWith(rule, '####');
+function isComment(ruleText) {
+    return _.startsWith(ruleText, '!')
+        || _.startsWith(ruleText, '# ')
+        || ruleText === '#'
+        || _.startsWith(ruleText, '####');
+}
+
+/**
+ * @param {String} ruleText - rule to check
+ * @returns {Boolean} true if the rule is "allowing"
+ */
+function isAllowRule(ruleText) {
+    return _.startsWith(ruleText, '@@');
 }
 
 /**
  * @param {String} rule - rule to check
- * @returns {Boolean} true if the rule is "allowing"
+ * @returns {Boolean} true if the rule is just the domain name
  */
-function isAllowRule(rule) {
-    return _.startsWith(rule, '@@');
+function isJustDomain(ruleText) {
+    return _.includes(ruleText, '.')
+        && domainRegex.test(ruleText);
 }
 
 /**
@@ -29,7 +41,7 @@ function isAllowRule(rule) {
  * @returns {Boolean} true if this is a /etc/hosts rule
  */
 function isEtcHostsRule(ruleText) {
-    return /^([a-f0-9.:\][]+)(%[a-z0-9]+)?\s+([^#]+)(#.*)?$/.test(ruleText);
+    return etcHostsRegex.test(ruleText);
 }
 
 /**
@@ -259,6 +271,7 @@ function adblockRuleToString(ruleProps) {
 module.exports = {
     isComment,
     isAllowRule,
+    isJustDomain,
     isEtcHostsRule,
     loadEtcHostsRuleProperties,
     loadAdblockRuleProperties,

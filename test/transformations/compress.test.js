@@ -3,6 +3,8 @@ const compress = require('../../src/transformations/compress');
 describe('Compress', () => {
     it('compress rules', () => {
         const rules = `# Test rules go here
+example.net
+||sub.example.net^
 0.0.0.0 sub1.example.org
 0.0.0.0 example.org
 0.0.0.0 sub2.example.org sub3.example.org
@@ -14,6 +16,7 @@ describe('Compress', () => {
 
         expect(filtered).toEqual([
             '# Test rules go here',
+            '||example.net^',
             '||example.org^',
             '# More rules to convert',
             '||abc1.doubleclick.net^',
