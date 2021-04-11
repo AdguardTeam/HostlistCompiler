@@ -14,6 +14,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [RemoveModifiers](#remove-modifiers)
   - [Validate](#validate)
   - [Deduplicate](#deduplicate)
+  - [InvertAllow](#invertallow)
 - [How to build](#how-to-build)
 
 ## <a id="usage"></a> Usage
@@ -163,6 +164,7 @@ Here is the full list of transformations that are available:
 3. `RemoveModifiers`
 4. `Validate`
 5. `Deduplicate`
+6. `InvertAllow`
 
 Please note that these transformations are are always applied in the order specified here.
 
@@ -231,9 +233,42 @@ Here's what will be left after the transformation:
 rule1
 ```
 
+### <a id="invertallow"></a> InvertAllow
+
+This transformation converts blocking rules to "allow" rules. Note, that it does nothing to /etc/hosts rules (unless they were previously converted to adblock-style syntax by a different transformation, for example [Compress](#compress)).
+
+There are two important notes about this transformation:
+
+1. It keeps the original rules order.
+2. It ignores comments, empty lines, /etc/hosts rules and existing "allow" rules.
+
+**Example:**
+
+Original list:
+
+```
+! comment 1
+rule1
+
+# comment 2
+192.168.11.11   test.local
+@@rule2
+```
+
+Here's what we will have after applying this transformation:
+
+```
+! comment 1
+@@rule1
+
+# comment 2
+192.168.11.11   test.local
+@@rule2
+```
+
 ## <a id="how-to-build"></a> How to build
 
-* `yarn install` - installs dependencies
-* `yarn lint` - runs eslint
-* `yarn test` - runs tests
-* `node src/cli.js -c examples/sdn/configuration.json -o filter.txt` - runs compiler with the example configuration
+- `yarn install` - installs dependencies
+- `yarn lint` - runs eslint
+- `yarn test` - runs tests
+- `node src/cli.js -c examples/sdn/configuration.json -o filter.txt` - runs compiler with the example configuration

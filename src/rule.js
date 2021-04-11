@@ -6,7 +6,7 @@ const utils = require('./utils');
  */
 
 /**
-* @param {*} rule - rule to check
+* @param {String} rule - rule to check
 * @returns {Boolean} true if rule is a comment
 */
 function isComment(rule) {
@@ -14,6 +14,14 @@ function isComment(rule) {
         || _.startsWith(rule, '# ')
         || rule === '#'
         || _.startsWith(rule, '####');
+}
+
+/**
+ * @param {String} rule - rule to check
+ * @returns {Boolean} true if the rule is "allowing"
+ */
+function isAllowRule(rule) {
+    return _.startsWith(rule, '@@');
 }
 
 /**
@@ -250,6 +258,7 @@ function adblockRuleToString(ruleProps) {
 
 module.exports = {
     isComment,
+    isAllowRule,
     isEtcHostsRule,
     loadEtcHostsRuleProperties,
     loadAdblockRuleProperties,

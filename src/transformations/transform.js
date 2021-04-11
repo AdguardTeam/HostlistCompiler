@@ -5,6 +5,7 @@ const exclude = require('./exclude');
 const include = require('./include');
 const deduplicate = require('./deduplicate');
 const compress = require('./compress');
+const invertAllow = require('./invertallow');
 
 /**
  * Enum with all available transformations
@@ -15,6 +16,7 @@ const TRANSFORMATIONS = Object.freeze({
     RemoveModifiers: 'RemoveModifiers',
     Validate: 'Validate',
     Deduplicate: 'Deduplicate',
+    InvertAllow: 'InvertAllow',
 });
 
 /**
@@ -47,6 +49,9 @@ async function transform(rules, configuration, transformations) {
     }
     if (transformations.indexOf(TRANSFORMATIONS.RemoveModifiers) !== -1) {
         transformed = removeModifiers(transformed);
+    }
+    if (transformations.indexOf(TRANSFORMATIONS.InvertAllow) !== -1) {
+        transformed = invertAllow(transformed);
     }
     if (transformations.indexOf(TRANSFORMATIONS.Validate) !== -1) {
         transformed = validate(transformed);

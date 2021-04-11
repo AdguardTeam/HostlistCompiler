@@ -1,0 +1,16 @@
+{
+    "name": "anudeepND whitelist",
+    "description": "A robust collection of commonly white listed websites borrowed from various sources including Pi-Hole subreddit, Pi-Hole forum, Pi-Hole GitHub repository and more!",
+    "homepage": "https://github.com/anudeepND/whitelist",
+    "sources": [
+        {
+            "name": "anudeepND whitelist",
+            "source": "https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/whitelist.txt",
+            "type": "hosts"
+        }
+    ],
+    "transformations": [
+        "Compress",
+        "InvertAllow"
+    ]
+}

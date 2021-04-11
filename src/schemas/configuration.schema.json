@@ -40,7 +40,8 @@
           "RemoveModifiers",
           "Compress",
           "Validate",
-          "Deduplicate"
+          "Deduplicate",
+          "InvertAllow"
         ]
       }
     },
@@ -111,7 +112,8 @@
               "RemoveModifiers",
               "Compress",
               "Validate",
-              "Deduplicate"
+              "Deduplicate",
+              "InvertAllow"
             ]
           }
         },
