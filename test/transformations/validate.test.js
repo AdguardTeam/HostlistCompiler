@@ -45,6 +45,8 @@ describe('Validate', () => {
 ||example.org^$third-party
 ||example.org^$important
 ://example.org
+||example.org^|
+@@||example.org^|$important
 @@||example.com^*-tracking.js
 @@||example.com^-tracking.js`.split(/\r?\n/);
         const filtered = validate(rules);
@@ -56,6 +58,8 @@ describe('Validate', () => {
             '||ex*.org^', // valid because contains special characters
             '||example.org^$important',
             '://example.org',
+            '||example.org^|',
+            '@@||example.org^|$important',
         ]);
     });
 });

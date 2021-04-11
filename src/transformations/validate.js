@@ -153,7 +153,9 @@ function validAdblockRule(ruleText) {
         }
 
         // If there's something after ^ in the pattern - something went wrong
-        if (props.pattern.length > (sepIdx + 1)) {
+        // unless it's `^|` which is a rather often case
+        if (props.pattern.length > (sepIdx + 1)
+            && props.pattern[sepIdx + 1] !== '|') {
             return false;
         }
     }
