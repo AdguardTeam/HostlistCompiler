@@ -32,7 +32,7 @@ Test:
             yarn install
             yarn lint
             yarn test
-
+            rm -rf node_modules
   final-tasks:
     - clean
   requirements:
