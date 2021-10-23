@@ -7,17 +7,19 @@ describe('Strip third-party', () => {
 ||example.net$domain=ya.ru,3p
 ||islandofadvert.com^$document,popup
 ||example.com$document
+||example.com$doc
 ||example.com$all
 ||example.org^`.split(/\r?\n/);
         const filtered = removeModifiers(rules);
 
-        expect(filtered).toHaveLength(7);
+        expect(filtered).toHaveLength(8);
         expect(filtered[0]).toBe('! test comment');
         expect(filtered[1]).toBe('||example.org$important');
         expect(filtered[2]).toBe('||example.net$domain=ya.ru');
         expect(filtered[3]).toBe('||islandofadvert.com^');
         expect(filtered[4]).toBe('||example.com');
         expect(filtered[5]).toBe('||example.com');
-        expect(filtered[6]).toBe('||example.org^');
+        expect(filtered[6]).toBe('||example.com');
+        expect(filtered[7]).toBe('||example.org^');
     });
 });
