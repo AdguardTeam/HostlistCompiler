@@ -4,7 +4,7 @@ const ruleUtils = require('../rule');
 
 /**
  * This transformation simply removes the following modifiers from the adblock-style rules:
- * $document, $all, $third-party, $3p, $popup
+ * $document, $doc, $all, $third-party, $3p, $popup
  *
  * @param {Array<string>} rules - rules to transform
  * @returns {Array<string>} filtered rules
@@ -32,6 +32,7 @@ function removeModifiers(rules) {
         modified = ruleUtils.removeModifier(props, '3p') || modified;
         modified = ruleUtils.removeModifier(props, 'all') || modified;
         modified = ruleUtils.removeModifier(props, 'document') || modified;
+        modified = ruleUtils.removeModifier(props, 'doc') || modified;
         modified = ruleUtils.removeModifier(props, 'popup') || modified;
         filtered.push(ruleUtils.adblockRuleToString(props));
 

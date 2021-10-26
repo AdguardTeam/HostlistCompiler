@@ -188,7 +188,7 @@ By default, [AdGuard Home](https://github.com/AdguardTeam/AdGuardHome) will igno
 Here is the list of modifiers that will be removed:
 
 - `$third-party` and `$3p` modifiers
-- `$document` modifier
+- `$document` and `$doc` modifiers
 - `$all` modifier
 - `$popup` modifier
 
