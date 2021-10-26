@@ -1,0 +1,43 @@
+---
+version: 2
+deployment:
+  name: hostlist-compiler - deploy
+  source-plan: AJL-HLCBUILD
+release-naming: ${bamboo.inject.version}
+environments:
+  - npmjs
+npmjs:
+  docker:
+    image: adguard/node-ssh:14.18--0
+    volumes:
+      ${system.YARN_DIR}: "${bamboo.cacheYarn}"
+  triggers: [ ]
+  tasks:
+    - checkout:
+        force-clean-build: 'true'
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            set -e
+            set -x
+
+            yarn install ${bamboo.varsYarn}
+
+            ls -la
+
+            export NPM_TOKEN=${bamboo.npmSecretToken}
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+            npm publish --access public
+
+            # cleanup
+            rm -rf node_modules
+  requirements:
+    - adg-docker: 'true'
+  notifications:
+    - events:
+        - deployment-started-and-finished
+      recipients:
+        - webhook:
+            name: Deploy webhook
+            url: http://prod.jirahub.service.eu.consul/v1/webhook/bamboo

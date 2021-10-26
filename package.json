@@ -12,7 +12,8 @@
   "scripts": {
     "lint": "eslint .",
     "test": "jest --runInBand .",
-    "compile": "node src/cli.js"
+    "compile": "node src/cli.js",
+    "increment": "yarn version --patch --no-git-tag-version"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
