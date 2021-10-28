@@ -1,0 +1,16 @@
+---
+version: 2
+deployment:
+  name: hostlist-compiler - deploy
+deployment-permissions:
+  - groups:
+      - extensions-developers
+    permissions:
+      - view
+environment-permissions:
+  - npmjs:
+      - groups:
+          - extensions-developers
+        permissions:
+          - view
+          - deploy
