@@ -5,7 +5,7 @@ plan:
   key: HBRTSPECS
   name: hostlist-compiler - test
 variables:
-  dockerJslBuilder: adguard/jsl-builder:15.8.0--1.22.5--1
+  dockerNode: adguard/node-ssh:14.18--0
 
 stages:
   - Test:
@@ -17,7 +17,7 @@ stages:
 Test:
   key: TEST
   docker:
-    image: "${bamboo.dockerJslBuilder}"
+    image: "${bamboo.dockerNode}"
     volumes:
       ${system.YARN_DIR}: "${bamboo.cacheYarn}"
   tasks:
