@@ -46,6 +46,13 @@ declare module '@adguard/hostlist-compiler' {
         inclusions_sources?: string[];
     }
 
+    /**
+     * Compiles a filter list using the specified configuration.
+     *
+     * @param {*} configuration - compilation configuration.
+    See the repo README for the details on it.
+     * @returns {Array<string>} the array of rules.
+     */
     declare async function compile(configuration: IConfiguration): Promise<string[]>;
 
     export default compile;
