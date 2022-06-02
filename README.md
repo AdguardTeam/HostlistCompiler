@@ -15,6 +15,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [Validate](#validate)
   - [Deduplicate](#deduplicate)
   - [InvertAllow](#invertallow)
+  - [RemoveEmptyLines](#removeemptylines)
 - [How to build](#how-to-build)
 
 ## <a id="usage"></a> Usage
@@ -219,6 +220,7 @@ Here is the full list of transformations that are available:
 4. `Validate`
 5. `Deduplicate`
 6. `InvertAllow`
+7. `RemoveEmptyLines`
 
 Please note that these transformations are are always applied in the order specified here.
 
@@ -318,6 +320,28 @@ Here's what we will have after applying this transformation:
 # comment 2
 192.168.11.11   test.local
 @@rule2
+```
+
+### <a id="removeemptylines"></a> RemoveEmptyLines
+
+This is a very simple transformation that removes empty lines.
+
+**Example:**
+
+Original list:
+
+```
+rule1
+rule2
+rule3
+```
+
+Here's what we will have after applying this transformation:
+
+```
+rule1
+rule2
+rule3
 ```
 
 ## <a id="how-to-build"></a> How to build
