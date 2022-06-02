@@ -15,6 +15,8 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [Validate](#validate)
   - [Deduplicate](#deduplicate)
   - [InvertAllow](#invertallow)
+  - [RemoveEmptyLines](#removeemptylines)
+  - [InsertFinalNewLine](#insertfinalnewline)
 - [How to build](#how-to-build)
 
 ## <a id="usage"></a> Usage
@@ -131,9 +133,9 @@ Examples:
 
 ### <a id="api"></a> API
 
-```
-npm i @adguard/hostlist-compiler
-```
+Install: `npm i @adguard/hostlist-compiler` or `yarn add @adguard/hostlist-compiler`
+
+#### JavaScript example:
 
 ```javascript
 const compile = require("@adguard/hostlist-compiler");
@@ -155,6 +157,28 @@ async function main() {
 main();
 ```
 
+#### TypeScript example:
+
+```typescript
+import HostlistCompiler, { IConfiguration as HostlistCompilerConfiguration } from '@adguard/hostlist-compiler';
+// or:
+// import compiler, { IConfiguration as CompilerConfiguration } from '@adguard/hostlist-compiler';
+import { writeFileSync } from 'fs';
+
+(async () => {
+    // Configuration
+    const config: HostlistCompilerConfiguration = {
+        // ...
+    };
+
+    // Compile filters
+    const result = await HostlistCompiler(config);
+
+    // Write to file
+    writeFileSync('custom-adguard-dns.txt', result.join('\n'));
+})();
+```
+
 ## <a id="transformations"></a> Transformations
 
 Here is the full list of transformations that are available:
@@ -165,6 +189,8 @@ Here is the full list of transformations that are available:
 4. `Validate`
 5. `Deduplicate`
 6. `InvertAllow`
+7. `RemoveEmptyLines`
+8. `InsertFinalNewLine`
 
 Please note that these transformations are are always applied in the order specified here.
 
@@ -265,6 +291,56 @@ Here's what we will have after applying this transformation:
 192.168.11.11   test.local
 @@rule2
 ```
+
+### <a id="removeemptylines"></a> RemoveEmptyLines
+
+This is a very simple transformation that removes empty lines.
+
+**Example:**
+
+Original list:
+
+```
+rule1
+
+rule2
+
+
+rule3
+```
+
+Here's what we will have after applying this transformation:
+
+```
+rule1
+rule2
+rule3
+```
+
+### <a id="insertfinalnewline"></a> InsertFinalNewLine
+
+This is a very simple transformation that inserts a final new line.
+
+**Example:**
+
+Original list:
+
+```
+rule1
+rule2
+rule3
+```
+
+Here's what we will have after applying this transformation:
+
+```
+rule1
+rule2
+rule3
+
+```
+
+`RemoveEmptyLines` transformation has no effect on this new line because it precedes this transformation in the execution queue.
 
 ## <a id="how-to-build"></a> How to build
 
