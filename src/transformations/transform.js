@@ -31,7 +31,7 @@ const TRANSFORMATIONS = Object.freeze({
  * @param {Array<string>} rules - rules to transform
  * @param {*} configuration - transformation configuration.
  * @param {Array<string>} transformations - a list of transformations to apply to the rules.
- * @returns {Array<string>} rules after applying all transformations.
+ * @returns {Promise<Array<string>>} rules after applying all transformations.
  */
 async function transform(rules, configuration, transformations) {
     // If none specified -- apply all transformationss

@@ -16,7 +16,7 @@ function isURL(str) {
  * Downloads (or reads from the disk) the specified source
  *
  * @param {*} urlOrPath url or path to a file
- * @returns {String} contents of the files
+ * @returns {Promise<String>} contents of the files
  */
 async function download(urlOrPath) {
     let str = '';

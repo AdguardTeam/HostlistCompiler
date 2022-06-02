@@ -17,7 +17,7 @@ const { transform } = require('./transformations/transform');
  * Compiles an individual source according to it's configuration.
  *
  * @param {ListSource} source - source configuration.
- * @returns {Array<string>} array with the source rules
+ * @returns {Promise<Array<string>>} array with the source rules
  */
 async function compileSource(source) {
     consola.info(`Start compiling ${source.source}`);

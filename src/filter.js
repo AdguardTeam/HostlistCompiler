@@ -7,7 +7,7 @@ const ruleUtils = require('./rule');
  * and return a final array with all the lines from all files.
  *
  * @param {Array<String>} sources - array of URLs.
- * @returns {Array<String>} array with all non-empty and non-comment lines.
+ * @returns {Promise<Array<String>>} array with all non-empty and non-comment lines.
  */
 async function downloadAll(sources) {
     let list = [];
@@ -32,7 +32,7 @@ async function downloadAll(sources) {
  * @param {Array<String>} rules - array of rules to apply
  * @param {Array<String>} sources - array of rules sources
  * (can be local or remote files)
- * @returns {Array<utils.Wildcard>} a list of wildcards to apply
+ * @returns {Promise<Array<utils.Wildcard>>} a list of wildcards to apply
  */
 async function prepareWildcards(rules, sources) {
     let list = [];

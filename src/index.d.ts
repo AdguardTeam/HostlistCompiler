@@ -51,7 +51,7 @@ declare module '@adguard/hostlist-compiler' {
      *
      * @param {*} configuration - compilation configuration.
     See the repo README for the details on it.
-     * @returns {Array<string>} the array of rules.
+     * @returns {Promise<Array<string>>} the array of rules.
      */
     declare async function compile(configuration: IConfiguration): Promise<string[]>;
 
