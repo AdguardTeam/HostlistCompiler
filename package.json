@@ -3,6 +3,7 @@
   "version": "1.0.13",
   "description": "A simple tool that compiles hosts blocklists from multiple sources",
   "main": "src/index.js",
+  "types": "src/index.d.ts",
   "repository": "https://github.com/AdguardTeam/HostlistCompiler",
   "author": "AdGuard",
   "license": "GPL-3.0",
