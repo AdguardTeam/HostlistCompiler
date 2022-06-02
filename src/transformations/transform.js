@@ -7,6 +7,7 @@ const deduplicate = require('./deduplicate');
 const compress = require('./compress');
 const invertAllow = require('./invertallow');
 const removeEmptyLines = require('./remove-empty-lines');
+const insertFinalNewLine = require('./insert-final-new-line');
 
 /**
  * Enum with all available transformations
@@ -19,6 +20,7 @@ const TRANSFORMATIONS = Object.freeze({
     Deduplicate: 'Deduplicate',
     InvertAllow: 'InvertAllow',
     RemoveEmptyLines: 'RemoveEmptyLines',
+    InsertFinalNewLine: "InsertFinalNewLine"
 });
 
 /**
@@ -63,6 +65,9 @@ async function transform(rules, configuration, transformations) {
     }
     if (transformations.indexOf(TRANSFORMATIONS.RemoveEmptyLines) !== -1) {
         transformed = removeEmptyLines(transformed);
+    }
+    if (transformations.indexOf(TRANSFORMATIONS.InsertFinalNewLine) !== -1) {
+        transformed = insertFinalNewLine(transformed);
     }
     return transformed;
 }

@@ -1,6 +1,6 @@
 declare module '@adguard/hostlist-compiler' {
     export type SourceType = 'adblock' | 'hosts';
-    export type Transformation = 'RemoveComments' | 'Compress' | 'RemoveModifiers' | 'Validate' | 'Deduplicate' | 'InvertAllow' | 'RemoveEmptyLines';
+    export type Transformation = 'RemoveComments' | 'Compress' | 'RemoveModifiers' | 'Validate' | 'Deduplicate' | 'InvertAllow' | 'RemoveEmptyLines' | 'InsertFinalNewLine';
 
     /** A source for the filter list */
     export interface ISource {

@@ -42,7 +42,8 @@
           "Validate",
           "Deduplicate",
           "InvertAllow",
-          "RemoveEmptyLines"
+          "RemoveEmptyLines",
+          "InsertFinalNewLine"
         ]
       }
     },
@@ -115,7 +116,8 @@
               "Validate",
               "Deduplicate",
               "InvertAllow",
-              "RemoveEmptyLines"
+              "RemoveEmptyLines",
+              "InsertFinalNewLine"
             ]
           }
         },
