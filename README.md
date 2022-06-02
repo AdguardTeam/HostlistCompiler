@@ -131,28 +131,82 @@ Examples:
 
 ### <a id="api"></a> API
 
-```
-npm i @adguard/hostlist-compiler
-```
+Install: `npm i @adguard/hostlist-compiler` or `yarn add @adguard/hostlist-compiler`
+
+#### JavaScript example:
 
 ```javascript
 const compile = require("@adguard/hostlist-compiler");
 
-const configuration = {
-  name: "test list",
-  sources: [
-    {
-      source:
-        "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
-    },
-  ],
-};
+;(async () => {
+    // Compile filters
+    const result = await compile({
+        name: 'Your Hostlist',
+        sources: [
+            {
+                type: 'adblock',
+                source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt', // or local file
+                transformations: ['RemoveComments', 'Validate'],
+            },
+        ],
+        transformations: ['Deduplicate'],
+    });
+    // Write to file
+    writeFileSync('your-hostlist.txt', result.join('\n'));
+})();
+```
 
-async function main() {
-  const compiled = compile(configuration);
-}
+#### TypeScript example:
 
-main();
+```typescript
+import compile from '@adguard/hostlist-compiler';
+import { writeFileSync } from 'fs';
+
+;(async () => {
+    // Compile filters
+    const result = await compile({
+        name: 'Your Hostlist',
+        sources: [
+            {
+                type: 'adblock',
+                source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                transformations: ['RemoveComments', 'Validate'],
+            },
+        ],
+        transformations: ['Deduplicate'],
+    });
+
+    // Write to file
+    writeFileSync('your-hostlist.txt', result.join('\n'));
+})();
+```
+
+or:
+
+```typescript
+import HostlistCompiler, { IConfiguration as HostlistCompilerConfiguration } from '@adguard/hostlist-compiler';
+import { writeFileSync } from 'fs';
+
+;(async () => {
+    // Configuration
+    const config: HostlistCompilerConfiguration = {
+        name: 'Your Hostlist',
+        sources: [
+            {
+                type: 'adblock',
+                source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                transformations: ['RemoveComments', 'Validate'],
+            },
+        ],
+        transformations: ['Deduplicate'],
+    };
+
+    // Compile filters
+    const result = await HostlistCompiler(config);
+
+    // Write to file
+    writeFileSync('your-hostlist.txt', result.join('\n'));
+})();
 ```
 
 ## <a id="transformations"></a> Transformations
