@@ -9,7 +9,8 @@ declare module '@adguard/hostlist-compiler' {
         'Deduplicate' | 
         'InvertAllow' |
         'RemoveEmptyLines' |
-        'TrimLines';
+        'TrimLines' |
+        'InsertFinalNewLine';
 
     /** A source for the filter list */
     export interface ISource {

@@ -17,6 +17,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [InvertAllow](#invertallow)
   - [RemoveEmptyLines](#removeemptylines)
   - [TrimLines](#trimlines)
+  - [InsertFinalNewLine](#insertfinalnewline)
 - [How to build](#how-to-build)
 
 ## <a id="usage"></a> Usage
@@ -223,6 +224,7 @@ Here is the full list of transformations that are available:
 6. `InvertAllow`
 7. `RemoveEmptyLines`
 8. `TrimLines`
+9. `InsertFinalNewLine`
 
 Please note that these transformations are are always applied in the order specified here.
 
@@ -369,6 +371,31 @@ rule2
 rule3
 rule4
 ```
+
+### <a id="insertfinalnewline"></a> InsertFinalNewLine
+
+This is a very simple transformation that inserts a final newline.
+
+**Example:**
+
+Original list:
+
+```
+rule1
+rule2
+rule3
+```
+
+Here's what we will have after applying this transformation:
+
+```
+rule1
+rule2
+rule3
+
+```
+
+`RemoveEmptyLines` doesn't delete this empty row due to the execution order.
 
 ## <a id="how-to-build"></a> How to build
 
