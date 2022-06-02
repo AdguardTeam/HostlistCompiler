@@ -154,6 +154,7 @@ const compile = require("@adguard/hostlist-compiler");
         ],
         transformations: ['Deduplicate'],
     });
+    
     // Write to file
     writeFileSync('your-hostlist.txt', result.join('\n'));
 })();
@@ -336,7 +337,10 @@ Original list:
 
 ```
 rule1
+
 rule2
+
+
 rule3
 ```
 
