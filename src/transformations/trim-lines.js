@@ -8,9 +8,9 @@ const _ = require('lodash');
  * @returns {Array<string>} filtered lines/rules
  */
 function trimLines(lines) {
-    lines = lines.map(line => _.trim(line, [' ', '\t']));
-    consola.info(`Lines trimmed.`);
-    return lines;
+    const transformed = lines.map((line) => _.trim(line, [' ', '\t']));
+    consola.info('Lines trimmed.');
+    return transformed;
 }
 
 module.exports = trimLines;

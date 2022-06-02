@@ -21,8 +21,8 @@ const TRANSFORMATIONS = Object.freeze({
     Deduplicate: 'Deduplicate',
     InvertAllow: 'InvertAllow',
     RemoveEmptyLines: 'RemoveEmptyLines',
-    TrimLines: "TrimLines",
-    InsertFinalNewLine: "InsertFinalNewLine"
+    TrimLines: 'TrimLines',
+    InsertFinalNewLine: 'InsertFinalNewLine',
 });
 
 /**

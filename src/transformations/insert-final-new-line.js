@@ -7,10 +7,10 @@ const consola = require('consola');
  * @returns {Array<string>} filtered lines/rules
  */
 function insertFinalNewLine(lines) {
-    if (lines.length === 0 || (lines.length > 0 && lines[lines.length - 1].trim() != '')) {
+    if (lines.length === 0 || (lines.length > 0 && lines[lines.length - 1].trim() !== '')) {
         lines.push('');
     }
-    consola.info(`Final new line inserted`);
+    consola.info('Final new line inserted');
     return lines;
 }
 

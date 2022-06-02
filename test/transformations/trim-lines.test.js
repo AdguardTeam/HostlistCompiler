@@ -8,7 +8,7 @@ describe('Trim lines', () => {
     });
     it('test with one empty line', () => {
         const rules = [''];
-        const filtered = insertFinalNewLine(rules);
+        const filtered = trimLines(rules);
         expect(filtered).toEqual(['']);
     });
     it('test with three rules', () => {
@@ -16,14 +16,14 @@ describe('Trim lines', () => {
             'rule1',
             '   rule2 ',
             '',
-            '          rule3         '
+            '          rule3         ',
         ];
-        const filtered = insertFinalNewLine(rules);
+        const filtered = trimLines(rules);
         expect(filtered).toEqual([
             'rule1',
             'rule2',
             '',
-            'rule3'
+            'rule3',
         ]);
     });
     it('test with three rules and comments', () => {
@@ -37,7 +37,7 @@ describe('Trim lines', () => {
             '    ! comment multiple   words    ',
             '',
         ];
-        const filtered = insertFinalNewLine(rules);
+        const filtered = trimLines(rules);
         expect(filtered).toEqual([
             'rule1',
             'rule2',
@@ -46,7 +46,7 @@ describe('Trim lines', () => {
             '! comment',
             'rule3',
             '! comment multiple   words',
-            ''
+            '',
         ]);
     });
 });
