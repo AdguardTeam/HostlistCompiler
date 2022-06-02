@@ -16,6 +16,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [Deduplicate](#deduplicate)
   - [InvertAllow](#invertallow)
   - [RemoveEmptyLines](#removeemptylines)
+  - [TrimLines](#trimlines)
   - [InsertFinalNewLine](#insertfinalnewline)
 - [How to build](#how-to-build)
 
@@ -190,7 +191,8 @@ Here is the full list of transformations that are available:
 5. `Deduplicate`
 6. `InvertAllow`
 7. `RemoveEmptyLines`
-8. `InsertFinalNewLine`
+8. `TrimLines`
+9. `InsertFinalNewLine`
 
 Please note that these transformations are are always applied in the order specified here.
 
@@ -315,6 +317,30 @@ Here's what we will have after applying this transformation:
 rule1
 rule2
 rule3
+```
+
+### <a id="trimlines"></a> TrimLines
+
+This is a very simple transformation that removes leading and trailing spaces/tabs.
+
+**Example:**
+
+Original list:
+
+```
+rule1
+   rule2
+rule3
+		rule4
+```
+
+Here's what we will have after applying this transformation:
+
+```
+rule1
+rule2
+rule3
+rule4
 ```
 
 ### <a id="insertfinalnewline"></a> InsertFinalNewLine

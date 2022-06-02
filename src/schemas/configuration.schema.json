@@ -43,6 +43,7 @@
           "Deduplicate",
           "InvertAllow",
           "RemoveEmptyLines",
+          "TrimLines",
           "InsertFinalNewLine"
         ]
       }
@@ -117,6 +118,7 @@
               "Deduplicate",
               "InvertAllow",
               "RemoveEmptyLines",
+              "TrimLines",
               "InsertFinalNewLine"
             ]
           }
