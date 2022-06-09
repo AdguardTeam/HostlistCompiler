@@ -47,6 +47,9 @@ async function transform(rules, configuration, transformations) {
     transformed = await include(transformed, configuration.inclusions,
         configuration.inclusions_sources);
 
+    if (transformations.indexOf(TRANSFORMATIONS.TrimLines) !== -1) {
+        transformed = trimLines(transformed);
+    }
     if (transformations.indexOf(TRANSFORMATIONS.RemoveComments) !== -1) {
         transformed = removeComments(transformed);
     }
@@ -67,9 +70,6 @@ async function transform(rules, configuration, transformations) {
     }
     if (transformations.indexOf(TRANSFORMATIONS.RemoveEmptyLines) !== -1) {
         transformed = removeEmptyLines(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.TrimLines) !== -1) {
-        transformed = trimLines(transformed);
     }
     if (transformations.indexOf(TRANSFORMATIONS.InsertFinalNewLine) !== -1) {
         transformed = insertFinalNewLine(transformed);

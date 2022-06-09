@@ -85,4 +85,40 @@ describe('Source compiler', () => {
         // Make sure scope URLs were requested
         scope.done();
     });
+
+    it('compile the source with transformations', async () => {
+        const testList = `
+    
+    example.org
+
+               test1.com             
+
+        ! comment      
+ test1.com
+
+  test2.com`;
+        const scope = nock('https://example.org')
+            .get('/test-filter.txt')
+            .reply(200, testList);
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/test-filter.txt',
+            transformations: [
+                TRANSFORMATIONS.Deduplicate,
+                TRANSFORMATIONS.RemoveComments,
+                TRANSFORMATIONS.TrimLines,
+                TRANSFORMATIONS.RemoveEmptyLines,
+                TRANSFORMATIONS.InsertFinalNewLine,
+            ],
+        };
+        const compiled = await compileSource(source);
+        expect(compiled).toBeDefined();
+        expect(compiled).toHaveLength(4);
+        expect(compiled[0]).toEqual('example.org');
+        expect(compiled[1]).toEqual('test1.com');
+        expect(compiled[2]).toEqual('test2.com');
+        expect(compiled[3]).toEqual('');
+        scope.done();
+    });
 });
