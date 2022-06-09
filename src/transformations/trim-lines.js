@@ -8,7 +8,7 @@ const _ = require('lodash');
  * @returns {Array<string>} filtered lines/rules
  */
 function trimLines(lines) {
-    const transformed = lines.map((line) => _.trim(line, [' ', '\t']));
+    const transformed = lines.map((line) => _.trim(line, ' \t'));
     consola.info('Lines trimmed.');
     return transformed;
 }
