@@ -115,10 +115,12 @@ describe('Source compiler', () => {
         const compiled = await compileSource(source);
         expect(compiled).toBeDefined();
         expect(compiled).toHaveLength(4);
-        expect(compiled[0]).toEqual('example.org');
-        expect(compiled[1]).toEqual('test1.com');
-        expect(compiled[2]).toEqual('test2.com');
-        expect(compiled[3]).toEqual('');
+        expect(compiled).toEqual([
+            'example.org',
+            'test1.com',
+            'test2.com',
+            '',
+        ]);
         scope.done();
     });
 });
