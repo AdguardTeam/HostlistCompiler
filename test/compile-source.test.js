@@ -113,8 +113,6 @@ describe('Source compiler', () => {
             ],
         };
         const compiled = await compileSource(source);
-        expect(compiled).toBeDefined();
-        expect(compiled).toHaveLength(4);
         expect(compiled).toEqual([
             'example.org',
             'test1.com',
