@@ -9,7 +9,7 @@ const filterUtils = require('../filter');
  * @param {Array<String>} inclusions - array of inclusions to apply
  * @param {Array<String>} inclusionsSources - array of inclusions' sources
  * (can be a local or remote file)
- * @returns {Array<String>} filtered array of rules
+ * @returns {Promise<Array<String>>} filtered array of rules
  */
 async function include(rules, inclusions, inclusionsSources) {
     if (_.isEmpty(inclusions) && _.isEmpty(inclusionsSources)) {

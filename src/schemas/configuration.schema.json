@@ -41,7 +41,10 @@
           "Compress",
           "Validate",
           "Deduplicate",
-          "InvertAllow"
+          "InvertAllow",
+          "RemoveEmptyLines",
+          "TrimLines",
+          "InsertFinalNewLine"
         ]
       }
     },
@@ -113,7 +116,10 @@
               "Compress",
               "Validate",
               "Deduplicate",
-              "InvertAllow"
+              "InvertAllow",
+              "RemoveEmptyLines",
+              "TrimLines",
+              "InsertFinalNewLine"
             ]
           }
         },

@@ -65,7 +65,7 @@ function prepareSourceHeader(source) {
  *
  * @param {*} configuration - compilation configuration.
 See the repo README for the details on it.
- * @returns {Array<string>} the array of rules.
+ * @returns {Promise<Array<string>>} the array of rules.
  */
 async function compile(configuration) {
     consola.info('Starting the compiler');
