@@ -33,7 +33,7 @@
     },
     {
       "name": "AdGuard Base filter ad servers",
-      "source": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/EnglishFilter/sections/adservers.txt",
+      "source": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt",
       "type": "adblock",
       "exclusions_sources": [
         "https://raw.githubusercontent.com/AdguardTeam/AdGuardSDNSFilter/master/Filters/exclusions.txt"
@@ -42,7 +42,7 @@
     },
     {
       "name": "AdGuard Base filter ad servers first-party",
-      "source": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/EnglishFilter/sections/adservers_firstparty.txt",
+      "source": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers_firstparty.txt",
       "type": "adblock",
       "exclusions_sources": [
         "https://raw.githubusercontent.com/AdguardTeam/AdGuardSDNSFilter/master/Filters/exclusions.txt"
@@ -177,7 +177,7 @@
     },
     {
       "name": "AdGuard Base filter cryptominers",
-      "source": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/EnglishFilter/sections/cryptominers.txt",
+      "source": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/cryptominers.txt",
       "type": "adblock",
       "exclusions_sources": [
         "https://raw.githubusercontent.com/AdguardTeam/AdGuardSDNSFilter/master/Filters/exclusions.txt"
