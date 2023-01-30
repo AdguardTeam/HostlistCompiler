@@ -40,10 +40,33 @@ hostlist-compiler -i hosts.txt -i hosts2.txt -o output.txt
 
 **Build a configurable blocklist from multiple sources**
 
-Prepare the list configuration (read more about that below) and run the compiler:
+Prepare the list configuration (read more about that [below](#configuration)) and run the compiler:
 
 ```bash
 hostlist-compiler -c configuration.json -o output.txt
+```
+
+**All command line options**
+
+```
+Usage: hostlist-compiler [options]
+
+Options:
+  --config, -c      Path to the compiler configuration file             [string]
+  --input, -i       URL (or path to a file) to convert to an AdGuard-syntax
+                    blocklist. Can be specified multiple times.          [array]
+  --input-type, -t  Type of the input file (/etc/hosts, adguard)        [string]
+  --output, -o      Path to the output file                  [string] [required]
+  --verbose, -v     Run with verbose logging                           [boolean]
+  --version         Show version number                                [boolean]
+  -h, --help        Show help                                          [boolean]
+
+Examples:
+  hostlist-compiler -c config.json -o       compile a blocklist and write the
+  output.txt                                output to output.txt
+  hostlist-compiler -i                      compile a blocklist from the URL and
+  https://example.org/hosts.txt -o          write the output to output.txt
+  output.txt
 ```
 
 ### <a id="configuration"></a> Configuration
