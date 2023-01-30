@@ -2,7 +2,7 @@
 
 [![NPM](https://nodei.co/npm/@adguard/hostlist-compiler.png?compact=true)](https://www.npmjs.com/package/@adguard/hostlist-compiler/)
 
-This is a simple tool that makes it easier to compile a [hosts blocklist](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists) compatible with AdGuard Home or any other AdGuard product with **DNS filtering**.
+This is a simple tool that makes it easier to compile a [hosts blocklist](https://adguard-dns.io/kb/general/dns-filtering-syntax/) compatible with AdGuard Home or any other AdGuard product with **DNS filtering**.
 
 - [Usage](#usage)
   - [Configuration](#configuration)
@@ -27,6 +27,18 @@ First of all, install the `hostlist-compiler`:
 ```bash
 npm i -g @adguard/hostlist-compiler
 ```
+
+After that you have two options.
+
+**Quick hosts conversion**
+
+Convert and compress a `/etc/hosts`-syntax blocklist to [AdGuard syntax](https://adguard-dns.io/kb/general/dns-filtering-syntax/).
+
+```
+hostlist-compiler -i hosts.txt -i hosts2.txt -o output.txt
+```
+
+**Build a configurable blocklist from multiple sources**
 
 Prepare the list configuration (read more about that below) and run the compiler:
 
