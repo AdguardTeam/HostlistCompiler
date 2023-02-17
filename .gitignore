@@ -1,6 +1,7 @@
 .vscode
 .idea
 .DS_Store
+.eslintcache
 node_modules
 examples/sdn/filter.txt*
 examples/energized/filter.txt

@@ -11,7 +11,7 @@
     "hostlist-compiler": "src/cli.js"
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint . --cache",
     "test": "jest --runInBand .",
     "compile": "node src/cli.js"
   },
