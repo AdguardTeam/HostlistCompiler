@@ -20,7 +20,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [InsertFinalNewLine](#insertfinalnewline)
 - [How to build](#how-to-build)
 
-## <a id="usage"></a> Usage
+## <a name="usage"></a> Usage
 
 First of all, install the `hostlist-compiler`:
 
@@ -69,7 +69,7 @@ Examples:
   output.txt
 ```
 
-### <a id="configuration"></a> Configuration
+### <a name="configuration"></a> Configuration
 
 Configuration defines your filter list sources, and the transformations that are applied to the sources.
 
@@ -148,7 +148,7 @@ Please note, that exclusion or inclusion rules may be a plain string, wildcard, 
 - `/regex/` - every rule that matches this regular expression, will match the rule. By default, regular expressions are case-insensitive.
 - `! comment` - comments will be ignored.
 
-### <a id="command-line"></a> Command-line
+### <a name="command-line"></a> Command-line
 
 Command-line arguments.
 
@@ -167,7 +167,7 @@ Examples:
   output.txt                                output to output.txt
 ```
 
-### <a id="api"></a> API
+### <a name="api"></a> API
 
 Install: `npm i @adguard/hostlist-compiler` or `yarn add @adguard/hostlist-compiler`
 
@@ -189,7 +189,7 @@ const compile = require("@adguard/hostlist-compiler");
         ],
         transformations: ['Deduplicate'],
     });
-    
+
     // Write to file
     writeFileSync('your-hostlist.txt', result.join('\n'));
 })();
@@ -248,7 +248,7 @@ import { writeFileSync } from 'fs';
 })();
 ```
 
-## <a id="transformations"></a> Transformations
+## <a name="transformations"></a> Transformations
 
 Here is the full list of transformations that are available:
 
@@ -264,11 +264,11 @@ Here is the full list of transformations that are available:
 
 Please note that these transformations are are always applied in the order specified here.
 
-### <a id="remove-comments"></a> RemoveComments
+### <a name="remove-comments"></a> RemoveComments
 
 This is a very simple transformation that simply removes comments (e.g. all rules starting with `!` or `#`).
 
-### <a id="compress"></a> Compress
+### <a name="compress"></a> Compress
 
 > **IMPORTANT:** this transformation converts `hosts` lists into `adblock` lists.
 
@@ -277,7 +277,7 @@ Here's what it does:
 1. It converts all rules to adblock-style rules. For instance, `0.0.0.0 example.org` will be converted to `||example.org^`.
 2. It discards the rules that are now redundant because of other existing rules. For instance, `||example.org` blocks `example.org` and all it's subdomains, therefore additional rules for the subdomains are now redundant.
 
-### <a id="remove-modifiers"></a> RemoveModifiers
+### <a name="remove-modifiers"></a> RemoveModifiers
 
 By default, [AdGuard Home](https://github.com/AdguardTeam/AdGuardHome) will ignore rules with unsupported modifiers, and all of the modifiers listed here are unsupported. However, the rules with these modifiers are likely to be okay for DNS-level blocking, that's why you might want to remove them when importing rules from a traditional filter list.
 
@@ -290,7 +290,7 @@ Here is the list of modifiers that will be removed:
 
 **IMPORTANT:** please, be cautious with this. Blindly removing `$third-party` from traditional ad blocking rules leads to lots of false-positives. This is exactly why there is an option to exclude rules - you may need to use it.
 
-### <a id="validate"></a> Validate
+### <a name="validate"></a> Validate
 
 This transformation is really crucial if you're using a filter list for a traditional ad blocker as a source.
 
@@ -304,7 +304,7 @@ So here's what it does:
 
 If there are comments preceding the invalid rule, they will be removed as well.
 
-### <a id="deduplicate"></a> Deduplicate
+### <a name="deduplicate"></a> Deduplicate
 
 This transformation simply removes the duplicates from the specified source.
 
@@ -329,7 +329,7 @@ Here's what will be left after the transformation:
 rule1
 ```
 
-### <a id="invertallow"></a> InvertAllow
+### <a name="invertallow"></a> InvertAllow
 
 This transformation converts blocking rules to "allow" rules. Note, that it does nothing to /etc/hosts rules (unless they were previously converted to adblock-style syntax by a different transformation, for example [Compress](#compress)).
 
@@ -362,7 +362,7 @@ Here's what we will have after applying this transformation:
 @@rule2
 ```
 
-### <a id="removeemptylines"></a> RemoveEmptyLines
+### <a name="removeemptylines"></a> RemoveEmptyLines
 
 This is a very simple transformation that removes empty lines.
 
@@ -387,7 +387,7 @@ rule2
 rule3
 ```
 
-### <a id="trimlines"></a> TrimLines
+### <a name="trimlines"></a> TrimLines
 
 This is a very simple transformation that removes leading and trailing spaces/tabs.
 
@@ -411,7 +411,7 @@ rule3
 rule4
 ```
 
-### <a id="insertfinalnewline"></a> InsertFinalNewLine
+### <a name="insertfinalnewline"></a> InsertFinalNewLine
 
 This is a very simple transformation that inserts a final newline.
 
@@ -436,7 +436,7 @@ rule3
 
 `RemoveEmptyLines` doesn't delete this empty row due to the execution order.
 
-## <a id="how-to-build"></a> How to build
+## <a name="how-to-build"></a> How to build
 
 - `yarn install` - installs dependencies
 - `yarn lint` - runs eslint
