@@ -42,5 +42,5 @@ npmjs:
       recipients:
         - webhook:
             name: Deploy webhook
-            # FIXME: maybe channel should be 'adguard-filters'
+            # TODO: maybe channel should be 'adguard-filters'
             url: http://prod.jirahub.service.eu.consul/v1/webhook/bamboo?channel=adguard-qa
