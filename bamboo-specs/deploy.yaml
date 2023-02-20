@@ -4,14 +4,12 @@ deployment:
   name: hostlist-compiler - deploy
   source-plan: AJL-HOSTLISTCMPLRBUILD
 release-naming: ${bamboo.inject.version}
-variables:
-  dockerContainer: adguard/node-ssh:18.13--0
 environments:
   - npmjs
 
 npmjs:
   docker:
-    image: "${bamboo.dockerContainer}"
+    image: adguard/node-ssh:18.13--0
     volumes:
       ${system.YARN_DIR}: "${bamboo.cacheYarn}"
   triggers: []
