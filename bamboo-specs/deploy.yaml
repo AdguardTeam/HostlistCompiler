@@ -1,0 +1,48 @@
+---
+version: 2
+deployment:
+  name: hostlist-compiler - deploy
+  source-plan: AJL-HOSTLISTCMPLRBUILD
+release-naming: ${bamboo.inject.version}
+variables:
+  dockerContainer: adguard/node-ssh:18.13--0
+environments:
+  - npmjs
+
+npmjs:
+  docker:
+    image: "${bamboo.dockerContainer}"
+    volumes:
+      ${system.YARN_DIR}: "${bamboo.cacheYarn}"
+  triggers: []
+  tasks:
+    - checkout:
+        force-clean-build: true
+    - artifact-download:
+        artifacts:
+          - name: hostlist-compiler.tgz
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            set -e
+            set -x
+
+            # Fix mixed logs
+            exec 2>&1
+
+            ls -alt
+
+            export NPM_TOKEN=${bamboo.npmSecretToken}
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+            npm publish hostlist-compiler.tgz --access public
+  requirements:
+    - adg-docker: true
+  notifications:
+    - events:
+        - deployment-started-and-finished
+      recipients:
+        - webhook:
+            name: Deploy webhook
+            # FIXME: maybe channel should be 'adguard-filters'
+            url: http://prod.jirahub.service.eu.consul/v1/webhook/bamboo?channel=adguard-qa

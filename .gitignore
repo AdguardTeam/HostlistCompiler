@@ -1,6 +1,8 @@
 .vscode
 .idea
 .DS_Store
+dist
+*.tgz
 .eslintcache
 node_modules
 examples/sdn/filter.txt*

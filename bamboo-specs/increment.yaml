@@ -1,0 +1,54 @@
+---
+version: 2
+plan:
+  project-key: AJL
+  key: HOSTLISTCMPLRINCR
+  name: hostlist-compiler - increment
+variables:
+  dockerContainer: adguard/node-ssh:18.13--0
+
+stages:
+  - Increment:
+      manual: false
+      final: false
+      jobs:
+        - Increment
+
+Increment:
+  key: INCR
+  docker:
+    image: "${bamboo.dockerContainer}"
+    volumes:
+      ${system.YARN_DIR}: "${bamboo.cacheYarn}"
+  other:
+    clean-working-dir: true
+  tasks:
+    - checkout:
+        force-clean-build: true
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            set -e
+            set -x
+
+            # Fix mixed logs
+            exec 2>&1
+
+            yarn increment
+    - any-task:
+        plugin-key: com.atlassian.bamboo.plugins.vcs:task.vcs.commit
+        configuration:
+          commitMessage: 'skipci: Automatic increment build number'
+          selectedRepository: defaultRepository
+  requirements:
+    - adg-docker: true
+
+branches:
+  create: manually
+  delete: never
+  link-to-jira: true
+
+labels: []
+other:
+  concurrent-build-plugin: system-default

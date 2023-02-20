@@ -1,58 +1,14 @@
 ---
-version: 2
-plan:
-  project-key: AJL
-  key: HBRTSPECS
-  name: hostlist-compiler - test
-variables:
-  dockerJslBuilder: adguard/jsl-builder:15.8.0--1.22.5--1
+!include 'build.yaml'
 
-stages:
-  - Test:
-      manual: 'false'
-      final: 'false'
-      jobs:
-        - Test
+---
+!include 'deploy.yaml'
 
-Test:
-  key: TEST
-  docker:
-    image: "${bamboo.dockerJslBuilder}"
-    volumes:
-      ${system.YARN_DIR}: "${bamboo.cacheYarn}"
-  tasks:
-    - checkout:
-        force-clean-build: 'true'
-    - script:
-        interpreter: SHELL
-        scripts:
-          - |-
-            set -e
-            set -x
-            yarn install
-            yarn lint
-            yarn test
-            rm -rf node_modules
-  final-tasks:
-    - clean
-  requirements:
-    - adg-docker: 'true'
+---
+!include 'increment.yaml'
 
-branches:
-  create: for-pull-request
-  delete:
-    after-deleted-days: '1'
-    after-inactive-days: '5'
-  link-to-jira: 'true'
+---
+!include 'permissions.yaml'
 
-notifications:
-  - events:
-      - plan-status-changed
-    recipients:
-      - webhook:
-          name: Build webhook
-          url: http://prod.jirahub.service.eu.consul/v1/webhook/bamboo?channel=adguard-qa
-
-labels: []
-other:
-  concurrent-build-plugin: system-default
+---
+!include 'test.yaml'

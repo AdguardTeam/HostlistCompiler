@@ -1,0 +1,64 @@
+---
+version: 2
+plan:
+  project-key: AJL
+  key: HOSTLISTCMPLRTEST
+  name: hostlist-compiler - tests
+variables:
+  dockerContainer: adguard/node-ssh:18.13--0
+
+stages:
+  - Test:
+      manual: false
+      final: false
+      jobs:
+        - Test
+
+Test:
+  key: TEST
+  docker:
+    image: "${bamboo.dockerContainer}"
+    volumes:
+      ${system.YARN_DIR}: "${bamboo.cacheYarn}"
+  tasks:
+    - checkout:
+        force-clean-build: true
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            set -e
+            set -x
+
+            # Fix mixed logs
+            exec 2>&1
+
+            yarn install ${bamboo.varsYarn}
+            yarn lint
+            yarn test
+
+            rm -rf node_modules
+  final-tasks:
+    - clean
+  requirements:
+    - adg-docker: true
+
+branches:
+  create: for-pull-request
+  delete:
+    after-deleted-days: '1'
+    after-inactive-days: '5'
+  link-to-jira: true
+
+notifications:
+  - events:
+      - plan-status-changed
+    recipients:
+      - webhook:
+          name: Test webhook
+          # FIXME: maybe channel should be 'adguard-filters'
+          url: http://prod.jirahub.service.eu.consul/v1/webhook/bamboo?channel=adguard-qa
+
+labels: []
+other:
+  concurrent-build-plugin: system-default
