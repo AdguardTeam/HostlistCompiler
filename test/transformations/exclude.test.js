@@ -33,8 +33,11 @@ describe('Exclusions', () => {
         const rules = ['rule1', 'rule2', 'rule3', 'rule4', 'rule5', ''];
 
         // Exclude!
-        const filtered = await exclude(rules, ['rule4'],
-            ['https://example.org/exclusions.txt', 'https://example.org/exclusions2.txt', 'test/dir/exclusions.txt']);
+        const filtered = await exclude(
+            rules,
+            ['rule4'],
+            ['https://example.org/exclusions.txt', 'https://example.org/exclusions2.txt', 'test/dir/exclusions.txt'],
+        );
 
         // Assert
         expect(filtered).toHaveLength(2);

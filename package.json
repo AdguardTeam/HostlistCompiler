@@ -12,16 +12,17 @@
   },
   "scripts": {
     "lint": "eslint . --cache",
-    "test": "jest --runInBand .",
+    "test": "jest --runInBand --detectOpenHandles .",
     "increment": "yarn version --patch --no-git-tag-version",
     "build-txt": "node tools/build-txt.js",
     "compile": "node src/cli.js"
   },
   "devDependencies": {
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.0.1",
-    "eslint-plugin-import": "^2.20.1",
+    "@babel/core": "^7.21.0",
+    "@babel/eslint-parser": "^7.19.1",
+    "eslint": "^8.34.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.27.5",
     "jest": "^25.1.0",
     "mock-fs": "^4.11.0",
     "nock": "^12.0.2"

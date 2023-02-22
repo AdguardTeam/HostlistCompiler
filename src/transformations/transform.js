@@ -42,10 +42,16 @@ async function transform(rules, configuration, transformations) {
 
     let transformed = rules;
 
-    transformed = await exclude(transformed, configuration.exclusions,
-        configuration.exclusions_sources);
-    transformed = await include(transformed, configuration.inclusions,
-        configuration.inclusions_sources);
+    transformed = await exclude(
+        transformed,
+        configuration.exclusions,
+        configuration.exclusions_sources,
+    );
+    transformed = await include(
+        transformed,
+        configuration.inclusions,
+        configuration.inclusions_sources,
+    );
 
     if (transformations.indexOf(TRANSFORMATIONS.TrimLines) !== -1) {
         transformed = trimLines(transformed);

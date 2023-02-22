@@ -26,6 +26,7 @@ const { argv } = require('yargs')
         alias: 'i',
         array: true,
         type: 'string',
+        // eslint-disable-next-line max-len
         description: 'URL (or path to a file) to convert to an AdGuard-syntax blocklist. Can be specified multiple times.',
     })
     .option('input-type', {
@@ -128,4 +129,3 @@ async function main() {
 }
 
 main();
-return 0;
