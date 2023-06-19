@@ -12,6 +12,7 @@ const SUPPORTED_MODIFIERS = [
     '~important',
     'badfilter',
     'ctag',
+    'denyallow',
 ];
 
 /**
