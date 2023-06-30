@@ -1,8 +1,10 @@
 const removeModifiers = require('../../src/transformations/remove-modifiers');
 
-describe('Strip third-party', () => {
+describe('Remove modifiers', () => {
     it('simple test', () => {
-        const rules = `! test comment
+        const actual = `! test comment
+! next line should have whitespaces. do not remove them. AG-23720
+        
 ||example.org$third-party,important
 ||example.net$domain=ya.ru,3p
 ||islandofadvert.com^$document,popup
@@ -10,16 +12,21 @@ describe('Strip third-party', () => {
 ||example.com$doc
 ||example.com$all
 ||example.org^`.split(/\r?\n/);
-        const filtered = removeModifiers(rules);
 
-        expect(filtered).toHaveLength(8);
-        expect(filtered[0]).toBe('! test comment');
-        expect(filtered[1]).toBe('||example.org$important');
-        expect(filtered[2]).toBe('||example.net$domain=ya.ru');
-        expect(filtered[3]).toBe('||islandofadvert.com^');
-        expect(filtered[4]).toBe('||example.com');
-        expect(filtered[5]).toBe('||example.com');
-        expect(filtered[6]).toBe('||example.com');
-        expect(filtered[7]).toBe('||example.org^');
+        const expected = [
+            '! test comment',
+            '! next line should have whitespaces. do not remove them. AG-23720',
+            // whitespaces should be trimmed
+            '',
+            '||example.org$important',
+            '||example.net$domain=ya.ru',
+            '||islandofadvert.com^',
+            '||example.com',
+            '||example.com',
+            '||example.com',
+            '||example.org^',
+        ];
+
+        expect(removeModifiers(actual)).toStrictEqual(expected);
     });
 });

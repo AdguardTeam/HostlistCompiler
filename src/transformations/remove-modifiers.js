@@ -13,7 +13,8 @@ function removeModifiers(rules) {
     const filtered = [];
 
     let modifiedCount = 0;
-    rules.forEach((ruleText) => {
+    rules.forEach((rawRuleText) => {
+        const ruleText = rawRuleText.trim();
         if (_.isEmpty(ruleText) || ruleUtils.isComment(ruleText)) {
             filtered.push(ruleText);
             return;
