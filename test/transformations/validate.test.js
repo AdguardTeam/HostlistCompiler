@@ -44,6 +44,8 @@ describe('Validate', () => {
 ||org^
 ||example.org^$third-party
 ||example.org^$important
+||*.ga^$denyallow=example1.ga|example2.ga
+://ww4.$denyallow=ww4.example.com
 ://example.org
 ||example.org^|
 @@||example.org^|$important
@@ -57,6 +59,8 @@ describe('Validate', () => {
             '||example.org^',
             '||ex*.org^', // valid because contains special characters
             '||example.org^$important',
+            '||*.ga^$denyallow=example1.ga|example2.ga',
+            '://ww4.$denyallow=ww4.example.com',
             '://example.org',
             '||example.org^|',
             '@@||example.org^|$important',
