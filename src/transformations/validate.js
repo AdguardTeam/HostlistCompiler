@@ -13,6 +13,11 @@ const SUPPORTED_MODIFIERS = [
     'badfilter',
     'ctag',
     'denyallow',
+    // DNS-related modifiers.
+    'client',
+    'dnstype',
+    'dnsrewrite',
+    'ctag',
 ];
 
 /**
