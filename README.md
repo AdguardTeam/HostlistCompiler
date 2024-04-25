@@ -270,7 +270,8 @@ This is a very simple transformation that simply removes comments (e.g. all rule
 
 ### <a name="compress"></a> Compress
 
-> **IMPORTANT:** this transformation converts `hosts` lists into `adblock` lists.
+> [!IMPORTANT]
+> This transformation converts `hosts` lists into `adblock` lists.
 
 Here's what it does:
 
@@ -288,7 +289,9 @@ Here is the list of modifiers that will be removed:
 - `$all` modifier
 - `$popup` modifier
 
-**IMPORTANT:** please, be cautious with this. Blindly removing `$third-party` from traditional ad blocking rules leads to lots of false-positives. This is exactly why there is an option to exclude rules - you may need to use it.
+> [!CAUTION]
+> Blindly removing `$third-party` from traditional ad blocking rules leads to lots of false-positives.
+>> This is exactly why there is an option to exclude rules - you may need to use it.
 
 ### <a name="validate"></a> Validate
 
