@@ -15,6 +15,7 @@ describe('Hostlist compiler', () => {
         const configuration = {
             name: 'Test filter',
             description: 'Our test filter',
+            version: '1.0.0.9',
             sources: [
                 {
                     name: 'source 1',
@@ -33,6 +34,7 @@ describe('Hostlist compiler', () => {
         // assert
         expect(list).toContain('||example.org');
         expect(list).toContain('||example.com');
+        expect(list).toContain('! Version: 1.0.0.9');
 
         const str = list.join('\n');
         consola.info(str);

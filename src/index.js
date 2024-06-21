@@ -21,6 +21,9 @@ function prepareHeader(configuration) {
     if (!_.isEmpty(configuration.description)) {
         lines.push(`! Description: ${configuration.description}`);
     }
+    if (!_.isEmpty(configuration.version)) {
+        lines.push(`! Version: ${configuration.version}`);
+    }
     if (!_.isEmpty(configuration.homepage)) {
         lines.push(`! Homepage: ${configuration.homepage}`);
     }

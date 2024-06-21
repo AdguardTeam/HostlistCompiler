@@ -42,6 +42,8 @@ declare module '@adguard/hostlist-compiler' {
         homepage?: string;
         /** Filter list license */
         license?: string;
+        /** Filter list version */
+        version?: string;
         /** An array of the filter list sources */
         sources: ISource[];
         /** A list of the transformations that will be applied */

@@ -81,6 +81,7 @@ Here is an example of this configuration:
   "description": "List description",
   "homepage": "https://example.org/",
   "license": "GPLv3",
+  "version": "1.0.0.0",
   "sources": [
     {
       "name": "Local rules",
@@ -111,6 +112,7 @@ Here is an example of this configuration:
 - `description` - (optional) the list description.
 - `homepage` - (optional) URL to the list homepage.
 - `license` - (optional) Filter list license.
+- `version` - (optional) Filter list version.
 - `sources` - (mandatory) array of the list sources.
   - `.source` - (mandatory) path or URL of the source. It can be a traditional filter list or a hosts file.
   - `.name` - (optional) name of the source.

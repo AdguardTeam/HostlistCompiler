@@ -22,6 +22,10 @@
       "description": "Filter list license",
       "type": "string"
     },
+    "version": {
+      "description": "Filter version",
+      "type": "string"
+    },
     "sources": {
       "description": "An array of the filter list sources",
       "type": "array",
