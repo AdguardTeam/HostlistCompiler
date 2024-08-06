@@ -35,6 +35,7 @@ function removeModifiers(rules) {
         modified = ruleUtils.removeModifier(props, 'document') || modified;
         modified = ruleUtils.removeModifier(props, 'doc') || modified;
         modified = ruleUtils.removeModifier(props, 'popup') || modified;
+        modified = ruleUtils.removeModifier(props, 'network') || modified;
         filtered.push(ruleUtils.adblockRuleToString(props));
 
         if (modified) {
