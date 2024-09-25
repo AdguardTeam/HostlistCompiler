@@ -1,9 +1,9 @@
-const { validate } = require('../../src/transformations/validate');
+const { validateAllowIp } = require('../../src/transformations/validate-allow-ip');
 
-describe('Validate', () => {
+describe('validateAllowIp', () => {
     it('simple /etc/hosts rule', () => {
         const rules = '0.0.0.0 example.org'.split(/\r?\n/);
-        const filtered = validate(rules);
+        const filtered = validateAllowIp(rules);
 
         expect(filtered).toHaveLength(1);
         expect(filtered).toContain('0.0.0.0 example.org');
@@ -13,7 +13,7 @@ describe('Validate', () => {
         const rules = `0.0.0.0 example.org
 0.0.0.0 co.uk
 0.0.0.0 doubleclick.net doubleclick.com`.split(/\r?\n/);
-        const filtered = validate(rules);
+        const filtered = validateAllowIp(rules);
 
         expect(filtered).toHaveLength(2);
         expect(filtered).toContain('0.0.0.0 example.org');
@@ -26,7 +26,7 @@ describe('Validate', () => {
 ||invalid/rule
 ! comment
 ||valid.com^`.split(/\r?\n/);
-        const filtered = validate(rules);
+        const filtered = validateAllowIp(rules);
 
         expect(filtered).toEqual([
             '! comment',
@@ -52,12 +52,13 @@ describe('Validate', () => {
 @@||example.org^|$important
 @@||example.com^*-tracking.js
 @@||example.com^-tracking.js`.split(/\r?\n/);
-        const filtered = validate(rules);
+        const filtered = validateAllowIp(rules);
 
         expect(filtered).toEqual([
             '! here goes a comment',
             '',
             '||example.org^',
+            '||185.149.120.173^', // valid because IP addresses is allowed
             '||ex*.org^', // valid because contains special characters
             '||example.org^$important',
             '||*.ga^$denyallow=example1.ga|example2.ga',

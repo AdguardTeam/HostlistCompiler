@@ -13,6 +13,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [Compress](#compress)
   - [RemoveModifiers](#remove-modifiers)
   - [Validate](#validate)
+  - [ValidateAllowIp](#validate-allow-ip)
   - [Deduplicate](#deduplicate)
   - [InvertAllow](#invertallow)
   - [RemoveEmptyLines](#removeemptylines)
@@ -255,14 +256,15 @@ import { writeFileSync } from 'fs';
 Here is the full list of transformations that are available:
 
 1. `RemoveComments`
-2. `Compress`
-3. `RemoveModifiers`
-4. `Validate`
-5. `Deduplicate`
-6. `InvertAllow`
-7. `RemoveEmptyLines`
-8. `TrimLines`
-9. `InsertFinalNewLine`
+1. `Compress`
+1. `RemoveModifiers`
+1. `Validate`
+1. `ValidateAllowIp`
+1. `Deduplicate`
+1. `InvertAllow`
+1. `RemoveEmptyLines`
+1. `TrimLines`
+1. `InsertFinalNewLine`
 
 Please note that these transformations are are always applied in the order specified here.
 
@@ -306,8 +308,13 @@ So here's what it does:
 - Discards domain-specific rules (e.g. `||example.org^$domain=example.com`). You don't want to have domain-specific rules working globally.
 - Discards rules with unsupported modifiers. [Click here](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists#-adblock-style-syntax) to learn more about which modifiers are supported.
 - Discards rules that are too short.
+- Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
 
 If there are comments preceding the invalid rule, they will be removed as well.
+
+### <a name="validate-allow-ip"></a> ValidateAllowIp
+
+This transformation exactly repeats the behavior of [Validate](#validate), but leaves the IP addresses in the lists.
 
 ### <a name="deduplicate"></a> Deduplicate
 

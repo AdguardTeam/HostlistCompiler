@@ -35,4 +35,24 @@ dupl1
         expect(filtered).toHaveLength(2);
         expect(filtered).toEqual(['rule1', 'dupl1']);
     });
+    it('simple transformations with ValidateAllowIp', async () => {
+        const rules = `! test comment
+rule1
+rule2
+! dup1 comment
+dupl1
+dupl1
+||185.149.120.173^
+# another comment`.split(/\r?\n/);
+        const exclusions = [
+            'rule2',
+            '', // empty exclusions are ignored
+        ];
+        const configuration = {
+            exclusions,
+        };
+        const filtered = await transform(rules, configuration, ['RemoveComments', 'ValidateAllowIp', 'Deduplicate']);
+        // expect(filtered).toHaveLength(3);
+        expect(filtered).toEqual(['rule1', 'dupl1', '||185.149.120.173^']);
+    });
 });

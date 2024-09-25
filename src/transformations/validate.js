@@ -28,14 +28,20 @@ const MAX_PATTERN_LENGTH = 5;
 /**
  * Checks if the specified hostname is valid for a blocklist.
  *
- * @param {String} hostname - hostname to check
- * @param {String} ruleText - original rule text (for logging)
- * @returns {Boolean} true if the hostname is okay to be in the blocklist.
+ * @param {string} hostname - hostname to check
+ * @param {string} ruleText - original rule text (for logging)
+ * @param {boolean} allowedIP - flag to determine if IP validation is allowed
+ * @returns {boolean} true if the hostname is okay to be in the blocklist.
  */
-function validHostname(hostname, ruleText) {
+function validHostname(hostname, ruleText, allowedIP) {
     const result = tldts.parse(hostname);
 
-    if (!result.hostname || result.isIp) {
+    if (!result.hostname) {
+        consola.debug(`invalid hostname ${hostname} in the rule: ${ruleText}`);
+        return false;
+    }
+
+    if (!allowedIP && result.isIp) {
         consola.debug(`invalid hostname ${hostname} in the rule: ${ruleText}`);
         return false;
     }
@@ -56,10 +62,11 @@ function validHostname(hostname, ruleText) {
  * 2. Prohibit rules that block the whole public suffix
  * 3. Prohibit rules that contain invalid domain names
  *
- * @param {String} ruleText - rule text
- * @returns {Boolean} true if the rule is a valid /etc/hosts rule
+ * @param {string} ruleText - rule text
+ * @param {boolean} allowIP - flag to determine if IP validation is allowed
+ * @returns {boolean} true if the rule is a valid /etc/hosts rule
  */
-function validEtcHostsRule(ruleText) {
+function validEtcHostsRule(ruleText, allowIP) {
     let props;
     try {
         props = ruleUtils.loadEtcHostsRuleProperties(ruleText);
@@ -72,7 +79,7 @@ function validEtcHostsRule(ruleText) {
         return false;
     }
 
-    if (props.hostnames.some((h) => !validHostname(h, ruleText))) {
+    if (props.hostnames.some((h) => !validHostname(h, ruleText, allowIP))) {
         return false;
     }
 
@@ -88,10 +95,11 @@ function validEtcHostsRule(ruleText) {
  * 4. For domain-blocking rules like ||domain^ it checks that the domain is
  * valid and does not block too much.
  *
- * @param {String} ruleText - rule text
- * @returns {Boolean} - adblock-style rule
+ * @param {string} ruleText - rule text
+ * @param {boolean} allowedIP - flag to determine if IP validation is allowed
+ * @returns {boolean} - adblock-style rule
  */
-function validAdblockRule(ruleText) {
+function validAdblockRule(ruleText, allowedIP) {
     let props;
     try {
         props = ruleUtils.loadAdblockRuleProperties(ruleText);
@@ -154,7 +162,7 @@ function validAdblockRule(ruleText) {
         && sepIdx !== -1
         && wildcardIdx === -1) {
         const hostname = utils.substringBetween(ruleText, '||', '^');
-        if (!validHostname(hostname, ruleText)) {
+        if (!validHostname(hostname, ruleText, allowedIP)) {
             return false;
         }
 
@@ -172,53 +180,89 @@ function validAdblockRule(ruleText) {
 /**
  * Validates the rule.
  *
- * Emptry strings and comments are considered valid.
+ * Empty strings and comments are considered valid.
  *
- * For /etc/hosts rules: {@see validEtcHostsRule}
- * For adblock-style rules: {@see validAdblockRule}
+ * For /etc/hosts rules: @see {@link validEtcHostsRule}
+ * For adblock-style rules: @see {@link validAdblockRule}
  *
- * @param {String} ruleText - rule to check
- * @returns {Boolean} true if rule is a comment
+ * @param {string} ruleText - rule to check
+ * @param {boolean} allowedIP - flag to determine if IP validation is allowed
+ * @returns {boolean} - true if the rule is valid, false otherwise
  */
-function valid(ruleText) {
+function valid(ruleText, allowedIP) {
     if (ruleUtils.isComment(ruleText) || _.isEmpty(_.trim(ruleText))) {
         return true;
     }
 
     if (ruleUtils.isEtcHostsRule(ruleText)) {
-        return validEtcHostsRule(ruleText);
+        return validEtcHostsRule(ruleText, allowedIP);
     }
-    return validAdblockRule(ruleText);
+    return validAdblockRule(ruleText, allowedIP);
 }
 
 /**
- * Validates a list of rules.
- *
- * @param {Array<string>} rules - an array of rules to validate
- * @returns {Array<string>} an array of rules without invalid
+ * Class representing a validator for a list of rules.
  */
-function validate(rules) {
-    // Clone the original array before modifying it
-    const filtered = [...rules];
-    let prevRuleRemoved = false;
-
-    for (let iFiltered = filtered.length - 1; iFiltered >= 0; iFiltered -= 1) {
-        const ruleText = filtered[iFiltered];
-
-        if (!valid(ruleText)) {
-            prevRuleRemoved = true;
-            filtered.splice(iFiltered, 1);
-        } else if (prevRuleRemoved && (ruleUtils.isComment(ruleText) || _.isEmpty(ruleText))) {
-            // Remove preceding comments and empty lines
-            consola.debug(`Removing a comment preceding invalid rule: ${ruleText}`);
-            filtered.splice(iFiltered, 1);
-        } else {
-            // Stop removing comments
-            prevRuleRemoved = false;
-        }
+class Validator {
+    constructor(allowedIP) {
+        /**
+         * Indicates whether the previous rule was removed.
+         * @type {boolean}
+         */
+        this.prevRuleRemoved = false;
+        /**
+         * Flag to allow IP validation.
+         * @type {boolean}
+         */
+        this.allowedIP = allowedIP;
     }
 
-    return filtered;
+    /**
+     * Validates the list of rules and removes invalid rules.
+     * If a rule is invalid, any preceding comments or empty lines are also removed.
+     *
+     * @returns {Array<string>} The filtered list of valid rules.
+     * @param {Array<string>} rules - An array of rules to validate.
+     */
+    validate(rules) {
+        /**
+         * A filtered list of rules after validation.
+         * @type {Array<string>}
+         */
+        const filtered = [...rules];
+        for (let iFiltered = filtered.length - 1; iFiltered >= 0; iFiltered -= 1) {
+            const ruleText = filtered[iFiltered];
+
+            if (!valid(ruleText, this.allowedIP)) {
+                this.prevRuleRemoved = true;
+                filtered.splice(iFiltered, 1);
+            } else if (this.prevRuleRemoved && (ruleUtils.isComment(ruleText) || _.isEmpty(ruleText))) {
+                // Remove preceding comments and empty lines
+                consola.debug(`Removing a comment preceding invalid rule: ${ruleText}`);
+                filtered.splice(iFiltered, 1);
+            } else {
+                // Stop removing comments
+                this.prevRuleRemoved = false;
+            }
+        }
+
+        return filtered;
+    }
+}
+/**
+ * Validates a list of rules.
+ *
+ * @param {Array<string>} rules - The array of rules to validate.
+ * @param {boolean} allowedIP -  flag to allow IP validation.
+ * @returns {Array<string>} The filtered list of valid rules.
+ */
+function validate(rules) {
+    const validator = new Validator(false);
+    // ip is not allowed for default validation
+    return validator.validate(rules);
 }
 
-module.exports = validate;
+module.exports = {
+    validate,
+    Validator,
+};
