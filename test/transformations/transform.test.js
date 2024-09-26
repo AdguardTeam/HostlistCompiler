@@ -52,7 +52,25 @@ dupl1
             exclusions,
         };
         const filtered = await transform(rules, configuration, ['RemoveComments', 'ValidateAllowIp', 'Deduplicate']);
-        // expect(filtered).toHaveLength(3);
+        expect(filtered).toHaveLength(3);
         expect(filtered).toEqual(['rule1', 'dupl1', '||185.149.120.173^']);
+    });
+
+    it('simple transformations with removeModifiers', async () => {
+        const rules = `! test comment
+rule1
+rule2
+||185.149.120.173^$network
+||example.com^$document`.split(/\r?\n/);
+        const exclusions = [
+            'rule2',
+            '', // empty exclusions are ignored
+        ];
+        const configuration = {
+            exclusions,
+        };
+        const filtered = await transform(rules, configuration, ['RemoveModifiers', 'ValidateAllowIp']);
+        expect(filtered).toHaveLength(4);
+        expect(filtered).toEqual(['! test comment', 'rule1', '||185.149.120.173^', '||example.com^']);
     });
 });

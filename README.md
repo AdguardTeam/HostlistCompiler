@@ -292,6 +292,7 @@ Here is the list of modifiers that will be removed:
 - `$document` and `$doc` modifiers
 - `$all` modifier
 - `$popup` modifier
+- `$network` modifier
 
 > [!CAUTION]
 > Blindly removing `$third-party` from traditional ad blocking rules leads to lots of false-positives.
