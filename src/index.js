@@ -10,7 +10,7 @@ const { calculateChecksum } = require('./utils');
  * Prepares list header
  *
  * @param {*} configuration - compilation configuration.
-See the repo README for the details on it.
+ * See the repo README for the details on it.
  * @returns {Array<string>} header lines
  */
 function prepareHeader(configuration) {
