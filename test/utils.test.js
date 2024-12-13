@@ -34,3 +34,32 @@ describe('substringBetween', () => {
         expect(substr).toBe(null);
     });
 });
+
+describe('calculateChecksum', () => {
+    it('calculates checksum with multiple headers and rules', () => {
+        const header = ['[Adblock Plus 2.0]', '! Title: Example filter list'];
+        const rules = ['! Checksum: ', '||example.com^', '||test.com^'];
+        const expectedChecksum = '! Checksum: h0eMYV8/e57vDmGsYZRhsg';
+
+        const checksum = utils.calculateChecksum(header, rules);
+        expect(checksum).toBe(expectedChecksum);
+    });
+
+    it('calculates checksum with empty rules', () => {
+        const header = ['[Adblock Plus 2.0]'];
+        const rules = [];
+        const expectedChecksum = '! Checksum: 87GLA4VsMnV9PiusIkPkEg';
+
+        const checksum = utils.calculateChecksum(header, rules);
+        expect(checksum).toBe(expectedChecksum);
+    });
+
+    it('calculates checksum with empty header and rules', () => {
+        const header = [];
+        const rules = [];
+        const expectedChecksum = '! Checksum: 1B2M2Y8AsgTpgAmY7PhCfg';
+
+        const checksum = utils.calculateChecksum(header, rules);
+        expect(checksum).toBe(expectedChecksum);
+    });
+});
