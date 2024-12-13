@@ -67,4 +67,17 @@ describe('Validate', () => {
             '@@||example.org^|$important',
         ]);
     });
+
+    it('adblock-style rules', () => {
+        const rules = `||asia^$denyallow=amzn.asia
+||bar^$denyallow=fap.bar
+||beauty^$denyallow=homelab.beauty|nic.beauty|vipbj.beauty`;
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '||asia^$denyallow=amzn.asia',
+            '||bar^$denyallow=fap.bar',
+            '||beauty^$denyallow=homelab.beauty|nic.beauty|vipbj.beauty',
+        ]);
+    });
 });
