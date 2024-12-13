@@ -4,6 +4,7 @@ const config = require('./configuration');
 const compileSource = require('./compile-source');
 const { transform } = require('./transformations/transform');
 const packageJson = require('../package.json');
+const { calculateChecksum } = require('./utils');
 
 /**
  * Prepares list header
@@ -14,7 +15,6 @@ See the repo README for the details on it.
  */
 function prepareHeader(configuration) {
     const lines = [
-        '!',
         `! Title: ${configuration.name}`,
     ];
 
@@ -101,8 +101,12 @@ async function compile(configuration) {
 
     // Now prepend the list header and we're good to go
     const header = prepareHeader(configuration);
-    consola.info(`Final length of the list is ${header.length + finalList.length}`);
-    return header.concat(finalList);
+    // Calculate checksum
+    const checksum = calculateChecksum(header, finalList);
+    // Concat everything together
+    const data = ['!', checksum, ...header, ...finalList];
+    consola.info(`Final length of the list is ${data.length}`);
+    return data;
 }
 
 module.exports = compile;

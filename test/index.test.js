@@ -32,6 +32,7 @@ describe('Hostlist compiler', () => {
         const list = await compile(configuration);
 
         // assert
+        expect(list[1].startsWith('! Checksum:')).toBe(true);
         expect(list).toContain('||example.org');
         expect(list).toContain('||example.com');
         expect(list).toContain('! Version: 1.0.0.9');
