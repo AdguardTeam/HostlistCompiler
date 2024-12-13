@@ -21,6 +21,15 @@ const SUPPORTED_MODIFIERS = [
 ];
 
 /**
+ * The list of modifiers that limit the rule.
+ */
+const LIMITING_MODIFIERS = [
+    'denyallow',
+    'client',
+    'badfilter',
+];
+
+/**
  * Max length of a blocking pattern
  */
 const MAX_PATTERN_LENGTH = 5;
@@ -31,9 +40,10 @@ const MAX_PATTERN_LENGTH = 5;
  * @param {string} hostname - hostname to check
  * @param {string} ruleText - original rule text (for logging)
  * @param {boolean} allowedIP - flag to determine if IP validation is allowed
+ * @param {boolean} hasLimitModifier - flag to determine if the rule has a limit modifier (denyallow)
  * @returns {boolean} true if the hostname is okay to be in the blocklist.
  */
-function validHostname(hostname, ruleText, allowedIP) {
+function validHostname(hostname, ruleText, allowedIP, hasLimitModifier) {
     const result = tldts.parse(hostname);
 
     if (!result.hostname) {
@@ -46,7 +56,7 @@ function validHostname(hostname, ruleText, allowedIP) {
         return false;
     }
 
-    if (result.hostname === result.publicSuffix) {
+    if (result.hostname === result.publicSuffix && !hasLimitModifier) {
         consola.debug(`matching the whole public suffix ${hostname} is not allowed: ${ruleText}`);
         return false;
     }
@@ -108,6 +118,9 @@ function validAdblockRule(ruleText, allowedIP) {
         return false;
     }
 
+    // need to check if rules with TLD has limit modifier
+    let hasLimitModifier = false;
+
     // 1. It checks if the rule contains only supported modifiers.
     if (props.options) {
         // eslint-disable-next-line no-restricted-syntax
@@ -115,6 +128,10 @@ function validAdblockRule(ruleText, allowedIP) {
             if (SUPPORTED_MODIFIERS.indexOf(option.name) === -1) {
                 consola.debug(`Contains unsupported modifier ${option.name}: ${ruleText}`);
                 return false;
+            }
+            // if the rule has a limit modifier, TLD as a hostname is allowed
+            if (LIMITING_MODIFIERS.includes(option.name)) {
+                hasLimitModifier = true;
             }
         }
     }
@@ -162,7 +179,7 @@ function validAdblockRule(ruleText, allowedIP) {
         && sepIdx !== -1
         && wildcardIdx === -1) {
         const hostname = utils.substringBetween(ruleText, '||', '^');
-        if (!validHostname(hostname, ruleText, allowedIP)) {
+        if (!validHostname(hostname, ruleText, allowedIP, hasLimitModifier)) {
             return false;
         }
 
@@ -197,6 +214,7 @@ function valid(ruleText, allowedIP) {
     if (ruleUtils.isEtcHostsRule(ruleText)) {
         return validEtcHostsRule(ruleText, allowedIP);
     }
+
     return validAdblockRule(ruleText, allowedIP);
 }
 
