@@ -1,6 +1,6 @@
 {
   "name": "@adguard/hostlist-compiler",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "A simple tool that compiles hosts blocklists from multiple sources",
   "main": "src/index.js",
   "types": "src/index.d.ts",
