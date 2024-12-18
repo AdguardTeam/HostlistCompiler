@@ -69,15 +69,30 @@ describe('Validate', () => {
     });
 
     it('adblock-style rules', () => {
-        const rules = `||asia^$denyallow=amzn.asia
+        const rules = `||example.*.asia^
+||asia^
+||asia^$denyallow=amzn.asia
 ||bar^$denyallow=fap.bar
 ||beauty^$denyallow=homelab.beauty|nic.beauty|vipbj.beauty`.split(/\r?\n/);
         const filtered = validate(rules);
 
         expect(filtered).toEqual([
+            '||example.*.asia^',
             '||asia^$denyallow=amzn.asia',
             '||bar^$denyallow=fap.bar',
             '||beauty^$denyallow=homelab.beauty|nic.beauty|vipbj.beauty',
+        ]);
+    });
+
+    it.only('adblock-style rules with wildcard', () => {
+        const rules = `||*.asia^
+||*.example.org^
+||*.asia^$denyallow=fap.bar`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '||*.example.org^',
+            '||*.asia^$denyallow=fap.bar',
         ]);
     });
 });

@@ -4,29 +4,35 @@ const tldts = require('tldts');
 const utils = require('../utils');
 const ruleUtils = require('../rule');
 
+const DOMAIN_PREFIX = '||';
+const DOMAIN_SEPARATOR = '^';
+const WILDCARD = '*';
+const WILDCARD_DOMAIN_PART = '*.';
+const DOT = '.';
+
+/**
+ * The list of modifiers that limit the rule for specific domains.
+ */
+const LIMITING_MODIFIERS = [
+    'denyallow',
+    'badfilter',
+    // DNS-related modifiers.
+    'client',
+];
+
 /**
  * The list of modifiers supported by hosts-level blockers.
  */
 const SUPPORTED_MODIFIERS = [
     'important',
     '~important',
-    'badfilter',
     'ctag',
-    'denyallow',
     // DNS-related modifiers.
-    'client',
     'dnstype',
     'dnsrewrite',
     'ctag',
-];
-
-/**
- * The list of modifiers that limit the rule.
- */
-const LIMITING_MODIFIERS = [
-    'denyallow',
-    'client',
-    'badfilter',
+    // modifiers that limit the rule for specific domains
+    ...LIMITING_MODIFIERS,
 ];
 
 /**
@@ -168,26 +174,44 @@ function validAdblockRule(ruleText, allowedIP) {
 
     // 4. Validate domain name
     // Note that we don't check rules that contain wildcard characters
-    const sepIdx = props.pattern.indexOf('^');
-    const wildcardIdx = props.pattern.indexOf('*');
+    const sepIdx = props.pattern.indexOf(DOMAIN_SEPARATOR);
+    const wildcardIdx = props.pattern.indexOf(WILDCARD);
     if (sepIdx !== -1 && wildcardIdx !== -1 && wildcardIdx > sepIdx) {
         // Smth like ||example.org^test* -- invalid
         return false;
     }
 
-    if (_.startsWith(props.pattern, '||')
-        && sepIdx !== -1
-        && wildcardIdx === -1) {
-        const hostname = utils.substringBetween(ruleText, '||', '^');
-        if (!validHostname(hostname, ruleText, allowedIP, hasLimitModifier)) {
-            return false;
-        }
+    // Check if the pattern starts with the domain prefix and contains a domain separator
+    if (_.startsWith(props.pattern, DOMAIN_PREFIX) && sepIdx !== -1) {
+        // Extract the domain to check from the rule text
+        const domainToCheck = utils.substringBetween(ruleText, DOMAIN_PREFIX, DOMAIN_SEPARATOR);
 
-        // If there's something after ^ in the pattern - something went wrong
-        // unless it's `^|` which is a rather often case
-        if (props.pattern.length > (sepIdx + 1)
-            && props.pattern[sepIdx + 1] !== '|') {
-            return false;
+        // If there are no wildcard characters in the pattern
+        if (wildcardIdx === -1) {
+            // Validate the domain
+            if (!validHostname(domainToCheck, ruleText, allowedIP, hasLimitModifier)) {
+                return false;
+            }
+
+            // Ensure there's nothing after the domain separator unless it's `^|`
+            if (props.pattern.length > (sepIdx + 1) && props.pattern[sepIdx + 1] !== '|') {
+                return false;
+            }
+        } else {
+            // Check if the rule has wildcard characters but includes only TLD (e.g., ||*.org^)
+            const isWildcardOnlyTLD = domainToCheck
+                .startsWith(WILDCARD_DOMAIN_PART) && domainToCheck.split(DOT).length === 2;
+
+            // If the rule has wildcard characters but is not a TLD (e.g., ||*.example.org^)
+            // return true
+            if (!isWildcardOnlyTLD) {
+                return true;
+            }
+            // If it's a wildcard with TLD, validate the cleaned TLD
+            const cleanedDomain = domainToCheck.replace(WILDCARD_DOMAIN_PART, '');
+            if (!validHostname(cleanedDomain, ruleText, allowedIP, hasLimitModifier)) {
+                return false;
+            }
         }
     }
 
