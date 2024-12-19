@@ -84,15 +84,54 @@ describe('Validate', () => {
         ]);
     });
 
-    it.only('adblock-style rules with wildcard', () => {
-        const rules = `||*.asia^
+    it('adblock-style rules with wildcard and denyallow modifier', () => {
+        const rules = `||*.org^$denyallow=example.com
+||*.asia^
 ||*.example.org^
-||*.asia^$denyallow=fap.bar`.split(/\r?\n/);
+||*.asia^$denyallow=fap.bar
+||xyz^$denyallow=example.com
+||xyz^`.split(/\r?\n/);
         const filtered = validate(rules);
 
         expect(filtered).toEqual([
+            '||*.org^$denyallow=example.com',
             '||*.example.org^',
             '||*.asia^$denyallow=fap.bar',
+            '||xyz^$denyallow=example.com',
+        ]);
+    });
+
+    it('adblock-style rules with wildcard and badfilter modifier', () => {
+        const rules = `||*.org^$badfilter
+||*.asia^
+||*.example.org^
+||*.asia^$badfilter
+||xyz^$badfilter
+||xyz^`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '||*.org^$badfilter',
+            '||*.example.org^',
+            '||*.asia^$badfilter',
+            '||xyz^$badfilter',
+        ]);
+    });
+
+    it('adblock-style rules with wildcard and client modifier', () => {
+        const rules = `@@||*.org^$client=127.0.0.1
+||*.asia^
+||*.example.org^
+||*.asia^$client=192.168.0.0/24
+||xyz^$client=192.168.0.0/24
+||xyz^`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '@@||*.org^$client=127.0.0.1',
+            '||*.example.org^',
+            '||*.asia^$client=192.168.0.0/24',
+            '||xyz^$client=192.168.0.0/24',
         ]);
     });
 });
