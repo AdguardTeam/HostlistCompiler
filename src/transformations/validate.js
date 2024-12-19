@@ -10,6 +10,8 @@ const WILDCARD = '*';
 const WILDCARD_DOMAIN_PART = '*.';
 const DOT = '.';
 
+// TODO: Remove lodash from the project if possible
+
 /**
  * The list of modifiers that limit the rule for specific domains.
  */
