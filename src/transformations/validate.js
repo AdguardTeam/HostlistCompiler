@@ -13,7 +13,7 @@ const DOT = '.';
 /**
  * The list of modifiers that limit the rule for specific domains.
  */
-const LIMITING_MODIFIERS = [
+const ANY_PATTERN_MODIFIER = [
     'denyallow',
     'badfilter',
     // DNS-related modifiers.
@@ -32,7 +32,7 @@ const SUPPORTED_MODIFIERS = [
     'dnsrewrite',
     'ctag',
     // modifiers that limit the rule for specific domains
-    ...LIMITING_MODIFIERS,
+    ...ANY_PATTERN_MODIFIER,
 ];
 
 /**
@@ -136,7 +136,7 @@ function validAdblockRule(ruleText, allowedIP) {
                 return false;
             }
             // if the rule has a limit modifier, TLD as a hostname is allowed
-            if (LIMITING_MODIFIERS.includes(option.name)) {
+            if (ANY_PATTERN_MODIFIER.includes(option.name)) {
                 hasLimitModifier = true;
             }
         }
