@@ -46,7 +46,7 @@ const MAX_PATTERN_LENGTH = 5;
  * @param {string} hostname - hostname to check
  * @param {string} ruleText - original rule text (for logging)
  * @param {boolean} allowedIP - flag to determine if IP validation is allowed
- * @param {boolean} hasLimitModifier - flag to determine if the rule has a limit modifier (denyallow)
+ * @param {boolean} hasLimitModifier - flag to determine if the rule has a limit modifier, e.g. denyallow
  * @returns {boolean} true if the hostname is okay to be in the blocklist.
  */
 function validHostname(hostname, ruleText, allowedIP, hasLimitModifier) {
