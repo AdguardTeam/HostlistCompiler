@@ -11,8 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Validation of TLD domains [#63]
 
-[#63]: https://github.com/AdguardTeam/HostlistCompiler/issues/63
+### Added
 
+- Calculation of checksum for filters and `! Checksum` string to the filter list meta [#76]
+
+[#63]: https://github.com/AdguardTeam/HostlistCompiler/issues/63
+[#76]: https://github.com/AdguardTeam/FiltersCompiler/issues/76
 
 ## [1.0.29] - 2024-09-26
 

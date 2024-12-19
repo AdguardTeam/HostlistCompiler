@@ -1,12 +1,12 @@
 declare module '@adguard/hostlist-compiler' {
     export type SourceType = 'adblock' | 'hosts';
-    
-    export type Transformation = 
-        'RemoveComments' | 
-        'Compress' | 
-        'RemoveModifiers' | 
-        'Validate' | 
-        'Deduplicate' | 
+
+    export type Transformation =
+        'RemoveComments' |
+        'Compress' |
+        'RemoveModifiers' |
+        'Validate' |
+        'Deduplicate' |
         'InvertAllow' |
         'RemoveEmptyLines' |
         'TrimLines' |
@@ -62,7 +62,7 @@ declare module '@adguard/hostlist-compiler' {
      * Compiles a filter list using the specified configuration.
      *
      * @param {*} configuration - compilation configuration.
-    See the repo README for the details on it.
+     * See the repo README for the details on it.
      * @returns {Promise<Array<string>>} the array of rules.
      */
     declare async function compile(configuration: IConfiguration): Promise<string[]>;
