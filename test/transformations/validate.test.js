@@ -118,4 +118,19 @@ describe('Validate', () => {
             '||xyz^$client=192.168.0.0/24',
         ]);
     });
+
+    it('check for composite TLDs', () => {
+        const rules = `||*.com.tr^$denyallow=example.com
+||*.com.tr^
+||*.co.uk^$client=127.0.0.1
+||*.co.uk^
+||*.example.org^`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '||*.com.tr^$denyallow=example.com',
+            '||*.co.uk^$client=127.0.0.1',
+            '||*.example.org^',
+        ]);
+    });
 });

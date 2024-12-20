@@ -8,7 +8,6 @@ const DOMAIN_PREFIX = '||';
 const DOMAIN_SEPARATOR = '^';
 const WILDCARD = '*';
 const WILDCARD_DOMAIN_PART = '*.';
-const DOT = '.';
 
 // TODO: Remove lodash from the project if possible
 
@@ -184,40 +183,41 @@ function validAdblockRule(ruleText, allowedIP) {
     }
 
     // Check if the pattern starts with the domain prefix and contains a domain separator
-    if (_.startsWith(props.pattern, DOMAIN_PREFIX) && sepIdx !== -1) {
-        // Extract the domain to check from the rule text
-        const domainToCheck = utils.substringBetween(ruleText, DOMAIN_PREFIX, DOMAIN_SEPARATOR);
-
-        // If there are no wildcard characters in the pattern
-        if (wildcardIdx === -1) {
-            // Validate the domain
-            if (!validHostname(domainToCheck, ruleText, allowedIP, hasLimitModifier)) {
-                return false;
-            }
-
-            // Ensure there's nothing after the domain separator unless it's `^|`
-            if (props.pattern.length > (sepIdx + 1) && props.pattern[sepIdx + 1] !== '|') {
-                return false;
-            }
-        } else {
-            // Check if the rule has wildcard characters but includes only TLD (e.g., ||*.org^)
-            const isWildcardOnlyTLD = domainToCheck
-                .startsWith(WILDCARD_DOMAIN_PART) && domainToCheck.split(DOT).length === 2;
-
-            // If the rule has wildcard characters but is not a TLD (e.g., ||*.example.org^)
-            // return true
-            if (!isWildcardOnlyTLD) {
-                return true;
-            }
-            // If it's a wildcard with TLD, validate the cleaned TLD
-            const cleanedDomain = domainToCheck.replace(WILDCARD_DOMAIN_PART, '');
-            if (!validHostname(cleanedDomain, ruleText, allowedIP, hasLimitModifier)) {
-                return false;
-            }
-        }
+    if (!_.startsWith(props.pattern, DOMAIN_PREFIX) || sepIdx === -1) {
+        return true;
     }
 
-    return true;
+    // Extract the domain to check from the rule text
+    const domainToCheck = utils.substringBetween(ruleText, DOMAIN_PREFIX, DOMAIN_SEPARATOR);
+
+    // If there are wildcard characters in the pattern
+    if (wildcardIdx !== -1) {
+        // Check if the rule has wildcard characters but includes only TLD (e.g., ||*.org^ or ||*.co.uk^)
+        const startsWithWildcard = domainToCheck.startsWith(WILDCARD_DOMAIN_PART);
+        // Get the TLD pattern to check (e.g. ||*.org^ --> org)
+        const TLDPattern = domainToCheck.replace(WILDCARD_DOMAIN_PART, '');
+        // Compare the TLD pattern with the public suffix
+        const isOnlyTLD = tldts.getPublicSuffix(TLDPattern) === TLDPattern;
+        // If it's a wildcard with TLD, validate the cleaned TLD
+        if (startsWithWildcard && isOnlyTLD) {
+            const cleanedDomain = domainToCheck.replace(WILDCARD_DOMAIN_PART, '');
+            return validHostname(cleanedDomain, ruleText, allowedIP, hasLimitModifier);
+        }
+        // If the rule has wildcard characters but is not a TLD (e.g., ||*.example.org^)
+        return true;
+    }
+
+    // Validate the domain
+    if (!validHostname(domainToCheck, ruleText, allowedIP, hasLimitModifier)) {
+        return false;
+    }
+
+    // Ensure there's nothing after the domain separator unless it's `^|`
+    // If there's something after ^ in the pattern - something went wrong
+    // unless it's `^|` which is a rather often case
+    // ||example.org^| -- valid
+    // @@||example.org^|$important -- invalid
+    return !(props.pattern.length > (sepIdx + 1) && props.pattern[sepIdx + 1] !== '|');
 }
 
 /**
