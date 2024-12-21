@@ -182,7 +182,7 @@ function validAdblockRule(ruleText, allowedIP) {
         return false;
     }
 
-    // Check if the pattern starts with the domain prefix and contains a domain separator
+    // Check if the pattern does not start with the domain prefix and does not contain a domain separator
     if (!_.startsWith(props.pattern, DOMAIN_PREFIX) || sepIdx === -1) {
         return true;
     }
