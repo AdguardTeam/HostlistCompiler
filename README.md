@@ -310,6 +310,10 @@ So here's what it does:
 - Discards rules with unsupported modifiers. [Click here](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists#-adblock-style-syntax) to learn more about which modifiers are supported.
 - Discards rules that are too short.
 - Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
+- Removes rules that block entire top-level domains (TLDs) like `||*.org^`, unless they have specific limiting modifiers such as `$denyallow`, `$badfilter`, or `$client`.
+  Examples:
+  - `||*.org^` - this rule will be removed
+  - `||*.org^$denyallow=example.com` - this rule will be kept because it has a limiting modifier
 
 If there are comments preceding the invalid rule, they will be removed as well.
 
