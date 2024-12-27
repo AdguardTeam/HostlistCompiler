@@ -62,4 +62,29 @@ describe('calculateChecksum', () => {
         const checksum = utils.calculateChecksum(header, rules);
         expect(checksum).toBe(expectedChecksum);
     });
+
+    it('calculates checksum without stripping empty lines', () => {
+        const header = [
+            '! Title: 1Hosts (mini)',
+            // eslint-disable-next-line max-len
+            '! Description: List for blocking pesky ads, trackers, and malware. Lenient version: unblocks a number of ads & trackers for in-app rewards, anti-AdBlock, etc.',
+            '! Version: 1.0.14.48',
+            '! Homepage: https://badmojr.github.io/1Hosts/',
+            '! Last modified: 2024-12-27T09:45:56.615Z',
+            '!',
+            '! Compiled by @adguard/hostlist-compiler v1.0.32',
+            '!',
+        ];
+        const rules = [
+            '',
+            '||logs.netflix.com^',
+            '||teams.events.data.microsoft.com^',
+            '||measure.office.net^',
+            '||app-analytics-services.com^',
+        ];
+        const expectedChecksum = '! Checksum: 4v+tPGfpA0fy+xfhlr8P6Q';
+
+        const checksum = utils.calculateChecksum(header, rules);
+        expect(checksum).toBe(expectedChecksum);
+    });
 });

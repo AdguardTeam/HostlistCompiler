@@ -19,16 +19,6 @@ const stripEnd = (str, char) => {
 };
 
 /**
- * Normalizes data by replacing newlines.
- *
- * @param {string} message - The message to normalize.
- * @returns {string} - The normalized message.
- */
-const normalizeData = (message) => {
-    return message.replace(/\r/g, '').replace(/\n+/g, '\n');
-};
-
-/**
  * Calculates checksum for the given header and rules.
  * See:
  * https://adblockplus.org/en/filters#special-comments
@@ -39,7 +29,7 @@ const normalizeData = (message) => {
  * @returns {string} - The calculated checksum.
  */
 const calculateChecksum = (header, rules) => {
-    const content = normalizeData(header.concat(rules).join('\n'));
+    const content = header.concat(rules).join('\n');
     const checksum = crypto.createHash('md5').update(content).digest('base64');
     return `! Checksum: ${stripEnd(checksum.trim(), '=')}`;
 };
