@@ -37,9 +37,9 @@ describe('substringBetween', () => {
 
 describe('calculateChecksum', () => {
     it('calculates checksum with multiple headers and rules', () => {
-        const header = ['[Adblock Plus 2.0]', '! Title: Example filter list'];
-        const rules = ['! Checksum: ', '||example.com^', '||test.com^'];
-        const expectedChecksum = '! Checksum: h0eMYV8/e57vDmGsYZRhsg';
+        const header = ['! Title: AdGuard DNS filter', '! Title: Example filter list'];
+        const rules = ['||example.com^', '||test.com^'];
+        const expectedChecksum = '! Checksum: VSbHtv4WyU405Fks327CsA';
 
         const checksum = utils.calculateChecksum(header, rules);
         expect(checksum).toBe(expectedChecksum);

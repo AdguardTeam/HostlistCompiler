@@ -104,7 +104,7 @@ async function compile(configuration) {
     // Calculate checksum
     const checksum = calculateChecksum(header, finalList);
     // Concat everything together
-    const data = ['!', checksum, ...header, ...finalList];
+    const data = [checksum, ...header, ...finalList];
     consola.info(`Final length of the list is ${data.length}`);
     return data;
 }

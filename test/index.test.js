@@ -33,7 +33,7 @@ describe('Hostlist compiler', () => {
         const list = await compile(configuration);
 
         // assert
-        expect(list[1].startsWith('! Checksum:')).toBe(true);
+        expect(list[0].startsWith('! Checksum:')).toBe(true);
         expect(list).toContain('||example.org');
         expect(list).toContain('||example.com');
         expect(list).toContain('! Version: 1.0.0.9');
@@ -67,10 +67,10 @@ describe('Hostlist compiler', () => {
         const list = await compile(configuration);
 
         // assert
-        const checksumLine = list[1];
+        const checksumLine = list[0];
         expect(checksumLine.startsWith('! Checksum:')).toBe(true);
 
-        const header = list.slice(2, list.indexOf('||example.org'));
+        const header = list.slice(1, list.indexOf('||example.org'));
         const finalList = list.slice(list.indexOf('||example.org'));
 
         const expectedChecksum = calculateChecksum(header, finalList);
