@@ -1,38 +1,6 @@
 const _ = require('lodash');
 const fs = require('fs').promises;
-const crypto = require('crypto');
 const axios = require('axios');
-
-/**
- * Strips specified character from the end of a string.
- *
- * @param {string} string - The string to strip.
- * @param {string} char - The character to strip.
- * @returns {string} - The stripped string.
- */
-const stripEnd = (str, char) => {
-    let result = str;
-    while (result.endsWith(char)) {
-        result = result.slice(0, -1);
-    }
-    return result;
-};
-
-/**
- * Calculates checksum for the given header and rules.
- * See:
- * https://adblockplus.org/en/filters#special-comments
- * https://hg.adblockplus.org/adblockplus/file/tip/addChecksum.py
- *
- * @param {Array<string>} header - The header lines.
- * @param {Array<string>} rules - The rules lines.
- * @returns {string} - The calculated checksum.
- */
-const calculateChecksum = (header, rules) => {
-    const content = header.concat(rules).join('\n');
-    const checksum = crypto.createHash('md5').update(content).digest('base64');
-    return `! Checksum: ${stripEnd(checksum.trim(), '=')}`;
-};
 
 function isURL(str) {
     try {
@@ -201,7 +169,6 @@ class Wildcard {
 }
 
 module.exports = {
-    calculateChecksum,
     download,
     Wildcard,
     splitByDelimiterWithEscapeCharacter,
