@@ -1,9 +1,13 @@
 const _ = require('lodash');
+const { domainToASCII } = require('url');
 const utils = require('./utils');
 
 // eslint-disable-next-line max-len
 const domainRegex = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;
 const etcHostsRegex = /^([a-f0-9.:\][]+)(%[a-z0-9]+)?\s+([^#]+)(#.*)?$/;
+const domainPatternRegex = /(\*\.|)([^\s^$|=]+(?:\.[^\s^$|=]+)+)/g;
+// eslint-disable-next-line no-control-regex
+const nonAsciiRegexp = /[^\x00-\x7F]/;
 
 /**
  * Helper utils for working with filtering rules
@@ -43,6 +47,36 @@ function isJustDomain(ruleText) {
  */
 function isEtcHostsRule(ruleText) {
     return etcHostsRegex.test(ruleText);
+}
+
+/**
+ * Check if the rule contains non-ASCII characters
+ * @param {string} ruleText - rule to check
+ * @returns {boolean} true if the rule contains non-latin characters
+ */
+function containsNonAsciiCharacters(ruleText) {
+    return nonAsciiRegexp.test(ruleText);
+}
+
+/**
+ * Function to convert all parts of the string that look like domain names with a possible wildcard (*.)
+ * and contain non-Latin characters to Punycode.
+ *
+ * @param {string} line The original string (adblock rule, regular domain, etc.)
+ * @returns {string} String with non-Latin domains converted to Punycode
+ */
+function convertNonAsciiToPunycode(line) {
+    return line.replace(domainPatternRegex, (match, wildcard, domain) => {
+        // Check if the domain contains non-ASCII characters
+        if (containsNonAsciiCharacters(domain)) {
+            // Convert only the domain (without '*.')
+            const punycodeDomain = domainToASCII(domain);
+            // Return with possible wildcard prefix '*.'
+            return wildcard + punycodeDomain;
+        }
+        // If there are no non-Latin characters, leave the original part
+        return match;
+    });
 }
 
 /**
@@ -276,6 +310,8 @@ module.exports = {
     isEtcHostsRule,
     loadEtcHostsRuleProperties,
     loadAdblockRuleProperties,
+    containsNonAsciiCharacters,
+    convertNonAsciiToPunycode,
     findModifier,
     removeModifier,
     adblockRuleToString,

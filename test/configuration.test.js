@@ -35,6 +35,7 @@ describe('Configuration', () => {
                         'Validate',
                         'Deduplicate',
                         'InvertAllow',
+                        'ConvertToAscii',
                     ],
                 },
             ],
@@ -45,6 +46,7 @@ describe('Configuration', () => {
                 'Validate',
                 'Deduplicate',
                 'InvertAllow',
+                'ConvertToAscii',
             ],
         });
         expect(ret.valid).toBe(true);

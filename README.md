@@ -19,6 +19,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [RemoveEmptyLines](#removeemptylines)
   - [TrimLines](#trimlines)
   - [InsertFinalNewLine](#insertfinalnewline)
+  - [ConvertToAscii](#convert-to-ascii)
 - [How to build](#how-to-build)
 
 ## <a name="usage"></a> Usage
@@ -452,6 +453,28 @@ rule3
 ```
 
 `RemoveEmptyLines` doesn't delete this empty row due to the execution order.
+
+### <a name="convert-to-ascii"></a> ConvertToAscii
+
+This transformation converts all non-ASCII characters to their ASCII equivalents. It is always performed first.
+
+**Example:**
+
+Original list:
+
+```
+||*.рус^
+||*.कॉम^
+||*.セール^
+```
+
+Here's what we will have after applying this transformation:
+
+```
+||*.xn--p1acf^
+||*.xn--11b4c3d^
+||*.xn--1qqw23a^
+```
 
 ## <a name="how-to-build"></a> How to build
 

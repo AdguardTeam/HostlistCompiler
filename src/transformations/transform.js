@@ -10,6 +10,7 @@ const invertAllow = require('./invertallow');
 const removeEmptyLines = require('./remove-empty-lines');
 const trimLines = require('./trim-lines');
 const insertFinalNewLine = require('./insert-final-newline');
+const convertToAscii = require('./covert-to-ascii');
 
 /**
  * Enum with all available transformations
@@ -25,6 +26,7 @@ const TRANSFORMATIONS = Object.freeze({
     RemoveEmptyLines: 'RemoveEmptyLines',
     TrimLines: 'TrimLines',
     InsertFinalNewLine: 'InsertFinalNewLine',
+    ConvertToAscii: 'ConvertToAscii',
 });
 
 /**
@@ -55,6 +57,9 @@ async function transform(rules, configuration, transformations) {
         configuration.inclusions_sources,
     );
 
+    if (transformations.indexOf(TRANSFORMATIONS.ConvertToAscii) !== -1) {
+        transformed = convertToAscii(transformed);
+    }
     if (transformations.indexOf(TRANSFORMATIONS.TrimLines) !== -1) {
         transformed = trimLines(transformed);
     }

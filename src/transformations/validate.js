@@ -248,51 +248,58 @@ function valid(ruleText, allowedIP) {
  * Class representing a validator for a list of rules.
  */
 class Validator {
+    /**
+     * Creates a new rule validator.
+     * @param {boolean} allowedIP - Flag indicating whether IP addresses should be considered valid.
+     */
     constructor(allowedIP) {
         /**
-         * Indicates whether the previous rule was removed.
-         * @type {boolean}
-         */
-        this.prevRuleRemoved = false;
+       * Indicates that a rule was previously removed (the iteration processed an invalid rule).
+       * Used to remove preceding comments or empty lines.
+       * @type {boolean}
+       */
+        this.previousRuleRemoved = false;
+
         /**
-         * Flag to allow IP validation.
-         * @type {boolean}
-         */
+       * Flag to allow or disallow IP addresses during validation.
+       * @type {boolean}
+       */
         this.allowedIP = allowedIP;
     }
 
     /**
-     * Validates the list of rules and removes invalid rules.
+     * Validates a list of rules and removes invalid rules.
      * If a rule is invalid, any preceding comments or empty lines are also removed.
      *
-     * @returns {Array<string>} The filtered list of valid rules.
-     * @param {Array<string>} rules - An array of rules to validate.
+     * @param {string[]} rules - An array of strings (rules) to validate.
+     * @returns {string[]} A filtered list of valid rules.
      */
     validate(rules) {
-        /**
-         * A filtered list of rules after validation.
-         * @type {Array<string>}
-         */
         const filtered = [...rules];
-        for (let iFiltered = filtered.length - 1; iFiltered >= 0; iFiltered -= 1) {
-            const ruleText = filtered[iFiltered];
+        // Iterate from the end to the beginning so we can remove
+        // preceding comments/empty lines if needed
+        for (let i = filtered.length - 1; i >= 0; i -= 1) {
+            const isValidRule = valid(filtered[i], this.allowedIP);
+            const isCommentOrEmptyLine = ruleUtils.isComment(filtered[i]) || _.isEmpty(filtered[i]);
 
-            if (!valid(ruleText, this.allowedIP)) {
-                this.prevRuleRemoved = true;
-                filtered.splice(iFiltered, 1);
-            } else if (this.prevRuleRemoved && (ruleUtils.isComment(ruleText) || _.isEmpty(ruleText))) {
-                // Remove preceding comments and empty lines
-                consola.debug(`Removing a comment preceding invalid rule: ${ruleText}`);
-                filtered.splice(iFiltered, 1);
+            if (!isValidRule) {
+                // If the rule is invalid, remove it and set the flag to remove preceding lines
+                this.previousRuleRemoved = true;
+                filtered.splice(i, 1);
+            } else if (this.previousRuleRemoved && isCommentOrEmptyLine) {
+                // If a previous invalid rule was removed, remove this comment or empty line as well
+                consola.debug(`Removing a comment or empty line preceding an invalid rule: ${filtered[i]}`);
+                filtered.splice(i, 1);
             } else {
-                // Stop removing comments
-                this.prevRuleRemoved = false;
+                // If it's valid and doesn't match the "remove preceding" scenario, reset the removal flag
+                this.previousRuleRemoved = false;
             }
         }
 
         return filtered;
     }
 }
+
 /**
  * Validates a list of rules.
  *

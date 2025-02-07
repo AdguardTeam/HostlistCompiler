@@ -88,12 +88,12 @@ describe('Source compiler', () => {
 
     it('compile the source with transformations', async () => {
         const testList = `
-    
+
     example.org
 
-               test1.com             
+               test1.com
 
-        ! comment      
+        ! comment
  test1.com
 
   test2.com`;
@@ -118,6 +118,42 @@ describe('Source compiler', () => {
             'test1.com',
             'test2.com',
             '',
+        ]);
+        scope.done();
+    });
+
+    it('compile the source with converToAscii transformation', async () => {
+        const testList = `
+        ! comment
+||*.ком^
+||*.ком^
+    ||*.укр^
+||*.мон^
+||*.ευ^
+        ||*.ελ^
+||*.հայ^`;
+        const scope = nock('https://example.org')
+            .get('/test-filter.txt')
+            .reply(200, testList);
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/test-filter.txt',
+            transformations: [
+                TRANSFORMATIONS.ConvertToAscii,
+                TRANSFORMATIONS.Deduplicate,
+                TRANSFORMATIONS.RemoveComments,
+                TRANSFORMATIONS.TrimLines,
+            ],
+        };
+        const compiled = await compileSource(source);
+        expect(compiled).toEqual([
+            '||*.xn--j1aef^',
+            '||*.xn--j1amh^',
+            '||*.xn--l1acc^',
+            '||*.xn--qxa6a^',
+            '||*.xn--qxam^',
+            '||*.xn--y9a3aq^',
         ]);
         scope.done();
     });

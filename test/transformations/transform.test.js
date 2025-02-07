@@ -73,4 +73,35 @@ rule2
         expect(filtered).toHaveLength(4);
         expect(filtered).toEqual(['! test comment', 'rule1', '||185.149.120.173^', '||example.com^']);
     });
+
+    it('simple transformations with ConvertToAscii', async () => {
+        const rules = `! test comment
+||*.рус^
+||*.कॉम^
+||*.セール^
+||*.佛山^
+||*.ಭಾರತ^
+||*.慈善^
+||*.集团^
+||*.在线^`.split(/\r?\n/);
+        const exclusions = [
+            '', // empty exclusions are ignored
+            '||*.セール^',
+        ];
+        const configuration = {
+            exclusions,
+        };
+        const filtered = await transform(rules, configuration, ['ConvertToAscii']);
+        expect(filtered).toHaveLength(8);
+        expect(filtered).toEqual([
+            '! test comment',
+            '||*.xn--p1acf^',
+            '||*.xn--11b4c3d^',
+            '||*.xn--1qqw23a^',
+            '||*.xn--2scrj9c^',
+            '||*.xn--30rr7y^',
+            '||*.xn--3bst00m^',
+            '||*.xn--3ds443g^',
+        ]);
+    });
 });
