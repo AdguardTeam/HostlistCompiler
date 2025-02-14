@@ -266,6 +266,7 @@ Here is the full list of transformations that are available:
 1. `RemoveEmptyLines`
 1. `TrimLines`
 1. `InsertFinalNewLine`
+1. `ConvertToAscii`
 
 Please note that these transformations are are always applied in the order specified here.
 
