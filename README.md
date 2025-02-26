@@ -152,6 +152,55 @@ Please note, that exclusion or inclusion rules may be a plain string, wildcard, 
 - `/regex/` - every rule that matches this regular expression, will match the rule. By default, regular expressions are case-insensitive.
 - `! comment` - comments will be ignored.
 
+> [!IMPORTANT]
+> Ensure that rules in the exclusion list match the format of the rules in the filter list.
+> To maintain a consistent format, add the `Compress` transformation to convert `/etc/hosts` rules to adblock syntax.
+> This is especially useful if you have multiple lists in different formats.
+
+Here is an example:
+
+Rules in HOSTS syntax: `/hosts.txt`
+
+```txt
+0.0.0.0 ads.example.com  
+0.0.0.0 tracking.example1.com  
+0.0.0.0 example.com
+```
+
+Exclusion rules in adblock syntax: `/exclusions.txt`
+
+```txt
+||example.com^
+```
+
+Configuration of the final list:
+
+```json
+{
+  "name": "List name",
+  "description": "List description",
+  "sources": [
+    {
+      "name": "HOSTS rules",
+      "source": "hosts.txt",
+      "type": "hosts",
+      "transformations": ["Compress"]
+    }
+  ],
+  "transformations": ["Deduplicate", "Compress"],
+  "exclusions_sources": ["exclusions.txt"]
+}
+```
+
+Final filter output of `/hosts.txt` after applying the `Compress` transformation and exclusions:
+
+```txt
+||ads.example.com^  
+||tracking.example1.com^
+```
+
+The last rule now `||example.com^` will correctly match the rule from the exclusion list and will be excluded.
+
 ### <a name="command-line"></a> Command-line
 
 Command-line arguments.
