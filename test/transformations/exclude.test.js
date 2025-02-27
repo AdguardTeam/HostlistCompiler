@@ -1,6 +1,10 @@
 const nock = require('nock');
 const mock = require('mock-fs');
+const path = require('path');
 const exclude = require('../../src/transformations/exclude');
+
+const testDirPath = path.resolve(__dirname, 'test/dir');
+const exclusionsFilePath = path.resolve(testDirPath, 'exclusions.txt');
 
 describe('Exclusions', () => {
     afterEach(() => {
@@ -20,11 +24,15 @@ describe('Exclusions', () => {
         // Mock exclusions
         const scope = nock('https://example.org')
             .get('/exclusions.txt')
-            .reply(200, 'rule1')
+            .reply(200, 'rule1', {
+                'Content-Type': 'text/plain',
+            })
             .get('/exclusions2.txt')
-            .reply(200, 'rule2');
+            .reply(200, 'rule2', {
+                'Content-Type': 'text/plain',
+            });
         mock({
-            'test/dir': {
+            [testDirPath]: {
                 'exclusions.txt': 'rule3',
             },
         });
@@ -36,7 +44,7 @@ describe('Exclusions', () => {
         const filtered = await exclude(
             rules,
             ['rule4'],
-            ['https://example.org/exclusions.txt', 'https://example.org/exclusions2.txt', 'test/dir/exclusions.txt'],
+            ['https://example.org/exclusions.txt', 'https://example.org/exclusions2.txt', exclusionsFilePath],
         );
 
         // Assert
