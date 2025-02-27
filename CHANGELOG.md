@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Implement the `@adguard/filters-downloader` to download filters
-  and resolve `!#include` directive in them. [#78]
+- Resolving the `!#include` directive by implementing the `@adguard/filters-downloader`. [#78]
 
 [1.0.37]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.35...v1.0.37
 [#78]: https://github.com/AdguardTeam/HostlistCompiler/issues/78
