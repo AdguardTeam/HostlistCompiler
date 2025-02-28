@@ -1,6 +1,10 @@
 const nock = require('nock');
 const consola = require('consola');
+const path = require('path');
 const compile = require('../src/index');
+
+const testDirPath = path.resolve(__dirname, 'dist');
+const filterFilePath = path.resolve(testDirPath, 'rules.txt');
 
 describe('Hostlist compiler', () => {
     it('compile from one source with nested includes', async () => {
@@ -154,5 +158,41 @@ non/valid_rule`;
         consola.info(str);
 
         scope.done();
+    });
+
+    it('compile from one source with include and exclude file', async () => {
+        // compiler configuration
+        const configuration = {
+            name: 'Test filter',
+            description: 'Our test filter',
+            version: '1.0.0.9',
+            sources: [
+                {
+                    name: 'filter',
+                    source: filterFilePath,
+                },
+            ],
+            transformations: [
+                'RemoveComments',
+                'Compress',
+                'InsertFinalNewLine',
+                'Validate',
+            ],
+        };
+
+        // compile the final list
+        const list = await compile(configuration);
+
+        const str = list.join('\n');
+        consola.info(str);
+
+        const expectedRules = [
+            '||should.be.included.com^',
+            '||last.rule^',
+        ];
+
+        expectedRules.forEach((rule) => {
+            expect(list).toContain(rule);
+        });
     });
 });
