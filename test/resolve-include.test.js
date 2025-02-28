@@ -3,7 +3,7 @@ const consola = require('consola');
 const path = require('path');
 const compile = require('../src/index');
 
-const testDirPath = path.resolve(__dirname, 'dist');
+const testDirPath = path.resolve(__dirname, 'resources');
 const filterFilePath = path.resolve(testDirPath, 'rules.txt');
 
 describe('Hostlist compiler', () => {
@@ -160,7 +160,7 @@ non/valid_rule`;
         scope.done();
     });
 
-    it('compile from one source with include and exclude file', async () => {
+    it('compile from local source with local include', async () => {
         // compiler configuration
         const configuration = {
             name: 'Test filter',
@@ -187,6 +187,9 @@ non/valid_rule`;
         consola.info(str);
 
         const expectedRules = [
+            '||sat.terithrow2.net^',
+            '||sat.fevilsor5.net^',
+            '||leegreemula.net^',
             '||should.be.included.com^',
             '||last.rule^',
         ];
