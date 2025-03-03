@@ -1,6 +1,10 @@
 const nock = require('nock');
 const mock = require('mock-fs');
+const path = require('path');
 const include = require('../../src/transformations/include');
+
+const testDirPath = path.resolve(__dirname, 'test/dir');
+const inclusionsFilePath = path.resolve(testDirPath, 'inclusions.txt');
 
 describe('Exclusions', () => {
     afterEach(() => {
@@ -39,11 +43,15 @@ describe('Exclusions', () => {
         // Mock inclusions sources
         const scope = nock('https://example.org')
             .get('/inclusions.txt')
-            .reply(200, 'rule1')
+            .reply(200, 'rule1', {
+                'Content-Type': 'text/plain',
+            })
             .get('/inclusions2.txt')
-            .reply(200, 'rule2');
+            .reply(200, 'rule2', {
+                'Content-Type': 'text/plain',
+            });
         mock({
-            'test/dir': {
+            [testDirPath]: {
                 'inclusions.txt': 'rule3',
             },
         });
@@ -56,7 +64,7 @@ describe('Exclusions', () => {
         const inclusionsSources = [
             'https://example.org/inclusions.txt',
             'https://example.org/inclusions2.txt',
-            'test/dir/inclusions.txt',
+            inclusionsFilePath,
         ];
 
         // Include!

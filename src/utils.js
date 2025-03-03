@@ -1,36 +1,4 @@
 const _ = require('lodash');
-const fs = require('fs').promises;
-const axios = require('axios');
-
-function isURL(str) {
-    try {
-        // eslint-disable-next-line no-unused-vars
-        const u = new URL(str);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-/**
- * Downloads (or reads from the disk) the specified source
- *
- * @param {*} urlOrPath url or path to a file
- * @returns {Promise<String>} contents of the files
- */
-async function download(urlOrPath) {
-    let str = '';
-
-    if (isURL(urlOrPath)) {
-        const url = new URL(urlOrPath);
-        const response = await axios.get(url.toString(), { responseType: 'text' });
-        str = response.data;
-    } else {
-        str = (await fs.readFile(urlOrPath)).toString();
-    }
-
-    return str;
-}
 
 /**
  * Extracts a substring between two tags.
@@ -169,7 +137,6 @@ class Wildcard {
 }
 
 module.exports = {
-    download,
     Wildcard,
     splitByDelimiterWithEscapeCharacter,
     substringBetween,

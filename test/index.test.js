@@ -7,9 +7,13 @@ describe('Hostlist compiler', () => {
         // Prepare source 1
         const scope = nock('https://example.org')
             .get('/source1.txt')
-            .reply(200, '||example.org')
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            })
             .get('/source2.txt')
-            .reply(200, '||example.com');
+            .reply(200, '||example.com', {
+                'Content-Type': 'text/plain',
+            });
 
         // compiler configuration
         const configuration = {
