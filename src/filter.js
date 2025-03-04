@@ -1,14 +1,14 @@
 const _ = require('lodash');
 const { FiltersDownloader } = require('@adguard/filters-downloader');
 const utils = require('./utils');
+const { download, resolveFilePath } = require('./utils');
 const ruleUtils = require('./rule');
 
 /**
- * Download all specified files, split them into string arrays,
- * and return a final array with all the lines from all files.
+ * Downloads all specified files, processes their content, and returns an array of all valid lines.
  *
- * @param {Array<String>} sources - array of URLs.
- * @returns {Promise<Array<String>>} array with all non-empty and non-comment lines.
+ * @param {Array<String>} sources - Array of URLs or file paths to download.
+ * @returns {Promise<Array<String>>} - A promise that resolves to an array of non-empty, non-comment lines.
  */
 async function downloadAll(sources) {
     let list = [];
@@ -16,10 +16,16 @@ async function downloadAll(sources) {
         return list;
     }
 
-    await Promise.all(sources.map(async (s) => {
-        const rulesStr = await FiltersDownloader.download(s);
-        const rules = rulesStr
-            .filter((el) => el.trim().length > 0 && !ruleUtils.isComment(el));
+    await Promise.all(sources.map(async (source) => {
+        // download the content of the source
+        let rulesStr = await download(source);
+        const sourceFilePath = resolveFilePath(source);
+
+        // resolve includes within the downloaded content
+        rulesStr = await FiltersDownloader.resolveIncludes(rulesStr, sourceFilePath);
+
+        // Filter out empty lines and comments
+        const rules = rulesStr.filter((line) => line.trim().length > 0 && !ruleUtils.isComment(line));
         list = list.concat(rules);
     }));
 

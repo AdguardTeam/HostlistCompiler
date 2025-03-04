@@ -1,10 +1,6 @@
 const nock = require('nock');
 const consola = require('consola');
-const path = require('path');
 const compile = require('../src/index');
-
-const testDirPath = path.resolve(__dirname, 'resources');
-const filterFilePath = path.resolve(testDirPath, 'rules.txt');
 
 describe('Hostlist compiler', () => {
     it('compile from one source with nested includes', async () => {
@@ -169,7 +165,7 @@ non/valid_rule`;
             sources: [
                 {
                     name: 'filter',
-                    source: filterFilePath,
+                    source: 'test/resources/rules.txt',
                 },
             ],
             transformations: [

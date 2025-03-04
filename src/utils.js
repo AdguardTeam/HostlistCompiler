@@ -1,4 +1,51 @@
 const _ = require('lodash');
+const fs = require('fs').promises;
+const axios = require('axios');
+const path = require('path');
+
+/**
+ * Checks if a given string is a valid URL.
+ *
+ * @param {string} str - The string to check.
+ * @returns {boolean} True if the string is a valid URL, false otherwise.
+ */
+function isURL(str) {
+    try {
+        return Boolean(new URL(str));
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * Resolves the directory path of a given file path or URL.
+ *
+ * @param {string} urlOrPath - The URL or file path to resolve.
+ * @returns {string|null} The directory path if the input is a file path, or null if the input is a URL.
+ */
+const resolveFilePath = (urlOrPath) => {
+    return isURL(urlOrPath) ? null : path.dirname(path.resolve(urlOrPath));
+};
+
+/**
+ * Downloads (or reads from the disk) the specified source
+ *
+ * @param {*} urlOrPath url or path to a file
+ * @returns {Promise<String>} contents of the files
+ */
+async function download(urlOrPath) {
+    let str = '';
+
+    if (isURL(urlOrPath)) {
+        const url = new URL(urlOrPath);
+        const response = await axios.get(url.toString(), { responseType: 'text' });
+        str = response.data;
+    } else {
+        str = (await fs.readFile(urlOrPath)).toString();
+    }
+
+    return str.split(/\r?\n/);
+}
 
 /**
  * Extracts a substring between two tags.
@@ -140,4 +187,6 @@ module.exports = {
     Wildcard,
     splitByDelimiterWithEscapeCharacter,
     substringBetween,
+    download,
+    resolveFilePath,
 };

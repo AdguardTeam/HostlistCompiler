@@ -5,7 +5,6 @@ const compileSource = require('../src/compile-source');
 const { TRANSFORMATIONS } = require('../src/transformations/transform');
 
 const testDirPath = path.resolve(__dirname, 'test/dir');
-const rulesFilePath = path.resolve(testDirPath, 'rules.txt');
 const exclusionsFilePath = path.resolve(testDirPath, 'exclusions.txt');
 
 describe('Source compiler', () => {
@@ -36,13 +35,14 @@ describe('Source compiler', () => {
 
     it('compile a simple file source', async () => {
         mock({
-            [testDirPath]: {
+            'test/dir': {
                 'rules.txt': 'testrule',
             },
         });
+
         const source = {
             name: 'test source',
-            source: rulesFilePath,
+            source: 'test/dir/rules.txt',
         };
 
         const rules = await compileSource(source);

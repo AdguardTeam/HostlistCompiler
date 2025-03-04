@@ -1,6 +1,7 @@
 const consola = require('consola');
 const { FiltersDownloader } = require('@adguard/filters-downloader');
 const { transform } = require('./transformations/transform');
+const { download, resolveFilePath } = require('./utils');
 
 /**
  * A source configuration. See a better description in README.md
@@ -21,9 +22,17 @@ const { transform } = require('./transformations/transform');
  */
 async function compileSource(source) {
     consola.info(`Start compiling ${source.source}`);
-    let rules = await FiltersDownloader.download(source.source);
-    consola.info(`Original length is ${rules.length}`);
+    let rules = await download(source.source);
 
+    // get the full path of the source directory for local files
+    const sourceFilePath = resolveFilePath(source.source);
+
+    consola.info(`Full path of the source directory is ${sourceFilePath || source.source}`);
+    // resolve includes
+    rules = await FiltersDownloader.resolveIncludes(rules, sourceFilePath);
+
+    consola.info(`Original length is ${rules.length}`);
+    // apply transformations
     rules = await transform(rules, source, source.transformations);
 
     consola.info(`Length after applying transformations is ${rules.length}`);
