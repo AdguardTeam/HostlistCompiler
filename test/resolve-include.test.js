@@ -90,7 +90,7 @@ non/valid_rule`;
 ads.example.com
 trackers.exclude.com
 exclude.com
-!#include https://example.org/source2.txt`;
+!#include source2.txt`;
 
         const filterContent2 = `
 popups.com
@@ -232,5 +232,40 @@ non/valid_rule`;
         expectedRules.forEach((rule) => {
             expect(list).toContain(rule);
         });
+    });
+
+    it('should not compile source from different origin', async () => {
+        // Prepare filters content
+        const filterContent1 = `! this is a source
+ads.example.com
+trackers.exclude.com
+exclude.com
+!#include https://example1.org/source.txt`;
+
+        // Prepare source
+        const scope = nock('https://example.org')
+            .get('/source1.txt')
+            .reply(200, filterContent1, {
+                'Content-Type': 'text/plain',
+            });
+
+        // compiler configuration
+        const configuration = {
+            name: 'Test filter',
+            description: 'Our test filter',
+            version: '1.0.0.9',
+            sources: [
+                {
+                    name: 'source 1',
+                    source: 'https://example.org/source1.txt',
+                },
+            ],
+        };
+
+        await expect(async () => {
+            await compile(configuration);
+        }).rejects.toThrow(Error);
+
+        scope.done();
     });
 });
