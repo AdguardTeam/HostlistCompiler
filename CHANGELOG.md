@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Path determination issue. [#78]
 
-[1.0.37]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.35...v1.0.37
+[1.0.37]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.37...v1.0.38
 [#78]: https://github.com/AdguardTeam/HostlistCompiler/issues/78
 
 ## [1.0.37] - 2025-02-28
