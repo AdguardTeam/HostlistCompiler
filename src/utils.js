@@ -2,6 +2,7 @@ const _ = require('lodash');
 const fs = require('fs').promises;
 const axios = require('axios');
 const path = require('path');
+const { FiltersDownloader } = require('@adguard/filters-downloader');
 
 /**
  * Checks if a given string is a valid URL.
@@ -25,7 +26,7 @@ function isURL(str) {
  * or url path if the input is a URL.
  */
 const resolveFilePath = (urlOrPath) => {
-    return isURL(urlOrPath) ? urlOrPath : path.dirname(path.resolve(urlOrPath));
+    return isURL(urlOrPath) ? FiltersDownloader.getFilterUrlOrigin(urlOrPath) : path.dirname(path.resolve(urlOrPath));
 };
 
 /**
