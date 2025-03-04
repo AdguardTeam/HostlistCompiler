@@ -2,6 +2,11 @@ const nock = require('nock');
 const consola = require('consola');
 const compile = require('../src/index');
 
+// eslint-disable-next-line max-len
+const TEST_FILTER_LIST_BASE = 'https://raw.githubusercontent.com/AdguardTeam/FiltersDownloader/test-resources/__tests__/resources';
+
+const URL2 = `${TEST_FILTER_LIST_BASE}/rules_nested_subdir_includes.txt`;
+
 describe('Hostlist compiler', () => {
     it('compile from one source with nested includes', async () => {
         // Prepare filters content
@@ -188,6 +193,40 @@ non/valid_rule`;
             '||leegreemula.net^',
             '||should.be.included.com^',
             '||last.rule^',
+        ];
+
+        expectedRules.forEach((rule) => {
+            expect(list).toContain(rule);
+        });
+    });
+
+    it('compile from external source with nested includes', async () => {
+        // compiler configuration
+        const configuration = {
+            name: 'Test filter',
+            description: 'Our test filter',
+            version: '1.0.0.9',
+            sources: [
+                {
+                    name: 'filter',
+                    source: URL2,
+                },
+            ],
+            transformations: [
+                'RemoveComments',
+            ],
+            exclusions: ['test_parent'],
+        };
+
+        // compile the final list
+        const list = await compile(configuration);
+
+        const str = list.join('\n');
+        consola.info(str);
+
+        const expectedRules = [
+            'sub_test_main',
+            'sub_test',
         ];
 
         expectedRules.forEach((rule) => {
