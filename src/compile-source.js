@@ -23,15 +23,16 @@ const { download, resolveFilePath } = require('./utils');
 async function compileSource(source) {
     consola.info(`Start compiling ${source.source}`);
     let rules = await download(source.source);
+    consola.info(`Original length is ${rules.length}`);
 
     // get the full path of the source directory for local files
     const sourceFilePath = resolveFilePath(source.source);
+    consola.info(`Full path of the source directory is ${sourceFilePath}`);
 
-    consola.info(`Full path of the source directory is ${sourceFilePath || source.source}`);
     // resolve includes
     rules = await FiltersDownloader.resolveIncludes(rules, sourceFilePath);
+    consola.info(`Length after resolving includes is ${rules.length}`);
 
-    consola.info(`Original length is ${rules.length}`);
     // apply transformations
     rules = await transform(rules, source, source.transformations);
 
