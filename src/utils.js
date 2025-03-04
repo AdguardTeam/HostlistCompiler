@@ -32,7 +32,7 @@ const resolveFilePath = (urlOrPath) => {
 /**
  * Downloads (or reads from the disk) the specified source
  *
- * @param {*} urlOrPath url or path to a file
+ * @param {string} urlOrPath url or path to a file
  * @returns {Promise<String>} contents of the files
  */
 async function download(urlOrPath) {
