@@ -30,12 +30,12 @@ const resolveFilePath = (urlOrPath) => {
 };
 
 /**
- * Downloads (or reads from the disk) the specified source
+ * Downloads (or reads) the specified source
  *
  * @param {string} urlOrPath url or path to a file
  * @returns {Promise<String>} contents of the files
  */
-async function download(urlOrPath) {
+async function getResource(urlOrPath) {
     let str = '';
 
     if (isURL(urlOrPath)) {
@@ -189,6 +189,6 @@ module.exports = {
     Wildcard,
     splitByDelimiterWithEscapeCharacter,
     substringBetween,
-    download,
+    getResource,
     resolveFilePath,
 };

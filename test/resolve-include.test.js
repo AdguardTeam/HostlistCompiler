@@ -2,11 +2,6 @@ const nock = require('nock');
 const consola = require('consola');
 const compile = require('../src/index');
 
-// eslint-disable-next-line max-len
-const TEST_FILTER_LIST_BASE = 'https://raw.githubusercontent.com/AdguardTeam/FiltersDownloader/test-resources/__tests__/resources';
-
-const URL2 = `${TEST_FILTER_LIST_BASE}/rules_nested_subdir_includes.txt`;
-
 describe('Hostlist compiler', () => {
     it('compile from one source with nested includes', async () => {
         // Prepare filters content
@@ -201,6 +196,33 @@ non/valid_rule`;
     });
 
     it('compile from external source with nested includes', async () => {
+        // Prepare filters content
+        const filterContent1 = `! this is a source
+||sub_test_main
+!#include source2.txt`;
+
+        const filterContent2 = `
+||sub_test
+!#include subdir/source3.txt`;
+
+        const filterContent3 = `
+||sub_test_final`;
+
+        // Prepare source
+        const scope = nock('https://example.org')
+            .get('/testdir/source1.txt')
+            .reply(200, filterContent1, {
+                'Content-Type': 'text/plain',
+            })
+            .get('/testdir/source2.txt')
+            .reply(200, filterContent2, {
+                'Content-Type': 'text/plain',
+            })
+            .get('/testdir/subdir/source3.txt')
+            .reply(200, filterContent3, {
+                'Content-Type': 'text/plain',
+            });
+
         // compiler configuration
         const configuration = {
             name: 'Test filter',
@@ -209,7 +231,7 @@ non/valid_rule`;
             sources: [
                 {
                     name: 'filter',
-                    source: URL2,
+                    source: 'https://example.org/testdir/source1.txt',
                 },
             ],
             transformations: [
@@ -225,13 +247,16 @@ non/valid_rule`;
         consola.info(str);
 
         const expectedRules = [
-            'sub_test_main',
-            'sub_test',
+            '||sub_test_main',
+            '||sub_test',
+            '||sub_test_final',
         ];
 
         expectedRules.forEach((rule) => {
             expect(list).toContain(rule);
         });
+
+        scope.done();
     });
 
     it('should not compile source from different origin', async () => {

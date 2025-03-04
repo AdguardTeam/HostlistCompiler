@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { FiltersDownloader } = require('@adguard/filters-downloader');
 const utils = require('./utils');
-const { download, resolveFilePath } = require('./utils');
+const { getResource, resolveFilePath } = require('./utils');
 const ruleUtils = require('./rule');
 
 /**
@@ -18,7 +18,7 @@ async function downloadAll(sources) {
 
     await Promise.all(sources.map(async (source) => {
         // download the content of the source
-        let rulesStr = await download(source);
+        let rulesStr = await getResource(source);
         const sourceFilePath = resolveFilePath(source);
 
         // resolve includes within the downloaded content
