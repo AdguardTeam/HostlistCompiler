@@ -21,10 +21,11 @@ function isURL(str) {
  * Resolves the directory path of a given file path or URL.
  *
  * @param {string} urlOrPath - The URL or file path to resolve.
- * @returns {string|null} The directory path if the input is a file path, or null if the input is a URL.
+ * @returns {string|null} The directory path if the input is a file path,
+ * or url path if the input is a URL.
  */
 const resolveFilePath = (urlOrPath) => {
-    return isURL(urlOrPath) ? null : path.dirname(path.resolve(urlOrPath));
+    return isURL(urlOrPath) ? urlOrPath : path.dirname(path.resolve(urlOrPath));
 };
 
 /**
