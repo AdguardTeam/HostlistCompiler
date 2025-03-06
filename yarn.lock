@@ -11,10 +11,10 @@
     crypto-js "^4.2.0"
     diff "git+https://github.com/105th/jsdiff.git#2be2e7df90e8eebd99f0385c7b1dc16c2f4dcc1a"
 
-"@adguard/filters-downloader@^2.2.6":
-  version "2.2.6"
-  resolved "https://registry.yarnpkg.com/@adguard/filters-downloader/-/filters-downloader-2.2.6.tgz#145f88050a706a691b442f7133db15931721783f"
-  integrity sha512-lAKrJbM8pEK2sZi4Tb9bfa3aSDZ025nYNAHF7FxYgihtbX5SxKPZBXThEjgHGTqyifsMDq/HSVC0n15EIytMdQ==
+"@adguard/filters-downloader@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@adguard/filters-downloader/-/filters-downloader-2.3.0.tgz#dad0523cca05508d71f739428378a1e28fda151f"
+  integrity sha512-6sfrl9sroKjdrE0wgVh1hHq1Z1C7VdLbThJMwxL3Hucg5q121/+kzP4d0zF4dZOcE5ndbNOywJWu8zteUpYpXA==
   dependencies:
     "@adguard/diff-builder" "1.0.17"
     axios "1.6.2"

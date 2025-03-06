@@ -1,2 +1,2 @@
 should.be.included.com
-last.rule
+!#include subinclude.txt

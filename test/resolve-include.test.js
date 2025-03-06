@@ -1,10 +1,6 @@
 const nock = require('nock');
 const consola = require('consola');
-const path = require('path');
 const compile = require('../src/index');
-
-const testDirPath = path.resolve(__dirname, 'resources');
-const filterFilePath = path.resolve(testDirPath, 'rules.txt');
 
 describe('Hostlist compiler', () => {
     it('compile from one source with nested includes', async () => {
@@ -89,7 +85,7 @@ non/valid_rule`;
 ads.example.com
 trackers.exclude.com
 exclude.com
-!#include https://example.org/source2.txt`;
+!#include source2.txt`;
 
         const filterContent2 = `
 popups.com
@@ -169,7 +165,7 @@ non/valid_rule`;
             sources: [
                 {
                     name: 'filter',
-                    source: filterFilePath,
+                    source: 'test/resources/rules.txt',
                 },
             ],
             transformations: [
@@ -197,5 +193,104 @@ non/valid_rule`;
         expectedRules.forEach((rule) => {
             expect(list).toContain(rule);
         });
+    });
+
+    it('compile from external source with nested includes', async () => {
+        // Prepare filters content
+        const filterContent1 = `! this is a source
+||sub_test_main
+!#include source2.txt`;
+
+        const filterContent2 = `
+||sub_test
+!#include subdir/source3.txt`;
+
+        const filterContent3 = `
+||sub_test_final`;
+
+        // Prepare source
+        const scope = nock('https://example.org')
+            .get('/testdir/source1.txt')
+            .reply(200, filterContent1, {
+                'Content-Type': 'text/plain',
+            })
+            .get('/testdir/source2.txt')
+            .reply(200, filterContent2, {
+                'Content-Type': 'text/plain',
+            })
+            .get('/testdir/subdir/source3.txt')
+            .reply(200, filterContent3, {
+                'Content-Type': 'text/plain',
+            });
+
+        // compiler configuration
+        const configuration = {
+            name: 'Test filter',
+            description: 'Our test filter',
+            version: '1.0.0.9',
+            sources: [
+                {
+                    name: 'filter',
+                    source: 'https://example.org/testdir/source1.txt',
+                },
+            ],
+            transformations: [
+                'RemoveComments',
+            ],
+            exclusions: ['test_parent'],
+        };
+
+        // compile the final list
+        const list = await compile(configuration);
+
+        const str = list.join('\n');
+        consola.info(str);
+
+        const expectedRules = [
+            '||sub_test_main',
+            '||sub_test',
+            '||sub_test_final',
+        ];
+
+        expectedRules.forEach((rule) => {
+            expect(list).toContain(rule);
+        });
+
+        scope.done();
+    });
+
+    it('should not compile source from different origin', async () => {
+        // Prepare filters content
+        const filterContent1 = `! this is a source
+ads.example.com
+trackers.exclude.com
+exclude.com
+!#include https://example1.org/source.txt`;
+
+        // Prepare source
+        const scope = nock('https://example.org')
+            .get('/source1.txt')
+            .reply(200, filterContent1, {
+                'Content-Type': 'text/plain',
+            });
+
+        // compiler configuration
+        const configuration = {
+            name: 'Test filter',
+            description: 'Our test filter',
+            version: '1.0.0.9',
+            sources: [
+                {
+                    name: 'source 1',
+                    source: 'https://example.org/source1.txt',
+                },
+            ],
+        };
+
+        await expect(async () => {
+            await compile(configuration);
+        }).rejects.toThrow(Error);
+
+        scope.done();
     });
 });
