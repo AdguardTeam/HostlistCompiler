@@ -293,4 +293,102 @@ exclude.com
 
         scope.done();
     });
+
+    it('should compile source with empty !#include and empty source', async () => {
+        // Prepare filters content
+        const filterContent = `! this is a source
+||*.ком^
+||trackers.exclude.com^
+||exclude.com^
+!#include https://example.org/source.txt`;
+
+        // Prepare source
+        const scope = nock('https://example.org')
+            .get('/source1.txt')
+            .reply(200, filterContent, {
+                'Content-Type': 'text/plain',
+            })
+            .get('/source.txt')
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            })
+            .get('/empty.txt')
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            });
+
+        // compiler configuration
+        const configuration = {
+            name: 'Test filter',
+            description: 'Our test filter',
+            version: '1.0.0.9',
+            sources: [
+                {
+                    name: 'source 1',
+                    source: 'https://example.org/source1.txt',
+                },
+            ],
+            transformations: [
+                'RemoveComments',
+                'ConvertToAscii',
+            ],
+            inclusions_sources: ['https://example.org/empty.txt'],
+        };
+
+        const expectedRules = [
+            '||*.xn--j1aef^',
+            '||trackers.exclude.com^',
+            '||exclude.com^',
+        ];
+
+        // compile the final list
+        const list = await compile(configuration);
+
+        const str = list.join('\n');
+        consola.info(str);
+
+        expectedRules.forEach((rule) => {
+            expect(list).toContain(rule);
+        });
+
+        scope.done();
+    });
+
+    it('should compile source with empty source', async () => {
+        // Prepare source
+        const scope = nock('https://example.org')
+            .get('/source.txt')
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            })
+            .get('/empty.txt')
+            .reply(200, '||example.com^', {
+                'Content-Type': 'text/plain',
+            });
+
+        // compiler configuration
+        const configuration = {
+            name: 'Test filter',
+            description: 'Our test filter',
+            version: '1.0.0.9',
+            sources: [
+                {
+                    name: 'source 1',
+                    source: 'https://example.org/empty.txt',
+                },
+            ],
+            transformations: [
+                'RemoveComments',
+                'ConvertToAscii',
+            ],
+            inclusions_sources: ['https://example.org/source.txt'],
+        };
+
+        const list = await compile(configuration);
+        consola.info(list.join('\n'));
+
+        expect(list).toContain('||example.com^');
+
+        scope.done();
+    });
 });

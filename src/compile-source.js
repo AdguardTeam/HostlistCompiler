@@ -21,7 +21,7 @@ const { transform } = require('./transformations/transform');
  */
 async function compileSource(source) {
     consola.info(`Start compiling ${source.source}`);
-    let rules = await FiltersDownloader.download(source.source);
+    let rules = await FiltersDownloader.download(source.source, {}, { allowEmptyResponse: true });
     consola.info(`Original length is ${rules.length}`);
 
     rules = await transform(rules, source, source.transformations);

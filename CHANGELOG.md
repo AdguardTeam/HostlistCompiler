@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.39] - 2025-03-13
+
+### Changed
+
+- Updated [@adguard/filters-downloader] to 2.3.1. This version handles empty sources correctly. [#85]
+
+[1.0.39]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.38...v1.0.39
+[#85]: https://github.com/AdguardTeam/HostlistCompiler/issues/85
+
 ## [1.0.38] - 2025-03-06
 
 ### Changed

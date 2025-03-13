@@ -170,4 +170,48 @@ describe('Source compiler', () => {
         ]);
         scope.done();
     });
+
+    it('compile the empty local source', async () => {
+        mock({
+            'test/dir': {
+                'empty.txt': '',
+            },
+        });
+
+        const source = {
+            name: 'test source',
+            source: 'test/dir/empty.txt',
+            transformations: [
+                TRANSFORMATIONS.ConvertToAscii,
+                TRANSFORMATIONS.Deduplicate,
+                TRANSFORMATIONS.RemoveComments,
+                TRANSFORMATIONS.TrimLines,
+            ],
+        };
+        const compiled = await compileSource(source);
+        expect(compiled).toEqual(['']);
+    });
+
+    it('compile the empty external source', async () => {
+        const scope = nock('https://example.org')
+            .get('/empty.txt')
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/empty.txt',
+            transformations: [
+                TRANSFORMATIONS.ConvertToAscii,
+                TRANSFORMATIONS.Deduplicate,
+                TRANSFORMATIONS.RemoveComments,
+                TRANSFORMATIONS.TrimLines,
+                TRANSFORMATIONS.Compress,
+            ],
+        };
+        const compiled = await compileSource(source);
+        expect(compiled).toEqual(['']);
+        scope.done();
+    });
 });

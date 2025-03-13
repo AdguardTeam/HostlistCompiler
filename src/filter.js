@@ -16,8 +16,8 @@ async function downloadAll(sources) {
         return list;
     }
 
-    await Promise.all(sources.map(async (s) => {
-        const rulesStr = await FiltersDownloader.download(s);
+    await Promise.all(sources.map(async (source) => {
+        const rulesStr = await FiltersDownloader.download(source, {}, { allowEmptyResponse: true });
         const rules = rulesStr
             .filter((el) => el.trim().length > 0 && !ruleUtils.isComment(el));
         list = list.concat(rules);
