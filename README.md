@@ -363,7 +363,7 @@ So here's what it does:
 - Removes rules that block entire top-level domains (TLDs) like `||*.org^`, unless they have specific limiting modifiers such as `$denyallow`, `$badfilter`, or `$client`.
   Examples:
   - `||*.org^` - this rule will be removed
-  - `||*.org^$denyallow=example.com` - this rule will be kept because it has a limiting modifier
+  - `||*.org^$denyallow=example.org` - this rule will be kept because it has a limiting modifier
 
 If there are comments preceding the invalid rule, they will be removed as well.
 
