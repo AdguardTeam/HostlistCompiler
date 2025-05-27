@@ -2,7 +2,6 @@
 .idea
 .DS_Store
 dist
-*.tgz
 .eslintcache
 node_modules
 examples/sdn/filter.txt*
@@ -10,3 +9,6 @@ examples/energized/filter.txt
 examples/energized/hosts
 examples/china/filter.txt
 examples/whitelist/filter.txt
+
+.npmrc
+*.tgz
