@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const consola = require('consola');
 const config = require('./configuration');
 const compileSource = require('./compile-source');
@@ -18,16 +17,16 @@ function prepareHeader(configuration) {
         `! Title: ${configuration.name}`,
     ];
 
-    if (!_.isEmpty(configuration.description)) {
+    if (configuration.description?.length) {
         lines.push(`! Description: ${configuration.description}`);
     }
-    if (!_.isEmpty(configuration.version)) {
+    if (configuration.version?.length) {
         lines.push(`! Version: ${configuration.version}`);
     }
-    if (!_.isEmpty(configuration.homepage)) {
+    if (configuration.homepage?.length) {
         lines.push(`! Homepage: ${configuration.homepage}`);
     }
-    if (!_.isEmpty(configuration.license)) {
+    if (configuration.license?.length) {
         lines.push(`! License: ${configuration.license}`);
     }
 
@@ -55,7 +54,7 @@ function prepareSourceHeader(source) {
         '!',
     ];
 
-    if (!_.isEmpty(source.name)) {
+    if (source.name.length > 0) {
         lines.push(`! Source name: ${source.name}`);
     }
     lines.push(`! Source: ${source.source}`);
