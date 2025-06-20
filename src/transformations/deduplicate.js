@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const consola = require('consola');
 const ruleUtils = require('../rule');
 
@@ -14,7 +13,7 @@ const ruleUtils = require('../rule');
  * @returns {Array<String>} "deduplicated" array of rules
  */
 function deduplicate(rules) {
-    if (_.isEmpty(rules)) {
+    if (rules.length === 0) {
         consola.info('Empty rules array, nothing to deduplicate');
         return rules;
     }
@@ -32,11 +31,11 @@ function deduplicate(rules) {
             rulesIndex[ruleText] = true;
         }
 
-        if (dup && !ruleUtils.isComment(ruleText) && !_.isEmpty(ruleText)) {
+        if (dup && !ruleUtils.isComment(ruleText) && ruleText.length > 0) {
             prevRuleRemoved = true;
             consola.debug(`Removing duplicate: ${ruleText}`);
             filtered.splice(iFiltered, 1);
-        } else if (prevRuleRemoved && (ruleUtils.isComment(ruleText) || _.isEmpty(ruleText))) {
+        } else if (prevRuleRemoved && (ruleUtils.isComment(ruleText) || ruleText.length === 0)) {
             // Remove preceding comments and empty lines
             consola.debug(`Removing a comment preceding duplicate: ${ruleText}`);
             filtered.splice(iFiltered, 1);

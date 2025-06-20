@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const consola = require('consola');
 const tldts = require('tldts');
 const utils = require('../utils');
@@ -8,8 +7,6 @@ const DOMAIN_PREFIX = '||';
 const DOMAIN_SEPARATOR = '^';
 const WILDCARD = '*';
 const WILDCARD_DOMAIN_PART = '*.';
-
-// TODO: Remove lodash from the project if possible
 
 /**
  * The list of modifiers that limit the rule for specific domains.
@@ -91,7 +88,7 @@ function validEtcHostsRule(ruleText, allowIP) {
         consola.error(`Unexpected incorrect /etc/hosts rule: ${ruleText}: ${ex}`);
         return false;
     }
-    if (_.isEmpty(props.hostnames)) {
+    if (!props.hostnames?.length) {
         consola.info(`The rule has no hostnames: ${ruleText}`);
         return false;
     }
@@ -153,8 +150,8 @@ function validAdblockRule(ruleText, allowedIP) {
 
     // 3.1. Special case: regex rules
     // Do nothing with regex rules -- they may contain all kinds of special chars
-    if (_.startsWith(props.pattern, '/')
-        && _.endsWith(props.pattern, '/')) {
+    if (props.pattern.startsWith('/')
+        && props.pattern.endsWith('/')) {
         return true;
     }
 
@@ -163,8 +160,8 @@ function validAdblockRule(ruleText, allowedIP) {
     // *|^ -- special characters used by adblock-style rules
     // One more special case is rules starting with ://s
     let toTest = props.pattern;
-    if (_.startsWith(toTest, '://')) {
-        toTest = _.trimStart(toTest, '://');
+    if (toTest.startsWith('://')) {
+        toTest = toTest.replace('://', '');
     }
 
     const checkChars = /^[a-zA-Z0-9-.*|^]+$/.test(toTest);
@@ -183,7 +180,7 @@ function validAdblockRule(ruleText, allowedIP) {
     }
 
     // Check if the pattern does not start with the domain prefix and does not contain a domain separator
-    if (!_.startsWith(props.pattern, DOMAIN_PREFIX) || sepIdx === -1) {
+    if (!props.pattern.startsWith(DOMAIN_PREFIX) || sepIdx === -1) {
         return true;
     }
 
@@ -233,7 +230,7 @@ function validAdblockRule(ruleText, allowedIP) {
  * @returns {boolean} - true if the rule is valid, false otherwise
  */
 function valid(ruleText, allowedIP) {
-    if (ruleUtils.isComment(ruleText) || _.isEmpty(_.trim(ruleText))) {
+    if (ruleUtils.isComment(ruleText) || ruleText.trim().length === 0) {
         return true;
     }
 
@@ -280,7 +277,7 @@ class Validator {
         // preceding comments/empty lines if needed
         for (let i = filtered.length - 1; i >= 0; i -= 1) {
             const isValidRule = valid(filtered[i], this.allowedIP);
-            const isCommentOrEmptyLine = ruleUtils.isComment(filtered[i]) || _.isEmpty(filtered[i]);
+            const isCommentOrEmptyLine = ruleUtils.isComment(filtered[i]) || filtered[i].length === 0;
 
             if (!isValidRule) {
                 // If the rule is invalid, remove it and set the flag to remove preceding lines
