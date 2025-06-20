@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const trimLines = require('../../src/transformations/trim-lines');
 
 describe('Trim lines', () => {
@@ -52,7 +51,7 @@ describe('Trim lines', () => {
     });
     it('test with three rules and comments', () => {
         const rules = [
-            _.repeat(' ', _.random(1, 10)), // ' ', '  ', ..., '      ' etc.
+            ' '.repeat(Math.floor(Math.random() * 10) + 1), // ' ', '  ', ..., '      ' etc.
             '    ! comment multiple   words    , ',
             '',
         ];

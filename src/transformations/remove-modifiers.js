@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const consola = require('consola');
 const ruleUtils = require('../rule');
 
@@ -15,7 +14,7 @@ function removeModifiers(rules) {
     let modifiedCount = 0;
     rules.forEach((rawRuleText) => {
         const ruleText = rawRuleText.trim();
-        if (_.isEmpty(ruleText) || ruleUtils.isComment(ruleText)) {
+        if (ruleText.length === 0 || ruleUtils.isComment(ruleText)) {
             filtered.push(ruleText);
             return;
         }
