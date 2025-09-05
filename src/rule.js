@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const { domainToASCII } = require('url');
 const utils = require('./utils');
 
@@ -18,10 +17,10 @@ const nonAsciiRegexp = /[^\x00-\x7F]/;
 * @returns {Boolean} true if rule is a comment
 */
 function isComment(ruleText) {
-    return _.startsWith(ruleText, '!')
-        || _.startsWith(ruleText, '# ')
+    return ruleText.startsWith('!')
+        || ruleText.startsWith('# ')
         || ruleText === '#'
-        || _.startsWith(ruleText, '####');
+        || ruleText.startsWith('####');
 }
 
 /**
@@ -29,7 +28,7 @@ function isComment(ruleText) {
  * @returns {Boolean} true if the rule is "allowing"
  */
 function isAllowRule(ruleText) {
-    return _.startsWith(ruleText, '@@');
+    return ruleText.startsWith('@@');
 }
 
 /**
@@ -37,7 +36,7 @@ function isAllowRule(ruleText) {
  * @returns {Boolean} true if the rule is just the domain name
  */
 function isJustDomain(ruleText) {
-    return _.includes(ruleText, '.')
+    return ruleText.includes('.')
         && domainRegex.test(ruleText);
 }
 
@@ -100,7 +99,7 @@ function parseRuleTokens(ruleText) {
     };
 
     let startIndex = 0;
-    if (_.startsWith(ruleText, '@@')) {
+    if (ruleText.startsWith('@@')) {
         tokens.whitelist = true;
         startIndex = 2;
     }
@@ -113,8 +112,8 @@ function parseRuleTokens(ruleText) {
     tokens.pattern = ruleText.substring(startIndex);
 
     // Avoid parsing options inside of a regex rule
-    if (_.startsWith(tokens.pattern, '/')
-        && _.endsWith(tokens.pattern, '/')
+    if (tokens.pattern.startsWith('/')
+        && tokens.pattern.endsWith('/')
         && tokens.pattern.indexOf('replace=') === -1) {
         return tokens;
     }
@@ -150,12 +149,12 @@ function parseRuleTokens(ruleText) {
  * @throws {TypeError} thrown if it is not a valid /etc/hosts rule
  */
 function loadEtcHostsRuleProperties(ruleText) {
-    let rule = _.trim(ruleText);
+    let rule = ruleText.trim();
     if (rule.indexOf('#') > 0) {
         rule = rule.substring(0, rule.indexOf('#'));
     }
 
-    const [, ...hostnames] = _.trim(rule).split(/\s+/);
+    const [, ...hostnames] = rule.trim().split(/\s+/);
     if (hostnames.length < 1) {
         throw new TypeError(`Invalid /etc/hosts rule: ${ruleText}`);
     }
@@ -171,7 +170,7 @@ function loadEtcHostsRuleProperties(ruleText) {
  * @typedef {Object} AdblockRule
  * @property {String} ruleText - original rule text
  * @property {String} pattern - matching pattern
- * @property {Array<{{name: string, value: string}}>} options - list of rule modifiers
+ * @property {Array<{name: string, value: string}>} [options] - list of rule modifiers
  * @property {Boolean} whitelist - whether this is an exception rule or not
  * @property {String} hostname - hostname can only be extracted from the rules
  *                               that look like `||[a-z0-9-.]^.*`
@@ -197,7 +196,7 @@ function extractHostname(pattern) {
  * @returns {AdblockRule} - rule properties
  */
 function loadAdblockRuleProperties(ruleText) {
-    const tokens = parseRuleTokens(_.trim(ruleText));
+    const tokens = parseRuleTokens(ruleText.trim());
     const rule = {
         ruleText,
         pattern: tokens.pattern,
@@ -213,7 +212,7 @@ function loadAdblockRuleProperties(ruleText) {
 
             // eslint-disable-next-line no-restricted-syntax
             for (const option of optionParts) {
-                const parts = _.split(option, '=', 2);
+                const parts = option.split('=', 2);
                 const name = parts[0];
                 const value = parts[1] ? parts[1] : null;
                 rule.options.push({
@@ -285,7 +284,7 @@ function adblockRuleToString(ruleProps) {
         ruleText = '@@';
     }
     ruleText += ruleProps.pattern;
-    if (!_.isEmpty(ruleProps.options)) {
+    if (ruleProps.options && ruleProps.options.length > 0) {
         ruleText += '$';
         for (let i = 0; i < ruleProps.options.length; i += 1) {
             const option = ruleProps.options[i];

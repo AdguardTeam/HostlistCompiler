@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const { FiltersDownloader } = require('@adguard/filters-downloader');
 const utils = require('./utils');
 const ruleUtils = require('./rule');
@@ -12,7 +11,7 @@ const ruleUtils = require('./rule');
  */
 async function downloadAll(sources) {
     let list = [];
-    if (_.isEmpty(sources)) {
+    if (!sources?.length) {
         return list;
     }
 
@@ -36,12 +35,12 @@ async function downloadAll(sources) {
  */
 async function prepareWildcards(rules, sources) {
     let list = [];
-    if (!_.isEmpty(rules)) {
+    if (rules.length > 0) {
         list = list.concat(rules);
     }
     const loadedList = await downloadAll(sources);
     list = list.concat(loadedList);
-    list = _.compact(_.uniq(list));
+    list = Array.from(new Set(list)).filter(Boolean); // remove duplicates
 
     return list.map((str) => new utils.Wildcard(str));
 }

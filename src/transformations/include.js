@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const consola = require('consola');
 const filterUtils = require('../filter');
 
@@ -12,13 +11,13 @@ const filterUtils = require('../filter');
  * @returns {Promise<Array<String>>} filtered array of rules
  */
 async function include(rules, inclusions, inclusionsSources) {
-    if (_.isEmpty(inclusions) && _.isEmpty(inclusionsSources)) {
+    if ((!inclusions || inclusions.length === 0) && (!inclusionsSources || inclusionsSources.length === 0)) {
         // Nothing to filter here
         return rules;
     }
 
     const wildcards = await filterUtils.prepareWildcards(inclusions, inclusionsSources);
-    if (_.isEmpty(wildcards)) {
+    if (wildcards.length === 0) {
         return rules;
     }
     consola.info(`Filtering the list of rules using ${wildcards.length} inclusion rules`);
