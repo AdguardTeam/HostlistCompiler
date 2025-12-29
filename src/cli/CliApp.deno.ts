@@ -22,7 +22,8 @@ interface ICliArgs {
 }
 
 /**
- * Simple console logger compatible with consola interface
+ * Simple console logger compatible with ILogger interface
+ * Extended with additional consola-compatible methods
  */
 class ConsoleLogger implements ILogger {
     private level: number = 3; // info level by default
@@ -31,36 +32,37 @@ class ConsoleLogger implements ILogger {
         this.level = level;
     }
 
-    trace(...args: unknown[]): void {
-        if (this.level >= 5) console.log('[TRACE]', ...args);
+    trace(message: string): void {
+        if (this.level >= 5) console.log('[TRACE]', message);
     }
 
-    debug(...args: unknown[]): void {
-        if (this.level >= 4) console.log('[DEBUG]', ...args);
+    debug(message: string): void {
+        if (this.level >= 4) console.log('[DEBUG]', message);
     }
 
-    info(...args: unknown[]): void {
-        if (this.level >= 3) console.log('[INFO]', ...args);
+    info(message: string): void {
+        if (this.level >= 3) console.log('[INFO]', message);
     }
 
-    warn(...args: unknown[]): void {
-        if (this.level >= 2) console.warn('[WARN]', ...args);
+    warn(message: string): void {
+        if (this.level >= 2) console.warn('[WARN]', message);
     }
 
-    error(...args: unknown[]): void {
-        if (this.level >= 1) console.error('[ERROR]', ...args);
+    error(message: string): void {
+        if (this.level >= 1) console.error('[ERROR]', message);
     }
 
-    fatal(...args: unknown[]): void {
-        console.error('[FATAL]', ...args);
+    // Additional consola-compatible methods (not in ILogger interface)
+    fatal(message: string): void {
+        console.error('[FATAL]', message);
     }
 
-    success(...args: unknown[]): void {
-        if (this.level >= 3) console.log('[SUCCESS]', ...args);
+    success(message: string): void {
+        if (this.level >= 3) console.log('[SUCCESS]', message);
     }
 
-    log(...args: unknown[]): void {
-        console.log(...args);
+    log(message: string): void {
+        console.log(message);
     }
 }
 
@@ -134,6 +136,11 @@ Examples:
 
     /**
      * Reads the configuration file using Deno's file system API.
+     * 
+     * NOTE: This currently doesn't validate the configuration schema.
+     * In the full migration, this should use ConfigurationValidator
+     * which validates against the JSON schema. For now, validation
+     * will happen later when FilterCompiler.compile() is called.
      */
     private async readConfig(): Promise<IConfiguration> {
         this.logger.debug(`Reading configuration from ${this.args.config}`);
