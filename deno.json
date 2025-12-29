@@ -3,8 +3,8 @@
   "version": "1.0.40",
   "exports": "./src/index.ts",
   "tasks": {
-    "dev": "deno run --watch src/cli.ts",
-    "compile": "deno run --allow-read --allow-write --allow-net src/cli.ts",
+    "dev": "deno run --watch src/cli.deno.ts",
+    "compile": "deno run --allow-read --allow-write --allow-net src/cli.deno.ts",
     "test": "deno test --allow-read --allow-write --allow-net",
     "lint": "deno lint src/",
     "fmt": "deno fmt src/",
