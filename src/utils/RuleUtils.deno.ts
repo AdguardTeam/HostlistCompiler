@@ -19,15 +19,19 @@ const NON_ASCII_REGEX = /[^\x00-\x7F]/;
 /**
  * Converts a domain name to ASCII/Punycode using native URL API
  * This is the Deno-compatible replacement for Node.js's domainToASCII
+ * 
+ * @param domain - Domain name to convert (may contain unicode characters)
+ * @returns ASCII/Punycode version of the domain
  */
 function domainToASCII(domain: string): string {
     try {
         // Use URL constructor to handle punycode conversion
-        // We need to wrap the domain in a URL to use the native conversion
-        const url = new URL(`http://${domain}`);
+        // Using https:// as it's more standard and handles edge cases better
+        const url = new URL(`https://${domain}`);
         return url.hostname;
     } catch {
         // If URL parsing fails, return the original domain
+        // This handles edge cases like domains with special characters
         return domain;
     }
 }

@@ -2,11 +2,31 @@
 
 import { parseArgs } from '@std/flags';
 import { IConfiguration, ILogger, ISource, SourceType, TransformationType } from '../types/index.ts';
-import { FilterCompiler } from '../compiler/index.ts';
+// Note: FilterCompiler will need to be migrated to Deno before this file can be used
+// For now, this import is a placeholder showing the intended structure
+// import { FilterCompiler } from '../compiler/index.ts';
 
-// Read package version from deno.json
-const denoConfig = JSON.parse(await Deno.readTextFile('./deno.json'));
-const VERSION = denoConfig.version;
+// Log level constants
+const LOG_LEVEL_FATAL = 0;
+const LOG_LEVEL_ERROR = 1;
+const LOG_LEVEL_WARN = 2;
+const LOG_LEVEL_INFO = 3;
+const LOG_LEVEL_DEBUG = 4;
+const LOG_LEVEL_TRACE = 5;
+
+/**
+ * Get version from deno.json
+ */
+async function getVersion(): Promise<string> {
+    try {
+        const denoConfig = JSON.parse(await Deno.readTextFile('./deno.json'));
+        return denoConfig.version || '0.0.0';
+    } catch {
+        return '0.0.0';
+    }
+}
+
+const VERSION = await getVersion();
 
 /**
  * CLI arguments interface
@@ -26,30 +46,30 @@ interface ICliArgs {
  * Extended with additional consola-compatible methods
  */
 class ConsoleLogger implements ILogger {
-    private level: number = 3; // info level by default
+    private level: number = LOG_LEVEL_INFO; // info level by default
 
     setLevel(level: number): void {
         this.level = level;
     }
 
     trace(message: string): void {
-        if (this.level >= 5) console.log('[TRACE]', message);
+        if (this.level >= LOG_LEVEL_TRACE) console.log('[TRACE]', message);
     }
 
     debug(message: string): void {
-        if (this.level >= 4) console.log('[DEBUG]', message);
+        if (this.level >= LOG_LEVEL_DEBUG) console.log('[DEBUG]', message);
     }
 
     info(message: string): void {
-        if (this.level >= 3) console.log('[INFO]', message);
+        if (this.level >= LOG_LEVEL_INFO) console.log('[INFO]', message);
     }
 
     warn(message: string): void {
-        if (this.level >= 2) console.warn('[WARN]', message);
+        if (this.level >= LOG_LEVEL_WARN) console.warn('[WARN]', message);
     }
 
     error(message: string): void {
-        if (this.level >= 1) console.error('[ERROR]', message);
+        if (this.level >= LOG_LEVEL_ERROR) console.error('[ERROR]', message);
     }
 
     // Additional consola-compatible methods (not in ILogger interface)
@@ -58,7 +78,7 @@ class ConsoleLogger implements ILogger {
     }
 
     success(message: string): void {
-        if (this.level >= 3) console.log('[SUCCESS]', message);
+        if (this.level >= LOG_LEVEL_INFO) console.log('[SUCCESS]', message);
     }
 
     log(message: string): void {
@@ -68,15 +88,20 @@ class ConsoleLogger implements ILogger {
 
 /**
  * Command-line interface application for the hostlist compiler.
+ * 
+ * NOTE: This is a Deno-compatible version that will work once all dependencies
+ * are migrated. Currently, FilterCompiler and related classes need migration.
  */
 export class CliApp {
     private readonly logger: ILogger;
-    private readonly compiler: FilterCompiler;
+    // Note: Uncomment when FilterCompiler is migrated to Deno
+    // private readonly compiler: FilterCompiler;
     private args!: ICliArgs;
 
     constructor(logger?: ILogger) {
         this.logger = logger || new ConsoleLogger();
-        this.compiler = new FilterCompiler(this.logger);
+        // Note: Uncomment when FilterCompiler is migrated to Deno
+        // this.compiler = new FilterCompiler(this.logger);
     }
 
     /**
@@ -206,7 +231,7 @@ Examples:
 
             // Set verbose logging
             if (this.args.verbose && this.logger instanceof ConsoleLogger) {
-                this.logger.setLevel(5); // trace level
+                this.logger.setLevel(LOG_LEVEL_TRACE);
             }
 
             this.logger.info(`Starting @adguard/hostlist-compiler v${VERSION}`);
@@ -227,13 +252,16 @@ Examples:
 
             this.logger.debug(`Configuration: ${JSON.stringify(config, null, 4)}`);
 
-            // Compile
-            const lines = await this.compiler.compile(config);
+            // TODO: Uncomment when FilterCompiler is migrated to Deno
+            // const lines = await this.compiler.compile(config);
+            
+            // Placeholder - remove when FilterCompiler is migrated
+            throw new Error('FilterCompiler not yet migrated to Deno. This is a placeholder implementation.');
 
             // Write output using Deno's file system API
-            this.logger.info(`Writing output to ${this.args.output}`);
-            await Deno.writeTextFile(this.args.output, lines.join('\n'));
-            this.logger.info('Finished compiling');
+            // this.logger.info(`Writing output to ${this.args.output}`);
+            // await Deno.writeTextFile(this.args.output, lines.join('\n'));
+            // this.logger.info('Finished compiling');
         } catch (error) {
             this.logger.error(error instanceof Error ? error.message : String(error));
             Deno.exit(1);

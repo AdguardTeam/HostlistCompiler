@@ -33,8 +33,14 @@ Build:
             # Fix mixed logs
             exec 2>&1
 
-            # Read version from deno.json with proper permissions
-            VERSION=$(deno eval --allow-read "console.log(JSON.parse(Deno.readTextFileSync('./deno.json')).version)")
+            # Read version from deno.json using a more reliable method
+            # Create a simple script to extract version
+            cat > /tmp/get_version.ts << 'EOF'
+const config = JSON.parse(await Deno.readTextFile('./deno.json'));
+console.log(config.version || '0.0.0');
+EOF
+            
+            VERSION=$(deno run --allow-read /tmp/get_version.ts)
             
             # Write version to build.txt for injection
             mkdir -p dist
