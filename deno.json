@@ -35,7 +35,7 @@
             "include": ["ban-untagged-todo", "no-console"],
             "exclude": ["no-explicit-any"]
         },
-        "exclude": ["dist/", "node_modules/", "coverage/"]
+        "exclude": ["dist/", "node_modules/", "coverage/", "src/storage/example.ts", "examples/"]
     },
     "fmt": {
         "useTabs": false,
