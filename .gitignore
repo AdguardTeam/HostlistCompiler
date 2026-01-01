@@ -13,5 +13,8 @@ examples/whitelist/filter.txt
 .npmrc
 *.tgz
 
+# Test coverage
+coverage/
+
 # Claude Code local settings
 .claude/settings.local.json
