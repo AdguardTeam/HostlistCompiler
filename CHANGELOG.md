@@ -1,9 +1,63 @@
-# Hostlist Compiler Changelog
+# AdBlock Compiler Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- GitHub Actions workflow for automated testing
+- Performance monitoring and analytics integration
+
+## [0.6.0] - 2026-01-01
+
+### Added
+- **Gzip Compression** for cache storage (70-80% size reduction)
+- **Circuit Breaker** with automatic retry (3 attempts) and exponential backoff for external sources
+- **Batch Processing API** (`POST /compile/batch`) for compiling up to 10 lists in parallel
+- **Request Deduplication** for concurrent identical requests
+- **Visual Diff** component in Web UI showing changes between compilations
+- npm package.json for Node.js compatibility
+- Comprehensive API documentation in `docs/api/README.md`
+- Client library examples for Python, TypeScript/JavaScript, and Go
+- Custom domain setup guide (`CLOUDFLARE_PAGES_DOMAIN_SETUP.md`)
+- Performance features section in documentation
+- Status badges in README (JSR, Web UI, API, Deno, License)
+
+### Changed
+- Updated JSR package name to `@jk-com/adblock-compiler`
+- Improved Web UI with batch endpoint and performance features documentation
+- Enhanced README with deployment badges and feature highlights
+- Renamed repository to `adblock-compiler` on GitHub
+- Updated documentation to emphasize Compiler-as-a-Service model
+
+### Fixed
+- Variable scoping issue with `previousCachedVersion`
+- Cache decompression error handling
+- Rate limiting headers (429 with Retry-After)
+
+## [2.0.0] - 2024-12-15
+
+### Added
+- Initial production release as AdBlock Compiler
+- Cloudflare Workers deployment support
+- Server-Sent Events (SSE) for real-time progress tracking
+- Web UI with Simple Mode, Advanced Mode, and Examples
+- Rate limiting (10 requests per minute per IP)
+- KV caching with 1-hour TTL
+- Event pipeline with 9 event types
+- Interactive API documentation tab
+
+### Changed
+- Complete Deno-native rewrite from @adguard/hostlist-compiler
+- Zero Node.js dependencies
+- Platform-agnostic design (Deno, Node.js, Cloudflare Workers, browsers)
+
+---
+
+## Legacy Releases (Original @adguard/hostlist-compiler)
 
 ## [1.0.39] - 2025-03-13
 
