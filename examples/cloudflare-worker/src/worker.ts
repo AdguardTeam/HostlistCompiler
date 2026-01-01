@@ -23,8 +23,9 @@ import {
  */
 export interface Env {
     COMPILER_VERSION: string;
-    // Optional KV binding for caching
-    FILTER_CACHE?: KVNamespace;
+    // KV namespaces
+    COMPILATION_CACHE: KVNamespace;
+    RATE_LIMIT: KVNamespace;
     // Static assets namespace (Wrangler Sites)
     __STATIC_CONTENT?: KVNamespace;
     __STATIC_CONTENT_MANIFEST?: string;
@@ -37,6 +38,73 @@ interface CompileRequest {
     configuration: IConfiguration;
     preFetchedContent?: Record<string, string>;
     benchmark?: boolean;
+}
+
+/**
+ * Rate limiting configuration
+ */
+const RATE_LIMIT_WINDOW = 60; // 60 seconds
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
+
+/**
+ * Cache TTL in seconds
+ */
+const CACHE_TTL = 3600; // 1 hour
+
+/**
+ * Check rate limit for an IP address
+ */
+async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
+    const key = `ratelimit:${ip}`;
+    const now = Date.now();
+    
+    // Get current count
+    const data = await env.RATE_LIMIT.get(key, 'json') as { count: number; resetAt: number } | null;
+    
+    if (!data || now > data.resetAt) {
+        // First request or window expired, start new window
+        await env.RATE_LIMIT.put(
+            key,
+            JSON.stringify({ count: 1, resetAt: now + (RATE_LIMIT_WINDOW * 1000) }),
+            { expirationTtl: RATE_LIMIT_WINDOW + 10 }
+        );
+        return true;
+    }
+    
+    if (data.count >= RATE_LIMIT_MAX_REQUESTS) {
+        return false; // Rate limit exceeded
+    }
+    
+    // Increment count
+    await env.RATE_LIMIT.put(
+        key,
+        JSON.stringify({ count: data.count + 1, resetAt: data.resetAt }),
+        { expirationTtl: RATE_LIMIT_WINDOW + 10 }
+    );
+    
+    return true;
+}
+
+/**
+ * Generate cache key from configuration
+ */
+function getCacheKey(config: IConfiguration): string {
+    // Create deterministic hash of configuration
+    const normalized = JSON.stringify(config, Object.keys(config).sort());
+    return `cache:${hashString(normalized)}`;
+}
+
+/**
+ * Simple string hash function
+ */
+function hashString(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(36);
 }
 
 /**
@@ -152,6 +220,24 @@ async function handleCompileJson(
     const body = await request.json() as CompileRequest;
     const { configuration, preFetchedContent, benchmark } = body;
 
+    // Check cache if no pre-fetched content (pre-fetched = dynamic, don't cache)
+    if (!preFetchedContent || Object.keys(preFetchedContent).length === 0) {
+        const cacheKey = getCacheKey(configuration);
+        const cached = await env.COMPILATION_CACHE.get(cacheKey, 'json');
+        
+        if (cached) {
+            return Response.json({
+                ...cached,
+                cached: true,
+            }, {
+                headers: {
+                    'X-Cache': 'HIT',
+                    'Access-Control-Allow-Origin': '*',
+                },
+            });
+        }
+    }
+
     try {
         const compiler = new WorkerCompiler({
             preFetchedContent,
@@ -159,11 +245,28 @@ async function handleCompileJson(
 
         const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
 
-        return Response.json({
+        const response = {
             success: true,
             rules: result.rules,
             ruleCount: result.rules.length,
             metrics: result.metrics,
+        };
+
+        // Cache the result if no pre-fetched content
+        if (!preFetchedContent || Object.keys(preFetchedContent).length === 0) {
+            const cacheKey = getCacheKey(configuration);
+            await env.COMPILATION_CACHE.put(
+                cacheKey,
+                JSON.stringify(response),
+                { expirationTtl: CACHE_TTL }
+            );
+        }
+
+        return Response.json(response, {
+            headers: {
+                'X-Cache': 'MISS',
+                'Access-Control-Allow-Origin': '*',
+            },
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -295,12 +398,34 @@ export default {
             return handleInfo(env);
         }
 
-        if (pathname === '/compile' && request.method === 'POST') {
-            return handleCompileJson(request, env);
-        }
+        // Rate limit compile endpoints
+        if ((pathname === '/compile' || pathname === '/compile/stream') && request.method === 'POST') {
+            const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+            const allowed = await checkRateLimit(env, ip);
+            
+            if (!allowed) {
+                return Response.json(
+                    { 
+                        success: false, 
+                        error: 'Rate limit exceeded. Maximum 10 requests per minute.' 
+                    },
+                    { 
+                        status: 429,
+                        headers: {
+                            'Retry-After': '60',
+                            'Access-Control-Allow-Origin': '*',
+                        },
+                    }
+                );
+            }
 
-        if (pathname === '/compile/stream' && request.method === 'POST') {
-            return handleCompileStream(request, env);
+            if (pathname === '/compile') {
+                return handleCompileJson(request, env);
+            }
+
+            if (pathname === '/compile/stream') {
+                return handleCompileStream(request, env);
+            }
         }
 
         // Serve web UI for root path

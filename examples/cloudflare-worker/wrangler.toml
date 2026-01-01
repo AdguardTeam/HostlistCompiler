@@ -9,10 +9,14 @@ workers_dev = true
 [site]
 bucket = "./public"
 
-# Optional: Add KV bindings for caching compiled lists
-# [[kv_namespaces]]
-# binding = "FILTER_CACHE"
-# id = "your-kv-namespace-id"
+# KV bindings for caching and rate limiting
+[[kv_namespaces]]
+binding = "COMPILATION_CACHE"
+id = "7772628dc4ae46fbb145a811d2de351e"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "5dc36da36d9142cc9ced6c56328898ee"
 
 # Optional: Add R2 bindings for storing filter lists
 # [[r2_buckets]]
