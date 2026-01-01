@@ -1,5 +1,5 @@
 {
-    "name": "@anthropic/hostlist-compiler",
+    "name": "@jk-com/hostlistcompiler",
     "version": "2.0.0",
     "exports": "./src/index.ts",
     "publish": {
