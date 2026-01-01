@@ -393,8 +393,9 @@
 <body>
     <div class="container">
         <header>
-            <h1>🛡️ Hostlist Compiler</h1>
-            <p>Compile and optimize filter lists for AdGuard and DNS filtering</p>
+            <h1>🛡️ Adblock Compiler</h1>
+            <p><strong>Compiler-as-a-Service</strong> | Real-time filter list compilation with event-driven pipeline</p>
+            <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">Powered by Cloudflare Workers • <a href="https://adblock-compiler.jayson-knight.workers.dev/api" style="color: white; text-decoration: underline;" target="_blank">API</a></p>
         </header>
 
         <div class="content">
@@ -402,6 +403,7 @@
                 <button class="tab active" data-tab="simple">Simple Mode</button>
                 <button class="tab" data-tab="advanced">Advanced Mode</button>
                 <button class="tab" data-tab="examples">Examples</button>
+                <button class="tab" data-tab="docs">API Docs</button>
             </div>
 
             <!-- Simple Mode -->
@@ -523,6 +525,97 @@
                 </div>
             </div>
 
+            <!-- API Documentation -->
+            <div class="tab-content" id="docs">
+                <div class="alert alert-info">
+                    <strong>Compiler-as-a-Service:</strong> Real-time event pipeline for observability and monitoring
+                </div>
+
+                <h2 style="margin-top: 0;">🔄 Event Pipeline</h2>
+                <p>Our compiler uses Server-Sent Events (SSE) to provide real-time progress updates throughout the compilation process.</p>
+                
+                <h3>Event Types</h3>
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <p><strong>source:start</strong> - Fires when fetching a source begins</p>
+                    <p><strong>source:complete</strong> - Source successfully fetched and parsed</p>
+                    <p><strong>source:error</strong> - Source fetching or parsing failed</p>
+                    <p><strong>transformation:start</strong> - Transformation begins (e.g., Deduplicate)</p>
+                    <p><strong>transformation:complete</strong> - Transformation finished</p>
+                    <p><strong>progress</strong> - General progress updates with current phase</p>
+                    <p><strong>result</strong> - Final compilation results with rules and metrics</p>
+                    <p><strong>done</strong> - Compilation process complete</p>
+                    <p><strong>error</strong> - Fatal error occurred</p>
+                </div>
+
+                <h3>API Endpoints</h3>
+                <p><strong>Base URL:</strong> <code>https://adblock-compiler.jayson-knight.workers.dev</code></p>
+                
+                <div style="margin: 20px 0;">
+                    <h4>POST /compile</h4>
+                    <p>Compile filter lists and return complete results as JSON</p>
+                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto;">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "configuration": {
+      "name": "My Filter List",
+      "sources": [{"source": "https://example.com/filters.txt"}],
+      "transformations": ["Deduplicate", "RemoveEmptyLines"]
+    },
+    "benchmark": true
+  }'</pre>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <h4>POST /compile/stream</h4>
+                    <p>Compile with real-time Server-Sent Events for progress tracking</p>
+                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto;">const eventSource = new EventSource('/compile/stream');
+
+eventSource.addEventListener('source:start', (e) => {
+  const data = JSON.parse(e.data);
+  console.log('Fetching:', data.source.name);
+});
+
+eventSource.addEventListener('result', (e) => {
+  const data = JSON.parse(e.data);
+  console.log('Compiled', data.ruleCount, 'rules');
+});</pre>
+                </div>
+
+                <h3>Try It Now</h3>
+                <p>Switch to <strong>Simple Mode</strong> or <strong>Advanced Mode</strong> and compile a list. Watch the "Compilation Progress" section below to see the event pipeline in action!</p>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 6px;">
+                    <strong>✨ Live Demo:</strong> Every compilation on this page uses the SSE event pipeline. The progress bar and logs you see are powered by real-time events from our compiler.
+                </div>
+
+                <h3 style="margin-top: 30px;">Available Transformations</h3>
+                <p>Transformations are applied in the following fixed order:</p>
+                <ol style="line-height: 1.8;">
+                    <li><strong>ConvertToAscii</strong> - Convert internationalized domains</li>
+                    <li><strong>TrimLines</strong> - Remove whitespace</li>
+                    <li><strong>RemoveComments</strong> - Strip comments</li>
+                    <li><strong>Compress</strong> - Convert hosts to adblock syntax</li>
+                    <li><strong>RemoveModifiers</strong> - Remove unsupported modifiers</li>
+                    <li><strong>InvertAllow</strong> - Convert to allowlist</li>
+                    <li><strong>Validate</strong> - Remove invalid rules</li>
+                    <li><strong>ValidateAllowIp</strong> - Validate but keep IPs</li>
+                    <li><strong>Deduplicate</strong> - Remove duplicates</li>
+                    <li><strong>RemoveEmptyLines</strong> - Clean empty lines</li>
+                    <li><strong>InsertFinalNewLine</strong> - Add final newline</li>
+                </ol>
+
+                <h3 style="margin-top: 30px;">CORS & Rate Limits</h3>
+                <p><strong>CORS:</strong> All endpoints support CORS with <code>Access-Control-Allow-Origin: *</code></p>
+                <p><strong>Rate Limits:</strong> No hard limits currently. Execution timeout: 50 seconds</p>
+
+                <div style="margin-top: 30px;">
+                    <h3>Resources</h3>
+                    <p>📚 <a href="https://github.com/jaypatrick/hostlistcompiler" target="_blank">GitHub Repository</a></p>
+                    <p>🌐 <a href="https://hostlist-compiler-ui.pages.dev" target="_blank">Web UI</a></p>
+                    <p>⚡ <a href="https://adblock-compiler.jayson-knight.workers.dev/api" target="_blank">API Info Endpoint</a></p>
+                </div>
+            </div>
+
             <!-- Progress Section -->
             <div class="progress-section" id="progress">
                 <h3>Compilation Progress</h3>
@@ -563,7 +656,8 @@
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 
                 tab.classList.add('active');
-                document.getElementById(targetTab === 'examples' ? 'examples-tab' : targetTab).classList.add('active');
+                const tabId = targetTab === 'examples' ? 'examples-tab' : targetTab;
+                document.getElementById(tabId).classList.add('active');
             });
         });
 
