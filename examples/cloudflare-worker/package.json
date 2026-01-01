@@ -1,0 +1,19 @@
+{
+  "name": "hostlist-compiler-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for compiling hostlists using @anthropic/hostlist-compiler",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "@anthropic/hostlist-compiler": "^2.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240405.0",
+    "typescript": "^5.4.0",
+    "wrangler": "^3.45.0"
+  }
+}

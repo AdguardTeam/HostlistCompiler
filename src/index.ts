@@ -46,6 +46,24 @@ export { FilterService } from './services/index.ts';
 export { SourceCompiler, FilterCompiler, compile } from './compiler/index.ts';
 export type { CompilationResult, FilterCompilerOptions } from './compiler/index.ts';
 
+// Platform abstraction layer (for Web Workers, Cloudflare Workers, browsers)
+export {
+    HttpFetcher,
+    PreFetchedContentFetcher,
+    CompositeFetcher,
+    PlatformDownloader,
+    WorkerCompiler,
+} from './platform/index.ts';
+export type {
+    IContentFetcher,
+    IHttpFetcherOptions,
+    PreFetchedContent,
+    IPlatformCompilerOptions,
+    PlatformDownloaderOptions,
+    WorkerCompilerOptions,
+    WorkerCompilationResult,
+} from './platform/index.ts';
+
 // Default export for backward compatibility
 import { compile as compileFunc } from './compiler/index.ts';
 export default compileFunc;
