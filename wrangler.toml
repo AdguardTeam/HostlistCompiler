@@ -12,11 +12,11 @@ bucket = "./examples/cloudflare-worker/public"
 # KV bindings for caching and rate limiting
 [[kv_namespaces]]
 binding = "COMPILATION_CACHE"
-id = "7772628dc4ae46fbb145a811d2de351e"
+id = "your-compilation-cache-kv-id"  # Create with: wrangler kv:namespace create COMPILATION_CACHE
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "5dc36da36d9142cc9ced6c56328898ee"
+id = "your-rate-limit-kv-id"  # Create with: wrangler kv:namespace create RATE_LIMIT
 
 [[kv_namespaces]]
 binding = "METRICS"
