@@ -12,3 +12,6 @@ examples/whitelist/filter.txt
 
 .npmrc
 *.tgz
+
+# Claude Code local settings
+.claude/settings.local.json
