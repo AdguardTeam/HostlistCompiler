@@ -8,7 +8,10 @@ import { FilterDownloader } from './FilterDownloader.ts';
 // Test file content for local file tests
 const TEST_DIR = './test_fixtures';
 
-Deno.test('FilterDownloader', async (t) => {
+Deno.test({
+    name: 'FilterDownloader',
+    permissions: { read: true, write: true },
+}, async (t) => {
     // Setup: Create test fixtures directory and files
     await Deno.mkdir(TEST_DIR, { recursive: true });
 

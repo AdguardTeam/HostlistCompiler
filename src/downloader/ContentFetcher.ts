@@ -1,4 +1,4 @@
-import type { IBasicLogger, IFileSystem, IHttpClient } from '../types/index.ts';
+import type { IDetailedLogger, IFileSystem, IHttpClient } from '../types/index.ts';
 
 /**
  * Options for content fetching
@@ -63,7 +63,7 @@ export class DefaultHttpClient implements IHttpClient {
 export class ContentFetcher {
     private readonly fileSystem: IFileSystem;
     private readonly httpClient: IHttpClient;
-    private readonly logger: IBasicLogger;
+    private readonly logger: IDetailedLogger;
     private readonly options: Required<FetchOptions>;
 
     /**
@@ -74,7 +74,7 @@ export class ContentFetcher {
      * @param httpClient - HTTP client implementation (injectable for testing)
      */
     constructor(
-        logger: IBasicLogger,
+        logger: IDetailedLogger,
         options?: FetchOptions,
         fileSystem?: IFileSystem,
         httpClient?: IHttpClient,

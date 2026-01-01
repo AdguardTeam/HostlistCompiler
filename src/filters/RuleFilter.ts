@@ -1,4 +1,4 @@
-import type { IBasicLogger, IFilterable } from '../types/index.ts';
+import type { IDetailedLogger, IFilterable } from '../types/index.ts';
 import { FilterService } from '../services/FilterService.ts';
 import type { Wildcard } from '../utils/Wildcard.ts';
 
@@ -11,9 +11,9 @@ import type { Wildcard } from '../utils/Wildcard.ts';
  */
 export class RuleFilter {
     private readonly filterService: FilterService;
-    private readonly logger: IBasicLogger;
+    private readonly logger: IDetailedLogger;
 
-    constructor(filterService: FilterService, logger: IBasicLogger) {
+    constructor(filterService: FilterService, logger: IDetailedLogger) {
         this.filterService = filterService;
         this.logger = logger;
     }
