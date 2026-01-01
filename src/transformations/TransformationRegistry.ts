@@ -1,5 +1,5 @@
 import { ILogger, ISource, IConfiguration, TransformationType } from '../types/index.ts';
-import { logger as defaultLogger } from '../utils/logger.ts';
+import { logger as defaultLogger, Wildcard } from '../utils/index.ts';
 import { Transformation } from './base/Transformation.ts';
 import { RemoveCommentsTransformation } from './RemoveCommentsTransformation.ts';
 import { TrimLinesTransformation } from './TrimLinesTransformation.ts';
@@ -139,12 +139,14 @@ export class TransformationPipeline {
             TransformationType.InsertFinalNewLine,
         ];
 
-        // Filter to only requested transformations, maintaining order
-        return order.filter((type) => requested.includes(type));
+        // Use Set for O(1) lookups instead of O(n) includes()
+        const requestedSet = new Set(requested);
+        return order.filter((type) => requestedSet.has(type));
     }
 
     /**
      * Applies exclusion patterns.
+     * Optimized to partition patterns by type for faster matching.
      */
     private async applyExclusions(
         rules: string[],
@@ -166,15 +168,37 @@ export class TransformationPipeline {
 
         this.logger.info(`Filtering the list of rules using ${wildcards.length} exclusion rules`);
 
+        // Partition patterns by type for optimized matching
+        // Plain string patterns can use fast includes() check
+        const plainPatterns: string[] = [];
+        const regexWildcards: Wildcard[] = [];
+
+        for (const w of wildcards) {
+            if (w.isPlain) {
+                plainPatterns.push(w.pattern);
+            } else {
+                regexWildcards.push(w);
+            }
+        }
+
         const filtered = rules.filter((rule) => {
-            const excluded = wildcards.some((w) => {
-                const found = w.test(rule);
-                if (found) {
-                    this.logger.debug(`${rule} excluded by ${w.toString()}`);
+            // Fast path: check plain string patterns first (simple includes)
+            for (const pattern of plainPatterns) {
+                if (rule.includes(pattern)) {
+                    this.logger.debug(`${rule} excluded by ${pattern}`);
+                    return false;
                 }
-                return found;
-            });
-            return !excluded;
+            }
+
+            // Slow path: regex/wildcard patterns
+            for (const w of regexWildcards) {
+                if (w.test(rule)) {
+                    this.logger.debug(`${rule} excluded by ${w.toString()}`);
+                    return false;
+                }
+            }
+
+            return true;
         });
 
         this.logger.info(`Excluded ${rules.length - filtered.length} rules. ${filtered.length} rules left.`);
@@ -183,6 +207,7 @@ export class TransformationPipeline {
 
     /**
      * Applies inclusion patterns.
+     * Optimized to partition patterns by type for faster matching.
      */
     private async applyInclusions(
         rules: string[],
@@ -204,12 +229,35 @@ export class TransformationPipeline {
 
         this.logger.info(`Filtering the list of rules using ${wildcards.length} inclusion rules`);
 
-        const filtered = rules.filter((rule) => {
-            const included = wildcards.some((w) => w.test(rule));
-            if (!included) {
-                this.logger.debug(`${rule} does not match inclusions list`);
+        // Partition patterns by type for optimized matching
+        const plainPatterns: string[] = [];
+        const regexWildcards: Wildcard[] = [];
+
+        for (const w of wildcards) {
+            if (w.isPlain) {
+                plainPatterns.push(w.pattern);
+            } else {
+                regexWildcards.push(w);
             }
-            return included;
+        }
+
+        const filtered = rules.filter((rule) => {
+            // Fast path: check plain string patterns first
+            for (const pattern of plainPatterns) {
+                if (rule.includes(pattern)) {
+                    return true;
+                }
+            }
+
+            // Slow path: regex/wildcard patterns
+            for (const w of regexWildcards) {
+                if (w.test(rule)) {
+                    return true;
+                }
+            }
+
+            this.logger.debug(`${rule} does not match inclusions list`);
+            return false;
         });
 
         this.logger.info(`Included ${filtered.length} rules`);

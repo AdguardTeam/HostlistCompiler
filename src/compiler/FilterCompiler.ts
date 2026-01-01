@@ -2,7 +2,15 @@ import { IConfiguration, ILogger, ISource, TransformationType } from '../types/i
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
-import { logger as defaultLogger } from '../utils/logger.ts';
+import { logger as defaultLogger, BenchmarkCollector, CompilationMetrics } from '../utils/index.ts';
+
+/**
+ * Result of compilation with optional metrics.
+ */
+export interface CompilationResult {
+    rules: string[];
+    metrics?: CompilationMetrics;
+}
 
 /**
  * Package metadata for header generation.
@@ -36,6 +44,23 @@ export class FilterCompiler {
      * @returns Array of compiled rules
      */
     public async compile(configuration: IConfiguration): Promise<string[]> {
+        const result = await this.compileWithMetrics(configuration, false);
+        return result.rules;
+    }
+
+    /**
+     * Compiles a filter list with optional performance metrics.
+     * @param configuration - Compilation configuration
+     * @param benchmark - Whether to collect performance metrics
+     * @returns Compilation result with rules and optional metrics
+     */
+    public async compileWithMetrics(
+        configuration: IConfiguration,
+        benchmark: boolean = false,
+    ): Promise<CompilationResult> {
+        const collector = benchmark ? new BenchmarkCollector() : null;
+        collector?.start();
+
         this.logger.info('Starting the compiler');
 
         // Validate configuration
@@ -47,30 +72,68 @@ export class FilterCompiler {
 
         this.logger.info(`Configuration: ${JSON.stringify(configuration, null, 4)}`);
 
-        // Compile all sources
+        // Compile all sources in parallel for better performance
+        const sourceResults = await (collector
+            ? collector.timeAsync(
+                'Fetch & compile sources',
+                () => Promise.all(
+                    configuration.sources.map(async (source) => ({
+                        source,
+                        rules: await this.sourceCompiler.compile(source),
+                    })),
+                ),
+                (results) => results.reduce((sum, r) => sum + r.rules.length, 0),
+            )
+            : Promise.all(
+                configuration.sources.map(async (source) => ({
+                    source,
+                    rules: await this.sourceCompiler.compile(source),
+                })),
+            ));
+
+        collector?.setSourceCount(configuration.sources.length);
+
+        // Combine results maintaining order, using push for efficiency
         let finalList: string[] = [];
-
-        for (const source of configuration.sources) {
-            const sourceRules = await this.sourceCompiler.compile(source);
+        for (const { source, rules } of sourceResults) {
             const sourceHeader = this.prepareSourceHeader(source);
-
-            finalList = finalList.concat(sourceHeader);
-            finalList = finalList.concat(sourceRules);
+            finalList.push(...sourceHeader, ...rules);
         }
+
+        const inputRuleCount = finalList.length;
+        collector?.setRuleCount(inputRuleCount);
 
         // Apply global transformations
         const transformations = configuration.transformations || [];
-        finalList = await this.pipeline.transform(
-            finalList,
-            configuration,
-            transformations as TransformationType[],
-        );
+        finalList = await (collector
+            ? collector.timeAsync(
+                'Apply transformations',
+                () => this.pipeline.transform(
+                    finalList,
+                    configuration,
+                    transformations as TransformationType[],
+                ),
+                (result) => result.length,
+            )
+            : this.pipeline.transform(
+                finalList,
+                configuration,
+                transformations as TransformationType[],
+            ));
 
-        // Prepend the list header
+        // Prepend the list header and return combined result
         const header = this.prepareHeader(configuration);
         this.logger.info(`Final length of the list is ${header.length + finalList.length}`);
 
-        return header.concat(finalList);
+        const rules = [...header, ...finalList];
+        collector?.setOutputRuleCount(rules.length);
+
+        const metrics = collector?.finish();
+        if (metrics) {
+            this.logger.info(collector!.generateReport());
+        }
+
+        return { rules, metrics };
     }
 
     /**

@@ -5,3 +5,5 @@ export { TldUtils } from './TldUtils.ts';
 export type { ParsedHost } from './TldUtils.ts';
 export { Logger, LogLevel, createLogger, logger, silentLogger } from './logger.ts';
 export type { LoggerOptions } from './logger.ts';
+export { Timer, BenchmarkCollector, formatDuration, formatNumber } from './Benchmark.ts';
+export type { BenchmarkResult, CompilationMetrics } from './Benchmark.ts';

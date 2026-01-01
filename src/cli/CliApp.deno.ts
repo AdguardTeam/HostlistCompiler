@@ -2,9 +2,7 @@
 
 import { parse } from '@std/flags';
 import { IConfiguration, ILogger, ISource, SourceType, TransformationType } from '../types/index.ts';
-// Note: FilterCompiler will need to be migrated to Deno before this file can be used
-// For now, this import is a placeholder showing the intended structure
-// import { FilterCompiler } from '../compiler/index.ts';
+import { FilterCompiler } from '../compiler/index.ts';
 
 // Log level constants
 const LOG_LEVEL_ERROR = 1;
@@ -36,6 +34,7 @@ interface ICliArgs {
     'input-type'?: string;
     output?: string;
     verbose?: boolean;
+    benchmark?: boolean;
     help?: boolean;
     version?: boolean;
 }
@@ -87,20 +86,15 @@ class ConsoleLogger implements ILogger {
 
 /**
  * Command-line interface application for the hostlist compiler.
- * 
- * NOTE: This is a Deno-compatible version that will work once all dependencies
- * are migrated. Currently, FilterCompiler and related classes need migration.
  */
 export class CliApp {
     private readonly logger: ILogger;
-    // Note: Uncomment when FilterCompiler is migrated to Deno
-    // private readonly compiler: FilterCompiler;
+    private readonly compiler: FilterCompiler;
     private args!: ICliArgs;
 
     constructor(logger?: ILogger) {
         this.logger = logger || new ConsoleLogger();
-        // Note: Uncomment when FilterCompiler is migrated to Deno
-        // this.compiler = new FilterCompiler(this.logger);
+        this.compiler = new FilterCompiler(this.logger);
     }
 
     /**
@@ -117,6 +111,7 @@ Options:
   -t, --input-type <type>  Type of the input file (hosts|adblock) [default: hosts]
   -o, --output <file>      Path to the output file [required]
   -v, --verbose            Run with verbose logging
+  -b, --benchmark          Show performance benchmark report
   --version                Show version number
   -h, --help               Show help
 
@@ -126,6 +121,9 @@ Examples:
 
   hostlist-compiler -i https://example.org/hosts.txt -o output.txt
       compile a blocklist from the URL and write the output to output.txt
+
+  hostlist-compiler -c config.json -o output.txt --benchmark
+      compile and show performance metrics
 `);
     }
 
@@ -135,7 +133,7 @@ Examples:
     private parseArgs(argv: string[]): ICliArgs {
         const parsed = parse(argv, {
             string: ['config', 'input-type', 'output'],
-            boolean: ['verbose', 'help', 'version'],
+            boolean: ['verbose', 'benchmark', 'help', 'version'],
             collect: ['input'],
             alias: {
                 c: 'config',
@@ -143,6 +141,7 @@ Examples:
                 t: 'input-type',
                 o: 'output',
                 v: 'verbose',
+                b: 'benchmark',
                 h: 'help',
             },
         });
@@ -153,6 +152,7 @@ Examples:
             'input-type': parsed['input-type'],
             output: parsed.output,
             verbose: parsed.verbose,
+            benchmark: parsed.benchmark,
             help: parsed.help,
             version: parsed.version,
         };
@@ -251,16 +251,13 @@ Examples:
 
             this.logger.debug(`Configuration: ${JSON.stringify(config, null, 4)}`);
 
-            // TODO: Uncomment when FilterCompiler is migrated to Deno
-            // const lines = await this.compiler.compile(config);
-            
-            // Placeholder - remove when FilterCompiler is migrated
-            throw new Error('FilterCompiler not yet migrated to Deno. This is a placeholder implementation.');
+            // Compile with optional benchmarking
+            const result = await this.compiler.compileWithMetrics(config, this.args.benchmark || false);
 
             // Write output using Deno's file system API
-            // this.logger.info(`Writing output to ${this.args.output}`);
-            // await Deno.writeTextFile(this.args.output, lines.join('\n'));
-            // this.logger.info('Finished compiling');
+            this.logger.info(`Writing output to ${this.args.output}`);
+            await Deno.writeTextFile(this.args.output, result.rules.join('\n'));
+            this.logger.info('Finished compiling');
         } catch (error) {
             this.logger.error(error instanceof Error ? error.message : String(error));
             Deno.exit(1);

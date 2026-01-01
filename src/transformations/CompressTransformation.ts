@@ -30,32 +30,44 @@ export class CompressTransformation extends SyncTransformation {
             }
         }
 
-        // Second pass: remove redundant subdomain rules
-        for (let i = filtered.length - 1; i >= 0; i -= 1) {
+        // Second pass: mark redundant subdomain rules
+        // Use a Set to track indices to discard (O(1) lookups)
+        const discardIndices = new Set<number>();
+
+        for (let i = 0; i < filtered.length; i++) {
             const rule = filtered[i];
-            let discard = false;
 
             if (rule.canCompress && rule.hostname) {
-                const hostnames = this.extractHostnames(rule.hostname);
-
-                // Start from 1 to skip the full hostname
-                for (let j = 1; j < hostnames.length; j += 1) {
-                    const hostname = hostnames[j];
-                    if (byHostname[hostname]) {
-                        this.debug(`The rule blocking ${hostname} (from ${rule.originalRuleText}) is redundant`);
-                        discard = true;
-                        break;
-                    }
+                // Check parent domains for redundancy
+                if (this.hasParentDomainRule(rule.hostname, byHostname)) {
+                    this.debug(
+                        `The rule blocking ${rule.hostname} (from ${rule.originalRuleText}) is redundant`,
+                    );
+                    discardIndices.add(i);
                 }
-            }
-
-            if (discard) {
-                filtered.splice(i, 1);
             }
         }
 
-        this.info(`The list was compressed from ${rules.length} to ${filtered.length}`);
-        return filtered.map((rule) => rule.ruleText);
+        // Filter in a single pass (O(n) instead of O(n²) with splice)
+        const result = filtered.filter((_, index) => !discardIndices.has(index));
+
+        this.info(`The list was compressed from ${rules.length} to ${result.length}`);
+        return result.map((rule) => rule.ruleText);
+    }
+
+    /**
+     * Checks if any parent domain already has a blocking rule.
+     * Uses index-based iteration to avoid creating intermediate arrays.
+     */
+    private hasParentDomainRule(hostname: string, byHostname: Record<string, boolean>): boolean {
+        let dotIndex = 0;
+        while ((dotIndex = hostname.indexOf('.', dotIndex + 1)) !== -1) {
+            const parentDomain = hostname.substring(dotIndex + 1);
+            if (byHostname[parentDomain]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -117,21 +129,5 @@ export class CompressTransformation extends SyncTransformation {
         });
 
         return adblockRules;
-    }
-
-    /**
-     * Extracts all hostnames up to TLD.
-     * Example: "sub.example.org" -> ["sub.example.org", "example.org", "org"]
-     */
-    private extractHostnames(hostname: string): string[] {
-        const parts = hostname.split('.');
-        const domains: string[] = [];
-
-        for (let i = 0; i < parts.length; i += 1) {
-            const domain = parts.slice(i, parts.length).join('.');
-            domains.push(domain);
-        }
-
-        return domains;
     }
 }
