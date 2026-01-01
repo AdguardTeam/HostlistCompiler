@@ -1,101 +1,97 @@
-import { Wildcard } from '../../src/utils/Wildcard';
+import { assertEquals, assertThrows } from '@std/assert';
+import { Wildcard } from '../../src/utils/Wildcard.ts';
 
-describe('Wildcard', () => {
-    describe('constructor', () => {
-        it('should throw error for empty pattern', () => {
-            expect(() => new Wildcard('')).toThrow('Wildcard cannot be empty');
-        });
+// Constructor tests
+Deno.test('Wildcard.constructor - should throw error for empty pattern', () => {
+    assertThrows(() => new Wildcard(''), Error, 'Wildcard cannot be empty');
+});
 
-        it('should create plain string pattern', () => {
-            const wildcard = new Wildcard('example');
-            expect(wildcard.isPlain).toBe(true);
-            expect(wildcard.isWildcard).toBe(false);
-            expect(wildcard.isRegex).toBe(false);
-        });
+Deno.test('Wildcard.constructor - should create plain string pattern', () => {
+    const wildcard = new Wildcard('example');
+    assertEquals(wildcard.isPlain, true);
+    assertEquals(wildcard.isWildcard, false);
+    assertEquals(wildcard.isRegex, false);
+});
 
-        it('should create wildcard pattern', () => {
-            const wildcard = new Wildcard('*.example.org');
-            expect(wildcard.isPlain).toBe(false);
-            expect(wildcard.isWildcard).toBe(true);
-            expect(wildcard.isRegex).toBe(false);
-        });
+Deno.test('Wildcard.constructor - should create wildcard pattern', () => {
+    const wildcard = new Wildcard('*.example.org');
+    assertEquals(wildcard.isPlain, false);
+    assertEquals(wildcard.isWildcard, true);
+    assertEquals(wildcard.isRegex, false);
+});
 
-        it('should create regex pattern', () => {
-            const wildcard = new Wildcard('/example\\.org/');
-            expect(wildcard.isPlain).toBe(false);
-            expect(wildcard.isWildcard).toBe(false);
-            expect(wildcard.isRegex).toBe(true);
-        });
-    });
+Deno.test('Wildcard.constructor - should create regex pattern', () => {
+    const wildcard = new Wildcard('/example\\.org/');
+    assertEquals(wildcard.isPlain, false);
+    assertEquals(wildcard.isWildcard, false);
+    assertEquals(wildcard.isRegex, true);
+});
 
-    describe('test with plain string', () => {
-        it('should match substring', () => {
-            const wildcard = new Wildcard('example');
-            expect(wildcard.test('example.org')).toBe(true);
-            expect(wildcard.test('www.example.org')).toBe(true);
-        });
+// Test with plain string
+Deno.test('Wildcard.test - plain string should match substring', () => {
+    const wildcard = new Wildcard('example');
+    assertEquals(wildcard.test('example.org'), true);
+    assertEquals(wildcard.test('www.example.org'), true);
+});
 
-        it('should not match non-matching string', () => {
-            const wildcard = new Wildcard('example');
-            expect(wildcard.test('test.org')).toBe(false);
-        });
-    });
+Deno.test('Wildcard.test - plain string should not match non-matching string', () => {
+    const wildcard = new Wildcard('example');
+    assertEquals(wildcard.test('test.org'), false);
+});
 
-    describe('test with wildcard pattern', () => {
-        it('should match with asterisk', () => {
-            const wildcard = new Wildcard('*.example.org');
-            expect(wildcard.test('www.example.org')).toBe(true);
-            expect(wildcard.test('sub.example.org')).toBe(true);
-        });
+// Test with wildcard pattern
+Deno.test('Wildcard.test - wildcard should match with asterisk', () => {
+    const wildcard = new Wildcard('*.example.org');
+    assertEquals(wildcard.test('www.example.org'), true);
+    assertEquals(wildcard.test('sub.example.org'), true);
+});
 
-        it('should match full pattern', () => {
-            const wildcard = new Wildcard('||example.org^*');
-            expect(wildcard.test('||example.org^')).toBe(true);
-            expect(wildcard.test('||example.org^$important')).toBe(true);
-        });
+Deno.test('Wildcard.test - wildcard should match full pattern', () => {
+    const wildcard = new Wildcard('||example.org^*');
+    assertEquals(wildcard.test('||example.org^'), true);
+    assertEquals(wildcard.test('||example.org^$important'), true);
+});
 
-        it('should be case insensitive', () => {
-            const wildcard = new Wildcard('*.EXAMPLE.org');
-            expect(wildcard.test('www.example.org')).toBe(true);
-        });
-    });
+Deno.test('Wildcard.test - wildcard should be case insensitive', () => {
+    const wildcard = new Wildcard('*.EXAMPLE.org');
+    assertEquals(wildcard.test('www.example.org'), true);
+});
 
-    describe('test with regex pattern', () => {
-        it('should match regex', () => {
-            const wildcard = new Wildcard('/example\\.org$/');
-            expect(wildcard.test('www.example.org')).toBe(true);
-            expect(wildcard.test('example.org')).toBe(true);
-        });
+// Test with regex pattern
+Deno.test('Wildcard.test - regex should match', () => {
+    const wildcard = new Wildcard('/example\\.org$/');
+    assertEquals(wildcard.test('www.example.org'), true);
+    assertEquals(wildcard.test('example.org'), true);
+});
 
-        it('should not match non-matching regex', () => {
-            const wildcard = new Wildcard('/^www\\./');
-            expect(wildcard.test('example.org')).toBe(false);
-        });
+Deno.test('Wildcard.test - regex should not match non-matching', () => {
+    const wildcard = new Wildcard('/^www\\./');
+    assertEquals(wildcard.test('example.org'), false);
+});
 
-        it('should support multiline flag', () => {
-            const wildcard = new Wildcard('/^example/');
-            expect(wildcard.test('example.org')).toBe(true);
-        });
-    });
+Deno.test('Wildcard.test - regex should support patterns', () => {
+    const wildcard = new Wildcard('/^example/');
+    assertEquals(wildcard.test('example.org'), true);
+});
 
-    describe('test error handling', () => {
-        it('should throw error for non-string input', () => {
-            const wildcard = new Wildcard('example');
-            expect(() => wildcard.test(123 as unknown as string)).toThrow('Invalid argument passed to Wildcard.test');
-        });
-    });
+// Error handling
+Deno.test('Wildcard.test - should throw error for non-string input', () => {
+    const wildcard = new Wildcard('example');
+    assertThrows(
+        () => wildcard.test(123 as unknown as string),
+        Error,
+        'Invalid argument passed to Wildcard.test',
+    );
+});
 
-    describe('toString', () => {
-        it('should return original pattern', () => {
-            const wildcard = new Wildcard('*.example.org');
-            expect(wildcard.toString()).toBe('*.example.org');
-        });
-    });
+// toString
+Deno.test('Wildcard.toString - should return original pattern', () => {
+    const wildcard = new Wildcard('*.example.org');
+    assertEquals(wildcard.toString(), '*.example.org');
+});
 
-    describe('pattern getter', () => {
-        it('should return original pattern', () => {
-            const wildcard = new Wildcard('*.example.org');
-            expect(wildcard.pattern).toBe('*.example.org');
-        });
-    });
+// Pattern getter
+Deno.test('Wildcard.pattern - should return original pattern', () => {
+    const wildcard = new Wildcard('*.example.org');
+    assertEquals(wildcard.pattern, '*.example.org');
 });

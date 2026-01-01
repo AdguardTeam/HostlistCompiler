@@ -1,6 +1,6 @@
-import { TransformationType } from '../types';
-import { RuleUtils, StringUtils } from '../utils/index';
-import { SyncTransformation } from './base/Transformation';
+import { TransformationType } from '../types/index.ts';
+import { RuleUtils, StringUtils } from '../utils/index.ts';
+import { SyncTransformation } from './base/Transformation.ts';
 
 /**
  * Modifiers to remove from adblock-style rules.

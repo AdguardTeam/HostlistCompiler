@@ -1,0 +1,462 @@
+/**
+ * Native Deno implementation of filter list downloader
+ * Replaces @adguard/filters-downloader with a Deno-native solution
+ *
+ * Supports:
+ * - Downloading from URLs (http/https)
+ * - Reading from local files
+ * - Processing preprocessor directives (!#if, !#else, !#endif, !#include)
+ * - Recursive include resolution with cycle detection
+ */
+
+import type { ILogger } from '../types/index.ts';
+import { silentLogger } from '../utils/logger.ts';
+
+/**
+ * Options for the filter downloader
+ */
+export interface DownloaderOptions {
+    /** Maximum number of redirects to follow */
+    maxRedirects?: number;
+    /** Request timeout in milliseconds */
+    timeout?: number;
+    /** User agent string for HTTP requests */
+    userAgent?: string;
+    /** Allow empty responses without throwing */
+    allowEmptyResponse?: boolean;
+    /** Maximum depth for !#include directives */
+    maxIncludeDepth?: number;
+}
+
+/**
+ * Default options for the downloader
+ */
+const DEFAULT_OPTIONS: Required<DownloaderOptions> = {
+    maxRedirects: 5,
+    timeout: 30000,
+    userAgent: 'HostlistCompiler/2.0 (Deno)',
+    allowEmptyResponse: false,
+    maxIncludeDepth: 10,
+};
+
+/**
+ * Preprocessor directive types
+ */
+enum DirectiveType {
+    If = '!#if',
+    Else = '!#else',
+    EndIf = '!#endif',
+    Include = '!#include',
+    Safari = '!#safari_cb_affinity',
+}
+
+/**
+ * Represents a conditional block in the filter
+ */
+interface ConditionalBlock {
+    condition: string;
+    ifLines: string[];
+    elseLines: string[];
+}
+
+/**
+ * Checks if a string is a valid URL
+ */
+function isUrl(source: string): boolean {
+    return source.startsWith('http://') || source.startsWith('https://');
+}
+
+/**
+ * Checks if a string is an absolute file path
+ */
+function isAbsolutePath(path: string): boolean {
+    // Unix absolute path
+    if (path.startsWith('/')) return true;
+    // Windows absolute path (C:\, D:\, etc.)
+    if (/^[a-zA-Z]:[/\\]/.test(path)) return true;
+    return false;
+}
+
+/**
+ * Resolves a relative path against a base URL or path
+ */
+function resolveIncludePath(includePath: string, basePath: string): string {
+    // If include path is absolute, use it directly
+    if (isAbsolutePath(includePath) || isUrl(includePath)) {
+        return includePath;
+    }
+
+    if (isUrl(basePath)) {
+        // Resolve relative URL
+        const baseUrl = new URL(basePath);
+        return new URL(includePath, baseUrl).toString();
+    } else {
+        // Resolve relative file path
+        const baseDir = basePath.substring(0, basePath.lastIndexOf('/') + 1) ||
+            basePath.substring(0, basePath.lastIndexOf('\\') + 1);
+        return baseDir + includePath;
+    }
+}
+
+/**
+ * Evaluates a preprocessor condition
+ * Supports: true, false, !, &&, ||, (), and platform identifiers
+ */
+function evaluateCondition(condition: string, platform?: string): boolean {
+    // Clean up the condition
+    let expr = condition.trim();
+
+    // Handle empty condition
+    if (!expr) return true;
+
+    // Replace platform identifiers with boolean values
+    // Common platforms: windows, mac, android, ios, ext_chromium, ext_ff, ext_edge, ext_opera, ext_safari
+    const platforms = [
+        'windows',
+        'mac',
+        'android',
+        'ios',
+        'ext_chromium',
+        'ext_ff',
+        'ext_edge',
+        'ext_opera',
+        'ext_safari',
+        'ext_ublock',
+        'adguard',
+        'adguard_app_windows',
+        'adguard_app_mac',
+        'adguard_app_android',
+        'adguard_app_ios',
+        'adguard_ext_chromium',
+        'adguard_ext_firefox',
+        'adguard_ext_edge',
+        'adguard_ext_opera',
+        'adguard_ext_safari',
+    ];
+
+    for (const p of platforms) {
+        // Replace platform with true if it matches, false otherwise
+        const regex = new RegExp(`\\b${p}\\b`, 'gi');
+        const value = platform?.toLowerCase() === p.toLowerCase() ? 'true' : 'false';
+        expr = expr.replace(regex, value);
+    }
+
+    // Handle logical operators
+    expr = expr.replace(/\s+&&\s+/g, ' && ');
+    expr = expr.replace(/\s+\|\|\s+/g, ' || ');
+
+    // Evaluate the expression safely
+    try {
+        // Only allow true, false, !, &&, ||, (), and whitespace
+        // Use * instead of + to allow empty string (when expr is just "true" or "false")
+        if (!/^[!&|() ]*$/i.test(expr.replace(/true|false/gi, ''))) {
+            // Unknown tokens - default to false to exclude platform-specific rules
+            return false;
+        }
+
+        // Use Function constructor for safe evaluation
+        // This is safe because we've sanitized the input to only contain boolean logic
+        const fn = new Function(`return ${expr};`);
+        return Boolean(fn());
+    } catch {
+        // If evaluation fails, default to false
+        return false;
+    }
+}
+
+/**
+ * Native Deno filter downloader
+ */
+export class FilterDownloader {
+    private readonly options: Required<DownloaderOptions>;
+    private readonly logger: ILogger;
+    private readonly visitedUrls: Set<string> = new Set();
+
+    constructor(options?: DownloaderOptions, logger?: ILogger) {
+        this.options = { ...DEFAULT_OPTIONS, ...options };
+        this.logger = logger ?? silentLogger;
+    }
+
+    /**
+     * Downloads and processes a filter list from a URL or file path
+     * @param source - URL or file path to download from
+     * @returns Array of filter rules (lines)
+     */
+    async download(source: string): Promise<string[]> {
+        this.visitedUrls.clear();
+        return this.downloadInternal(source, 0);
+    }
+
+    /**
+     * Internal download method with include depth tracking
+     */
+    private async downloadInternal(source: string, depth: number): Promise<string[]> {
+        // Check for circular includes
+        if (this.visitedUrls.has(source)) {
+            this.logger.warn(`Circular include detected: ${source}`);
+            return [];
+        }
+
+        // Check include depth
+        if (depth > this.options.maxIncludeDepth) {
+            this.logger.warn(`Max include depth exceeded: ${source}`);
+            return [];
+        }
+
+        this.visitedUrls.add(source);
+        this.logger.debug(`Downloading: ${source}`);
+
+        let content: string;
+
+        try {
+            if (isUrl(source)) {
+                content = await this.fetchUrl(source);
+            } else {
+                content = await this.readFile(source);
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to download ${source}: ${message}`);
+            throw error;
+        }
+
+        // Split into lines and process
+        let lines = content.split(/\r?\n/);
+
+        // Remove trailing empty line created by files ending with newline
+        if (lines.length > 0 && lines[lines.length - 1] === '') {
+            lines = lines.slice(0, -1);
+        }
+
+        // Process preprocessor directives
+        const processed = await this.processDirectives(lines, source, depth);
+
+        return processed;
+    }
+
+    /**
+     * Fetches content from a URL
+     */
+    private async fetchUrl(url: string): Promise<string> {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
+
+        try {
+            const response = await fetch(url, {
+                signal: controller.signal,
+                headers: {
+                    'User-Agent': this.options.userAgent,
+                },
+                redirect: 'follow',
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const text = await response.text();
+
+            if (!text && !this.options.allowEmptyResponse) {
+                throw new Error('Empty response received');
+            }
+
+            return text;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
+
+    /**
+     * Reads content from a local file
+     */
+    private async readFile(path: string): Promise<string> {
+        try {
+            const content = await Deno.readTextFile(path);
+
+            if (!content && !this.options.allowEmptyResponse) {
+                throw new Error('Empty file');
+            }
+
+            return content;
+        } catch (error) {
+            if (error instanceof Deno.errors.NotFound) {
+                throw new Error(`File not found: ${path}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Processes preprocessor directives in the filter content
+     */
+    private async processDirectives(
+        lines: string[],
+        basePath: string,
+        depth: number
+    ): Promise<string[]> {
+        const result: string[] = [];
+        let i = 0;
+
+        while (i < lines.length) {
+            const line = lines[i];
+            const trimmed = line.trim();
+
+            // Handle !#if directive
+            if (trimmed.startsWith(DirectiveType.If)) {
+                const block = this.parseConditionalBlock(lines, i);
+                const condition = trimmed.substring(DirectiveType.If.length).trim();
+
+                // Evaluate condition and include appropriate lines
+                if (evaluateCondition(condition)) {
+                    const processed = await this.processDirectives(block.ifLines, basePath, depth);
+                    result.push(...processed);
+                } else if (block.elseLines.length > 0) {
+                    const processed = await this.processDirectives(block.elseLines, basePath, depth);
+                    result.push(...processed);
+                }
+
+                // Skip to after the block
+                i = this.findEndIfIndex(lines, i) + 1;
+                continue;
+            }
+
+            // Handle !#include directive
+            if (trimmed.startsWith(DirectiveType.Include)) {
+                const includePath = trimmed.substring(DirectiveType.Include.length).trim();
+                const resolvedPath = resolveIncludePath(includePath, basePath);
+
+                try {
+                    const included = await this.downloadInternal(resolvedPath, depth + 1);
+                    result.push(...included);
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    this.logger.warn(`Failed to include ${includePath}: ${message}`);
+                }
+
+                i++;
+                continue;
+            }
+
+            // Handle !#safari_cb_affinity (skip these blocks for non-Safari)
+            if (trimmed.startsWith(DirectiveType.Safari)) {
+                // Skip until we find the end marker or run out of lines
+                i++;
+                while (i < lines.length) {
+                    const currentLine = lines[i].trim();
+                    if (
+                        currentLine.startsWith('!#safari_cb_affinity') &&
+                        currentLine.length === DirectiveType.Safari.length
+                    ) {
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+                continue;
+            }
+
+            // Skip standalone !#else and !#endif (they're handled by !#if)
+            if (trimmed === DirectiveType.Else || trimmed === DirectiveType.EndIf) {
+                i++;
+                continue;
+            }
+
+            // Regular line - add to result
+            result.push(line);
+            i++;
+        }
+
+        return result;
+    }
+
+    /**
+     * Parses a conditional block (!#if ... !#else ... !#endif)
+     */
+    private parseConditionalBlock(lines: string[], startIndex: number): ConditionalBlock {
+        const block: ConditionalBlock = {
+            condition: lines[startIndex].trim().substring(DirectiveType.If.length).trim(),
+            ifLines: [],
+            elseLines: [],
+        };
+
+        let depth = 1;
+        let inElse = false;
+        let i = startIndex + 1;
+
+        while (i < lines.length && depth > 0) {
+            const trimmed = lines[i].trim();
+
+            if (trimmed.startsWith(DirectiveType.If)) {
+                depth++;
+                if (inElse) {
+                    block.elseLines.push(lines[i]);
+                } else {
+                    block.ifLines.push(lines[i]);
+                }
+            } else if (trimmed === DirectiveType.EndIf) {
+                depth--;
+                if (depth > 0) {
+                    if (inElse) {
+                        block.elseLines.push(lines[i]);
+                    } else {
+                        block.ifLines.push(lines[i]);
+                    }
+                }
+            } else if (trimmed === DirectiveType.Else && depth === 1) {
+                inElse = true;
+            } else {
+                if (inElse) {
+                    block.elseLines.push(lines[i]);
+                } else {
+                    block.ifLines.push(lines[i]);
+                }
+            }
+
+            i++;
+        }
+
+        return block;
+    }
+
+    /**
+     * Finds the index of the matching !#endif for a !#if at startIndex
+     */
+    private findEndIfIndex(lines: string[], startIndex: number): number {
+        let depth = 1;
+        let i = startIndex + 1;
+
+        while (i < lines.length && depth > 0) {
+            const trimmed = lines[i].trim();
+
+            if (trimmed.startsWith(DirectiveType.If)) {
+                depth++;
+            } else if (trimmed === DirectiveType.EndIf) {
+                depth--;
+            }
+
+            if (depth === 0) {
+                return i;
+            }
+
+            i++;
+        }
+
+        return lines.length - 1;
+    }
+
+    /**
+     * Static convenience method for one-off downloads
+     */
+    static async download(
+        source: string,
+        options?: DownloaderOptions,
+        additionalOptions?: { allowEmptyResponse?: boolean }
+    ): Promise<string[]> {
+        const mergedOptions: DownloaderOptions = {
+            ...options,
+            allowEmptyResponse: additionalOptions?.allowEmptyResponse,
+        };
+        const downloader = new FilterDownloader(mergedOptions);
+        return downloader.download(source);
+    }
+}

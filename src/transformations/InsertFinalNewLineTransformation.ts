@@ -1,5 +1,5 @@
-import { TransformationType } from '../types';
-import { SyncTransformation } from './base/Transformation';
+import { TransformationType } from '../types/index.ts';
+import { SyncTransformation } from './base/Transformation.ts';
 
 /**
  * Transformation that ensures the file ends with a newline.

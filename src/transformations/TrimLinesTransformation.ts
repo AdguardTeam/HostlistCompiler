@@ -1,6 +1,6 @@
-import { TransformationType } from '../types';
-import { StringUtils } from '../utils/index';
-import { SyncTransformation } from './base/Transformation';
+import { TransformationType } from '../types/index.ts';
+import { StringUtils } from '../utils/index.ts';
+import { SyncTransformation } from './base/Transformation.ts';
 
 /**
  * Transformation that removes leading and trailing whitespace from lines.

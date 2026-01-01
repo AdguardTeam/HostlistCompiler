@@ -1,11 +1,27 @@
-import { domainToASCII } from 'url';
 import {
     IAdblockRule,
     IAdblockRuleTokens,
     IEtcHostsRule,
     IRuleModifier,
-} from '../types';
-import { StringUtils } from './StringUtils';
+} from '../types/index.ts';
+import { StringUtils } from './StringUtils.ts';
+
+/**
+ * Converts a domain to ASCII (Punycode) representation.
+ * Uses the native URL API which handles IDN conversion.
+ * @param domain - Domain name to convert
+ * @returns ASCII representation of the domain
+ */
+function domainToASCII(domain: string): string {
+    try {
+        // Use URL constructor which automatically converts IDN to Punycode
+        const url = new URL(`http://${domain}`);
+        return url.hostname;
+    } catch {
+        // If URL parsing fails, return the original domain
+        return domain;
+    }
+}
 
 // Regular expressions for rule parsing
 const DOMAIN_REGEX = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;

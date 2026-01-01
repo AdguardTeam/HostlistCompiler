@@ -1,11 +1,17 @@
-import consola from 'consola';
-import { IConfiguration, ILogger, ISource, TransformationType } from '../types';
-import { ConfigurationValidator } from '../configuration';
-import { TransformationPipeline } from '../transformations';
-import { SourceCompiler } from './SourceCompiler';
+import { IConfiguration, ILogger, ISource, TransformationType } from '../types/index.ts';
+import { ConfigurationValidator } from '../configuration/index.ts';
+import { TransformationPipeline } from '../transformations/index.ts';
+import { SourceCompiler } from './SourceCompiler.ts';
+import { logger as defaultLogger } from '../utils/logger.ts';
 
-// Import package.json for version info
-import packageJson from '../../package.json';
+/**
+ * Package metadata for header generation.
+ * Version matches deno.json for JSR publishing.
+ */
+const PACKAGE_INFO = {
+    name: '@anthropic/hostlist-compiler',
+    version: '2.0.0',
+} as const;
 
 /**
  * Main compiler class for hostlist compilation.
@@ -18,7 +24,7 @@ export class FilterCompiler {
     private readonly sourceCompiler: SourceCompiler;
 
     constructor(logger?: ILogger) {
-        this.logger = logger || consola;
+        this.logger = logger || defaultLogger;
         this.validator = new ConfigurationValidator();
         this.pipeline = new TransformationPipeline(undefined, this.logger);
         this.sourceCompiler = new SourceCompiler(this.pipeline, this.logger);
@@ -93,7 +99,7 @@ export class FilterCompiler {
         lines.push('!');
 
         // Compiler info
-        lines.push(`! Compiled by ${packageJson.name} v${packageJson.version}`);
+        lines.push(`! Compiled by ${PACKAGE_INFO.name} v${PACKAGE_INFO.version}`);
         lines.push('!');
 
         return lines;

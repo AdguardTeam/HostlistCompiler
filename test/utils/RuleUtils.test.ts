@@ -1,248 +1,241 @@
-import { RuleUtils } from '../../src/utils/RuleUtils';
+import { assertEquals, assertThrows } from '@std/assert';
+import { RuleUtils } from '../../src/utils/RuleUtils.ts';
 
-describe('RuleUtils', () => {
-    describe('isComment', () => {
-        it('should identify ! comments', () => {
-            expect(RuleUtils.isComment('! This is a comment')).toBe(true);
-        });
+// isComment tests
+Deno.test('RuleUtils.isComment - should identify ! comments', () => {
+    assertEquals(RuleUtils.isComment('! This is a comment'), true);
+});
 
-        it('should identify # comments with space', () => {
-            expect(RuleUtils.isComment('# This is a comment')).toBe(true);
-        });
+Deno.test('RuleUtils.isComment - should identify # comments with space', () => {
+    assertEquals(RuleUtils.isComment('# This is a comment'), true);
+});
 
-        it('should identify single #', () => {
-            expect(RuleUtils.isComment('#')).toBe(true);
-        });
+Deno.test('RuleUtils.isComment - should identify single #', () => {
+    assertEquals(RuleUtils.isComment('#'), true);
+});
 
-        it('should identify #### comments', () => {
-            expect(RuleUtils.isComment('#### Section')).toBe(true);
-        });
+Deno.test('RuleUtils.isComment - should identify #### comments', () => {
+    assertEquals(RuleUtils.isComment('#### Section'), true);
+});
 
-        it('should not identify regular rules as comments', () => {
-            expect(RuleUtils.isComment('||example.org^')).toBe(false);
-        });
+Deno.test('RuleUtils.isComment - should not identify regular rules as comments', () => {
+    assertEquals(RuleUtils.isComment('||example.org^'), false);
+});
 
-        it('should not identify hosts rules with # as comments', () => {
-            expect(RuleUtils.isComment('0.0.0.0 example.org # inline comment')).toBe(false);
-        });
-    });
+Deno.test('RuleUtils.isComment - should not identify hosts rules with # as comments', () => {
+    assertEquals(RuleUtils.isComment('0.0.0.0 example.org # inline comment'), false);
+});
 
-    describe('isAllowRule', () => {
-        it('should identify allow rules', () => {
-            expect(RuleUtils.isAllowRule('@@||example.org^')).toBe(true);
-        });
+// isAllowRule tests
+Deno.test('RuleUtils.isAllowRule - should identify allow rules', () => {
+    assertEquals(RuleUtils.isAllowRule('@@||example.org^'), true);
+});
 
-        it('should not identify blocking rules', () => {
-            expect(RuleUtils.isAllowRule('||example.org^')).toBe(false);
-        });
-    });
+Deno.test('RuleUtils.isAllowRule - should not identify blocking rules', () => {
+    assertEquals(RuleUtils.isAllowRule('||example.org^'), false);
+});
 
-    describe('isJustDomain', () => {
-        it('should identify simple domain', () => {
-            expect(RuleUtils.isJustDomain('example.org')).toBe(true);
-        });
+// isJustDomain tests
+Deno.test('RuleUtils.isJustDomain - should identify simple domain', () => {
+    assertEquals(RuleUtils.isJustDomain('example.org'), true);
+});
 
-        it('should identify subdomain', () => {
-            expect(RuleUtils.isJustDomain('www.example.org')).toBe(true);
-        });
+Deno.test('RuleUtils.isJustDomain - should identify subdomain', () => {
+    assertEquals(RuleUtils.isJustDomain('www.example.org'), true);
+});
 
-        it('should not identify adblock rule', () => {
-            expect(RuleUtils.isJustDomain('||example.org^')).toBe(false);
-        });
-    });
+Deno.test('RuleUtils.isJustDomain - should not identify adblock rule', () => {
+    assertEquals(RuleUtils.isJustDomain('||example.org^'), false);
+});
 
-    describe('isEtcHostsRule', () => {
-        it('should identify IPv4 hosts rule', () => {
-            expect(RuleUtils.isEtcHostsRule('0.0.0.0 example.org')).toBe(true);
-        });
+// isEtcHostsRule tests
+Deno.test('RuleUtils.isEtcHostsRule - should identify IPv4 hosts rule', () => {
+    assertEquals(RuleUtils.isEtcHostsRule('0.0.0.0 example.org'), true);
+});
 
-        it('should identify localhost hosts rule', () => {
-            expect(RuleUtils.isEtcHostsRule('127.0.0.1 example.org')).toBe(true);
-        });
+Deno.test('RuleUtils.isEtcHostsRule - should identify localhost hosts rule', () => {
+    assertEquals(RuleUtils.isEtcHostsRule('127.0.0.1 example.org'), true);
+});
 
-        it('should identify IPv6 hosts rule', () => {
-            expect(RuleUtils.isEtcHostsRule('::1 example.org')).toBe(true);
-        });
+Deno.test('RuleUtils.isEtcHostsRule - should identify IPv6 hosts rule', () => {
+    assertEquals(RuleUtils.isEtcHostsRule('::1 example.org'), true);
+});
 
-        it('should identify hosts rule with comment', () => {
-            expect(RuleUtils.isEtcHostsRule('0.0.0.0 example.org # comment')).toBe(true);
-        });
+Deno.test('RuleUtils.isEtcHostsRule - should identify hosts rule with comment', () => {
+    assertEquals(RuleUtils.isEtcHostsRule('0.0.0.0 example.org # comment'), true);
+});
 
-        it('should not identify adblock rule', () => {
-            expect(RuleUtils.isEtcHostsRule('||example.org^')).toBe(false);
-        });
-    });
+Deno.test('RuleUtils.isEtcHostsRule - should not identify adblock rule', () => {
+    assertEquals(RuleUtils.isEtcHostsRule('||example.org^'), false);
+});
 
-    describe('containsNonAsciiCharacters', () => {
-        it('should return false for ASCII', () => {
-            expect(RuleUtils.containsNonAsciiCharacters('example.org')).toBe(false);
-        });
+// containsNonAsciiCharacters tests
+Deno.test('RuleUtils.containsNonAsciiCharacters - should return false for ASCII', () => {
+    assertEquals(RuleUtils.containsNonAsciiCharacters('example.org'), false);
+});
 
-        it('should return true for non-ASCII', () => {
-            expect(RuleUtils.containsNonAsciiCharacters('пример.рф')).toBe(true);
-        });
+Deno.test('RuleUtils.containsNonAsciiCharacters - should return true for non-ASCII', () => {
+    assertEquals(RuleUtils.containsNonAsciiCharacters('пример.рф'), true);
+});
 
-        it('should return true for mixed', () => {
-            expect(RuleUtils.containsNonAsciiCharacters('example.рф')).toBe(true);
-        });
-    });
+Deno.test('RuleUtils.containsNonAsciiCharacters - should return true for mixed', () => {
+    assertEquals(RuleUtils.containsNonAsciiCharacters('example.рф'), true);
+});
 
-    describe('convertNonAsciiToPunycode', () => {
-        it('should convert non-ASCII domain to punycode', () => {
-            const result = RuleUtils.convertNonAsciiToPunycode('||пример.рф^');
-            expect(result).toBe('||xn--e1afmkfd.xn--p1ai^');
-        });
+// convertNonAsciiToPunycode tests
+Deno.test('RuleUtils.convertNonAsciiToPunycode - should convert non-ASCII domain to punycode', () => {
+    const result = RuleUtils.convertNonAsciiToPunycode('||пример.рф^');
+    assertEquals(result, '||xn--e1afmkfd.xn--p1ai^');
+});
 
-        it('should handle wildcard patterns', () => {
-            const result = RuleUtils.convertNonAsciiToPunycode('||*.пример.рф^');
-            expect(result).toBe('||*.xn--e1afmkfd.xn--p1ai^');
-        });
+Deno.test('RuleUtils.convertNonAsciiToPunycode - should handle wildcard patterns', () => {
+    const result = RuleUtils.convertNonAsciiToPunycode('||*.пример.рф^');
+    assertEquals(result, '||*.xn--e1afmkfd.xn--p1ai^');
+});
 
-        it('should not modify ASCII domains', () => {
-            const result = RuleUtils.convertNonAsciiToPunycode('||example.org^');
-            expect(result).toBe('||example.org^');
-        });
-    });
+Deno.test('RuleUtils.convertNonAsciiToPunycode - should not modify ASCII domains', () => {
+    const result = RuleUtils.convertNonAsciiToPunycode('||example.org^');
+    assertEquals(result, '||example.org^');
+});
 
-    describe('parseRuleTokens', () => {
-        it('should parse simple rule', () => {
-            const tokens = RuleUtils.parseRuleTokens('||example.org^');
-            expect(tokens.pattern).toBe('||example.org^');
-            expect(tokens.options).toBe(null);
-            expect(tokens.whitelist).toBe(false);
-        });
+// parseRuleTokens tests
+Deno.test('RuleUtils.parseRuleTokens - should parse simple rule', () => {
+    const tokens = RuleUtils.parseRuleTokens('||example.org^');
+    assertEquals(tokens.pattern, '||example.org^');
+    assertEquals(tokens.options, null);
+    assertEquals(tokens.whitelist, false);
+});
 
-        it('should parse rule with options', () => {
-            const tokens = RuleUtils.parseRuleTokens('||example.org^$important');
-            expect(tokens.pattern).toBe('||example.org^');
-            expect(tokens.options).toBe('important');
-            expect(tokens.whitelist).toBe(false);
-        });
+Deno.test('RuleUtils.parseRuleTokens - should parse rule with options', () => {
+    const tokens = RuleUtils.parseRuleTokens('||example.org^$important');
+    assertEquals(tokens.pattern, '||example.org^');
+    assertEquals(tokens.options, 'important');
+    assertEquals(tokens.whitelist, false);
+});
 
-        it('should parse allow rule', () => {
-            const tokens = RuleUtils.parseRuleTokens('@@||example.org^');
-            expect(tokens.pattern).toBe('||example.org^');
-            expect(tokens.whitelist).toBe(true);
-        });
+Deno.test('RuleUtils.parseRuleTokens - should parse allow rule', () => {
+    const tokens = RuleUtils.parseRuleTokens('@@||example.org^');
+    assertEquals(tokens.pattern, '||example.org^');
+    assertEquals(tokens.whitelist, true);
+});
 
-        it('should handle escaped $', () => {
-            const tokens = RuleUtils.parseRuleTokens('||example.org/path\\$var^');
-            expect(tokens.pattern).toBe('||example.org/path\\$var^');
-        });
+Deno.test('RuleUtils.parseRuleTokens - should handle escaped $', () => {
+    const tokens = RuleUtils.parseRuleTokens('||example.org/path\\$var^');
+    assertEquals(tokens.pattern, '||example.org/path\\$var^');
+});
 
-        it('should throw for too short rule', () => {
-            expect(() => RuleUtils.parseRuleTokens('@@')).toThrow('the rule is too short');
-        });
-    });
+Deno.test('RuleUtils.parseRuleTokens - should throw for too short rule', () => {
+    assertThrows(
+        () => RuleUtils.parseRuleTokens('@@'),
+        Error,
+        'the rule is too short',
+    );
+});
 
-    describe('extractHostname', () => {
-        it('should extract hostname from domain rule', () => {
-            expect(RuleUtils.extractHostname('||example.org^')).toBe('example.org');
-        });
+// extractHostname tests
+Deno.test('RuleUtils.extractHostname - should extract hostname from domain rule', () => {
+    assertEquals(RuleUtils.extractHostname('||example.org^'), 'example.org');
+});
 
-        it('should return null for non-domain rule', () => {
-            expect(RuleUtils.extractHostname('/regex/')).toBe(null);
-        });
+Deno.test('RuleUtils.extractHostname - should return null for non-domain rule', () => {
+    assertEquals(RuleUtils.extractHostname('/regex/'), null);
+});
 
-        it('should return null for rule without separator', () => {
-            expect(RuleUtils.extractHostname('||example.org')).toBe(null);
-        });
-    });
+Deno.test('RuleUtils.extractHostname - should return null for rule without separator', () => {
+    assertEquals(RuleUtils.extractHostname('||example.org'), null);
+});
 
-    describe('loadEtcHostsRuleProperties', () => {
-        it('should parse hosts rule', () => {
-            const props = RuleUtils.loadEtcHostsRuleProperties('0.0.0.0 example.org');
-            expect(props.hostnames).toEqual(['example.org']);
-        });
+// loadEtcHostsRuleProperties tests
+Deno.test('RuleUtils.loadEtcHostsRuleProperties - should parse hosts rule', () => {
+    const props = RuleUtils.loadEtcHostsRuleProperties('0.0.0.0 example.org');
+    assertEquals(props.hostnames, ['example.org']);
+});
 
-        it('should parse hosts rule with multiple domains', () => {
-            const props = RuleUtils.loadEtcHostsRuleProperties('0.0.0.0 example.org www.example.org');
-            expect(props.hostnames).toEqual(['example.org', 'www.example.org']);
-        });
+Deno.test('RuleUtils.loadEtcHostsRuleProperties - should parse hosts rule with multiple domains', () => {
+    const props = RuleUtils.loadEtcHostsRuleProperties('0.0.0.0 example.org www.example.org');
+    assertEquals(props.hostnames, ['example.org', 'www.example.org']);
+});
 
-        it('should strip inline comments', () => {
-            const props = RuleUtils.loadEtcHostsRuleProperties('0.0.0.0 example.org # comment');
-            expect(props.hostnames).toEqual(['example.org']);
-        });
+Deno.test('RuleUtils.loadEtcHostsRuleProperties - should strip inline comments', () => {
+    const props = RuleUtils.loadEtcHostsRuleProperties('0.0.0.0 example.org # comment');
+    assertEquals(props.hostnames, ['example.org']);
+});
 
-        it('should throw for invalid rule', () => {
-            expect(() => RuleUtils.loadEtcHostsRuleProperties('0.0.0.0'))
-                .toThrow('Invalid /etc/hosts rule');
-        });
-    });
+Deno.test('RuleUtils.loadEtcHostsRuleProperties - should throw for invalid rule', () => {
+    assertThrows(
+        () => RuleUtils.loadEtcHostsRuleProperties('0.0.0.0'),
+        Error,
+        'Invalid /etc/hosts rule',
+    );
+});
 
-    describe('loadAdblockRuleProperties', () => {
-        it('should parse simple rule', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^');
-            expect(props.pattern).toBe('||example.org^');
-            expect(props.hostname).toBe('example.org');
-            expect(props.whitelist).toBe(false);
-            expect(props.options).toBe(null);
-        });
+// loadAdblockRuleProperties tests
+Deno.test('RuleUtils.loadAdblockRuleProperties - should parse simple rule', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^');
+    assertEquals(props.pattern, '||example.org^');
+    assertEquals(props.hostname, 'example.org');
+    assertEquals(props.whitelist, false);
+    assertEquals(props.options, null);
+});
 
-        it('should parse rule with options', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important');
-            expect(props.pattern).toBe('||example.org^');
-            expect(props.options).toEqual([{ name: 'important', value: null }]);
-        });
+Deno.test('RuleUtils.loadAdblockRuleProperties - should parse rule with options', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important');
+    assertEquals(props.pattern, '||example.org^');
+    assertEquals(props.options, [{ name: 'important', value: null }]);
+});
 
-        it('should parse rule with option value', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^$dnsrewrite=127.0.0.1');
-            expect(props.options).toEqual([{ name: 'dnsrewrite', value: '127.0.0.1' }]);
-        });
+Deno.test('RuleUtils.loadAdblockRuleProperties - should parse rule with option value', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^$dnsrewrite=127.0.0.1');
+    assertEquals(props.options, [{ name: 'dnsrewrite', value: '127.0.0.1' }]);
+});
 
-        it('should parse allow rule', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('@@||example.org^');
-            expect(props.whitelist).toBe(true);
-        });
-    });
+Deno.test('RuleUtils.loadAdblockRuleProperties - should parse allow rule', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('@@||example.org^');
+    assertEquals(props.whitelist, true);
+});
 
-    describe('findModifier', () => {
-        it('should find existing modifier', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important');
-            const modifier = RuleUtils.findModifier(props, 'important');
-            expect(modifier).toEqual({ name: 'important', value: null });
-        });
+// findModifier tests
+Deno.test('RuleUtils.findModifier - should find existing modifier', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important');
+    const modifier = RuleUtils.findModifier(props, 'important');
+    assertEquals(modifier, { name: 'important', value: null });
+});
 
-        it('should return null for missing modifier', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^');
-            expect(RuleUtils.findModifier(props, 'important')).toBe(null);
-        });
-    });
+Deno.test('RuleUtils.findModifier - should return null for missing modifier', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^');
+    assertEquals(RuleUtils.findModifier(props, 'important'), null);
+});
 
-    describe('removeModifier', () => {
-        it('should remove modifier', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important,third-party');
-            const removed = RuleUtils.removeModifier(props, 'third-party');
-            expect(removed).toBe(true);
-            expect(props.options).toEqual([{ name: 'important', value: null }]);
-        });
+// removeModifier tests
+Deno.test('RuleUtils.removeModifier - should remove modifier', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important,third-party');
+    const removed = RuleUtils.removeModifier(props, 'third-party');
+    assertEquals(removed, true);
+    assertEquals(props.options, [{ name: 'important', value: null }]);
+});
 
-        it('should return false for missing modifier', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important');
-            expect(RuleUtils.removeModifier(props, 'third-party')).toBe(false);
-        });
-    });
+Deno.test('RuleUtils.removeModifier - should return false for missing modifier', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important');
+    assertEquals(RuleUtils.removeModifier(props, 'third-party'), false);
+});
 
-    describe('adblockRuleToString', () => {
-        it('should convert simple rule', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^');
-            expect(RuleUtils.adblockRuleToString(props)).toBe('||example.org^');
-        });
+// adblockRuleToString tests
+Deno.test('RuleUtils.adblockRuleToString - should convert simple rule', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^');
+    assertEquals(RuleUtils.adblockRuleToString(props), '||example.org^');
+});
 
-        it('should convert rule with options', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important');
-            expect(RuleUtils.adblockRuleToString(props)).toBe('||example.org^$important');
-        });
+Deno.test('RuleUtils.adblockRuleToString - should convert rule with options', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^$important');
+    assertEquals(RuleUtils.adblockRuleToString(props), '||example.org^$important');
+});
 
-        it('should convert allow rule', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('@@||example.org^');
-            expect(RuleUtils.adblockRuleToString(props)).toBe('@@||example.org^');
-        });
+Deno.test('RuleUtils.adblockRuleToString - should convert allow rule', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('@@||example.org^');
+    assertEquals(RuleUtils.adblockRuleToString(props), '@@||example.org^');
+});
 
-        it('should convert rule with option value', () => {
-            const props = RuleUtils.loadAdblockRuleProperties('||example.org^$dnsrewrite=127.0.0.1');
-            expect(RuleUtils.adblockRuleToString(props)).toBe('||example.org^$dnsrewrite=127.0.0.1');
-        });
-    });
+Deno.test('RuleUtils.adblockRuleToString - should convert rule with option value', () => {
+    const props = RuleUtils.loadAdblockRuleProperties('||example.org^$dnsrewrite=127.0.0.1');
+    assertEquals(RuleUtils.adblockRuleToString(props), '||example.org^$dnsrewrite=127.0.0.1');
 });

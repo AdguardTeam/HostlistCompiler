@@ -1,78 +1,77 @@
-import { DeduplicateTransformation } from '../../src/transformations/DeduplicateTransformation';
+import { assertEquals } from '@std/assert';
+import { DeduplicateTransformation } from '../../src/transformations/DeduplicateTransformation.ts';
 
-describe('DeduplicateTransformation', () => {
-    let transformation: DeduplicateTransformation;
+Deno.test('DeduplicateTransformation - should remove duplicate rules', () => {
+    const transformation = new DeduplicateTransformation();
+    const rules = [
+        '||example.org^',
+        '||test.com^',
+        '||example.org^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, [
+        '||example.org^',
+        '||test.com^',
+    ]);
+});
 
-    beforeEach(() => {
-        transformation = new DeduplicateTransformation();
-    });
+Deno.test('DeduplicateTransformation - should preserve order', () => {
+    const transformation = new DeduplicateTransformation();
+    const rules = [
+        '||first.com^',
+        '||second.com^',
+        '||third.com^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, [
+        '||first.com^',
+        '||second.com^',
+        '||third.com^',
+    ]);
+});
 
-    it('should remove duplicate rules', () => {
-        const rules = [
-            '||example.org^',
-            '||test.com^',
-            '||example.org^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual([
-            '||example.org^',
-            '||test.com^',
-        ]);
-    });
+Deno.test('DeduplicateTransformation - should remove preceding comments for duplicates', () => {
+    const transformation = new DeduplicateTransformation();
+    const rules = [
+        '||example.org^',
+        '! Comment for duplicate',
+        '||example.org^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should preserve order', () => {
-        const rules = [
-            '||first.com^',
-            '||second.com^',
-            '||third.com^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual([
-            '||first.com^',
-            '||second.com^',
-            '||third.com^',
-        ]);
-    });
+Deno.test('DeduplicateTransformation - should keep comments for first occurrence', () => {
+    const transformation = new DeduplicateTransformation();
+    const rules = [
+        '! Comment for first',
+        '||example.org^',
+        '||example.org^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, [
+        '! Comment for first',
+        '||example.org^',
+    ]);
+});
 
-    it('should remove preceding comments for duplicates', () => {
-        const rules = [
-            '||example.org^',
-            '! Comment for duplicate',
-            '||example.org^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('DeduplicateTransformation - should handle empty array', () => {
+    const transformation = new DeduplicateTransformation();
+    const result = transformation.executeSync([]);
+    assertEquals(result, []);
+});
 
-    it('should keep comments for first occurrence', () => {
-        const rules = [
-            '! Comment for first',
-            '||example.org^',
-            '||example.org^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual([
-            '! Comment for first',
-            '||example.org^',
-        ]);
-    });
-
-    it('should handle empty array', () => {
-        const result = transformation.executeSync([]);
-        expect(result).toEqual([]);
-    });
-
-    it('should not deduplicate comments', () => {
-        const rules = [
-            '! Comment',
-            '||example.org^',
-            '! Comment',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual([
-            '! Comment',
-            '||example.org^',
-            '! Comment',
-        ]);
-    });
+Deno.test('DeduplicateTransformation - should not deduplicate comments', () => {
+    const transformation = new DeduplicateTransformation();
+    const rules = [
+        '! Comment',
+        '||example.org^',
+        '! Comment',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, [
+        '! Comment',
+        '||example.org^',
+        '! Comment',
+    ]);
 });

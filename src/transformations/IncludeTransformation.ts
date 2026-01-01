@@ -1,7 +1,7 @@
-import { ILogger, ITransformationContext, TransformationType } from '../types';
-import { Wildcard } from '../utils/index';
-import { FilterService } from '../services/FilterService';
-import { AsyncTransformation } from './base/Transformation';
+import { ILogger, ITransformationContext, TransformationType } from '../types/index.ts';
+import { Wildcard } from '../utils/index.ts';
+import { FilterService } from '../services/FilterService.ts';
+import { AsyncTransformation } from './base/Transformation.ts';
 
 /**
  * Transformation that includes only rules matching specified patterns.

@@ -1,1 +1,1 @@
-export { ConfigurationValidator } from './ConfigurationValidator';
+export { ConfigurationValidator } from './ConfigurationValidator.ts';

@@ -1,6 +1,6 @@
-import { FiltersDownloader } from '@adguard/filters-downloader';
-import { ILogger } from '../types';
-import { RuleUtils, Wildcard } from '../utils/index';
+import { FilterDownloader } from '../downloader/index.ts';
+import { ILogger } from '../types/index.ts';
+import { RuleUtils, Wildcard } from '../utils/index.ts';
 
 /**
  * Service for downloading and preparing filter wildcards.
@@ -21,7 +21,7 @@ export class FilterService {
         }
 
         await Promise.all(sources.map(async (source) => {
-            const rulesStr = await FiltersDownloader.download(source, {}, { allowEmptyResponse: true });
+            const rulesStr = await FilterDownloader.download(source, {}, { allowEmptyResponse: true });
             const rules = rulesStr.filter((el: string) =>
                 el.trim().length > 0 && !RuleUtils.isComment(el));
             list = list.concat(rules);

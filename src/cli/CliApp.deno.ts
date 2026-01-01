@@ -1,13 +1,12 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-net
 
-import { parseArgs } from '@std/flags';
+import { parse } from '@std/flags';
 import { IConfiguration, ILogger, ISource, SourceType, TransformationType } from '../types/index.ts';
 // Note: FilterCompiler will need to be migrated to Deno before this file can be used
 // For now, this import is a placeholder showing the intended structure
 // import { FilterCompiler } from '../compiler/index.ts';
 
 // Log level constants
-const LOG_LEVEL_FATAL = 0;
 const LOG_LEVEL_ERROR = 1;
 const LOG_LEVEL_WARN = 2;
 const LOG_LEVEL_INFO = 3;
@@ -134,7 +133,7 @@ Examples:
      * Parses command-line arguments using Deno's std/flags.
      */
     private parseArgs(argv: string[]): ICliArgs {
-        const parsed = parseArgs(argv, {
+        const parsed = parse(argv, {
             string: ['config', 'input-type', 'output'],
             boolean: ['verbose', 'help', 'version'],
             collect: ['input'],
@@ -150,7 +149,7 @@ Examples:
 
         return {
             config: parsed.config,
-            input: parsed.input,
+            input: parsed.input as string[] | undefined,
             'input-type': parsed['input-type'],
             output: parsed.output,
             verbose: parsed.verbose,

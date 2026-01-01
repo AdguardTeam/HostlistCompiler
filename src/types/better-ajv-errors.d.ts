@@ -1,5 +1,11 @@
 declare module 'better-ajv-errors' {
-    import { ErrorObject } from 'ajv';
+    interface AjvErrorObject {
+        keyword: string;
+        instancePath: string;
+        schemaPath: string;
+        params: Record<string, unknown>;
+        message?: string;
+    }
 
     interface Options {
         format?: 'cli' | 'js';
@@ -9,9 +15,9 @@ declare module 'better-ajv-errors' {
     function betterAjvErrors(
         schema: object,
         data: unknown,
-        errors: ErrorObject[] | null | undefined,
+        errors: AjvErrorObject[] | null | undefined,
         options?: Options
     ): string | object[];
 
-    export = betterAjvErrors;
+    export default betterAjvErrors;
 }

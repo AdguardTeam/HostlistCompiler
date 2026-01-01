@@ -1,4 +1,4 @@
-import { StringUtils } from './StringUtils';
+import { StringUtils } from './StringUtils.ts';
 
 /**
  * Pattern matching class that supports:

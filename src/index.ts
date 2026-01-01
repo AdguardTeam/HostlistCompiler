@@ -1,13 +1,18 @@
 // Main entry point for the hostlist compiler library
 
 // Types
-export * from './types';
+export * from './types/index.ts';
 
 // Utils
-export { RuleUtils, StringUtils, Wildcard } from './utils';
+export { RuleUtils, StringUtils, Wildcard, TldUtils } from './utils/index.ts';
+export type { ParsedHost } from './utils/index.ts';
+
+// Downloader
+export { FilterDownloader } from './downloader/index.ts';
+export type { DownloaderOptions } from './downloader/index.ts';
 
 // Configuration
-export { ConfigurationValidator } from './configuration';
+export { ConfigurationValidator } from './configuration/index.ts';
 
 // Transformations
 export {
@@ -29,14 +34,14 @@ export {
     IncludeTransformation,
     TransformationRegistry,
     TransformationPipeline,
-} from './transformations';
+} from './transformations/index.ts';
 
 // Services
-export { FilterService } from './services';
+export { FilterService } from './services/index.ts';
 
 // Compiler
-export { SourceCompiler, FilterCompiler, compile } from './compiler';
+export { SourceCompiler, FilterCompiler, compile } from './compiler/index.ts';
 
 // Default export for backward compatibility
-import { compile as compileFunc } from './compiler';
+import { compile as compileFunc } from './compiler/index.ts';
 export default compileFunc;
