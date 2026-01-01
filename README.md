@@ -1,10 +1,23 @@
-# Hostlist Compiler
+# Adblock Compiler
 
 [![JSR](https://jsr.io/badges/@anthropic/hostlist-compiler)](https://jsr.io/@anthropic/hostlist-compiler)
 
-This is a simple tool that makes it easier to compile a [hosts blocklist](https://adguard-dns.io/kb/general/dns-filtering-syntax/) compatible with AdGuard Home or any other AdGuard product with **DNS filtering**.
+**Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.
+
+🌐 **[Try the Web UI](https://adblock.jaysonknight.com)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[API Documentation](docs/api/README.md)**
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). It provides the same functionality with improved performance and no Node.js dependencies.
+
+## ✨ Features
+
+- **🎯 Multi-Source Compilation** - Combine filter lists from URLs, files, or inline rules
+- **⚡ Performance** - Gzip compression (70-80% cache reduction), request deduplication, smart caching
+- **🔄 Circuit Breaker** - Automatic retry with exponential backoff for unreliable sources
+- **📊 Visual Diff** - See what changed between compilations
+- **🎪 Batch Processing** - Compile up to 10 lists in parallel
+- **📡 Event Pipeline** - Real-time progress tracking via Server-Sent Events
+- **🌍 Universal** - Works in Deno, Node.js, Cloudflare Workers, browsers
+- **🎨 11 Transformations** - Deduplicate, compress, validate, and more
 
 - [Installation](#installation)
 - [Usage](#usage)
