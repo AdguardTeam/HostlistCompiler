@@ -40,6 +40,7 @@
   - [TrimLines](#trimlines)
   - [InsertFinalNewLine](#insertfinalnewline)
   - [ConvertToAscii](#convert-to-ascii)
+- [Extensibility](#extensibility)
 - [Development](#development)
 - [Platform Support](#platform-support)
   - [Edge Runtimes (Generic)](#edge-runtimes)
@@ -55,13 +56,13 @@
 Run directly without installation:
 
 ```bash
-deno run --allow-read --allow-write --allow-net jsr:@anthropic/hostlist-compiler -c config.json -o output.txt
+deno run --allow-read --allow-write --allow-net jsr:@jk-com/adblock-compiler -c config.json -o output.txt
 ```
 
 Or install globally:
 
 ```bash
-deno install --allow-read --allow-write --allow-net -n hostlist-compiler jsr:@anthropic/hostlist-compiler/cli
+deno install --allow-read --allow-write --allow-net -n hostlist-compiler jsr:@jk-com/adblock-compiler/cli
 ```
 
 ### Build from source
@@ -69,8 +70,8 @@ deno install --allow-read --allow-write --allow-net -n hostlist-compiler jsr:@an
 Clone the repository and compile:
 
 ```bash
-git clone https://github.com/anthropics/hostlist-compiler.git
-cd hostlist-compiler
+git clone https://github.com/jaypatrick/adblock-compiler.git
+cd adblock-compiler
 deno task build
 ```
 
@@ -557,6 +558,76 @@ Here's what we will have after applying this transformation:
 ||*.xn--11b4c3d^
 ||*.xn--1qqw23a^
 ```
+
+## Extensibility
+
+AdBlock Compiler is designed to be fully extensible. You can:
+
+- **Create custom transformations** - Extend `SyncTransformation` or `AsyncTransformation` to add custom rule processing
+- **Implement custom fetchers** - Support any protocol or data source by implementing `IContentFetcher`
+- **Build custom compilers** - Extend `FilterCompiler` or `WorkerCompiler` for specialized use cases
+- **Integrate custom loggers** - Implement `ILogger` to integrate with your logging system
+- **Add event handlers** - Implement `ICompilerEvents` for custom monitoring and tracking
+
+**Example: Custom Transformation**
+
+```typescript path=null start=null
+import { SyncTransformation, TransformationType, TransformationRegistry } from '@jk-com/adblock-compiler';
+
+class RemoveSocialMediaTransformation extends SyncTransformation {
+    public readonly type = 'RemoveSocialMedia' as TransformationType;
+    public readonly name = 'Remove Social Media';
+    
+    private socialDomains = ['facebook.com', 'twitter.com', 'instagram.com'];
+    
+    public executeSync(rules: string[]): string[] {
+        return rules.filter(rule => {
+            return !this.socialDomains.some(domain => rule.includes(domain));
+        });
+    }
+}
+
+// Register and use
+const registry = new TransformationRegistry();
+registry.register('RemoveSocialMedia' as any, new RemoveSocialMediaTransformation());
+
+const compiler = new FilterCompiler({ transformationRegistry: registry });
+```
+
+**Example: Custom Fetcher**
+
+```typescript path=null start=null
+import { IContentFetcher, CompositeFetcher, HttpFetcher } from '@jk-com/adblock-compiler';
+
+class DatabaseFetcher implements IContentFetcher {
+    async canHandle(source: string): Promise<boolean> {
+        return source.startsWith('db://');
+    }
+    
+    async fetchContent(source: string): Promise<string> {
+        const [table, column] = source.replace('db://', '').split('/');
+        // Your database query implementation
+        return await queryDatabase(table, column);
+    }
+}
+
+// Use with CompositeFetcher
+const fetcher = new CompositeFetcher([
+    new DatabaseFetcher(),
+    new HttpFetcher(),
+]);
+```
+
+📚 **For complete extensibility examples and patterns, see [docs/EXTENSIBILITY.md](docs/EXTENSIBILITY.md)**
+
+Topics covered:
+- Custom transformations (sync and async)
+- Custom content fetchers
+- Custom event handlers
+- Custom loggers
+- Extending the compiler
+- Plugin systems
+- Best practices
 
 ## <a name="development"></a> Development
 
