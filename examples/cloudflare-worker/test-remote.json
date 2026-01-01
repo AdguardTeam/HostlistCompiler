@@ -1,0 +1,14 @@
+{
+  "configuration": {
+    "name": "Remote Filter Test",
+    "sources": [
+      {
+        "name": "AdGuard DNS Filter",
+        "source": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
+        "type": "adblock"
+      }
+    ],
+    "transformations": ["Deduplicate", "RemoveEmptyLines", "Compress"]
+  },
+  "benchmark": true
+}

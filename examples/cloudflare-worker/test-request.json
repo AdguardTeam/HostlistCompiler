@@ -1,0 +1,17 @@
+{
+  "configuration": {
+    "name": "Test Filter List",
+    "sources": [
+      {
+        "name": "Test Rules",
+        "source": "test-rules",
+        "type": "adblock"
+      }
+    ],
+    "transformations": ["Deduplicate", "RemoveEmptyLines"]
+  },
+  "preFetchedContent": {
+    "test-rules": "||ads.example.com^\n||tracking.example.com^\n||ads.example.com^\n\n||malware.example.org^"
+  },
+  "benchmark": true
+}
