@@ -4,10 +4,12 @@ This example demonstrates how to run the `@anthropic/hostlist-compiler` package 
 
 ## Features
 
+- **Web UI**: Interactive web interface for compiling filter lists
 - **HTTP API**: Compile filter lists via REST API
 - **Real-time Progress**: Server-Sent Events (SSE) for streaming compilation progress
 - **Pre-fetched Content**: Support for passing source content directly (bypasses CORS)
 - **Benchmarking**: Optional performance metrics
+- **Download & Copy**: Export compiled rules as text files or copy to clipboard
 
 ## Getting Started
 
@@ -34,15 +36,66 @@ The worker will be available at `http://localhost:8787`.
 
 ### Deployment
 
-Deploy to Cloudflare Workers:
+**Note**: Before deploying, you need to build an npm-compatible version of the package or use a bundler.
+
+#### Option 1: Use Deno to Bundle (Recommended)
+
+```bash
+# From the root of the repository
+cd ../..
+deno bundle src/index.ts examples/cloudflare-worker/bundle.js
+
+# Then update worker.ts to import from './bundle.js'
+cd examples/cloudflare-worker
+npm run deploy
+```
+
+#### Option 2: Local Development Only
+
+For local development and testing:
+
+```bash
+# Start local dev server
+npm run dev
+
+# Access at http://localhost:8787
+```
+
+#### Option 3: Direct Deploy (After Package is on npm)
+
+Once the package is available on npm:
 
 ```bash
 npm run deploy
 ```
 
+## Web Interface
+
+The worker includes a full-featured web UI accessible at the root URL (`/`).
+
+### Features
+
+- **Simple Mode**: Paste URLs or raw rules, select transformations, and compile
+- **Advanced Mode**: Full JSON configuration with all options
+- **Examples**: Pre-built templates for common use cases
+- **Real-time Progress**: Live compilation progress with SSE
+- **Download/Copy**: Export compiled lists or copy to clipboard
+
+### Usage
+
+1. Visit `http://localhost:8787` (development) or your deployed worker URL
+2. Choose Simple or Advanced mode
+3. Enter your filter list sources or configuration
+4. Click "Compile Filter List"
+5. Watch real-time progress and download results
+
 ## API Endpoints
 
 ### `GET /`
+
+Serves the interactive web UI.
+
+### `GET /api`
 
 Returns API information and usage examples.
 
