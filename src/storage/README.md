@@ -1,0 +1,300 @@
+# NoSQL Storage Module
+
+A lightweight NoSQL local storage backend built on Deno KV for the hostlist compiler. Provides persistent key-value storage with TTL support, perfect for caching filter lists and storing compilation metadata.
+
+## Features
+
+- **Key-Value Storage**: Simple yet powerful key-value store using hierarchical keys
+- **TTL Support**: Automatic expiration of entries with configurable time-to-live
+- **Query API**: List and filter entries by prefix with pagination support
+- **Type-Safe**: Full TypeScript support with generic types
+- **Storage Statistics**: Track storage size and entry counts
+- **Built-in Caching**: Convenience methods for common caching scenarios
+
+## Installation
+
+The storage module is already part of the hostlist compiler. No additional installation required.
+
+## Basic Usage
+
+```typescript
+import { NoSqlStorage } from './storage/index.ts';
+import { logger } from './utils/logger.ts';
+
+// Create and open storage
+const storage = new NoSqlStorage(logger);
+await storage.open();
+
+// Store a value
+await storage.set(['users', 'john'], { name: 'John Doe', age: 30 });
+
+// Retrieve a value
+const entry = await storage.get(['users', 'john']);
+console.log(entry?.data); // { name: 'John Doe', age: 30 }
+
+// Delete a value
+await storage.delete(['users', 'john']);
+
+// Close when done
+await storage.close();
+```
+
+## TTL (Time-to-Live)
+
+Store entries that automatically expire after a specified duration:
+
+```typescript
+// Store with 1 hour TTL
+await storage.set(['cache', 'temp-data'], { value: 'expires soon' }, 3600000);
+
+// After 1 hour, this will return null
+const entry = await storage.get(['cache', 'temp-data']);
+```
+
+## Querying
+
+List entries with flexible filtering options:
+
+```typescript
+// List all entries with a specific prefix
+const entries = await storage.list({ 
+    prefix: ['users'] 
+});
+
+// List with limit and reverse order
+const recent = await storage.list({
+    prefix: ['logs'],
+    limit: 10,
+    reverse: true
+});
+```
+
+## Caching Filter Lists
+
+Built-in convenience methods for caching downloaded filter lists:
+
+```typescript
+// Cache a filter list
+await storage.cacheFilterList(
+    'https://example.com/filters.txt',
+    ['||example.com^', '||test.com^'],
+    'abc123hash',
+    'etag-value',
+    3600000 // 1 hour TTL
+);
+
+// Retrieve cached filter list
+const cached = await storage.getCachedFilterList('https://example.com/filters.txt');
+if (cached) {
+    console.log(`Found ${cached.content.length} rules in cache`);
+}
+```
+
+## Compilation Metadata
+
+Store and retrieve compilation history:
+
+```typescript
+// Store metadata after compilation
+await storage.storeCompilationMetadata({
+    configName: 'my-blocklist',
+    timestamp: Date.now(),
+    sourceCount: 5,
+    ruleCount: 10000,
+    duration: 5000,
+    outputPath: './output/blocklist.txt'
+});
+
+// Get compilation history
+const history = await storage.getCompilationHistory('my-blocklist', 10);
+for (const meta of history) {
+    console.log(`Compiled ${meta.ruleCount} rules in ${meta.duration}ms`);
+}
+```
+
+## Storage Management
+
+### Statistics
+
+Get information about storage usage:
+
+```typescript
+const stats = await storage.getStats();
+console.log(`Total entries: ${stats.entryCount}`);
+console.log(`Expired: ${stats.expiredCount}`);
+console.log(`Size estimate: ${stats.sizeEstimate} bytes`);
+```
+
+### Cleanup
+
+Remove expired entries or clear cache:
+
+```typescript
+// Clear all expired entries
+const cleared = await storage.clearExpired();
+console.log(`Cleared ${cleared} expired entries`);
+
+// Clear all cache entries
+await storage.clearCache();
+```
+
+## Custom Database Path
+
+By default, Deno KV stores data in a platform-specific location. You can specify a custom path:
+
+```typescript
+const storage = new NoSqlStorage(logger, './my-custom-db');
+await storage.open();
+```
+
+## Key Structure
+
+Keys are hierarchical arrays of strings, similar to a file path:
+
+```typescript
+// Good key structure
+['cache', 'filters', 'source-url']
+['metadata', 'compilations', 'config-name', 'timestamp']
+['users', 'user-id', 'preferences']
+
+// Keys can be as deep as needed
+['project', 'version', 'module', 'submodule', 'data']
+```
+
+## Data Types
+
+Store any JSON-serializable data:
+
+```typescript
+// Primitives
+await storage.set(['config', 'enabled'], true);
+await storage.set(['config', 'count'], 42);
+await storage.set(['config', 'name'], 'my-app');
+
+// Objects and arrays
+await storage.set(['config', 'settings'], {
+    theme: 'dark',
+    features: ['caching', 'logging']
+});
+
+// Complex nested structures
+await storage.set(['data', 'complex'], {
+    nested: {
+        deep: {
+            value: [1, 2, 3]
+        }
+    }
+});
+```
+
+## Error Handling
+
+The storage module handles errors gracefully and logs them:
+
+```typescript
+// Safe to call even if key doesn't exist
+const entry = await storage.get(['nonexistent']); // Returns null
+
+// Operations return boolean success indicators
+const success = await storage.set(['key'], 'value');
+if (!success) {
+    console.error('Failed to store value');
+}
+```
+
+## Testing
+
+Run the storage tests:
+
+```bash
+deno test src/storage/NoSqlStorage.test.ts
+```
+
+## Performance Considerations
+
+- **Key Design**: Use hierarchical keys to enable efficient prefix queries
+- **TTL**: Set appropriate TTLs for cached data to prevent unbounded growth
+- **Cleanup**: Periodically run `clearExpired()` to remove stale entries
+- **Batch Operations**: When possible, group related operations together
+
+## Example: Complete Workflow
+
+```typescript
+import { NoSqlStorage } from './storage/index.ts';
+import { logger } from './utils/logger.ts';
+
+async function example() {
+    // Initialize storage
+    const storage = new NoSqlStorage(logger);
+    await storage.open();
+
+    try {
+        // Cache filter list with 1 hour TTL
+        await storage.cacheFilterList(
+            'https://example.com/filters.txt',
+            ['||ad.example.com^', '||tracker.example.com^'],
+            'content-hash-123',
+            undefined,
+            3600000
+        );
+
+        // Check if cached before downloading
+        const cached = await storage.getCachedFilterList('https://example.com/filters.txt');
+        if (cached) {
+            console.log('Using cached filter list');
+            return cached.content;
+        }
+
+        // Store compilation metadata
+        await storage.storeCompilationMetadata({
+            configName: 'example-config',
+            timestamp: Date.now(),
+            sourceCount: 3,
+            ruleCount: 5000,
+            duration: 3000,
+            outputPath: './output/filters.txt'
+        });
+
+        // Get storage stats
+        const stats = await storage.getStats();
+        console.log(`Storage has ${stats.entryCount} entries (${stats.sizeEstimate} bytes)`);
+
+        // Cleanup
+        await storage.clearExpired();
+    } finally {
+        await storage.close();
+    }
+}
+```
+
+## API Reference
+
+### Constructor
+
+- `constructor(logger: IDetailedLogger, dbPath?: string)`
+
+### Core Methods
+
+- `open(): Promise<void>` - Open database connection
+- `close(): Promise<void>` - Close database connection
+- `set<T>(key: string[], value: T, ttlMs?: number): Promise<boolean>` - Store value
+- `get<T>(key: string[]): Promise<StorageEntry<T> | null>` - Retrieve value
+- `delete(key: string[]): Promise<boolean>` - Delete value
+- `list<T>(options?: QueryOptions): Promise<Array<{ key: string[]; value: StorageEntry<T> }>>` - List entries
+
+### Utility Methods
+
+- `clearExpired(): Promise<number>` - Remove expired entries
+- `getStats(): Promise<StorageStats>` - Get storage statistics
+
+### Convenience Methods
+
+- `cacheFilterList(source: string, content: string[], hash: string, etag?: string, ttlMs?: number): Promise<boolean>`
+- `getCachedFilterList(source: string): Promise<CacheEntry | null>`
+- `storeCompilationMetadata(metadata: CompilationMetadata): Promise<boolean>`
+- `getCompilationHistory(configName: string, limit?: number): Promise<CompilationMetadata[]>`
+- `clearCache(): Promise<number>`
+
+## License
+
+Part of the hostlist compiler project.

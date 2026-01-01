@@ -1,4 +1,4 @@
-import type { IBasicLogger } from '../types/index.ts';
+import type { IDetailedLogger } from '../types/index.ts';
 import { ConditionalEvaluator } from './ConditionalEvaluator.ts';
 
 /**
@@ -38,7 +38,7 @@ export type IncludeLoader = (path: string) => Promise<string[]>;
  */
 export class PreprocessorEvaluator {
     private readonly conditionalEvaluator: ConditionalEvaluator;
-    private readonly logger: IBasicLogger;
+    private readonly logger: IDetailedLogger;
     private readonly includeLoader?: IncludeLoader;
 
     /**
@@ -48,7 +48,7 @@ export class PreprocessorEvaluator {
      * @param includeLoader - Optional callback to load included files
      */
     constructor(
-        logger: IBasicLogger,
+        logger: IDetailedLogger,
         platform?: string,
         includeLoader?: IncludeLoader,
     ) {
