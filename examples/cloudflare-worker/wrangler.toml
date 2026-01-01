@@ -1,0 +1,29 @@
+name = "hostlist-compiler-worker"
+main = "src/worker.ts"
+compatibility_date = "2024-01-01"
+
+# Enable the Workers runtime
+workers_dev = true
+
+# Optional: Add KV bindings for caching compiled lists
+# [[kv_namespaces]]
+# binding = "FILTER_CACHE"
+# id = "your-kv-namespace-id"
+
+# Optional: Add R2 bindings for storing filter lists
+# [[r2_buckets]]
+# binding = "FILTER_STORAGE"
+# bucket_name = "your-bucket-name"
+
+# Environment variables
+[vars]
+COMPILER_VERSION = "2.0.0"
+
+# Development settings
+[dev]
+port = 8787
+local_protocol = "http"
+
+# Production settings (optional)
+# [env.production]
+# vars = { ENVIRONMENT = "production" }

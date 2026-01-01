@@ -1,8 +1,8 @@
-import { IConfiguration, ILogger, ISource, TransformationType } from '../types/index.ts';
+import { IConfiguration, ILogger, ISource, TransformationType, ICompilerEvents } from '../types/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
-import { logger as defaultLogger, BenchmarkCollector, CompilationMetrics } from '../utils/index.ts';
+import { logger as defaultLogger, BenchmarkCollector, CompilationMetrics, createEventEmitter, CompilerEventEmitter } from '../utils/index.ts';
 
 /**
  * Result of compilation with optional metrics.
@@ -22,6 +22,16 @@ const PACKAGE_INFO = {
 } as const;
 
 /**
+ * Options for configuring the FilterCompiler.
+ */
+export interface FilterCompilerOptions {
+    /** Logger for output messages */
+    logger?: ILogger;
+    /** Event handlers for observability */
+    events?: ICompilerEvents;
+}
+
+/**
  * Main compiler class for hostlist compilation.
  * Orchestrates the entire compilation process.
  */
@@ -30,12 +40,24 @@ export class FilterCompiler {
     private readonly validator: ConfigurationValidator;
     private readonly pipeline: TransformationPipeline;
     private readonly sourceCompiler: SourceCompiler;
+    private readonly eventEmitter: CompilerEventEmitter;
 
-    constructor(logger?: ILogger) {
-        this.logger = logger || defaultLogger;
+    constructor(loggerOrOptions?: ILogger | FilterCompilerOptions) {
+        // Handle both legacy (logger-only) and new (options object) signatures
+        if (loggerOrOptions && 'info' in loggerOrOptions) {
+            // Legacy: logger passed directly
+            this.logger = loggerOrOptions;
+            this.eventEmitter = createEventEmitter();
+        } else {
+            // New: options object
+            const options = loggerOrOptions as FilterCompilerOptions | undefined;
+            this.logger = options?.logger || defaultLogger;
+            this.eventEmitter = createEventEmitter(options?.events);
+        }
+
         this.validator = new ConfigurationValidator();
-        this.pipeline = new TransformationPipeline(undefined, this.logger);
-        this.sourceCompiler = new SourceCompiler(this.pipeline, this.logger);
+        this.pipeline = new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        this.sourceCompiler = new SourceCompiler(this.pipeline, this.logger, this.eventEmitter);
     }
 
     /**
@@ -60,6 +82,7 @@ export class FilterCompiler {
     ): Promise<CompilationResult> {
         const collector = benchmark ? new BenchmarkCollector() : null;
         collector?.start();
+        const compilationStartTime = performance.now();
 
         this.logger.info('Starting the compiler');
 
@@ -72,22 +95,25 @@ export class FilterCompiler {
 
         this.logger.info(`Configuration: ${JSON.stringify(configuration, null, 4)}`);
 
+        const totalSources = configuration.sources.length;
+
         // Compile all sources in parallel for better performance
+        // Each source emits its own events through the SourceCompiler
         const sourceResults = await (collector
             ? collector.timeAsync(
                 'Fetch & compile sources',
                 () => Promise.all(
-                    configuration.sources.map(async (source) => ({
+                    configuration.sources.map(async (source, index) => ({
                         source,
-                        rules: await this.sourceCompiler.compile(source),
+                        rules: await this.sourceCompiler.compile(source, index, totalSources),
                     })),
                 ),
                 (results) => results.reduce((sum, r) => sum + r.rules.length, 0),
             )
             : Promise.all(
-                configuration.sources.map(async (source) => ({
+                configuration.sources.map(async (source, index) => ({
                     source,
-                    rules: await this.sourceCompiler.compile(source),
+                    rules: await this.sourceCompiler.compile(source, index, totalSources),
                 })),
             ));
 
@@ -103,8 +129,16 @@ export class FilterCompiler {
         const inputRuleCount = finalList.length;
         collector?.setRuleCount(inputRuleCount);
 
-        // Apply global transformations
+        // Emit progress for transformation phase
         const transformations = configuration.transformations || [];
+        this.eventEmitter.emitProgress({
+            phase: 'transformations',
+            current: 0,
+            total: transformations.length,
+            message: `Applying ${transformations.length} transformations`,
+        });
+
+        // Apply global transformations
         finalList = await (collector
             ? collector.timeAsync(
                 'Apply transformations',
@@ -121,6 +155,14 @@ export class FilterCompiler {
                 transformations as TransformationType[],
             ));
 
+        // Emit finalize progress
+        this.eventEmitter.emitProgress({
+            phase: 'finalize',
+            current: 1,
+            total: 1,
+            message: 'Finalizing output',
+        });
+
         // Prepend the list header and return combined result
         const header = this.prepareHeader(configuration);
         this.logger.info(`Final length of the list is ${header.length + finalList.length}`);
@@ -132,6 +174,15 @@ export class FilterCompiler {
         if (metrics) {
             this.logger.info(collector!.generateReport());
         }
+
+        // Emit compilation complete event
+        const totalDurationMs = performance.now() - compilationStartTime;
+        this.eventEmitter.emitCompilationComplete({
+            ruleCount: rules.length,
+            totalDurationMs,
+            sourceCount: totalSources,
+            transformationCount: transformations.length,
+        });
 
         return { rules, metrics };
     }
