@@ -5,6 +5,10 @@ compatibility_date = "2024-01-01"
 # Enable the Workers runtime
 workers_dev = true
 
+# Serve static assets from the public directory
+[site]
+bucket = "./public"
+
 # Optional: Add KV bindings for caching compiled lists
 # [[kv_namespaces]]
 # binding = "FILTER_CACHE"

@@ -16,7 +16,7 @@ import {
     type IConfiguration,
     type ICompilerEvents,
     type WorkerCompilationResult,
-} from '@anthropic/hostlist-compiler';
+} from '../../../src/index.ts';
 
 /**
  * Environment bindings for the worker.
@@ -25,6 +25,9 @@ export interface Env {
     COMPILER_VERSION: string;
     // Optional KV binding for caching
     FILTER_CACHE?: KVNamespace;
+    // Static assets namespace (Wrangler Sites)
+    __STATIC_CONTENT?: KVNamespace;
+    __STATIC_CONTENT_MANIFEST?: string;
 }
 
 /**
@@ -179,6 +182,8 @@ function handleInfo(env: Env): Response {
         name: 'Hostlist Compiler Worker',
         version: env.COMPILER_VERSION,
         endpoints: {
+            'GET /': 'Web UI for interactive compilation',
+            'GET /api': 'API information (this endpoint)',
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
         },
@@ -223,6 +228,56 @@ function handleCors(): Response {
 }
 
 /**
+ * Serve the web UI HTML.
+ */
+function serveWebUI(): Response {
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostlist Compiler</title>
+</head>
+<body style="font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px;">
+    <h1>🛡️ Hostlist Compiler API</h1>
+    <p>The web UI is available for local development only.</p>
+    <p>To use the web interface locally, run:</p>
+    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">npm run dev</pre>
+    <p>Then visit: <code>http://localhost:8787</code></p>
+    
+    <h2>API Endpoints</h2>
+    <ul>
+        <li><strong>GET /api</strong> - API information</li>
+        <li><strong>POST /compile</strong> - Compile filter list (JSON response)</li>
+        <li><strong>POST /compile/stream</strong> - Compile with real-time progress (SSE)</li>
+    </ul>
+    
+    <h2>Example Usage</h2>
+    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">curl -X POST https://hostlist-compiler-worker.jayson-knight.workers.dev/compile \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "configuration": {
+      "name": "My Filter List",
+      "sources": [
+        { "source": "https://example.com/filters.txt" }
+      ],
+      "transformations": ["Deduplicate", "RemoveEmptyLines"]
+    }
+  }'</pre>
+  
+    <p><a href="/api">View full API documentation →</a></p>
+</body>
+</html>`;
+
+    return new Response(html, {
+        headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=300',
+        },
+    });
+}
+
+/**
  * Main fetch handler for the Cloudflare Worker.
  */
 export default {
@@ -235,25 +290,22 @@ export default {
             return handleCors();
         }
 
-        // Route requests
-        switch (pathname) {
-            case '/':
-                if (request.method === 'GET') {
-                    return handleInfo(env);
-                }
-                break;
+        // Handle API routes
+        if (pathname === '/api' && request.method === 'GET') {
+            return handleInfo(env);
+        }
 
-            case '/compile':
-                if (request.method === 'POST') {
-                    return handleCompileJson(request, env);
-                }
-                break;
+        if (pathname === '/compile' && request.method === 'POST') {
+            return handleCompileJson(request, env);
+        }
 
-            case '/compile/stream':
-                if (request.method === 'POST') {
-                    return handleCompileStream(request, env);
-                }
-                break;
+        if (pathname === '/compile/stream' && request.method === 'POST') {
+            return handleCompileStream(request, env);
+        }
+
+        // Serve web UI for root path
+        if (pathname === '/' && request.method === 'GET') {
+            return serveWebUI();
         }
 
         return new Response('Not Found', { status: 404 });
