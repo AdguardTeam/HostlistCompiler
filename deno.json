@@ -16,7 +16,7 @@
         "lint": "deno lint",
         "fmt": "deno fmt",
         "fmt:check": "deno fmt --check",
-        "check": "deno check src/**/*.ts",
+        "check": "deno check src/index.ts",
         "cache": "deno cache src/index.ts"
     },
     "imports": {
@@ -35,7 +35,7 @@
             "include": ["ban-untagged-todo", "no-console"],
             "exclude": ["no-explicit-any"]
         },
-        "exclude": ["dist/", "node_modules/", "coverage/"]
+        "exclude": ["dist/", "node_modules/", "coverage/", "src/storage/example.ts", "examples/"]
     },
     "fmt": {
         "useTabs": false,

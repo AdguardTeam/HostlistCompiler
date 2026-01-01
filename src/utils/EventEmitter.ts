@@ -96,6 +96,7 @@ export class CompilerEventEmitter {
                 (handler as (event: any) => void)(event);
             } catch (error) {
                 // Log but don't throw - event handlers shouldn't break compilation
+                // deno-lint-ignore no-console
                 console.error(`Error in event handler '${eventName}':`, error);
             }
         }

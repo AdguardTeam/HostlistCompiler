@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-console
 /**
  * Deno-native logger implementation
  * Replaces consola for Deno compatibility
