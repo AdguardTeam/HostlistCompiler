@@ -354,6 +354,97 @@
             color: #721c24;
         }
 
+        .diff-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .diff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .diff-header h4 {
+            margin: 0;
+            color: #667eea;
+        }
+
+        .diff-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+
+        .diff-stat-added {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .diff-stat-removed {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .diff-stat-unchanged {
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .diff-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .diff-line {
+            padding: 4px 8px;
+            border-left: 4px solid transparent;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .diff-line-added {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+
+        .diff-line-removed {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+
+        .diff-line-unchanged {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .diff-line-symbol {
+            display: inline-block;
+            width: 20px;
+            font-weight: bold;
+        }
+
+        .diff-toggle {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .diff-toggle label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
         footer {
             padding: 20px;
             text-align: center;
@@ -581,6 +672,40 @@ eventSource.addEventListener('result', (e) => {
 });</pre>
                 </div>
 
+                <div style="margin: 20px 0;">
+                    <h4>POST /compile/batch</h4>
+                    <p>Compile multiple filter lists in parallel (max 10 per batch)</p>
+                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto;">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile/batch \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "requests": [
+      {
+        "id": "list-1",
+        "configuration": {
+          "name": "First List",
+          "sources": [{"source": "https://example.com/list1.txt"}]
+        }
+      },
+      {
+        "id": "list-2",
+        "configuration": {
+          "name": "Second List",
+          "sources": [{"source": "https://example.com/list2.txt"}]
+        }
+      }
+    ]
+  }'</pre>
+                </div>
+
+                <h3>Performance Features</h3>
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <p><strong>✨ Gzip Compression:</strong> Cache storage uses gzip compression (70-80% size reduction)</p>
+                    <p><strong>⚡ Request Deduplication:</strong> Identical concurrent requests share results</p>
+                    <p><strong>🔄 Circuit Breaker:</strong> Automatic retry with exponential backoff for failed sources</p>
+                    <p><strong>📊 Diff Visualization:</strong> See changes between cached and new compilations</p>
+                    <p><strong>Cache TTL:</strong> Results cached for 1 hour with automatic invalidation</p>
+                </div>
+
                 <h3>Try It Now</h3>
                 <p>Switch to <strong>Simple Mode</strong> or <strong>Advanced Mode</strong> and compile a list. Watch the "Compilation Progress" section below to see the event pipeline in action!</p>
                 
@@ -611,7 +736,7 @@ eventSource.addEventListener('result', (e) => {
                 <div style="margin-top: 30px;">
                     <h3>Resources</h3>
                     <p>📚 <a href="https://github.com/jaypatrick/hostlistcompiler" target="_blank">GitHub Repository</a></p>
-                    <p>🌐 <a href="https://hostlist-compiler-ui.pages.dev" target="_blank">Web UI</a></p>
+                    <p>🌐 <a href="https://adblock.jaysonknight.com" target="_blank">Web UI</a></p>
                     <p>⚡ <a href="https://adblock-compiler.jayson-knight.workers.dev/api" target="_blank">API Info Endpoint</a></p>
                 </div>
             </div>
@@ -629,6 +754,20 @@ eventSource.addEventListener('result', (e) => {
             <div class="results-section" id="results">
                 <h3>Compilation Results</h3>
                 <div class="stats" id="stats"></div>
+                
+                <!-- Diff Section -->
+                <div class="diff-section" id="diff-section" style="display: none;">
+                    <div class="diff-header">
+                        <h4>📊 Changes from Cached Version</h4>
+                        <div class="diff-stats" id="diff-stats"></div>
+                    </div>
+                    <div class="diff-toggle">
+                        <input type="checkbox" id="show-unchanged" />
+                        <label for="show-unchanged">Show unchanged lines</label>
+                    </div>
+                    <div class="diff-container" id="diff-container"></div>
+                </div>
+                
                 <div class="button-group">
                     <button class="btn-success" id="download-results">Download Filter List</button>
                     <button class="btn-secondary" id="copy-results">Copy to Clipboard</button>
@@ -967,12 +1106,95 @@ eventSource.addEventListener('result', (e) => {
                 </div>
             `).join('');
 
+            // Show diff if there's a previous version
+            if (data.previousVersion && data.previousVersion.rules) {
+                showDiff(data.previousVersion.rules, data.rules, data.previousVersion.compiledAt);
+            } else {
+                document.getElementById('diff-section').style.display = 'none';
+            }
+
             // Show preview (first 100 rules)
             const preview = data.rules.slice(0, 100).join('\n');
             const suffix = data.rules.length > 100 ? `\n\n... and ${data.rules.length - 100} more rules` : '';
             outputBox.textContent = preview + suffix;
 
             resultsSection.classList.add('visible');
+        }
+
+        function computeDiff(oldRules, newRules) {
+            // Create sets for fast lookup
+            const oldSet = new Set(oldRules);
+            const newSet = new Set(newRules);
+            
+            const removed = oldRules.filter(rule => !newSet.has(rule));
+            const added = newRules.filter(rule => !oldSet.has(rule));
+            const unchanged = newRules.filter(rule => oldSet.has(rule));
+            
+            return { added, removed, unchanged };
+        }
+
+        function showDiff(oldRules, newRules, compiledAt) {
+            const diffSection = document.getElementById('diff-section');
+            const diffStats = document.getElementById('diff-stats');
+            const diffContainer = document.getElementById('diff-container');
+            const showUnchangedCheckbox = document.getElementById('show-unchanged');
+            
+            const diff = computeDiff(oldRules, newRules);
+            
+            // Update stats
+            diffStats.innerHTML = `
+                <span class="diff-stat-added">+${diff.added.length} added</span>
+                <span class="diff-stat-removed">-${diff.removed.length} removed</span>
+                <span class="diff-stat-unchanged">${diff.unchanged.length} unchanged</span>
+            `;
+            
+            // Render diff
+            function renderDiff(showUnchanged) {
+                const lines = [];
+                
+                // Show removed lines
+                diff.removed.slice(0, 200).forEach(rule => {
+                    lines.push(`<div class="diff-line diff-line-removed"><span class="diff-line-symbol">-</span>${escapeHtml(rule)}</div>`);
+                });
+                if (diff.removed.length > 200) {
+                    lines.push(`<div class="diff-line diff-line-removed"><span class="diff-line-symbol">...</span>and ${diff.removed.length - 200} more removed</div>`);
+                }
+                
+                // Show added lines
+                diff.added.slice(0, 200).forEach(rule => {
+                    lines.push(`<div class="diff-line diff-line-added"><span class="diff-line-symbol">+</span>${escapeHtml(rule)}</div>`);
+                });
+                if (diff.added.length > 200) {
+                    lines.push(`<div class="diff-line diff-line-added"><span class="diff-line-symbol">...</span>and ${diff.added.length - 200} more added</div>`);
+                }
+                
+                // Optionally show unchanged lines (sample)
+                if (showUnchanged) {
+                    diff.unchanged.slice(0, 50).forEach(rule => {
+                        lines.push(`<div class="diff-line diff-line-unchanged"><span class="diff-line-symbol"> </span>${escapeHtml(rule)}</div>`);
+                    });
+                    if (diff.unchanged.length > 50) {
+                        lines.push(`<div class="diff-line diff-line-unchanged"><span class="diff-line-symbol">...</span>and ${diff.unchanged.length - 50} more unchanged</div>`);
+                    }
+                }
+                
+                diffContainer.innerHTML = lines.length > 0 ? lines.join('') : '<div class="diff-line">No changes detected</div>';
+            }
+            
+            // Initial render
+            renderDiff(showUnchangedCheckbox.checked);
+            
+            // Toggle unchanged lines
+            showUnchangedCheckbox.onchange = () => renderDiff(showUnchangedCheckbox.checked);
+            
+            // Show section
+            diffSection.style.display = 'block';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // Download functionality

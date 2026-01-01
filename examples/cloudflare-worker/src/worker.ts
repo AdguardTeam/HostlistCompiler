@@ -52,6 +52,28 @@ const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
 const CACHE_TTL = 3600; // 1 hour
 
 /**
+ * In-memory map for request deduplication
+ * Maps cache keys to pending compilation promises
+ */
+const pendingCompilations = new Map<string, Promise<CompilationResult>>();
+
+/**
+ * Result of a compilation with metrics
+ */
+interface CompilationResult {
+    success: boolean;
+    rules?: string[];
+    ruleCount?: number;
+    metrics?: any;
+    error?: string;
+    previousVersion?: {
+        rules: string[];
+        ruleCount: number;
+        compiledAt: string;
+    };
+}
+
+/**
  * Check rate limit for an IP address
  */
 async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
@@ -105,6 +127,26 @@ function hashString(str: string): string {
         hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash).toString(36);
+}
+
+/**
+ * Compresses data using gzip
+ */
+async function compress(data: string): Promise<ArrayBuffer> {
+    const stream = new Response(data).body!.pipeThrough(
+        new CompressionStream('gzip')
+    );
+    return new Response(stream).arrayBuffer();
+}
+
+/**
+ * Decompresses gzipped data
+ */
+async function decompress(data: ArrayBuffer): Promise<string> {
+    const stream = new Response(data).body!.pipeThrough(
+        new DecompressionStream('gzip')
+    );
+    return new Response(stream).text();
 }
 
 /**
@@ -221,58 +263,281 @@ async function handleCompileJson(
     const { configuration, preFetchedContent, benchmark } = body;
 
     // Check cache if no pre-fetched content (pre-fetched = dynamic, don't cache)
-    if (!preFetchedContent || Object.keys(preFetchedContent).length === 0) {
-        const cacheKey = getCacheKey(configuration);
-        const cached = await env.COMPILATION_CACHE.get(cacheKey, 'json');
+    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) 
+        ? getCacheKey(configuration)
+        : null;
         
-        if (cached) {
+    if (cacheKey) {
+        // Check for in-flight request deduplication
+        const pending = pendingCompilations.get(cacheKey);
+        if (pending) {
+            const result = await pending;
             return Response.json({
-                ...cached,
-                cached: true,
+                ...result,
+                deduplicated: true,
             }, {
                 headers: {
-                    'X-Cache': 'HIT',
+                    'X-Request-Deduplication': 'HIT',
                     'Access-Control-Allow-Origin': '*',
                 },
             });
         }
+        
+        // Check KV cache and save for diff comparison
+        let previousCachedVersion: { rules: string[]; ruleCount: number; compiledAt: string } | undefined;
+        const cached = await env.COMPILATION_CACHE.get(cacheKey, 'arrayBuffer');
+        if (cached) {
+            try {
+                const decompressed = await decompress(cached);
+                const result = JSON.parse(decompressed);
+                
+                // Store previous version for diff comparison
+                previousCachedVersion = {
+                    rules: result.rules || [],
+                    ruleCount: result.ruleCount || 0,
+                    compiledAt: result.compiledAt || new Date().toISOString(),
+                };
+                
+                return Response.json({
+                    ...result,
+                    cached: true,
+                }, {
+                    headers: {
+                        'X-Cache': 'HIT',
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                });
+            } catch (error) {
+                // If decompression fails, continue with compilation
+                console.error('Cache decompression failed:', error);
+            }
+        }
     }
 
-    try {
-        const compiler = new WorkerCompiler({
-            preFetchedContent,
-        });
+    // Create compilation promise for deduplication
+    const compilationPromise = (async (): Promise<CompilationResult> => {
+        try {
+            const compiler = new WorkerCompiler({
+                preFetchedContent,
+            });
 
-        const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
+            const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
 
-        const response = {
-            success: true,
-            rules: result.rules,
-            ruleCount: result.rules.length,
-            metrics: result.metrics,
-        };
+            const response: CompilationResult = {
+                success: true,
+                rules: result.rules,
+                ruleCount: result.rules.length,
+                metrics: result.metrics,
+                compiledAt: new Date().toISOString(),
+                previousVersion: previousCachedVersion,
+            };
 
-        // Cache the result if no pre-fetched content
-        if (!preFetchedContent || Object.keys(preFetchedContent).length === 0) {
-            const cacheKey = getCacheKey(configuration);
-            await env.COMPILATION_CACHE.put(
-                cacheKey,
-                JSON.stringify(response),
-                { expirationTtl: CACHE_TTL }
-            );
+            // Cache the result if no pre-fetched content (with compression)
+            if (cacheKey) {
+                try {
+                    const compressed = await compress(JSON.stringify(response));
+                    await env.COMPILATION_CACHE.put(
+                        cacheKey,
+                        compressed,
+                        { expirationTtl: CACHE_TTL }
+                    );
+                } catch (error) {
+                    console.error('Cache compression failed:', error);
+                }
+            }
+
+            return response;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            return { success: false, error: message };
+        } finally {
+            // Remove from pending compilations
+            if (cacheKey) {
+                pendingCompilations.delete(cacheKey);
+            }
         }
+    })();
 
-        return Response.json(response, {
+    // Register pending compilation for deduplication
+    if (cacheKey) {
+        pendingCompilations.set(cacheKey, compilationPromise);
+    }
+
+    const result = await compilationPromise;
+
+    if (!result.success) {
+        return Response.json(result, { 
+            status: 500,
             headers: {
-                'X-Cache': 'MISS',
                 'Access-Control-Allow-Origin': '*',
             },
         });
+    }
+
+    return Response.json(result, {
+        headers: {
+            'X-Cache': 'MISS',
+            'Access-Control-Allow-Origin': '*',
+        },
+    });
+}
+
+/**
+ * Handle batch compile requests.
+ */
+async function handleCompileBatch(
+    request: Request,
+    env: Env,
+): Promise<Response> {
+    interface BatchRequest {
+        requests: Array<{
+            id: string;
+            configuration: IConfiguration;
+            preFetchedContent?: Record<string, string>;
+            benchmark?: boolean;
+        }>;
+    }
+
+    try {
+        const body = await request.json() as BatchRequest;
+        const { requests } = body;
+
+        if (!requests || !Array.isArray(requests)) {
+            return Response.json(
+                { success: false, error: 'Invalid batch request format. Expected { requests: [...] }' },
+                { status: 400 }
+            );
+        }
+
+        if (requests.length === 0) {
+            return Response.json(
+                { success: false, error: 'Batch request must contain at least one request' },
+                { status: 400 }
+            );
+        }
+
+        if (requests.length > 10) {
+            return Response.json(
+                { success: false, error: 'Batch request limited to 10 requests maximum' },
+                { status: 400 }
+            );
+        }
+
+        // Validate all requests have IDs
+        const ids = new Set<string>();
+        for (const req of requests) {
+            if (!req.id) {
+                return Response.json(
+                    { success: false, error: 'Each request must have an "id" field' },
+                    { status: 400 }
+                );
+            }
+            if (ids.has(req.id)) {
+                return Response.json(
+                    { success: false, error: `Duplicate request ID: ${req.id}` },
+                    { status: 400 }
+                );
+            }
+            ids.add(req.id);
+        }
+
+        // Process all requests in parallel
+        const results = await Promise.all(
+            requests.map(async (req) => {
+                try {
+                    const { configuration, preFetchedContent, benchmark } = req;
+
+                    // Check cache
+                    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
+                        ? getCacheKey(configuration)
+                        : null;
+
+                    if (cacheKey) {
+                        // Check pending compilations
+                        const pending = pendingCompilations.get(cacheKey);
+                        if (pending) {
+                            const result = await pending;
+                            return { id: req.id, ...result, deduplicated: true };
+                        }
+
+                        // Check KV cache
+                        const cached = await env.COMPILATION_CACHE.get(cacheKey, 'arrayBuffer');
+                        if (cached) {
+                            try {
+                                const decompressed = await decompress(cached);
+                                const result = JSON.parse(decompressed);
+                                return { id: req.id, ...result, cached: true };
+                            } catch (error) {
+                                console.error('Cache decompression failed:', error);
+                            }
+                        }
+                    }
+
+                    // Compile
+                    const compilationPromise = (async (): Promise<CompilationResult> => {
+                        try {
+                            const compiler = new WorkerCompiler({ preFetchedContent });
+                            const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
+
+                            const response: CompilationResult = {
+                                success: true,
+                                rules: result.rules,
+                                ruleCount: result.rules.length,
+                                metrics: result.metrics,
+                                compiledAt: new Date().toISOString(),
+                            };
+
+                            // Cache with compression
+                            if (cacheKey) {
+                                try {
+                                    const compressed = await compress(JSON.stringify(response));
+                                    await env.COMPILATION_CACHE.put(
+                                        cacheKey,
+                                        compressed,
+                                        { expirationTtl: CACHE_TTL }
+                                    );
+                                } catch (error) {
+                                    console.error('Cache compression failed:', error);
+                                }
+                            }
+
+                            return response;
+                        } catch (error) {
+                            const message = error instanceof Error ? error.message : String(error);
+                            return { success: false, error: message };
+                        } finally {
+                            if (cacheKey) {
+                                pendingCompilations.delete(cacheKey);
+                            }
+                        }
+                    })();
+
+                    if (cacheKey) {
+                        pendingCompilations.set(cacheKey, compilationPromise);
+                    }
+
+                    const result = await compilationPromise;
+                    return { id: req.id, ...result };
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    return { id: req.id, success: false, error: message };
+                }
+            })
+        );
+
+        return Response.json(
+            { success: true, results },
+            {
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+            }
+        );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return Response.json(
             { success: false, error: message },
-            { status: 500 },
+            { status: 500 }
         );
     }
 }
@@ -289,6 +554,7 @@ function handleInfo(env: Env): Response {
             'GET /api': 'API information (this endpoint)',
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
+            'POST /compile/batch': 'Compile multiple filter lists in parallel',
         },
         example: {
             method: 'POST',
@@ -399,7 +665,7 @@ export default {
         }
 
         // Rate limit compile endpoints
-        if ((pathname === '/compile' || pathname === '/compile/stream') && request.method === 'POST') {
+        if ((pathname === '/compile' || pathname === '/compile/stream' || pathname === '/compile/batch') && request.method === 'POST') {
             const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
             const allowed = await checkRateLimit(env, ip);
             
@@ -425,6 +691,10 @@ export default {
 
             if (pathname === '/compile/stream') {
                 return handleCompileStream(request, env);
+            }
+            
+            if (pathname === '/compile/batch') {
+                return handleCompileBatch(request, env);
             }
         }
 

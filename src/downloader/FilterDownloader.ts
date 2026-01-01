@@ -26,6 +26,10 @@ export interface DownloaderOptions {
     allowEmptyResponse?: boolean;
     /** Maximum depth for !#include directives */
     maxIncludeDepth?: number;
+    /** Maximum number of retry attempts for failed requests */
+    maxRetries?: number;
+    /** Base delay for exponential backoff (milliseconds) */
+    retryDelay?: number;
 }
 
 /**
@@ -37,6 +41,8 @@ const DEFAULT_OPTIONS: Required<DownloaderOptions> = {
     userAgent: 'HostlistCompiler/2.0 (Deno)',
     allowEmptyResponse: false,
     maxIncludeDepth: 10,
+    maxRetries: 3,
+    retryDelay: 1000,
 };
 
 /**
@@ -235,35 +241,77 @@ export class FilterDownloader {
     }
 
     /**
-     * Fetches content from a URL
+     * Fetches content from a URL with retry logic and circuit breaker
      */
     private async fetchUrl(url: string): Promise<string> {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
+        let lastError: Error | null = null;
+        
+        for (let attempt = 0; attempt <= this.options.maxRetries; attempt++) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
 
-        try {
-            const response = await fetch(url, {
-                signal: controller.signal,
-                headers: {
-                    'User-Agent': this.options.userAgent,
-                },
-                redirect: 'follow',
-            });
+            try {
+                this.logger.debug(`Fetching ${url} (attempt ${attempt + 1}/${this.options.maxRetries + 1})`);
+                
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: {
+                        'User-Agent': this.options.userAgent,
+                    },
+                    redirect: 'follow',
+                });
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                if (!response.ok) {
+                    // Only retry on 5xx errors and 429 (rate limit)
+                    const shouldRetry = response.status >= 500 || response.status === 429;
+                    if (!shouldRetry || attempt === this.options.maxRetries) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    this.logger.warn(`Request failed with ${response.status}, retrying...`);
+                } else {
+                    const text = await response.text();
+
+                    if (!text && !this.options.allowEmptyResponse) {
+                        throw new Error('Empty response received');
+                    }
+
+                    return text;
+                }
+            } catch (error) {
+                lastError = error instanceof Error ? error : new Error(String(error));
+                
+                // Check if it's a timeout/abort error
+                const isTimeoutError = lastError.name === 'AbortError' || 
+                                      lastError.message.includes('aborted');
+                
+                // Don't retry on certain errors
+                if (!isTimeoutError && lastError.message.includes('HTTP 4')) {
+                    throw lastError;
+                }
+                
+                if (attempt === this.options.maxRetries) {
+                    throw lastError;
+                }
+                
+                this.logger.warn(`Request failed: ${lastError.message}, retrying...`);
+            } finally {
+                clearTimeout(timeoutId);
             }
-
-            const text = await response.text();
-
-            if (!text && !this.options.allowEmptyResponse) {
-                throw new Error('Empty response received');
+            
+            // Exponential backoff with jitter
+            if (attempt < this.options.maxRetries) {
+                const backoffDelay = this.options.retryDelay * Math.pow(2, attempt);
+                const jitter = Math.random() * 0.3 * backoffDelay; // Add up to 30% jitter
+                const delay = backoffDelay + jitter;
+                
+                this.logger.debug(`Waiting ${Math.round(delay)}ms before retry...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
             }
-
-            return text;
-        } finally {
-            clearTimeout(timeoutId);
         }
+        
+        throw lastError || new Error('Failed to fetch URL after retries');
     }
 
     /**
