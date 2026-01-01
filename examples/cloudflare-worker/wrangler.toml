@@ -1,5 +1,5 @@
 name = "hostlist-compiler-worker"
-main = "src/worker.ts"
+main = "worker-bundle.ts"
 compatibility_date = "2024-01-01"
 
 # Enable the Workers runtime

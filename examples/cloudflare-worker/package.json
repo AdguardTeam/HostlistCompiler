@@ -9,7 +9,7 @@
     "tail": "wrangler tail"
   },
   "dependencies": {
-    "@anthropic/hostlist-compiler": "^2.0.0"
+    "@jk-com/adblock-compiler": "file:../.."
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240405.0",

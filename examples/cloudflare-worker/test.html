@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostlist Compiler Worker Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .endpoint {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #dee2e6;
+            padding-left: 10px;
+        }
+        .log-entry.info { border-left-color: #17a2b8; }
+        .log-entry.success { border-left-color: #28a745; }
+        .log-entry.error { border-left-color: #dc3545; }
+        .log-entry.warning { border-left-color: #ffc107; }
+        .timestamp {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Hostlist Compiler Worker Test</h1>
+        <div class="endpoint">https://hostlist-compiler-worker.jayson-knight.workers.dev</div>
+        
+        <h3>Request Configuration</h3>
+        <textarea id="config">{
+  "configuration": {
+    "name": "Test Filter List",
+    "sources": [
+      {
+        "name": "Sample Rules",
+        "source": "sample-rules",
+        "type": "adblock"
+      }
+    ],
+    "transformations": ["Deduplicate", "RemoveEmptyLines"]
+  },
+  "preFetchedContent": {
+    "sample-rules": "||ads.example.com^\\n||tracking.example.com^\\n||ads.example.com^\\n\\n||malware.example.org^"
+  },
+  "benchmark": true
+}</textarea>
+
+        <div>
+            <button onclick="testJSON()">Test JSON API</button>
+            <button onclick="testStream()">Test Streaming API</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+
+        <div class="stats" id="stats"></div>
+        
+        <h3>Response Log</h3>
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const WORKER_URL = 'https://hostlist-compiler-worker.jayson-knight.workers.dev';
+        
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${message}`;
+            
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStats(data) {
+            const statsDiv = document.getElementById('stats');
+            const stats = [
+                { label: 'Success', value: data.success ? '✅' : '❌' },
+                { label: 'Rule Count', value: data.ruleCount || 0 },
+                { label: 'Duration (ms)', value: data.metrics?.totalDurationMs || 0 },
+                { label: 'Sources', value: data.metrics?.sourceCount || 0 }
+            ];
+
+            statsDiv.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <div class="stat-label">${stat.label}</div>
+                    <div class="stat-value">${stat.value}</div>
+                </div>
+            `).join('');
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('stats').innerHTML = '';
+        }
+
+        async function testJSON() {
+            clearLog();
+            addLog('🚀 Testing JSON API endpoint...', 'info');
+            
+            try {
+                const config = JSON.parse(document.getElementById('config').value);
+                addLog(`📤 Sending POST request to ${WORKER_URL}/compile`, 'info');
+                
+                const response = await fetch(`${WORKER_URL}/compile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                addLog('✅ Compilation complete!', 'success');
+                addLog(`📊 Compiled ${result.ruleCount} rules`, 'info');
+                
+                if (result.metrics) {
+                    addLog(`⏱️ Total duration: ${result.metrics.totalDurationMs}ms`, 'info');
+                }
+
+                updateStats(result);
+                
+                addLog(`<details><summary>📝 View Rules (${result.rules?.length || 0})</summary><pre>${JSON.stringify(result.rules, null, 2)}</pre></details>`, 'info');
+                
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStream() {
+            clearLog();
+            addLog('🚀 Testing Streaming API endpoint...', 'info');
+            
+            try {
+                const config = JSON.parse(document.getElementById('config').value);
+                addLog(`📤 Opening SSE connection to ${WORKER_URL}/compile/stream`, 'info');
+                
+                const response = await fetch(`${WORKER_URL}/compile/stream`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop(); // Keep incomplete data
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        
+                        const eventMatch = line.match(/^event: (.+)$/m);
+                        const dataMatch = line.match(/^data: (.+)$/m);
+                        
+                        if (eventMatch && dataMatch) {
+                            const eventType = eventMatch[1];
+                            const data = JSON.parse(dataMatch[1]);
+                            
+                            switch (eventType) {
+                                case 'source:start':
+                                    addLog(`📥 Fetching source: ${data.source.name}`, 'info');
+                                    break;
+                                case 'source:complete':
+                                    addLog(`✅ Source loaded: ${data.ruleCount} rules`, 'success');
+                                    break;
+                                case 'transformation:start':
+                                    addLog(`🔄 Applying transformation: ${data.transformation}`, 'info');
+                                    break;
+                                case 'progress':
+                                    addLog(`⏳ ${data.message}`, 'info');
+                                    break;
+                                case 'result':
+                                    addLog('✅ Compilation complete!', 'success');
+                                    updateStats({ success: true, ruleCount: data.ruleCount, metrics: data.metrics });
+                                    break;
+                                case 'error':
+                                    addLog(`❌ Error: ${data.error}`, 'error');
+                                    break;
+                                case 'done':
+                                    addLog('🏁 Stream closed', 'success');
+                                    break;
+                                default:
+                                    addLog(`📨 ${eventType}: ${JSON.stringify(data)}`, 'info');
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Load on page load
+        addLog('✨ Ready to test! Click a button to start.', 'info');
+    </script>
+</body>
+</html>

@@ -1,14 +1,6 @@
 /**
  * Cloudflare Worker for compiling hostlists.
- *
- * This worker demonstrates how to use the @anthropic/hostlist-compiler
- * package in a Cloudflare Workers environment.
- *
- * Features:
- * - Compile filter lists from remote URLs
- * - Support for pre-fetched content
- * - Real-time progress events via Server-Sent Events
- * - JSON API for programmatic access
+ * This is a bundled version that imports directly from the source.
  */
 
 import {
@@ -16,7 +8,7 @@ import {
     type IConfiguration,
     type ICompilerEvents,
     type WorkerCompilationResult,
-} from '@jk-com/adblock-compiler';
+} from '../../src/index.ts';
 
 /**
  * Environment bindings for the worker.
@@ -177,7 +169,7 @@ async function handleCompileJson(
 function handleInfo(env: Env): Response {
     const info = {
         name: 'Hostlist Compiler Worker',
-        version: env.COMPILER_VERSION,
+        version: env.COMPILER_VERSION || '2.0.0',
         endpoints: {
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
