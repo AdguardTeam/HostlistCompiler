@@ -1,4 +1,5 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-net
+// deno-lint-ignore-file no-console
 
 import { parse } from '@std/flags';
 import {
