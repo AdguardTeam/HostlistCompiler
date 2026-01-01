@@ -266,6 +266,9 @@ async function handleCompileJson(
     const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) 
         ? getCacheKey(configuration)
         : null;
+    
+    // Declare previousCachedVersion at function scope
+    let previousCachedVersion: { rules: string[]; ruleCount: number; compiledAt: string } | undefined;
         
     if (cacheKey) {
         // Check for in-flight request deduplication
@@ -284,7 +287,6 @@ async function handleCompileJson(
         }
         
         // Check KV cache and save for diff comparison
-        let previousCachedVersion: { rules: string[]; ruleCount: number; compiledAt: string } | undefined;
         const cached = await env.COMPILATION_CACHE.get(cacheKey, 'arrayBuffer');
         if (cached) {
             try {
