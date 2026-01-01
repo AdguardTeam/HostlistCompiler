@@ -162,3 +162,121 @@ export interface ITransformationContext {
     configuration: IConfiguration | ISource;
     logger: ILogger;
 }
+
+// ============================================================================
+// Event System Types
+// ============================================================================
+
+/**
+ * Event emitted when a source starts downloading
+ */
+export interface ISourceStartEvent {
+    /** The source being compiled */
+    source: ISource;
+    /** Index of the source in the configuration */
+    sourceIndex: number;
+    /** Total number of sources */
+    totalSources: number;
+}
+
+/**
+ * Event emitted when a source completes successfully
+ */
+export interface ISourceCompleteEvent {
+    /** The source that was compiled */
+    source: ISource;
+    /** Index of the source in the configuration */
+    sourceIndex: number;
+    /** Total number of sources */
+    totalSources: number;
+    /** Number of rules fetched from the source */
+    ruleCount: number;
+    /** Time taken to compile this source in milliseconds */
+    durationMs: number;
+}
+
+/**
+ * Event emitted when a source fails to compile
+ */
+export interface ISourceErrorEvent {
+    /** The source that failed */
+    source: ISource;
+    /** Index of the source in the configuration */
+    sourceIndex: number;
+    /** Total number of sources */
+    totalSources: number;
+    /** The error that occurred */
+    error: Error;
+}
+
+/**
+ * Event emitted when a transformation starts
+ */
+export interface ITransformationStartEvent {
+    /** Name of the transformation */
+    name: string;
+    /** Number of rules before transformation */
+    inputCount: number;
+}
+
+/**
+ * Event emitted when a transformation completes
+ */
+export interface ITransformationCompleteEvent {
+    /** Name of the transformation */
+    name: string;
+    /** Number of rules before transformation */
+    inputCount: number;
+    /** Number of rules after transformation */
+    outputCount: number;
+    /** Time taken for transformation in milliseconds */
+    durationMs: number;
+}
+
+/**
+ * Event emitted to report compilation progress
+ */
+export interface IProgressEvent {
+    /** Current phase of compilation */
+    phase: 'sources' | 'transformations' | 'finalize';
+    /** Current item being processed */
+    current: number;
+    /** Total items in this phase */
+    total: number;
+    /** Human-readable message */
+    message: string;
+}
+
+/**
+ * Event emitted when compilation completes
+ */
+export interface ICompilationCompleteEvent {
+    /** Total number of output rules */
+    ruleCount: number;
+    /** Total compilation time in milliseconds */
+    totalDurationMs: number;
+    /** Number of sources processed */
+    sourceCount: number;
+    /** Number of transformations applied */
+    transformationCount: number;
+}
+
+/**
+ * Callback function types for compiler events
+ */
+export interface ICompilerEvents {
+    /** Called when a source starts downloading */
+    onSourceStart?: (event: ISourceStartEvent) => void;
+    /** Called when a source completes successfully */
+    onSourceComplete?: (event: ISourceCompleteEvent) => void;
+    /** Called when a source fails to compile */
+    onSourceError?: (event: ISourceErrorEvent) => void;
+    /** Called when a transformation starts */
+    onTransformationStart?: (event: ITransformationStartEvent) => void;
+    /** Called when a transformation completes */
+    onTransformationComplete?: (event: ITransformationCompleteEvent) => void;
+    /** Called to report progress */
+    onProgress?: (event: IProgressEvent) => void;
+    /** Called when compilation completes */
+    onCompilationComplete?: (event: ICompilationCompleteEvent) => void;
+}

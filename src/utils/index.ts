@@ -7,3 +7,4 @@ export { Logger, LogLevel, createLogger, logger, silentLogger } from './logger.t
 export type { LoggerOptions } from './logger.ts';
 export { Timer, BenchmarkCollector, formatDuration, formatNumber } from './Benchmark.ts';
 export type { BenchmarkResult, CompilationMetrics } from './Benchmark.ts';
+export { CompilerEventEmitter, NoOpEventEmitter, createEventEmitter } from './EventEmitter.ts';

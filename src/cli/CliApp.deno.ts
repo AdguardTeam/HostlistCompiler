@@ -1,8 +1,22 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-net
 
 import { parse } from '@std/flags';
-import { IConfiguration, ILogger, ISource, SourceType, TransformationType } from '../types/index.ts';
-import { FilterCompiler } from '../compiler/index.ts';
+import {
+    IConfiguration,
+    ILogger,
+    ISource,
+    SourceType,
+    TransformationType,
+    ICompilerEvents,
+    ISourceStartEvent,
+    ISourceCompleteEvent,
+    ISourceErrorEvent,
+    ITransformationCompleteEvent,
+    IProgressEvent,
+    ICompilationCompleteEvent,
+} from '../types/index.ts';
+import { FilterCompiler, FilterCompilerOptions } from '../compiler/index.ts';
+import { formatDuration } from '../utils/index.ts';
 
 // Log level constants
 const LOG_LEVEL_ERROR = 1;
@@ -35,6 +49,7 @@ interface ICliArgs {
     output?: string;
     verbose?: boolean;
     benchmark?: boolean;
+    progress?: boolean;
     help?: boolean;
     version?: boolean;
 }
@@ -89,12 +104,61 @@ class ConsoleLogger implements ILogger {
  */
 export class CliApp {
     private readonly logger: ILogger;
-    private readonly compiler: FilterCompiler;
+    private compiler!: FilterCompiler;
     private args!: ICliArgs;
 
     constructor(logger?: ILogger) {
         this.logger = logger || new ConsoleLogger();
-        this.compiler = new FilterCompiler(this.logger);
+    }
+
+    /**
+     * Creates event handlers for progress reporting.
+     */
+    private createEventHandlers(): ICompilerEvents {
+        return {
+            onSourceStart: (event: ISourceStartEvent) => {
+                const name = event.source.name || event.source.source;
+                console.log(`  [${event.sourceIndex + 1}/${event.totalSources}] Starting: ${name}`);
+            },
+            onSourceComplete: (event: ISourceCompleteEvent) => {
+                const name = event.source.name || event.source.source;
+                console.log(`  [${event.sourceIndex + 1}/${event.totalSources}] Complete: ${name} (${event.ruleCount} rules, ${formatDuration(event.durationMs)})`);
+            },
+            onSourceError: (event: ISourceErrorEvent) => {
+                const name = event.source.name || event.source.source;
+                console.error(`  [${event.sourceIndex + 1}/${event.totalSources}] Error: ${name} - ${event.error.message}`);
+            },
+            onTransformationComplete: (event: ITransformationCompleteEvent) => {
+                const delta = event.outputCount - event.inputCount;
+                const deltaStr = delta === 0 ? '' : ` (${delta > 0 ? '+' : ''}${delta})`;
+                console.log(`  Transform: ${event.name} -> ${event.outputCount} rules${deltaStr}, ${formatDuration(event.durationMs)}`);
+            },
+            onProgress: (event: IProgressEvent) => {
+                this.logger.debug(`Progress [${event.phase}]: ${event.current}/${event.total} - ${event.message}`);
+            },
+            onCompilationComplete: (event: ICompilationCompleteEvent) => {
+                console.log(`\nCompilation complete:`);
+                console.log(`  Sources: ${event.sourceCount}`);
+                console.log(`  Transformations: ${event.transformationCount}`);
+                console.log(`  Output rules: ${event.ruleCount}`);
+                console.log(`  Total time: ${formatDuration(event.totalDurationMs)}`);
+            },
+        };
+    }
+
+    /**
+     * Initializes the compiler with appropriate options.
+     */
+    private initCompiler(): void {
+        const options: FilterCompilerOptions = {
+            logger: this.logger,
+        };
+
+        if (this.args.progress) {
+            options.events = this.createEventHandlers();
+        }
+
+        this.compiler = new FilterCompiler(options);
     }
 
     /**
@@ -112,6 +176,7 @@ Options:
   -o, --output <file>      Path to the output file [required]
   -v, --verbose            Run with verbose logging
   -b, --benchmark          Show performance benchmark report
+  -p, --progress           Show real-time progress events during compilation
   --version                Show version number
   -h, --help               Show help
 
@@ -243,6 +308,9 @@ Examples:
             if (!this.args.output) {
                 throw new Error('--output is required');
             }
+
+            // Initialize compiler with optional event handlers
+            this.initCompiler();
 
             // Get configuration
             const config = this.args.input

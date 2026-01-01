@@ -7,6 +7,9 @@ export * from './types/index.ts';
 export { RuleUtils, StringUtils, Wildcard, TldUtils } from './utils/index.ts';
 export type { ParsedHost } from './utils/index.ts';
 
+// Event system for observability
+export { CompilerEventEmitter, NoOpEventEmitter, createEventEmitter } from './utils/index.ts';
+
 // Downloader
 export { FilterDownloader } from './downloader/index.ts';
 export type { DownloaderOptions } from './downloader/index.ts';
@@ -41,6 +44,7 @@ export { FilterService } from './services/index.ts';
 
 // Compiler
 export { SourceCompiler, FilterCompiler, compile } from './compiler/index.ts';
+export type { CompilationResult, FilterCompilerOptions } from './compiler/index.ts';
 
 // Default export for backward compatibility
 import { compile as compileFunc } from './compiler/index.ts';

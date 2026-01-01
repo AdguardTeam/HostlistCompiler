@@ -1,5 +1,5 @@
 import { ILogger, ISource, IConfiguration, TransformationType } from '../types/index.ts';
-import { logger as defaultLogger, Wildcard } from '../utils/index.ts';
+import { logger as defaultLogger, Wildcard, CompilerEventEmitter, createEventEmitter } from '../utils/index.ts';
 import { Transformation } from './base/Transformation.ts';
 import { RemoveCommentsTransformation } from './RemoveCommentsTransformation.ts';
 import { TrimLinesTransformation } from './TrimLinesTransformation.ts';
@@ -80,11 +80,13 @@ export class TransformationPipeline {
     private readonly registry: TransformationRegistry;
     private readonly logger: ILogger;
     private readonly filterService: FilterService;
+    private readonly eventEmitter: CompilerEventEmitter;
 
-    constructor(registry?: TransformationRegistry, logger?: ILogger) {
+    constructor(registry?: TransformationRegistry, logger?: ILogger, eventEmitter?: CompilerEventEmitter) {
         this.logger = logger || defaultLogger;
         this.registry = registry || new TransformationRegistry(this.logger);
         this.filterService = new FilterService(this.logger);
+        this.eventEmitter = eventEmitter || createEventEmitter();
     }
 
     /**
@@ -106,13 +108,42 @@ export class TransformationPipeline {
 
         // Apply transformations in order
         const orderedTransformations = this.getOrderedTransformations(transformationList);
+        const totalTransformations = orderedTransformations.length;
 
-        for (const type of orderedTransformations) {
+        for (let i = 0; i < orderedTransformations.length; i++) {
+            const type = orderedTransformations[i];
             const transformation = this.registry.get(type);
             if (transformation) {
+                const inputCount = transformed.length;
+                const startTime = performance.now();
+
+                // Emit transformation start event
+                this.eventEmitter.emitTransformationStart({
+                    name: type,
+                    inputCount,
+                });
+
+                // Emit progress event
+                this.eventEmitter.emitProgress({
+                    phase: 'transformations',
+                    current: i + 1,
+                    total: totalTransformations,
+                    message: `Applying transformation: ${type}`,
+                });
+
                 transformed = await transformation.execute(transformed, {
                     configuration,
                     logger: this.logger,
+                });
+
+                const durationMs = performance.now() - startTime;
+
+                // Emit transformation complete event
+                this.eventEmitter.emitTransformationComplete({
+                    name: type,
+                    inputCount,
+                    outputCount: transformed.length,
+                    durationMs,
                 });
             }
         }
