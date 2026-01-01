@@ -115,7 +115,7 @@ export class NoSqlStorage {
     /**
      * Closes the database connection
      */
-    async close(): Promise<void> {
+    close(): void {
         if (this.kv) {
             this.kv.close();
             this.kv = null;
@@ -232,11 +232,12 @@ export class NoSqlStorage {
             };
 
             const entries = kv.list<StorageEntry<T>>(selector, listOptions);
+            const expiredKeys: string[][] = [];
 
             for await (const entry of entries) {
-                // Filter out expired entries
+                // Collect expired entries for deletion after iteration
                 if (entry.value.expiresAt && entry.value.expiresAt < Date.now()) {
-                    await this.delete(entry.key as string[]);
+                    expiredKeys.push(entry.key as string[]);
                     continue;
                 }
 
@@ -244,6 +245,11 @@ export class NoSqlStorage {
                     key: entry.key as string[],
                     value: entry.value,
                 });
+            }
+
+            // Delete expired entries after iteration completes
+            for (const key of expiredKeys) {
+                await this.delete(key);
             }
 
             this.logger.debug(`Listed ${results.length} entries`);
@@ -261,24 +267,29 @@ export class NoSqlStorage {
      */
     async clearExpired(): Promise<number> {
         const kv = this.ensureOpen();
-        let count = 0;
+        const expiredKeys: string[][] = [];
 
         try {
             const entries = kv.list<StorageEntry>({ prefix: [] });
 
+            // Collect expired entries first
             for await (const entry of entries) {
                 if (entry.value.expiresAt && entry.value.expiresAt < Date.now()) {
-                    await this.delete(entry.key as string[]);
-                    count++;
+                    expiredKeys.push(entry.key as string[]);
                 }
             }
 
-            this.logger.info(`Cleared ${count} expired entries`);
-            return count;
+            // Delete expired entries after iteration completes
+            for (const key of expiredKeys) {
+                await this.delete(key);
+            }
+
+            this.logger.info(`Cleared ${expiredKeys.length} expired entries`);
+            return expiredKeys.length;
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             this.logger.error(`Failed to clear expired entries: ${message}`);
-            return count;
+            return expiredKeys.length;
         }
     }
 

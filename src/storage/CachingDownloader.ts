@@ -90,22 +90,15 @@ export class CachingDownloader implements IDownloader {
             if (this.options.enabled && !this.options.forceRefresh) {
                 const cached = await this.storage.getCachedFilterList(source);
                 if (cached) {
-                    const duration = Date.now() - startTime;
                     this.logger.info(`Using cached content for ${source}`);
 
-                    // Still record success in health monitoring
-                    if (this.options.monitorHealth) {
-                        await this.healthMonitor.recordAttempt(source, true, duration, {
-                            ruleCount: cached.content.length,
-                            etag: cached.etag,
-                        });
-                    }
+                    // Do not record health metrics for cache hits to avoid skewing source latency.
 
                     return {
                         content: cached.content,
                         fromCache: true,
                         hash: cached.hash,
-                        duration,
+                        duration: Date.now() - startTime,
                     };
                 }
             }
