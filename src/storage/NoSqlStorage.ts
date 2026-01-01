@@ -280,16 +280,23 @@ export class NoSqlStorage {
             }
 
             // Delete expired entries after iteration completes
+            let deletedCount = 0;
             for (const key of expiredKeys) {
-                await this.delete(key);
+                try {
+                    await this.delete(key);
+                    deletedCount++;
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    this.logger.warn(`Failed to delete expired key ${key.join('/')}: ${message}`);
+                }
             }
 
-            this.logger.info(`Cleared ${expiredKeys.length} expired entries`);
-            return expiredKeys.length;
+            this.logger.info(`Cleared ${deletedCount} expired entries`);
+            return deletedCount;
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             this.logger.error(`Failed to clear expired entries: ${message}`);
-            return expiredKeys.length;
+            return 0;
         }
     }
 
