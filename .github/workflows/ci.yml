@@ -22,20 +22,20 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v2.x
+          deno-version: v2.4
 
       - name: Run Deno lint
-        run: deno lint
+        run: deno task lint
 
       - name: Check formatting
-        run: deno fmt --check
+        run: deno task fmt:check
 
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: ['2.0', '2.x']
+        deno-version: ['2.0', '2.4']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -54,22 +54,23 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Run tests
-        run: deno test --allow-net --allow-read --allow-write --allow-env
+        run: deno task test
 
       - name: Run tests with coverage
-        if: matrix.deno-version == '2.x'
+        if: matrix.deno-version == '2.4'
         run: |
-          deno test --allow-net --allow-read --allow-write --allow-env --coverage=coverage
+          deno task test:coverage
           deno coverage coverage --lcov --output=coverage.lcov
 
       - name: Upload coverage to Codecov
-        if: matrix.deno-version == '2.x'
+        if: matrix.deno-version == '2.4'
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.lcov
           flags: unittests
           name: deno-${{ matrix.deno-version }}
           fail_ci_if_error: false
+        continue-on-error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -83,7 +84,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v2.x
+          deno-version: v2.4
 
       - name: Cache Deno dependencies
         uses: actions/cache@v4
@@ -94,7 +95,7 @@ jobs:
             ${{ runner.os }}-deno-typecheck-
 
       - name: Type check all files
-        run: deno check src/**/*.ts
+        run: deno task check
 
   build:
     name: Build Worker
@@ -107,7 +108,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v2.x
+          deno-version: v2.4
 
       - name: Cache Deno dependencies
         uses: actions/cache@v4
@@ -120,7 +121,8 @@ jobs:
       - name: Bundle Worker
         run: |
           cd examples/cloudflare-worker
-          deno bundle src/worker.ts dist/worker.js
+          mkdir -p dist
+          deno bundle --output=dist/worker.js src/worker.ts
 
       - name: Check bundle size
         run: |
@@ -154,9 +156,10 @@ jobs:
 
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && github.repository == github.event.repository.full_name && !github.event.repository.fork
         with:
           sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
 
   publish-jsr:
     name: Publish to JSR
@@ -170,12 +173,13 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v2.x
+          deno-version: v2.4
 
       - name: Publish to JSR
         run: deno publish --allow-dirty
+        continue-on-error: true
         env:
-          DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
+          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
 
   deploy-worker:
     name: Deploy Worker
@@ -194,6 +198,7 @@ jobs:
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -211,6 +216,7 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
+        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
