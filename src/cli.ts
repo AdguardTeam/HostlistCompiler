@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { main } from './cli/CliApp';
+import { main } from './cli/index.ts';
 
 main();
