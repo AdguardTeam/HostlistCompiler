@@ -8,10 +8,8 @@
     "deploy": "wrangler deploy",
     "tail": "wrangler tail"
   },
-  "dependencies": {
-    "@anthropic/hostlist-compiler": "^2.0.0"
-  },
   "devDependencies": {
+    "@cloudflare/kv-asset-handler": "^0.4.1",
     "@cloudflare/workers-types": "^4.20240405.0",
     "typescript": "^5.4.0",
     "wrangler": "^3.45.0"

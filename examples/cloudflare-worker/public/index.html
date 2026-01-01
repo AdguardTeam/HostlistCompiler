@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostlist Compiler</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .hint {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 200px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .example-card {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .example-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .example-card h3 {
+            font-size: 1.1rem;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .example-card p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .progress-section.visible {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .log-warn {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .log-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .log-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #0c5460;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                border-radius: 0;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Hostlist Compiler</h1>
+            <p>Compile and optimize filter lists for AdGuard and DNS filtering</p>
+        </header>
+
+        <div class="content">
+            <div class="tabs">
+                <button class="tab active" data-tab="simple">Simple Mode</button>
+                <button class="tab" data-tab="advanced">Advanced Mode</button>
+                <button class="tab" data-tab="examples">Examples</button>
+            </div>
+
+            <!-- Simple Mode -->
+            <div class="tab-content active" id="simple">
+                <div class="alert alert-info">
+                    <strong>Quick Start:</strong> Paste filter list URLs (one per line) or raw rules directly, select transformations, and compile!
+                </div>
+
+                <div class="form-group">
+                    <label for="simple-input">Filter Lists URLs or Raw Rules</label>
+                    <textarea id="simple-input" placeholder="https://example.com/filters.txt&#10;https://example2.com/hosts.txt&#10;&#10;Or paste raw rules:&#10;||ads.example.com^&#10;||tracking.example.com^"></textarea>
+                    <div class="hint">Enter URLs or paste rules directly. Mix and match as needed.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="list-name">List Name</label>
+                    <input type="text" id="list-name" value="My Custom Filter List" placeholder="My Filter List">
+                </div>
+
+                <div class="form-group">
+                    <label>Transformations</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-dedupe" checked>
+                        <label for="trans-dedupe">Deduplicate - Remove duplicate rules</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-compress" checked>
+                        <label for="trans-compress">Compress - Convert hosts format to adblock syntax</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-validate" checked>
+                        <label for="trans-validate">Validate - Remove invalid or dangerous rules</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-remove-comments">
+                        <label for="trans-remove-comments">RemoveComments - Strip out comments</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-remove-empty" checked>
+                        <label for="trans-remove-empty">RemoveEmptyLines - Clean up empty lines</label>
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="simple-benchmark">
+                    <label for="simple-benchmark">Enable benchmarking (performance metrics)</label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="simple-compile">Compile Filter List</button>
+                    <button class="btn-secondary" id="simple-clear">Clear</button>
+                </div>
+            </div>
+
+            <!-- Advanced Mode -->
+            <div class="tab-content" id="advanced">
+                <div class="alert alert-info">
+                    <strong>Advanced Mode:</strong> Provide a full JSON configuration for maximum control over sources, transformations, and filters.
+                </div>
+
+                <div class="form-group">
+                    <label for="advanced-config">Configuration (JSON)</label>
+                    <textarea id="advanced-config" style="min-height: 300px;">{
+  "name": "My Advanced Filter List",
+  "description": "Custom compiled filter list",
+  "sources": [
+    {
+      "name": "AdGuard DNS Filter",
+      "source": "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
+      "type": "adblock",
+      "transformations": ["RemoveComments", "Validate"]
+    }
+  ],
+  "transformations": ["Deduplicate", "Compress", "RemoveEmptyLines"],
+  "exclusions": [],
+  "inclusions": ["*"]
+}</textarea>
+                    <div class="hint">Enter a complete configuration JSON. See <a href="https://github.com/AdguardTeam/HostlistCompiler#configuration" target="_blank">documentation</a> for all options.</div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="advanced-benchmark" checked>
+                    <label for="advanced-benchmark">Enable benchmarking (performance metrics)</label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="advanced-compile">Compile Filter List</button>
+                    <button class="btn-secondary" id="advanced-clear">Clear</button>
+                </div>
+            </div>
+
+            <!-- Examples -->
+            <div class="tab-content" id="examples-tab">
+                <div class="alert alert-info">
+                    <strong>Examples:</strong> Click any example to load it into the compiler.
+                </div>
+
+                <div class="examples">
+                    <div class="example-card" data-example="basic">
+                        <h3>Basic Compilation</h3>
+                        <p>Simple URL-based compilation with standard transformations</p>
+                    </div>
+                    <div class="example-card" data-example="hosts">
+                        <h3>Hosts File Conversion</h3>
+                        <p>Convert /etc/hosts format to AdGuard syntax</p>
+                    </div>
+                    <div class="example-card" data-example="raw-rules">
+                        <h3>Raw Rules</h3>
+                        <p>Compile directly from pasted filter rules</p>
+                    </div>
+                    <div class="example-card" data-example="multiple-sources">
+                        <h3>Multiple Sources</h3>
+                        <p>Combine multiple filter lists with different transformations</p>
+                    </div>
+                    <div class="example-card" data-example="exclusions">
+                        <h3>With Exclusions</h3>
+                        <p>Filter out unwanted rules using exclusions</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progress">
+                <h3>Compilation Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div id="progress-logs"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="results">
+                <h3>Compilation Results</h3>
+                <div class="stats" id="stats"></div>
+                <div class="button-group">
+                    <button class="btn-success" id="download-results">Download Filter List</button>
+                    <button class="btn-secondary" id="copy-results">Copy to Clipboard</button>
+                </div>
+                <div class="form-group">
+                    <label>Compiled Rules (Preview)</label>
+                    <div class="output-box" id="output"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by <a href="https://github.com/AdguardTeam/HostlistCompiler" target="_blank">@anthropic/hostlist-compiler</a></p>
+            <p>Made with ❤️ for better internet filtering</p>
+        </footer>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(targetTab === 'examples' ? 'examples-tab' : targetTab).classList.add('active');
+            });
+        });
+
+        // Example data
+        const examples = {
+            'basic': {
+                mode: 'simple',
+                input: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                name: 'Basic AdGuard DNS Filter'
+            },
+            'hosts': {
+                mode: 'simple',
+                input: '0.0.0.0 ads.example.com\n0.0.0.0 tracking.example.com\n0.0.0.0 telemetry.example.com',
+                name: 'Hosts Format Example'
+            },
+            'raw-rules': {
+                mode: 'simple',
+                input: '||ads.example.com^\n||tracking.example.com^\n||doubleclick.net^\n||googleadservices.com^',
+                name: 'Raw Filter Rules'
+            },
+            'multiple-sources': {
+                mode: 'advanced',
+                config: {
+                    name: 'Combined Filter List',
+                    sources: [
+                        {
+                            name: 'AdGuard DNS',
+                            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                            transformations: ['RemoveComments', 'Validate']
+                        },
+                        {
+                            name: 'Custom Rules',
+                            source: 'custom-rules',
+                            transformations: ['Compress']
+                        }
+                    ],
+                    transformations: ['Deduplicate', 'RemoveEmptyLines']
+                }
+            },
+            'exclusions': {
+                mode: 'advanced',
+                config: {
+                    name: 'Filtered List',
+                    sources: [
+                        {
+                            name: 'Source',
+                            source: 'https://example.com/filters.txt'
+                        }
+                    ],
+                    transformations: ['Deduplicate', 'Compress'],
+                    exclusions: ['||example.com^', '||trusted-site.com^']
+                }
+            }
+        };
+
+        // Load examples
+        document.querySelectorAll('.example-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const exampleKey = card.dataset.example;
+                const example = examples[exampleKey];
+
+                if (example.mode === 'simple') {
+                    document.querySelector('.tab[data-tab="simple"]').click();
+                    document.getElementById('simple-input').value = example.input;
+                    document.getElementById('list-name').value = example.name;
+                } else {
+                    document.querySelector('.tab[data-tab="advanced"]').click();
+                    document.getElementById('advanced-config').value = JSON.stringify(example.config, null, 2);
+                }
+            });
+        });
+
+        // Clear buttons
+        document.getElementById('simple-clear').addEventListener('click', () => {
+            document.getElementById('simple-input').value = '';
+            document.getElementById('list-name').value = 'My Custom Filter List';
+            hideResults();
+        });
+
+        document.getElementById('advanced-clear').addEventListener('click', () => {
+            document.getElementById('advanced-config').value = '';
+            hideResults();
+        });
+
+        // Compile functionality
+        let compiledRules = [];
+        let currentListName = '';
+
+        document.getElementById('simple-compile').addEventListener('click', () => compileSimple());
+        document.getElementById('advanced-compile').addEventListener('click', () => compileAdvanced());
+
+        async function compileSimple() {
+            const input = document.getElementById('simple-input').value.trim();
+            if (!input) {
+                alert('Please enter at least one URL or some rules');
+                return;
+            }
+
+            const listName = document.getElementById('list-name').value.trim() || 'My Filter List';
+            const benchmark = document.getElementById('simple-benchmark').checked;
+
+            // Parse input - separate URLs from raw rules
+            const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+            const urls = lines.filter(l => l.startsWith('http://') || l.startsWith('https://'));
+            const rawRules = lines.filter(l => !l.startsWith('http://') && !l.startsWith('https://'));
+
+            // Build configuration
+            const sources = [];
+            
+            // Add URL sources
+            urls.forEach((url, idx) => {
+                sources.push({
+                    name: `Source ${idx + 1}`,
+                    source: url
+                });
+            });
+
+            // Add raw rules as a source
+            if (rawRules.length > 0) {
+                sources.push({
+                    name: 'Raw Rules',
+                    source: 'raw-rules'
+                });
+            }
+
+            if (sources.length === 0) {
+                alert('No valid sources found');
+                return;
+            }
+
+            // Get selected transformations
+            const transformations = [];
+            if (document.getElementById('trans-dedupe').checked) transformations.push('Deduplicate');
+            if (document.getElementById('trans-compress').checked) transformations.push('Compress');
+            if (document.getElementById('trans-validate').checked) transformations.push('Validate');
+            if (document.getElementById('trans-remove-comments').checked) transformations.push('RemoveComments');
+            if (document.getElementById('trans-remove-empty').checked) transformations.push('RemoveEmptyLines');
+
+            const configuration = {
+                name: listName,
+                sources,
+                transformations
+            };
+
+            // Prepare pre-fetched content
+            const preFetchedContent = {};
+            if (rawRules.length > 0) {
+                preFetchedContent['raw-rules'] = rawRules.join('\n');
+            }
+
+            await compile(configuration, preFetchedContent, benchmark);
+        }
+
+        async function compileAdvanced() {
+            const configText = document.getElementById('advanced-config').value.trim();
+            if (!configText) {
+                alert('Please enter a configuration');
+                return;
+            }
+
+            let configuration;
+            try {
+                configuration = JSON.parse(configText);
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
+                return;
+            }
+
+            const benchmark = document.getElementById('advanced-benchmark').checked;
+            await compile(configuration, {}, benchmark);
+        }
+
+        async function compile(configuration, preFetchedContent, benchmark) {
+            currentListName = configuration.name || 'filter-list';
+            hideResults();
+            showProgress();
+
+            const progressFill = document.getElementById('progress-fill');
+            const progressLogs = document.getElementById('progress-logs');
+            const compileBtn = document.querySelector('.btn-primary');
+
+            progressLogs.innerHTML = '';
+            progressFill.style.width = '0%';
+            compileBtn.disabled = true;
+
+            try {
+                // Use production API or local dev
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? '/compile/stream'
+                    : 'https://hostlist-compiler-worker.jayson-knight.workers.dev/compile/stream';
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        configuration,
+                        preFetchedContent,
+                        benchmark
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (!line.trim() || !line.startsWith('data: ')) continue;
+                        
+                        const data = JSON.parse(line.slice(6));
+                        const eventType = line.match(/event: (\w+[\w:]*)/)?.[1];
+
+                        if (eventType === 'log') {
+                            addLog(data.level, data.message);
+                        } else if (eventType === 'progress') {
+                            updateProgress(data);
+                        } else if (eventType === 'source:start') {
+                            addLog('info', `Fetching: ${data.source.name || data.source.source}`);
+                        } else if (eventType === 'source:complete') {
+                            addLog('info', `✓ Completed: ${data.source.name || data.source.source}`);
+                        } else if (eventType === 'source:error') {
+                            addLog('error', `✗ Error: ${data.error}`);
+                        } else if (eventType === 'transformation:start') {
+                            addLog('info', `Applying: ${data.transformation}`);
+                        } else if (eventType === 'result') {
+                            compiledRules = data.rules;
+                            showResults(data);
+                        } else if (eventType === 'done') {
+                            addLog('success', '✓ Compilation complete!');
+                            progressFill.style.width = '100%';
+                        } else if (eventType === 'error') {
+                            throw new Error(data.error);
+                        }
+                    }
+                }
+            } catch (error) {
+                addLog('error', `Compilation failed: ${error.message}`);
+                alert('Compilation failed: ' + error.message);
+            } finally {
+                compileBtn.disabled = false;
+            }
+        }
+
+        function addLog(level, message) {
+            const progressLogs = document.getElementById('progress-logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${level}`;
+            logEntry.textContent = message;
+            progressLogs.appendChild(logEntry);
+            progressLogs.scrollTop = progressLogs.scrollHeight;
+        }
+
+        function updateProgress(data) {
+            const progressFill = document.getElementById('progress-fill');
+            if (data.total > 0) {
+                const percentage = (data.current / data.total) * 100;
+                progressFill.style.width = `${percentage}%`;
+            }
+            if (data.message) {
+                addLog('info', data.message);
+            }
+        }
+
+        function showProgress() {
+            document.getElementById('progress').classList.add('visible');
+        }
+
+        function hideResults() {
+            document.getElementById('results').classList.remove('visible');
+            document.getElementById('progress').classList.remove('visible');
+        }
+
+        function showResults(data) {
+            const resultsSection = document.getElementById('results');
+            const statsContainer = document.getElementById('stats');
+            const outputBox = document.getElementById('output');
+
+            // Build stats
+            const stats = [
+                { label: 'Total Rules', value: data.ruleCount.toLocaleString() }
+            ];
+
+            if (data.metrics) {
+                stats.push(
+                    { label: 'Duration', value: `${data.metrics.totalDurationMs}ms` },
+                    { label: 'Sources', value: data.metrics.sourceCount }
+                );
+            }
+
+            statsContainer.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <div class="stat-value">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('');
+
+            // Show preview (first 100 rules)
+            const preview = data.rules.slice(0, 100).join('\n');
+            const suffix = data.rules.length > 100 ? `\n\n... and ${data.rules.length - 100} more rules` : '';
+            outputBox.textContent = preview + suffix;
+
+            resultsSection.classList.add('visible');
+        }
+
+        // Download functionality
+        document.getElementById('download-results').addEventListener('click', () => {
+            if (compiledRules.length === 0) {
+                alert('No results to download');
+                return;
+            }
+
+            const blob = new Blob([compiledRules.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentListName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Copy to clipboard
+        document.getElementById('copy-results').addEventListener('click', async () => {
+            if (compiledRules.length === 0) {
+                alert('No results to copy');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(compiledRules.join('\n'));
+                const btn = document.getElementById('copy-results');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            } catch (error) {
+                alert('Failed to copy to clipboard: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
