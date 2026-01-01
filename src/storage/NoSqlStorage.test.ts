@@ -29,7 +29,7 @@ Deno.test({
     await t.step('should open and close storage', async () => {
         storage = new NoSqlStorage(mockLogger, tempDbPath);
         await storage.open();
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should set and get values', async () => {
@@ -46,7 +46,7 @@ Deno.test({
         assertExists(entry.createdAt);
         assertExists(entry.updatedAt);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should delete values', async () => {
@@ -60,7 +60,7 @@ Deno.test({
         const entry = await storage.get(['test', 'delete']);
         assertEquals(entry, null);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should handle TTL expiration', async () => {
@@ -81,7 +81,7 @@ Deno.test({
         entry = await storage.get(['test', 'ttl']);
         assertEquals(entry, null);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should list entries with prefix', async () => {
@@ -97,7 +97,7 @@ Deno.test({
         const entries = await storage.list({ prefix: ['test', 'list'] });
         assertEquals(entries.length, 3);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should list entries with limit', async () => {
@@ -110,7 +110,7 @@ Deno.test({
         });
         assertEquals(entries.length, 2);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should cache and retrieve filter lists', async () => {
@@ -130,7 +130,7 @@ Deno.test({
         assertEquals(retrieved.content.length, 2);
         assertEquals(retrieved.hash, hash);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should store and retrieve compilation metadata', async () => {
@@ -164,7 +164,7 @@ Deno.test({
         assertEquals(history[0].ruleCount, 1100);
         assertEquals(history[1].ruleCount, 1000);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should get storage statistics', async () => {
@@ -177,7 +177,7 @@ Deno.test({
         // We expect stats.entryCount > 0 from previous tests
         assertEquals(stats.entryCount > 0, true);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should clear expired entries', async () => {
@@ -195,7 +195,7 @@ Deno.test({
         // Should have cleared at least the 2 we just added
         assertEquals(cleared >= 2, true);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should clear cache', async () => {
@@ -213,7 +213,7 @@ Deno.test({
         const cached1 = await storage.getCachedFilterList('source1');
         assertEquals(cached1, null);
 
-        await storage.close();
+        storage.close();
     });
 
     await t.step('should handle complex data structures', async () => {
@@ -227,7 +227,7 @@ Deno.test({
                     value: 'nested value',
                 },
             },
-            map: new Map([['key', 'value']]),
+            map: { key: 'value' },
         };
 
         await storage.set(['test', 'complex'], complexData);
@@ -236,7 +236,7 @@ Deno.test({
         assertEquals(entry.data.array.length, 3);
         assertEquals(entry.data.nested.deep.value, 'nested value');
 
-        await storage.close();
+        storage.close();
     });
 
     // Cleanup: Remove test database

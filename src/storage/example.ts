@@ -183,7 +183,7 @@ async function main() {
         console.log('Demo complete!');
         console.log('='.repeat(60));
     } finally {
-        await storage.close();
+        storage.close();
     }
 }
 
