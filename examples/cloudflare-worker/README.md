@@ -36,9 +36,24 @@ The worker will be available at `http://localhost:8787`.
 
 ### Deployment
 
-**Note**: Before deploying, you need to build an npm-compatible version of the package or use a bundler.
+**Note**: Before deploying, you need to:
+1. Create required KV namespaces
+2. Build an npm-compatible version of the package or use a bundler
 
-#### Option 1: Use Deno to Bundle (Recommended)
+#### Step 1: Create KV Namespaces
+
+```bash
+# Create KV namespaces for production
+wrangler kv:namespace create COMPILATION_CACHE
+wrangler kv:namespace create RATE_LIMIT
+wrangler kv:namespace create METRICS
+
+# Update wrangler.toml with the returned IDs
+```
+
+Update the `id` values in `wrangler.toml` with the namespace IDs returned from the commands above.
+
+#### Step 2: Use Deno to Bundle (Recommended)
 
 ```bash
 # From the root of the repository
@@ -221,9 +236,93 @@ eventSource.addEventListener('result', (e) => {
 
 See `wrangler.toml` for available configuration options:
 
-- **KV Namespace**: Cache compiled filter lists
-- **R2 Bucket**: Store filter list sources
-- **Environment Variables**: Configure compiler behavior
+- **COMPILATION_CACHE (KV)**: Cache compiled filter lists (1 hour TTL)
+- **RATE_LIMIT (KV)**: Track API rate limits (60 requests/minute per IP)
+- **METRICS (KV)**: Store request metrics and statistics (5-minute windows)
+- **R2 Bucket**: (Optional) Store filter list sources
+- **Environment Variables**: Configure compiler version and behavior
+
+### New Endpoints
+
+#### `GET /metrics`
+
+Returns aggregated metrics for the last 30 minutes:
+
+```json
+{
+  "window": "30 minutes",
+  "timestamp": "2026-01-01T08:00:00.000Z",
+  "endpoints": {
+    "/compile": {
+      "count": 150,
+      "success": 145,
+      "failed": 5,
+      "avgDuration": 1250,
+      "errors": {
+        "Network error": 3,
+        "Invalid configuration": 2
+      }
+    },
+    "/compile/stream": { ... },
+    "/compile/batch": { ... }
+  }
+}
+```
+
+#### `POST /compile/batch`
+
+Compile multiple filter lists in parallel (max 10 per batch):
+
+```json
+{
+  "requests": [
+    {
+      "id": "list-1",
+      "configuration": {
+        "name": "First List",
+        "sources": [{ "source": "https://example.com/list1.txt" }]
+      }
+    },
+    {
+      "id": "list-2",
+      "configuration": {
+        "name": "Second List",
+        "sources": [{ "source": "https://example.com/list2.txt" }]
+      }
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "id": "list-1",
+      "success": true,
+      "rules": [...],
+      "ruleCount": 1234
+    },
+    {
+      "id": "list-2",
+      "success": true,
+      "rules": [...],
+      "ruleCount": 5678
+    }
+  ]
+}
+```
+
+### Performance Features
+
+- **Gzip Compression**: Cache values compressed (70-80% size reduction)
+- **Request Deduplication**: Identical concurrent requests share results (check `X-Request-Deduplication` header)
+- **Circuit Breaker**: Automatic retry with exponential backoff for failed sources (up to 3 attempts)
+- **Visual Diff**: See changes between cached and new compilations
+- **Metrics Tracking**: Monitor request rates, errors, and performance
 
 ## License
 

@@ -18,6 +18,10 @@ id = "7772628dc4ae46fbb145a811d2de351e"
 binding = "RATE_LIMIT"
 id = "5dc36da36d9142cc9ced6c56328898ee"
 
+[[kv_namespaces]]
+binding = "METRICS"
+id = "your-metrics-kv-id"  # Create with: wrangler kv:namespace create METRICS
+
 # Optional: Add R2 bindings for storing filter lists
 # [[r2_buckets]]
 # binding = "FILTER_STORAGE"
