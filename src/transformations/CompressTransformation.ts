@@ -1,6 +1,6 @@
-import { IBlocklistRule, TransformationType } from '../types';
-import { RuleUtils } from '../utils/index';
-import { SyncTransformation } from './base/Transformation';
+import { IBlocklistRule, TransformationType } from '../types/index.ts';
+import { RuleUtils } from '../utils/index.ts';
+import { SyncTransformation } from './base/Transformation.ts';
 
 /**
  * Transformation that compresses the final list by removing redundant rules.

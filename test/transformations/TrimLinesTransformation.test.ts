@@ -1,38 +1,36 @@
-import { TrimLinesTransformation } from '../../src/transformations/TrimLinesTransformation';
+import { assertEquals } from '@std/assert';
+import { TrimLinesTransformation } from '../../src/transformations/TrimLinesTransformation.ts';
 
-describe('TrimLinesTransformation', () => {
-    let transformation: TrimLinesTransformation;
+Deno.test('TrimLinesTransformation - should trim leading spaces', () => {
+    const transformation = new TrimLinesTransformation();
+    const rules = ['  ||example.org^'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    beforeEach(() => {
-        transformation = new TrimLinesTransformation();
-    });
+Deno.test('TrimLinesTransformation - should trim trailing spaces', () => {
+    const transformation = new TrimLinesTransformation();
+    const rules = ['||example.org^  '];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should trim leading spaces', () => {
-        const rules = ['  ||example.org^'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('TrimLinesTransformation - should trim tabs', () => {
+    const transformation = new TrimLinesTransformation();
+    const rules = ['\t||example.org^\t'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should trim trailing spaces', () => {
-        const rules = ['||example.org^  '];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('TrimLinesTransformation - should trim mixed whitespace', () => {
+    const transformation = new TrimLinesTransformation();
+    const rules = ['  \t||example.org^\t  '];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should trim tabs', () => {
-        const rules = ['\t||example.org^\t'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
-
-    it('should trim mixed whitespace', () => {
-        const rules = ['  \t||example.org^\t  '];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
-
-    it('should handle empty array', () => {
-        const result = transformation.executeSync([]);
-        expect(result).toEqual([]);
-    });
+Deno.test('TrimLinesTransformation - should handle empty array', () => {
+    const transformation = new TrimLinesTransformation();
+    const result = transformation.executeSync([]);
+    assertEquals(result, []);
 });

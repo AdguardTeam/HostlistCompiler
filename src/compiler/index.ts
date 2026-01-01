@@ -1,2 +1,2 @@
-export { SourceCompiler } from './SourceCompiler';
-export { FilterCompiler, compile } from './FilterCompiler';
+export { SourceCompiler } from './SourceCompiler.ts';
+export { FilterCompiler, compile } from './FilterCompiler.ts';

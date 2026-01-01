@@ -1,32 +1,29 @@
-import { InsertFinalNewLineTransformation } from '../../src/transformations/InsertFinalNewLineTransformation';
+import { assertEquals } from '@std/assert';
+import { InsertFinalNewLineTransformation } from '../../src/transformations/InsertFinalNewLineTransformation.ts';
 
-describe('InsertFinalNewLineTransformation', () => {
-    let transformation: InsertFinalNewLineTransformation;
+Deno.test('InsertFinalNewLineTransformation - should add newline to non-empty list', () => {
+    const transformation = new InsertFinalNewLineTransformation();
+    const rules = ['||example.org^'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^', '']);
+});
 
-    beforeEach(() => {
-        transformation = new InsertFinalNewLineTransformation();
-    });
+Deno.test('InsertFinalNewLineTransformation - should add newline to empty list', () => {
+    const transformation = new InsertFinalNewLineTransformation();
+    const result = transformation.executeSync([]);
+    assertEquals(result, ['']);
+});
 
-    it('should add newline to non-empty list', () => {
-        const rules = ['||example.org^'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^', '']);
-    });
+Deno.test('InsertFinalNewLineTransformation - should not add newline if already present', () => {
+    const transformation = new InsertFinalNewLineTransformation();
+    const rules = ['||example.org^', ''];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^', '']);
+});
 
-    it('should add newline to empty list', () => {
-        const result = transformation.executeSync([]);
-        expect(result).toEqual(['']);
-    });
-
-    it('should not add newline if already present', () => {
-        const rules = ['||example.org^', ''];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^', '']);
-    });
-
-    it('should not add newline if last line is whitespace', () => {
-        const rules = ['||example.org^', '   '];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^', '   ']);
-    });
+Deno.test('InsertFinalNewLineTransformation - should not add newline if last line is whitespace', () => {
+    const transformation = new InsertFinalNewLineTransformation();
+    const rules = ['||example.org^', '   '];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^', '   ']);
 });

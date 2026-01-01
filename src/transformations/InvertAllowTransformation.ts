@@ -1,6 +1,6 @@
-import { TransformationType } from '../types';
-import { RuleUtils } from '../utils/index';
-import { SyncTransformation } from './base/Transformation';
+import { TransformationType } from '../types/index.ts';
+import { RuleUtils } from '../utils/index.ts';
+import { SyncTransformation } from './base/Transformation.ts';
 
 /**
  * Transformation that inverts blocking rules to allow rules.

@@ -1,1 +1,1 @@
-export { CliApp, main } from './CliApp';
+export { CliApp, main } from './CliApp.deno.ts';

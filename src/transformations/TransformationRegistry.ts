@@ -1,17 +1,17 @@
-import consola from 'consola';
-import { ILogger, ISource, IConfiguration, TransformationType } from '../types';
-import { Transformation } from './base/Transformation';
-import { RemoveCommentsTransformation } from './RemoveCommentsTransformation';
-import { TrimLinesTransformation } from './TrimLinesTransformation';
-import { RemoveEmptyLinesTransformation } from './RemoveEmptyLinesTransformation';
-import { InsertFinalNewLineTransformation } from './InsertFinalNewLineTransformation';
-import { ConvertToAsciiTransformation } from './ConvertToAsciiTransformation';
-import { InvertAllowTransformation } from './InvertAllowTransformation';
-import { RemoveModifiersTransformation } from './RemoveModifiersTransformation';
-import { DeduplicateTransformation } from './DeduplicateTransformation';
-import { ValidateTransformation, ValidateAllowIpTransformation } from './ValidateTransformation';
-import { CompressTransformation } from './CompressTransformation';
-import { FilterService } from '../services/FilterService';
+import { ILogger, ISource, IConfiguration, TransformationType } from '../types/index.ts';
+import { logger as defaultLogger } from '../utils/logger.ts';
+import { Transformation } from './base/Transformation.ts';
+import { RemoveCommentsTransformation } from './RemoveCommentsTransformation.ts';
+import { TrimLinesTransformation } from './TrimLinesTransformation.ts';
+import { RemoveEmptyLinesTransformation } from './RemoveEmptyLinesTransformation.ts';
+import { InsertFinalNewLineTransformation } from './InsertFinalNewLineTransformation.ts';
+import { ConvertToAsciiTransformation } from './ConvertToAsciiTransformation.ts';
+import { InvertAllowTransformation } from './InvertAllowTransformation.ts';
+import { RemoveModifiersTransformation } from './RemoveModifiersTransformation.ts';
+import { DeduplicateTransformation } from './DeduplicateTransformation.ts';
+import { ValidateTransformation, ValidateAllowIpTransformation } from './ValidateTransformation.ts';
+import { CompressTransformation } from './CompressTransformation.ts';
+import { FilterService } from '../services/FilterService.ts';
 
 /**
  * Registry for transformation classes.
@@ -22,7 +22,7 @@ export class TransformationRegistry {
     private readonly logger: ILogger;
 
     constructor(logger?: ILogger) {
-        this.logger = logger || consola;
+        this.logger = logger || defaultLogger;
         this.transformations = new Map();
         this.registerDefaultTransformations();
     }
@@ -82,7 +82,7 @@ export class TransformationPipeline {
     private readonly filterService: FilterService;
 
     constructor(registry?: TransformationRegistry, logger?: ILogger) {
-        this.logger = logger || consola;
+        this.logger = logger || defaultLogger;
         this.registry = registry || new TransformationRegistry(this.logger);
         this.filterService = new FilterService(this.logger);
     }

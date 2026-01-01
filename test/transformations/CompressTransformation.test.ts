@@ -1,72 +1,73 @@
-import { CompressTransformation } from '../../src/transformations/CompressTransformation';
+import { assertEquals } from '@std/assert';
+import { CompressTransformation } from '../../src/transformations/CompressTransformation.ts';
 
-describe('CompressTransformation', () => {
-    let transformation: CompressTransformation;
+Deno.test('CompressTransformation - should convert hosts rules to adblock format', () => {
+    const transformation = new CompressTransformation();
+    const rules = ['0.0.0.0 example.org'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    beforeEach(() => {
-        transformation = new CompressTransformation();
-    });
+Deno.test('CompressTransformation - should convert plain domain to adblock format', () => {
+    const transformation = new CompressTransformation();
+    const rules = ['example.org'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should convert hosts rules to adblock format', () => {
-        const rules = ['0.0.0.0 example.org'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('CompressTransformation - should remove redundant subdomain rules', () => {
+    const transformation = new CompressTransformation();
+    const rules = [
+        '||example.org^',
+        '||sub.example.org^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should convert plain domain to adblock format', () => {
-        const rules = ['example.org'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('CompressTransformation - should keep non-redundant subdomain rules', () => {
+    const transformation = new CompressTransformation();
+    const rules = [
+        '||sub.example.org^',
+        '||other.com^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, [
+        '||sub.example.org^',
+        '||other.com^',
+    ]);
+});
 
-    it('should remove redundant subdomain rules', () => {
-        const rules = [
-            '||example.org^',
-            '||sub.example.org^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('CompressTransformation - should handle hosts rules with multiple domains', () => {
+    const transformation = new CompressTransformation();
+    const rules = ['0.0.0.0 example.org www.example.org'];
+    const result = transformation.executeSync(rules);
+    // www.example.org should be removed as redundant
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should keep non-redundant subdomain rules', () => {
-        const rules = [
-            '||sub.example.org^',
-            '||other.com^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual([
-            '||sub.example.org^',
-            '||other.com^',
-        ]);
-    });
+Deno.test('CompressTransformation - should keep rules that cannot be compressed', () => {
+    const transformation = new CompressTransformation();
+    const rules = [
+        '||example.org^',
+        '||example.org^$important',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result.length, 2);
+});
 
-    it('should handle hosts rules with multiple domains', () => {
-        const rules = ['0.0.0.0 example.org www.example.org'];
-        const result = transformation.executeSync(rules);
-        // www.example.org should be removed as redundant
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('CompressTransformation - should handle empty array', () => {
+    const transformation = new CompressTransformation();
+    const result = transformation.executeSync([]);
+    assertEquals(result, []);
+});
 
-    it('should keep rules that cannot be compressed', () => {
-        const rules = [
-            '||example.org^',
-            '||example.org^$important',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toHaveLength(2);
-    });
-
-    it('should handle empty array', () => {
-        const result = transformation.executeSync([]);
-        expect(result).toEqual([]);
-    });
-
-    it('should deduplicate identical hosts rules', () => {
-        const rules = [
-            '0.0.0.0 example.org',
-            '0.0.0.0 example.org',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('CompressTransformation - should deduplicate identical hosts rules', () => {
+    const transformation = new CompressTransformation();
+    const rules = [
+        '0.0.0.0 example.org',
+        '0.0.0.0 example.org',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
 });

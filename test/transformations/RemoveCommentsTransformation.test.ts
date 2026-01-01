@@ -1,51 +1,49 @@
-import { RemoveCommentsTransformation } from '../../src/transformations/RemoveCommentsTransformation';
+import { assertEquals } from '@std/assert';
+import { RemoveCommentsTransformation } from '../../src/transformations/RemoveCommentsTransformation.ts';
 
-describe('RemoveCommentsTransformation', () => {
-    let transformation: RemoveCommentsTransformation;
+Deno.test('RemoveCommentsTransformation - should remove ! comments', () => {
+    const transformation = new RemoveCommentsTransformation();
+    const rules = [
+        '! Comment',
+        '||example.org^',
+        '! Another comment',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    beforeEach(() => {
-        transformation = new RemoveCommentsTransformation();
-    });
+Deno.test('RemoveCommentsTransformation - should remove # comments', () => {
+    const transformation = new RemoveCommentsTransformation();
+    const rules = [
+        '# Comment',
+        '||example.org^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should remove ! comments', () => {
-        const rules = [
-            '! Comment',
-            '||example.org^',
-            '! Another comment',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('RemoveCommentsTransformation - should remove #### comments', () => {
+    const transformation = new RemoveCommentsTransformation();
+    const rules = [
+        '#### Section',
+        '||example.org^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['||example.org^']);
+});
 
-    it('should remove # comments', () => {
-        const rules = [
-            '# Comment',
-            '||example.org^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
+Deno.test('RemoveCommentsTransformation - should keep hosts rules with inline comments', () => {
+    const transformation = new RemoveCommentsTransformation();
+    const rules = [
+        '0.0.0.0 example.org # inline comment',
+        '||example.org^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result.length, 2);
+});
 
-    it('should remove #### comments', () => {
-        const rules = [
-            '#### Section',
-            '||example.org^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['||example.org^']);
-    });
-
-    it('should keep hosts rules with inline comments', () => {
-        const rules = [
-            '0.0.0.0 example.org # inline comment',
-            '||example.org^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toHaveLength(2);
-    });
-
-    it('should handle empty array', () => {
-        const result = transformation.executeSync([]);
-        expect(result).toEqual([]);
-    });
+Deno.test('RemoveCommentsTransformation - should handle empty array', () => {
+    const transformation = new RemoveCommentsTransformation();
+    const result = transformation.executeSync([]);
+    assertEquals(result, []);
 });

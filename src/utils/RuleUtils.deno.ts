@@ -1,17 +1,11 @@
 // Deno-compatible version of RuleUtils
 // Uses native URL API instead of Node.js 'url' module
 
-import {
-    IAdblockRule,
-    IAdblockRuleTokens,
-    IEtcHostsRule,
-    IRuleModifier,
-} from '../types/index.ts';
-import { StringUtils } from './StringUtils.ts';
+// Note: These type imports are available but not currently used in this partial implementation
+// import type { IAdblockRule, IAdblockRuleTokens, IEtcHostsRule, IRuleModifier } from '../types/index.ts';
 
 // Regular expressions for rule parsing
 const DOMAIN_REGEX = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;
-const ETC_HOSTS_REGEX = /^([a-f0-9.:\][]+)(%[a-z0-9]+)?\s+([^#]+)(#.*)?$/;
 const DOMAIN_PATTERN_REGEX = /(\*\.|)([^\s^$|=]+(?:\.[^\s^$|=]+)+)/g;
 // eslint-disable-next-line no-control-regex
 const NON_ASCII_REGEX = /[^\x00-\x7F]/;

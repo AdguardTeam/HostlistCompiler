@@ -1,9 +1,12 @@
-# Hostlist compiler
+# Hostlist Compiler
 
-[![NPM](https://nodei.co/npm/@adguard/hostlist-compiler.png?compact=true)](https://www.npmjs.com/package/@adguard/hostlist-compiler/)
+[![JSR](https://jsr.io/badges/@anthropic/hostlist-compiler)](https://jsr.io/@anthropic/hostlist-compiler)
 
 This is a simple tool that makes it easier to compile a [hosts blocklist](https://adguard-dns.io/kb/general/dns-filtering-syntax/) compatible with AdGuard Home or any other AdGuard product with **DNS filtering**.
 
+> **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). It provides the same functionality with improved performance and no Node.js dependencies.
+
+- [Installation](#installation)
 - [Usage](#usage)
   - [Configuration](#configuration)
   - [Command-line](#command-line)
@@ -20,23 +23,43 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [TrimLines](#trimlines)
   - [InsertFinalNewLine](#insertfinalnewline)
   - [ConvertToAscii](#convert-to-ascii)
-- [How to build](#how-to-build)
+- [Development](#development)
 
-## <a name="usage"></a> Usage
+## <a name="installation"></a> Installation
 
-First of all, install the `hostlist-compiler`:
+### Using Deno (recommended)
+
+Run directly without installation:
 
 ```bash
-npm i -g @adguard/hostlist-compiler
+deno run --allow-read --allow-write --allow-net jsr:@anthropic/hostlist-compiler -c config.json -o output.txt
 ```
 
-After that you have two options.
+Or install globally:
+
+```bash
+deno install --allow-read --allow-write --allow-net -n hostlist-compiler jsr:@anthropic/hostlist-compiler/cli
+```
+
+### Build from source
+
+Clone the repository and compile:
+
+```bash
+git clone https://github.com/anthropics/hostlist-compiler.git
+cd hostlist-compiler
+deno task build
+```
+
+This creates a standalone `hostlist-compiler` executable.
+
+## <a name="usage"></a> Usage
 
 **Quick hosts conversion**
 
 Convert and compress a `/etc/hosts`-syntax blocklist to [AdGuard syntax](https://adguard-dns.io/kb/general/dns-filtering-syntax/).
 
-```
+```bash
 hostlist-compiler -i hosts.txt -i hosts2.txt -o output.txt
 ```
 
@@ -57,7 +80,7 @@ Options:
   --config, -c      Path to the compiler configuration file             [string]
   --input, -i       URL (or path to a file) to convert to an AdGuard-syntax
                     blocklist. Can be specified multiple times.          [array]
-  --input-type, -t  Type of the input file (/etc/hosts, adguard)        [string]
+  --input-type, -t  Type of the input file (hosts|adblock)             [string]
   --output, -o      Path to the output file                  [string] [required]
   --verbose, -v     Run with verbose logging                           [boolean]
   --version         Show version number                                [boolean]
@@ -162,8 +185,8 @@ Here is an example:
 Rules in HOSTS syntax: `/hosts.txt`
 
 ```txt
-0.0.0.0 ads.example.com  
-0.0.0.0 tracking.example1.com  
+0.0.0.0 ads.example.com
+0.0.0.0 tracking.example1.com
 0.0.0.0 example.com
 ```
 
@@ -195,7 +218,7 @@ Configuration of the final list:
 Final filter output of `/hosts.txt` after applying the `Compress` transformation and exclusions:
 
 ```txt
-||ads.example.com^  
+||ads.example.com^
 ||tracking.example1.com^
 ```
 
@@ -210,7 +233,8 @@ Usage: hostlist-compiler [options]
 
 Options:
   --version      Show version number                                   [boolean]
-  --config, -c   Path to the compiler configuration file     [string] [required]
+  --config, -c   Path to the compiler configuration file               [string]
+  --input, -i    URL or path to input file (can be repeated)            [array]
   --output, -o   Path to the output file                     [string] [required]
   --verbose, -v  Run with verbose logging                              [boolean]
   -h, --help     Show help                                             [boolean]
@@ -222,83 +246,69 @@ Examples:
 
 ### <a name="api"></a> API
 
-Install: `npm i @adguard/hostlist-compiler` or `yarn add @adguard/hostlist-compiler`
+Import from JSR:
 
-#### JavaScript example:
+```typescript
+import { compile } from "jsr:@anthropic/hostlist-compiler";
+```
 
-```javascript
-const compile = require("@adguard/hostlist-compiler");
+Or add to your `deno.json`:
 
-;(async () => {
-    // Compile filters
-    const result = await compile({
-        name: 'Your Hostlist',
-        sources: [
-            {
-                type: 'adblock',
-                source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt', // or local file
-                transformations: ['RemoveComments', 'Validate'],
-            },
-        ],
-        transformations: ['Deduplicate'],
-    });
-
-    // Write to file
-    writeFileSync('your-hostlist.txt', result.join('\n'));
-})();
+```json
+{
+  "imports": {
+    "@anthropic/hostlist-compiler": "jsr:@anthropic/hostlist-compiler"
+  }
+}
 ```
 
 #### TypeScript example:
 
 ```typescript
-import compile from '@adguard/hostlist-compiler';
-import { writeFileSync } from 'fs';
+import { compile } from "@anthropic/hostlist-compiler";
+import type { IConfiguration } from "@anthropic/hostlist-compiler";
 
-;(async () => {
-    // Compile filters
-    const result = await compile({
-        name: 'Your Hostlist',
-        sources: [
-            {
-                type: 'adblock',
-                source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
-                transformations: ['RemoveComments', 'Validate'],
-            },
-        ],
-        transformations: ['Deduplicate'],
-    });
+const config: IConfiguration = {
+  name: "Your Hostlist",
+  sources: [
+    {
+      type: "adblock",
+      source: "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
+      transformations: ["RemoveComments", "Validate"],
+    },
+  ],
+  transformations: ["Deduplicate"],
+};
 
-    // Write to file
-    writeFileSync('your-hostlist.txt', result.join('\n'));
-})();
+// Compile filters
+const result = await compile(config);
+
+// Write to file
+await Deno.writeTextFile("your-hostlist.txt", result.join("\n"));
 ```
 
-or:
+#### Using the FilterCompiler class directly:
 
 ```typescript
-import HostlistCompiler, { IConfiguration as HostlistCompilerConfiguration } from '@adguard/hostlist-compiler';
-import { writeFileSync } from 'fs';
+import { FilterCompiler, ConsoleLogger } from "@anthropic/hostlist-compiler";
+import type { IConfiguration } from "@anthropic/hostlist-compiler";
 
-;(async () => {
-    // Configuration
-    const config: HostlistCompilerConfiguration = {
-        name: 'Your Hostlist',
-        sources: [
-            {
-                type: 'adblock',
-                source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
-                transformations: ['RemoveComments', 'Validate'],
-            },
-        ],
-        transformations: ['Deduplicate'],
-    };
+const logger = new ConsoleLogger();
+const compiler = new FilterCompiler(logger);
 
-    // Compile filters
-    const result = await HostlistCompiler(config);
+const config: IConfiguration = {
+  name: "Your Hostlist",
+  sources: [
+    {
+      source: "rules.txt",
+      type: "hosts",
+    },
+  ],
+  transformations: ["Compress", "Deduplicate"],
+};
 
-    // Write to file
-    writeFileSync('your-hostlist.txt', result.join('\n'));
-})();
+const result = await compiler.compile(config);
+console.log(`Compiled ${result.length} rules`);
 ```
 
 ## <a name="transformations"></a> Transformations
@@ -525,9 +535,74 @@ Here's what we will have after applying this transformation:
 ||*.xn--1qqw23a^
 ```
 
-## <a name="how-to-build"></a> How to build
+## <a name="development"></a> Development
 
-- `yarn install` - installs dependencies
-- `yarn lint` - runs eslint
-- `yarn test` - runs tests
-- `node src/cli.js -c examples/sdn/configuration.json -o filter.txt` - runs compiler with the example configuration
+### Prerequisites
+
+- [Deno](https://deno.land/) 2.0 or later
+
+### Available tasks
+
+```bash
+# Run in development mode with watch
+deno task dev
+
+# Run the compiler
+deno task compile
+
+# Build standalone executable
+deno task build
+
+# Run tests
+deno task test
+
+# Run tests in watch mode
+deno task test:watch
+
+# Run tests with coverage
+deno task test:coverage
+
+# Lint code
+deno task lint
+
+# Format code
+deno task fmt
+
+# Check formatting
+deno task fmt:check
+
+# Type check
+deno task check
+
+# Cache dependencies
+deno task cache
+```
+
+### Project structure
+
+```
+src/
+├── cli/           # Command-line interface
+├── compiler/      # Core compilation logic
+├── configuration/ # Configuration validation
+├── downloader/    # Filter list downloading
+├── transformations/ # Rule transformations
+├── types/         # TypeScript type definitions
+├── utils/         # Utility functions
+├── index.ts       # Main library exports
+└── mod.ts         # Deno module exports
+```
+
+### Publishing to JSR
+
+```bash
+# Dry run to verify everything is correct
+deno publish --dry-run
+
+# Publish to JSR
+deno publish
+```
+
+## License
+
+MIT

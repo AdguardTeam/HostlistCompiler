@@ -1,5 +1,5 @@
-import consola from 'consola';
-import { ILogger, ITransformationContext, TransformationType } from '../../types';
+import { ILogger, ITransformationContext, TransformationType } from '../../types/index.ts';
+import { logger as defaultLogger } from '../../utils/logger.ts';
 
 /**
  * Abstract base class for all transformations.
@@ -15,7 +15,7 @@ export abstract class Transformation {
     public abstract readonly name: string;
 
     constructor(logger?: ILogger) {
-        this.logger = logger || consola;
+        this.logger = logger || defaultLogger;
     }
 
     /**
@@ -80,5 +80,5 @@ export abstract class AsyncTransformation extends Transformation {
      * @param context - Optional transformation context
      * @returns Promise resolving to transformed rules
      */
-    public abstract execute(rules: string[], context?: ITransformationContext): Promise<string[]>;
+    public abstract override execute(rules: string[], context?: ITransformationContext): Promise<string[]>;
 }

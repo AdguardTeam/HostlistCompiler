@@ -1,1 +1,1 @@
-export { FilterService } from './FilterService';
+export { FilterService } from './FilterService.ts';

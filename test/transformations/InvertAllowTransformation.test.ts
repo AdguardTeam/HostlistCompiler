@@ -1,54 +1,53 @@
-import { InvertAllowTransformation } from '../../src/transformations/InvertAllowTransformation';
+import { assertEquals } from '@std/assert';
+import { InvertAllowTransformation } from '../../src/transformations/InvertAllowTransformation.ts';
 
-describe('InvertAllowTransformation', () => {
-    let transformation: InvertAllowTransformation;
+Deno.test('InvertAllowTransformation - should invert blocking rules', () => {
+    const transformation = new InvertAllowTransformation();
+    const rules = ['||example.org^'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['@@||example.org^']);
+});
 
-    beforeEach(() => {
-        transformation = new InvertAllowTransformation();
-    });
+Deno.test('InvertAllowTransformation - should not invert allow rules', () => {
+    const transformation = new InvertAllowTransformation();
+    const rules = ['@@||example.org^'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['@@||example.org^']);
+});
 
-    it('should invert blocking rules', () => {
-        const rules = ['||example.org^'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['@@||example.org^']);
-    });
+Deno.test('InvertAllowTransformation - should not invert comments', () => {
+    const transformation = new InvertAllowTransformation();
+    const rules = ['! Comment'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['! Comment']);
+});
 
-    it('should not invert allow rules', () => {
-        const rules = ['@@||example.org^'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['@@||example.org^']);
-    });
+Deno.test('InvertAllowTransformation - should not invert hosts rules', () => {
+    const transformation = new InvertAllowTransformation();
+    const rules = ['0.0.0.0 example.org'];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, ['0.0.0.0 example.org']);
+});
 
-    it('should not invert comments', () => {
-        const rules = ['! Comment'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['! Comment']);
-    });
+Deno.test('InvertAllowTransformation - should handle empty array', () => {
+    const transformation = new InvertAllowTransformation();
+    const result = transformation.executeSync([]);
+    assertEquals(result, []);
+});
 
-    it('should not invert hosts rules', () => {
-        const rules = ['0.0.0.0 example.org'];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual(['0.0.0.0 example.org']);
-    });
-
-    it('should handle empty array', () => {
-        const result = transformation.executeSync([]);
-        expect(result).toEqual([]);
-    });
-
-    it('should handle multiple rules', () => {
-        const rules = [
-            '||example.org^',
-            '@@||allowed.org^',
-            '! Comment',
-            '||test.com^',
-        ];
-        const result = transformation.executeSync(rules);
-        expect(result).toEqual([
-            '@@||example.org^',
-            '@@||allowed.org^',
-            '! Comment',
-            '@@||test.com^',
-        ]);
-    });
+Deno.test('InvertAllowTransformation - should handle multiple rules', () => {
+    const transformation = new InvertAllowTransformation();
+    const rules = [
+        '||example.org^',
+        '@@||allowed.org^',
+        '! Comment',
+        '||test.com^',
+    ];
+    const result = transformation.executeSync(rules);
+    assertEquals(result, [
+        '@@||example.org^',
+        '@@||allowed.org^',
+        '! Comment',
+        '@@||test.com^',
+    ]);
 });

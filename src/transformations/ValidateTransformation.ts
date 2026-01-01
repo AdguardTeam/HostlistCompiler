@@ -1,7 +1,6 @@
-import * as tldts from 'tldts';
-import { ILogger, TransformationType } from '../types';
-import { RuleUtils, StringUtils } from '../utils/index';
-import { SyncTransformation } from './base/Transformation';
+import { ILogger, TransformationType } from '../types/index.ts';
+import { RuleUtils, StringUtils, TldUtils } from '../utils/index.ts';
+import { SyncTransformation } from './base/Transformation.ts';
 
 const DOMAIN_PREFIX = '||';
 const DOMAIN_SEPARATOR = '^';
@@ -94,7 +93,7 @@ export class ValidateTransformation extends SyncTransformation {
         ruleText: string,
         hasLimitModifier: boolean,
     ): boolean {
-        const result = tldts.parse(hostname);
+        const result = TldUtils.parse(hostname);
 
         if (!result.hostname) {
             this.debug(`invalid hostname ${hostname} in the rule: ${ruleText}`);
@@ -199,7 +198,7 @@ export class ValidateTransformation extends SyncTransformation {
             if (domainToCheck && wildcardIdx !== -1) {
                 const startsWithWildcard = domainToCheck.startsWith(WILDCARD_DOMAIN_PART);
                 const tldPattern = domainToCheck.replace(WILDCARD_DOMAIN_PART, '');
-                const isOnlyTld = tldts.getPublicSuffix(tldPattern) === tldPattern;
+                const isOnlyTld = TldUtils.getPublicSuffix(tldPattern) === tldPattern;
 
                 if (startsWithWildcard && isOnlyTld) {
                     const cleanedDomain = domainToCheck.replace(WILDCARD_DOMAIN_PART, '');

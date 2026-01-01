@@ -1,94 +1,85 @@
-import { StringUtils } from '../../src/utils/StringUtils';
+import { assertEquals } from '@std/assert';
+import { StringUtils } from '../../src/utils/StringUtils.ts';
 
-describe('StringUtils', () => {
-    describe('substringBetween', () => {
-        it('should extract substring between tags', () => {
-            expect(StringUtils.substringBetween('||example.org^', '||', '^')).toBe('example.org');
-        });
+Deno.test('StringUtils.substringBetween - should extract substring between tags', () => {
+    assertEquals(StringUtils.substringBetween('||example.org^', '||', '^'), 'example.org');
+});
 
-        it('should return null for empty string', () => {
-            expect(StringUtils.substringBetween('', '||', '^')).toBe(null);
-        });
+Deno.test('StringUtils.substringBetween - should return null for empty string', () => {
+    assertEquals(StringUtils.substringBetween('', '||', '^'), null);
+});
 
-        it('should return null for null input', () => {
-            expect(StringUtils.substringBetween(null, '||', '^')).toBe(null);
-        });
+Deno.test('StringUtils.substringBetween - should return null for null input', () => {
+    assertEquals(StringUtils.substringBetween(null, '||', '^'), null);
+});
 
-        it('should return null if tags not found', () => {
-            expect(StringUtils.substringBetween('example.org', '||', '^')).toBe(null);
-        });
+Deno.test('StringUtils.substringBetween - should return null if tags not found', () => {
+    assertEquals(StringUtils.substringBetween('example.org', '||', '^'), null);
+});
 
-        it('should handle nested tags', () => {
-            expect(StringUtils.substringBetween('start||middle^end', '||', '^')).toBe('middle');
-        });
-    });
+Deno.test('StringUtils.substringBetween - should handle nested tags', () => {
+    assertEquals(StringUtils.substringBetween('start||middle^end', '||', '^'), 'middle');
+});
 
-    describe('splitByDelimiterWithEscapeCharacter', () => {
-        it('should split by comma', () => {
-            const result = StringUtils.splitByDelimiterWithEscapeCharacter('a,b,c', ',', '\\', false);
-            expect(result).toEqual(['a', 'b', 'c']);
-        });
+Deno.test('StringUtils.splitByDelimiterWithEscapeCharacter - should split by comma', () => {
+    const result = StringUtils.splitByDelimiterWithEscapeCharacter('a,b,c', ',', '\\', false);
+    assertEquals(result, ['a', 'b', 'c']);
+});
 
-        it('should handle escaped delimiters', () => {
-            const result = StringUtils.splitByDelimiterWithEscapeCharacter('a\\,b,c', ',', '\\', false);
-            expect(result).toEqual(['a,b', 'c']);
-        });
+Deno.test('StringUtils.splitByDelimiterWithEscapeCharacter - should handle escaped delimiters', () => {
+    const result = StringUtils.splitByDelimiterWithEscapeCharacter('a\\,b,c', ',', '\\', false);
+    assertEquals(result, ['a,b', 'c']);
+});
 
-        it('should return empty array for null input', () => {
-            expect(StringUtils.splitByDelimiterWithEscapeCharacter(null, ',', '\\', false)).toEqual([]);
-        });
+Deno.test('StringUtils.splitByDelimiterWithEscapeCharacter - should return empty array for null input', () => {
+    assertEquals(StringUtils.splitByDelimiterWithEscapeCharacter(null, ',', '\\', false), []);
+});
 
-        it('should preserve all tokens when requested', () => {
-            const result = StringUtils.splitByDelimiterWithEscapeCharacter('a,,c', ',', '\\', true);
-            expect(result).toEqual(['a', '', 'c']);
-        });
+Deno.test('StringUtils.splitByDelimiterWithEscapeCharacter - should preserve all tokens when requested', () => {
+    const result = StringUtils.splitByDelimiterWithEscapeCharacter('a,,c', ',', '\\', true);
+    assertEquals(result, ['a', '', 'c']);
+});
 
-        it('should skip empty tokens when not preserving', () => {
-            const result = StringUtils.splitByDelimiterWithEscapeCharacter('a,,c', ',', '\\', false);
-            expect(result).toEqual(['a', 'c']);
-        });
-    });
+Deno.test('StringUtils.splitByDelimiterWithEscapeCharacter - should skip empty tokens when not preserving', () => {
+    const result = StringUtils.splitByDelimiterWithEscapeCharacter('a,,c', ',', '\\', false);
+    assertEquals(result, ['a', 'c']);
+});
 
-    describe('escapeRegExp', () => {
-        it('should escape special regex characters', () => {
-            expect(StringUtils.escapeRegExp('.*+?^${}()|[]\\'))
-                .toBe('\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\');
-        });
+Deno.test('StringUtils.escapeRegExp - should escape special regex characters', () => {
+    assertEquals(
+        StringUtils.escapeRegExp('.*+?^${}()|[]\\'),
+        '\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\',
+    );
+});
 
-        it('should not modify regular strings', () => {
-            expect(StringUtils.escapeRegExp('example')).toBe('example');
-        });
-    });
+Deno.test('StringUtils.escapeRegExp - should not modify regular strings', () => {
+    assertEquals(StringUtils.escapeRegExp('example'), 'example');
+});
 
-    describe('isEmpty', () => {
-        it('should return true for null', () => {
-            expect(StringUtils.isEmpty(null)).toBe(true);
-        });
+Deno.test('StringUtils.isEmpty - should return true for null', () => {
+    assertEquals(StringUtils.isEmpty(null), true);
+});
 
-        it('should return true for undefined', () => {
-            expect(StringUtils.isEmpty(undefined)).toBe(true);
-        });
+Deno.test('StringUtils.isEmpty - should return true for undefined', () => {
+    assertEquals(StringUtils.isEmpty(undefined), true);
+});
 
-        it('should return true for empty string', () => {
-            expect(StringUtils.isEmpty('')).toBe(true);
-        });
+Deno.test('StringUtils.isEmpty - should return true for empty string', () => {
+    assertEquals(StringUtils.isEmpty(''), true);
+});
 
-        it('should return true for whitespace only', () => {
-            expect(StringUtils.isEmpty('   ')).toBe(true);
-        });
+Deno.test('StringUtils.isEmpty - should return true for whitespace only', () => {
+    assertEquals(StringUtils.isEmpty('   '), true);
+});
 
-        it('should return false for non-empty string', () => {
-            expect(StringUtils.isEmpty('test')).toBe(false);
-        });
-    });
+Deno.test('StringUtils.isEmpty - should return false for non-empty string', () => {
+    assertEquals(StringUtils.isEmpty('test'), false);
+});
 
-    describe('trim', () => {
-        it('should trim spaces and tabs', () => {
-            expect(StringUtils.trim('  \ttest\t  ', ' \t')).toBe('test');
-        });
+Deno.test('StringUtils.trim - should trim spaces and tabs', () => {
+    assertEquals(StringUtils.trim('  \ttest\t  ', ' \t'), 'test');
+});
 
-        it('should handle custom characters', () => {
-            expect(StringUtils.trim('---test---', '-')).toBe('test');
-        });
-    });
+Deno.test('StringUtils.trim - should handle custom characters', () => {
+    assertEquals(StringUtils.trim('---test---', '-'), 'test');
 });
