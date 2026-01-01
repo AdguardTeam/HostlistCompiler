@@ -25,7 +25,11 @@ Each command will return an ID like:
 
 ### 2. Update wrangler.toml
 
-Replace the placeholder IDs in `wrangler.toml`:
+**Note**: There are two `wrangler.toml` files in this repository:
+- `/wrangler.toml` (root) - Used for Cloudflare Git Integration deployments
+- `/examples/cloudflare-worker/wrangler.toml` - Used for local/manual deployments with `wrangler deploy`
+
+Replace the placeholder IDs in **both files**:
 
 ```toml
 [[kv_namespaces]]
@@ -98,7 +102,23 @@ npm run dev
 npm run deploy
 ```
 
-### Option B: Automated CI/CD (GitHub Actions)
+### Option B: Cloudflare Git Integration
+
+Cloudflare can automatically deploy your worker from GitHub:
+
+1. Go to Cloudflare Dashboard → Workers & Pages → Create Application
+2. Select **Pages** → **Connect to Git**
+3. Authorize GitHub and select your repository
+4. Configure build settings:
+   - **Framework preset**: None
+   - **Build command**: (leave empty)
+   - **Build output directory**: (leave empty)
+5. Click **Save and Deploy**
+6. Cloudflare will use the `wrangler.toml` in the repository root
+
+**Note**: Make sure the KV namespace IDs in `/wrangler.toml` are updated with your actual IDs.
+
+### Option C: Automated CI/CD (GitHub Actions)
 
 The CI/CD pipeline automatically deploys on push to `master` branch:
 
@@ -114,7 +134,7 @@ The CI/CD pipeline automatically deploys on push to `master` branch:
    - Check the workflow run
    - View deployment logs
 
-### Option C: Bundle First (Recommended for Production)
+### Option D: Bundle First (Recommended for Production)
 
 ```bash
 # 1. Bundle from repository root

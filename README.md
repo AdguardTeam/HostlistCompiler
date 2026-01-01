@@ -778,6 +778,8 @@ function createCustomCompiler() {
 
 The compiler runs natively in Cloudflare Workers. See the [examples/cloudflare-worker](./examples/cloudflare-worker) directory for a complete example with SSE streaming.
 
+**Deployment**: A `wrangler.toml` configuration file is provided in the repository root for easy deployment via Cloudflare's Git integration or using `wrangler deploy`.
+
 ```typescript
 import { WorkerCompiler, type IConfiguration } from '@anthropic/hostlist-compiler';
 
