@@ -253,7 +253,7 @@ function serveWebUI(): Response {
     </ul>
     
     <h2>Example Usage</h2>
-    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">curl -X POST https://hostlist-compiler-worker.jayson-knight.workers.dev/compile \\
+    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile \\
   -H "Content-Type: application/json" \\
   -d '{
     "configuration": {

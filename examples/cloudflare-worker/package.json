@@ -1,7 +1,7 @@
 {
-  "name": "hostlist-compiler-worker",
+  "name": "adblock-compiler",
   "version": "1.0.0",
-  "description": "Cloudflare Worker for compiling hostlists using @anthropic/hostlist-compiler",
+  "description": "Cloudflare Worker for compiling adblock filter lists",
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",

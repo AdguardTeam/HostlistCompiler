@@ -753,7 +753,7 @@
                 // Use production API or local dev
                 const apiUrl = window.location.hostname === 'localhost' 
                     ? '/compile/stream'
-                    : 'https://hostlist-compiler-worker.jayson-knight.workers.dev/compile/stream';
+                    : 'https://adblock-compiler.jayson-knight.workers.dev/compile/stream';
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
