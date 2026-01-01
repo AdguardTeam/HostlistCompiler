@@ -9,6 +9,7 @@ import type { ILogger } from '../types/index.ts';
  * Log levels for filtering output
  */
 export enum LogLevel {
+    Trace = -1,
     Debug = 0,
     Info = 1,
     Warn = 2,
@@ -96,6 +97,15 @@ export class Logger implements ILogger {
     }
 
     /**
+     * Logs a trace message (most verbose)
+     */
+    trace(message: string): void {
+        if (this.level <= LogLevel.Trace) {
+            console.debug(this.format('TRACE', Colors.dim, message));
+        }
+    }
+
+    /**
      * Logs a debug message
      */
     debug(message: string): void {
@@ -177,6 +187,7 @@ export function createLogger(options?: LoggerOptions): Logger {
  * Silent logger that discards all output (useful for testing)
  */
 export const silentLogger: ILogger = {
+    trace: () => {},
     debug: () => {},
     info: () => {},
     warn: () => {},
