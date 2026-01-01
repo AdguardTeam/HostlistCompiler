@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hostlist Compiler</title>
+    <!-- Cloudflare Web Analytics -->
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "YOUR_BEACON_TOKEN"}'></script>
     <style>
         * {
             box-sizing: border-box;
@@ -982,6 +984,15 @@ eventSource.addEventListener('result', (e) => {
             progressFill.style.width = '0%';
             compileBtn.disabled = true;
 
+            // Track compilation start
+            const compileStartTime = Date.now();
+            trackEvent('compilation_started', {
+                list_name: currentListName,
+                source_count: configuration.sources?.length || 0,
+                has_transformations: (configuration.transformations?.length || 0) > 0,
+                benchmark: benchmark
+            });
+
             try {
                 // Use production API or local dev
                 const apiUrl = window.location.hostname === 'localhost' 
@@ -1037,6 +1048,16 @@ eventSource.addEventListener('result', (e) => {
                         } else if (eventType === 'result') {
                             compiledRules = data.rules;
                             showResults(data);
+                            
+                            // Track successful compilation
+                            const compileTime = Date.now() - compileStartTime;
+                            trackEvent('compilation_completed', {
+                                list_name: currentListName,
+                                rule_count: data.ruleCount,
+                                duration_ms: compileTime,
+                                has_diff: !!data.previousVersion,
+                                cache_status: data.cacheStatus || 'unknown'
+                            });
                         } else if (eventType === 'done') {
                             addLog('success', '✓ Compilation complete!');
                             progressFill.style.width = '100%';
@@ -1048,6 +1069,13 @@ eventSource.addEventListener('result', (e) => {
             } catch (error) {
                 addLog('error', `Compilation failed: ${error.message}`);
                 alert('Compilation failed: ' + error.message);
+                
+                // Track compilation error
+                trackEvent('compilation_error', {
+                    list_name: currentListName,
+                    error_message: error.message,
+                    duration_ms: Date.now() - compileStartTime
+                });
             } finally {
                 compileBtn.disabled = false;
             }
@@ -1197,12 +1225,27 @@ eventSource.addEventListener('result', (e) => {
             return div.innerHTML;
         }
 
+        // Analytics helper
+        function trackEvent(eventName, eventData = {}) {
+            // Send custom event if analytics is available
+            if (window.gtag) {
+                window.gtag('event', eventName, eventData);
+            }
+            // Also log for debugging (remove in production)
+            console.log('[Analytics]', eventName, eventData);
+        }
+
         // Download functionality
         document.getElementById('download-results').addEventListener('click', () => {
             if (compiledRules.length === 0) {
                 alert('No results to download');
                 return;
             }
+
+            trackEvent('download_results', {
+                list_name: currentListName,
+                rule_count: compiledRules.length
+            });
 
             const blob = new Blob([compiledRules.join('\n')], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -1228,6 +1271,11 @@ eventSource.addEventListener('result', (e) => {
                 setTimeout(() => {
                     btn.textContent = originalText;
                 }, 2000);
+                
+                trackEvent('copy_to_clipboard', {
+                    list_name: currentListName,
+                    rule_count: compiledRules.length
+                });
             } catch (error) {
                 alert('Failed to copy to clipboard: ' + error.message);
             }

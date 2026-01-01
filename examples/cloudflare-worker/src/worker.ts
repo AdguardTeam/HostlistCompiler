@@ -26,6 +26,7 @@ export interface Env {
     // KV namespaces
     COMPILATION_CACHE: KVNamespace;
     RATE_LIMIT: KVNamespace;
+    METRICS: KVNamespace;
     // Static assets namespace (Wrangler Sites)
     __STATIC_CONTENT?: KVNamespace;
     __STATIC_CONTENT_MANIFEST?: string;
@@ -50,6 +51,11 @@ const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
  * Cache TTL in seconds
  */
 const CACHE_TTL = 3600; // 1 hour
+
+/**
+ * Metrics aggregation window
+ */
+const METRICS_WINDOW = 300; // 5 minutes
 
 /**
  * In-memory map for request deduplication
@@ -130,6 +136,113 @@ function hashString(str: string): string {
 }
 
 /**
+ * Record request metrics
+ */
+async function recordMetric(
+    env: Env,
+    endpoint: string,
+    duration: number,
+    success: boolean,
+    error?: string
+): Promise<void> {
+    try {
+        const now = Date.now();
+        const windowKey = Math.floor(now / (METRICS_WINDOW * 1000));
+        const metricKey = `metrics:${windowKey}:${endpoint}`;
+        
+        // Get existing metrics
+        const existing = await env.METRICS.get(metricKey, 'json') as {
+            count: number;
+            success: number;
+            failed: number;
+            totalDuration: number;
+            errors: Record<string, number>;
+        } | null;
+        
+        const metrics = existing || {
+            count: 0,
+            success: 0,
+            failed: 0,
+            totalDuration: 0,
+            errors: {},
+        };
+        
+        // Update metrics
+        metrics.count++;
+        metrics.totalDuration += duration;
+        
+        if (success) {
+            metrics.success++;
+        } else {
+            metrics.failed++;
+            if (error) {
+                metrics.errors[error] = (metrics.errors[error] || 0) + 1;
+            }
+        }
+        
+        // Store updated metrics
+        await env.METRICS.put(
+            metricKey,
+            JSON.stringify(metrics),
+            { expirationTtl: METRICS_WINDOW * 2 }
+        );
+    } catch (error) {
+        // Don't fail requests if metrics fail
+        console.error('Failed to record metrics:', error);
+    }
+}
+
+/**
+ * Get aggregated metrics
+ */
+async function getMetrics(env: Env): Promise<any> {
+    const now = Date.now();
+    const currentWindow = Math.floor(now / (METRICS_WINDOW * 1000));
+    
+    const stats: Record<string, any> = {};
+    
+    // Get metrics from last 6 windows (30 minutes)
+    for (let i = 0; i < 6; i++) {
+        const windowKey = currentWindow - i;
+        
+        for (const endpoint of ['/compile', '/compile/stream', '/compile/batch']) {
+            const metricKey = `metrics:${windowKey}:${endpoint}`;
+            const data = await env.METRICS.get(metricKey, 'json') as any;
+            
+            if (data) {
+                if (!stats[endpoint]) {
+                    stats[endpoint] = {
+                        count: 0,
+                        success: 0,
+                        failed: 0,
+                        avgDuration: 0,
+                        errors: {},
+                    };
+                }
+                
+                stats[endpoint].count += data.count;
+                stats[endpoint].success += data.success;
+                stats[endpoint].failed += data.failed;
+                stats[endpoint].avgDuration = 
+                    (stats[endpoint].avgDuration * (stats[endpoint].count - data.count) + 
+                     (data.totalDuration / data.count) * data.count) / stats[endpoint].count;
+                
+                // Merge errors
+                for (const [err, count] of Object.entries(data.errors)) {
+                    stats[endpoint].errors[err] = (stats[endpoint].errors[err] || 0) + (count as number);
+                }
+            }
+        }
+    }
+    
+    return {
+        window: '30 minutes',
+        timestamp: new Date().toISOString(),
+        endpoints: stats,
+    };
+}
+
+/**
  * Compresses data using gzip
  */
 async function compress(data: string): Promise<ArrayBuffer> {
@@ -202,6 +315,7 @@ async function handleCompileStream(
     request: Request,
     env: Env,
 ): Promise<Response> {
+    const startTime = Date.now();
     const body = await request.json() as CompileRequest;
     const { configuration, preFetchedContent, benchmark } = body;
 
@@ -231,12 +345,18 @@ async function handleCompileStream(
                 metrics: result.metrics,
             });
 
-            await writer.write(encoder.encode('event: done\ndata: {}\n\n'));
+            await writer.write(encoder.encode('event: done\\ndata: {}\\n\\n'));
+            
+            // Record success metrics
+            await recordMetric(env, '/compile/stream', Date.now() - startTime, true);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             await writer.write(
-                encoder.encode(`event: error\ndata: ${JSON.stringify({ error: message })}\n\n`),
+                encoder.encode(`event: error\\ndata: ${JSON.stringify({ error: message })}\\n\\n`),
             );
+            
+            // Record error metrics
+            await recordMetric(env, '/compile/stream', Date.now() - startTime, false, message);
         } finally {
             await writer.close();
         }
@@ -259,6 +379,7 @@ async function handleCompileJson(
     request: Request,
     env: Env,
 ): Promise<Response> {
+    const startTime = Date.now();
     const body = await request.json() as CompileRequest;
     const { configuration, preFetchedContent, benchmark } = body;
 
@@ -366,8 +487,12 @@ async function handleCompileJson(
     }
 
     const result = await compilationPromise;
+    const duration = Date.now() - startTime;
 
     if (!result.success) {
+        // Record error metrics
+        await recordMetric(env, '/compile', duration, false, result.error);
+        
         return Response.json(result, { 
             status: 500,
             headers: {
@@ -375,6 +500,9 @@ async function handleCompileJson(
             },
         });
     }
+
+    // Record success metrics
+    await recordMetric(env, '/compile', duration, true);
 
     return Response.json(result, {
         headers: {
@@ -391,6 +519,8 @@ async function handleCompileBatch(
     request: Request,
     env: Env,
 ): Promise<Response> {
+    const startTime = Date.now();
+    
     interface BatchRequest {
         requests: Array<{
             id: string;
@@ -527,6 +657,9 @@ async function handleCompileBatch(
             })
         );
 
+        // Record success metrics
+        await recordMetric(env, '/compile/batch', Date.now() - startTime, true);
+        
         return Response.json(
             { success: true, results },
             {
@@ -537,6 +670,10 @@ async function handleCompileBatch(
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        
+        // Record error metrics
+        await recordMetric(env, '/compile/batch', Date.now() - startTime, false, message);
+        
         return Response.json(
             { success: false, error: message },
             { status: 500 }
@@ -554,6 +691,7 @@ function handleInfo(env: Env): Response {
         endpoints: {
             'GET /': 'Web UI for interactive compilation',
             'GET /api': 'API information (this endpoint)',
+            'GET /metrics': 'Request metrics and statistics',
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
             'POST /compile/batch': 'Compile multiple filter lists in parallel',
@@ -664,6 +802,17 @@ export default {
         // Handle API routes
         if (pathname === '/api' && request.method === 'GET') {
             return handleInfo(env);
+        }
+        
+        // Handle metrics endpoint
+        if (pathname === '/metrics' && request.method === 'GET') {
+            const metrics = await getMetrics(env);
+            return Response.json(metrics, {
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Cache-Control': 'no-cache',
+                },
+            });
         }
 
         // Rate limit compile endpoints
