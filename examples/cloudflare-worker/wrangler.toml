@@ -16,7 +16,7 @@ id = "5dc36da36d9142cc9ced6c56328898ee"
 
 [[kv_namespaces]]
 binding = "METRICS"
-id = "your-metrics-kv-id"  # Create with: wrangler kv:namespace create METRICS
+id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace create METRICS
 
 # Optional: Add R2 bindings for storing filter lists
 # [[r2_buckets]]
