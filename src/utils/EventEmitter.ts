@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-console
 /**
  * Lightweight event emitter for compiler observability.
  * Provides a simple callback-based event system without external dependencies.
