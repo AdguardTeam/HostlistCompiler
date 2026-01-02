@@ -8,11 +8,11 @@ workers_dev = true
 # KV bindings for caching and rate limiting
 [[kv_namespaces]]
 binding = "COMPILATION_CACHE"
-id = "your-compilation-cache-kv-id"  # Create with: wrangler kv:namespace create COMPILATION_CACHE
+id = "adblock-compiler-COMPILATION_CACHE"  # Create with: wrangler kv:namespace create COMPILATION_CACHE
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "your-rate-limit-kv-id"  # Create with: wrangler kv:namespace create RATE_LIMIT
+id = "adblock-compiler-RATE_LIMIT"  # Create with: wrangler kv:namespace create RATE_LIMIT
 
 [[kv_namespaces]]
 binding = "METRICS"
