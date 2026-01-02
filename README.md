@@ -687,8 +687,16 @@ src/
 ├── index.ts       # Main library exports
 └── mod.ts         # Deno module exports
 
+src-worker/        # Cloudflare Worker implementation (production-ready)
+├── worker.ts      # Main worker with API endpoints
+└── html.ts        # Fallback HTML templates
+
+public/            # Static web UI files
+├── index.html     # Interactive web interface
+└── test.html      # API testing interface
+
 examples/
-└── cloudflare-worker/  # Cloudflare Worker deployment example
+└── cloudflare-worker/  # Legacy deployment reference
 ```
 
 ### Publishing to JSR
@@ -776,9 +784,33 @@ function createCustomCompiler() {
 
 ### <a name="cloudflare-workers"></a> Cloudflare Workers
 
-The compiler runs natively in Cloudflare Workers. See the [examples/cloudflare-worker](./examples/cloudflare-worker) directory for a complete example with SSE streaming.
+The compiler runs natively in Cloudflare Workers. A production-ready implementation is available at the repository root in the `src-worker/` directory with a comprehensive web UI in `public/`.
+
+**Quick Start**:
+```bash
+# Install dependencies
+npm install
+
+# Run locally
+npm run dev
+
+# Deploy to Cloudflare
+npm run deploy
+```
 
 **Deployment**: A `wrangler.toml` configuration file is provided in the repository root for easy deployment via Cloudflare's Git integration or using `wrangler deploy`.
+
+The production worker (`src-worker/worker.ts`) includes:
+- **Interactive Web UI** at `/` (see `public/index.html`)
+- **API Testing Interface** at `/test.html`
+- **JSON API** at `POST /compile`
+- **Streaming API** at `POST /compile/stream` with Server-Sent Events
+- **Batch API** at `POST /compile/batch`
+- **Metrics** at `GET /metrics`
+- Pre-fetched content support to bypass CORS restrictions
+- Caching with KV storage
+- Rate limiting
+- Request deduplication
 
 ```typescript
 import { WorkerCompiler, type IConfiguration } from '@jk-com/adblock-compiler';
@@ -811,11 +843,12 @@ export default {
 };
 ```
 
-The Cloudflare Worker example includes:
-- JSON API endpoint for programmatic access
-- Server-Sent Events (SSE) streaming for real-time progress
-- Pre-fetched content support to bypass CORS restrictions
-- Benchmarking metrics support
+**Using the Web UI**:
+1. Visit the root URL of your deployed worker
+2. Use **Simple Mode** for quick filter list compilation
+3. Use **Advanced Mode** for JSON configuration
+4. Use **Test Page** to test API endpoints directly
+5. View real-time progress with streaming compilation
 
 ### <a name="web-workers"></a> Web Workers
 
