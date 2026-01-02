@@ -27,9 +27,6 @@ export interface Env {
     COMPILATION_CACHE: KVNamespace;
     RATE_LIMIT: KVNamespace;
     METRICS: KVNamespace;
-    // Static assets namespace (Wrangler Sites)
-    __STATIC_CONTENT?: KVNamespace;
-    __STATIC_CONTENT_MANIFEST?: string;
 }
 
 /**
