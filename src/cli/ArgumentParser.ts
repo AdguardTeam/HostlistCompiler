@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-console
 import { parse } from '@std/flags';
 
 /**
