@@ -34,9 +34,10 @@ bucket_name = "adblock-compiler-r2-storage"
 [vars]
 COMPILER_VERSION = "0.6.0"
 
-# Static assets configuration
-[site]
-bucket = "./public"
+# Static assets configuration using modern assets
+[assets]
+directory = "./public"
+binding = "ASSETS"
 
 # Development settings
 [dev]

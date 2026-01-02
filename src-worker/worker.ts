@@ -28,7 +28,7 @@ export interface Env {
     RATE_LIMIT: KVNamespace;
     METRICS: KVNamespace;
     // Static assets
-    __STATIC_CONTENT?: KVNamespace;
+    ASSETS?: Fetcher;
 }
 
 /**
@@ -744,21 +744,16 @@ async function serveWebUI(env: Env): Promise<Response> {
  * Serve a static file from static assets.
  */
 async function serveStaticFile(env: Env, filename: string): Promise<Response> {
-    // Try to serve from static assets if available
-    if (env.__STATIC_CONTENT) {
+    // Try to serve from ASSETS if available (modern approach)
+    if (env.ASSETS) {
         try {
-            const asset = await env.__STATIC_CONTENT.get(filename);
-            if (asset) {
-                const contentType = filename.endsWith('.html') ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8';
-                return new Response(asset, {
-                    headers: {
-                        'Content-Type': contentType,
-                        'Cache-Control': 'public, max-age=300',
-                    },
-                });
+            const assetUrl = new URL(filename, 'http://assets');
+            const response = await env.ASSETS.fetch(assetUrl);
+            if (response.ok) {
+                return response;
             }
         } catch (error) {
-            console.error(`Failed to load ${filename} from static assets:`, error);
+            console.error(`Failed to load ${filename} from assets:`, error);
         }
     }
 
@@ -872,14 +867,35 @@ export default {
             }
         }
 
-        // Serve web UI for root path
-        if (pathname === '/' && request.method === 'GET') {
-            return serveWebUI(env);
-        }
-
-        // Serve test.html
-        if (pathname === '/test.html' && request.method === 'GET') {
-            return serveStaticFile(env, 'test.html');
+        // Serve web UI and static files
+        if (request.method === 'GET') {
+            // Try to serve from ASSETS
+            if (env.ASSETS) {
+                try {
+                    const assetUrl = new URL(pathname === '/' ? '/index.html' : pathname, 'http://assets');
+                    let response = await env.ASSETS.fetch(assetUrl);
+                    
+                    // Follow redirects for .html files (ASSETS automatically redirects .html to extensionless)
+                    if (response.status === 307 || response.status === 308) {
+                        const location = response.headers.get('Location');
+                        if (location) {
+                            const redirectUrl = new URL(location, assetUrl);
+                            response = await env.ASSETS.fetch(redirectUrl);
+                        }
+                    }
+                    
+                    if (response.ok) {
+                        return response;
+                    }
+                } catch (error) {
+                    console.error('Asset fetch error:', error);
+                }
+            }
+            
+            // Fallback for root path
+            if (pathname === '/') {
+                return serveWebUI(env);
+            }
         }
 
         return new Response('Not Found', { status: 404 });
