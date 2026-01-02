@@ -22,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm package.json for Node.js compatibility
 - Comprehensive API documentation in `docs/api/README.md`
 - Client library examples for Python, TypeScript/JavaScript, and Go
-- Custom domain setup guide (`CLOUDFLARE_PAGES_DOMAIN_SETUP.md`)
 - Performance features section in documentation
 - Status badges in README (JSR, Web UI, API, Deno, License)
 
