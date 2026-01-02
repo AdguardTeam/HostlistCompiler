@@ -12,24 +12,23 @@ permissions:
   pull-requests: write
 
 jobs:
-  # TODO: Re-enable linting after addressing existing lint issues
-  # lint:
-  #   name: Lint Code
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Setup Deno
-  #       uses: denoland/setup-deno@v1
-  #       with:
-  #         deno-version: v2.4
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.4
 
-  #     - name: Run Deno lint
-  #       run: deno task lint
+      - name: Run Deno lint
+        run: deno task lint
 
-  #     - name: Check formatting
-  #       run: deno task fmt:check
+      - name: Check formatting
+        run: deno task fmt:check
 
   test:
     name: Run Tests
@@ -99,32 +98,31 @@ jobs:
       - name: Type check all files
         run: deno task check
 
-  # TODO: Re-enable worker validation after fixing worker type issues
-  # build:
-  #   name: Validate Worker
-  #   runs-on: ubuntu-latest
-  #   needs: [test, type-check]
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  build:
+    name: Validate Worker
+    runs-on: ubuntu-latest
+    needs: [test, type-check]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Setup Deno
-  #       uses: denoland/setup-deno@v1
-  #       with:
-  #         deno-version: v2.4
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.4
 
-  #     - name: Cache Deno dependencies
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.cache/deno
-  #         key: ${{ runner.os }}-deno-build-${{ hashFiles('deno.json', 'deno.lock') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-deno-build-
+      - name: Cache Deno dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/deno
+          key: ${{ runner.os }}-deno-build-${{ hashFiles('deno.json', 'deno.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-build-
 
-  #     - name: Type check worker
-  #       run: |
-  #         cd examples/cloudflare-worker
-  #         deno check src/worker.ts
+      - name: Type check worker
+        run: |
+          cd examples/cloudflare-worker
+          deno check src/worker.ts
 
   security:
     name: Security Scan
@@ -151,7 +149,7 @@ jobs:
   publish-jsr:
     name: Publish to JSR
     runs-on: ubuntu-latest
-    needs: [test, type-check]
+    needs: [lint, test, type-check, build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - name: Checkout code
@@ -171,7 +169,7 @@ jobs:
   deploy-worker:
     name: Deploy Worker
     runs-on: ubuntu-latest
-    needs: [test, type-check]
+    needs: [lint, test, type-check, build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - name: Checkout code
@@ -189,7 +187,7 @@ jobs:
   deploy-pages:
     name: Deploy Pages
     runs-on: ubuntu-latest
-    needs: [test, type-check]
+    needs: [lint, test, type-check, build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - name: Checkout code
@@ -208,7 +206,7 @@ jobs:
   notify:
     name: Notify on Failure
     runs-on: ubuntu-latest
-    needs: [test, type-check]
+    needs: [lint, test, type-check, build]
     if: failure() && github.event_name == 'push'
     steps:
       - name: Send notification
