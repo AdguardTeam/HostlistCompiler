@@ -98,7 +98,7 @@ jobs:
         run: deno task check
 
   build:
-    name: Build Worker
+    name: Validate Worker
     runs-on: ubuntu-latest
     needs: [lint, test, type-check]
     steps:
@@ -118,26 +118,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-deno-build-
 
-      - name: Bundle Worker
+      - name: Type check worker
         run: |
           cd examples/cloudflare-worker
-          mkdir -p dist
-          deno bundle --output=dist/worker.js src/worker.ts
-
-      - name: Check bundle size
-        run: |
-          BUNDLE_SIZE=$(wc -c < examples/cloudflare-worker/dist/worker.js)
-          echo "Bundle size: $BUNDLE_SIZE bytes"
-          if [ $BUNDLE_SIZE -gt 1048576 ]; then
-            echo "::warning::Bundle size ($BUNDLE_SIZE bytes) exceeds 1MB limit"
-          fi
-
-      - name: Upload bundle artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: worker-bundle
-          path: examples/cloudflare-worker/dist/worker.js
-          retention-days: 7
+          deno check src/worker.ts
 
   security:
     name: Security Scan
@@ -189,12 +173,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download bundle artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: worker-bundle
-          path: examples/cloudflare-worker/dist
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
