@@ -291,7 +291,7 @@ export class WorkerCompiler {
             return rules;
         }
 
-        return this.pipeline.transform(
+        return await this.pipeline.transform(
             rules,
             configuration,
             sourceTransformations as TransformationType[],

@@ -2,8 +2,8 @@
  * Tests for the platform abstraction layer.
  */
 
-import { describe, it } from 'jsr:@std/testing/bdd';
-import { expect } from 'jsr:@std/expect';
+import { describe, it } from 'jsr:@std/testing@^1.0.0/bdd';
+import { expect } from 'jsr:@std/expect@^1.0.0';
 
 import { HttpFetcher } from './HttpFetcher.ts';
 import { PreFetchedContentFetcher } from './PreFetchedContentFetcher.ts';
@@ -81,7 +81,7 @@ describe('CompositeFetcher', () => {
         // Mock HTTP fetcher that handles all HTTP URLs
         const mockHttp: IContentFetcher = {
             canHandle: (s) => s.startsWith('http'),
-            fetch: async () => 'http content',
+            fetch: () => Promise.resolve('http content'),
         };
 
         const composite = new CompositeFetcher([preFetched, mockHttp]);
@@ -110,7 +110,7 @@ describe('PlatformDownloader', () => {
     it('should download from pre-fetched content', async () => {
         const mockFetcher: IContentFetcher = {
             canHandle: () => true,
-            fetch: async () => 'rule1\nrule2\nrule3',
+            fetch: () => Promise.resolve('rule1\nrule2\nrule3'),
         };
 
         const downloader = new PlatformDownloader(mockFetcher);
@@ -141,7 +141,7 @@ rule3`;
 
         const fetcher: IContentFetcher = {
             canHandle: () => true,
-            fetch: async () => content,
+            fetch: () => Promise.resolve(content),
         };
 
         const downloader = new PlatformDownloader(fetcher);
@@ -159,7 +159,7 @@ rule3`;
 
         const fetcher: IContentFetcher = {
             canHandle: () => true,
-            fetch: async () => content,
+            fetch: () => Promise.resolve(content),
         };
 
         const downloader = new PlatformDownloader(fetcher);
@@ -179,7 +179,7 @@ rule4`;
 
         const fetcher: IContentFetcher = {
             canHandle: () => true,
-            fetch: async () => content,
+            fetch: () => Promise.resolve(content),
         };
 
         const downloader = new PlatformDownloader(fetcher);

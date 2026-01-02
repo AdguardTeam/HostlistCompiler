@@ -7,7 +7,7 @@
 // Regular expressions for rule parsing
 const DOMAIN_REGEX = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;
 const DOMAIN_PATTERN_REGEX = /(\*\.|)([^\s^$|=]+(?:\.[^\s^$|=]+)+)/g;
-// eslint-disable-next-line no-control-regex
+// deno-lint-ignore no-control-regex
 const NON_ASCII_REGEX = /[^\x00-\x7F]/;
 
 /**

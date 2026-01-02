@@ -29,7 +29,7 @@ export class CompositeFetcher implements IContentFetcher {
     public async fetch(source: string): Promise<string> {
         for (const fetcher of this.fetchers) {
             if (fetcher.canHandle(source)) {
-                return fetcher.fetch(source);
+                return await fetcher.fetch(source);
             }
         }
         throw new Error(`No fetcher available for source: ${source}`);
