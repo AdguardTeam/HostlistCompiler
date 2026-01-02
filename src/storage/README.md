@@ -295,6 +295,115 @@ async function example() {
 - `getCompilationHistory(configName: string, limit?: number): Promise<CompilationMetadata[]>`
 - `clearCache(): Promise<number>`
 
+## Advanced Features
+
+### Intelligent Caching
+
+The `CachingDownloader` wraps any downloader implementation with intelligent caching, health monitoring, and change detection.
+
+**Basic Usage:**
+
+```typescript
+import { NoSqlStorage, CachingDownloader } from './storage/index.ts';
+import { FilterDownloader } from '../downloader/FilterDownloader.ts';
+
+const storage = new NoSqlStorage(logger);
+await storage.open();
+
+const cachingDownloader = new CachingDownloader(
+    new FilterDownloader(),
+    storage,
+    logger,
+    {
+        enabled: true,
+        ttl: 3600000, // 1 hour cache
+        detectChanges: true,
+        monitorHealth: true,
+    }
+);
+
+const rules = await cachingDownloader.download('https://example.com/filters.txt');
+```
+
+**Download with Metadata:**
+
+```typescript
+const result = await cachingDownloader.downloadWithMetadata(source);
+console.log(`From cache: ${result.fromCache}`);
+console.log(`Changed: ${result.hasChanged}`);
+console.log(`Delta: ${result.ruleCountDelta} rules`);
+```
+
+### Source Health Monitoring
+
+Track the reliability of filter list sources over time. Sources are classified as:
+- **Healthy**: 95%+ success rate, no recent failures
+- **Degraded**: 80-95% success rate or 1-2 consecutive failures
+- **Unhealthy**: <80% success rate or 3+ consecutive failures
+
+**Usage:**
+
+```typescript
+// Get health for specific source
+const health = await cachingDownloader.getSourceHealth(source);
+console.log(`Status: ${health.status}`);
+console.log(`Success rate: ${(health.successRate * 100).toFixed(1)}%`);
+
+// Get all unhealthy sources
+const unhealthy = await cachingDownloader.getUnhealthySources();
+
+// Generate health report
+const report = await cachingDownloader.generateHealthReport();
+console.log(report);
+```
+
+### Change Detection
+
+The `ChangeDetector` tracks changes in filter lists over time.
+
+**Usage:**
+
+```typescript
+// Get change history
+const history = await cachingDownloader.getChangeHistory(source, 10);
+
+// Get last snapshot
+const snapshot = await cachingDownloader.getLastSnapshot(source);
+if (snapshot) {
+    console.log(`Last seen: ${new Date(snapshot.timestamp)}`);
+    console.log(`Rules: ${snapshot.ruleCount}`);
+}
+```
+
+## Best Practices
+
+### Cache TTL Selection
+
+- **Short-lived lists** (updated hourly): 30-60 minutes
+- **Daily updated lists**: 6-12 hours
+- **Stable lists**: 24 hours
+- **Development**: 5-15 minutes
+
+### Storage Maintenance
+
+```typescript
+// Clean expired entries daily
+const cleared = await storage.clearExpired();
+
+// Monitor storage size
+const stats = await storage.getStats();
+if (stats.sizeEstimate > 100 * 1024 * 1024) { // 100MB
+    await storage.clearCache();
+}
+```
+
+### Pre-warming Cache
+
+```typescript
+// Pre-warm cache for scheduled tasks
+await cachingDownloader.prewarmCache(sources);
+```
+
 ## License
 
 Part of the hostlist compiler project.
