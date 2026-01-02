@@ -83,7 +83,7 @@ export class ConditionalEvaluator {
             // deno-lint-ignore no-new-func
             const fn = new Function(`return ${expr};`) as () => boolean;
             return Boolean(fn());
-        } catch (error) {
+        } catch (_error) {
             // If evaluation fails, default to false
             // This ensures platform-specific rules are excluded when uncertain
             return false;
