@@ -273,7 +273,7 @@ Examples:
 Import from JSR:
 
 ```typescript
-import { compile } from "jsr:@anthropic/hostlist-compiler";
+import { compile } from "jsr:@jk-com/adblock-compiler";
 ```
 
 Or add to your `deno.json`:
@@ -281,7 +281,7 @@ Or add to your `deno.json`:
 ```json
 {
   "imports": {
-    "@anthropic/hostlist-compiler": "jsr:@anthropic/hostlist-compiler"
+    "@jk-com/adblock-compiler": "jsr:@jk-com/adblock-compiler"
   }
 }
 ```
@@ -289,8 +289,8 @@ Or add to your `deno.json`:
 #### TypeScript example:
 
 ```typescript
-import { compile } from "@anthropic/hostlist-compiler";
-import type { IConfiguration } from "@anthropic/hostlist-compiler";
+import { compile } from "@jk-com/adblock-compiler";
+import type { IConfiguration } from "@jk-com/adblock-compiler";
 
 const config: IConfiguration = {
   name: "Your Hostlist",
@@ -314,8 +314,8 @@ await Deno.writeTextFile("your-hostlist.txt", result.join("\n"));
 #### Using the FilterCompiler class directly:
 
 ```typescript
-import { FilterCompiler, ConsoleLogger } from "@anthropic/hostlist-compiler";
-import type { IConfiguration } from "@anthropic/hostlist-compiler";
+import { FilterCompiler, ConsoleLogger } from "@jk-com/adblock-compiler";
+import type { IConfiguration } from "@jk-com/adblock-compiler";
 
 const logger = new ConsoleLogger();
 const compiler = new FilterCompiler(logger);
@@ -741,7 +741,7 @@ import {
     PreFetchedContentFetcher,
     CompositeFetcher,
     type IConfiguration,
-} from '@anthropic/hostlist-compiler';
+} from '@jk-com/adblock-compiler';
 
 // Option 1: Use pre-fetched content (recommended for edge)
 async function compileWithPreFetched(sourceUrls: string[]): Promise<string[]> {
@@ -781,7 +781,7 @@ The compiler runs natively in Cloudflare Workers. See the [examples/cloudflare-w
 **Deployment**: A `wrangler.toml` configuration file is provided in the repository root for easy deployment via Cloudflare's Git integration or using `wrangler deploy`.
 
 ```typescript
-import { WorkerCompiler, type IConfiguration } from '@anthropic/hostlist-compiler';
+import { WorkerCompiler, type IConfiguration } from '@jk-com/adblock-compiler';
 
 export default {
     async fetch(request: Request): Promise<Response> {
@@ -823,7 +823,7 @@ Use `WorkerCompiler` in Web Workers for background compilation:
 
 ```typescript
 // worker.ts
-import { WorkerCompiler, type IConfiguration } from '@anthropic/hostlist-compiler';
+import { WorkerCompiler, type IConfiguration } from '@jk-com/adblock-compiler';
 
 self.onmessage = async (event) => {
     const { configuration, preFetchedContent } = event.data;
@@ -847,7 +847,7 @@ self.onmessage = async (event) => {
 For browser environments, pre-fetch all source content server-side to avoid CORS issues:
 
 ```typescript
-import { WorkerCompiler, type IConfiguration } from '@anthropic/hostlist-compiler';
+import { WorkerCompiler, type IConfiguration } from '@jk-com/adblock-compiler';
 
 // Fetch sources through your server proxy to avoid CORS
 async function fetchSources(urls: string[]): Promise<Map<string, string>> {
@@ -932,7 +932,7 @@ import {
     CompositeFetcher,
     HttpFetcher,
     type IContentFetcher,
-} from '@anthropic/hostlist-compiler';
+} from '@jk-com/adblock-compiler';
 
 // Example: Redis-backed cache fetcher
 class RedisCacheFetcher implements IContentFetcher {

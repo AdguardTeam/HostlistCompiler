@@ -1,7 +1,7 @@
 /**
  * Cloudflare Worker for compiling hostlists.
  *
- * This worker demonstrates how to use the @anthropic/hostlist-compiler
+ * This worker demonstrates how to use the @jk-com/adblock-compiler
  * package in a Cloudflare Workers environment.
  *
  * Features:
