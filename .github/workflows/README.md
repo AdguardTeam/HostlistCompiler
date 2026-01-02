@@ -23,10 +23,11 @@ The main CI/CD pipeline that runs on every push and pull request to master/main 
    - Uses `deno task check`
    - Runs on Deno 2.4
 
-4. **Validate Worker** - Validates Cloudflare Worker types
-   - Requires test and type-check to pass
-   - Type checks the worker using `deno check src/worker.ts`
-   - Runs on Deno 2.4
+4. **Build Worker** - Bundles the Cloudflare Worker
+   - Requires lint, test, and type-check to pass
+   - Uses Deno 2.4's `deno bundle` command
+   - Checks bundle size (warns if > 1MB)
+   - Uploads bundle as artifact
 
 5. **Security Scan** - Scans for vulnerabilities
    - Uses Trivy vulnerability scanner
@@ -35,25 +36,21 @@ The main CI/CD pipeline that runs on every push and pull request to master/main 
 
 6. **Publish to JSR** - Publishes package to JSR registry
    - Only runs on pushes to master branch
-   - Requires lint, test, type-check, and build to pass
    - Requires JSR_TOKEN secret
    - Continues on error if publishing fails
 
 7. **Deploy Worker** - Deploys to Cloudflare Workers
    - Only runs on pushes to master branch
-   - Requires lint, test, type-check, and build to pass
    - Requires CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets
    - Continues on error if deployment fails
 
 8. **Deploy Pages** - Deploys to Cloudflare Pages
    - Only runs on pushes to master branch
-   - Requires lint, test, type-check, and build to pass
    - Requires CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets
    - Continues on error if deployment fails
 
 9. **Notify on Failure** - Sends notifications on build failures
    - Only runs on push events if any required job fails
-   - Monitors lint, test, type-check, and build jobs
 
 ## Required Secrets
 
@@ -102,12 +99,20 @@ deno task test
 deno task test:coverage
 deno coverage coverage --lcov --output=coverage.lcov
 
-# Type check worker
+# Bundle worker (requires Deno 2.4+)
 cd examples/cloudflare-worker
-deno check src/worker.ts
+deno bundle --output=dist/worker.js src/worker.ts
 ```
 
 ## Troubleshooting
+
+### Bundle Step Fails
+
+If the bundle step fails with "deno bundle command not found", ensure you're using Deno 2.4 or later:
+
+```bash
+deno upgrade --version 2.4.0
+```
 
 ### SARIF Upload Fails
 
