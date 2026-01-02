@@ -69,6 +69,7 @@ interface CompilationResult {
     ruleCount?: number;
     metrics?: any;
     error?: string;
+    compiledAt?: string;
     previousVersion?: {
         rules: string[];
         ruleCount: number;
