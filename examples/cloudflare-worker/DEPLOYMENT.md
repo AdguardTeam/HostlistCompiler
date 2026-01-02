@@ -8,7 +8,7 @@ Your Hostlist Compiler is now live at:
 ### Deployment Details
 - **Worker Name**: `hostlist-compiler-worker`
 - **Account**: JK.com
-- **Version**: 2.0.0
+- **Version**: 0.6.0
 - **Status**: ✅ Active
 
 ## API Endpoints
