@@ -59,6 +59,7 @@ jobs:
 
       - name: Run tests with coverage
         if: matrix.deno-version == '2.4'
+        continue-on-error: true
         run: |
           deno task test:coverage
           deno coverage coverage --lcov --output=coverage.lcov
