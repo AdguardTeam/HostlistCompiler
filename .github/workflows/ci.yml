@@ -12,6 +12,7 @@ permissions:
   pull-requests: write
 
 jobs:
+  # TODO: Re-enable linting after addressing existing lint issues
   # lint:
   #   name: Lint Code
   #   runs-on: ubuntu-latest
