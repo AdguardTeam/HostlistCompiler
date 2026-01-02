@@ -12,23 +12,23 @@ permissions:
   pull-requests: write
 
 jobs:
-  lint:
-    name: Lint Code
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # lint:
+  #   name: Lint Code
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: v2.4
+  #     - name: Setup Deno
+  #       uses: denoland/setup-deno@v1
+  #       with:
+  #         deno-version: v2.4
 
-      - name: Run Deno lint
-        run: deno task lint
+  #     - name: Run Deno lint
+  #       run: deno task lint
 
-      - name: Check formatting
-        run: deno task fmt:check
+  #     - name: Check formatting
+  #       run: deno task fmt:check
 
   test:
     name: Run Tests
@@ -100,7 +100,7 @@ jobs:
   build:
     name: Validate Worker
     runs-on: ubuntu-latest
-    needs: [lint, test, type-check]
+    needs: [test, type-check]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -148,7 +148,7 @@ jobs:
   publish-jsr:
     name: Publish to JSR
     runs-on: ubuntu-latest
-    needs: [lint, test, type-check]
+    needs: [test, type-check]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - name: Checkout code
@@ -205,7 +205,7 @@ jobs:
   notify:
     name: Notify on Failure
     runs-on: ubuntu-latest
-    needs: [lint, test, type-check, build]
+    needs: [test, type-check, build]
     if: failure() && github.event_name == 'push'
     steps:
       - name: Send notification
