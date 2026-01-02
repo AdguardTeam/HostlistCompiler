@@ -26,9 +26,9 @@ binding = "METRICS"
 id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace create METRICS
 
 # Optional: Add R2 bindings for storing filter lists
-# [[r2_buckets]]
-# binding = "FILTER_STORAGE"
-# bucket_name = "your-bucket-name"
+[[r2_buckets]]
+binding = "FILTER_STORAGE"
+bucket_name = "adblock-compiler-r2-storage"
 
 # Environment variables
 [vars]
