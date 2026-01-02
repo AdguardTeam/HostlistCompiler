@@ -278,6 +278,7 @@ function createStreamingLogger(writer: WritableStreamDefaultWriter<Uint8Array>) 
             warn: (message: string) => sendEvent('log', { level: 'warn', message }),
             error: (message: string) => sendEvent('log', { level: 'error', message }),
             debug: (message: string) => sendEvent('log', { level: 'debug', message }),
+            trace: (message: string) => sendEvent('log', { level: 'trace', message }),
         },
     };
 }
@@ -297,10 +298,6 @@ function createStreamingEvents(
         }),
         onTransformationStart: (event) => sendEvent('transformation:start', event),
         onTransformationComplete: (event) => sendEvent('transformation:complete', event),
-        onTransformationError: (event) => sendEvent('transformation:error', {
-            ...event,
-            error: event.error.message,
-        }),
         onProgress: (event) => sendEvent('progress', event),
         onCompilationComplete: (event) => sendEvent('compilation:complete', event),
     };
