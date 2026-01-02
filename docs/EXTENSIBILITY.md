@@ -774,7 +774,7 @@ console.log(`Compiled ${rules.length} rules`);
 
 If you create useful extensions, consider contributing them back to the project!
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+Open a pull request at https://github.com/jaypatrick/adblock-compiler/pulls
 
 ---
 
