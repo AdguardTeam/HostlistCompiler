@@ -27,6 +27,8 @@ export interface Env {
     COMPILATION_CACHE: KVNamespace;
     RATE_LIMIT: KVNamespace;
     METRICS: KVNamespace;
+    // Static assets
+    __STATIC_CONTENT?: KVNamespace;
 }
 
 /**
@@ -732,9 +734,27 @@ function handleCors(): Response {
 }
 
 /**
- * Serve the web UI HTML.
+ * Serve the web UI HTML from static assets.
  */
-function serveWebUI(): Response {
+async function serveWebUI(env: Env): Promise<Response> {
+    // Try to serve from static assets if available
+    if (env.__STATIC_CONTENT) {
+        try {
+            const asset = await env.__STATIC_CONTENT.get('index.html');
+            if (asset) {
+                return new Response(asset, {
+                    headers: {
+                        'Content-Type': 'text/html; charset=utf-8',
+                        'Cache-Control': 'public, max-age=300',
+                    },
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load index.html from static assets:', error);
+        }
+    }
+
+    // Fallback to simple HTML if static assets not available
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -846,7 +866,7 @@ export default {
 
         // Serve web UI for root path
         if (pathname === '/' && request.method === 'GET') {
-            return serveWebUI();
+            return serveWebUI(env);
         }
 
         return new Response('Not Found', { status: 404 });

@@ -34,6 +34,10 @@ bucket_name = "adblock-compiler-r2-storage"
 [vars]
 COMPILER_VERSION = "0.6.0"
 
+# Static assets configuration
+[site]
+bucket = "./examples/cloudflare-worker/public"
+
 # Development settings
 [dev]
 port = 8787

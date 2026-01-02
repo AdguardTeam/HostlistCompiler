@@ -169,7 +169,7 @@ async function handleCompileJson(
 function handleInfo(env: Env): Response {
     const info = {
         name: 'Hostlist Compiler Worker',
-        version: env.COMPILER_VERSION || '2.0.0',
+        version: env.COMPILER_VERSION || '0.6.0',
         endpoints: {
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
