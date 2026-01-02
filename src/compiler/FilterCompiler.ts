@@ -17,7 +17,7 @@ export interface CompilationResult {
  * Version matches deno.json for JSR publishing.
  */
 const PACKAGE_INFO = {
-    name: '@anthropic/hostlist-compiler',
+    name: '@jk-com/adblock-compiler',
     version: '2.0.0',
 } as const;
 

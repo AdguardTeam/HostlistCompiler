@@ -1,6 +1,6 @@
 # Hostlist Compiler - Cloudflare Worker Example
 
-This example demonstrates how to run the `@anthropic/hostlist-compiler` package as a Cloudflare Worker.
+This example demonstrates how to run the `@jk-com/adblock-compiler` package as a Cloudflare Worker.
 
 ## Features
 

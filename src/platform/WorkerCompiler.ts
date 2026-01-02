@@ -26,7 +26,7 @@ export interface WorkerCompilationResult {
  * Package metadata for header generation.
  */
 const PACKAGE_INFO = {
-    name: '@anthropic/hostlist-compiler',
+    name: '@jk-com/adblock-compiler',
     version: '2.0.0',
 } as const;
 
