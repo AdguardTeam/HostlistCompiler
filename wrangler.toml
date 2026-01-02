@@ -5,10 +5,6 @@ compatibility_date = "2024-01-01"
 # Enable the Workers runtime
 workers_dev = true
 
-# Serve static assets from the public directory
-[site]
-bucket = "./examples/cloudflare-worker/public"
-
 # KV bindings for caching and rate limiting
 [[kv_namespaces]]
 binding = "COMPILATION_CACHE"
