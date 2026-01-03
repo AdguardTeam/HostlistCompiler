@@ -30,6 +30,15 @@ id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace cr
 binding = "FILTER_STORAGE"
 bucket_name = "adblock-compiler-r2-storage"
 
+[[containers]]
+class_name = "AdblockCompiler"
+image = "./Dockerfile"
+max_instances = 10
+
+[[durable_objects.bindings]]
+class_name = "AdblockCompiler"
+name = "ADGUARD_COMPILER"
+
 # Environment variables
 [vars]
 COMPILER_VERSION = "0.6.12"
