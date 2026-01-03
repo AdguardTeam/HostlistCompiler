@@ -1,4 +1,0 @@
-||sat.terithrow2.net^
-||sat.fevilsor5.net^
-||leegreemula.net^
-!#include includedfile.txt
