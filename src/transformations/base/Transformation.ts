@@ -63,7 +63,7 @@ export abstract class Transformation {
 /**
  * Abstract base class for synchronous transformations.
  * These transformations perform CPU-bound operations without I/O.
- * The sync method is wrapped in a Promise for consistency with async operations.
+ * The sync method is wrapped in a resolved Promise for consistency with async operations.
  * 
  * @remarks
  * Use this for transformations that:
