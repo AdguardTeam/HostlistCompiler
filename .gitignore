@@ -17,5 +17,12 @@ examples/whitelist/filter.txt
 # Test coverage
 coverage/
 
+# Docker
+.dockerignore
+
+# Output directory (keep directory but ignore contents)
+output/*
+!output/.gitkeep
+
 # Claude Code local settings
 .claude/settings.local.json

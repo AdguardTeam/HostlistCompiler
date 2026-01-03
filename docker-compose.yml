@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Main adblock-compiler service
+  adblock-compiler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: adblock-compiler
+    ports:
+      - "8787:8787"
+    environment:
+      - COMPILER_VERSION=0.6.0
+      - DENO_DIR=/app/.deno
+      - PORT=8787
+    volumes:
+      # Mount source code for development (optional, comment out for production)
+      - ./src:/app/src
+      - ./src-worker:/app/src-worker
+      - ./public:/app/public
+      # Persist Deno cache
+      - deno-cache:/app/.deno
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8787/api"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - adblock-network
+
+  # Optional: CLI-only container for running compilation tasks
+  adblock-compiler-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: adblock-compiler-cli
+    entrypoint: ["/app/hostlist-compiler"]
+    # Example: Mount a config file and output directory
+    volumes:
+      - ./examples:/app/examples:ro
+      - ./output:/app/output
+    profiles:
+      - cli
+    networks:
+      - adblock-network
+
+volumes:
+  deno-cache:
+    name: adblock-compiler-deno-cache
+
+networks:
+  adblock-network:
+    name: adblock-compiler-network
+    driver: bridge
