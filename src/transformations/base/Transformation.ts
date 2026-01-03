@@ -92,12 +92,7 @@ export abstract class SyncTransformation extends Transformation {
         rules: readonly string[],
         context?: ITransformationContext
     ): Promise<readonly string[]> {
-        return new Promise((resolve) => {
-            queueMicrotask(() => {
-                const result = this.executeSync(rules, context);
-                resolve(result);
-            });
-        });
+        return Promise.resolve(this.executeSync(rules, context));
     }
 }
 
