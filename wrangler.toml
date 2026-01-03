@@ -30,6 +30,20 @@ id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace cr
 binding = "FILTER_STORAGE"
 bucket_name = "adblock-compiler-r2-storage"
 
+[[containers]]
+class_name = "AdblockCompiler"
+image = "./Dockerfile"
+max_instances = 5
+instance_type = "basic"
+
+[[durable_objects.bindings]]
+class_name = "AdblockCompiler"
+name = "ADBLOCK_COMPILER"
+
+[[migrations]]
+new_sqlite_classes = ["AdblockCompiler"]
+tag = "v1"
+
 # Environment variables
 [vars]
 COMPILER_VERSION = "0.6.58"
@@ -43,6 +57,7 @@ binding = "ASSETS"
 [dev]
 port = 8787
 local_protocol = "http"
+enable_containers = false  # Containers not supported on Windows - use WSL or deploy to test
 
 # Production settings (optional)
 # [env.production]

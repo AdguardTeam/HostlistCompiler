@@ -9,6 +9,10 @@
 		"tail": "wrangler tail"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20260103.0",
 		"wrangler": "^4.54.0"
+	},
+	"dependencies": {
+		"@luca/cases": "jsr:^1.0.0"
 	}
 }
