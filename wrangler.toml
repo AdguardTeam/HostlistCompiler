@@ -5,7 +5,7 @@ compatibility_date = "2024-01-01"
 # Enable the Workers runtime
 workers_dev = true
 
-[containers]
+[[containers]]
 class_name = "Adblock-Compiler"
 image = "./Dockerfile"
 max_instances = 10
