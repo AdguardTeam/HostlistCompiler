@@ -13,6 +13,10 @@
         "test": "deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv",
         "test:watch": "deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv --watch",
         "test:coverage": "deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv --coverage=coverage",
+        "bench": "deno bench --allow-read --allow-write --allow-net --allow-env",
+        "bench:utils": "deno bench src/utils/*.bench.ts",
+        "bench:transformations": "deno bench src/transformations/*.bench.ts",
+        "bench:json": "deno bench --allow-read --allow-write --allow-net --allow-env --json",
         "lint": "deno lint",
         "fmt": "deno fmt",
         "fmt:check": "deno fmt --check",
@@ -47,7 +51,11 @@
         "exclude": ["dist/", "node_modules/", "coverage/"]
     },
     "test": {
-        "include": ["src/**/*_test.ts", "src/**/*.test.ts"]
+        "include": ["src/**/*_test.ts", "src/**/*.test.ts"],
+        "exclude": ["src/**/*.bench.ts"]
+    },
+    "bench": {
+        "include": ["src/**/*.bench.ts"]
     },
     "compilerOptions": {
         "lib": ["deno.window"],
