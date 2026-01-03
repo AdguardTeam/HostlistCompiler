@@ -39,6 +39,19 @@ max_instances = 10
 class_name = "AdblockCompiler"
 name = "ADGUARD_COMPILER"
 
+[[containers]]
+class_name = "AdblockCompiler"
+image = "./Dockerfile"
+max_instances = 10
+
+[[durable_objects.bindings]]
+class_name = "AdblockCompiler"
+name = "ADGUARD_COMPILER"
+
+[[migrations]]
+new_sqlite_classes = [ "AdblockCompiler" ]
+tag = "v1"
+
 # Environment variables
 [vars]
 COMPILER_VERSION = "0.6.12"
