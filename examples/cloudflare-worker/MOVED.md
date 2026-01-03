@@ -45,5 +45,3 @@ The move to the root level provides:
 ## Legacy Files
 
 This directory contains the original implementation for reference purposes. For active development and deployment, please use the root-level implementation.
-
-See `/COMPILER_UI_SUMMARY.md` for complete documentation on the new structure.
