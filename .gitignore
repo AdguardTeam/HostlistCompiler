@@ -1,51 +1,46 @@
+# IDE / Editor
 .vscode
 .idea
+*.swp
+*.swo
+
+# OS
 .DS_Store
-dist
-.eslintcache
-node_modules
-.wrangler
+Thumbs.db
+
+# Deno
+.deno/
+
+# Node / pnpm
+node_modules/
+.npmrc
+*.tgz
+
+# Build output
+dist/
+
+# Cloudflare Workers
+.wrangler/
+worker-configuration.d.ts
+
+# Test coverage
+coverage/
+
+# Output directory (keep directory but ignore contents)
+output/*
+!output/.gitkeep
+
+# Example generated files
 examples/sdn/filter.txt*
 examples/energized/filter.txt
 examples/energized/hosts
 examples/china/filter.txt
 examples/whitelist/filter.txt
 
-# Yarn PnP
-.pnp.cjs
-.pnp.loader.mjs
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
-.npmrc
-*.tgz
-
-# Yarn PnP
-.pnp.cjs
-.pnp.loader.mjs
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
-# Wrangler generated files
-worker-configuration.d.ts
-
-# Test coverage
-coverage/
-
-# Docker
-.dockerignore
-
-# Output directory (keep directory but ignore contents)
-output/*
-!output/.gitkeep
-
 # Claude Code local settings
 .claude/settings.local.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
