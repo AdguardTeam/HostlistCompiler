@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  id-token: write  # Required for provenance on JSR
 
 jobs:
   # TODO: Re-enable linting after addressing existing lint issues
@@ -163,7 +164,7 @@ jobs:
           deno-version: v2.4
 
       - name: Publish to JSR
-        run: deno publish --allow-dirty
+        run: deno publish --allow-dirty --provenance
         continue-on-error: true
         env:
           JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
