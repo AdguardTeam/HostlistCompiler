@@ -687,7 +687,7 @@ src/
 ├── index.ts       # Main library exports
 └── mod.ts         # Deno module exports
 
-src-worker/        # Cloudflare Worker implementation (production-ready)
+worker/            # Cloudflare Worker implementation (production-ready)
 ├── worker.ts      # Main worker with API endpoints
 └── html.ts        # Fallback HTML templates
 
@@ -784,7 +784,7 @@ function createCustomCompiler() {
 
 ### <a name="cloudflare-workers"></a> Cloudflare Workers
 
-The compiler runs natively in Cloudflare Workers. A production-ready implementation is available at the repository root in the `src-worker/` directory with a comprehensive web UI in `public/`.
+The compiler runs natively in Cloudflare Workers. A production-ready implementation is available at the repository root in the `worker/` directory with a comprehensive web UI in `public/`.
 
 **Quick Start**:
 ```bash
@@ -800,7 +800,7 @@ npm run deploy
 
 **Deployment**: A `wrangler.toml` configuration file is provided in the repository root for easy deployment via Cloudflare's Git integration or using `wrangler deploy`.
 
-The production worker (`src-worker/worker.ts`) includes:
+The production worker (`worker/worker.ts`) includes:
 - **Interactive Web UI** at `/` (see `public/index.html`)
 - **API Testing Interface** at `/test.html`
 - **JSON API** at `POST /compile`

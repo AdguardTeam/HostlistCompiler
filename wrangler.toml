@@ -1,5 +1,5 @@
 name = "adblock-compiler"
-main = "src-worker/worker.ts"
+main = "worker/worker.ts"
 compatibility_date = "2024-01-01"
 
 # Enable the Workers runtime

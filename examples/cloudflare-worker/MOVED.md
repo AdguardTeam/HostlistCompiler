@@ -6,9 +6,9 @@
 
 The production Cloudflare Worker implementation has been moved to the repository root:
 
-- **Worker Code**: `/src-worker/`
-  - Main worker: `src-worker/worker.ts`
-  - HTML templates: `src-worker/html.ts`
+- **Worker Code**: `/worker/`
+  - Main worker: `worker/worker.ts`
+  - HTML templates: `worker/html.ts`
 
 - **Web UI**: `/public/`
   - Main interface: `public/index.html`
