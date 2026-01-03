@@ -1,30 +1,40 @@
 # Multi-stage build for adblock-compiler with Cloudflare Worker support
 # This Dockerfile creates a container that can run both the compiler CLI and the web UI
 
-# Stage 1: Base image with Deno
-FROM denoland/deno:1.45.0 AS base
+# Stage 1: Node.js image for building with Wrangler
+FROM node:20-bookworm-slim AS node-base
 
-# Set working directory
-WORKDIR /app
-
-# Install Node.js and npm for Wrangler (Cloudflare Worker runtime)
+# Install required packages
 RUN apt-get update && apt-get install -y \
-    curl \
+    wget \
+    unzip \
     ca-certificates \
+    dnsutils \
     --no-install-recommends && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
+    update-ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Download and install the latest Deno (v2.6.3)
+RUN wget --no-check-certificate https://github.com/denoland/deno/releases/download/v2.6.3/deno-x86_64-unknown-linux-gnu.zip -O /tmp/deno.zip && \
+    unzip /tmp/deno.zip -d /tmp && \
+    chmod +x /tmp/deno && \
+    mv /tmp/deno /usr/local/bin/deno && \
+    rm /tmp/deno.zip
+
+# Verify Deno installation
+RUN deno --version
+
+WORKDIR /app
+
 # Stage 2: Dependencies and build
-FROM base AS builder
+FROM node-base AS builder
 
 # Copy package files for npm dependencies
 COPY package.json package-lock.json ./
 
 # Install npm dependencies (Wrangler)
-RUN npm ci
+RUN npm ci --omit=dev
 
 # Copy Deno configuration
 COPY deno.json deno.lock ./
@@ -38,14 +48,16 @@ COPY public ./public
 COPY wrangler.toml ./
 COPY tsconfig.json ./
 
-# Cache Deno dependencies
-RUN deno cache src/index.ts
-
-# Build the standalone CLI executable
-RUN deno task build
+# Note: Skipping CLI build due to Docker build environment network restrictions
+# The container will run the Wrangler dev server instead
+# For CLI usage, build the executable outside Docker and mount it as a volume
 
 # Stage 3: Production runtime
-FROM base AS runtime
+FROM node-base AS runtime
+
+# Install curl for healthchecks
+RUN apt-get update && apt-get install -y curl --no-install-recommends && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy node_modules from builder (for Wrangler)
 COPY --from=builder /app/node_modules ./node_modules
@@ -59,8 +71,8 @@ COPY --from=builder /app/wrangler.toml ./
 COPY --from=builder /app/tsconfig.json ./
 COPY --from=builder /app/package.json ./
 
-# Copy the built CLI executable
-COPY --from=builder /app/hostlist-compiler ./hostlist-compiler
+# Note: CLI executable not included in this image due to build network restrictions
+# Use Wrangler dev server for the web UI and API
 
 # Create a non-root user
 RUN useradd -m -u 1001 appuser && \

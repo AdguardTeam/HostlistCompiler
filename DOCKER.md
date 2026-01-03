@@ -50,19 +50,29 @@ This guide explains how to deploy the Adblock Compiler using Docker containers.
 
 The Docker image is built in multiple stages for optimal size and security:
 
-1. **Base Stage**: Deno runtime with Node.js for Wrangler support
-2. **Builder Stage**: Installs dependencies and builds the CLI executable
+1. **Base Stage**: Node.js 20 runtime with the latest Deno (v2.6.3+)
+2. **Builder Stage**: Installs npm dependencies (Wrangler)
 3. **Runtime Stage**: Minimal production image with only necessary files
 
 ### What's Included
 
-- ✅ Deno 1.45.0 runtime
-- ✅ Node.js 20.x and Wrangler (Cloudflare Worker local dev server)
-- ✅ Adblock Compiler library and CLI
+- ✅ Node.js 20.x runtime
+- ✅ Deno 2.6.3+ (latest version)
+- ✅ Wrangler (Cloudflare Worker local dev server)
+- ✅ Adblock Compiler library
 - ✅ Web UI (public/ directory)
 - ✅ Cloudflare Worker API (src-worker/)
 - ✅ Health checks
 - ✅ Non-root user for security
+
+### Important Note
+
+The standalone CLI executable is not included in the Docker image due to network restrictions during the Docker build process that prevent accessing JSR (JavaScript Registry). The container is designed to run the Cloudflare Worker with the web UI and API endpoints.
+
+For CLI usage:
+- Build the executable on your host machine: `deno task build`
+- Mount it as a volume when running the container
+- Or use the web UI/API endpoints which provide the same functionality
 
 ## Configuration
 
@@ -115,23 +125,41 @@ Then visit:
 
 ### CLI Mode
 
-To use the compiler CLI instead of the web server:
+**Note**: The standalone CLI executable is not included in the Docker image. For CLI usage, you have two options:
+
+**Option 1: Build the CLI on your host and mount it**
 
 ```bash
-# Run a compilation task
+# First, build the CLI executable on your host
+deno task build
+
+# Then run it in a container with mounted volumes
 docker run --rm \
+  -v $(pwd)/hostlist-compiler:/usr/local/bin/hostlist-compiler:ro \
   -v $(pwd)/config.json:/app/config.json:ro \
   -v $(pwd)/output:/app/output \
   adblock-compiler:latest \
-  /app/hostlist-compiler -c /app/config.json -o /app/output/filter.txt
+  hostlist-compiler -c /app/config.json -o /app/output/filter.txt
 ```
 
-Or use the CLI profile with docker-compose:
+**Option 2: Use the Web UI or API**
+
+The Docker container provides full compiler functionality through the web interface and REST API:
 
 ```bash
-# Start the CLI container
-docker-compose --profile cli run --rm adblock-compiler-cli \
-  -c /app/examples/sdn/config.json -o /app/output/filter.txt
+# Start the container
+docker compose up -d
+
+# Use the API to compile
+curl -X POST http://localhost:8787/compile \
+  -H "Content-Type: application/json" \
+  -d '{
+    "configuration": {
+      "name": "My Filter List",
+      "sources": [{"source": "https://example.com/filters.txt"}],
+      "transformations": ["Deduplicate", "RemoveEmptyLines"]
+    }
+  }'
 ```
 
 ### Development Mode

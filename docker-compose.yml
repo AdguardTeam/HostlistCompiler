@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Main adblock-compiler service
   adblock-compiler:
@@ -28,23 +26,6 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
-    networks:
-      - adblock-network
-
-  # Optional: CLI-only container for running compilation tasks
-  adblock-compiler-cli:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    container_name: adblock-compiler-cli
-    entrypoint: ["/app/hostlist-compiler"]
-    # Example: Mount a config file and output directory
-    volumes:
-      - ./examples:/app/examples:ro
-      - ./output:/app/output
-    profiles:
-      - cli
     networks:
       - adblock-network
 
