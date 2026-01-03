@@ -1,0 +1,41 @@
+# Exclude benchmark files (Deno-specific, not compatible with Cloudflare Workers)
+**/*.bench.ts
+
+# Exclude test files
+**/*.test.ts
+**/*_test.ts
+
+# Exclude development files
+.vscode/
+.idea/
+.DS_Store
+
+# Exclude build artifacts and dependencies
+node_modules/
+dist/
+coverage/
+.wrangler/
+
+# Exclude examples
+examples/
+
+# Exclude documentation
+docs/
+*.md
+!README.md
+
+# Exclude config files not needed in deployment
+.gitignore
+.eslintignore
+.eslintrc*
+tsconfig.json
+deno.json
+deno.lock
+package.json
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+docker-compose*.yml
+Dockerfile
+.dockerignore
+.env.example
