@@ -4,6 +4,7 @@
 dist
 .eslintcache
 node_modules
+.wrangler
 examples/sdn/filter.txt*
 examples/energized/filter.txt
 examples/energized/hosts

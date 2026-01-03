@@ -1,4 +1,13 @@
 {
+	"name": "adblock-compiler",
+	"version": "0.6.0",
+	"description": "Compiler-as-a-Service for adblock filter lists",
+	"type": "module",
+	"scripts": {
+		"dev": "wrangler dev",
+		"deploy": "wrangler deploy",
+		"tail": "wrangler tail"
+	},
 	"devDependencies": {
 		"wrangler": "^4.54.0"
 	}

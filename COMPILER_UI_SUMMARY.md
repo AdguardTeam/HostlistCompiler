@@ -1,139 +1,122 @@
 # Compiler UI Update - Summary
 
-## Issue
-The compiler UI site wasn't working correctly because:
-1. The `index.html` file location was unclear
-2. Version references were incorrect (2.0.0 instead of 0.6.0)
-3. The worker wasn't properly configured to serve static assets
+## Current Structure
 
-## Solution
+The Adblock Compiler now has its web UI and Cloudflare Worker implementation at the root level of the repository for easier deployment and maintenance.
 
-### 1. Location of index.html
-**Answer:** The compiler UI is located at:
+### Directory Structure
+
 ```
-examples/cloudflare-worker/public/index.html
+/
+├── public/               # Static web UI files
+│   ├── index.html       # Main interactive web interface
+│   └── test.html        # API testing interface
+├── src-worker/          # Cloudflare Worker implementation
+│   ├── worker.ts        # Main worker with all API endpoints
+│   └── html.ts          # Fallback HTML templates
+├── wrangler.toml        # Cloudflare Worker configuration
+└── package.json         # NPM scripts for dev/deploy
 ```
 
-This is a **48KB file** containing the full interactive web interface with:
-- Simple Mode for easy compilation
-- Advanced Mode for JSON configuration
-- Real-time progress tracking via Server-Sent Events
-- Examples and API documentation
-- Download and copy-to-clipboard functionality
+## Quick Start
 
-### 2. How to Update the UI
-
-#### Edit the File
-Simply edit `examples/cloudflare-worker/public/index.html` to make changes to:
-- HTML structure
-- CSS styling (in the `<style>` section)
-- JavaScript functionality (in the `<script>` section)
-- Examples, documentation, or any content
-
-#### Test Locally
+### Local Development
 ```bash
-cd examples/cloudflare-worker
+npm install
 npm run dev
 ```
-Then visit `http://localhost:8787` to see your changes.
+Then visit: `http://localhost:8787`
 
-#### Deploy to Production
+### Deployment
 ```bash
-cd examples/cloudflare-worker
 npm run deploy
 ```
 
-### 3. Changes Made to Fix the Issues
+## Files Overview
 
-#### Fixed Static Asset Serving
-- Added `[site]` configuration to wrangler.toml files
-- Updated worker.ts to load index.html from `__STATIC_CONTENT` KV namespace
-- Added fallback HTML if static assets aren't available
-
-#### Fixed Version References
-Updated all instances of version 2.0.0 to 0.6.0 in:
-- `examples/cloudflare-worker/wrangler.toml`
-- `wrangler.toml` (root)
-- `examples/cloudflare-worker/DEPLOYMENT.md`
-- `examples/cloudflare-worker/worker-bundle.ts`
-
-#### Created Documentation
-Added comprehensive `UI_UPDATE_GUIDE.md` with:
-- Complete instructions on updating the UI
-- Troubleshooting guide
-- Best practices
-- File structure overview
-
-## Files Modified
-
-1. **examples/cloudflare-worker/wrangler.toml**
-   - Changed `COMPILER_VERSION` from "2.0.0" to "0.6.0"
-   - Added `[site]` configuration for static assets
-
-2. **wrangler.toml** (root)
-   - Added `[site]` configuration pointing to cloudflare-worker public directory
-
-3. **examples/cloudflare-worker/src/worker.ts**
-   - Added `__STATIC_CONTENT` to Env interface
-   - Modified `serveWebUI()` to load from static assets
-   - Updated function to accept `env` parameter
-
-4. **examples/cloudflare-worker/DEPLOYMENT.md**
-   - Updated version from 2.0.0 to 0.6.0
-
-5. **examples/cloudflare-worker/worker-bundle.ts**
-   - Changed fallback version from "2.0.0" to "0.6.0"
-
-6. **examples/cloudflare-worker/UI_UPDATE_GUIDE.md** (NEW)
-   - Complete guide for updating the UI
-   - Troubleshooting section
-   - Best practices and tips
-
-## Quick Reference
-
-### Where is index.html?
-```
-examples/cloudflare-worker/public/index.html
-```
-
-### How to test?
-```bash
-cd examples/cloudflare-worker && npm run dev
-```
-
-### How to deploy?
-```bash
-cd examples/cloudflare-worker && npm run deploy
-```
-
-### What version?
-**0.6.0** (fixed from 2.0.0)
-
-## Next Steps
-
-The changes are ready for deployment. To use them:
-
-1. **Review the changes** - Check the modified files
-2. **Test locally** - Run `npm run dev` to ensure everything works
-3. **Deploy** - Run `npm run deploy` to push to Cloudflare Workers
-4. **Verify** - Visit your worker URL to confirm the UI is loading correctly
-
-## Additional Notes
-
-- The `public/index.html` file is **48KB** and contains a fully-featured UI
-- Static assets are automatically served by Cloudflare Workers when `[site]` is configured
-- The worker has a fallback HTML in case static assets fail to load
-- All version references are now consistent at **0.6.0**
-- The UI supports Server-Sent Events for real-time progress tracking
+### public/index.html (Main UI)
+A comprehensive **48KB** interactive web interface featuring:
+- **Simple Mode** - Easy filter list compilation with URL input
+- **Advanced Mode** - Full JSON configuration support
+- **Examples** - Pre-configured examples to get started
+- **API Docs** - Complete API documentation
+- **Test Page** - Link to the API testing interface
+- Real-time progress tracking via Server-Sent Events
+- Download and copy-to-clipboard functionality
 - Mobile-responsive design with modern gradient styling
 
-## Support
+### public/test.html (Testing Interface)
+A dedicated testing interface for API endpoints:
+- Test JSON API endpoint (`POST /compile`)
+- Test Streaming API endpoint (`POST /compile/stream`)
+- Real-time log viewer
+- Statistics display
+- Configurable request payloads
 
-For detailed instructions on updating the UI, see:
-- `examples/cloudflare-worker/UI_UPDATE_GUIDE.md`
+### src-worker/worker.ts (Main Worker)
+Production-ready Cloudflare Worker with:
+- `GET /` - Serves the web UI (index.html)
+- `GET /test.html` - Serves the test interface
+- `GET /api` - API information and documentation
+- `GET /metrics` - Request metrics and statistics
+- `POST /compile` - JSON API for compilation
+- `POST /compile/stream` - Streaming API with SSE
+- `POST /compile/batch` - Batch compilation (up to 10 lists)
+- KV-based caching with compression
+- Rate limiting (10 requests/minute per IP)
+- Request deduplication
+- Comprehensive error handling
 
-For deployment information, see:
-- `examples/cloudflare-worker/DEPLOYMENT.md`
+## Key Features
 
-For general worker information, see:
-- `examples/cloudflare-worker/README.md`
+### 1. Static File Serving
+The worker automatically serves static files from the `public/` directory when the `[site]` configuration is set in `wrangler.toml`:
+
+```toml
+[site]
+bucket = "./public"
+```
+
+### 2. API Endpoints
+All API endpoints are fully functional with:
+- Pre-fetched content support (bypasses CORS)
+- Benchmarking metrics
+- Real-time progress events
+- Caching with gzip compression
+- Rate limiting and security
+
+### 3. Web Interface
+- Intuitive tabbed interface
+- Multiple compilation modes
+- Example configurations
+- Complete API documentation
+- Direct link to testing interface
+
+## Configuration
+
+### wrangler.toml
+Main configuration file at repository root:
+- Worker entry point: `src-worker/worker.ts`
+- Static assets: `public/`
+- KV namespaces for caching, rate limiting, metrics
+- Optional R2 bucket for filter storage
+- Environment variables
+
+### Environment Variables
+- `COMPILER_VERSION` - Set to "0.6.0"
+
+### KV Namespaces
+- `COMPILATION_CACHE` - Stores compiled filter lists
+- `RATE_LIMIT` - Tracks API rate limits
+- `METRICS` - Aggregates usage statistics
+
+## Migration from examples/cloudflare-worker
+
+The UI and worker have been moved from `examples/cloudflare-worker/` to the root level:
+- ✅ Better visibility and accessibility
+- ✅ Simpler deployment workflow
+- ✅ Easier maintenance
+- ✅ More comprehensive web interface
+- ✅ Integrated test page
+
+The old `examples/cloudflare-worker/` directory remains as a reference but is no longer the primary implementation.

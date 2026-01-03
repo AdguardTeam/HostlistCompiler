@@ -1,5 +1,5 @@
-name = "adblock-compiler"
-main = "examples/cloudflare-worker/src/worker.ts"
+name = "adblock-compiler-ui"
+main = "src-worker/worker.ts"
 compatibility_date = "2024-01-01"
 
 # Enable the Workers runtime
@@ -34,9 +34,10 @@ bucket_name = "adblock-compiler-r2-storage"
 [vars]
 COMPILER_VERSION = "0.6.0"
 
-# Static assets configuration
-[site]
-bucket = "./examples/cloudflare-worker/public"
+# Static assets configuration using modern assets
+[assets]
+directory = "./public"
+binding = "ASSETS"
 
 # Development settings
 [dev]
