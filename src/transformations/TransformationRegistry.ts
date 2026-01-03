@@ -110,11 +110,14 @@ export class TransformationPipeline {
         const orderedTransformations = this.getOrderedTransformations(transformationList);
         const totalTransformations = orderedTransformations.length;
 
+        // Use readonly array during transformation pipeline to avoid unnecessary copies
+        let readonlyTransformed: readonly string[] = transformed;
+
         for (let i = 0; i < orderedTransformations.length; i++) {
             const type = orderedTransformations[i];
             const transformation = this.registry.get(type);
             if (transformation) {
-                const inputCount = transformed.length;
+                const inputCount = readonlyTransformed.length;
                 const startTime = performance.now();
 
                 // Emit transformation start event
@@ -131,12 +134,11 @@ export class TransformationPipeline {
                     message: `Applying transformation: ${type}`,
                 });
 
-                const result = await transformation.execute(transformed, {
+                // Reuse the readonly array result for the next iteration to avoid unnecessary copies
+                readonlyTransformed = await transformation.execute(readonlyTransformed, {
                     configuration,
                     logger: this.logger,
                 });
-                // Convert readonly array back to mutable for next iteration
-                transformed = Array.from(result);
 
                 const durationMs = performance.now() - startTime;
 
@@ -144,13 +146,14 @@ export class TransformationPipeline {
                 this.eventEmitter.emitTransformationComplete({
                     name: type,
                     inputCount,
-                    outputCount: transformed.length,
+                    outputCount: readonlyTransformed.length,
                     durationMs,
                 });
             }
         }
 
-        return transformed;
+        // Convert to mutable array only at the end
+        return Array.from(readonlyTransformed);
     }
 
     /**

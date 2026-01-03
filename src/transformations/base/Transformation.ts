@@ -63,7 +63,7 @@ export abstract class Transformation {
 /**
  * Abstract base class for synchronous transformations.
  * These transformations perform CPU-bound operations without I/O.
- * The sync method is wrapped in a microtask for consistency with async operations.
+ * The sync method is wrapped in a resolved Promise for consistency with async operations.
  * 
  * @remarks
  * Use this for transformations that:
@@ -86,18 +86,12 @@ export abstract class SyncTransformation extends Transformation {
 
     /**
      * Wraps the sync execution in a resolved Promise for interface compatibility.
-     * Uses queueMicrotask to ensure truly async behavior.
      */
     public override execute(
         rules: readonly string[],
         context?: ITransformationContext
     ): Promise<readonly string[]> {
-        return new Promise((resolve) => {
-            queueMicrotask(() => {
-                const result = this.executeSync(rules, context);
-                resolve(result);
-            });
-        });
+        return Promise.resolve(this.executeSync(rules, context));
     }
 }
 

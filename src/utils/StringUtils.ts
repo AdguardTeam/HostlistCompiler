@@ -133,7 +133,8 @@ export function isEmpty(str: string | null | undefined): str is null | undefined
  * ```
  */
 export function trim(str: string, chars: string = ' \t'): string {
-    const regex = new RegExp(`^[${escapeRegExp(chars)}]+|[${escapeRegExp(chars)}]+$`, 'g');
+    const escapedChars = escapeRegExp(chars);
+    const regex = new RegExp(`^[${escapedChars}]+|[${escapedChars}]+$`, 'g');
     return str.replace(regex, '');
 }
 
