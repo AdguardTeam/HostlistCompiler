@@ -11,9 +11,8 @@ image = "./Dockerfile"
 max_instances = 10
 
 [[durable_objects.bindings]]
-[[binding]] 
 class_name = "AdBlock-Compiler"
-name "AdBlock Compiler"
+name = "AdBlock Compiler"
 
 [observability]
 [observability.logs]
