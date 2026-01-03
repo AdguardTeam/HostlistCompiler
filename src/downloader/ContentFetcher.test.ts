@@ -8,6 +8,7 @@ const mockLogger = {
     info: () => {},
     warn: () => {},
     error: () => {},
+    trace: () => {},
 };
 
 // Mock file system
