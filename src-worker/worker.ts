@@ -342,14 +342,14 @@ async function handleCompileStream(
                 metrics: result.metrics,
             });
 
-            await writer.write(encoder.encode('event: done\\ndata: {}\\n\\n'));
+            await writer.write(encoder.encode('event: done\ndata: {}\n\n'));
             
             // Record success metrics
             await recordMetric(env, '/compile/stream', Date.now() - startTime, true);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             await writer.write(
-                encoder.encode(`event: error\\ndata: ${JSON.stringify({ error: message })}\\n\\n`),
+                encoder.encode(`event: error\ndata: ${JSON.stringify({ error: message })}\n\n`),
             );
             
             // Record error metrics
