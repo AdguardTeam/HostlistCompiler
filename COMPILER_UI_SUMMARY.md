@@ -11,7 +11,7 @@ The Adblock Compiler now has its web UI and Cloudflare Worker implementation at 
 ├── public/               # Static web UI files
 │   ├── index.html       # Main interactive web interface
 │   └── test.html        # API testing interface
-├── src-worker/          # Cloudflare Worker implementation
+├── worker/              # Cloudflare Worker implementation
 │   ├── worker.ts        # Main worker with all API endpoints
 │   └── html.ts          # Fallback HTML templates
 ├── wrangler.toml        # Cloudflare Worker configuration
@@ -53,7 +53,7 @@ A dedicated testing interface for API endpoints:
 - Statistics display
 - Configurable request payloads
 
-### src-worker/worker.ts (Main Worker)
+### worker/worker.ts (Main Worker)
 Production-ready Cloudflare Worker with:
 - `GET /` - Serves the web UI (index.html)
 - `GET /test.html` - Serves the test interface
@@ -96,7 +96,7 @@ All API endpoints are fully functional with:
 
 ### wrangler.toml
 Main configuration file at repository root:
-- Worker entry point: `src-worker/worker.ts`
+- Worker entry point: `worker/worker.ts`
 - Static assets: `public/`
 - KV namespaces for caching, rate limiting, metrics
 - Optional R2 bucket for filter storage
