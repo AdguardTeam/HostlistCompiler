@@ -173,12 +173,12 @@ sudo chown -R 1001:1001 ./output
 
 ## Next Steps
 
-- 📚 Read the [Complete Docker Guide](DOCKER.md) for advanced configurations
-- 🌐 Check out the [Main README](README.md) for full documentation
-- 🚀 Deploy to production using the Kubernetes examples in DOCKER.md
+- 📚 Read the [Complete Docker Guide](../deployment/docker.md) for advanced configurations
+- 🌐 Check out the [Main README](../../README.md) for full documentation
+- 🚀 Deploy to production using the Kubernetes examples in docker.md
 - 🔧 Explore the [API Documentation](http://localhost:8787/api)
 
 ## Need Help?
 
 - **Issues**: https://github.com/jaypatrick/adblock-compiler/issues
-- **Documentation**: See [DOCKER.md](DOCKER.md) and [README.md](README.md)
+- **Documentation**: See [docker.md](../deployment/docker.md) and [README.md](../../README.md)

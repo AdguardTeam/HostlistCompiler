@@ -262,8 +262,8 @@ See `.env.example` for available options:
 
 ## Useful Links
 
-- [README.md](README.md) - Full project documentation
-- [TESTING.md](TESTING.md) - Testing guide
-- [docs/api/README.md](docs/api/README.md) - API documentation
-- [docs/EXTENSIBILITY.md](docs/EXTENSIBILITY.md) - Custom extensions
-- [CHANGELOG.md](CHANGELOG.md) - Version history
+- [README.md](../README.md) - Full project documentation
+- [TESTING.md](testing.md) - Testing guide
+- [docs/api/README.md](api/README.md) - API documentation
+- [docs/EXTENSIBILITY.md](EXTENSIBILITY.md) - Custom extensions
+- [CHANGELOG.md](../CHANGELOG.md) - Version history

@@ -93,8 +93,8 @@ docker run -d -p 8787:8787 adblock-compiler
 
 Access the web UI at http://localhost:8787
 
-📚 **[Quick Start Guide](QUICK_START.md)** - Get started with Docker in minutes  
-📚 **[Docker Deployment Guide](DOCKER.md)** - Complete guide for container deployment, Kubernetes, and production setups
+📚 **[Quick Start Guide](docs/guides/quick-start.md)** - Get started with Docker in minutes  
+📚 **[Docker Deployment Guide](docs/deployment/docker.md)** - Complete guide for container deployment, Kubernetes, and production setups
 
 ## <a name="usage"></a> Usage
 
@@ -397,7 +397,7 @@ docker run --rm \
   /app/hostlist-compiler -c /app/config.json -o /app/output/filter.txt
 ```
 
-📚 **[Complete Docker Guide](DOCKER.md)** - Detailed documentation for Docker deployment, production setups, Kubernetes, and troubleshooting.
+📚 **[Complete Docker Guide](docs/deployment/docker.md)** - Detailed documentation for Docker deployment, production setups, Kubernetes, and troubleshooting.
 
 ## <a name="transformations"></a> Transformations
 
