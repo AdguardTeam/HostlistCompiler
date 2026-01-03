@@ -1,0 +1,11 @@
+# Docker Compose override for development
+# This file is automatically merged with docker-compose.yml when running docker compose
+# It adds volume mounts for live code reloading during development
+
+services:
+  adblock-compiler:
+    volumes:
+      # Mount source code for live reloading
+      - ./src:/app/src
+      - ./src-worker:/app/src-worker
+      - ./public:/app/public

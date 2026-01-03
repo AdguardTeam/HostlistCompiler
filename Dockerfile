@@ -1,8 +1,13 @@
 # Multi-stage build for adblock-compiler with Cloudflare Worker support
 # This Dockerfile creates a container that can run both the compiler CLI and the web UI
 
+# Build argument for Deno version
+ARG DENO_VERSION=2.6.3
+
 # Stage 1: Node.js image for building with Wrangler
 FROM node:20-bookworm-slim AS node-base
+
+ARG DENO_VERSION
 
 # Install required packages
 RUN apt-get update && apt-get install -y \
@@ -15,8 +20,10 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Download and install the latest Deno (v2.6.3)
-RUN wget --no-check-certificate https://github.com/denoland/deno/releases/download/v2.6.3/deno-x86_64-unknown-linux-gnu.zip -O /tmp/deno.zip && \
+# Download and install Deno
+# Note: Using --no-check-certificate as a workaround for Docker build environment SSL issues
+# In production, certificates should be properly configured
+RUN wget --no-check-certificate https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip -O /tmp/deno.zip && \
     unzip /tmp/deno.zip -d /tmp && \
     chmod +x /tmp/deno && \
     mv /tmp/deno /usr/local/bin/deno && \
@@ -48,7 +55,8 @@ COPY public ./public
 COPY wrangler.toml ./
 COPY tsconfig.json ./
 
-# Note: Skipping CLI build due to Docker build environment network restrictions
+# Note: Skipping CLI build due to JSR (JavaScript Registry) access issues during Docker build
+# JSR may not be accessible in some Docker build environments due to network restrictions or SSL issues
 # The container will run the Wrangler dev server instead
 # For CLI usage, build the executable outside Docker and mount it as a volume
 
@@ -71,7 +79,7 @@ COPY --from=builder /app/wrangler.toml ./
 COPY --from=builder /app/tsconfig.json ./
 COPY --from=builder /app/package.json ./
 
-# Note: CLI executable not included in this image due to build network restrictions
+# Note: CLI executable not included in this image due to JSR access limitations during build
 # Use Wrangler dev server for the web UI and API
 
 # Create a non-root user
@@ -87,7 +95,7 @@ EXPOSE 8787
 ENV DENO_DIR=/app/.deno
 ENV PORT=8787
 
-# Health check
+# Health check using curl (installed in runtime stage)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8787/api || exit 1
 

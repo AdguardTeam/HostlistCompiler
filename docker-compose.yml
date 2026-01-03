@@ -13,10 +13,6 @@ services:
       - DENO_DIR=/app/.deno
       - PORT=8787
     volumes:
-      # Mount source code for development (optional, comment out for production)
-      - ./src:/app/src
-      - ./src-worker:/app/src-worker
-      - ./public:/app/public
       # Persist Deno cache
       - deno-cache:/app/.deno
     restart: unless-stopped

@@ -57,17 +57,19 @@ The Docker image is built in multiple stages for optimal size and security:
 ### What's Included
 
 - ✅ Node.js 20.x runtime
-- ✅ Deno 2.6.3+ (latest version)
+- ✅ Deno 2.6.3 (configurable via build argument)
 - ✅ Wrangler (Cloudflare Worker local dev server)
 - ✅ Adblock Compiler library
 - ✅ Web UI (public/ directory)
 - ✅ Cloudflare Worker API (src-worker/)
-- ✅ Health checks
+- ✅ Health checks (requires curl, installed in runtime stage)
 - ✅ Non-root user for security
 
 ### Important Note
 
-The standalone CLI executable is not included in the Docker image due to network restrictions during the Docker build process that prevent accessing JSR (JavaScript Registry). The container is designed to run the Cloudflare Worker with the web UI and API endpoints.
+The standalone CLI executable is not included in the Docker image due to JSR (JavaScript Registry) access limitations during the Docker build process. Some Docker build environments may have network restrictions or SSL certificate issues that prevent accessing JSR.
+
+The container is designed to run the Cloudflare Worker with the web UI and API endpoints.
 
 For CLI usage:
 - Build the executable on your host machine: `deno task build`
@@ -86,13 +88,27 @@ The container supports the following environment variables:
 | `PORT` | `8787` | Port for the web server |
 | `DENO_DIR` | `/app/.deno` | Deno cache directory |
 
+### Build Arguments
+
+Customize the Docker image at build time:
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `DENO_VERSION` | `2.6.3` | Deno version to install |
+
+To build with a different Deno version:
+
+```bash
+docker build --build-arg DENO_VERSION=2.7.0 -t adblock-compiler:latest .
+```
+
 ### Volumes
 
 You can mount volumes for persistent data:
 
 ```yaml
 volumes:
-  # Source code (for development)
+  # Source code (for development - use docker-compose.override.yml)
   - ./src:/app/src
   - ./src-worker:/app/src-worker
   - ./public:/app/public
@@ -114,7 +130,7 @@ volumes:
 The default command runs the Cloudflare Worker with the web UI:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Then visit:
@@ -164,23 +180,21 @@ curl -X POST http://localhost:8787/compile \
 
 ### Development Mode
 
-For active development with live reloading:
+For active development with live code reloading:
 
-```yaml
-# docker-compose.override.yml
-version: '3.8'
-services:
-  adblock-compiler:
-    volumes:
-      - ./src:/app/src
-      - ./src-worker:/app/src-worker
-      - ./public:/app/public
-    command: ["npx", "wrangler", "dev", "--ip", "0.0.0.0", "--port", "8787"]
+The repository includes a `docker-compose.override.yml` file that automatically mounts source code directories for development. Just run:
+
+```bash
+docker compose up
 ```
 
-Then run:
+Any changes to files in `src/`, `src-worker/`, or `public/` will be reflected immediately.
+
+To disable development mode for production, rename or remove `docker-compose.override.yml`:
+
 ```bash
-docker-compose up
+mv docker-compose.override.yml docker-compose.override.yml.disabled
+docker compose up -d
 ```
 
 ## Production Deployment
