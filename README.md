@@ -1,14 +1,14 @@
 # Adblock Compiler
 
 [![JSR](https://jsr.io/badges/@jk-com/adblock-compiler)](https://jsr.io/@jk-com/adblock-compiler)
-[![Web UI](https://img.shields.io/badge/Web%20UI-Live-brightgreen?logo=cloudflare)](https://adblock.jaysonknight.com)
+[![Web UI](https://img.shields.io/badge/Web%20UI-Live-brightgreen?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/)
 [![API](https://img.shields.io/badge/API-Live-blue?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/api)
 [![Deno](https://img.shields.io/badge/Deno-2.0+-black?logo=deno)](https://deno.land)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
 **Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.
 
-🌐 **[Try the Web UI](https://adblock.jaysonknight.com)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[API Documentation](docs/api/README.md)**
+🌐 **[Try the Web UI](https://adblock-compiler.jayson-knight.workers.dev/)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[API Documentation](docs/api/README.md)**
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). It provides the same functionality with improved performance and no Node.js dependencies.
 
