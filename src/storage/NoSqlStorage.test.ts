@@ -16,10 +16,7 @@ const mockLogger: IDetailedLogger = {
     trace: () => {},
 };
 
-Deno.test({
-    name: 'NoSqlStorage',
-    permissions: { read: true, write: true, env: true },
-}, async (t) => {
+Deno.test('NoSqlStorage', async (t) => {
     let storage: NoSqlStorage;
 
     // Setup: Create storage instance with temporary path

@@ -119,7 +119,7 @@ export class RuleFilter {
      */
     private filterRules(
         rules: string[],
-        wildcards: Wildcard[],
+        wildcards: readonly Wildcard[],
         mode: 'exclusion' | 'inclusion',
     ): string[] {
         // Partition patterns by type for optimized matching

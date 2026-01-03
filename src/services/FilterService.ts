@@ -4,51 +4,70 @@ import { RuleUtils, Wildcard } from '../utils/index.ts';
 
 /**
  * Service for downloading and preparing filter wildcards.
+ * Uses fully asynchronous operations for optimal performance.
  */
 export class FilterService {
-    constructor(_logger: ILogger) {
-        // Logger reserved for future debugging purposes
+    private readonly logger: ILogger;
+
+    constructor(logger: ILogger) {
+        this.logger = logger;
     }
 
     /**
      * Downloads all specified files and returns non-empty, non-comment lines.
+     * Processes sources in parallel for optimal performance.
+     * 
+     * @param sources - Array of source URLs or paths
+     * @returns Promise resolving to array of filtered rules
      */
-    public async downloadAll(sources: string[]): Promise<string[]> {
-        let list: string[] = [];
-
-        if (!sources || sources.length === 0) {
-            return list;
+    public async downloadAll(sources: readonly string[]): Promise<readonly string[]> {
+        if (!sources?.length) {
+            return [];
         }
 
-        await Promise.all(sources.map(async (source) => {
-            const rulesStr = await FilterDownloader.download(source, {}, { allowEmptyResponse: true });
-            const rules = rulesStr.filter((el: string) =>
-                el.trim().length > 0 && !RuleUtils.isComment(el));
-            list = list.concat(rules);
-        }));
+        // Download all sources in parallel and flatten results
+        const results = await Promise.all(
+            sources.map(async (source) => {
+                try {
+                    const rulesStr = await FilterDownloader.download(
+                        source,
+                        {},
+                        { allowEmptyResponse: true }
+                    );
+                    return rulesStr.filter((el) => 
+                        el.trim().length > 0 && !RuleUtils.isComment(el)
+                    );
+                } catch (error) {
+                    this.logger.warn(`Failed to download source ${source}: ${error}`);
+                    return [];
+                }
+            })
+        );
 
-        return list;
+        return results.flat();
     }
 
     /**
      * Prepares a list of Wildcard patterns from rules and sources.
+     * Downloads sources asynchronously and deduplicates the results.
+     * 
+     * @param rules - Optional array of rule patterns
+     * @param sources - Optional array of source URLs or paths
+     * @returns Promise resolving to array of Wildcard objects
      */
     public async prepareWildcards(
-        rules?: string[],
-        sources?: string[],
-    ): Promise<Wildcard[]> {
-        let list: string[] = [];
+        rules?: readonly string[],
+        sources?: readonly string[],
+    ): Promise<readonly Wildcard[]> {
+        const rulesList = rules ?? [];
+        const downloadedList = sources?.length
+            ? await this.downloadAll(sources)
+            : [];
 
-        if (rules && rules.length > 0) {
-            list = list.concat(rules);
-        }
+        // Combine, deduplicate, filter empty, and convert to Wildcards
+        const uniqueRules = [...new Set([...rulesList, ...downloadedList])]
+            .filter(Boolean);
 
-        const loadedList = await this.downloadAll(sources || []);
-        list = list.concat(loadedList);
-
-        // Remove duplicates and empty values
-        list = Array.from(new Set(list)).filter(Boolean);
-
-        return list.map((str) => new Wildcard(str));
+        return uniqueRules.map((str) => new Wildcard(str));
     }
 }

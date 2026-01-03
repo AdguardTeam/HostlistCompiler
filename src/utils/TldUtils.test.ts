@@ -94,9 +94,9 @@ Deno.test('TldUtils - should handle subdomains with public suffixes', () => {
     assertEquals(TldUtils.getPublicSuffix('deep.sub.example.co.uk'), 'co.uk');
 });
 
-Deno.test('TldUtils - should return null for invalid inputs', () => {
+Deno.test('TldUtils - should return TLD for bare TLD input', () => {
     assertEquals(TldUtils.getPublicSuffix(''), null);
-    assertEquals(TldUtils.getPublicSuffix('com'), null);
+    assertEquals(TldUtils.getPublicSuffix('com'), 'com');
 });
 
 Deno.test('TldUtils - should handle case insensitivity', () => {

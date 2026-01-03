@@ -1,5 +1,5 @@
-import { assertEquals, assertRejects } from '@std/assert';
-import { PreprocessorEvaluator, DirectiveType } from './PreprocessorEvaluator.ts';
+import { assertEquals } from '@std/assert';
+import { PreprocessorEvaluator } from './PreprocessorEvaluator.ts';
 
 // Mock logger
 const mockLogger = {

@@ -140,7 +140,7 @@ For active development with live reload:
 docker compose up
 ```
 
-Changes to files in `src/`, `src-worker/`, and `public/` will be reflected automatically.
+Changes to files in `src/`, `worker/`, and `public/` will be reflected automatically.
 
 ## Troubleshooting
 

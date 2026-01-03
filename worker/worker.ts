@@ -11,11 +11,35 @@
  * - JSON API for programmatic access
  */
 
+/// <reference types="@cloudflare/workers-types" />
+
+// NOTE: Container class for Cloudflare Containers deployment
+// This is a stub for local development. When deploying with containers enabled,
+// Cloudflare will use the Container runtime automatically.
+
+// Stub class for local development (satisfies Durable Object binding requirement)
+export class AdblockCompiler {
+  defaultPort = 8787;
+  
+  constructor(_state: DurableObjectState, _env: Env) {
+    // Stub constructor for local dev
+  }
+  
+  async fetch(_request: Request): Promise<Response> {
+    // Stub fetch for local dev - containers not used in local development
+    return new Response('Container endpoints are only available in production deployment', {
+      status: 501,
+    });
+  }
+}
+
+// When deploying with containers to production, the above stub will be replaced
+// with the actual Container class by extending from cloudflare:workers Container
+
 import {
     WorkerCompiler,
     type IConfiguration,
     type ICompilerEvents,
-    type WorkerCompilationResult,
 } from '../src/index.ts';
 
 /**

@@ -330,6 +330,9 @@ export class FilterDownloader {
             if (error instanceof Deno.errors.NotFound) {
                 throw new Error(`File not found: ${path}`);
             }
+            if (error instanceof Error && error.name === 'NotCapable') {
+                throw new Error(`Permission denied: Reading ${path} requires --allow-read flag`);
+            }
             throw error;
         }
     }

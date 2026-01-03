@@ -33,7 +33,7 @@ export interface FilterCompilerOptions {
 
 /**
  * Main compiler class for hostlist compilation.
- * Orchestrates the entire compilation process.
+ * Orchestrates the entire compilation process using async operations throughout.
  */
 export class FilterCompiler {
     private readonly logger: ILogger;
@@ -42,19 +42,38 @@ export class FilterCompiler {
     private readonly sourceCompiler: SourceCompiler;
     private readonly eventEmitter: CompilerEventEmitter;
 
-    constructor(loggerOrOptions?: ILogger | FilterCompilerOptions) {
-        // Handle both legacy (logger-only) and new (options object) signatures
-        if (loggerOrOptions && 'info' in loggerOrOptions) {
-            // Legacy: logger passed directly
-            this.logger = loggerOrOptions;
+    /**
+     * Creates a new FilterCompiler instance.
+     * 
+     * @param optionsOrLogger - Compiler configuration options or legacy logger
+     * 
+     * @example
+     * ```ts
+     * // Modern API
+     * const compiler = new FilterCompiler({
+     *   logger: customLogger,
+     *   events: {
+     *     onProgress: (e) => console.log(`Progress: ${e.message}`),
+     *   }
+     * });
+     * 
+     * // Legacy API (still supported)
+     * const compiler = new FilterCompiler(logger);
+     * ```
+     */
+    constructor(optionsOrLogger?: FilterCompilerOptions | ILogger) {
+        // Support both modern options object and legacy logger parameter
+        if (optionsOrLogger && 'info' in optionsOrLogger) {
+            // Legacy: ILogger passed directly
+            this.logger = optionsOrLogger;
             this.eventEmitter = createEventEmitter();
         } else {
-            // New: options object
-            const options = loggerOrOptions as FilterCompilerOptions | undefined;
-            this.logger = options?.logger || defaultLogger;
+            // Modern: options object
+            const options = optionsOrLogger as FilterCompilerOptions | undefined;
+            this.logger = options?.logger ?? defaultLogger;
             this.eventEmitter = createEventEmitter(options?.events);
         }
-
+        
         this.validator = new ConfigurationValidator();
         this.pipeline = new TransformationPipeline(undefined, this.logger, this.eventEmitter);
         this.sourceCompiler = new SourceCompiler(this.pipeline, this.logger, this.eventEmitter);

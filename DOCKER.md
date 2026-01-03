@@ -61,7 +61,7 @@ The Docker image is built in multiple stages for optimal size and security:
 - ✅ Wrangler (Cloudflare Worker local dev server)
 - ✅ Adblock Compiler library
 - ✅ Web UI (public/ directory)
-- ✅ Cloudflare Worker API (src-worker/)
+- ✅ Cloudflare Worker API (worker/)
 - ✅ Health checks (requires curl, installed in runtime stage)
 - ✅ Non-root user for security
 
@@ -110,7 +110,7 @@ You can mount volumes for persistent data:
 volumes:
   # Source code (for development - use docker-compose.override.yml)
   - ./src:/app/src
-  - ./src-worker:/app/src-worker
+  - ./worker:/app/worker
   - ./public:/app/public
   
   # Configuration files
@@ -188,7 +188,7 @@ The repository includes a `docker-compose.override.yml` file that automatically 
 docker compose up
 ```
 
-Any changes to files in `src/`, `src-worker/`, or `public/` will be reflected immediately.
+Any changes to files in `src/`, `worker/`, or `public/` will be reflected immediately.
 
 To disable development mode for production, rename or remove `docker-compose.override.yml`:
 

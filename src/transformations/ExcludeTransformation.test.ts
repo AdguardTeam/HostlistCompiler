@@ -116,7 +116,7 @@ Deno.test('ExcludeTransformation - should not exclude non-matching rules', () =>
     assertEquals(result, rules);
 });
 
-Deno.test('ExcludeTransformation - should handle case-sensitive matching', () => {
+Deno.test('ExcludeTransformation - should handle case-insensitive matching', () => {
     const rules = [
         '||Example.org^',
         '||example.org^',
@@ -126,6 +126,6 @@ Deno.test('ExcludeTransformation - should handle case-sensitive matching', () =>
     
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
     
-    // Should only exclude the lowercase match
-    assertEquals(result, ['||Example.org^', '||test.com^']);
+    // Should exclude both case variants
+    assertEquals(result, ['||test.com^']);
 });

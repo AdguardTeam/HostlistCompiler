@@ -48,7 +48,7 @@ COPY deno.json deno.lock ./
 
 # Copy source files
 COPY src ./src
-COPY src-worker ./src-worker
+COPY worker ./worker
 COPY public ./public
 
 # Copy configuration files
@@ -73,7 +73,7 @@ COPY --from=builder /app/node_modules ./node_modules
 # Copy all application files
 COPY --from=builder /app/deno.json /app/deno.lock ./
 COPY --from=builder /app/src ./src
-COPY --from=builder /app/src-worker ./src-worker
+COPY --from=builder /app/worker ./worker
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/wrangler.toml ./
 COPY --from=builder /app/tsconfig.json ./

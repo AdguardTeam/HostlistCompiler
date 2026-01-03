@@ -51,7 +51,7 @@ export class IncludeTransformation extends AsyncTransformation {
      */
     public static includeWithWildcards(rules: string[], wildcards: Wildcard[]): string[] {
         if (wildcards.length === 0) {
-            return rules;
+            return [];
         }
 
         return rules.filter((rule) => {
