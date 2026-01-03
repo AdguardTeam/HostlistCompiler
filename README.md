@@ -711,7 +711,7 @@ deno task compile
 # Build standalone executable
 deno task build
 
-# Run tests
+# Run tests (all tests co-located with source files in src/)
 deno task test
 
 # Run tests in watch mode
@@ -719,6 +719,9 @@ deno task test:watch
 
 # Run tests with coverage
 deno task test:coverage
+
+# Run specific test file
+deno test src/cli/ArgumentParser.test.ts
 
 # Lint code
 deno task lint
@@ -740,16 +743,18 @@ deno task cache
 
 ```
 src/
-├── cli/           # Command-line interface
-├── compiler/      # Core compilation logic
-├── configuration/ # Configuration validation
-├── downloader/    # Filter list downloading
-├── platform/      # Platform abstraction layer (Workers, browsers)
-├── transformations/ # Rule transformations
+├── cli/           # Command-line interface (with *.test.ts files)
+├── compiler/      # Core compilation logic (with *.test.ts files)
+├── configuration/ # Configuration validation (with *.test.ts files)
+├── downloader/    # Filter list downloading (with *.test.ts files)
+├── platform/      # Platform abstraction layer (with *.test.ts files)
+├── transformations/ # Rule transformations (with *.test.ts files)
 ├── types/         # TypeScript type definitions
-├── utils/         # Utility functions
+├── utils/         # Utility functions (with *.test.ts files)
 ├── index.ts       # Main library exports
 └── mod.ts         # Deno module exports
+
+Note: All tests are co-located with source files (*.test.ts next to *.ts)
 
 worker/            # Cloudflare Worker implementation (production-ready)
 ├── worker.ts      # Main worker with API endpoints
