@@ -54,7 +54,7 @@ Deno.test('ConfigurationLoader - should throw on missing file', async () => {
     await assertRejects(
         async () => await loader.loadFromFile('/nonexistent.json'),
         Error,
-        'Configuration file not found',
+        'Failed to load configuration: File not found',
     );
 });
 

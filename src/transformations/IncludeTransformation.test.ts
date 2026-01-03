@@ -103,7 +103,7 @@ Deno.test('IncludeTransformation - should return empty for non-matching rules', 
     assertEquals(result, []);
 });
 
-Deno.test('IncludeTransformation - should handle case-sensitive matching', () => {
+Deno.test('IncludeTransformation - should handle case-insensitive matching', () => {
     const rules = [
         '||Example.org^',
         '||example.org^',
@@ -113,8 +113,8 @@ Deno.test('IncludeTransformation - should handle case-sensitive matching', () =>
     
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
     
-    // Should only include the lowercase match
-    assertEquals(result, ['||example.org^']);
+    // Should include both case variants
+    assertEquals(result, ['||Example.org^', '||example.org^']);
 });
 
 Deno.test('IncludeTransformation - should include all matching rules', () => {

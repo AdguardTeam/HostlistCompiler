@@ -131,10 +131,12 @@ export class TransformationPipeline {
                     message: `Applying transformation: ${type}`,
                 });
 
-                transformed = await transformation.execute(transformed, {
+                const result = await transformation.execute(transformed, {
                     configuration,
                     logger: this.logger,
                 });
+                // Convert readonly array back to mutable for next iteration
+                transformed = Array.from(result);
 
                 const durationMs = performance.now() - startTime;
 

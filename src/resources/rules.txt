@@ -1,0 +1,4 @@
+! Test filter rules
+||example.com^
+||test.com^
+||ads.example.org^

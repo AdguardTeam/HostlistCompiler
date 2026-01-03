@@ -253,12 +253,12 @@ Deno.test('CompilerEventEmitter - should support multiple handlers', () => {
 
 // NoOpEventEmitter tests
 Deno.test('NoOpEventEmitter - should always report no listeners', () => {
-    const emitter = new NoOpEventEmitter();
+    const emitter = NoOpEventEmitter.getInstance();
     assertEquals(emitter.hasListeners(), false);
 });
 
 Deno.test('NoOpEventEmitter - should not throw on any emit', () => {
-    const emitter = new NoOpEventEmitter();
+    const emitter = NoOpEventEmitter.getInstance();
 
     emitter.emitSourceStart({ source: createTestSource(), sourceIndex: 0, totalSources: 1 });
     emitter.emitSourceComplete({ source: createTestSource(), sourceIndex: 0, totalSources: 1, ruleCount: 0, durationMs: 0 });

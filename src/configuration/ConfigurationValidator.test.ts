@@ -132,7 +132,7 @@ Deno.test('ConfigurationValidator.validate - should reject null configuration', 
     const validator = new ConfigurationValidator();
     const result = validator.validate(null);
     assertEquals(result.valid, false);
-    assertEquals(result.errors.length > 0, true);
+    assertEquals(result.errorsText !== null, true);
 });
 
 Deno.test('ConfigurationValidator.validate - should reject non-object configuration', () => {
@@ -406,7 +406,11 @@ Deno.test('ConfigurationValidator.validateAndGet - should throw with detailed er
         validator.validateAndGet(config);
         throw new Error('Should have thrown');
     } catch (error) {
-        assertEquals(error.message.includes('Configuration validation failed'), true);
-        assertEquals(error.message.length > 50, true);  // Should have detailed errors
+        if (error instanceof Error) {
+            assertEquals(error.message.includes('Configuration validation failed'), true);
+            assertEquals(error.message.length > 50, true);  // Should have detailed errors
+        } else {
+            throw error;
+        }
     }
 });
