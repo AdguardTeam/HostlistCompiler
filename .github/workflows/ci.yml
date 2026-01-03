@@ -164,7 +164,7 @@ jobs:
           deno-version: v2.4
 
       - name: Publish to JSR
-        run: deno publish --allow-dirty --provenance
+        run: deno publish --allow-dirty
         continue-on-error: true
         env:
           JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
