@@ -84,7 +84,7 @@ Run the compiler with Docker for easy deployment:
 
 ```bash
 # Using Docker Compose (recommended)
-docker-compose up -d
+docker compose up -d
 
 # Or using Docker CLI
 docker build -t adblock-compiler .
@@ -93,7 +93,8 @@ docker run -d -p 8787:8787 adblock-compiler
 
 Access the web UI at http://localhost:8787
 
-📚 **[Docker Deployment Guide](DOCKER.md)** - Complete guide for container deployment, Kubernetes, and production setups.
+📚 **[Quick Start Guide](QUICK_START.md)** - Get started with Docker in minutes  
+📚 **[Docker Deployment Guide](DOCKER.md)** - Complete guide for container deployment, Kubernetes, and production setups
 
 ## <a name="usage"></a> Usage
 
