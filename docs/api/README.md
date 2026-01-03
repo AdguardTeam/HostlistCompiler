@@ -420,4 +420,4 @@ See [Client Examples](../guides/clients.md) for code samples.
 
 - **GitHub Issues**: [jaypatrick/hostlistcompiler](https://github.com/jaypatrick/hostlistcompiler/issues)
 - **Documentation**: [docs/](../)
-- **Web UI**: [https://adblock.jaysonknight.com](https://adblock.jaysonknight.com)
+- **Web UI**: [https://adblock-compiler.jayson-knight.workers.dev/](https://adblock-compiler.jayson-knight.workers.dev/)

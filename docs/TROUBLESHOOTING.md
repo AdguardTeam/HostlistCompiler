@@ -597,7 +597,7 @@ Include:
 - **Documentation**: [README.md](../README.md)
 - **API Reference**: [docs/api/README.md](../docs/api/README.md)
 - **Examples**: [docs/guides/clients.md](../docs/guides/clients.md)
-- **Web UI**: https://adblock.jaysonknight.com
+- **Web UI**: https://adblock-compiler.jayson-knight.workers.dev/
 
 ## Quick Fixes Checklist
 

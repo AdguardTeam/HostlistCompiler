@@ -145,7 +145,7 @@ const { results } = await response.json();
 
 ### Visual Diff
 
-Use the Web UI at https://adblock.jaysonknight.com to see visual diffs between compilations.
+Use the Web UI at https://adblock-compiler.jayson-knight.workers.dev/ to see visual diffs between compilations.
 
 ## Platform-Specific Migration
 
@@ -255,7 +255,7 @@ npm install @adguard/hostlist-compiler@^1.0.39
 ## Support & Resources
 
 - **Documentation**: [docs/api/README.md](../docs/api/README.md)
-- **Web UI**: https://adblock.jaysonknight.com
+- **Web UI**: https://adblock-compiler.jayson-knight.workers.dev/
 - **API Reference**: https://adblock-compiler.jayson-knight.workers.dev/api
 - **GitHub Issues**: https://github.com/jaypatrick/adblock-compiler/issues
 - **Examples**: [docs/guides/clients.md](../docs/guides/clients.md)
