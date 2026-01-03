@@ -28,6 +28,7 @@
   - [Configuration](#configuration)
   - [Command-line](#command-line)
   - [API](#api)
+- [Docker Deployment](#docker-deployment)
 - [Transformations](#transformations)
   - [RemoveComments](#remove-comments)
   - [Compress](#compress)
@@ -76,6 +77,24 @@ deno task build
 ```
 
 This creates a standalone `hostlist-compiler` executable.
+
+### Using Docker
+
+Run the compiler with Docker for easy deployment:
+
+```bash
+# Using Docker Compose (recommended)
+docker compose up -d
+
+# Or using Docker CLI
+docker build -t adblock-compiler .
+docker run -d -p 8787:8787 adblock-compiler
+```
+
+Access the web UI at http://localhost:8787
+
+📚 **[Quick Start Guide](QUICK_START.md)** - Get started with Docker in minutes  
+📚 **[Docker Deployment Guide](DOCKER.md)** - Complete guide for container deployment, Kubernetes, and production setups
 
 ## <a name="usage"></a> Usage
 
@@ -334,6 +353,51 @@ const config: IConfiguration = {
 const result = await compiler.compile(config);
 console.log(`Compiled ${result.length} rules`);
 ```
+
+## <a name="docker-deployment"></a> Docker Deployment
+
+Deploy the compiler and web UI using Docker containers for easy setup and management.
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/jaypatrick/adblock-compiler.git
+cd adblock-compiler
+
+# Start with Docker Compose
+docker-compose up -d
+```
+
+Access the web UI at http://localhost:8787
+
+### Features
+
+- 🐳 **Multi-stage Docker build** - Optimized image size with Deno and Node.js
+- 🚀 **Cloudflare Worker runtime** - Runs Wrangler dev server in the container
+- 🌐 **Full Web UI** - Access the interactive interface and API
+- 🛠️ **CLI mode** - Run compilation tasks from the command line
+- 📊 **Health checks** - Built-in monitoring and health endpoints
+- 🔒 **Security** - Non-root user and minimal attack surface
+
+### Basic Usage
+
+**Web UI and API Server:**
+```bash
+docker-compose up -d
+# Visit http://localhost:8787
+```
+
+**CLI Mode:**
+```bash
+docker run --rm \
+  -v $(pwd)/config.json:/app/config.json:ro \
+  -v $(pwd)/output:/app/output \
+  adblock-compiler:latest \
+  /app/hostlist-compiler -c /app/config.json -o /app/output/filter.txt
+```
+
+📚 **[Complete Docker Guide](DOCKER.md)** - Detailed documentation for Docker deployment, production setups, Kubernetes, and troubleshooting.
 
 ## <a name="transformations"></a> Transformations
 
