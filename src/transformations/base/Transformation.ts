@@ -86,7 +86,6 @@ export abstract class SyncTransformation extends Transformation {
 
     /**
      * Wraps the sync execution in a resolved Promise for interface compatibility.
-     * Uses queueMicrotask to ensure truly async behavior.
      */
     public override execute(
         rules: readonly string[],
