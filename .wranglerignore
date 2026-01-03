@@ -31,11 +31,7 @@ docs/
 tsconfig.json
 deno.json
 deno.lock
-package.json
-package-lock.json
 pnpm-lock.yaml
 yarn.lock
 docker-compose*.yml
-Dockerfile
-.dockerignore
 .env.example
