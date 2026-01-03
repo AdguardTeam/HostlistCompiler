@@ -3,7 +3,6 @@ import { IncludeTransformation } from './IncludeTransformation.ts';
 import { Wildcard } from '../utils/Wildcard.ts';
 
 Deno.test('IncludeTransformation - should include only matching rules', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||example.org^',
         '||test.com^',
@@ -17,7 +16,6 @@ Deno.test('IncludeTransformation - should include only matching rules', () => {
 });
 
 Deno.test('IncludeTransformation - should include rules matching any pattern', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||ads.example.org^',
         '||tracking.test.com^',
@@ -35,7 +33,6 @@ Deno.test('IncludeTransformation - should include rules matching any pattern', (
 });
 
 Deno.test('IncludeTransformation - should return empty when no wildcards', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||example.org^',
         '||test.com^',
@@ -47,7 +44,6 @@ Deno.test('IncludeTransformation - should return empty when no wildcards', () =>
 });
 
 Deno.test('IncludeTransformation - should handle empty rules array', () => {
-    const transformation = new IncludeTransformation();
     const wildcards = [new Wildcard('*example*')];
     
     const result = IncludeTransformation.includeWithWildcards([], wildcards);
@@ -56,7 +52,6 @@ Deno.test('IncludeTransformation - should handle empty rules array', () => {
 });
 
 Deno.test('IncludeTransformation - should handle exact matches', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||example.org^',
         '||test.com^',
@@ -70,7 +65,6 @@ Deno.test('IncludeTransformation - should handle exact matches', () => {
 });
 
 Deno.test('IncludeTransformation - should handle wildcard at start', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||example.org^',
         '||my-example.org^',
@@ -84,7 +78,6 @@ Deno.test('IncludeTransformation - should handle wildcard at start', () => {
 });
 
 Deno.test('IncludeTransformation - should handle wildcard at end', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||example.org^',
         '||example.com^',
@@ -98,7 +91,6 @@ Deno.test('IncludeTransformation - should handle wildcard at end', () => {
 });
 
 Deno.test('IncludeTransformation - should return empty for non-matching rules', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||example.org^',
         '||test.com^',
@@ -112,7 +104,6 @@ Deno.test('IncludeTransformation - should return empty for non-matching rules', 
 });
 
 Deno.test('IncludeTransformation - should handle case-sensitive matching', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||Example.org^',
         '||example.org^',
@@ -127,7 +118,6 @@ Deno.test('IncludeTransformation - should handle case-sensitive matching', () =>
 });
 
 Deno.test('IncludeTransformation - should include all matching rules', () => {
-    const transformation = new IncludeTransformation();
     const rules = [
         '||ads.example.com^',
         '||tracker.example.org^',

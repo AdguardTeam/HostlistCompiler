@@ -7,6 +7,7 @@ const mockLogger = {
     info: () => {},
     warn: () => {},
     error: () => {},
+    trace: () => {},
 };
 
 Deno.test('PreprocessorEvaluator - should process lines without directives', async () => {
