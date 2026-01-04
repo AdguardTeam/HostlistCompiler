@@ -58,7 +58,7 @@ function isMetadataHeader(line: string): boolean {
  * @returns Array with metadata headers removed
  */
 export function stripUpstreamHeaders(lines: string[]): string[] {
-    const result: string[] = [];
+    let result: string[] = [];
     let inHeaderSection = true;
     let consecutiveEmptyComments = 0;
     
