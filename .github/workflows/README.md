@@ -4,6 +4,29 @@ This directory contains the GitHub Actions workflows for the adblock-compiler pr
 
 ## Workflows
 
+### Auto Version Bump (`version-bump.yml`)
+
+Automatically bumps the version number when a pull request is opened.
+
+#### Trigger
+- Runs when a pull request is opened targeting master/main branches
+- Does not run for PRs created by bots (github-actions[bot], dependabot[bot])
+
+#### What it does
+1. Extracts the current version from `deno.json`
+2. Increments the patch version (e.g., 0.6.88 → 0.6.89)
+3. Updates the version in both `deno.json` and `package.json`
+4. Commits the changes with message: `chore: bump version to X.Y.Z`
+5. Pushes the commit to the PR branch
+6. Adds a comment to the PR confirming the version bump
+
+#### Why it's needed
+JSR (JavaScript Registry) only accepts new versions when publishing. Without automatic version bumping, merged PRs would not trigger a new JSR publication, preventing updated code from being available to users.
+
+#### Permissions
+- `contents: write` - Required to commit and push version changes
+- `pull-requests: write` - Required to add comments to PRs
+
 ### CI/CD Pipeline (`ci.yml`)
 
 The main CI/CD pipeline that runs on every push and pull request to master/main branches.
