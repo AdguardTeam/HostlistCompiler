@@ -278,7 +278,7 @@
         }
 
         .progress-content.expanded {
-            max-height: 600px;
+            max-height: 50vh;
             overflow-y: auto;
         }
 
@@ -795,7 +795,7 @@ eventSource.addEventListener('result', (e) => {
 
             <!-- Progress Section -->
             <div class="progress-section" id="progress">
-                <div class="progress-header" id="progress-header">
+                <div class="progress-header" id="progress-header" role="button" aria-expanded="false" aria-controls="progress-content" tabindex="0">
                     <h3>📊 Compilation Progress</h3>
                     <span class="progress-toggle collapsed" id="progress-toggle">▼</span>
                 </div>
@@ -862,15 +862,27 @@ eventSource.addEventListener('result', (e) => {
         const progressContent = document.getElementById('progress-content');
         const progressToggle = document.getElementById('progress-toggle');
 
-        progressHeader.addEventListener('click', () => {
+        function toggleProgress() {
             const isExpanded = progressContent.classList.contains('expanded');
             
             if (isExpanded) {
                 progressContent.classList.remove('expanded');
                 progressToggle.classList.add('collapsed');
+                progressHeader.setAttribute('aria-expanded', 'false');
+                delete progressContent.dataset.wasExpanded;
             } else {
                 progressContent.classList.add('expanded');
                 progressToggle.classList.remove('collapsed');
+                progressHeader.setAttribute('aria-expanded', 'true');
+                progressContent.dataset.wasExpanded = 'true';
+            }
+        }
+
+        progressHeader.addEventListener('click', toggleProgress);
+        progressHeader.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleProgress();
             }
         });
 
@@ -1185,14 +1197,18 @@ eventSource.addEventListener('result', (e) => {
 
         function showProgress() {
             const progressSection = document.getElementById('progress');
-            const progressContent = document.getElementById('progress-content');
-            const progressToggle = document.getElementById('progress-toggle');
-            
             progressSection.classList.add('visible');
-            // Start with progress section collapsed by default
-            // Users can click to expand if they want to see details
-            progressContent.classList.remove('expanded');
-            progressToggle.classList.add('collapsed');
+            // Keep the current expanded/collapsed state when showing progress again
+            // Only set to collapsed if this is the first time showing
+            const progressContent = document.getElementById('progress-content');
+            if (!progressContent.classList.contains('expanded') && !progressContent.dataset.wasExpanded) {
+                // First time showing - start collapsed
+                const progressToggle = document.getElementById('progress-toggle');
+                const progressHeader = document.getElementById('progress-header');
+                progressContent.classList.remove('expanded');
+                progressToggle.classList.add('collapsed');
+                progressHeader.setAttribute('aria-expanded', 'false');
+            }
         }
 
         function hideResults() {
