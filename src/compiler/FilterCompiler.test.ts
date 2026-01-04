@@ -219,3 +219,23 @@ Deno.test('FilterCompiler - should add source header for each source', async () 
     assertEquals(result.some((line) => line.includes('Source name: Test Source')), true);
     assertEquals(result.some((line) => line.includes('Source:')), true);
 });
+
+// Test checksum generation
+Deno.test('FilterCompiler - should add checksum to compiled output', async () => {
+    const compiler = new FilterCompiler(silentLogger);
+    const config = createTestConfig();
+
+    const result = await compiler.compile(config);
+
+    // Should have a checksum line
+    assertEquals(result.some((line) => line.startsWith('! Checksum:')), true);
+    
+    // Checksum should be in the header section (before source headers)
+    const checksumIndex = result.findIndex((line) => line.startsWith('! Checksum:'));
+    const firstSourceIndex = result.findIndex((line) => line.includes('Source name:') || line.includes('! Source:'));
+    assertEquals(checksumIndex > 0, true);
+    // If there's a source header, checksum should be before it
+    if (firstSourceIndex > 0) {
+        assertEquals(checksumIndex < firstSourceIndex, true);
+    }
+});
