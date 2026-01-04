@@ -24,3 +24,6 @@ export type { BenchmarkResult, CompilationMetrics } from './Benchmark.ts';
 
 // Event system
 export { CompilerEventEmitter, NoOpEventEmitter, createEventEmitter } from './EventEmitter.ts';
+
+// Checksum utilities
+export { calculateChecksum, addChecksumToHeader } from './checksum.ts';

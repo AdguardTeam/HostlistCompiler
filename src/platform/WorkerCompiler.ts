@@ -8,7 +8,7 @@ import type { IConfiguration, ILogger, ISource, TransformationType, ICompilerEve
 import type { IContentFetcher, IPlatformCompilerOptions } from './types.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
-import { silentLogger, createEventEmitter, CompilerEventEmitter, BenchmarkCollector, CompilationMetrics } from '../utils/index.ts';
+import { silentLogger, createEventEmitter, CompilerEventEmitter, BenchmarkCollector, CompilationMetrics, addChecksumToHeader } from '../utils/index.ts';
 import { HttpFetcher } from './HttpFetcher.ts';
 import { PreFetchedContentFetcher } from './PreFetchedContentFetcher.ts';
 import { CompositeFetcher } from './CompositeFetcher.ts';
@@ -27,7 +27,7 @@ export interface WorkerCompilationResult {
  */
 const PACKAGE_INFO = {
     name: '@jk-com/adblock-compiler',
-    version: '2.0.0',
+    version: '0.6.88',
 } as const;
 
 /**
@@ -261,7 +261,11 @@ export class WorkerCompiler {
 
         // Prepend header
         const header = this.prepareHeader(configuration);
-        const rules = [...header, ...finalList];
+        let rules = [...header, ...finalList];
+        
+        // Add checksum to the header
+        rules = await addChecksumToHeader(rules);
+        
         collector?.setOutputRuleCount(rules.length);
 
         const metrics = collector?.finish();
