@@ -763,10 +763,6 @@ eventSource.addEventListener('result', (e) => {
                         <h4>📊 Changes from Cached Version</h4>
                         <div class="diff-stats" id="diff-stats"></div>
                     </div>
-                    <div class="diff-toggle">
-                        <input type="checkbox" id="show-unchanged" />
-                        <label for="show-unchanged">Show unchanged lines</label>
-                    </div>
                     <div class="diff-container" id="diff-container"></div>
                 </div>
                 
@@ -1156,16 +1152,17 @@ eventSource.addEventListener('result', (e) => {
             
             const removed = oldRules.filter(rule => !newSet.has(rule));
             const added = newRules.filter(rule => !oldSet.has(rule));
-            const unchanged = newRules.filter(rule => oldSet.has(rule));
+            // Don't compute the full unchanged array - it's expensive for large lists
+            // We only need the count, which can be derived: unchanged = total - added
+            const unchangedCount = newRules.length - added.length;
             
-            return { added, removed, unchanged };
+            return { added, removed, unchangedCount };
         }
 
         function showDiff(oldRules, newRules, compiledAt) {
             const diffSection = document.getElementById('diff-section');
             const diffStats = document.getElementById('diff-stats');
             const diffContainer = document.getElementById('diff-container');
-            const showUnchangedCheckbox = document.getElementById('show-unchanged');
             
             const diff = computeDiff(oldRules, newRules);
             
@@ -1173,11 +1170,11 @@ eventSource.addEventListener('result', (e) => {
             diffStats.innerHTML = `
                 <span class="diff-stat-added">+${diff.added.length} added</span>
                 <span class="diff-stat-removed">-${diff.removed.length} removed</span>
-                <span class="diff-stat-unchanged">${diff.unchanged.length} unchanged</span>
+                <span class="diff-stat-unchanged">${diff.unchangedCount} unchanged</span>
             `;
             
             // Render diff
-            function renderDiff(showUnchanged) {
+            function renderDiff() {
                 const lines = [];
                 
                 // Show removed lines
@@ -1196,24 +1193,16 @@ eventSource.addEventListener('result', (e) => {
                     lines.push(`<div class="diff-line diff-line-added"><span class="diff-line-symbol">...</span>and ${diff.added.length - 200} more added</div>`);
                 }
                 
-                // Optionally show unchanged lines (sample)
-                if (showUnchanged) {
-                    diff.unchanged.slice(0, 50).forEach(rule => {
-                        lines.push(`<div class="diff-line diff-line-unchanged"><span class="diff-line-symbol"> </span>${escapeHtml(rule)}</div>`);
-                    });
-                    if (diff.unchanged.length > 50) {
-                        lines.push(`<div class="diff-line diff-line-unchanged"><span class="diff-line-symbol">...</span>and ${diff.unchanged.length - 50} more unchanged</div>`);
-                    }
+                // Show summary of unchanged rules (we don't render them individually for performance)
+                if (diff.unchangedCount > 0) {
+                    lines.push(`<div class="diff-line diff-line-unchanged"><span class="diff-line-symbol"> </span>${diff.unchangedCount} rules unchanged</div>`);
                 }
                 
                 diffContainer.innerHTML = lines.length > 0 ? lines.join('') : '<div class="diff-line">No changes detected</div>';
             }
             
             // Initial render
-            renderDiff(showUnchangedCheckbox.checked);
-            
-            // Toggle unchanged lines
-            showUnchangedCheckbox.onchange = () => renderDiff(showUnchangedCheckbox.checked);
+            renderDiff();
             
             // Show section
             diffSection.style.display = 'block';
