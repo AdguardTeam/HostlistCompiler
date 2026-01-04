@@ -976,6 +976,42 @@ eventSource.addEventListener('result', (e) => {
         // Compile functionality
         let compiledRules = [];
         let currentListName = '';
+        let compilerWorker = null;
+        let compilationId = 0;
+
+        // Initialize the Web Worker
+        function initWorker() {
+            if (!compilerWorker) {
+                compilerWorker = new Worker('compiler-worker.js');
+                
+                compilerWorker.addEventListener('message', (event) => {
+                    handleWorkerMessage(event.data);
+                });
+
+                compilerWorker.addEventListener('error', (error) => {
+                    console.error('Worker error:', error);
+                    addLog('error', `Worker error: ${error.message}`);
+                });
+            }
+        }
+
+        // Handle messages from the worker
+        function handleWorkerMessage(message) {
+            if (message.type === 'ready') {
+                console.log('Compiler worker is ready');
+                return;
+            }
+
+            const { type, eventType, data, error } = message;
+
+            if (type === 'event') {
+                handleCompilationEvent(eventType, data);
+            } else if (type === 'error') {
+                handleCompilationError(error);
+            } else if (type === 'complete') {
+                handleCompilationComplete();
+            }
+        }
 
         document.getElementById('simple-compile').addEventListener('click', () => compileSimple());
         document.getElementById('advanced-compile').addEventListener('click', () => compileAdvanced());
@@ -1061,6 +1097,72 @@ eventSource.addEventListener('result', (e) => {
             await compile(configuration, {}, benchmark);
         }
 
+        // Store compilation state
+        let compileStartTime = 0;
+
+        // Handle compilation events from the worker
+        function handleCompilationEvent(eventType, data) {
+            const progressFill = document.getElementById('progress-fill');
+
+            if (eventType === 'log') {
+                addLog(data.level, data.message);
+            } else if (eventType === 'progress') {
+                updateProgress(data);
+            } else if (eventType === 'source:start') {
+                addLog('info', `Fetching: ${data.source.name || data.source.source}`);
+            } else if (eventType === 'source:complete') {
+                addLog('info', `✓ Completed: ${data.source.name || data.source.source}`);
+            } else if (eventType === 'source:error') {
+                addLog('error', `✗ Error: ${data.error}`);
+            } else if (eventType === 'transformation:start') {
+                addLog('info', `Applying: ${data.name}`);
+            } else if (eventType === 'transformation:complete') {
+                addLog('info', `✓ ${data.name} complete (${data.outputCount} rules)`);
+            } else if (eventType === 'compilation:complete') {
+                addLog('success', `✓ Compilation complete! (${data.ruleCount} rules)`);
+            } else if (eventType === 'result') {
+                compiledRules = data.rules;
+                showResults(data);
+                
+                // Track successful compilation
+                const compileTime = Date.now() - compileStartTime;
+                trackEvent('compilation_completed', {
+                    list_name: currentListName,
+                    rule_count: data.ruleCount,
+                    duration_ms: compileTime,
+                    has_diff: !!data.previousVersion,
+                    cache_status: data.cacheStatus || 'unknown'
+                });
+            } else if (eventType === 'done') {
+                addLog('success', '✓ Compilation complete!');
+                progressFill.style.width = '100%';
+            } else if (eventType === 'error') {
+                handleCompilationError(data.error);
+            }
+        }
+
+        // Handle compilation errors
+        function handleCompilationError(errorMessage) {
+            addLog('error', `Compilation failed: ${errorMessage}`);
+            alert('Compilation failed: ' + errorMessage);
+            
+            // Track compilation error
+            trackEvent('compilation_error', {
+                list_name: currentListName,
+                error_message: errorMessage,
+                duration_ms: Date.now() - compileStartTime
+            });
+
+            const compileBtn = document.querySelector('.btn-primary');
+            compileBtn.disabled = false;
+        }
+
+        // Handle compilation completion
+        function handleCompilationComplete() {
+            const compileBtn = document.querySelector('.btn-primary');
+            compileBtn.disabled = false;
+        }
+
         async function compile(configuration, preFetchedContent, benchmark) {
             currentListName = configuration.name || 'filter-list';
             hideResults();
@@ -1075,7 +1177,7 @@ eventSource.addEventListener('result', (e) => {
             compileBtn.disabled = true;
 
             // Track compilation start
-            const compileStartTime = Date.now();
+            compileStartTime = Date.now();
             trackEvent('compilation_started', {
                 list_name: currentListName,
                 source_count: configuration.sources?.length || 0,
@@ -1083,102 +1185,26 @@ eventSource.addEventListener('result', (e) => {
                 benchmark: benchmark
             });
 
-            try {
-                // Use production API or local dev
-                const apiUrl = window.location.hostname === 'localhost' 
-                    ? '/compile/stream'
-                    : 'https://adblock-compiler.jayson-knight.workers.dev/compile/stream';
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        configuration,
-                        preFetchedContent,
-                        benchmark
-                    })
-                });
+            // Initialize worker if needed
+            initWorker();
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+            // Use production API or local dev
+            const apiUrl = window.location.hostname === 'localhost' 
+                ? '/compile/stream'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/compile/stream';
+            
+            // Send compilation request to worker
+            const requestId = ++compilationId;
+            compilerWorker.postMessage({
+                type: 'compile',
+                id: requestId,
+                apiUrl,
+                requestBody: {
+                    configuration,
+                    preFetchedContent,
+                    benchmark
                 }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-                let currentEventType = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (!line.trim()) continue;
-                        
-                        // Parse SSE format: event and data are on separate lines
-                        if (line.startsWith('event: ')) {
-                            currentEventType = line.slice(7).trim();
-                        } else if (line.startsWith('data: ')) {
-                            const data = JSON.parse(line.slice(6));
-                            const eventType = currentEventType;
-
-                            if (eventType === 'log') {
-                                addLog(data.level, data.message);
-                            } else if (eventType === 'progress') {
-                                updateProgress(data);
-                            } else if (eventType === 'source:start') {
-                                addLog('info', `Fetching: ${data.source.name || data.source.source}`);
-                            } else if (eventType === 'source:complete') {
-                                addLog('info', `✓ Completed: ${data.source.name || data.source.source}`);
-                            } else if (eventType === 'source:error') {
-                                addLog('error', `✗ Error: ${data.error}`);
-                            } else if (eventType === 'transformation:start') {
-                                addLog('info', `Applying: ${data.name}`);
-                            } else if (eventType === 'transformation:complete') {
-                                addLog('info', `✓ ${data.name} complete (${data.outputCount} rules)`);
-                            } else if (eventType === 'compilation:complete') {
-                                addLog('success', `✓ Compilation complete! (${data.ruleCount} rules)`);
-                            } else if (eventType === 'result') {
-                                compiledRules = data.rules;
-                                showResults(data);
-                                
-                                // Track successful compilation
-                                const compileTime = Date.now() - compileStartTime;
-                                trackEvent('compilation_completed', {
-                                    list_name: currentListName,
-                                    rule_count: data.ruleCount,
-                                    duration_ms: compileTime,
-                                    has_diff: !!data.previousVersion,
-                                    cache_status: data.cacheStatus || 'unknown'
-                                });
-                            } else if (eventType === 'done') {
-                                addLog('success', '✓ Compilation complete!');
-                                progressFill.style.width = '100%';
-                            } else if (eventType === 'error') {
-                                throw new Error(data.error);
-                            }
-                        }
-                    }
-                }
-            } catch (error) {
-                addLog('error', `Compilation failed: ${error.message}`);
-                alert('Compilation failed: ' + error.message);
-                
-                // Track compilation error
-                trackEvent('compilation_error', {
-                    list_name: currentListName,
-                    error_message: error.message,
-                    duration_ms: Date.now() - compileStartTime
-                });
-            } finally {
-                compileBtn.disabled = false;
-            }
+            });
         }
 
         function addLog(level, message) {
