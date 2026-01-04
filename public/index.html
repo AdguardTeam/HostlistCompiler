@@ -866,7 +866,7 @@ eventSource.addEventListener('result', (e) => {
             progressContent.classList.remove('expanded');
             progressToggle.classList.add('collapsed');
             progressHeader.setAttribute('aria-expanded', 'false');
-            delete progressContent.dataset.wasExpanded;
+            progressContent.removeAttribute('data-was-expanded');
         }
 
         function expandProgress() {
