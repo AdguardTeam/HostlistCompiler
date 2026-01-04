@@ -795,9 +795,9 @@ eventSource.addEventListener('result', (e) => {
 
             <!-- Progress Section -->
             <div class="progress-section" id="progress">
-                <div class="progress-header" id="progress-header" role="button" aria-expanded="false" aria-controls="progress-content" tabindex="0">
+                <div class="progress-header" id="progress-header" role="button" aria-expanded="false" aria-controls="progress-content" aria-label="Toggle compilation progress details" tabindex="0">
                     <h3>📊 Compilation Progress</h3>
-                    <span class="progress-toggle collapsed" id="progress-toggle">▼</span>
+                    <span class="progress-toggle collapsed" id="progress-toggle" aria-hidden="true">▼</span>
                 </div>
                 <div class="progress-content" id="progress-content">
                     <div class="progress-bar">
@@ -866,7 +866,7 @@ eventSource.addEventListener('result', (e) => {
             progressContent.classList.remove('expanded');
             progressToggle.classList.add('collapsed');
             progressHeader.setAttribute('aria-expanded', 'false');
-            progressContent.removeAttribute('data-was-expanded');
+            progressContent.dataset.wasExpanded = '';
         }
 
         function expandProgress() {
