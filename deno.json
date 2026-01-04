@@ -1,10 +1,17 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.6.88",
+    "version": "0.6.89",
     "exports": "./src/index.ts",
     "publish": {
-        "include": ["src/**/*.ts", "README.md", "LICENSE"],
-        "exclude": ["src/**/*.test.ts", "**/*.deno.ts"]
+        "include": [
+            "src/**/*.ts",
+            "README.md",
+            "LICENSE"
+        ],
+        "exclude": [
+            "src/**/*.test.ts",
+            "**/*.deno.ts"
+        ]
     },
     "tasks": {
         "dev": "deno run --watch --allow-read --allow-write --allow-net src/cli.ts",
@@ -35,11 +42,24 @@
     },
     "lint": {
         "rules": {
-            "tags": ["recommended"],
-            "include": ["ban-untagged-todo", "no-console"],
-            "exclude": ["no-explicit-any"]
+            "tags": [
+                "recommended"
+            ],
+            "include": [
+                "ban-untagged-todo",
+                "no-console"
+            ],
+            "exclude": [
+                "no-explicit-any"
+            ]
         },
-        "exclude": ["dist/", "node_modules/", "coverage/", "src/storage/example.ts", "examples/"]
+        "exclude": [
+            "dist/",
+            "node_modules/",
+            "coverage/",
+            "src/storage/example.ts",
+            "examples/"
+        ]
     },
     "fmt": {
         "useTabs": false,
@@ -48,22 +68,39 @@
         "semiColons": true,
         "singleQuote": true,
         "proseWrap": "preserve",
-        "exclude": ["dist/", "node_modules/", "coverage/"]
+        "exclude": [
+            "dist/",
+            "node_modules/",
+            "coverage/"
+        ]
     },
     "test": {
-        "include": ["src/**/*_test.ts", "src/**/*.test.ts"],
-        "exclude": ["src/**/*.bench.ts"]
+        "include": [
+            "src/**/*_test.ts",
+            "src/**/*.test.ts"
+        ],
+        "exclude": [
+            "src/**/*.bench.ts"
+        ]
     },
     "bench": {
-        "include": ["src/**/*.bench.ts"]
+        "include": [
+            "src/**/*.bench.ts"
+        ]
     },
     "compilerOptions": {
-        "lib": ["deno.window"],
+        "lib": [
+            "deno.window"
+        ],
         "strict": true,
         "noImplicitAny": true,
         "strictNullChecks": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true
     },
-    "allowScripts": ["npm:esbuild@0.27.0", "npm:sharp@0.33.5", "npm:workerd@1.20251210.0"]
+    "allowScripts": [
+        "npm:esbuild@0.27.0",
+        "npm:sharp@0.33.5",
+        "npm:workerd@1.20251210.0"
+    ]
 }
