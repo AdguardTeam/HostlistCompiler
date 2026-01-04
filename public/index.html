@@ -866,7 +866,10 @@ eventSource.addEventListener('result', (e) => {
             progressContent.classList.remove('expanded');
             progressToggle.classList.add('collapsed');
             progressHeader.setAttribute('aria-expanded', 'false');
-            progressContent.removeAttribute('data-was-expanded');
+            // Don't remove the attribute - just mark as not expanded
+            // This way showProgress() can distinguish between:
+            // - Never expanded by user (undefined)
+            // - User manually collapsed it (but was expanded before)
         }
 
         function expandProgress() {
