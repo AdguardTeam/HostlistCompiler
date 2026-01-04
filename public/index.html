@@ -267,7 +267,7 @@
         }
 
         .progress-toggle.collapsed {
-            transform: rotate(-90deg);
+            transform: rotate(90deg);
         }
 
         .progress-content {
@@ -866,7 +866,7 @@ eventSource.addEventListener('result', (e) => {
             progressContent.classList.remove('expanded');
             progressToggle.classList.add('collapsed');
             progressHeader.setAttribute('aria-expanded', 'false');
-            progressContent.dataset.wasExpanded = '';
+            delete progressContent.dataset.wasExpanded;
         }
 
         function expandProgress() {
@@ -1207,7 +1207,7 @@ eventSource.addEventListener('result', (e) => {
             progressSection.classList.add('visible');
             // Keep the current expanded/collapsed state when showing progress again
             // Only collapse if user hasn't manually expanded it before
-            if (!progressContent.dataset.wasExpanded) {
+            if (progressContent.dataset.wasExpanded !== 'true') {
                 collapseProgress();
             }
         }
