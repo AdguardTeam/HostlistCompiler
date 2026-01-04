@@ -1019,6 +1019,7 @@ eventSource.addEventListener('result', (e) => {
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let buffer = '';
+                let currentEventType = '';
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -1029,41 +1030,50 @@ eventSource.addEventListener('result', (e) => {
                     buffer = lines.pop() || '';
 
                     for (const line of lines) {
-                        if (!line.trim() || !line.startsWith('data: ')) continue;
+                        if (!line.trim()) continue;
                         
-                        const data = JSON.parse(line.slice(6));
-                        const eventType = line.match(/event: (\w+[\w:]*)/)?.[1];
+                        // Parse SSE format: event and data are on separate lines
+                        if (line.startsWith('event: ')) {
+                            currentEventType = line.slice(7).trim();
+                        } else if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+                            const eventType = currentEventType;
 
-                        if (eventType === 'log') {
-                            addLog(data.level, data.message);
-                        } else if (eventType === 'progress') {
-                            updateProgress(data);
-                        } else if (eventType === 'source:start') {
-                            addLog('info', `Fetching: ${data.source.name || data.source.source}`);
-                        } else if (eventType === 'source:complete') {
-                            addLog('info', `✓ Completed: ${data.source.name || data.source.source}`);
-                        } else if (eventType === 'source:error') {
-                            addLog('error', `✗ Error: ${data.error}`);
-                        } else if (eventType === 'transformation:start') {
-                            addLog('info', `Applying: ${data.transformation}`);
-                        } else if (eventType === 'result') {
-                            compiledRules = data.rules;
-                            showResults(data);
-                            
-                            // Track successful compilation
-                            const compileTime = Date.now() - compileStartTime;
-                            trackEvent('compilation_completed', {
-                                list_name: currentListName,
-                                rule_count: data.ruleCount,
-                                duration_ms: compileTime,
-                                has_diff: !!data.previousVersion,
-                                cache_status: data.cacheStatus || 'unknown'
-                            });
-                        } else if (eventType === 'done') {
-                            addLog('success', '✓ Compilation complete!');
-                            progressFill.style.width = '100%';
-                        } else if (eventType === 'error') {
-                            throw new Error(data.error);
+                            if (eventType === 'log') {
+                                addLog(data.level, data.message);
+                            } else if (eventType === 'progress') {
+                                updateProgress(data);
+                            } else if (eventType === 'source:start') {
+                                addLog('info', `Fetching: ${data.source.name || data.source.source}`);
+                            } else if (eventType === 'source:complete') {
+                                addLog('info', `✓ Completed: ${data.source.name || data.source.source}`);
+                            } else if (eventType === 'source:error') {
+                                addLog('error', `✗ Error: ${data.error}`);
+                            } else if (eventType === 'transformation:start') {
+                                addLog('info', `Applying: ${data.name}`);
+                            } else if (eventType === 'transformation:complete') {
+                                addLog('info', `✓ ${data.name} complete (${data.outputCount} rules)`);
+                            } else if (eventType === 'compilation:complete') {
+                                addLog('success', `✓ Compilation complete! (${data.ruleCount} rules)`);
+                            } else if (eventType === 'result') {
+                                compiledRules = data.rules;
+                                showResults(data);
+                                
+                                // Track successful compilation
+                                const compileTime = Date.now() - compileStartTime;
+                                trackEvent('compilation_completed', {
+                                    list_name: currentListName,
+                                    rule_count: data.ruleCount,
+                                    duration_ms: compileTime,
+                                    has_diff: !!data.previousVersion,
+                                    cache_status: data.cacheStatus || 'unknown'
+                                });
+                            } else if (eventType === 'done') {
+                                addLog('success', '✓ Compilation complete!');
+                                progressFill.style.width = '100%';
+                            } else if (eventType === 'error') {
+                                throw new Error(data.error);
+                            }
                         }
                     }
                 }

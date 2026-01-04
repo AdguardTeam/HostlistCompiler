@@ -340,6 +340,32 @@ async function handleCompileStream(
     const body = await request.json() as CompileRequest;
     const { configuration, preFetchedContent, benchmark } = body;
 
+    // Check cache for previous version (for diff comparison)
+    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) 
+        ? getCacheKey(configuration)
+        : null;
+    
+    let previousCachedVersion: { rules: string[]; ruleCount: number; compiledAt: string } | undefined;
+    
+    if (cacheKey) {
+        const cached = await env.COMPILATION_CACHE.get(cacheKey, 'arrayBuffer');
+        if (cached) {
+            try {
+                const decompressed = await decompress(cached);
+                const result = JSON.parse(decompressed);
+                
+                // Store previous version for diff comparison
+                previousCachedVersion = {
+                    rules: result.rules || [],
+                    ruleCount: result.ruleCount || 0,
+                    compiledAt: result.compiledAt || new Date().toISOString(),
+                };
+            } catch (error) {
+                console.error('Cache decompression failed:', error);
+            }
+        }
+    }
+
     // Create a TransformStream for streaming the response
     const { readable, writable } = new TransformStream<Uint8Array>();
     const writer = writable.getWriter();
@@ -359,14 +385,36 @@ async function handleCompileStream(
 
             const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
 
-            // Send final result
+            // Send final result with previous version for diff
             sendEvent('result', {
                 rules: result.rules,
                 ruleCount: result.rules.length,
                 metrics: result.metrics,
+                previousVersion: previousCachedVersion,
             });
 
             await writer.write(encoder.encode('event: done\ndata: {}\n\n'));
+            
+            // Cache the new result if no pre-fetched content
+            if (cacheKey) {
+                try {
+                    const compilationResult: CompilationResult = {
+                        success: true,
+                        rules: result.rules,
+                        ruleCount: result.rules.length,
+                        metrics: result.metrics,
+                        compiledAt: new Date().toISOString(),
+                    };
+                    const compressed = await compress(JSON.stringify(compilationResult));
+                    await env.COMPILATION_CACHE.put(
+                        cacheKey,
+                        compressed,
+                        { expirationTtl: CACHE_TTL }
+                    );
+                } catch (error) {
+                    console.error('Cache compression failed:', error);
+                }
+            }
             
             // Record success metrics
             await recordMetric(env, '/compile/stream', Date.now() - startTime, true);
