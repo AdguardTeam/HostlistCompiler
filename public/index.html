@@ -862,19 +862,26 @@ eventSource.addEventListener('result', (e) => {
         const progressContent = document.getElementById('progress-content');
         const progressToggle = document.getElementById('progress-toggle');
 
+        function collapseProgress() {
+            progressContent.classList.remove('expanded');
+            progressToggle.classList.add('collapsed');
+            progressHeader.setAttribute('aria-expanded', 'false');
+            progressContent.removeAttribute('data-was-expanded');
+        }
+
+        function expandProgress() {
+            progressContent.classList.add('expanded');
+            progressToggle.classList.remove('collapsed');
+            progressHeader.setAttribute('aria-expanded', 'true');
+            progressContent.dataset.wasExpanded = 'true';
+        }
+
         function toggleProgress() {
             const isExpanded = progressContent.classList.contains('expanded');
-            
             if (isExpanded) {
-                progressContent.classList.remove('expanded');
-                progressToggle.classList.add('collapsed');
-                progressHeader.setAttribute('aria-expanded', 'false');
-                delete progressContent.dataset.wasExpanded;
+                collapseProgress();
             } else {
-                progressContent.classList.add('expanded');
-                progressToggle.classList.remove('collapsed');
-                progressHeader.setAttribute('aria-expanded', 'true');
-                progressContent.dataset.wasExpanded = 'true';
+                expandProgress();
             }
         }
 
@@ -1199,15 +1206,9 @@ eventSource.addEventListener('result', (e) => {
             const progressSection = document.getElementById('progress');
             progressSection.classList.add('visible');
             // Keep the current expanded/collapsed state when showing progress again
-            // Only set to collapsed if this is the first time showing
-            const progressContent = document.getElementById('progress-content');
-            if (!progressContent.classList.contains('expanded') && !progressContent.dataset.wasExpanded) {
-                // First time showing - start collapsed
-                const progressToggle = document.getElementById('progress-toggle');
-                const progressHeader = document.getElementById('progress-header');
-                progressContent.classList.remove('expanded');
-                progressToggle.classList.add('collapsed');
-                progressHeader.setAttribute('aria-expanded', 'false');
+            // Only collapse if user hasn't manually expanded it before
+            if (!progressContent.dataset.wasExpanded) {
+                collapseProgress();
             }
         }
 
