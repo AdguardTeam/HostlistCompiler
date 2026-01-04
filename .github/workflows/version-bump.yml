@@ -42,7 +42,15 @@ jobs:
         id: bump_version
         run: |
           # Read current version from deno.json using deno for robust JSON parsing
-          CURRENT_VERSION=$(deno eval 'console.log(JSON.parse(Deno.readTextFileSync("deno.json")).version)')
+          if [ ! -f "deno.json" ]; then
+            echo "Error: deno.json not found"
+            exit 1
+          fi
+          
+          CURRENT_VERSION=$(deno eval 'console.log(JSON.parse(Deno.readTextFileSync("deno.json")).version)' 2>&1) || {
+            echo "Error: Failed to read version from deno.json"
+            exit 1
+          }
           echo "Current version: $CURRENT_VERSION"
           
           # Validate version format (must be major.minor.patch with numeric parts only)
@@ -69,11 +77,13 @@ jobs:
           echo "New version: $NEW_VERSION"
           
           # Update deno.json using deno for safe JSON manipulation
+          # Pass version as command-line argument to avoid shell injection
           deno eval "
+          const newVersion = Deno.args[0];
           const config = JSON.parse(Deno.readTextFileSync('deno.json'));
-          config.version = '$NEW_VERSION';
+          config.version = newVersion;
           Deno.writeTextFileSync('deno.json', JSON.stringify(config, null, 4) + '\n');
-          "
+          " "$NEW_VERSION"
           
           # Output for later steps
           echo "old_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
@@ -85,11 +95,13 @@ jobs:
           if [ -f "package.json" ] && grep -q '"version"' package.json; then
             NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
             # Use deno for safe JSON manipulation
+            # Pass version as command-line argument to avoid shell injection
             deno eval "
+            const newVersion = Deno.args[0];
             const pkg = JSON.parse(Deno.readTextFileSync('package.json'));
-            pkg.version = '$NEW_VERSION';
+            pkg.version = newVersion;
             Deno.writeTextFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
-            "
+            " "$NEW_VERSION"
             echo "Updated package.json version to ${NEW_VERSION}"
           fi
 
