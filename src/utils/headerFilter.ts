@@ -19,6 +19,8 @@ const METADATA_HEADER_PREFIXES = [
     '! TimeUpdated:',
     '! Checksum:',
     '! Compiled by ', // Note the trailing space to make it more specific
+    '! Source name:',
+    '! Source:',
     '! Diff-Path:',
     '! Diff-Expires:',
 ];
