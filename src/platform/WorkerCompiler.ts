@@ -8,7 +8,7 @@ import type { IConfiguration, ILogger, ISource, TransformationType, ICompilerEve
 import type { IContentFetcher, IPlatformCompilerOptions } from './types.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
-import { silentLogger, createEventEmitter, CompilerEventEmitter, BenchmarkCollector, CompilationMetrics, addChecksumToHeader } from '../utils/index.ts';
+import { silentLogger, createEventEmitter, CompilerEventEmitter, BenchmarkCollector, CompilationMetrics, addChecksumToHeader, stripUpstreamHeaders } from '../utils/index.ts';
 import { HttpFetcher } from './HttpFetcher.ts';
 import { PreFetchedContentFetcher } from './PreFetchedContentFetcher.ts';
 import { CompositeFetcher } from './CompositeFetcher.ts';
@@ -144,7 +144,10 @@ export class WorkerCompiler {
 
                         const startTime = performance.now();
                         try {
-                            const rules = await downloader.download(source.source);
+                            let rules = await downloader.download(source.source);
+
+                            // Strip upstream metadata headers to avoid redundancy
+                            rules = stripUpstreamHeaders(rules);
 
                             // Apply source-level transformations
                             const transformedRules = await this.applySourceTransformations(
@@ -186,7 +189,11 @@ export class WorkerCompiler {
 
                     const startTime = performance.now();
                     try {
-                        const rules = await downloader.download(source.source);
+                        let rules = await downloader.download(source.source);
+                        
+                        // Strip upstream metadata headers to avoid redundancy
+                        rules = stripUpstreamHeaders(rules);
+                        
                         const transformedRules = await this.applySourceTransformations(
                             rules,
                             source,

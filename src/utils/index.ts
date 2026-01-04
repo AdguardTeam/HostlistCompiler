@@ -27,3 +27,6 @@ export { CompilerEventEmitter, NoOpEventEmitter, createEventEmitter } from './Ev
 
 // Checksum utilities
 export { calculateChecksum, addChecksumToHeader } from './checksum.ts';
+
+// Header filtering utilities
+export { stripUpstreamHeaders } from './headerFilter.ts';
