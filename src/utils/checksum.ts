@@ -1,6 +1,6 @@
 /**
  * Checksum calculation utilities for filter lists.
- * Implements the standard AdBlock checksum format (Base64-encoded MD5).
+ * Implements a secure checksum format using SHA-256 (instead of legacy MD5).
  */
 
 /**
@@ -14,7 +14,7 @@
  * 4. Truncate to 27 characters for consistency with traditional MD5 checksums
  * 
  * Note: We use SHA-256 instead of MD5 for better security, truncated to match
- * the traditional checksum length (MD5 base64 is typically 24 chars, we use 27).
+ * the traditional checksum length (MD5 base64 is exactly 24 chars, we use 27).
  * 
  * @param lines - Array of filter list lines
  * @returns Base64-encoded SHA-256 checksum (truncated to 27 chars)
@@ -61,8 +61,7 @@ export async function addChecksumToHeader(lines: string[]): Promise<string[]> {
         // Look for the first non-comment line or end of file
         const firstRuleIndex = lines.findIndex(line => 
             line.trim() !== '' && 
-            !line.startsWith('!') &&
-            !line.startsWith('#')
+            !line.startsWith('!')
         );
         
         const insertIndex = firstRuleIndex === -1 ? lines.length : firstRuleIndex;

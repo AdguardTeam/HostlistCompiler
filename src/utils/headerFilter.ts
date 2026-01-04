@@ -18,7 +18,7 @@ const METADATA_HEADER_PREFIXES = [
     '! Expires:',
     '! TimeUpdated:',
     '! Checksum:',
-    '! Compiled by',
+    '! Compiled by ', // Note the trailing space to make it more specific
     '! Diff-Path:',
     '! Diff-Expires:',
 ];
@@ -110,9 +110,14 @@ export function stripUpstreamHeaders(lines: string[]): string[] {
         result.push(line);
     }
     
-    // Clean up leading empty comment markers
-    while (result.length > 0 && result[0].trim() === '!') {
-        result.shift();
+    // Clean up leading empty comment markers efficiently
+    let leadingEmptyCount = 0;
+    while (leadingEmptyCount < result.length && result[leadingEmptyCount].trim() === '!') {
+        leadingEmptyCount++;
+    }
+    
+    if (leadingEmptyCount > 0) {
+        result = result.slice(leadingEmptyCount);
     }
     
     return result;
