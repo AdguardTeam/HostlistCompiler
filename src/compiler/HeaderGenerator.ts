@@ -5,8 +5,8 @@ import type { IConfiguration, ISource } from '../types/index.ts';
  * Version matches deno.json for JSR publishing.
  */
 const PACKAGE_INFO = {
-    name: '@jk-com/hostlistcompiler',
-    version: '2.0.0',
+    name: '@jk-com/adblock-compiler',
+    version: '0.6.88',
 } as const;
 
 /**

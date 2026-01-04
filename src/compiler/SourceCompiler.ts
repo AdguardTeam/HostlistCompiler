@@ -1,7 +1,7 @@
 import { FilterDownloader } from '../downloader/index.ts';
 import { ILogger, ISource, TransformationType } from '../types/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
-import { logger as defaultLogger, CompilerEventEmitter, createEventEmitter } from '../utils/index.ts';
+import { logger as defaultLogger, CompilerEventEmitter, createEventEmitter, stripUpstreamHeaders } from '../utils/index.ts';
 
 /**
  * Compiles an individual source according to its configuration.
@@ -53,6 +53,10 @@ export class SourceCompiler {
             );
 
             this.logger.info(`Original length is ${rules.length}`);
+
+            // Strip upstream metadata headers to avoid redundancy
+            rules = stripUpstreamHeaders(rules);
+            this.logger.info(`Length after stripping upstream headers is ${rules.length}`);
 
             // Apply transformations
             const transformations = source.transformations || [];

@@ -2,7 +2,7 @@ import { IConfiguration, ILogger, ISource, TransformationType, ICompilerEvents }
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
-import { logger as defaultLogger, BenchmarkCollector, CompilationMetrics, createEventEmitter, CompilerEventEmitter } from '../utils/index.ts';
+import { logger as defaultLogger, BenchmarkCollector, CompilationMetrics, createEventEmitter, CompilerEventEmitter, addChecksumToHeader } from '../utils/index.ts';
 
 /**
  * Result of compilation with optional metrics.
@@ -18,7 +18,7 @@ export interface CompilationResult {
  */
 const PACKAGE_INFO = {
     name: '@jk-com/adblock-compiler',
-    version: '2.0.0',
+    version: '0.6.88',
 } as const;
 
 /**
@@ -186,7 +186,11 @@ export class FilterCompiler {
         const header = this.prepareHeader(configuration);
         this.logger.info(`Final length of the list is ${header.length + finalList.length}`);
 
-        const rules = [...header, ...finalList];
+        let rules = [...header, ...finalList];
+        
+        // Add checksum to the header
+        rules = await addChecksumToHeader(rules);
+        
         collector?.setOutputRuleCount(rules.length);
 
         const metrics = collector?.finish();
