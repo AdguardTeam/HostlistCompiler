@@ -23,7 +23,6 @@
     "jsr:@std/testing@*": "1.0.16",
     "jsr:@std/testing@1": "1.0.16",
     "npm:@cloudflare/workers-types@^4.20260103.0": "4.20260103.0",
-    "npm:tldts@^6.1.0": "6.1.86",
     "npm:wrangler@^4.54.0": "4.54.0_unenv@2.0.0-rc.24_workerd@1.20251210.0_@cloudflare+workers-types@4.20260103.0"
   },
   "jsr": {
@@ -683,8 +682,7 @@
       "jsr:@std/flags@0.224",
       "jsr:@std/fs@1",
       "jsr:@std/path@1",
-      "jsr:@std/testing@1",
-      "npm:tldts@^6.1.0"
+      "jsr:@std/testing@1"
     ],
     "packageJson": {
       "dependencies": [
