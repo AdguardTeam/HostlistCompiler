@@ -230,13 +230,56 @@
         .progress-section {
             display: none;
             margin-top: 20px;
-            padding: 20px;
             background: #f8f9fa;
             border-radius: 6px;
+            border: 2px solid #e0e0e0;
         }
 
         .progress-section.visible {
             display: block;
+        }
+
+        .progress-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px 4px 0 0;
+            user-select: none;
+        }
+
+        .progress-header:hover {
+            opacity: 0.95;
+        }
+
+        .progress-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .progress-toggle {
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .progress-toggle.collapsed {
+            transform: rotate(90deg);
+        }
+
+        .progress-content {
+            padding: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .progress-content.expanded {
+            max-height: 50vh;
+            overflow-y: auto;
         }
 
         .progress-bar {
@@ -256,31 +299,37 @@
         }
 
         .log-entry {
-            padding: 8px;
-            margin-bottom: 4px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
             border-radius: 4px;
             font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border-left: 4px solid transparent;
         }
 
         .log-info {
             background: #d1ecf1;
             color: #0c5460;
+            border-left-color: #17a2b8;
         }
 
         .log-warn {
             background: #fff3cd;
             color: #856404;
+            border-left-color: #ffc107;
         }
 
         .log-error {
             background: #f8d7da;
             color: #721c24;
+            border-left-color: #dc3545;
         }
 
         .log-success {
             background: #d4edda;
             color: #155724;
+            border-left-color: #28a745;
         }
 
         .results-section {
@@ -746,11 +795,16 @@ eventSource.addEventListener('result', (e) => {
 
             <!-- Progress Section -->
             <div class="progress-section" id="progress">
-                <h3>Compilation Progress</h3>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
+                <div class="progress-header" id="progress-header" role="button" aria-expanded="false" aria-controls="progress-content" aria-label="Toggle compilation progress details" tabindex="0">
+                    <h3>📊 Compilation Progress</h3>
+                    <span class="progress-toggle collapsed" id="progress-toggle" aria-hidden="true">▼</span>
                 </div>
-                <div id="progress-logs"></div>
+                <div class="progress-content" id="progress-content">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div id="progress-logs"></div>
+                </div>
             </div>
 
             <!-- Results Section -->
@@ -803,6 +857,45 @@ eventSource.addEventListener('result', (e) => {
             });
         });
 
+        // Progress section collapse/expand functionality
+        const progressHeader = document.getElementById('progress-header');
+        const progressContent = document.getElementById('progress-content');
+        const progressToggle = document.getElementById('progress-toggle');
+
+        function collapseProgress() {
+            progressContent.classList.remove('expanded');
+            progressToggle.classList.add('collapsed');
+            progressHeader.setAttribute('aria-expanded', 'false');
+            // Don't remove the attribute - just mark as not expanded
+            // This way showProgress() can distinguish between:
+            // - Never expanded by user (undefined)
+            // - User manually collapsed it (but was expanded before)
+        }
+
+        function expandProgress() {
+            progressContent.classList.add('expanded');
+            progressToggle.classList.remove('collapsed');
+            progressHeader.setAttribute('aria-expanded', 'true');
+            progressContent.dataset.wasExpanded = 'true';
+        }
+
+        function toggleProgress() {
+            const isExpanded = progressContent.classList.contains('expanded');
+            if (isExpanded) {
+                collapseProgress();
+            } else {
+                expandProgress();
+            }
+        }
+
+        progressHeader.addEventListener('click', toggleProgress);
+        progressHeader.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleProgress();
+            }
+        });
+
         // Example data
         const examples = {
             'basic': {
@@ -812,12 +905,12 @@ eventSource.addEventListener('result', (e) => {
             },
             'hosts': {
                 mode: 'simple',
-                input: '0.0.0.0 ads.example.com\n0.0.0.0 tracking.example.com\n0.0.0.0 telemetry.example.com',
+                input: '0.0.0.0 ads.example.com\n0.0.0.0 tracking.example.com\n0.0.0.0 telemetry.example.com\n0.0.0.0 analytics.example.com\n0.0.0.0 doubleclick.net',
                 name: 'Hosts Format Example'
             },
             'raw-rules': {
                 mode: 'simple',
-                input: '||ads.example.com^\n||tracking.example.com^\n||doubleclick.net^\n||googleadservices.com^',
+                input: '||ads.example.com^\n||tracking.example.com^\n||doubleclick.net^\n||googleadservices.com^\n||googlesyndication.com^\n||analytics.google.com^',
                 name: 'Raw Filter Rules'
             },
             'multiple-sources': {
@@ -826,14 +919,14 @@ eventSource.addEventListener('result', (e) => {
                     name: 'Combined Filter List',
                     sources: [
                         {
-                            name: 'AdGuard DNS',
+                            name: 'AdGuard DNS Filter',
                             source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
                             transformations: ['RemoveComments', 'Validate']
                         },
                         {
-                            name: 'Custom Rules',
-                            source: 'custom-rules',
-                            transformations: ['Compress']
+                            name: 'EasyList',
+                            source: 'https://easylist.to/easylist/easylist.txt',
+                            transformations: ['Validate']
                         }
                     ],
                     transformations: ['Deduplicate', 'RemoveEmptyLines']
@@ -842,15 +935,15 @@ eventSource.addEventListener('result', (e) => {
             'exclusions': {
                 mode: 'advanced',
                 config: {
-                    name: 'Filtered List',
+                    name: 'Filtered AdGuard List',
                     sources: [
                         {
-                            name: 'Source',
-                            source: 'https://example.com/filters.txt'
+                            name: 'AdGuard DNS Filter',
+                            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt'
                         }
                     ],
-                    transformations: ['Deduplicate', 'Compress'],
-                    exclusions: ['||example.com^', '||trusted-site.com^']
+                    transformations: ['Deduplicate', 'Compress', 'RemoveEmptyLines'],
+                    exclusions: ['||github.com^', '||stackoverflow.com^']
                 }
             }
         };
@@ -1113,7 +1206,13 @@ eventSource.addEventListener('result', (e) => {
         }
 
         function showProgress() {
-            document.getElementById('progress').classList.add('visible');
+            const progressSection = document.getElementById('progress');
+            progressSection.classList.add('visible');
+            // Keep the current expanded/collapsed state when showing progress again
+            // Only collapse if user hasn't manually expanded it before
+            if (progressContent.dataset.wasExpanded !== 'true') {
+                collapseProgress();
+            }
         }
 
         function hideResults() {
