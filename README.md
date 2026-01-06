@@ -23,7 +23,7 @@
 
 🌐 **[Try the Web UI](https://adblock-compiler.jayson-knight.workers.dev/)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[API Documentation](docs/api/README.md)**
 
-> **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). It provides the same functionality with improved performance and no Node.js dependencies.
+> **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). The package provides more functionality with improved performance and no Node.js dependencies.
 
 ## ✨ Features
 
