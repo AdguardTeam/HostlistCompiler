@@ -3,7 +3,7 @@
  * Only recompiles sources that have changed since the last compilation.
  */
 
-import type { IConfiguration, ISource, ILogger, ICompilerEvents } from '../types/index.ts';
+import type { IConfiguration, ISource, ILogger } from '../types/index.ts';
 import type { CompilationResult } from './FilterCompiler.ts';
 import { FilterCompiler, FilterCompilerOptions } from './FilterCompiler.ts';
 import { logger as defaultLogger } from '../utils/logger.ts';
@@ -109,14 +109,12 @@ export class IncrementalCompiler {
     private readonly logger: ILogger;
     private readonly maxCacheAge: number;
     private readonly forceRefresh: Set<string>;
-    private readonly useConditionalRequests: boolean;
 
     constructor(options?: IncrementalCompilerOptions) {
         this.logger = options?.logger ?? defaultLogger;
         this.cache = options?.cache ?? new MemoryCacheStorage();
         this.maxCacheAge = options?.maxCacheAge ?? 3600000; // 1 hour default
         this.forceRefresh = new Set(options?.forceRefresh ?? []);
-        this.useConditionalRequests = options?.useConditionalRequests ?? true;
         this.compiler = new FilterCompiler(options);
     }
 
@@ -135,7 +133,6 @@ export class IncrementalCompiler {
         configuration: IConfiguration,
         benchmark = false,
     ): Promise<IncrementalCompilationResult> {
-        const startTime = performance.now();
         const recompiledSources: string[] = [];
         const cachedSources: string[] = [];
         let estimatedTimeSaved = 0;
@@ -195,16 +192,6 @@ export class IncrementalCompiler {
             allRules = allRules.concat(rules);
         }
 
-        // Use the regular compiler for transformation and header generation
-        // Create a modified configuration with inline sources
-        const inlineConfig: IConfiguration = {
-            ...configuration,
-            sources: [{
-                source: 'inline',
-                name: 'Combined Sources',
-            }],
-        };
-
         // Apply transformations and generate final output
         const result = await this.compiler.compileWithMetrics(
             {
@@ -217,8 +204,6 @@ export class IncrementalCompiler {
             },
             benchmark,
         );
-
-        const totalTime = performance.now() - startTime;
 
         this.logger.info(
             `Incremental compilation complete: ` +

@@ -199,7 +199,7 @@ export class RuleOptimizerTransformation extends SyncTransformation {
      * Optimizes rule patterns for better matching performance
      */
     private optimizePatterns(rules: string[]): string[] {
-        return rules.map((rule, index) => {
+        return rules.map((rule) => {
             const trimmed = rule.trim();
 
             // Skip comments and empty lines

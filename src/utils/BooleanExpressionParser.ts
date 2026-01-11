@@ -155,14 +155,6 @@ class BooleanParser {
         return token;
     }
 
-    private expect(type: TokenType): Token {
-        const token = this.current();
-        if (token.type !== type) {
-            throw new Error(`Expected ${type} but got ${token.type}`);
-        }
-        return this.advance();
-    }
-
     /**
      * Parse: expression := orExpr
      */

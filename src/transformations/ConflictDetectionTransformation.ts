@@ -3,7 +3,7 @@
  * Detects and reports conflicting rules (blocking vs. allowing same domain).
  */
 
-import { TransformationType, ITransformationContext, ILogger } from '../types/index.ts';
+import { TransformationType, ILogger } from '../types/index.ts';
 import { SyncTransformation } from './base/Transformation.ts';
 import { RuleUtils } from '../utils/RuleUtils.ts';
 
@@ -101,7 +101,6 @@ export class ConflictDetectionTransformation extends SyncTransformation {
 
     public executeSync(
         rules: readonly string[],
-        context?: ITransformationContext,
     ): readonly string[] {
         this.conflicts = [];
 
