@@ -1,0 +1,28 @@
+name = "adblock-compiler-tail"
+main = "worker/tail.ts"
+compatibility_date = "2024-01-01"
+
+# Enable the Workers runtime
+workers_dev = true
+
+# Build configuration
+[build]
+command = ""
+
+# KV namespace for storing tail logs (optional)
+# Uncomment and create namespace if you want to persist logs
+# [[kv_namespaces]]
+# binding = "TAIL_LOGS"
+# id = ""  # Create with: wrangler kv:namespace create TAIL_LOGS
+
+# Environment variables
+[vars]
+# Log retention in seconds (default: 24 hours = 86400)
+LOG_RETENTION_TTL = "86400"
+# Optional: Webhook URL for forwarding critical errors
+# ERROR_WEBHOOK_URL = "https://your-webhook-endpoint.com/errors"
+
+# Development settings
+[dev]
+port = 8788
+local_protocol = "http"

@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Cloudflare Tail Worker** for advanced logging and observability
+  - Real-time log capture from main worker (console logs, exceptions, errors)
+  - Optional KV storage for log persistence with configurable TTL
+  - Webhook integration for forwarding critical errors to external services
+  - Support for Slack, Discord, Datadog, Sentry, and custom endpoints
+  - Structured event formatting for external log management systems
+  - Comprehensive documentation and quick start guide
+  - Example integrations for popular monitoring services
+  - Unit tests for tail worker logic
+- npm scripts for tail worker deployment and management (`tail:deploy`, `tail:dev`, `tail:logs`)
 - GitHub Actions workflow for automated testing
 - Performance monitoring and analytics integration
 
