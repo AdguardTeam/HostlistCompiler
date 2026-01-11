@@ -13,7 +13,12 @@ command = ""
 [observability.logs]
 enabled = true
 head_sampling_rate = 1
+persist = true
 invocation_logs = true
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1
 persist = true
 
 # KV bindings for caching and rate limiting
