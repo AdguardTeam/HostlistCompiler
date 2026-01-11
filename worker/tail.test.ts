@@ -5,12 +5,13 @@
  * Integration testing requires actual Cloudflare deployment.
  */
 
-// Mock types for testing
-interface MockTailLog {
-    timestamp: number;
-    level: 'log' | 'debug' | 'info' | 'warn' | 'error';
-    message: unknown[];
-}
+import {
+    formatLogMessage,
+    shouldForwardEvent,
+    createStructuredEvent,
+    type TailEvent,
+    type TailLog,
+} from './tail.ts';
 
 // Simple assertion helpers
 function assertEquals<T>(actual: T, expected: T, msg?: string): void {
@@ -25,65 +26,9 @@ function assertExists<T>(actual: T | null | undefined, msg?: string): void {
     }
 }
 
-interface MockTailException {
-    timestamp: number;
-    message: string;
-    name: string;
-}
-
-interface MockTailEvent {
-    scriptName?: string;
-    outcome: 'ok' | 'exception' | 'exceededCpu' | 'exceededMemory' | 'unknown' | 'canceled';
-    eventTimestamp: number;
-    logs: MockTailLog[];
-    exceptions: MockTailException[];
-    event?: {
-        request?: {
-            url: string;
-            method: string;
-            headers: Record<string, string>;
-        };
-    };
-}
-
-// Helper functions from tail.ts (duplicated for testing)
-function formatLogMessage(log: MockTailLog): string {
-    const timestamp = new Date(log.timestamp).toISOString();
-    const messages = log.message.map(m => 
-        typeof m === 'object' ? JSON.stringify(m) : String(m)
-    ).join(' ');
-    return `[${timestamp}] [${log.level.toUpperCase()}] ${messages}`;
-}
-
-function shouldForwardEvent(event: MockTailEvent): boolean {
-    return event.outcome === 'exception' || 
-           event.exceptions.length > 0 ||
-           event.logs.some(log => log.level === 'error');
-}
-
-function createStructuredEvent(event: MockTailEvent): Record<string, unknown> {
-    return {
-        timestamp: new Date(event.eventTimestamp).toISOString(),
-        scriptName: event.scriptName || 'adblock-compiler',
-        outcome: event.outcome,
-        url: event.event?.request?.url,
-        method: event.event?.request?.method,
-        logs: event.logs.map(log => ({
-            timestamp: new Date(log.timestamp).toISOString(),
-            level: log.level,
-            message: log.message,
-        })),
-        exceptions: event.exceptions.map(exc => ({
-            timestamp: new Date(exc.timestamp).toISOString(),
-            name: exc.name,
-            message: exc.message,
-        })),
-    };
-}
-
 // Tests
 Deno.test('formatLogMessage - formats simple string message', () => {
-    const log: MockTailLog = {
+    const log: TailLog = {
         timestamp: 1704931200000, // 2024-01-11T00:00:00.000Z
         level: 'info',
         message: ['Hello, world!'],
@@ -94,7 +39,7 @@ Deno.test('formatLogMessage - formats simple string message', () => {
 });
 
 Deno.test('formatLogMessage - formats multiple messages', () => {
-    const log: MockTailLog = {
+    const log: TailLog = {
         timestamp: 1704931200000,
         level: 'error',
         message: ['Error:', 'Something went wrong'],
@@ -105,7 +50,7 @@ Deno.test('formatLogMessage - formats multiple messages', () => {
 });
 
 Deno.test('formatLogMessage - formats object messages', () => {
-    const log: MockTailLog = {
+    const log: TailLog = {
         timestamp: 1704931200000,
         level: 'log',
         message: [{ foo: 'bar', count: 42 }],
@@ -116,7 +61,7 @@ Deno.test('formatLogMessage - formats object messages', () => {
 });
 
 Deno.test('shouldForwardEvent - forwards exception outcome', () => {
-    const event: MockTailEvent = {
+    const event: TailEvent = {
         outcome: 'exception',
         eventTimestamp: 1704931200000,
         logs: [],
@@ -127,7 +72,7 @@ Deno.test('shouldForwardEvent - forwards exception outcome', () => {
 });
 
 Deno.test('shouldForwardEvent - forwards when exceptions present', () => {
-    const event: MockTailEvent = {
+    const event: TailEvent = {
         outcome: 'ok',
         eventTimestamp: 1704931200000,
         logs: [],
@@ -142,7 +87,7 @@ Deno.test('shouldForwardEvent - forwards when exceptions present', () => {
 });
 
 Deno.test('shouldForwardEvent - forwards when error logs present', () => {
-    const event: MockTailEvent = {
+    const event: TailEvent = {
         outcome: 'ok',
         eventTimestamp: 1704931200000,
         logs: [{
@@ -157,7 +102,7 @@ Deno.test('shouldForwardEvent - forwards when error logs present', () => {
 });
 
 Deno.test('shouldForwardEvent - does not forward successful events', () => {
-    const event: MockTailEvent = {
+    const event: TailEvent = {
         outcome: 'ok',
         eventTimestamp: 1704931200000,
         logs: [{
@@ -172,7 +117,7 @@ Deno.test('shouldForwardEvent - does not forward successful events', () => {
 });
 
 Deno.test('createStructuredEvent - creates complete structured event', () => {
-    const event: MockTailEvent = {
+    const event: TailEvent = {
         scriptName: 'test-worker',
         outcome: 'exception',
         eventTimestamp: 1704931200000,
@@ -208,7 +153,7 @@ Deno.test('createStructuredEvent - creates complete structured event', () => {
 });
 
 Deno.test('createStructuredEvent - handles missing request data', () => {
-    const event: MockTailEvent = {
+    const event: TailEvent = {
         outcome: 'ok',
         eventTimestamp: 1704931200000,
         logs: [],
@@ -224,7 +169,7 @@ Deno.test('createStructuredEvent - handles missing request data', () => {
 
 Deno.test('createStructuredEvent - formats timestamps correctly', () => {
     const timestamp = 1704931200000; // 2024-01-11T00:00:00.000Z
-    const event: MockTailEvent = {
+    const event: TailEvent = {
         outcome: 'ok',
         eventTimestamp: timestamp,
         logs: [{

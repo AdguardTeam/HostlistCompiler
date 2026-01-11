@@ -8,10 +8,31 @@
 /// <reference types="@cloudflare/workers-types" />
 
 /**
+ * Structured event type for external integrations
+ */
+export interface StructuredTailEvent {
+    timestamp: string;
+    scriptName?: string;
+    outcome: string;
+    url?: string;
+    method?: string;
+    logs: Array<{
+        timestamp: string;
+        level: string;
+        message: unknown;
+    }>;
+    exceptions: Array<{
+        timestamp: string;
+        name: string;
+        message: string;
+    }>;
+}
+
+/**
  * Example: Slack Integration
  * Send formatted messages to Slack when errors occur
  */
-export async function sendToSlack(event: any, webhookUrl: string): Promise<void> {
+export async function sendToSlack(event: StructuredTailEvent, webhookUrl: string): Promise<void> {
     const slackMessage = {
         text: `⚠️ Error in ${event.scriptName || 'Worker'}`,
         blocks: [
@@ -77,7 +98,7 @@ export async function sendToSlack(event: any, webhookUrl: string): Promise<void>
  * Example: Discord Integration
  * Send formatted embeds to Discord webhooks
  */
-export async function sendToDiscord(event: any, webhookUrl: string): Promise<void> {
+export async function sendToDiscord(event: StructuredTailEvent, webhookUrl: string): Promise<void> {
     const discordEmbed = {
         embeds: [
             {
@@ -139,7 +160,7 @@ export async function sendToDiscord(event: any, webhookUrl: string): Promise<voi
  * Send logs to Datadog using their HTTP API
  */
 export async function sendToDatadog(
-    event: any,
+    event: StructuredTailEvent,
     apiKey: string,
     service: string = 'adblock-compiler'
 ): Promise<void> {
@@ -167,7 +188,7 @@ export async function sendToDatadog(
  * Example: Sentry Integration
  * Send exceptions to Sentry for error tracking
  */
-export async function sendToSentry(event: any, dsn: string): Promise<void> {
+export async function sendToSentry(event: StructuredTailEvent, dsn: string): Promise<void> {
     if (!event.exceptions || event.exceptions.length === 0) {
         return;
     }
@@ -219,7 +240,7 @@ export async function sendToSentry(event: any, dsn: string): Promise<void> {
  * Send to any custom endpoint with flexible formatting
  */
 export async function sendToCustomEndpoint(
-    event: any,
+    event: StructuredTailEvent,
     endpoint: string,
     headers: Record<string, string> = {}
 ): Promise<void> {
@@ -238,7 +259,7 @@ export async function sendToCustomEndpoint(
  * Store multiple events together for efficiency
  */
 export class BatchedKVLogger {
-    private batch: any[] = [];
+    private batch: StructuredTailEvent[] = [];
     private batchSize: number;
     private kv: KVNamespace;
 
@@ -247,7 +268,7 @@ export class BatchedKVLogger {
         this.batchSize = batchSize;
     }
 
-    async add(event: any): Promise<void> {
+    async add(event: StructuredTailEvent): Promise<void> {
         this.batch.push(event);
 
         if (this.batch.length >= this.batchSize) {
@@ -283,7 +304,7 @@ export function shouldSample(sampleRate: number = 0.1): boolean {
  * Example: Advanced Filtering
  * Only process events matching specific criteria
  */
-export function shouldProcessEvent(event: any): boolean {
+export function shouldProcessEvent(event: StructuredTailEvent): boolean {
     // Skip successful requests
     if (event.outcome === 'ok' && event.exceptions.length === 0) {
         return false;

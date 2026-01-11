@@ -32,7 +32,7 @@ export interface TailEnv {
 /**
  * Tail event structure from Cloudflare
  */
-interface TailEvent {
+export interface TailEvent {
     scriptName?: string;
     outcome: 'ok' | 'exception' | 'exceededCpu' | 'exceededMemory' | 'unknown' | 'canceled';
     eventTimestamp: number;
@@ -47,13 +47,13 @@ interface TailEvent {
     };
 }
 
-interface TailLog {
+export interface TailLog {
     timestamp: number;
     level: 'log' | 'debug' | 'info' | 'warn' | 'error';
     message: unknown[];
 }
 
-interface TailException {
+export interface TailException {
     timestamp: number;
     message: string;
     name: string;
@@ -62,18 +62,23 @@ interface TailException {
 /**
  * Format log messages for storage
  */
-function formatLogMessage(log: TailLog): string {
+export function formatLogMessage(log: TailLog): string {
     const timestamp = new Date(log.timestamp).toISOString();
-    const messages = log.message.map(m => 
-        typeof m === 'object' ? JSON.stringify(m) : String(m)
-    ).join(' ');
+    const messages = log.message.map(m => {
+        try {
+            return typeof m === 'object' ? JSON.stringify(m) : String(m);
+        } catch (error) {
+            // Handle circular references or other JSON.stringify errors
+            return String(m);
+        }
+    }).join(' ');
     return `[${timestamp}] [${log.level.toUpperCase()}] ${messages}`;
 }
 
 /**
  * Check if event should be forwarded to webhook
  */
-function shouldForwardEvent(event: TailEvent): boolean {
+export function shouldForwardEvent(event: TailEvent): boolean {
     // Forward exceptions and critical errors
     return event.outcome === 'exception' || 
            event.exceptions.length > 0 ||
@@ -83,7 +88,7 @@ function shouldForwardEvent(event: TailEvent): boolean {
 /**
  * Create a structured event for external systems
  */
-function createStructuredEvent(event: TailEvent): Record<string, unknown> {
+export function createStructuredEvent(event: TailEvent): Record<string, unknown> {
     return {
         timestamp: new Date(event.eventTimestamp).toISOString(),
         scriptName: event.scriptName || 'adblock-compiler',
@@ -126,9 +131,14 @@ export default {
                 };
 
                 // Get retention TTL (default to 24 hours)
-                const ttl = env.LOG_RETENTION_TTL 
-                    ? parseInt(env.LOG_RETENTION_TTL) 
-                    : 86400;
+                // Validate that it's a valid number, fallback to default if invalid
+                let ttl = 86400; // default: 24 hours
+                if (env.LOG_RETENTION_TTL) {
+                    const parsedTtl = parseInt(env.LOG_RETENTION_TTL);
+                    if (!isNaN(parsedTtl) && parsedTtl > 0) {
+                        ttl = parsedTtl;
+                    }
+                }
 
                 promises.push(
                     env.TAIL_LOGS.put(
