@@ -11,6 +11,9 @@
 
 import type { ILogger } from '../types/index.ts';
 import { silentLogger } from '../utils/logger.ts';
+import { evaluateBooleanExpression } from '../utils/BooleanExpressionParser.ts';
+import { NETWORK_DEFAULTS, PREPROCESSOR_DEFAULTS } from '../config/defaults.ts';
+import { USER_AGENT } from '../version.ts';
 
 /**
  * Options for the filter downloader
@@ -33,16 +36,16 @@ export interface DownloaderOptions {
 }
 
 /**
- * Default options for the downloader
+ * Default options for the downloader (uses centralized constants)
  */
 const DEFAULT_OPTIONS: Required<DownloaderOptions> = {
-    maxRedirects: 5,
-    timeout: 30000,
-    userAgent: 'HostlistCompiler/2.0 (Deno)',
+    maxRedirects: NETWORK_DEFAULTS.MAX_REDIRECTS,
+    timeout: NETWORK_DEFAULTS.TIMEOUT_MS,
+    userAgent: USER_AGENT,
     allowEmptyResponse: false,
-    maxIncludeDepth: 10,
-    maxRetries: 3,
-    retryDelay: 1000,
+    maxIncludeDepth: PREPROCESSOR_DEFAULTS.MAX_INCLUDE_DEPTH,
+    maxRetries: NETWORK_DEFAULTS.MAX_RETRIES,
+    retryDelay: NETWORK_DEFAULTS.RETRY_DELAY_MS,
 };
 
 /**
@@ -105,69 +108,11 @@ function resolveIncludePath(includePath: string, basePath: string): string {
 }
 
 /**
- * Evaluates a preprocessor condition
+ * Evaluates a preprocessor condition using safe expression parser
  * Supports: true, false, !, &&, ||, (), and platform identifiers
  */
 function evaluateCondition(condition: string, platform?: string): boolean {
-    // Clean up the condition
-    let expr = condition.trim();
-
-    // Handle empty condition
-    if (!expr) return true;
-
-    // Replace platform identifiers with boolean values
-    // Common platforms: windows, mac, android, ios, ext_chromium, ext_ff, ext_edge, ext_opera, ext_safari
-    const platforms = [
-        'windows',
-        'mac',
-        'android',
-        'ios',
-        'ext_chromium',
-        'ext_ff',
-        'ext_edge',
-        'ext_opera',
-        'ext_safari',
-        'ext_ublock',
-        'adguard',
-        'adguard_app_windows',
-        'adguard_app_mac',
-        'adguard_app_android',
-        'adguard_app_ios',
-        'adguard_ext_chromium',
-        'adguard_ext_firefox',
-        'adguard_ext_edge',
-        'adguard_ext_opera',
-        'adguard_ext_safari',
-    ];
-
-    for (const p of platforms) {
-        // Replace platform with true if it matches, false otherwise
-        const regex = new RegExp(`\\b${p}\\b`, 'gi');
-        const value = platform?.toLowerCase() === p.toLowerCase() ? 'true' : 'false';
-        expr = expr.replace(regex, value);
-    }
-
-    // Handle logical operators
-    expr = expr.replace(/\s+&&\s+/g, ' && ');
-    expr = expr.replace(/\s+\|\|\s+/g, ' || ');
-
-    // Evaluate the expression safely
-    try {
-        // Only allow true, false, !, &&, ||, (), and whitespace
-        // Use * instead of + to allow empty string (when expr is just "true" or "false")
-        if (!/^[!&|() ]*$/i.test(expr.replace(/true|false/gi, ''))) {
-            // Unknown tokens - default to false to exclude platform-specific rules
-            return false;
-        }
-
-        // Use Function constructor for safe evaluation
-        // This is safe because we've sanitized the input to only contain boolean logic
-        const fn = new Function(`return ${expr};`);
-        return Boolean(fn());
-    } catch {
-        // If evaluation fails, default to false
-        return false;
-    }
+    return evaluateBooleanExpression(condition, platform);
 }
 
 /**

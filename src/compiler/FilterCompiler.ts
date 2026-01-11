@@ -2,6 +2,7 @@ import { IConfiguration, ILogger, ISource, TransformationType, ICompilerEvents }
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
+import { HeaderGenerator } from './HeaderGenerator.ts';
 import { logger as defaultLogger, BenchmarkCollector, CompilationMetrics, createEventEmitter, CompilerEventEmitter, addChecksumToHeader } from '../utils/index.ts';
 
 /**
@@ -11,15 +12,6 @@ export interface CompilationResult {
     rules: string[];
     metrics?: CompilationMetrics;
 }
-
-/**
- * Package metadata for header generation.
- * Version matches deno.json for JSR publishing.
- */
-const PACKAGE_INFO = {
-    name: '@jk-com/adblock-compiler',
-    version: '0.6.88',
-} as const;
 
 /**
  * Options for configuring the FilterCompiler.
@@ -41,6 +33,7 @@ export class FilterCompiler {
     private readonly pipeline: TransformationPipeline;
     private readonly sourceCompiler: SourceCompiler;
     private readonly eventEmitter: CompilerEventEmitter;
+    private readonly headerGenerator: HeaderGenerator;
 
     /**
      * Creates a new FilterCompiler instance.
@@ -77,6 +70,7 @@ export class FilterCompiler {
         this.validator = new ConfigurationValidator();
         this.pipeline = new TransformationPipeline(undefined, this.logger, this.eventEmitter);
         this.sourceCompiler = new SourceCompiler(this.pipeline, this.logger, this.eventEmitter);
+        this.headerGenerator = new HeaderGenerator();
     }
 
     /**
@@ -214,47 +208,14 @@ export class FilterCompiler {
      * Prepares the main list header.
      */
     private prepareHeader(configuration: IConfiguration): string[] {
-        const lines = [
-            '!',
-            `! Title: ${configuration.name}`,
-        ];
-
-        if (configuration.description) {
-            lines.push(`! Description: ${configuration.description}`);
-        }
-        if (configuration.version) {
-            lines.push(`! Version: ${configuration.version}`);
-        }
-        if (configuration.homepage) {
-            lines.push(`! Homepage: ${configuration.homepage}`);
-        }
-        if (configuration.license) {
-            lines.push(`! License: ${configuration.license}`);
-        }
-
-        lines.push(`! Last modified: ${new Date().toISOString()}`);
-        lines.push('!');
-
-        // Compiler info
-        lines.push(`! Compiled by ${PACKAGE_INFO.name} v${PACKAGE_INFO.version}`);
-        lines.push('!');
-
-        return lines;
+        return this.headerGenerator.generateListHeader(configuration);
     }
 
     /**
      * Prepares the source header.
      */
     private prepareSourceHeader(source: ISource): string[] {
-        const lines = ['!'];
-
-        if (source.name) {
-            lines.push(`! Source name: ${source.name}`);
-        }
-        lines.push(`! Source: ${source.source}`);
-        lines.push('!');
-
-        return lines;
+        return this.headerGenerator.generateSourceHeader(source);
     }
 }
 
