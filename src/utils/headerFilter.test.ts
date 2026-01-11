@@ -185,7 +185,7 @@ Deno.test('stripUpstreamHeaders - real world example from problem statement', ()
         '! Title: Basic AdGuard DNS Filter',
         '! Last modified: 2026-01-04T02:57:05.825Z',
         '!',
-        '! Compiled by @jk-com/adblock-compiler v0.6.88',
+        '! Compiled by @jk-com/adblock-compiler v0.6.92',
         '!',
         '!',
         '! Source name: Source 1',

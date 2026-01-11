@@ -80,7 +80,6 @@ export class ConditionalEvaluator {
 
             // Use Function constructor for safe evaluation
             // This is safe because we've sanitized the input to only contain boolean logic
-            // deno-lint-ignore no-new-func
             const fn = new Function(`return ${expr};`) as () => boolean;
             return Boolean(fn());
         } catch (_error) {
