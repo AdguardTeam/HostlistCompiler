@@ -1,11 +1,34 @@
 // Main entry point for the hostlist compiler library
 
+// Version information
+export { VERSION, PACKAGE_NAME, PACKAGE_INFO, USER_AGENT } from './version.ts';
+
+// Configuration constants
+export {
+    NETWORK_DEFAULTS,
+    PREPROCESSOR_DEFAULTS,
+    WORKER_DEFAULTS,
+    STORAGE_DEFAULTS,
+    COMPILATION_DEFAULTS,
+    VALIDATION_DEFAULTS,
+    DEFAULTS,
+    OutputFormat,
+    RuleType,
+    HealthStatus,
+} from './config/index.ts';
+
 // Types
 export * from './types/index.ts';
 
 // Utils
 export { RuleUtils, StringUtils, Wildcard, TldUtils } from './utils/index.ts';
 export type { ParsedHost } from './utils/index.ts';
+
+// Error utilities
+export { ErrorUtils, CompilationError, ValidationError, NetworkError, SourceError } from './utils/index.ts';
+
+// Boolean expression parser
+export { evaluateBooleanExpression, isKnownPlatform, getKnownPlatforms } from './utils/index.ts';
 
 // Event system for observability
 export { CompilerEventEmitter, NoOpEventEmitter, createEventEmitter } from './utils/index.ts';
@@ -63,6 +86,66 @@ export type {
     WorkerCompilerOptions,
     WorkerCompilationResult,
 } from './platform/index.ts';
+
+// Incremental compilation
+export { IncrementalCompiler, MemoryCacheStorage } from './compiler/IncrementalCompiler.ts';
+export type {
+    SourceCacheEntry,
+    ICacheStorage,
+    IncrementalCompilerOptions,
+    IncrementalCompilationResult,
+} from './compiler/IncrementalCompiler.ts';
+
+// Header generation
+export { HeaderGenerator } from './compiler/HeaderGenerator.ts';
+export type { HeaderOptions } from './compiler/HeaderGenerator.ts';
+
+// Output formatters
+export {
+    formatOutput,
+    createFormatter,
+    HostsFormatter,
+    DnsmasqFormatter,
+    PiHoleFormatter,
+    UnboundFormatter,
+    JsonFormatter,
+    DoHFormatter,
+    AdblockFormatter,
+} from './formatters/index.ts';
+export type { FormatterOptions, FormatterResult } from './formatters/index.ts';
+
+// Diff reports
+export { DiffGenerator, generateDiff, generateDiffMarkdown } from './diff/index.ts';
+export type { RuleDiff, DiffSummary, DomainDiff, DiffReport, DiffOptions } from './diff/index.ts';
+
+// Conflict detection
+export { ConflictDetectionTransformation, detectConflicts } from './transformations/ConflictDetectionTransformation.ts';
+export type {
+    RuleConflict,
+    ConflictDetectionOptions,
+    ConflictDetectionResult,
+} from './transformations/ConflictDetectionTransformation.ts';
+
+// Rule optimizer
+export { RuleOptimizerTransformation, optimizeRules } from './transformations/RuleOptimizerTransformation.ts';
+export type { OptimizationStats, RuleOptimizerOptions } from './transformations/RuleOptimizerTransformation.ts';
+
+// Plugin system
+export {
+    PluginRegistry,
+    PluginTransformationWrapper,
+    loadPlugin,
+    createSimplePlugin,
+    globalRegistry,
+} from './plugins/index.ts';
+export type {
+    PluginManifest,
+    TransformationPlugin,
+    DownloaderPlugin,
+    Plugin,
+    PluginContext,
+    PluginLoadOptions,
+} from './plugins/index.ts';
 
 // Default export for backward compatibility
 import { compile as compileFunc } from './compiler/index.ts';

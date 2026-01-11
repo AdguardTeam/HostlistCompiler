@@ -30,3 +30,9 @@ export { calculateChecksum, addChecksumToHeader } from './checksum.ts';
 
 // Header filtering utilities
 export { stripUpstreamHeaders } from './headerFilter.ts';
+
+// Error utilities
+export { ErrorUtils, CompilationError, ValidationError, NetworkError, SourceError } from './ErrorUtils.ts';
+
+// Boolean expression parser (safe alternative to Function constructor)
+export { evaluateBooleanExpression, isKnownPlatform, getKnownPlatforms } from './BooleanExpressionParser.ts';

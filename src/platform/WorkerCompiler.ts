@@ -8,6 +8,7 @@ import type { IConfiguration, ILogger, ISource, TransformationType, ICompilerEve
 import type { IContentFetcher, IPlatformCompilerOptions } from './types.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
+import { HeaderGenerator } from '../compiler/HeaderGenerator.ts';
 import { silentLogger, createEventEmitter, CompilerEventEmitter, BenchmarkCollector, CompilationMetrics, addChecksumToHeader, stripUpstreamHeaders } from '../utils/index.ts';
 import { HttpFetcher } from './HttpFetcher.ts';
 import { PreFetchedContentFetcher } from './PreFetchedContentFetcher.ts';
@@ -21,14 +22,6 @@ export interface WorkerCompilationResult {
     rules: string[];
     metrics?: CompilationMetrics;
 }
-
-/**
- * Package metadata for header generation.
- */
-const PACKAGE_INFO = {
-    name: '@jk-com/adblock-compiler',
-    version: '0.6.88',
-} as const;
 
 /**
  * Options for the WorkerCompiler.
@@ -50,12 +43,14 @@ export class WorkerCompiler {
     private readonly pipeline: TransformationPipeline;
     private readonly eventEmitter: CompilerEventEmitter;
     private readonly fetcher: IContentFetcher;
+    private readonly headerGenerator: HeaderGenerator;
 
     constructor(options?: WorkerCompilerOptions) {
         this.logger = options?.logger ?? silentLogger;
         this.eventEmitter = createEventEmitter(options?.events);
         this.validator = new ConfigurationValidator();
         this.pipeline = new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        this.headerGenerator = new HeaderGenerator();
 
         // Build the fetcher chain
         this.fetcher = this.buildFetcher(options);
@@ -313,44 +308,13 @@ export class WorkerCompiler {
      * Prepares the main list header.
      */
     private prepareHeader(configuration: IConfiguration): string[] {
-        const lines = [
-            '!',
-            `! Title: ${configuration.name}`,
-        ];
-
-        if (configuration.description) {
-            lines.push(`! Description: ${configuration.description}`);
-        }
-        if (configuration.version) {
-            lines.push(`! Version: ${configuration.version}`);
-        }
-        if (configuration.homepage) {
-            lines.push(`! Homepage: ${configuration.homepage}`);
-        }
-        if (configuration.license) {
-            lines.push(`! License: ${configuration.license}`);
-        }
-
-        lines.push(`! Last modified: ${new Date().toISOString()}`);
-        lines.push('!');
-        lines.push(`! Compiled by ${PACKAGE_INFO.name} v${PACKAGE_INFO.version}`);
-        lines.push('!');
-
-        return lines;
+        return this.headerGenerator.generateListHeader(configuration);
     }
 
     /**
      * Prepares the source header.
      */
     private prepareSourceHeader(source: ISource): string[] {
-        const lines = ['!'];
-
-        if (source.name) {
-            lines.push(`! Source name: ${source.name}`);
-        }
-        lines.push(`! Source: ${source.source}`);
-        lines.push('!');
-
-        return lines;
+        return this.headerGenerator.generateSourceHeader(source);
     }
 }

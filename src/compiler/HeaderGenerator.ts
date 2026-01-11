@@ -1,13 +1,22 @@
+/**
+ * Header generation utilities for filter list compilation.
+ * Extracts shared header generation logic from FilterCompiler and WorkerCompiler.
+ */
+
 import type { IConfiguration, ISource } from '../types/index.ts';
+import { PACKAGE_INFO } from '../version.ts';
 
 /**
- * Package metadata for header generation.
- * Version matches deno.json for JSR publishing.
+ * Header generation options
  */
-const PACKAGE_INFO = {
-    name: '@jk-com/adblock-compiler',
-    version: '0.6.88',
-} as const;
+export interface HeaderOptions {
+    /** Include checksum placeholder (will be filled later) */
+    includeChecksumPlaceholder?: boolean;
+    /** Custom timestamp (defaults to current time) */
+    timestamp?: Date;
+    /** Additional custom header lines */
+    customLines?: string[];
+}
 
 /**
  * Generates headers for filter lists and sources.
@@ -17,13 +26,11 @@ export class HeaderGenerator {
     /**
      * Generates the main list header with metadata.
      * @param configuration - Configuration containing list metadata
+     * @param options - Optional header generation options
      * @returns Array of header lines
      */
-    public generateListHeader(configuration: IConfiguration): string[] {
-        const lines = [
-            '!',
-            `! Title: ${configuration.name}`,
-        ];
+    public generateListHeader(configuration: IConfiguration, options?: HeaderOptions): string[] {
+        const lines = ['!', `! Title: ${configuration.name}`];
 
         if (configuration.description) {
             lines.push(`! Description: ${configuration.description}`);
@@ -38,11 +45,20 @@ export class HeaderGenerator {
             lines.push(`! License: ${configuration.license}`);
         }
 
-        lines.push(`! Last modified: ${new Date().toISOString()}`);
+        const timestamp = options?.timestamp ?? new Date();
+        lines.push(`! Last modified: ${timestamp.toISOString()}`);
         lines.push('!');
 
         // Compiler info
         lines.push(`! Compiled by ${PACKAGE_INFO.name} v${PACKAGE_INFO.version}`);
+
+        // Add custom lines if provided
+        if (options?.customLines) {
+            for (const line of options.customLines) {
+                lines.push(`! ${line}`);
+            }
+        }
+
         lines.push('!');
 
         return lines;
@@ -64,4 +80,93 @@ export class HeaderGenerator {
 
         return lines;
     }
+
+    /**
+     * Generates a section separator with optional title
+     * @param title - Optional section title
+     * @returns Array of separator lines
+     */
+    public generateSectionSeparator(title?: string): string[] {
+        if (title) {
+            return ['!', `! ========== ${title} ==========`, '!'];
+        }
+        return ['!'];
+    }
+
+    /**
+     * Generates statistics header lines
+     * @param stats - Statistics object
+     * @returns Array of statistics header lines
+     */
+    public generateStatsHeader(stats: {
+        totalRules: number;
+        sourceCount: number;
+        transformationCount: number;
+        compilationTimeMs: number;
+    }): string[] {
+        return [
+            '!',
+            '! === Compilation Statistics ===',
+            `! Total rules: ${stats.totalRules}`,
+            `! Sources: ${stats.sourceCount}`,
+            `! Transformations applied: ${stats.transformationCount}`,
+            `! Compilation time: ${stats.compilationTimeMs.toFixed(2)}ms`,
+            '!',
+        ];
+    }
+
+    /**
+     * Generates a diff summary header
+     * @param diff - Diff statistics
+     * @returns Array of diff header lines
+     */
+    public generateDiffHeader(diff: {
+        added: number;
+        removed: number;
+        unchanged: number;
+        previousVersion?: string;
+    }): string[] {
+        const lines = ['!', '! === Changes Since Last Compilation ==='];
+
+        if (diff.previousVersion) {
+            lines.push(`! Previous version: ${diff.previousVersion}`);
+        }
+
+        lines.push(`! Added: ${diff.added} rules`);
+        lines.push(`! Removed: ${diff.removed} rules`);
+        lines.push(`! Unchanged: ${diff.unchanged} rules`);
+        lines.push('!');
+
+        return lines;
+    }
+
+    /**
+     * Parses an existing header to extract metadata
+     * @param lines - Array of header lines
+     * @returns Parsed metadata object
+     */
+    public parseHeader(lines: string[]): Record<string, string> {
+        const metadata: Record<string, string> = {};
+
+        for (const line of lines) {
+            if (!line.startsWith('!')) {
+                break; // End of header
+            }
+
+            const match = line.match(/^!\s*([^:]+):\s*(.+)$/);
+            if (match) {
+                const [, key, value] = match;
+                metadata[key.trim().toLowerCase()] = value.trim();
+            }
+        }
+
+        return metadata;
+    }
+
+    // Static methods for convenience
+    static prepareHeader = (config: IConfiguration, options?: HeaderOptions) =>
+        new HeaderGenerator().generateListHeader(config, options);
+
+    static prepareSourceHeader = (source: ISource) =>
+        new HeaderGenerator().generateSourceHeader(source);
 }
