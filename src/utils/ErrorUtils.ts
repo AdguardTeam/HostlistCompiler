@@ -8,7 +8,7 @@
  */
 export class CompilationError extends Error {
     public readonly code: string;
-    public readonly cause?: Error;
+    public override readonly cause?: Error;
 
     constructor(message: string, code: string, cause?: Error) {
         super(message);
@@ -55,7 +55,7 @@ export class NetworkError extends Error {
  */
 export class SourceError extends Error {
     public readonly source: string;
-    public readonly cause?: Error;
+    public override readonly cause?: Error;
 
     constructor(message: string, source: string, cause?: Error) {
         super(message);
