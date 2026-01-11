@@ -142,6 +142,8 @@ function evaluateCondition(condition: string, platform?: string): boolean {
         if (!/^[!&|() ]*$/i.test(expr.replace(/true|false/gi, ''))) {
             return false;
         }
+        // Use Function constructor for safe evaluation
+        // This is safe because we've sanitized the input to only contain boolean logic
         const fn = new Function(`return ${expr};`);
         return Boolean(fn());
     } catch {
