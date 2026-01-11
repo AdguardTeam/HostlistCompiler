@@ -537,7 +537,7 @@
         <header>
             <h1>🛡️ Adblock Compiler</h1>
             <p><strong>Compiler-as-a-Service</strong> | Real-time filter list compilation with event-driven pipeline</p>
-            <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">Powered by Cloudflare Workers • <a href="https://adblock-compiler.jayson-knight.workers.dev/api" style="color: white; text-decoration: underline;" target="_blank">API</a></p>
+            <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">Powered by Cloudflare Workers • <a href="https://adblock-compiler.jayson-knight.workers.dev/api" style="color: white; text-decoration: underline;" target="_blank">API</a> • <span id="header-version">v0.6.90</span></p>
         </header>
 
         <div class="content">
@@ -833,12 +833,37 @@ eventSource.addEventListener('result', (e) => {
         </div>
 
         <footer>
-            <p>Powered by <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank">@jk-com/adblock-compiler</a></p>
+            <p>Powered by <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank">@jk-com/adblock-compiler</a> • <span id="footer-version">v0.6.90</span></p>
             <p>Made with ❤️ for better internet filtering</p>
         </footer>
     </div>
 
     <script>
+        // Fetch compiler version from API
+        async function fetchCompilerVersion() {
+            try {
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? '/api'
+                    : 'https://adblock-compiler.jayson-knight.workers.dev/api';
+                
+                const response = await fetch(apiUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.version) {
+                        const versionText = `v${data.version}`;
+                        document.getElementById('header-version').textContent = versionText;
+                        document.getElementById('footer-version').textContent = versionText;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch compiler version:', error);
+                // Keep the default version from HTML if fetch fails
+            }
+        }
+
+        // Fetch version when page loads
+        fetchCompilerVersion();
+
         // Tab switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
