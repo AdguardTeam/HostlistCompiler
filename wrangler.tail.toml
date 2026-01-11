@@ -11,9 +11,9 @@ command = ""
 
 # KV namespace for storing tail logs (optional)
 # Uncomment and create namespace if you want to persist logs
-# [[kv_namespaces]]
-# binding = "TAIL_LOGS"
-# id = ""  # Create with: wrangler kv:namespace create TAIL_LOGS
+[[kv_namespaces]]
+binding = "TAIL_LOGS"
+id = "476d9c981b8d4e2eaa2442ae85e0c838"  # Create with: wrangler kv:namespace create TAIL_LOGS
 
 # Environment variables
 [vars]
