@@ -66,7 +66,7 @@ Deno.test('addChecksumToHeader - should add checksum before Compiled by line', a
         '! Title: Test Filter',
         '! Last modified: 2026-01-04T00:00:00.000Z',
         '!',
-        '! Compiled by @jk-com/adblock-compiler v0.6.88',
+        '! Compiled by @jk-com/adblock-compiler v0.6.92',
         '!',
         '||example.com^',
     ];
@@ -119,7 +119,7 @@ Deno.test('addChecksumToHeader - calculated checksum should validate the content
         '! Title: Test',
         '! Last modified: 2026-01-04T00:00:00.000Z',
         '!',
-        '! Compiled by @jk-com/adblock-compiler v0.6.88',
+        '! Compiled by @jk-com/adblock-compiler v0.6.92',
         '!',
         '||example.com^',
     ];
