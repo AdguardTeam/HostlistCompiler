@@ -10,7 +10,13 @@ Automatically bumps the version number when a pull request is opened.
 
 #### Trigger
 - Runs when a pull request is opened targeting master/main branches
-- Does not run for PRs created by bots (github-actions[bot], dependabot[bot])
+- Does not run for PRs created by automation bots (github-actions[bot], dependabot[bot])
+- Copilot bot PRs ARE allowed since they represent user-initiated feature work
+- Can be manually triggered via workflow_dispatch for edge cases
+
+#### Important Note
+**Why didn't this run for PR #47?**
+This workflow was added in PR #47 itself. GitHub Actions only runs workflows that exist on the base branch (master/main) at the time the triggering event occurs. Since the workflow file didn't exist on master when PR #47 was opened, it couldn't run for that PR. The workflow is now on master and will run for all future PRs.
 
 #### What it does
 1. Extracts the current version from `deno.json`

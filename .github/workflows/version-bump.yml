@@ -1,9 +1,15 @@
 name: Auto Version Bump
 
+# This workflow automatically bumps the patch version when a PR is opened.
+# Note: This workflow only runs if it exists on the base branch (master/main).
+# It did not run for PR #47 because the workflow itself was added in that PR.
+# It will run for all subsequent PRs.
+
 on:
   pull_request:
     types: [opened]
     branches: [master, main]
+  workflow_dispatch:  # Allow manual triggering for edge cases
 
 permissions:
   contents: write
@@ -13,7 +19,8 @@ jobs:
   bump-version:
     name: Bump Version Number
     runs-on: ubuntu-latest
-    # Only run on PRs not created by bots
+    # Only run on PRs not created by automation bots (github-actions, dependabot)
+    # Note: Copilot bot PRs ARE allowed since they represent user-initiated feature work
     if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout PR branch
