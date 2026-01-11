@@ -6,7 +6,10 @@
 	"scripts": {
 		"dev": "wrangler dev",
 		"deploy": "wrangler deploy",
-		"tail": "wrangler tail"
+		"tail": "wrangler tail",
+		"tail:deploy": "wrangler deploy --config wrangler.tail.toml",
+		"tail:dev": "wrangler dev --config wrangler.tail.toml",
+		"tail:logs": "wrangler tail adblock-compiler-tail"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260103.0",

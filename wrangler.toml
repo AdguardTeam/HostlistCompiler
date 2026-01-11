@@ -62,6 +62,12 @@ COMPILER_VERSION = "0.6.90"
 directory = "./public"
 binding = "ASSETS"
 
+# Tail Workers - for log collection and observability
+# Uncomment to enable tail worker (must be deployed separately first)
+# tail_consumers = [
+#     { service = "adblock-compiler-tail" }
+# ]
+
 # Development settings
 [dev]
 port = 8787
@@ -71,3 +77,6 @@ enable_containers = false  # Containers not supported on Windows - use WSL or de
 # Production settings (optional)
 # [env.production]
 # vars = { ENVIRONMENT = "production" }
+# tail_consumers = [
+#     { service = "adblock-compiler-tail" }
+# ]

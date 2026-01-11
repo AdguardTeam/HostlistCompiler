@@ -894,6 +894,27 @@ The production worker (`worker/worker.ts`) includes:
 - Rate limiting
 - Request deduplication
 
+**Tail Worker for Observability**:
+
+A Cloudflare Tail Worker is included for advanced logging and monitoring. The tail worker captures logs, exceptions, and events from the main worker in real-time.
+
+```bash
+# Deploy the tail worker
+npm run tail:deploy
+
+# View tail worker logs
+npm run tail:logs
+```
+
+Features:
+- **Log Persistence**: Store logs in Cloudflare KV
+- **Error Forwarding**: Send critical errors to webhooks (Slack, Discord, etc.)
+- **Structured Events**: Format logs for external systems
+- **Automatic Cleanup**: Configurable log retention
+
+📚 **[Tail Worker Documentation](worker/TAIL_WORKER.md)** - Complete guide for setup and configuration
+
+
 ```typescript
 import { WorkerCompiler, type IConfiguration } from '@jk-com/adblock-compiler';
 
