@@ -339,6 +339,13 @@ async function updateQueueStats(
     count: number = 1,
 ): Promise<void> {
     try {
+        // Validate count parameter
+        if (count <= 0 || !Number.isInteger(count)) {
+            // deno-lint-ignore no-console
+            console.warn(`Invalid count parameter: ${count}, defaulting to 1`);
+            count = 1;
+        }
+        
         const key = 'queue:stats';
         const existing = await env.METRICS.get(key, 'json') as QueueStats | null;
 
@@ -358,6 +365,9 @@ async function updateQueueStats(
             stats.completed += count;
             if (processingTime) {
                 stats.totalProcessingTime += processingTime;
+            }
+            // Calculate average after updating completed count
+            if (stats.completed > 0) {
                 stats.averageProcessingTime = Math.round(
                     stats.totalProcessingTime / stats.completed,
                 );

@@ -1366,6 +1366,14 @@ eventSource.addEventListener('result', (e) => {
             }
         }
 
+        function hideQueueStats() {
+            document.getElementById('queue-stats-section').style.display = 'none';
+            // Stop auto-refresh immediately when hiding
+            if (typeof stopQueueStatsAutoRefresh === 'function') {
+                stopQueueStatsAutoRefresh();
+            }
+        }
+
         function addLog(level, message) {
             const progressLogs = document.getElementById('progress-logs');
             const logEntry = document.createElement('div');
@@ -1399,6 +1407,8 @@ eventSource.addEventListener('result', (e) => {
         function hideResults() {
             document.getElementById('results').classList.remove('visible');
             document.getElementById('progress').classList.remove('visible');
+            // Hide and stop auto-refresh for queue stats
+            hideQueueStats();
         }
 
         function showResults(data) {
