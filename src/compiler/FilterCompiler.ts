@@ -118,13 +118,13 @@ export class FilterCompiler {
         collector?.start();
         const compilationStartTime = performance.now();
 
-        // Start tracing compilation
+        // Start tracing compilation - use placeholder values until validation passes
         const compilationEventId = this.tracingContext.diagnostics.operationStart(
             'compileFilterList',
             {
-                name: configuration.name,
-                sourceCount: configuration.sources.length,
-                transformationCount: configuration.transformations?.length || 0,
+                name: (configuration as any)?.name || 'unknown',
+                sourceCount: 0,
+                transformationCount: 0,
             },
         );
 
@@ -135,7 +135,7 @@ export class FilterCompiler {
             const validationEventId = this.tracingContext.diagnostics.operationStart(
                 'validateConfiguration',
                 {
-                    name: configuration.name,
+                    name: (configuration as any)?.name || 'unknown',
                 },
             );
 
