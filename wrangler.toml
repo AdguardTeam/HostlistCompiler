@@ -79,3 +79,7 @@ enable_containers = false  # Containers not supported on Windows - use WSL or de
 [env.production]
 vars = { ENVIRONMENT = "production" }
 tail_consumers = [{ service = "adblock-compiler-tail" }]
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS_ENGINE"
+dataset = "adguard-compiler-analytics-engine"
