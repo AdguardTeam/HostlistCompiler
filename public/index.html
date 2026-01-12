@@ -595,6 +595,11 @@
                     <label for="simple-benchmark">Enable benchmarking (performance metrics)</label>
                 </div>
 
+                <div class="checkbox-group">
+                    <input type="checkbox" id="simple-use-queue">
+                    <label for="simple-use-queue">Use queue (async compilation) - Job will be processed in background</label>
+                </div>
+
                 <div class="button-group">
                     <button class="btn-primary" id="simple-compile">Compile Filter List</button>
                     <button class="btn-secondary" id="simple-clear">Clear</button>
@@ -630,6 +635,11 @@
                 <div class="checkbox-group">
                     <input type="checkbox" id="advanced-benchmark" checked>
                     <label for="advanced-benchmark">Enable benchmarking (performance metrics)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="advanced-use-queue">
+                    <label for="advanced-use-queue">Use queue (async compilation) - Job will be processed in background</label>
                 </div>
 
                 <div class="button-group">
@@ -790,6 +800,37 @@ eventSource.addEventListener('result', (e) => {
                     <p>📚 <a href="https://github.com/jaypatrick/hostlistcompiler" target="_blank">GitHub Repository</a></p>
                     <p>🌐 <a href="https://adblock-compiler.jayson-knight.workers.dev/" target="_blank">Web UI</a></p>
                     <p>⚡ <a href="https://adblock-compiler.jayson-knight.workers.dev/api" target="_blank">API Info Endpoint</a></p>
+                </div>
+            </div>
+
+            <!-- Queue Statistics Section -->
+            <div class="progress-section" id="queue-stats-section" style="display: none;">
+                <div class="progress-header" style="cursor: default;">
+                    <h3>📊 Queue Statistics</h3>
+                    <button class="btn-secondary" id="refresh-queue-stats" style="padding: 6px 12px; font-size: 0.9rem;">Refresh</button>
+                </div>
+                <div class="progress-content expanded" style="max-height: none;">
+                    <div class="stats" id="queue-stats">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                            <div class="stat-value" id="queue-pending">-</div>
+                            <div class="stat-label">Pending Jobs</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            <div class="stat-value" id="queue-completed">-</div>
+                            <div class="stat-label">Completed Jobs</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                            <div class="stat-value" id="queue-failed">-</div>
+                            <div class="stat-label">Failed Jobs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="queue-avg-time">-</div>
+                            <div class="stat-label">Avg Processing Time</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
+                        Last updated: <span id="queue-last-update">Never</span>
+                    </div>
                 </div>
             </div>
 
@@ -1050,6 +1091,7 @@ eventSource.addEventListener('result', (e) => {
 
             const listName = document.getElementById('list-name').value.trim() || 'My Filter List';
             const benchmark = document.getElementById('simple-benchmark').checked;
+            const useQueue = document.getElementById('simple-use-queue').checked;
 
             // Parse input - separate URLs from raw rules
             const lines = input.split('\n').map(l => l.trim()).filter(l => l);
@@ -1100,7 +1142,7 @@ eventSource.addEventListener('result', (e) => {
                 preFetchedContent['raw-rules'] = rawRules.join('\n');
             }
 
-            await compile(configuration, preFetchedContent, benchmark);
+            await compile(configuration, preFetchedContent, benchmark, useQueue);
         }
 
         async function compileAdvanced() {
@@ -1119,7 +1161,8 @@ eventSource.addEventListener('result', (e) => {
             }
 
             const benchmark = document.getElementById('advanced-benchmark').checked;
-            await compile(configuration, {}, benchmark);
+            const useQueue = document.getElementById('advanced-use-queue').checked;
+            await compile(configuration, {}, benchmark, useQueue);
         }
 
         // Store compilation state
@@ -1188,7 +1231,7 @@ eventSource.addEventListener('result', (e) => {
             compileBtn.disabled = false;
         }
 
-        async function compile(configuration, preFetchedContent, benchmark) {
+        async function compile(configuration, preFetchedContent, benchmark, useQueue = false) {
             currentListName = configuration.name || 'filter-list';
             hideResults();
             showProgress();
@@ -1207,9 +1250,70 @@ eventSource.addEventListener('result', (e) => {
                 list_name: currentListName,
                 source_count: configuration.sources?.length || 0,
                 has_transformations: (configuration.transformations?.length || 0) > 0,
-                benchmark: benchmark
+                benchmark: benchmark,
+                use_queue: useQueue
             });
 
+            if (useQueue) {
+                // Use async queue endpoint
+                await compileWithQueue(configuration, preFetchedContent, benchmark);
+            } else {
+                // Use streaming SSE endpoint
+                await compileWithStream(configuration, preFetchedContent, benchmark);
+            }
+        }
+
+        async function compileWithQueue(configuration, preFetchedContent, benchmark) {
+            const apiUrl = window.location.hostname === 'localhost' 
+                ? '/compile/async'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/compile/async';
+            
+            try {
+                addLog('info', '📤 Sending compilation job to queue...');
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        configuration,
+                        preFetchedContent,
+                        benchmark
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog('success', `✓ Job queued successfully! Request ID: ${result.requestId}`);
+                    addLog('info', result.note);
+                    addLog('info', '⏳ Your compilation will be processed in the background.');
+                    addLog('info', '💡 The result will be cached and available for subsequent requests.');
+                    
+                    // Show queue stats
+                    showQueueStats();
+                    await fetchQueueStats();
+                    
+                    // Track successful queue
+                    trackEvent('compilation_queued', {
+                        list_name: currentListName,
+                        request_id: result.requestId,
+                        duration_ms: Date.now() - compileStartTime
+                    });
+                } else {
+                    throw new Error(result.error || 'Failed to queue compilation');
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                handleCompilationError(errorMessage);
+            } finally {
+                const compileBtn = document.querySelector('.btn-primary');
+                compileBtn.disabled = false;
+            }
+        }
+
+        async function compileWithStream(configuration, preFetchedContent, benchmark) {
             // Initialize worker if needed
             initWorker();
 
@@ -1230,6 +1334,32 @@ eventSource.addEventListener('result', (e) => {
                     benchmark
                 }
             });
+        }
+
+        async function fetchQueueStats() {
+            const apiUrl = window.location.hostname === 'localhost' 
+                ? '/queue/stats'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/queue/stats';
+            
+            try {
+                const response = await fetch(apiUrl);
+                const stats = await response.json();
+                
+                // Update UI
+                document.getElementById('queue-pending').textContent = stats.pending.toLocaleString();
+                document.getElementById('queue-completed').textContent = stats.completed.toLocaleString();
+                document.getElementById('queue-failed').textContent = stats.failed.toLocaleString();
+                document.getElementById('queue-avg-time').textContent = 
+                    stats.averageProcessingTime > 0 ? `${stats.averageProcessingTime}ms` : '-';
+                document.getElementById('queue-last-update').textContent = 
+                    new Date(stats.lastUpdate).toLocaleTimeString();
+            } catch (error) {
+                console.error('Failed to fetch queue stats:', error);
+            }
+        }
+
+        function showQueueStats() {
+            document.getElementById('queue-stats-section').style.display = 'block';
         }
 
         function addLog(level, message) {
@@ -1430,6 +1560,19 @@ eventSource.addEventListener('result', (e) => {
                 alert('Failed to copy to clipboard: ' + error.message);
             }
         });
+
+        // Queue stats refresh button
+        document.getElementById('refresh-queue-stats').addEventListener('click', async () => {
+            await fetchQueueStats();
+        });
+
+        // Auto-refresh queue stats every 5 seconds when visible
+        setInterval(async () => {
+            const queueStatsSection = document.getElementById('queue-stats-section');
+            if (queueStatsSection.style.display !== 'none') {
+                await fetchQueueStats();
+            }
+        }, 5000);
     </script>
 </body>
 </html>

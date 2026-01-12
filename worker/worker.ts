@@ -318,6 +318,96 @@ async function getMetrics(env: Env): Promise<any> {
 }
 
 /**
+ * Queue statistics structure
+ */
+interface QueueStats {
+    pending: number;
+    completed: number;
+    failed: number;
+    totalProcessingTime: number;
+    averageProcessingTime: number;
+    lastUpdate: string;
+}
+
+/**
+ * Update queue statistics
+ */
+async function updateQueueStats(
+    env: Env,
+    type: 'enqueued' | 'completed' | 'failed',
+    processingTime?: number,
+): Promise<void> {
+    try {
+        const key = 'queue:stats';
+        const existing = await env.METRICS.get(key, 'json') as QueueStats | null;
+
+        const stats: QueueStats = existing || {
+            pending: 0,
+            completed: 0,
+            failed: 0,
+            totalProcessingTime: 0,
+            averageProcessingTime: 0,
+            lastUpdate: new Date().toISOString(),
+        };
+
+        if (type === 'enqueued') {
+            stats.pending++;
+        } else if (type === 'completed') {
+            stats.pending = Math.max(0, stats.pending - 1);
+            stats.completed++;
+            if (processingTime) {
+                stats.totalProcessingTime += processingTime;
+                stats.averageProcessingTime = Math.round(
+                    stats.totalProcessingTime / stats.completed,
+                );
+            }
+        } else if (type === 'failed') {
+            stats.pending = Math.max(0, stats.pending - 1);
+            stats.failed++;
+        }
+
+        stats.lastUpdate = new Date().toISOString();
+
+        await env.METRICS.put(key, JSON.stringify(stats), {
+            expirationTtl: 86400, // 24 hours
+        });
+    } catch (error) {
+        // deno-lint-ignore no-console
+        console.error('Failed to update queue stats:', error);
+    }
+}
+
+/**
+ * Get queue statistics
+ */
+async function getQueueStats(env: Env): Promise<QueueStats> {
+    try {
+        const key = 'queue:stats';
+        const stats = await env.METRICS.get(key, 'json') as QueueStats | null;
+
+        return stats || {
+            pending: 0,
+            completed: 0,
+            failed: 0,
+            totalProcessingTime: 0,
+            averageProcessingTime: 0,
+            lastUpdate: new Date().toISOString(),
+        };
+    } catch (error) {
+        // deno-lint-ignore no-console
+        console.error('Failed to get queue stats:', error);
+        return {
+            pending: 0,
+            completed: 0,
+            failed: 0,
+            totalProcessingTime: 0,
+            averageProcessingTime: 0,
+            lastUpdate: new Date().toISOString(),
+        };
+    }
+}
+
+/**
  * Compresses data using gzip
  */
 async function compress(data: string): Promise<ArrayBuffer> {
@@ -1065,6 +1155,7 @@ function handleInfo(env: Env): Response {
             'GET /': 'Web UI for interactive compilation',
             'GET /api': 'API information (this endpoint)',
             'GET /metrics': 'Request metrics and statistics',
+            'GET /queue/stats': 'Queue statistics and diagnostics',
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
             'POST /compile/batch': 'Compile multiple filter lists in parallel',
@@ -1281,6 +1372,9 @@ async function processCompileMessage(
         const totalDuration = Date.now() - startTime;
         // deno-lint-ignore no-console
         console.log(`[QUEUE:COMPILE] Total processing time: ${totalDuration}ms for "${configuration.name}"`);
+        
+        // Track successful completion
+        await updateQueueStats(env, 'completed', totalDuration);
     } catch (error) {
         const totalDuration = Date.now() - startTime;
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1290,6 +1384,10 @@ async function processCompileMessage(
             `[QUEUE:COMPILE] Processing failed after ${totalDuration}ms for "${configuration.name}":`,
             errorMessage,
         );
+        
+        // Track failure
+        await updateQueueStats(env, 'failed');
+        
         throw error; // Re-throw to trigger retry
     }
 }
@@ -1620,6 +1718,11 @@ async function queueBatchCompileJob(
     };
 
     await env.ADBLOCK_COMPILER_QUEUE.send(message);
+    
+    // Track queue statistics (count each request in the batch)
+    for (let i = 0; i < requests.length; i++) {
+        await updateQueueStats(env, 'enqueued');
+    }
 
     return requestId;
 }
@@ -1646,6 +1749,17 @@ export default {
         if (pathname === '/metrics' && request.method === 'GET') {
             const metrics = await getMetrics(env);
             return Response.json(metrics, {
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Cache-Control': 'no-cache',
+                },
+            });
+        }
+
+        // Handle queue stats endpoint
+        if (pathname === '/queue/stats' && request.method === 'GET') {
+            const stats = await getQueueStats(env);
+            return Response.json(stats, {
                 headers: {
                     'Access-Control-Allow-Origin': '*',
                     'Cache-Control': 'no-cache',
