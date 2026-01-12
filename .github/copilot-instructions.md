@@ -96,8 +96,8 @@ export class MyTransformation extends SyncTransformation {
     public readonly type = TransformationType.MyTransform;
     public readonly name = 'My Transform';
 
-    public executeSync(rules: string[]): string[] {
-        // Use this.info(), this.debug(), this.warn() for logging
+    public executeSync(rules: readonly string[]): readonly string[] {
+        // Use this.info(), this.debug(), this.error() for logging
         this.info('Starting transformation');
         
         // Example: Remove all comment lines
