@@ -4,6 +4,7 @@
  */
 
 import {
+    AnyDiagnosticEvent,
     CacheEvent,
     DiagnosticEvent,
     IDiagnosticsCollector,
@@ -50,7 +51,7 @@ function sanitizeUrl(url: string): string {
  * and can optionally emit them to console for debugging.
  */
 export class DiagnosticsCollector implements IDiagnosticsCollector {
-    private events: DiagnosticEvent[] = [];
+    private events: AnyDiagnosticEvent[] = [];
     private operationStartTimes = new Map<string, number>();
     private operationNames = new Map<string, string>();
     private readonly correlationId: string;
@@ -270,7 +271,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
     /**
      * Gets all collected events
      */
-    public getEvents(): DiagnosticEvent[] {
+    public getEvents(): AnyDiagnosticEvent[] {
         return [...this.events];
     }
 
@@ -349,7 +350,7 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
         // No-op
     }
 
-    public getEvents(): DiagnosticEvent[] {
+    public getEvents(): AnyDiagnosticEvent[] {
         return [];
     }
 
