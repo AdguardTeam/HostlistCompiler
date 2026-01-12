@@ -6,6 +6,8 @@
     <title>Hostlist Compiler</title>
     <!-- Cloudflare Web Analytics -->
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8771568d1cde4005bb60c5767d0969c4"}'></script>
+    <!-- Chart.js for queue visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -513,6 +515,98 @@
             text-decoration: underline;
         }
 
+        .job-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+
+        .job-history-table th {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .job-history-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .job-history-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-cancelled {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .health-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .health-healthy {
+            background: #28a745;
+        }
+
+        .health-degraded {
+            background: #ffc107;
+        }
+
+        .health-critical {
+            background: #dc3545;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 15px;
+        }
+
+        .cancel-btn {
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .cancel-btn:hover {
+            background: #c82333;
+        }
+
+        .cancel-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 768px) {
             header h1 {
                 font-size: 1.8rem;
@@ -806,7 +900,7 @@ eventSource.addEventListener('result', (e) => {
             <!-- Queue Statistics Section -->
             <div class="progress-section" id="queue-stats-section" style="display: none;">
                 <div class="progress-header" style="cursor: default;">
-                    <h3>📊 Queue Statistics</h3>
+                    <h3>📊 Queue Statistics <span id="queue-health-indicator"></span></h3>
                     <button class="btn-secondary" id="refresh-queue-stats" style="padding: 6px 12px; font-size: 0.9rem;">Refresh</button>
                 </div>
                 <div class="progress-content expanded" style="max-height: none;">
@@ -827,7 +921,48 @@ eventSource.addEventListener('result', (e) => {
                             <div class="stat-value" id="queue-avg-time">-</div>
                             <div class="stat-label">Avg Processing Time</div>
                         </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                            <div class="stat-value" id="queue-processing-rate">-</div>
+                            <div class="stat-label">Processing Rate (jobs/min)</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);">
+                            <div class="stat-value" id="queue-lag">-</div>
+                            <div class="stat-label">Queue Lag</div>
+                        </div>
                     </div>
+                    
+                    <!-- Queue Depth Chart -->
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: #667eea; margin-bottom: 10px;">Queue Depth Over Time</h4>
+                        <div class="chart-container">
+                            <canvas id="queue-depth-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Job History -->
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: #667eea; margin-bottom: 10px;">Recent Job History</h4>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="job-history-table" id="job-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Job Name</th>
+                                        <th>Status</th>
+                                        <th>Duration</th>
+                                        <th>Rules</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="job-history-body">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: #999; padding: 20px;">No job history available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
                     <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
                         Last updated: <span id="queue-last-update">Never</span>
                     </div>
@@ -1336,6 +1471,9 @@ eventSource.addEventListener('result', (e) => {
             });
         }
 
+        // Chart instance for queue depth
+        let queueDepthChart = null;
+
         async function fetchQueueStats() {
             const apiUrl = window.location.hostname === 'localhost' 
                 ? '/queue/stats'
@@ -1345,21 +1483,184 @@ eventSource.addEventListener('result', (e) => {
                 const response = await fetch(apiUrl);
                 const stats = await response.json();
                 
-                // Update UI
+                // Update basic stats
                 document.getElementById('queue-pending').textContent = stats.pending.toLocaleString();
                 document.getElementById('queue-completed').textContent = stats.completed.toLocaleString();
                 document.getElementById('queue-failed').textContent = stats.failed.toLocaleString();
                 document.getElementById('queue-avg-time').textContent = 
                     stats.averageProcessingTime > 0 ? `${stats.averageProcessingTime}ms` : '-';
+                document.getElementById('queue-processing-rate').textContent = 
+                    stats.processingRate || '0';
+                document.getElementById('queue-lag').textContent = 
+                    stats.queueLag > 0 ? `${Math.round(stats.queueLag / 1000)}s` : '-';
                 document.getElementById('queue-last-update').textContent = 
                     new Date(stats.lastUpdate).toLocaleTimeString();
+                
+                // Update health indicator
+                updateQueueHealth(stats);
+                
+                // Update queue depth chart
+                updateQueueDepthChart(stats.depthHistory || []);
+                
+                // Update job history table
+                updateJobHistory(stats.history || []);
+                
+                // Check for recently completed jobs and show notifications
+                checkForCompletedJobs(stats.history || []);
             } catch (error) {
                 console.error('Failed to fetch queue stats:', error);
             }
         }
 
+        function updateQueueHealth(stats) {
+            const indicator = document.getElementById('queue-health-indicator');
+            const pending = stats.pending || 0;
+            const processingRate = stats.processingRate || 0;
+            const queueLag = stats.queueLag || 0;
+            
+            let healthClass = 'health-healthy';
+            let healthText = 'Healthy';
+            
+            // Determine health based on queue lag and pending jobs
+            if (queueLag > 60000 || pending > 50) {
+                healthClass = 'health-critical';
+                healthText = 'Critical';
+            } else if (queueLag > 30000 || pending > 20) {
+                healthClass = 'health-degraded';
+                healthText = 'Degraded';
+            }
+            
+            indicator.innerHTML = `<span class="health-indicator ${healthClass}"></span>${healthText}`;
+        }
+
+        function updateQueueDepthChart(depthHistory) {
+            const canvas = document.getElementById('queue-depth-chart');
+            const ctx = canvas.getContext('2d');
+            
+            if (queueDepthChart) {
+                queueDepthChart.destroy();
+            }
+            
+            const labels = depthHistory.map(entry => {
+                const date = new Date(entry.timestamp);
+                return date.toLocaleTimeString();
+            });
+            
+            const data = depthHistory.map(entry => entry.pending);
+            
+            queueDepthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Pending Jobs',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        },
+                        x: {
+                            display: labels.length > 0
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateJobHistory(history) {
+            const tbody = document.getElementById('job-history-body');
+            
+            if (!history || history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 20px;">No job history available</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = history.map(job => {
+                const date = new Date(job.timestamp);
+                const timeStr = date.toLocaleTimeString();
+                const statusClass = `status-${job.status}`;
+                const duration = job.duration ? `${job.duration}ms` : '-';
+                const ruleCount = job.ruleCount ? job.ruleCount.toLocaleString() : '-';
+                
+                return `
+                    <tr>
+                        <td>${timeStr}</td>
+                        <td>${escapeHtml(job.configName)}</td>
+                        <td><span class="status-badge ${statusClass}">${job.status}</span></td>
+                        <td>${duration}</td>
+                        <td>${ruleCount}</td>
+                        <td>
+                            ${job.status === 'failed' && job.error ? `<span title="${escapeHtml(job.error)}" style="cursor: help;">ℹ️</span>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Track shown notifications to avoid duplicates
+        const shownNotifications = new Set();
+
+        function checkForCompletedJobs(history) {
+            if (!history || history.length === 0) return;
+            
+            // Check if browser supports notifications
+            if (!('Notification' in window)) return;
+            
+            // Check for completed jobs in the last minute
+            const oneMinuteAgo = Date.now() - 60000;
+            const recentCompleted = history.filter(job => {
+                const jobTime = new Date(job.timestamp).getTime();
+                return job.status === 'completed' && 
+                       jobTime > oneMinuteAgo && 
+                       !shownNotifications.has(job.requestId);
+            });
+            
+            if (recentCompleted.length > 0 && Notification.permission === 'granted') {
+                recentCompleted.forEach(job => {
+                    showJobNotification(job);
+                    shownNotifications.add(job.requestId);
+                });
+            }
+        }
+
+        function showJobNotification(job) {
+            const notification = new Notification('Compilation Complete', {
+                body: `${job.configName} - ${job.ruleCount} rules compiled in ${job.duration}ms`,
+                icon: '/favicon.ico',
+                tag: job.requestId
+            });
+            
+            setTimeout(() => notification.close(), 5000);
+        }
+
+        // Request notification permission when showing queue stats
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
         function showQueueStats() {
             document.getElementById('queue-stats-section').style.display = 'block';
+            // Request notification permission
+            requestNotificationPermission();
             // Start auto-refresh when showing queue stats
             if (typeof startQueueStatsAutoRefresh === 'function') {
                 startQueueStatsAutoRefresh();

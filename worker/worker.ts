@@ -318,25 +318,44 @@ async function getMetrics(env: Env): Promise<any> {
 }
 
 /**
- * Queue statistics structure
+ * Job history entry
+ */
+interface JobHistoryEntry {
+    requestId: string;
+    configName: string;
+    status: 'completed' | 'failed' | 'cancelled';
+    duration: number;
+    timestamp: string;
+    error?: string;
+    ruleCount?: number;
+}
+
+/**
+ * Queue statistics structure with history
  */
 interface QueueStats {
     pending: number;
     completed: number;
     failed: number;
+    cancelled: number;
     totalProcessingTime: number;
     averageProcessingTime: number;
+    processingRate: number; // jobs per minute
+    queueLag: number; // average time in queue (ms)
     lastUpdate: string;
+    history: JobHistoryEntry[];
+    depthHistory: Array<{ timestamp: string; pending: number }>;
 }
 
 /**
- * Update queue statistics
+ * Update queue statistics with job history and health metrics
  */
 async function updateQueueStats(
     env: Env,
-    type: 'enqueued' | 'completed' | 'failed',
+    type: 'enqueued' | 'completed' | 'failed' | 'cancelled',
     processingTime?: number,
     count: number = 1,
+    jobInfo?: { requestId?: string; configName?: string; error?: string; ruleCount?: number },
 ): Promise<void> {
     try {
         // Validate count parameter
@@ -353,13 +372,25 @@ async function updateQueueStats(
             pending: 0,
             completed: 0,
             failed: 0,
+            cancelled: 0,
             totalProcessingTime: 0,
             averageProcessingTime: 0,
+            processingRate: 0,
+            queueLag: 0,
             lastUpdate: new Date().toISOString(),
+            history: [],
+            depthHistory: [],
         };
+
+        const now = new Date().toISOString();
 
         if (type === 'enqueued') {
             stats.pending += count;
+            // Add to depth history (keep last 100 entries)
+            stats.depthHistory.push({ timestamp: now, pending: stats.pending });
+            if (stats.depthHistory.length > 100) {
+                stats.depthHistory.shift();
+            }
         } else if (type === 'completed') {
             stats.pending = Math.max(0, stats.pending - count);
             stats.completed += count;
@@ -372,12 +403,73 @@ async function updateQueueStats(
                     stats.totalProcessingTime / stats.completed,
                 );
             }
+            // Add to job history if jobInfo provided
+            if (jobInfo?.requestId) {
+                stats.history.unshift({
+                    requestId: jobInfo.requestId,
+                    configName: jobInfo.configName || 'Unknown',
+                    status: 'completed',
+                    duration: processingTime || 0,
+                    timestamp: now,
+                    ruleCount: jobInfo.ruleCount,
+                });
+                // Keep only last 50 entries
+                if (stats.history.length > 50) {
+                    stats.history = stats.history.slice(0, 50);
+                }
+            }
         } else if (type === 'failed') {
             stats.pending = Math.max(0, stats.pending - count);
             stats.failed += count;
+            // Add to job history if jobInfo provided
+            if (jobInfo?.requestId) {
+                stats.history.unshift({
+                    requestId: jobInfo.requestId,
+                    configName: jobInfo.configName || 'Unknown',
+                    status: 'failed',
+                    duration: processingTime || 0,
+                    timestamp: now,
+                    error: jobInfo.error,
+                });
+                // Keep only last 50 entries
+                if (stats.history.length > 50) {
+                    stats.history = stats.history.slice(0, 50);
+                }
+            }
+        } else if (type === 'cancelled') {
+            stats.pending = Math.max(0, stats.pending - count);
+            stats.cancelled += count;
+            // Add to job history if jobInfo provided
+            if (jobInfo?.requestId) {
+                stats.history.unshift({
+                    requestId: jobInfo.requestId,
+                    configName: jobInfo.configName || 'Unknown',
+                    status: 'cancelled',
+                    duration: 0,
+                    timestamp: now,
+                });
+                // Keep only last 50 entries
+                if (stats.history.length > 50) {
+                    stats.history = stats.history.slice(0, 50);
+                }
+            }
         }
 
-        stats.lastUpdate = new Date().toISOString();
+        // Calculate processing rate (jobs per minute) based on recent history
+        const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
+        const recentJobs = stats.history.filter(job => job.timestamp > oneMinuteAgo);
+        stats.processingRate = recentJobs.length;
+
+        // Calculate queue lag based on depth history
+        if (stats.depthHistory.length > 1) {
+            const avgDepth = stats.depthHistory.reduce((sum, entry) => sum + entry.pending, 0) / stats.depthHistory.length;
+            // Estimate lag: if processing rate > 0, lag = avgDepth / (processingRate / 60)
+            if (stats.processingRate > 0) {
+                stats.queueLag = Math.round((avgDepth / (stats.processingRate / 60)) * 1000);
+            }
+        }
+
+        stats.lastUpdate = now;
 
         await env.METRICS.put(key, JSON.stringify(stats), {
             expirationTtl: 86400, // 24 hours
@@ -400,9 +492,14 @@ async function getQueueStats(env: Env): Promise<QueueStats> {
             pending: 0,
             completed: 0,
             failed: 0,
+            cancelled: 0,
             totalProcessingTime: 0,
             averageProcessingTime: 0,
+            processingRate: 0,
+            queueLag: 0,
             lastUpdate: new Date().toISOString(),
+            history: [],
+            depthHistory: [],
         };
     } catch (error) {
         // deno-lint-ignore no-console
@@ -411,9 +508,14 @@ async function getQueueStats(env: Env): Promise<QueueStats> {
             pending: 0,
             completed: 0,
             failed: 0,
+            cancelled: 0,
             totalProcessingTime: 0,
             averageProcessingTime: 0,
+            processingRate: 0,
+            queueLag: 0,
             lastUpdate: new Date().toISOString(),
+            history: [],
+            depthHistory: [],
         };
     }
 }
@@ -1167,6 +1269,8 @@ function handleInfo(env: Env): Response {
             'GET /api': 'API information (this endpoint)',
             'GET /metrics': 'Request metrics and statistics',
             'GET /queue/stats': 'Queue statistics and diagnostics',
+            'GET /queue/history': 'Job history and queue depth over time',
+            'POST /queue/cancel/:requestId': 'Cancel a pending queue job',
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
             'POST /compile/batch': 'Compile multiple filter lists in parallel',
@@ -1384,8 +1488,12 @@ async function processCompileMessage(
         // deno-lint-ignore no-console
         console.log(`[QUEUE:COMPILE] Total processing time: ${totalDuration}ms for "${configuration.name}"`);
         
-        // Track successful completion
-        await updateQueueStats(env, 'completed', totalDuration);
+        // Track successful completion with job info
+        await updateQueueStats(env, 'completed', totalDuration, 1, {
+            requestId: message.requestId,
+            configName: configuration.name,
+            ruleCount: result.rules.length,
+        });
     } catch (error) {
         const totalDuration = Date.now() - startTime;
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1396,8 +1504,12 @@ async function processCompileMessage(
             errorMessage,
         );
         
-        // Track failure
-        await updateQueueStats(env, 'failed');
+        // Track failure with job info
+        await updateQueueStats(env, 'failed', totalDuration, 1, {
+            requestId: message.requestId,
+            configName: configuration.name,
+            error: errorMessage,
+        });
         
         throw error; // Re-throw to trigger retry
     }
@@ -1775,6 +1887,49 @@ export default {
                 headers: {
                     'Access-Control-Allow-Origin': '*',
                     'Cache-Control': 'no-cache',
+                },
+            });
+        }
+
+        // Handle queue history endpoint
+        if (pathname === '/queue/history' && request.method === 'GET') {
+            const stats = await getQueueStats(env);
+            return Response.json({
+                history: stats.history || [],
+                depthHistory: stats.depthHistory || [],
+            }, {
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Cache-Control': 'no-cache',
+                },
+            });
+        }
+
+        // Handle cancel job endpoint
+        if (pathname.startsWith('/queue/cancel/') && request.method === 'POST') {
+            const requestId = pathname.split('/').pop();
+            if (requestId) {
+                await updateQueueStats(env, 'cancelled', 0, 1, {
+                    requestId,
+                    configName: 'Cancelled by user',
+                });
+                return Response.json({
+                    success: true,
+                    message: `Job ${requestId} marked as cancelled`,
+                    note: 'Job may still process if already started'
+                }, {
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                });
+            }
+            return Response.json({
+                success: false,
+                error: 'Invalid request ID'
+            }, {
+                status: 400,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
                 },
             });
         }
