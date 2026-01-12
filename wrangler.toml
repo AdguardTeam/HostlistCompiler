@@ -69,6 +69,10 @@ service = "adblock-compiler-tail"
 # Uncomment to enable tail worker (must be deployed separately first)
 tail_consumers = [{ service = "adblock-compiler-tail" }]
 
+[[queues.producers]]
+ queue = "adblock-compiler-worker-queue"
+ binding = "ADBLOCK_COMPILER_QUEUE"
+
 # Development settings
 [dev]
 port = 8787
