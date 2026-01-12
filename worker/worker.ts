@@ -1153,6 +1153,13 @@ async function serveStaticFile(env: Env, filename: string): Promise<Response> {
 }
 
 /**
+ * Generate a unique request ID with a prefix
+ */
+function generateRequestId(prefix: string): string {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+}
+
+/**
  * Process a single compile message from the queue
  */
 async function processCompileMessage(
@@ -1280,7 +1287,7 @@ async function processCacheWarmMessage(
             async (configuration) => {
                 const compileMessage: CompileQueueMessage = {
                     type: 'compile',
-                    requestId: `cache-warm-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                    requestId: generateRequestId('cache-warm'),
                     timestamp: message.timestamp,
                     configuration,
                     benchmark: false,
@@ -1353,7 +1360,7 @@ async function queueCompileJob(
 ): Promise<void> {
     const message: CompileQueueMessage = {
         type: 'compile',
-        requestId: `compile-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        requestId: generateRequestId('compile'),
         timestamp: Date.now(),
         configuration,
         preFetchedContent,
@@ -1377,7 +1384,7 @@ async function queueBatchCompileJob(
 ): Promise<void> {
     const message: BatchCompileQueueMessage = {
         type: 'batch-compile',
-        requestId: `batch-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        requestId: generateRequestId('batch'),
         timestamp: Date.now(),
         requests,
     };
