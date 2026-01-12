@@ -1219,6 +1219,20 @@ async function processCompileMessage(
 }
 
 /**
+ * Process items in chunks with controlled concurrency
+ */
+async function processInChunks<T>(
+    items: T[],
+    chunkSize: number,
+    processor: (item: T) => Promise<void>,
+): Promise<void> {
+    for (let i = 0; i < items.length; i += chunkSize) {
+        const chunk = items.slice(i, i + chunkSize);
+        await Promise.allSettled(chunk.map(processor));
+    }
+}
+
+/**
  * Process a batch compile message from the queue
  */
 async function processBatchCompileMessage(
@@ -1226,9 +1240,11 @@ async function processBatchCompileMessage(
     env: Env,
 ): Promise<void> {
     try {
-        // Process all requests in parallel
-        await Promise.all(
-            message.requests.map(async (req) => {
+        // Process requests in chunks of 3 to avoid overwhelming resources
+        await processInChunks(
+            message.requests,
+            3,
+            async (req) => {
                 const compileMessage: CompileQueueMessage = {
                     type: 'compile',
                     requestId: req.id,
@@ -1238,7 +1254,7 @@ async function processBatchCompileMessage(
                     benchmark: req.benchmark,
                 };
                 await processCompileMessage(compileMessage, env);
-            }),
+            },
         );
         // deno-lint-ignore no-console
         console.log(`[QUEUE] Processed batch of ${message.requests.length} compilations`);
@@ -1257,17 +1273,21 @@ async function processCacheWarmMessage(
     env: Env,
 ): Promise<void> {
     try {
-        // Process cache warming for multiple configurations
-        for (const configuration of message.configurations) {
-            const compileMessage: CompileQueueMessage = {
-                type: 'compile',
-                requestId: `cache-warm-${Date.now()}`,
-                timestamp: message.timestamp,
-                configuration,
-                benchmark: false,
-            };
-            await processCompileMessage(compileMessage, env);
-        }
+        // Process cache warming in chunks of 3 to avoid overwhelming resources
+        await processInChunks(
+            message.configurations,
+            3,
+            async (configuration) => {
+                const compileMessage: CompileQueueMessage = {
+                    type: 'compile',
+                    requestId: `cache-warm-${Date.now()}`,
+                    timestamp: message.timestamp,
+                    configuration,
+                    benchmark: false,
+                };
+                await processCompileMessage(compileMessage, env);
+            },
+        );
         // deno-lint-ignore no-console
         console.log(`[QUEUE] Warmed cache for ${message.configurations.length} configurations`);
     } catch (error) {
@@ -1289,35 +1309,43 @@ async function handleQueue(
 
     // Process messages sequentially to avoid overwhelming resources
     for (const message of batch.messages) {
+        let processed = false;
         try {
             const msg = message.body;
 
             switch (msg.type) {
                 case 'compile':
                     await processCompileMessage(msg as CompileQueueMessage, env);
-                    message.ack();
+                    processed = true;
                     break;
 
                 case 'batch-compile':
                     await processBatchCompileMessage(msg as BatchCompileQueueMessage, env);
-                    message.ack();
+                    processed = true;
                     break;
 
                 case 'cache-warm':
                     await processCacheWarmMessage(msg as CacheWarmQueueMessage, env);
-                    message.ack();
+                    processed = true;
                     break;
 
                 default:
                     // deno-lint-ignore no-console
                     console.warn(`[QUEUE] Unknown message type: ${(msg as any).type}`);
-                    message.ack(); // Ack to prevent infinite retries
+                    processed = true; // Ack unknown types to prevent infinite retries
+            }
+
+            // Only ack if processing completed successfully
+            if (processed) {
+                message.ack();
             }
         } catch (error) {
             // deno-lint-ignore no-console
             console.error('[QUEUE] Message processing failed:', error);
-            // Don't ack - let the message retry
-            message.retry();
+            // Only retry if not already acknowledged
+            if (!processed) {
+                message.retry();
+            }
         }
     }
 }
