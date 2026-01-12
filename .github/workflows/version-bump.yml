@@ -112,6 +112,26 @@ jobs:
             echo "Updated package.json version to ${NEW_VERSION}"
           fi
 
+      - name: Bump version in src/version.ts
+        run: |
+          # Update src/version.ts if it exists
+          if [ -f "src/version.ts" ]; then
+            NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
+            # Use sed to replace the VERSION constant
+            sed -i "s/export const VERSION = '[^']*';/export const VERSION = '${NEW_VERSION}';/" src/version.ts
+            echo "Updated src/version.ts version to ${NEW_VERSION}"
+          fi
+
+      - name: Bump version in wrangler.toml
+        run: |
+          # Update wrangler.toml COMPILER_VERSION if it exists
+          if [ -f "wrangler.toml" ] && grep -q 'COMPILER_VERSION' wrangler.toml; then
+            NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
+            # Use sed to replace the COMPILER_VERSION value
+            sed -i "s/COMPILER_VERSION = \"[^\"]*\"/COMPILER_VERSION = \"${NEW_VERSION}\"/" wrangler.toml
+            echo "Updated wrangler.toml COMPILER_VERSION to ${NEW_VERSION}"
+          fi
+
       - name: Check for changes
         id: check_changes
         run: |
@@ -126,7 +146,7 @@ jobs:
       - name: Commit and push version bump
         if: steps.check_changes.outputs.has_changes == 'true'
         run: |
-          git add deno.json package.json
+          git add deno.json package.json src/version.ts wrangler.toml
           git commit -m "chore: bump version to ${{ steps.bump_version.outputs.new_version }}"
           git push origin ${{ github.head_ref || github.ref_name }}
 
