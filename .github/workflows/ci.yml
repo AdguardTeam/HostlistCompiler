@@ -163,9 +163,30 @@ jobs:
         with:
           deno-version: v2.4
 
+      - name: Check version change
+        id: version-check
+        run: |
+          # Get local version from deno.json
+          LOCAL_VERSION=$(deno eval "console.log(JSON.parse(Deno.readTextFileSync('deno.json')).version)")
+          echo "local_version=$LOCAL_VERSION" >> $GITHUB_OUTPUT
+
+          # Get package name from deno.json
+          PACKAGE_NAME=$(deno eval "console.log(JSON.parse(Deno.readTextFileSync('deno.json')).name)")
+
+          # Check if version exists on JSR
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://jsr.io/${PACKAGE_NAME}/${LOCAL_VERSION}/meta.json")
+
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "Version $LOCAL_VERSION already published to JSR"
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version $LOCAL_VERSION not found on JSR, will publish"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to JSR
+        if: steps.version-check.outputs.should_publish == 'true'
         run: deno publish --allow-dirty
-        continue-on-error: true
         env:
           JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
 
