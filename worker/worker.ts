@@ -1053,15 +1053,6 @@ async function handleCompileBatchAsync(
         );
     }
 }
-            {
-                status: 500,
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
-            },
-        );
-    }
-}
 
 /**
  * Handle GET requests - return API info and example.
