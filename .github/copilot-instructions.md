@@ -48,13 +48,16 @@ examples/             # Example implementations
 - **Indentation**: 4 spaces (not tabs)
 - **Line width**: 100 characters maximum
 - **Semicolons**: Always use semicolons
-- **Quotes**: Single quotes for strings
-- **Imports**: Use `.ts` extension in imports (Deno requirement)
+- **Quotes**: Single quotes for strings (use double quotes for strings containing apostrophes)
+- **Imports**: 
+  - Use explicit `.ts` extension for relative imports (Deno requirement)
+  - Use import map aliases like `@std/path`, `@std/assert` (defined in `deno.json`)
+  - Import map aliases resolve to JSR packages (e.g., `@std/path` → `jsr:@std/path@^1.0.0`)
 
 ### File Organization
 - **Tests**: Co-locate tests with source files using `*.test.ts` suffix (e.g., `DeduplicateTransformation.test.ts`)
 - **Exports**: Export from `index.ts` files for clean module boundaries
-- **Dependencies**: Import from Deno standard library using JSR specifiers (e.g., `jsr:@std/path`)
+- **Dependencies**: Import from Deno standard library using import map aliases (e.g., `@std/path`, `@std/assert`)
 
 ### Code Structure
 - **Classes**: Use classes for stateful components (compilers, transformations, fetchers)
