@@ -68,7 +68,6 @@ examples/             # Example implementations
 - **Methods/Functions**: camelCase (e.g., `executeSync`, `prepareHeader`)
 - **Constants**: UPPER_SNAKE_CASE for true constants (e.g., `MAX_RETRIES`)
 - **Private fields**: Use `private readonly` when fields shouldn't change after construction
-- **Incrementing loops**: Use `i += 1` instead of `i++`
 
 ### Error Handling
 - **Error messages**: Extract error messages using: `error instanceof Error ? error.message : String(error)`
@@ -264,7 +263,6 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Don't use `npm:` imports unless absolutely necessary (prefer JSR)
 - Don't use `any` types
 - Don't create tests in a separate `test/` directory (co-locate with source)
-- Don't use `i++` or `i--` (use `i += 1` or `i -= 1`)
 - Don't commit without running formatting and type checking
 - Don't introduce breaking changes to the public API without documentation
 - Don't use `Function` constructor or `eval()` for security reasons
