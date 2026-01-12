@@ -7,7 +7,7 @@
  * Package version - should match deno.json
  * Updated automatically by version bump scripts.
  */
-export const VERSION = '0.6.96';
+export const VERSION = '0.6.97';
 
 /**
  * Package name as published to JSR

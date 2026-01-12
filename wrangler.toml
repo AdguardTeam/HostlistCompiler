@@ -55,7 +55,7 @@ tag = "v1"
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.6.96"
+COMPILER_VERSION = "0.6.97"
 
 # Static assets configuration using modern assets
 [assets]
