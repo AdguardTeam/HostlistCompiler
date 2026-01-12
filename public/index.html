@@ -1583,11 +1583,17 @@ eventSource.addEventListener('result', (e) => {
         // Auto-refresh queue stats every 5 seconds when visible
         let queueStatsIntervalId = null;
         
+        function isQueueStatsSectionVisible() {
+            const queueStatsSection = document.getElementById('queue-stats-section');
+            // Check if element is visible using computed style
+            const computedStyle = window.getComputedStyle(queueStatsSection);
+            return computedStyle.display !== 'none';
+        }
+        
         function startQueueStatsAutoRefresh() {
             if (queueStatsIntervalId === null) {
                 queueStatsIntervalId = setInterval(async () => {
-                    const queueStatsSection = document.getElementById('queue-stats-section');
-                    if (queueStatsSection.style.display !== 'none') {
+                    if (isQueueStatsSectionVisible()) {
                         await fetchQueueStats();
                     } else {
                         // Stop auto-refresh when hidden
@@ -1604,8 +1610,8 @@ eventSource.addEventListener('result', (e) => {
             }
         }
         
-        // Start auto-refresh initially (will check visibility in interval)
-        startQueueStatsAutoRefresh();
+        // Don't start auto-refresh on page load - only when queue stats are shown
+        // startQueueStatsAutoRefresh(); is called in showQueueStats()
     </script>
 </body>
 </html>
