@@ -1535,7 +1535,15 @@ eventSource.addEventListener('result', (e) => {
 
         function updateQueueDepthChart(depthHistory) {
             const canvas = document.getElementById('queue-depth-chart');
+            if (!canvas) return;
+            
             const ctx = canvas.getContext('2d');
+            
+            // Check if Chart.js is available
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not loaded, skipping chart update');
+                return;
+            }
             
             if (queueDepthChart) {
                 queueDepthChart.destroy();
@@ -1548,40 +1556,44 @@ eventSource.addEventListener('result', (e) => {
             
             const data = depthHistory.map(entry => entry.pending);
             
-            queueDepthChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Pending Jobs',
-                        data: data,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
+            try {
+                queueDepthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Pending Jobs',
+                            data: data,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
                             }
                         },
-                        x: {
-                            display: labels.length > 0
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                display: labels.length > 0
+                            }
                         }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.warn('Failed to create chart:', error);
+            }
         }
 
         function updateJobHistory(history) {
