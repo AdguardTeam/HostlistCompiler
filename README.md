@@ -888,11 +888,24 @@ The production worker (`worker/worker.ts`) includes:
 - **JSON API** at `POST /compile`
 - **Streaming API** at `POST /compile/stream` with Server-Sent Events
 - **Batch API** at `POST /compile/batch`
+- **Async API** at `POST /compile/async` for queue-based processing
+- **Batch Async API** at `POST /compile/batch/async` for queue-based batch processing
 - **Metrics** at `GET /metrics`
 - Pre-fetched content support to bypass CORS restrictions
 - Caching with KV storage
 - Rate limiting
 - Request deduplication
+- Cloudflare Queue integration for async compilation
+
+**Cloudflare Queue Support**:
+
+The worker supports asynchronous compilation through Cloudflare Queues, allowing you to:
+- Offload long-running compilations to background processing
+- Process batch operations without blocking
+- Pre-warm the cache with popular filter lists
+- Bypass rate limits for queued requests
+
+📚 **[Queue Support Documentation](docs/QUEUE_SUPPORT.md)** - Complete guide for using async compilation
 
 **Tail Worker for Observability**:
 

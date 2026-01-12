@@ -55,6 +55,8 @@ export interface Env {
     METRICS: KVNamespace;
     // Static assets
     ASSETS?: Fetcher;
+    // Queue binding
+    ADBLOCK_COMPILER_QUEUE: Queue<QueueMessage>;
 }
 
 /**
@@ -64,6 +66,51 @@ interface CompileRequest {
     configuration: IConfiguration;
     preFetchedContent?: Record<string, string>;
     benchmark?: boolean;
+}
+
+/**
+ * Queue message types for different operations
+ */
+type QueueMessageType = 'compile' | 'batch-compile' | 'cache-warm';
+
+/**
+ * Base queue message structure
+ */
+interface QueueMessage {
+    type: QueueMessageType;
+    requestId?: string;
+    timestamp: number;
+}
+
+/**
+ * Queue message for single compilation
+ */
+interface CompileQueueMessage extends QueueMessage {
+    type: 'compile';
+    configuration: IConfiguration;
+    preFetchedContent?: Record<string, string>;
+    benchmark?: boolean;
+}
+
+/**
+ * Queue message for batch compilation
+ */
+interface BatchCompileQueueMessage extends QueueMessage {
+    type: 'batch-compile';
+    requests: Array<{
+        id: string;
+        configuration: IConfiguration;
+        preFetchedContent?: Record<string, string>;
+        benchmark?: boolean;
+    }>;
+}
+
+/**
+ * Queue message for cache warming
+ */
+interface CacheWarmQueueMessage extends QueueMessage {
+    type: 'cache-warm';
+    configurations: IConfiguration[];
 }
 
 /**
@@ -862,6 +909,121 @@ async function handleCompileBatch(
 }
 
 /**
+ * Handle async compile requests by sending to queue
+ */
+async function handleCompileAsync(
+    request: Request,
+    env: Env,
+): Promise<Response> {
+    try {
+        const body = await request.json() as CompileRequest;
+        const { configuration, preFetchedContent, benchmark } = body;
+
+        // Send to queue
+        await queueCompileJob(env, configuration, preFetchedContent, benchmark);
+
+        return Response.json(
+            {
+                success: true,
+                message: 'Compilation job queued successfully',
+                note: 'The compilation will be processed asynchronously and cached when complete',
+            },
+            {
+                status: 202, // Accepted
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+            },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            {
+                status: 500,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+            },
+        );
+    }
+}
+
+/**
+ * Handle async batch compile requests by sending to queue
+ */
+async function handleCompileBatchAsync(
+    request: Request,
+    env: Env,
+): Promise<Response> {
+    try {
+        interface BatchRequest {
+            requests: Array<{
+                id: string;
+                configuration: IConfiguration;
+                preFetchedContent?: Record<string, string>;
+                benchmark?: boolean;
+            }>;
+        }
+
+        const body = await request.json() as BatchRequest;
+        const { requests } = body;
+
+        if (!requests || !Array.isArray(requests)) {
+            return Response.json(
+                {
+                    success: false,
+                    error: 'Invalid batch request format. Expected { requests: [...] }',
+                },
+                { status: 400 },
+            );
+        }
+
+        if (requests.length === 0) {
+            return Response.json(
+                { success: false, error: 'Batch request must contain at least one request' },
+                { status: 400 },
+            );
+        }
+
+        if (requests.length > 100) {
+            return Response.json(
+                { success: false, error: 'Batch request limited to 100 requests maximum' },
+                { status: 400 },
+            );
+        }
+
+        // Send to queue
+        await queueBatchCompileJob(env, requests);
+
+        return Response.json(
+            {
+                success: true,
+                message: `Batch of ${requests.length} compilation jobs queued successfully`,
+                note: 'The compilations will be processed asynchronously and cached when complete',
+            },
+            {
+                status: 202, // Accepted
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+            },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            {
+                status: 500,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+            },
+        );
+    }
+}
+
+/**
  * Handle GET requests - return API info and example.
  */
 function handleInfo(env: Env): Response {
@@ -875,6 +1037,8 @@ function handleInfo(env: Env): Response {
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
             'POST /compile/batch': 'Compile multiple filter lists in parallel',
+            'POST /compile/async': 'Queue a compilation job for async processing',
+            'POST /compile/batch/async': 'Queue multiple compilations for async processing',
         },
         example: {
             method: 'POST',
@@ -989,6 +1153,246 @@ async function serveStaticFile(env: Env, filename: string): Promise<Response> {
 }
 
 /**
+ * Generate a unique request ID with a prefix
+ */
+function generateRequestId(prefix: string): string {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+}
+
+/**
+ * Process a single compile message from the queue
+ */
+async function processCompileMessage(
+    message: CompileQueueMessage,
+    env: Env,
+): Promise<void> {
+    try {
+        const { configuration, preFetchedContent, benchmark } = message;
+
+        // Create cache key
+        const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
+            ? getCacheKey(configuration)
+            : null;
+
+        // Create tracing context
+        const tracingContext = createTracingContext({
+            metadata: {
+                endpoint: 'queue/compile',
+                configName: configuration.name,
+                requestId: message.requestId,
+            },
+        });
+
+        const compiler = new WorkerCompiler({
+            preFetchedContent,
+            tracingContext,
+        });
+
+        const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
+
+        // Emit diagnostics to tail worker
+        if (result.diagnostics) {
+            emitDiagnosticsToTailWorker(result.diagnostics);
+        }
+
+        // Cache the result if no pre-fetched content
+        if (cacheKey) {
+            try {
+                const compilationResult: CompilationResult = {
+                    success: true,
+                    rules: result.rules,
+                    ruleCount: result.rules.length,
+                    metrics: result.metrics,
+                    compiledAt: new Date().toISOString(),
+                };
+                const compressed = await compress(JSON.stringify(compilationResult));
+                await env.COMPILATION_CACHE.put(
+                    cacheKey,
+                    compressed,
+                    { expirationTtl: CACHE_TTL },
+                );
+                // deno-lint-ignore no-console
+                console.log(`[QUEUE] Cached compilation for ${configuration.name}`);
+            } catch (error) {
+                // deno-lint-ignore no-console
+                console.error('[QUEUE] Cache compression failed:', error);
+            }
+        }
+    } catch (error) {
+        // deno-lint-ignore no-console
+        console.error('[QUEUE] Compile message processing failed:', error);
+        throw error; // Re-throw to trigger retry
+    }
+}
+
+/**
+ * Process items in chunks with controlled concurrency
+ */
+async function processInChunks<T>(
+    items: T[],
+    chunkSize: number,
+    processor: (item: T) => Promise<void>,
+): Promise<void> {
+    for (let i = 0; i < items.length; i += chunkSize) {
+        const chunk = items.slice(i, i + chunkSize);
+        await Promise.allSettled(chunk.map(processor));
+    }
+}
+
+/**
+ * Process a batch compile message from the queue
+ */
+async function processBatchCompileMessage(
+    message: BatchCompileQueueMessage,
+    env: Env,
+): Promise<void> {
+    try {
+        // Process requests in chunks of 3 to avoid overwhelming resources
+        await processInChunks(
+            message.requests,
+            3,
+            async (req) => {
+                const compileMessage: CompileQueueMessage = {
+                    type: 'compile',
+                    requestId: req.id,
+                    timestamp: message.timestamp,
+                    configuration: req.configuration,
+                    preFetchedContent: req.preFetchedContent,
+                    benchmark: req.benchmark,
+                };
+                await processCompileMessage(compileMessage, env);
+            },
+        );
+        // deno-lint-ignore no-console
+        console.log(`[QUEUE] Processed batch of ${message.requests.length} compilations`);
+    } catch (error) {
+        // deno-lint-ignore no-console
+        console.error('[QUEUE] Batch compile message processing failed:', error);
+        throw error; // Re-throw to trigger retry
+    }
+}
+
+/**
+ * Process a cache warming message from the queue
+ */
+async function processCacheWarmMessage(
+    message: CacheWarmQueueMessage,
+    env: Env,
+): Promise<void> {
+    try {
+        // Process cache warming in chunks of 3 to avoid overwhelming resources
+        await processInChunks(
+            message.configurations,
+            3,
+            async (configuration) => {
+                const compileMessage: CompileQueueMessage = {
+                    type: 'compile',
+                    requestId: generateRequestId('cache-warm'),
+                    timestamp: message.timestamp,
+                    configuration,
+                    benchmark: false,
+                };
+                await processCompileMessage(compileMessage, env);
+            },
+        );
+        // deno-lint-ignore no-console
+        console.log(`[QUEUE] Warmed cache for ${message.configurations.length} configurations`);
+    } catch (error) {
+        // deno-lint-ignore no-console
+        console.error('[QUEUE] Cache warm message processing failed:', error);
+        throw error; // Re-throw to trigger retry
+    }
+}
+
+/**
+ * Queue consumer handler for processing compilation jobs
+ */
+async function handleQueue(
+    batch: MessageBatch<QueueMessage>,
+    env: Env,
+): Promise<void> {
+    // deno-lint-ignore no-console
+    console.log(`[QUEUE] Processing batch of ${batch.messages.length} messages`);
+
+    // Process messages sequentially to avoid overwhelming resources
+    for (const message of batch.messages) {
+        try {
+            const msg = message.body;
+
+            switch (msg.type) {
+                case 'compile':
+                    await processCompileMessage(msg as CompileQueueMessage, env);
+                    message.ack();
+                    break;
+
+                case 'batch-compile':
+                    await processBatchCompileMessage(msg as BatchCompileQueueMessage, env);
+                    message.ack();
+                    break;
+
+                case 'cache-warm':
+                    await processCacheWarmMessage(msg as CacheWarmQueueMessage, env);
+                    message.ack();
+                    break;
+
+                default:
+                    // deno-lint-ignore no-console
+                    console.warn(`[QUEUE] Unknown message type: ${(msg as any).type}`);
+                    message.ack(); // Ack unknown types to prevent infinite retries
+            }
+        } catch (error) {
+            // deno-lint-ignore no-console
+            console.error('[QUEUE] Message processing failed:', error);
+            // Retry on any error - message wasn't acknowledged
+            message.retry();
+        }
+    }
+}
+
+/**
+ * Send a compilation job to the queue
+ */
+async function queueCompileJob(
+    env: Env,
+    configuration: IConfiguration,
+    preFetchedContent?: Record<string, string>,
+    benchmark?: boolean,
+): Promise<void> {
+    const message: CompileQueueMessage = {
+        type: 'compile',
+        requestId: generateRequestId('compile'),
+        timestamp: Date.now(),
+        configuration,
+        preFetchedContent,
+        benchmark,
+    };
+
+    await env.ADBLOCK_COMPILER_QUEUE.send(message);
+}
+
+/**
+ * Send a batch compilation job to the queue
+ */
+async function queueBatchCompileJob(
+    env: Env,
+    requests: Array<{
+        id: string;
+        configuration: IConfiguration;
+        preFetchedContent?: Record<string, string>;
+        benchmark?: boolean;
+    }>,
+): Promise<void> {
+    const message: BatchCompileQueueMessage = {
+        type: 'batch-compile',
+        requestId: generateRequestId('batch'),
+        timestamp: Date.now(),
+        requests,
+    };
+
+    await env.ADBLOCK_COMPILER_QUEUE.send(message);
+}
+
+/**
  * Main fetch handler for the Cloudflare Worker.
  */
 export default {
@@ -1054,6 +1458,15 @@ export default {
             }
         }
 
+        // Async compilation endpoints (not rate limited - they use queue instead)
+        if (pathname === '/compile/async' && request.method === 'POST') {
+            return handleCompileAsync(request, env);
+        }
+
+        if (pathname === '/compile/batch/async' && request.method === 'POST') {
+            return handleCompileBatchAsync(request, env);
+        }
+
         // Serve web UI and static files
         if (request.method === 'GET') {
             // Try to serve from ASSETS
@@ -1090,5 +1503,12 @@ export default {
         }
 
         return new Response('Not Found', { status: 404 });
+    },
+
+    /**
+     * Queue consumer handler for processing compilation jobs
+     */
+    async queue(batch: MessageBatch<QueueMessage>, env: Env): Promise<void> {
+        await handleQueue(batch, env);
     },
 };
