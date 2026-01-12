@@ -33,6 +33,31 @@ export { evaluateBooleanExpression, isKnownPlatform, getKnownPlatforms } from '.
 // Event system for observability
 export { CompilerEventEmitter, NoOpEventEmitter, createEventEmitter } from './utils/index.ts';
 
+// Diagnostics and tracing for tail worker integration
+export {
+    DiagnosticsCollector,
+    NoOpDiagnosticsCollector,
+    createTracingContext,
+    createChildContext,
+    createNoOpContext,
+    traceSync,
+    traceAsync,
+} from './diagnostics/index.ts';
+export type {
+    TraceSeverity,
+    TraceCategory,
+    DiagnosticEvent,
+    OperationStartEvent,
+    OperationCompleteEvent,
+    OperationErrorEvent,
+    PerformanceMetricEvent,
+    CacheEvent,
+    NetworkEvent,
+    IDiagnosticsCollector,
+    TracingContext,
+    TracingContextOptions,
+} from './diagnostics/index.ts';
+
 // Downloader
 export { FilterDownloader } from './downloader/index.ts';
 export type { DownloaderOptions } from './downloader/index.ts';
