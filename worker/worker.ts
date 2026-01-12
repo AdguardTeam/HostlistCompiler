@@ -1228,7 +1228,7 @@ async function processCompileMessage(
                 configName: configuration.name,
                 requestId: message.requestId,
                 timestamp: message.timestamp,
-                cacheKey: cacheKey || 'none',
+                ...(cacheKey ? { cacheKey } : {}),
             },
         });
 
@@ -1585,6 +1585,10 @@ async function queueCompileJob(
 ): Promise<string> {
     const requestId = generateRequestId('compile');
 
+    if (!requestId) {
+        throw new Error('Failed to generate request ID');
+    }
+
     const message: CompileQueueMessage = {
         type: 'compile',
         requestId,
@@ -1612,6 +1616,10 @@ async function queueBatchCompileJob(
     }>,
 ): Promise<string> {
     const requestId = generateRequestId('batch');
+
+    if (!requestId) {
+        throw new Error('Failed to generate request ID');
+    }
 
     const message: BatchCompileQueueMessage = {
         type: 'batch-compile',
