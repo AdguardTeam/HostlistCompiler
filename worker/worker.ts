@@ -1280,7 +1280,7 @@ async function processCacheWarmMessage(
             async (configuration) => {
                 const compileMessage: CompileQueueMessage = {
                     type: 'compile',
-                    requestId: `cache-warm-${Date.now()}`,
+                    requestId: `cache-warm-${Date.now()}-${Math.random().toString(36).substring(7)}`,
                     timestamp: message.timestamp,
                     configuration,
                     benchmark: false,
@@ -1309,43 +1309,35 @@ async function handleQueue(
 
     // Process messages sequentially to avoid overwhelming resources
     for (const message of batch.messages) {
-        let processed = false;
         try {
             const msg = message.body;
 
             switch (msg.type) {
                 case 'compile':
                     await processCompileMessage(msg as CompileQueueMessage, env);
-                    processed = true;
+                    message.ack();
                     break;
 
                 case 'batch-compile':
                     await processBatchCompileMessage(msg as BatchCompileQueueMessage, env);
-                    processed = true;
+                    message.ack();
                     break;
 
                 case 'cache-warm':
                     await processCacheWarmMessage(msg as CacheWarmQueueMessage, env);
-                    processed = true;
+                    message.ack();
                     break;
 
                 default:
                     // deno-lint-ignore no-console
                     console.warn(`[QUEUE] Unknown message type: ${(msg as any).type}`);
-                    processed = true; // Ack unknown types to prevent infinite retries
-            }
-
-            // Only ack if processing completed successfully
-            if (processed) {
-                message.ack();
+                    message.ack(); // Ack unknown types to prevent infinite retries
             }
         } catch (error) {
             // deno-lint-ignore no-console
             console.error('[QUEUE] Message processing failed:', error);
-            // Only retry if not already acknowledged
-            if (!processed) {
-                message.retry();
-            }
+            // Retry on any error - message wasn't acknowledged
+            message.retry();
         }
     }
 }
