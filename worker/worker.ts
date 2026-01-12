@@ -1310,9 +1310,11 @@ async function processInChunks<T>(
     items: T[],
     chunkSize: number,
     processor: (item: T) => Promise<void>,
-): Promise<{ successful: number; failed: number }> {
+    getItemId?: (item: T) => string,
+): Promise<{ successful: number; failed: number; failures: Array<{ item: string; error: string }> }> {
     let successful = 0;
     let failed = 0;
+    const failures: Array<{ item: string; error: string }> = [];
 
     for (let i = 0; i < items.length; i += chunkSize) {
         const chunk = items.slice(i, i + chunkSize);
@@ -1322,15 +1324,27 @@ async function processInChunks<T>(
         // deno-lint-ignore no-console
         console.log(`[QUEUE:CHUNKS] Processing chunk ${chunkNumber}/${totalChunks} (${chunk.length} items)`);
 
-        const results = await Promise.allSettled(chunk.map(processor));
+        const results = await Promise.allSettled(chunk.map((item, idx) => processor(item)));
 
-        results.forEach((result) => {
+        results.forEach((result, idx) => {
+            const item = chunk[idx];
+            const itemId = getItemId ? getItemId(item) : `item-${i + idx}`;
+
             if (result.status === 'fulfilled') {
                 successful++;
             } else {
                 failed++;
+                const errorMessage = result.reason instanceof Error
+                    ? result.reason.message
+                    : String(result.reason);
+
+                failures.push({
+                    item: itemId,
+                    error: errorMessage,
+                });
+
                 // deno-lint-ignore no-console
-                console.error(`[QUEUE:CHUNKS] Item failed:`, result.reason);
+                console.error(`[QUEUE:CHUNKS] Item "${itemId}" failed:`, errorMessage);
             }
         });
 
@@ -1340,7 +1354,7 @@ async function processInChunks<T>(
         );
     }
 
-    return { successful, failed };
+    return { successful, failed, failures };
 }
 
 /**
@@ -1374,6 +1388,7 @@ async function processBatchCompileMessage(
                 };
                 await processCompileMessage(compileMessage, env);
             },
+            (req) => req.configuration.name,
         );
 
         const duration = Date.now() - startTime;
@@ -1385,9 +1400,17 @@ async function processBatchCompileMessage(
                 `${stats.failed} failed in ${duration}ms (avg ${avgDuration}ms per item)`,
         );
 
-        // If any failed, throw to trigger retry
+        // If any failed, log details and throw to trigger retry
         if (stats.failed > 0) {
-            throw new Error(`Batch partially failed: ${stats.failed}/${batchSize} items failed`);
+            // deno-lint-ignore no-console
+            console.error(
+                `[QUEUE:BATCH] Failed items:`,
+                stats.failures.map((f) => `${f.item}: ${f.error}`).join('; '),
+            );
+            throw new Error(
+                `Batch partially failed: ${stats.failed}/${batchSize} items failed. ` +
+                    `Failures: ${stats.failures.map((f) => f.item).join(', ')}`,
+            );
         }
     } catch (error) {
         const duration = Date.now() - startTime;
@@ -1429,6 +1452,7 @@ async function processCacheWarmMessage(
                 };
                 await processCompileMessage(compileMessage, env);
             },
+            (config) => config.name,
         );
 
         const duration = Date.now() - startTime;
@@ -1440,9 +1464,17 @@ async function processCacheWarmMessage(
                 `${stats.failed} failed in ${duration}ms (avg ${avgDuration}ms per config)`,
         );
 
-        // If any failed, throw to trigger retry
+        // If any failed, log details and throw to trigger retry
         if (stats.failed > 0) {
-            throw new Error(`Cache warming partially failed: ${stats.failed}/${configCount} configs failed`);
+            // deno-lint-ignore no-console
+            console.error(
+                `[QUEUE:CACHE-WARM] Failed configurations:`,
+                stats.failures.map((f) => `${f.item}: ${f.error}`).join('; '),
+            );
+            throw new Error(
+                `Cache warming partially failed: ${stats.failed}/${configCount} configs failed. ` +
+                    `Failures: ${stats.failures.map((f) => f.item).join(', ')}`,
+            );
         }
     } catch (error) {
         const duration = Date.now() - startTime;
