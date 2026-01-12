@@ -17,10 +17,16 @@ import {
 } from './types.ts';
 
 /**
- * Generates a unique event ID
+ * Generates a unique event ID using crypto.randomUUID if available,
+ * otherwise falls back to timestamp + random string
  */
 function generateEventId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    // Use crypto.randomUUID if available (modern browsers, Deno, Node 16+)
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    // Fallback for environments without crypto.randomUUID
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 }
 
 /**
@@ -88,7 +94,9 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
         const operation = this.operationNames.get(eventId);
         
         if (!operation) {
-            console.warn(`Operation complete called for unknown event: ${eventId}`);
+            // Internal diagnostic warning - using console.warn for system-level issues
+            // This is intentional to catch bugs in how the diagnostics system is used
+            console.warn(`[DiagnosticsCollector] Operation complete called for unknown event: ${eventId}`);
             return;
         }
 
@@ -121,7 +129,9 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
         const operation = this.operationNames.get(eventId);
         
         if (!operation) {
-            console.warn(`Operation error called for unknown event: ${eventId}`);
+            // Internal diagnostic warning - using console.warn for system-level issues
+            // This is intentional to catch bugs in how the diagnostics system is used
+            console.warn(`[DiagnosticsCollector] Operation error called for unknown event: ${eventId}`);
             return;
         }
 

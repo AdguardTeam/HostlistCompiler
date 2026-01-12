@@ -6,10 +6,16 @@ import { DiagnosticsCollector, NoOpDiagnosticsCollector } from './DiagnosticsCol
 import type { TracingContext, TracingContextOptions } from './types.ts';
 
 /**
- * Generates a correlation ID
+ * Generates a correlation ID using crypto.randomUUID if available,
+ * otherwise falls back to timestamp + random string
  */
 function generateCorrelationId(): string {
-    return `trace-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    // Use crypto.randomUUID if available (modern browsers, Deno, Node 16+)
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return `trace-${crypto.randomUUID()}`;
+    }
+    // Fallback for environments without crypto.randomUUID
+    return `trace-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 }
 
 /**
