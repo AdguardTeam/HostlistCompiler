@@ -214,6 +214,7 @@ async function recordMetric(
         );
     } catch (error) {
         // Don't fail requests if metrics fail
+        // deno-lint-ignore no-console
         console.error('Failed to record metrics:', error);
     }
 }
@@ -334,11 +335,13 @@ function createStreamingEvents(
 }
 
 /**
- * Emits diagnostic events to console for tail worker to capture.
+ * Emit diagnostic events to tail worker through console logging.
+ * Console usage in this function is intentional for Cloudflare Workers tail integration.
  * Each diagnostic event is logged with a specific prefix for easy filtering.
  */
 function emitDiagnosticsToTailWorker(diagnostics: DiagnosticEvent[]): void {
     // Emit a summary of diagnostic events
+    // deno-lint-ignore no-console
     console.log(
         '[DIAGNOSTICS]',
         JSON.stringify({
@@ -357,15 +360,19 @@ function emitDiagnosticsToTailWorker(diagnostics: DiagnosticEvent[]): void {
 
         switch (event.severity) {
             case 'error':
+                // deno-lint-ignore no-console
                 console.error('[DIAGNOSTIC]', JSON.stringify(logData));
                 break;
             case 'warn':
+                // deno-lint-ignore no-console
                 console.warn('[DIAGNOSTIC]', JSON.stringify(logData));
                 break;
             case 'info':
+                // deno-lint-ignore no-console
                 console.info('[DIAGNOSTIC]', JSON.stringify(logData));
                 break;
             default:
+                // deno-lint-ignore no-console
                 console.debug('[DIAGNOSTIC]', JSON.stringify(logData));
         }
     }
@@ -405,6 +412,7 @@ async function handleCompileStream(
                     compiledAt: result.compiledAt || new Date().toISOString(),
                 };
             } catch (error) {
+                // deno-lint-ignore no-console
                 console.error('Cache decompression failed:', error);
             }
         }
@@ -470,6 +478,7 @@ async function handleCompileStream(
                         { expirationTtl: CACHE_TTL },
                     );
                 } catch (error) {
+                    // deno-lint-ignore no-console
                     console.error('Cache compression failed:', error);
                 }
             }
@@ -561,6 +570,7 @@ async function handleCompileJson(
                 });
             } catch (error) {
                 // If decompression fails, continue with compilation
+                // deno-lint-ignore no-console
                 console.error('Cache decompression failed:', error);
             }
         }
@@ -608,6 +618,7 @@ async function handleCompileJson(
                         { expirationTtl: CACHE_TTL },
                     );
                 } catch (error) {
+                    // deno-lint-ignore no-console
                     console.error('Cache compression failed:', error);
                 }
             }
@@ -747,6 +758,7 @@ async function handleCompileBatch(
                                 const result = JSON.parse(decompressed);
                                 return { id: req.id, ...result, cached: true };
                             } catch (error) {
+                                // deno-lint-ignore no-console
                                 console.error('Cache decompression failed:', error);
                             }
                         }
@@ -796,6 +808,7 @@ async function handleCompileBatch(
                                         { expirationTtl: CACHE_TTL },
                                     );
                                 } catch (error) {
+                                    // deno-lint-ignore no-console
                                     console.error('Cache compression failed:', error);
                                 }
                             }
@@ -923,6 +936,7 @@ async function serveStaticFile(env: Env, filename: string): Promise<Response> {
                 return response;
             }
         } catch (error) {
+            // deno-lint-ignore no-console
             console.error(`Failed to load ${filename} from assets:`, error);
         }
     }
@@ -1064,6 +1078,7 @@ export default {
                         return response;
                     }
                 } catch (error) {
+                    // deno-lint-ignore no-console
                     console.error('Asset fetch error:', error);
                 }
             }
