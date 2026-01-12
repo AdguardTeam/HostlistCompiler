@@ -64,17 +64,18 @@ The main CI/CD pipeline that runs on every push and pull request to master/main 
    - Continues on error
 
 6. **Publish to JSR** - Publishes package to JSR registry
-   - Only runs on pushes to master branch
-   - Requires JSR_TOKEN secret
+   - Only runs on pushes to master or main branch
+   - Uses OIDC authentication (no JSR_TOKEN needed)
+   - Includes version check to prevent duplicate publishes
    - Continues on error if publishing fails
 
 7. **Deploy Worker** - Deploys to Cloudflare Workers
-   - Only runs on pushes to master branch
+   - Only runs on pushes to master or main branch
    - Requires CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets
    - Continues on error if deployment fails
 
 8. **Deploy Pages** - Deploys to Cloudflare Pages
-   - Only runs on pushes to master branch
+   - Only runs on pushes to master or main branch
    - Requires CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets
    - Continues on error if deployment fails
 
@@ -85,10 +86,11 @@ The main CI/CD pipeline that runs on every push and pull request to master/main 
 
 For full functionality, configure these secrets in your repository settings:
 
-- `JSR_TOKEN` - Token for publishing to JSR registry
 - `CODECOV_TOKEN` - Token for uploading code coverage (optional)
 - `CLOUDFLARE_API_TOKEN` - Token for Cloudflare deployments (optional)
 - `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account ID (optional)
+
+Note: JSR publishing uses OIDC authentication and does not require a JSR_TOKEN secret.
 
 ## Deno Version Requirements
 
