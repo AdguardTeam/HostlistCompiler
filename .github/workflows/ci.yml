@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: ['2.4']
+        deno-version: ['2.0', '2.4']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
