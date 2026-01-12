@@ -915,18 +915,28 @@ async function handleCompileAsync(
     request: Request,
     env: Env,
 ): Promise<Response> {
+    const startTime = Date.now();
+
     try {
         const body = await request.json() as CompileRequest;
         const { configuration, preFetchedContent, benchmark } = body;
 
+        // deno-lint-ignore no-console
+        console.log(`[API:ASYNC] Queueing compilation for "${configuration.name}"`);
+
         // Send to queue
-        await queueCompileJob(env, configuration, preFetchedContent, benchmark);
+        const requestId = await queueCompileJob(env, configuration, preFetchedContent, benchmark);
+        const duration = Date.now() - startTime;
+
+        // deno-lint-ignore no-console
+        console.log(`[API:ASYNC] Queued successfully in ${duration}ms (requestId: ${requestId})`);
 
         return Response.json(
             {
                 success: true,
                 message: 'Compilation job queued successfully',
                 note: 'The compilation will be processed asynchronously and cached when complete',
+                requestId,
             },
             {
                 status: 202, // Accepted
@@ -936,7 +946,12 @@ async function handleCompileAsync(
             },
         );
     } catch (error) {
+        const duration = Date.now() - startTime;
         const message = error instanceof Error ? error.message : String(error);
+
+        // deno-lint-ignore no-console
+        console.error(`[API:ASYNC] Failed to queue after ${duration}ms:`, message);
+
         return Response.json(
             { success: false, error: message },
             {
@@ -956,6 +971,8 @@ async function handleCompileBatchAsync(
     request: Request,
     env: Env,
 ): Promise<Response> {
+    const startTime = Date.now();
+
     try {
         interface BatchRequest {
             requests: Array<{
@@ -993,14 +1010,23 @@ async function handleCompileBatchAsync(
             );
         }
 
+        // deno-lint-ignore no-console
+        console.log(`[API:BATCH-ASYNC] Queueing batch of ${requests.length} compilations`);
+
         // Send to queue
-        await queueBatchCompileJob(env, requests);
+        const requestId = await queueBatchCompileJob(env, requests);
+        const duration = Date.now() - startTime;
+
+        // deno-lint-ignore no-console
+        console.log(`[API:BATCH-ASYNC] Queued successfully in ${duration}ms (requestId: ${requestId})`);
 
         return Response.json(
             {
                 success: true,
                 message: `Batch of ${requests.length} compilation jobs queued successfully`,
                 note: 'The compilations will be processed asynchronously and cached when complete',
+                requestId,
+                batchSize: requests.length,
             },
             {
                 status: 202, // Accepted
@@ -1010,9 +1036,23 @@ async function handleCompileBatchAsync(
             },
         );
     } catch (error) {
+        const duration = Date.now() - startTime;
         const message = error instanceof Error ? error.message : String(error);
+
+        // deno-lint-ignore no-console
+        console.error(`[API:BATCH-ASYNC] Failed to queue after ${duration}ms:`, message);
+
         return Response.json(
             { success: false, error: message },
+            {
+                status: 500,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+            },
+        );
+    }
+}
             {
                 status: 500,
                 headers: {
@@ -1166,13 +1206,20 @@ async function processCompileMessage(
     message: CompileQueueMessage,
     env: Env,
 ): Promise<void> {
-    try {
-        const { configuration, preFetchedContent, benchmark } = message;
+    const startTime = Date.now();
+    const { configuration, preFetchedContent, benchmark } = message;
 
+    // deno-lint-ignore no-console
+    console.log(`[QUEUE:COMPILE] Starting compilation for "${configuration.name}" (requestId: ${message.requestId})`);
+
+    try {
         // Create cache key
         const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
             ? getCacheKey(configuration)
             : null;
+
+        // deno-lint-ignore no-console
+        console.log(`[QUEUE:COMPILE] Cache key: ${cacheKey ? cacheKey.substring(0, 20) + '...' : 'none (pre-fetched content)'}`);
 
         // Create tracing context
         const tracingContext = createTracingContext({
@@ -1180,6 +1227,8 @@ async function processCompileMessage(
                 endpoint: 'queue/compile',
                 configName: configuration.name,
                 requestId: message.requestId,
+                timestamp: message.timestamp,
+                cacheKey: cacheKey || 'none',
             },
         });
 
@@ -1188,16 +1237,26 @@ async function processCompileMessage(
             tracingContext,
         });
 
+        const compileStartTime = Date.now();
         const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
+        const compileDuration = Date.now() - compileStartTime;
+
+        // deno-lint-ignore no-console
+        console.log(
+            `[QUEUE:COMPILE] Compilation completed in ${compileDuration}ms, ${result.rules.length} rules generated`,
+        );
 
         // Emit diagnostics to tail worker
         if (result.diagnostics) {
+            // deno-lint-ignore no-console
+            console.log(`[QUEUE:COMPILE] Emitting ${result.diagnostics.length} diagnostic events`);
             emitDiagnosticsToTailWorker(result.diagnostics);
         }
 
         // Cache the result if no pre-fetched content
         if (cacheKey) {
             try {
+                const cacheStartTime = Date.now();
                 const compilationResult: CompilationResult = {
                     success: true,
                     rules: result.rules,
@@ -1205,22 +1264,41 @@ async function processCompileMessage(
                     metrics: result.metrics,
                     compiledAt: new Date().toISOString(),
                 };
+                const uncompressedSize = JSON.stringify(compilationResult).length;
                 const compressed = await compress(JSON.stringify(compilationResult));
+                const compressedSize = compressed.byteLength;
+                const compressionRatio = ((1 - compressedSize / uncompressedSize) * 100).toFixed(1);
+
                 await env.COMPILATION_CACHE.put(
                     cacheKey,
                     compressed,
                     { expirationTtl: CACHE_TTL },
                 );
+                const cacheDuration = Date.now() - cacheStartTime;
+
                 // deno-lint-ignore no-console
-                console.log(`[QUEUE] Cached compilation for ${configuration.name}`);
+                console.log(
+                    `[QUEUE:COMPILE] Cached compilation in ${cacheDuration}ms ` +
+                        `(${uncompressedSize} -> ${compressedSize} bytes, ${compressionRatio}% compression)`,
+                );
             } catch (error) {
                 // deno-lint-ignore no-console
-                console.error('[QUEUE] Cache compression failed:', error);
+                console.error('[QUEUE:COMPILE] Cache compression failed:', error);
             }
         }
-    } catch (error) {
+
+        const totalDuration = Date.now() - startTime;
         // deno-lint-ignore no-console
-        console.error('[QUEUE] Compile message processing failed:', error);
+        console.log(`[QUEUE:COMPILE] Total processing time: ${totalDuration}ms for "${configuration.name}"`);
+    } catch (error) {
+        const totalDuration = Date.now() - startTime;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        // deno-lint-ignore no-console
+        console.error(
+            `[QUEUE:COMPILE] Processing failed after ${totalDuration}ms for "${configuration.name}":`,
+            errorMessage,
+        );
         throw error; // Re-throw to trigger retry
     }
 }
@@ -1232,11 +1310,37 @@ async function processInChunks<T>(
     items: T[],
     chunkSize: number,
     processor: (item: T) => Promise<void>,
-): Promise<void> {
+): Promise<{ successful: number; failed: number }> {
+    let successful = 0;
+    let failed = 0;
+
     for (let i = 0; i < items.length; i += chunkSize) {
         const chunk = items.slice(i, i + chunkSize);
-        await Promise.allSettled(chunk.map(processor));
+        const chunkNumber = Math.floor(i / chunkSize) + 1;
+        const totalChunks = Math.ceil(items.length / chunkSize);
+
+        // deno-lint-ignore no-console
+        console.log(`[QUEUE:CHUNKS] Processing chunk ${chunkNumber}/${totalChunks} (${chunk.length} items)`);
+
+        const results = await Promise.allSettled(chunk.map(processor));
+
+        results.forEach((result) => {
+            if (result.status === 'fulfilled') {
+                successful++;
+            } else {
+                failed++;
+                // deno-lint-ignore no-console
+                console.error(`[QUEUE:CHUNKS] Item failed:`, result.reason);
+            }
+        });
+
+        // deno-lint-ignore no-console
+        console.log(
+            `[QUEUE:CHUNKS] Chunk ${chunkNumber}/${totalChunks} completed (${successful}/${i + chunk.length} successful)`,
+        );
     }
+
+    return { successful, failed };
 }
 
 /**
@@ -1246,9 +1350,17 @@ async function processBatchCompileMessage(
     message: BatchCompileQueueMessage,
     env: Env,
 ): Promise<void> {
+    const startTime = Date.now();
+    const batchSize = message.requests.length;
+
+    // deno-lint-ignore no-console
+    console.log(
+        `[QUEUE:BATCH] Starting batch compilation of ${batchSize} requests (requestId: ${message.requestId})`,
+    );
+
     try {
         // Process requests in chunks of 3 to avoid overwhelming resources
-        await processInChunks(
+        const stats = await processInChunks(
             message.requests,
             3,
             async (req) => {
@@ -1263,11 +1375,26 @@ async function processBatchCompileMessage(
                 await processCompileMessage(compileMessage, env);
             },
         );
+
+        const duration = Date.now() - startTime;
+        const avgDuration = Math.round(duration / batchSize);
+
         // deno-lint-ignore no-console
-        console.log(`[QUEUE] Processed batch of ${message.requests.length} compilations`);
+        console.log(
+            `[QUEUE:BATCH] Batch complete: ${stats.successful}/${batchSize} successful, ` +
+                `${stats.failed} failed in ${duration}ms (avg ${avgDuration}ms per item)`,
+        );
+
+        // If any failed, throw to trigger retry
+        if (stats.failed > 0) {
+            throw new Error(`Batch partially failed: ${stats.failed}/${batchSize} items failed`);
+        }
     } catch (error) {
+        const duration = Date.now() - startTime;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
         // deno-lint-ignore no-console
-        console.error('[QUEUE] Batch compile message processing failed:', error);
+        console.error(`[QUEUE:BATCH] Batch processing failed after ${duration}ms:`, errorMessage);
         throw error; // Re-throw to trigger retry
     }
 }
@@ -1279,9 +1406,17 @@ async function processCacheWarmMessage(
     message: CacheWarmQueueMessage,
     env: Env,
 ): Promise<void> {
+    const startTime = Date.now();
+    const configCount = message.configurations.length;
+
+    // deno-lint-ignore no-console
+    console.log(
+        `[QUEUE:CACHE-WARM] Starting cache warming for ${configCount} configurations (requestId: ${message.requestId})`,
+    );
+
     try {
         // Process cache warming in chunks of 3 to avoid overwhelming resources
-        await processInChunks(
+        const stats = await processInChunks(
             message.configurations,
             3,
             async (configuration) => {
@@ -1295,11 +1430,26 @@ async function processCacheWarmMessage(
                 await processCompileMessage(compileMessage, env);
             },
         );
+
+        const duration = Date.now() - startTime;
+        const avgDuration = Math.round(duration / configCount);
+
         // deno-lint-ignore no-console
-        console.log(`[QUEUE] Warmed cache for ${message.configurations.length} configurations`);
+        console.log(
+            `[QUEUE:CACHE-WARM] Cache warming complete: ${stats.successful}/${configCount} successful, ` +
+                `${stats.failed} failed in ${duration}ms (avg ${avgDuration}ms per config)`,
+        );
+
+        // If any failed, throw to trigger retry
+        if (stats.failed > 0) {
+            throw new Error(`Cache warming partially failed: ${stats.failed}/${configCount} configs failed`);
+        }
     } catch (error) {
+        const duration = Date.now() - startTime;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
         // deno-lint-ignore no-console
-        console.error('[QUEUE] Cache warm message processing failed:', error);
+        console.error(`[QUEUE:CACHE-WARM] Cache warming failed after ${duration}ms:`, errorMessage);
         throw error; // Re-throw to trigger retry
     }
 }
@@ -1311,42 +1461,85 @@ async function handleQueue(
     batch: MessageBatch<QueueMessage>,
     env: Env,
 ): Promise<void> {
+    const batchStartTime = Date.now();
+    const batchSize = batch.messages.length;
+
     // deno-lint-ignore no-console
-    console.log(`[QUEUE] Processing batch of ${batch.messages.length} messages`);
+    console.log(`[QUEUE:HANDLER] Processing batch of ${batchSize} messages`);
+
+    let processed = 0;
+    let acked = 0;
+    let retried = 0;
+    let unknown = 0;
 
     // Process messages sequentially to avoid overwhelming resources
     for (const message of batch.messages) {
+        const messageStartTime = Date.now();
+        processed++;
+
         try {
             const msg = message.body;
+
+            // deno-lint-ignore no-console
+            console.log(
+                `[QUEUE:HANDLER] Processing message ${processed}/${batchSize}, type: ${msg.type}, ` +
+                    `requestId: ${msg.requestId || 'none'}`,
+            );
 
             switch (msg.type) {
                 case 'compile':
                     await processCompileMessage(msg as CompileQueueMessage, env);
                     message.ack();
+                    acked++;
                     break;
 
                 case 'batch-compile':
                     await processBatchCompileMessage(msg as BatchCompileQueueMessage, env);
                     message.ack();
+                    acked++;
                     break;
 
                 case 'cache-warm':
                     await processCacheWarmMessage(msg as CacheWarmQueueMessage, env);
                     message.ack();
+                    acked++;
                     break;
 
                 default:
                     // deno-lint-ignore no-console
-                    console.warn(`[QUEUE] Unknown message type: ${(msg as any).type}`);
+                    console.warn(`[QUEUE:HANDLER] Unknown message type: ${(msg as any).type}`);
                     message.ack(); // Ack unknown types to prevent infinite retries
+                    acked++;
+                    unknown++;
             }
-        } catch (error) {
+
+            const messageDuration = Date.now() - messageStartTime;
             // deno-lint-ignore no-console
-            console.error('[QUEUE] Message processing failed:', error);
+            console.log(
+                `[QUEUE:HANDLER] Message ${processed}/${batchSize} completed in ${messageDuration}ms and acknowledged`,
+            );
+        } catch (error) {
+            const messageDuration = Date.now() - messageStartTime;
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            // deno-lint-ignore no-console
+            console.error(
+                `[QUEUE:HANDLER] Message ${processed}/${batchSize} failed after ${messageDuration}ms, will retry: ${errorMessage}`,
+            );
             // Retry on any error - message wasn't acknowledged
             message.retry();
+            retried++;
         }
     }
+
+    const batchDuration = Date.now() - batchStartTime;
+    const avgDuration = Math.round(batchDuration / batchSize);
+
+    // deno-lint-ignore no-console
+    console.log(
+        `[QUEUE:HANDLER] Batch complete: ${batchSize} messages processed in ${batchDuration}ms ` +
+            `(avg ${avgDuration}ms per message). Acked: ${acked}, Retried: ${retried}, Unknown: ${unknown}`,
+    );
 }
 
 /**
@@ -1357,10 +1550,12 @@ async function queueCompileJob(
     configuration: IConfiguration,
     preFetchedContent?: Record<string, string>,
     benchmark?: boolean,
-): Promise<void> {
+): Promise<string> {
+    const requestId = generateRequestId('compile');
+
     const message: CompileQueueMessage = {
         type: 'compile',
-        requestId: generateRequestId('compile'),
+        requestId,
         timestamp: Date.now(),
         configuration,
         preFetchedContent,
@@ -1368,6 +1563,8 @@ async function queueCompileJob(
     };
 
     await env.ADBLOCK_COMPILER_QUEUE.send(message);
+
+    return requestId;
 }
 
 /**
@@ -1381,15 +1578,19 @@ async function queueBatchCompileJob(
         preFetchedContent?: Record<string, string>;
         benchmark?: boolean;
     }>,
-): Promise<void> {
+): Promise<string> {
+    const requestId = generateRequestId('batch');
+
     const message: BatchCompileQueueMessage = {
         type: 'batch-compile',
-        requestId: generateRequestId('batch'),
+        requestId,
         timestamp: Date.now(),
         requests,
     };
 
     await env.ADBLOCK_COMPILER_QUEUE.send(message);
+
+    return requestId;
 }
 
 /**
