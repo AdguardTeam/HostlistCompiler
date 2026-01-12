@@ -353,4 +353,4 @@ export function createSimplePlugin(
 /**
  * Global plugin registry instance
  */
-export const globalRegistry = new PluginRegistry();
+export const globalRegistry: PluginRegistry = new PluginRegistry();

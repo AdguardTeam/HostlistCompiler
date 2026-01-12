@@ -79,6 +79,7 @@ tail_consumers = [{ service = "adblock-compiler-tail" }]
  # If you misspell the name, you will receive an error when attempting to publish your Worker.
  max_batch_size = 10 # optional: defaults to 10
  max_batch_timeout = 5 # optional: defaults to 5 seconds
+ dead_letter_queue = "dead-letter-queue"
 
 # Development settings
 [dev]

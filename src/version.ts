@@ -25,4 +25,4 @@ export const PACKAGE_INFO = {
 /**
  * User agent string for HTTP requests
  */
-export const USER_AGENT = `${PACKAGE_NAME}/${VERSION} (Deno)`;
+export const USER_AGENT: string = `${PACKAGE_NAME}/${VERSION} (Deno)`;
