@@ -56,7 +56,14 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Run tests
-        run: deno task test
+        run: |
+          # Deno 2.0-2.2 only support lockfile v4, but we use v5 (requires 2.3+)
+          # Use --no-lock for Deno 2.0 to test runtime compatibility without strict lock
+          if [ "${{ matrix.deno-version }}" = "2.0" ]; then
+            deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv --no-lock
+          else
+            deno task test
+          fi
 
       - name: Run tests with coverage
         if: matrix.deno-version == '2.4'
