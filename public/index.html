@@ -1360,6 +1360,10 @@ eventSource.addEventListener('result', (e) => {
 
         function showQueueStats() {
             document.getElementById('queue-stats-section').style.display = 'block';
+            // Start auto-refresh when showing queue stats
+            if (typeof startQueueStatsAutoRefresh === 'function') {
+                startQueueStatsAutoRefresh();
+            }
         }
 
         function addLog(level, message) {
@@ -1567,12 +1571,31 @@ eventSource.addEventListener('result', (e) => {
         });
 
         // Auto-refresh queue stats every 5 seconds when visible
-        setInterval(async () => {
-            const queueStatsSection = document.getElementById('queue-stats-section');
-            if (queueStatsSection.style.display !== 'none') {
-                await fetchQueueStats();
+        let queueStatsIntervalId = null;
+        
+        function startQueueStatsAutoRefresh() {
+            if (queueStatsIntervalId === null) {
+                queueStatsIntervalId = setInterval(async () => {
+                    const queueStatsSection = document.getElementById('queue-stats-section');
+                    if (queueStatsSection.style.display !== 'none') {
+                        await fetchQueueStats();
+                    } else {
+                        // Stop auto-refresh when hidden
+                        stopQueueStatsAutoRefresh();
+                    }
+                }, 5000);
             }
-        }, 5000);
+        }
+        
+        function stopQueueStatsAutoRefresh() {
+            if (queueStatsIntervalId !== null) {
+                clearInterval(queueStatsIntervalId);
+                queueStatsIntervalId = null;
+            }
+        }
+        
+        // Start auto-refresh initially (will check visibility in interval)
+        startQueueStatsAutoRefresh();
     </script>
 </body>
 </html>

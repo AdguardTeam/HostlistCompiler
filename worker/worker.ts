@@ -336,6 +336,7 @@ async function updateQueueStats(
     env: Env,
     type: 'enqueued' | 'completed' | 'failed',
     processingTime?: number,
+    count: number = 1,
 ): Promise<void> {
     try {
         const key = 'queue:stats';
@@ -351,10 +352,10 @@ async function updateQueueStats(
         };
 
         if (type === 'enqueued') {
-            stats.pending++;
+            stats.pending += count;
         } else if (type === 'completed') {
-            stats.pending = Math.max(0, stats.pending - 1);
-            stats.completed++;
+            stats.pending = Math.max(0, stats.pending - count);
+            stats.completed += count;
             if (processingTime) {
                 stats.totalProcessingTime += processingTime;
                 stats.averageProcessingTime = Math.round(
@@ -362,8 +363,8 @@ async function updateQueueStats(
                 );
             }
         } else if (type === 'failed') {
-            stats.pending = Math.max(0, stats.pending - 1);
-            stats.failed++;
+            stats.pending = Math.max(0, stats.pending - count);
+            stats.failed += count;
         }
 
         stats.lastUpdate = new Date().toISOString();
@@ -1688,6 +1689,9 @@ async function queueCompileJob(
     };
 
     await env.ADBLOCK_COMPILER_QUEUE.send(message);
+    
+    // Track queue statistics
+    await updateQueueStats(env, 'enqueued');
 
     return requestId;
 }
@@ -1719,10 +1723,8 @@ async function queueBatchCompileJob(
 
     await env.ADBLOCK_COMPILER_QUEUE.send(message);
     
-    // Track queue statistics (count each request in the batch)
-    for (let i = 0; i < requests.length; i++) {
-        await updateQueueStats(env, 'enqueued');
-    }
+    // Track queue statistics (batch update for efficiency)
+    await updateQueueStats(env, 'enqueued', undefined, requests.length);
 
     return requestId;
 }
