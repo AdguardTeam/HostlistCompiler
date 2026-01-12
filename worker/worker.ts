@@ -40,6 +40,8 @@ import {
     WorkerCompiler,
     type IConfiguration,
     type ICompilerEvents,
+    createTracingContext,
+    type DiagnosticEvent,
 } from '../src/index.ts';
 
 /**
@@ -330,6 +332,41 @@ function createStreamingEvents(
 }
 
 /**
+ * Emits diagnostic events to console for tail worker to capture.
+ * Each diagnostic event is logged with a specific prefix for easy filtering.
+ */
+function emitDiagnosticsToTailWorker(diagnostics: DiagnosticEvent[]): void {
+    // Emit a summary of diagnostic events
+    console.log('[DIAGNOSTICS]', JSON.stringify({
+        eventCount: diagnostics.length,
+        timestamp: new Date().toISOString(),
+    }));
+    
+    // Emit each diagnostic event individually for granular tail worker processing
+    for (const event of diagnostics) {
+        // Use different console methods based on severity
+        const logData = {
+            ...event,
+            source: 'adblock-compiler',
+        };
+        
+        switch (event.severity) {
+            case 'error':
+                console.error('[DIAGNOSTIC]', JSON.stringify(logData));
+                break;
+            case 'warn':
+                console.warn('[DIAGNOSTIC]', JSON.stringify(logData));
+                break;
+            case 'info':
+                console.info('[DIAGNOSTIC]', JSON.stringify(logData));
+                break;
+            default:
+                console.debug('[DIAGNOSTIC]', JSON.stringify(logData));
+        }
+    }
+}
+
+/**
  * Handle compile requests with streaming response.
  */
 async function handleCompileStream(
@@ -377,13 +414,27 @@ async function handleCompileStream(
             const { sendEvent, logger } = createStreamingLogger(writer);
             const events = createStreamingEvents(sendEvent);
 
+            // Create tracing context for diagnostics
+            const tracingContext = createTracingContext({
+                metadata: {
+                    endpoint: '/compile/stream',
+                    configName: configuration.name,
+                },
+            });
+
             const compiler = new WorkerCompiler({
                 logger,
                 events,
                 preFetchedContent,
+                tracingContext,
             });
 
             const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
+
+            // Emit diagnostics to tail worker
+            if (result.diagnostics) {
+                emitDiagnosticsToTailWorker(result.diagnostics);
+            }
 
             // Send final result with previous version for diff
             sendEvent('result', {
@@ -509,11 +560,25 @@ async function handleCompileJson(
     // Create compilation promise for deduplication
     const compilationPromise = (async (): Promise<CompilationResult> => {
         try {
+            // Create tracing context for diagnostics
+            const tracingContext = createTracingContext({
+                metadata: {
+                    endpoint: '/compile',
+                    configName: configuration.name,
+                },
+            });
+
             const compiler = new WorkerCompiler({
                 preFetchedContent,
+                tracingContext,
             });
 
             const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
+
+            // Emit diagnostics to tail worker
+            if (result.diagnostics) {
+                emitDiagnosticsToTailWorker(result.diagnostics);
+            }
 
             const response: CompilationResult = {
                 success: true,
@@ -677,8 +742,25 @@ async function handleCompileBatch(
                     // Compile
                     const compilationPromise = (async (): Promise<CompilationResult> => {
                         try {
-                            const compiler = new WorkerCompiler({ preFetchedContent });
+                            // Create tracing context for diagnostics
+                            const tracingContext = createTracingContext({
+                                metadata: {
+                                    endpoint: '/compile/batch',
+                                    configName: configuration.name,
+                                    batchId: req.id,
+                                },
+                            });
+
+                            const compiler = new WorkerCompiler({ 
+                                preFetchedContent,
+                                tracingContext,
+                            });
                             const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
+
+                            // Emit diagnostics to tail worker
+                            if (result.diagnostics) {
+                                emitDiagnosticsToTailWorker(result.diagnostics);
+                            }
 
                             const response: CompilationResult = {
                                 success: true,

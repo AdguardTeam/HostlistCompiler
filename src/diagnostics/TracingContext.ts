@@ -3,7 +3,7 @@
  */
 
 import { DiagnosticsCollector, NoOpDiagnosticsCollector } from './DiagnosticsCollector.ts';
-import type { IDiagnosticsCollector, TracingContext, TracingContextOptions } from './types.ts';
+import type { TracingContext, TracingContextOptions } from './types.ts';
 
 /**
  * Generates a correlation ID
@@ -59,8 +59,9 @@ export function createNoOpContext(): TracingContext {
  * Decorator for tracing synchronous function execution
  */
 export function traced(operationName?: string) {
-    return function <T extends (...args: unknown[]) => unknown>(
-        target: unknown,
+    // deno-lint-ignore no-explicit-any
+    return function (
+        _target: unknown,
         propertyKey: string,
         descriptor: PropertyDescriptor
     ): PropertyDescriptor {
@@ -97,8 +98,9 @@ export function traced(operationName?: string) {
  * Decorator for tracing asynchronous function execution
  */
 export function tracedAsync(operationName?: string) {
-    return function <T extends (...args: unknown[]) => Promise<unknown>>(
-        target: unknown,
+    // deno-lint-ignore no-explicit-any
+    return function (
+        _target: unknown,
         propertyKey: string,
         descriptor: PropertyDescriptor
     ): PropertyDescriptor {
