@@ -39,7 +39,7 @@ export function createTracingContext(options?: TracingContextOptions): TracingCo
  */
 export function createChildContext(
     parent: TracingContext,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
 ): TracingContext {
     return createTracingContext({
         correlationId: parent.correlationId,
@@ -69,12 +69,15 @@ export function traced(operationName?: string) {
     return function (
         _target: unknown,
         propertyKey: string,
-        descriptor: PropertyDescriptor
+        descriptor: PropertyDescriptor,
     ): PropertyDescriptor {
         const originalMethod = descriptor.value;
         const opName = operationName || propertyKey;
 
-        descriptor.value = function (this: { tracingContext?: TracingContext }, ...args: unknown[]) {
+        descriptor.value = function (
+            this: { tracingContext?: TracingContext },
+            ...args: unknown[]
+        ) {
             const context = this.tracingContext;
             if (!context) {
                 return originalMethod.apply(this, args);
@@ -108,12 +111,15 @@ export function tracedAsync(operationName?: string) {
     return function (
         _target: unknown,
         propertyKey: string,
-        descriptor: PropertyDescriptor
+        descriptor: PropertyDescriptor,
     ): PropertyDescriptor {
         const originalMethod = descriptor.value;
         const opName = operationName || propertyKey;
 
-        descriptor.value = async function (this: { tracingContext?: TracingContext }, ...args: unknown[]) {
+        descriptor.value = async function (
+            this: { tracingContext?: TracingContext },
+            ...args: unknown[]
+        ) {
             const context = this.tracingContext;
             if (!context) {
                 return await originalMethod.apply(this, args);
@@ -146,7 +152,7 @@ export function traceSync<T>(
     context: TracingContext,
     operationName: string,
     fn: () => T,
-    input?: Record<string, unknown>
+    input?: Record<string, unknown>,
 ): T {
     const eventId = context.diagnostics.operationStart(operationName, input);
 
@@ -169,7 +175,7 @@ export async function traceAsync<T>(
     context: TracingContext,
     operationName: string,
     fn: () => Promise<T>,
-    input?: Record<string, unknown>
+    input?: Record<string, unknown>,
 ): Promise<T> {
     const eventId = context.diagnostics.operationStart(operationName, input);
 

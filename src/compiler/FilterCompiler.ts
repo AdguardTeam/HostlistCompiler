@@ -1,10 +1,23 @@
-import { IConfiguration, ILogger, ISource, TransformationType, ICompilerEvents } from '../types/index.ts';
+import {
+    ICompilerEvents,
+    IConfiguration,
+    ILogger,
+    ISource,
+    TransformationType,
+} from '../types/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
 import { HeaderGenerator } from './HeaderGenerator.ts';
-import { logger as defaultLogger, BenchmarkCollector, CompilationMetrics, createEventEmitter, CompilerEventEmitter, addChecksumToHeader } from '../utils/index.ts';
-import type { TracingContext, DiagnosticEvent } from '../diagnostics/index.ts';
+import {
+    addChecksumToHeader,
+    BenchmarkCollector,
+    CompilationMetrics,
+    CompilerEventEmitter,
+    createEventEmitter,
+    logger as defaultLogger,
+} from '../utils/index.ts';
+import type { DiagnosticEvent, TracingContext } from '../diagnostics/index.ts';
 import { createNoOpContext } from '../diagnostics/index.ts';
 
 /**
@@ -43,9 +56,9 @@ export class FilterCompiler {
 
     /**
      * Creates a new FilterCompiler instance.
-     * 
+     *
      * @param optionsOrLogger - Compiler configuration options or legacy logger
-     * 
+     *
      * @example
      * ```ts
      * // Modern API
@@ -55,7 +68,7 @@ export class FilterCompiler {
      *     onProgress: (e) => console.log(`Progress: ${e.message}`),
      *   }
      * });
-     * 
+     *
      * // Legacy API (still supported)
      * const compiler = new FilterCompiler(logger);
      * ```
@@ -74,7 +87,7 @@ export class FilterCompiler {
             this.eventEmitter = createEventEmitter(options?.events);
             this.tracingContext = options?.tracingContext ?? createNoOpContext();
         }
-        
+
         this.validator = new ConfigurationValidator();
         this.pipeline = new TransformationPipeline(undefined, this.logger, this.eventEmitter);
         this.sourceCompiler = new SourceCompiler(this.pipeline, this.logger, this.eventEmitter);
@@ -106,48 +119,65 @@ export class FilterCompiler {
         const compilationStartTime = performance.now();
 
         // Start tracing compilation
-        const compilationEventId = this.tracingContext.diagnostics.operationStart('compileFilterList', {
-            name: configuration.name,
-            sourceCount: configuration.sources.length,
-            transformationCount: configuration.transformations?.length || 0,
-        });
+        const compilationEventId = this.tracingContext.diagnostics.operationStart(
+            'compileFilterList',
+            {
+                name: configuration.name,
+                sourceCount: configuration.sources.length,
+                transformationCount: configuration.transformations?.length || 0,
+            },
+        );
 
         try {
             this.logger.info('Starting the compiler');
 
             // Trace validation
-            const validationEventId = this.tracingContext.diagnostics.operationStart('validateConfiguration', {
-                name: configuration.name,
-            });
+            const validationEventId = this.tracingContext.diagnostics.operationStart(
+                'validateConfiguration',
+                {
+                    name: configuration.name,
+                },
+            );
 
             const validationResult = this.validator.validate(configuration);
             if (!validationResult.valid) {
-                this.tracingContext.diagnostics.operationError(validationEventId, new Error(validationResult.errorsText || 'Unknown validation error'));
+                this.tracingContext.diagnostics.operationError(
+                    validationEventId,
+                    new Error(validationResult.errorsText || 'Unknown validation error'),
+                );
                 this.logger.info(validationResult.errorsText || 'Unknown validation error');
                 throw new Error('Failed to validate configuration');
             }
-            
+
             this.tracingContext.diagnostics.operationComplete(validationEventId, { valid: true });
             this.logger.info(`Configuration: ${JSON.stringify(configuration, null, 4)}`);
 
             const totalSources = configuration.sources.length;
 
             // Trace source compilation
-            const sourcesEventId = this.tracingContext.diagnostics.operationStart('compileSources', {
-                totalSources,
-            });
+            const sourcesEventId = this.tracingContext.diagnostics.operationStart(
+                'compileSources',
+                {
+                    totalSources,
+                },
+            );
 
             // Compile all sources in parallel for better performance
             // Each source emits its own events through the SourceCompiler
             const sourceResults = await (collector
                 ? collector.timeAsync(
                     'Fetch & compile sources',
-                    () => Promise.all(
-                        configuration.sources.map(async (source, index) => ({
-                            source,
-                            rules: await this.sourceCompiler.compile(source, index, totalSources),
-                        })),
-                    ),
+                    () =>
+                        Promise.all(
+                            configuration.sources.map(async (source, index) => ({
+                                source,
+                                rules: await this.sourceCompiler.compile(
+                                    source,
+                                    index,
+                                    totalSources,
+                                ),
+                            })),
+                        ),
                     (results) => results.reduce((sum, r) => sum + r.rules.length, 0),
                 )
                 : Promise.all(
@@ -172,7 +202,7 @@ export class FilterCompiler {
 
             const inputRuleCount = finalList.length;
             collector?.setRuleCount(inputRuleCount);
-            
+
             // Record metrics
             this.tracingContext.diagnostics.recordMetric('inputRuleCount', inputRuleCount, 'rules');
 
@@ -186,20 +216,24 @@ export class FilterCompiler {
             });
 
             // Trace transformations
-            const transformEventId = this.tracingContext.diagnostics.operationStart('applyTransformations', {
-                count: transformations.length,
-                inputRuleCount,
-            });
+            const transformEventId = this.tracingContext.diagnostics.operationStart(
+                'applyTransformations',
+                {
+                    count: transformations.length,
+                    inputRuleCount,
+                },
+            );
 
             // Apply global transformations
             finalList = await (collector
                 ? collector.timeAsync(
                     'Apply transformations',
-                    () => this.pipeline.transform(
-                        finalList,
-                        configuration,
-                        transformations as TransformationType[],
-                    ),
+                    () =>
+                        this.pipeline.transform(
+                            finalList,
+                            configuration,
+                            transformations as TransformationType[],
+                        ),
                     (result) => result.length,
                 )
                 : this.pipeline.transform(
@@ -226,10 +260,10 @@ export class FilterCompiler {
             this.logger.info(`Final length of the list is ${header.length + finalList.length}`);
 
             let rules = [...header, ...finalList];
-            
+
             // Add checksum to the header
             rules = await addChecksumToHeader(rules);
-            
+
             collector?.setOutputRuleCount(rules.length);
 
             const metrics = collector?.finish();
@@ -239,7 +273,11 @@ export class FilterCompiler {
 
             // Record final metrics
             this.tracingContext.diagnostics.recordMetric('outputRuleCount', rules.length, 'rules');
-            this.tracingContext.diagnostics.recordMetric('compilationDuration', performance.now() - compilationStartTime, 'ms');
+            this.tracingContext.diagnostics.recordMetric(
+                'compilationDuration',
+                performance.now() - compilationStartTime,
+                'ms',
+            );
 
             // Emit compilation complete event
             const totalDurationMs = performance.now() - compilationStartTime;
@@ -256,8 +294,8 @@ export class FilterCompiler {
                 totalDurationMs,
             });
 
-            return { 
-                rules, 
+            return {
+                rules,
                 metrics,
                 diagnostics: this.tracingContext.diagnostics.getEvents(),
             };

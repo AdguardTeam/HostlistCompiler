@@ -32,7 +32,7 @@ Deno.test('DiagnosticsCollector - operationComplete records duration', () => {
 
     const events = collector.getEvents();
     assertEquals(events.length, 2); // start + complete
-    
+
     const completeEvent = events[1];
     assertEquals(completeEvent.operation, 'testOperation');
     assertEquals(completeEvent.severity, TraceSeverity.Info);
@@ -48,7 +48,7 @@ Deno.test('DiagnosticsCollector - operationError records error details', () => {
 
     const events = collector.getEvents();
     assertEquals(events.length, 2); // start + error
-    
+
     const errorEvent = events[1];
     assertEquals(errorEvent.operation, 'testOperation');
     assertEquals(errorEvent.category, TraceCategory.Error);
@@ -60,12 +60,12 @@ Deno.test('DiagnosticsCollector - operationError records error details', () => {
 
 Deno.test('DiagnosticsCollector - recordMetric creates performance event', () => {
     const collector = new DiagnosticsCollector('test-correlation');
-    
+
     collector.recordMetric('responseTime', 123.45, 'ms', { endpoint: '/api/test' });
 
     const events = collector.getEvents();
     assertEquals(events.length, 1);
-    
+
     const metricEvent = events[0];
     assertEquals(metricEvent.category, TraceCategory.Performance);
     assertEquals(metricEvent.metric, 'responseTime');
@@ -76,12 +76,12 @@ Deno.test('DiagnosticsCollector - recordMetric creates performance event', () =>
 
 Deno.test('DiagnosticsCollector - recordCacheEvent creates cache event', () => {
     const collector = new DiagnosticsCollector('test-correlation');
-    
+
     collector.recordCacheEvent('hit', 'cache-key-123', 1024);
 
     const events = collector.getEvents();
     assertEquals(events.length, 1);
-    
+
     const cacheEvent = events[0];
     assertEquals(cacheEvent.category, TraceCategory.Cache);
     assertEquals(cacheEvent.operation, 'hit');
@@ -91,18 +91,18 @@ Deno.test('DiagnosticsCollector - recordCacheEvent creates cache event', () => {
 
 Deno.test('DiagnosticsCollector - recordNetworkEvent sanitizes URL', () => {
     const collector = new DiagnosticsCollector('test-correlation');
-    
+
     collector.recordNetworkEvent(
         'GET',
         'https://example.com/api/data?secret=123&token=abc',
         200,
         45.67,
-        2048
+        2048,
     );
 
     const events = collector.getEvents();
     assertEquals(events.length, 1);
-    
+
     const networkEvent = events[0];
     assertEquals(networkEvent.category, TraceCategory.Network);
     assertEquals(networkEvent.method, 'GET');
@@ -114,12 +114,12 @@ Deno.test('DiagnosticsCollector - recordNetworkEvent sanitizes URL', () => {
 
 Deno.test('DiagnosticsCollector - clear removes all events', () => {
     const collector = new DiagnosticsCollector('test-correlation');
-    
+
     collector.recordMetric('test', 1, 'count');
     collector.recordCacheEvent('hit', 'key');
-    
+
     assertEquals(collector.getEvents().length, 2);
-    
+
     collector.clear();
     assertEquals(collector.getEvents().length, 0);
 });
@@ -127,30 +127,30 @@ Deno.test('DiagnosticsCollector - clear removes all events', () => {
 Deno.test('DiagnosticsCollector - correlation ID is preserved', () => {
     const correlationId = 'my-custom-correlation-id';
     const collector = new DiagnosticsCollector(correlationId);
-    
+
     collector.recordMetric('test', 1, 'count');
     collector.operationStart('op');
 
     const events = collector.getEvents();
-    events.forEach(event => {
+    events.forEach((event) => {
         assertEquals(event.correlationId, correlationId);
     });
 });
 
 Deno.test('NoOpDiagnosticsCollector - all operations are no-ops', () => {
     const collector = NoOpDiagnosticsCollector.getInstance();
-    
+
     const eventId = collector.operationStart('test');
     assertEquals(eventId, 'noop');
-    
+
     collector.operationComplete(eventId);
     collector.operationError(eventId, new Error('test'));
     collector.recordMetric('test', 1, 'count');
     collector.recordCacheEvent('hit', 'key');
     collector.recordNetworkEvent('GET', 'http://example.com');
-    
+
     assertEquals(collector.getEvents().length, 0);
-    
+
     collector.clear();
     assertEquals(collector.getEvents().length, 0);
 });
@@ -158,6 +158,6 @@ Deno.test('NoOpDiagnosticsCollector - all operations are no-ops', () => {
 Deno.test('NoOpDiagnosticsCollector - singleton instance', () => {
     const instance1 = NoOpDiagnosticsCollector.getInstance();
     const instance2 = NoOpDiagnosticsCollector.getInstance();
-    
+
     assertEquals(instance1, instance2);
 });

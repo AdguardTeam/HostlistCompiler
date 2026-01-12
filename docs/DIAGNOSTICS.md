@@ -40,7 +40,7 @@ const tracingContext = createTracingContext({
 ### Using with FilterCompiler
 
 ```typescript
-import { FilterCompiler, createTracingContext } from '@jk-com/adblock-compiler';
+import { createTracingContext, FilterCompiler } from '@jk-com/adblock-compiler';
 
 const tracingContext = createTracingContext();
 
@@ -58,7 +58,7 @@ console.log(`Collected ${diagnostics.length} diagnostic events`);
 ### Using with WorkerCompiler
 
 ```typescript
-import { WorkerCompiler, createTracingContext } from '@jk-com/adblock-compiler';
+import { createTracingContext, WorkerCompiler } from '@jk-com/adblock-compiler';
 
 const tracingContext = createTracingContext();
 
@@ -204,7 +204,7 @@ function emitDiagnosticsToTailWorker(diagnostics: DiagnosticEvent[]): void {
             ...event,
             source: 'adblock-compiler',
         };
-        
+
         switch (event.severity) {
             case 'error':
                 console.error('[DIAGNOSTIC]', JSON.stringify(logData));
@@ -232,22 +232,20 @@ export default {
     async tail(events: TailEvent[], env: TailEnv, ctx: ExecutionContext) {
         for (const event of events) {
             // Filter for diagnostic events
-            const diagnosticLogs = event.logs.filter(log => 
-                log.message.some(m => 
-                    typeof m === 'string' && m.includes('[DIAGNOSTIC]')
-                )
+            const diagnosticLogs = event.logs.filter((log) =>
+                log.message.some((m) => typeof m === 'string' && m.includes('[DIAGNOSTIC]'))
             );
-            
+
             for (const log of diagnosticLogs) {
                 // Parse and process diagnostic event
                 const diagnostic = JSON.parse(log.message[1]);
-                
+
                 // Store in KV, forward to webhook, etc.
                 if (env.TAIL_LOGS) {
                     await env.TAIL_LOGS.put(
                         `diagnostic:${diagnostic.eventId}`,
                         JSON.stringify(diagnostic),
-                        { expirationTtl: 86400 }
+                        { expirationTtl: 86400 },
                     );
                 }
             }
@@ -263,7 +261,7 @@ export default {
 For custom operations, use the tracing utilities:
 
 ```typescript
-import { traceAsync, traceSync, createTracingContext } from '@jk-com/adblock-compiler';
+import { createTracingContext, traceAsync, traceSync } from '@jk-com/adblock-compiler';
 
 const context = createTracingContext();
 
@@ -287,8 +285,8 @@ Create child contexts for nested operations:
 ```typescript
 import { createChildContext } from '@jk-com/adblock-compiler';
 
-const parentContext = createTracingContext({ 
-    metadata: { requestId: '123' } 
+const parentContext = createTracingContext({
+    metadata: { requestId: '123' },
 });
 
 const childContext = createChildContext(parentContext, {
@@ -306,15 +304,13 @@ Filter events by category or severity:
 const diagnostics = context.diagnostics.getEvents();
 
 // Filter by category
-const networkEvents = diagnostics.filter(e => e.category === 'network');
+const networkEvents = diagnostics.filter((e) => e.category === 'network');
 
 // Filter by severity
-const errors = diagnostics.filter(e => e.severity === 'error');
+const errors = diagnostics.filter((e) => e.severity === 'error');
 
 // Filter by correlation ID
-const relatedEvents = diagnostics.filter(e => 
-    e.correlationId === 'trace-123'
-);
+const relatedEvents = diagnostics.filter((e) => e.correlationId === 'trace-123');
 ```
 
 ## Best Practices
@@ -337,6 +333,7 @@ See `worker/worker.ts` for complete examples of integrating diagnostics into the
 Creates a new tracing context.
 
 **Parameters:**
+
 - `options.correlationId?`: Custom correlation ID
 - `options.parent?`: Parent tracing context
 - `options.metadata?`: Custom metadata object
@@ -349,6 +346,7 @@ Creates a new tracing context.
 Collects and stores diagnostic events.
 
 **Methods:**
+
 - `operationStart(operation, input?)`: Start tracking an operation
 - `operationComplete(eventId, output?)`: Mark operation as complete
 - `operationError(eventId, error)`: Record an operation error

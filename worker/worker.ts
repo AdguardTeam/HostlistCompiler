@@ -19,29 +19,29 @@
 
 // Stub class for local development (satisfies Durable Object binding requirement)
 export class AdblockCompiler {
-  defaultPort = 8787;
-  
-  constructor(_state: DurableObjectState, _env: Env) {
-    // Stub constructor for local dev
-  }
-  
-  async fetch(_request: Request): Promise<Response> {
-    // Stub fetch for local dev - containers not used in local development
-    return new Response('Container endpoints are only available in production deployment', {
-      status: 501,
-    });
-  }
+    defaultPort = 8787;
+
+    constructor(_state: DurableObjectState, _env: Env) {
+        // Stub constructor for local dev
+    }
+
+    async fetch(_request: Request): Promise<Response> {
+        // Stub fetch for local dev - containers not used in local development
+        return new Response('Container endpoints are only available in production deployment', {
+            status: 501,
+        });
+    }
 }
 
 // When deploying with containers to production, the above stub will be replaced
 // with the actual Container class by extending from cloudflare:workers Container
 
 import {
-    WorkerCompiler,
-    type IConfiguration,
-    type ICompilerEvents,
     createTracingContext,
     type DiagnosticEvent,
+    type ICompilerEvents,
+    type IConfiguration,
+    WorkerCompiler,
 } from '../src/index.ts';
 
 /**
@@ -111,31 +111,31 @@ interface CompilationResult {
 async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
     const key = `ratelimit:${ip}`;
     const now = Date.now();
-    
+
     // Get current count
     const data = await env.RATE_LIMIT.get(key, 'json') as { count: number; resetAt: number } | null;
-    
+
     if (!data || now > data.resetAt) {
         // First request or window expired, start new window
         await env.RATE_LIMIT.put(
             key,
             JSON.stringify({ count: 1, resetAt: now + (RATE_LIMIT_WINDOW * 1000) }),
-            { expirationTtl: RATE_LIMIT_WINDOW + 10 }
+            { expirationTtl: RATE_LIMIT_WINDOW + 10 },
         );
         return true;
     }
-    
+
     if (data.count >= RATE_LIMIT_MAX_REQUESTS) {
         return false; // Rate limit exceeded
     }
-    
+
     // Increment count
     await env.RATE_LIMIT.put(
         key,
         JSON.stringify({ count: data.count + 1, resetAt: data.resetAt }),
-        { expirationTtl: RATE_LIMIT_WINDOW + 10 }
+        { expirationTtl: RATE_LIMIT_WINDOW + 10 },
     );
-    
+
     return true;
 }
 
@@ -169,13 +169,13 @@ async function recordMetric(
     endpoint: string,
     duration: number,
     success: boolean,
-    error?: string
+    error?: string,
 ): Promise<void> {
     try {
         const now = Date.now();
         const windowKey = Math.floor(now / (METRICS_WINDOW * 1000));
         const metricKey = `metrics:${windowKey}:${endpoint}`;
-        
+
         // Get existing metrics
         const existing = await env.METRICS.get(metricKey, 'json') as {
             count: number;
@@ -184,7 +184,7 @@ async function recordMetric(
             totalDuration: number;
             errors: Record<string, number>;
         } | null;
-        
+
         const metrics = existing || {
             count: 0,
             success: 0,
@@ -192,11 +192,11 @@ async function recordMetric(
             totalDuration: 0,
             errors: {},
         };
-        
+
         // Update metrics
         metrics.count++;
         metrics.totalDuration += duration;
-        
+
         if (success) {
             metrics.success++;
         } else {
@@ -205,12 +205,12 @@ async function recordMetric(
                 metrics.errors[error] = (metrics.errors[error] || 0) + 1;
             }
         }
-        
+
         // Store updated metrics
         await env.METRICS.put(
             metricKey,
             JSON.stringify(metrics),
-            { expirationTtl: METRICS_WINDOW * 2 }
+            { expirationTtl: METRICS_WINDOW * 2 },
         );
     } catch (error) {
         // Don't fail requests if metrics fail
@@ -224,17 +224,17 @@ async function recordMetric(
 async function getMetrics(env: Env): Promise<any> {
     const now = Date.now();
     const currentWindow = Math.floor(now / (METRICS_WINDOW * 1000));
-    
+
     const stats: Record<string, any> = {};
-    
+
     // Get metrics from last 6 windows (30 minutes)
     for (let i = 0; i < 6; i++) {
         const windowKey = currentWindow - i;
-        
+
         for (const endpoint of ['/compile', '/compile/stream', '/compile/batch']) {
             const metricKey = `metrics:${windowKey}:${endpoint}`;
             const data = await env.METRICS.get(metricKey, 'json') as any;
-            
+
             if (data) {
                 if (!stats[endpoint]) {
                     stats[endpoint] = {
@@ -245,22 +245,23 @@ async function getMetrics(env: Env): Promise<any> {
                         errors: {},
                     };
                 }
-                
+
                 stats[endpoint].count += data.count;
                 stats[endpoint].success += data.success;
                 stats[endpoint].failed += data.failed;
-                stats[endpoint].avgDuration = 
-                    (stats[endpoint].avgDuration * (stats[endpoint].count - data.count) + 
-                     (data.totalDuration / data.count) * data.count) / stats[endpoint].count;
-                
+                stats[endpoint].avgDuration =
+                    (stats[endpoint].avgDuration * (stats[endpoint].count - data.count) +
+                        (data.totalDuration / data.count) * data.count) / stats[endpoint].count;
+
                 // Merge errors
                 for (const [err, count] of Object.entries(data.errors)) {
-                    stats[endpoint].errors[err] = (stats[endpoint].errors[err] || 0) + (count as number);
+                    stats[endpoint].errors[err] = (stats[endpoint].errors[err] || 0) +
+                        (count as number);
                 }
             }
         }
     }
-    
+
     return {
         window: '30 minutes',
         timestamp: new Date().toISOString(),
@@ -273,7 +274,7 @@ async function getMetrics(env: Env): Promise<any> {
  */
 async function compress(data: string): Promise<ArrayBuffer> {
     const stream = new Response(data).body!.pipeThrough(
-        new CompressionStream('gzip')
+        new CompressionStream('gzip'),
     );
     return new Response(stream).arrayBuffer();
 }
@@ -283,7 +284,7 @@ async function compress(data: string): Promise<ArrayBuffer> {
  */
 async function decompress(data: ArrayBuffer): Promise<string> {
     const stream = new Response(data).body!.pipeThrough(
-        new DecompressionStream('gzip')
+        new DecompressionStream('gzip'),
     );
     return new Response(stream).text();
 }
@@ -320,10 +321,11 @@ function createStreamingEvents(
     return {
         onSourceStart: (event) => sendEvent('source:start', event),
         onSourceComplete: (event) => sendEvent('source:complete', event),
-        onSourceError: (event) => sendEvent('source:error', {
-            ...event,
-            error: event.error.message,
-        }),
+        onSourceError: (event) =>
+            sendEvent('source:error', {
+                ...event,
+                error: event.error.message,
+            }),
         onTransformationStart: (event) => sendEvent('transformation:start', event),
         onTransformationComplete: (event) => sendEvent('transformation:complete', event),
         onProgress: (event) => sendEvent('progress', event),
@@ -337,11 +339,14 @@ function createStreamingEvents(
  */
 function emitDiagnosticsToTailWorker(diagnostics: DiagnosticEvent[]): void {
     // Emit a summary of diagnostic events
-    console.log('[DIAGNOSTICS]', JSON.stringify({
-        eventCount: diagnostics.length,
-        timestamp: new Date().toISOString(),
-    }));
-    
+    console.log(
+        '[DIAGNOSTICS]',
+        JSON.stringify({
+            eventCount: diagnostics.length,
+            timestamp: new Date().toISOString(),
+        }),
+    );
+
     // Emit each diagnostic event individually for granular tail worker processing
     for (const event of diagnostics) {
         // Use different console methods based on severity
@@ -349,7 +354,7 @@ function emitDiagnosticsToTailWorker(diagnostics: DiagnosticEvent[]): void {
             ...event,
             source: 'adblock-compiler',
         };
-        
+
         switch (event.severity) {
             case 'error':
                 console.error('[DIAGNOSTIC]', JSON.stringify(logData));
@@ -378,19 +383,21 @@ async function handleCompileStream(
     const { configuration, preFetchedContent, benchmark } = body;
 
     // Check cache for previous version (for diff comparison)
-    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) 
+    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
         ? getCacheKey(configuration)
         : null;
-    
-    let previousCachedVersion: { rules: string[]; ruleCount: number; compiledAt: string } | undefined;
-    
+
+    let previousCachedVersion:
+        | { rules: string[]; ruleCount: number; compiledAt: string }
+        | undefined;
+
     if (cacheKey) {
         const cached = await env.COMPILATION_CACHE.get(cacheKey, 'arrayBuffer');
         if (cached) {
             try {
                 const decompressed = await decompress(cached);
                 const result = JSON.parse(decompressed);
-                
+
                 // Store previous version for diff comparison
                 previousCachedVersion = {
                     rules: result.rules || [],
@@ -445,7 +452,7 @@ async function handleCompileStream(
             });
 
             await writer.write(encoder.encode('event: done\ndata: {}\n\n'));
-            
+
             // Cache the new result if no pre-fetched content
             if (cacheKey) {
                 try {
@@ -460,13 +467,13 @@ async function handleCompileStream(
                     await env.COMPILATION_CACHE.put(
                         cacheKey,
                         compressed,
-                        { expirationTtl: CACHE_TTL }
+                        { expirationTtl: CACHE_TTL },
                     );
                 } catch (error) {
                     console.error('Cache compression failed:', error);
                 }
             }
-            
+
             // Record success metrics
             await recordMetric(env, '/compile/stream', Date.now() - startTime, true);
         } catch (error) {
@@ -474,7 +481,7 @@ async function handleCompileStream(
             await writer.write(
                 encoder.encode(`event: error\ndata: ${JSON.stringify({ error: message })}\n\n`),
             );
-            
+
             // Record error metrics
             await recordMetric(env, '/compile/stream', Date.now() - startTime, false, message);
         } finally {
@@ -504,13 +511,15 @@ async function handleCompileJson(
     const { configuration, preFetchedContent, benchmark } = body;
 
     // Check cache if no pre-fetched content (pre-fetched = dynamic, don't cache)
-    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) 
+    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
         ? getCacheKey(configuration)
         : null;
-    
+
     // Declare previousCachedVersion at function scope
-    let previousCachedVersion: { rules: string[]; ruleCount: number; compiledAt: string } | undefined;
-        
+    let previousCachedVersion:
+        | { rules: string[]; ruleCount: number; compiledAt: string }
+        | undefined;
+
     if (cacheKey) {
         // Check for in-flight request deduplication
         const pending = pendingCompilations.get(cacheKey);
@@ -526,21 +535,21 @@ async function handleCompileJson(
                 },
             });
         }
-        
+
         // Check KV cache and save for diff comparison
         const cached = await env.COMPILATION_CACHE.get(cacheKey, 'arrayBuffer');
         if (cached) {
             try {
                 const decompressed = await decompress(cached);
                 const result = JSON.parse(decompressed);
-                
+
                 // Store previous version for diff comparison
                 previousCachedVersion = {
                     rules: result.rules || [],
                     ruleCount: result.ruleCount || 0,
                     compiledAt: result.compiledAt || new Date().toISOString(),
                 };
-                
+
                 return Response.json({
                     ...result,
                     cached: true,
@@ -596,7 +605,7 @@ async function handleCompileJson(
                     await env.COMPILATION_CACHE.put(
                         cacheKey,
                         compressed,
-                        { expirationTtl: CACHE_TTL }
+                        { expirationTtl: CACHE_TTL },
                     );
                 } catch (error) {
                     console.error('Cache compression failed:', error);
@@ -626,8 +635,8 @@ async function handleCompileJson(
     if (!result.success) {
         // Record error metrics
         await recordMetric(env, '/compile', duration, false, result.error);
-        
-        return Response.json(result, { 
+
+        return Response.json(result, {
             status: 500,
             headers: {
                 'Access-Control-Allow-Origin': '*',
@@ -654,7 +663,7 @@ async function handleCompileBatch(
     env: Env,
 ): Promise<Response> {
     const startTime = Date.now();
-    
+
     interface BatchRequest {
         requests: Array<{
             id: string;
@@ -670,22 +679,25 @@ async function handleCompileBatch(
 
         if (!requests || !Array.isArray(requests)) {
             return Response.json(
-                { success: false, error: 'Invalid batch request format. Expected { requests: [...] }' },
-                { status: 400 }
+                {
+                    success: false,
+                    error: 'Invalid batch request format. Expected { requests: [...] }',
+                },
+                { status: 400 },
             );
         }
 
         if (requests.length === 0) {
             return Response.json(
                 { success: false, error: 'Batch request must contain at least one request' },
-                { status: 400 }
+                { status: 400 },
             );
         }
 
         if (requests.length > 10) {
             return Response.json(
                 { success: false, error: 'Batch request limited to 10 requests maximum' },
-                { status: 400 }
+                { status: 400 },
             );
         }
 
@@ -695,13 +707,13 @@ async function handleCompileBatch(
             if (!req.id) {
                 return Response.json(
                     { success: false, error: 'Each request must have an "id" field' },
-                    { status: 400 }
+                    { status: 400 },
                 );
             }
             if (ids.has(req.id)) {
                 return Response.json(
                     { success: false, error: `Duplicate request ID: ${req.id}` },
-                    { status: 400 }
+                    { status: 400 },
                 );
             }
             ids.add(req.id);
@@ -714,9 +726,10 @@ async function handleCompileBatch(
                     const { configuration, preFetchedContent, benchmark } = req;
 
                     // Check cache
-                    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-                        ? getCacheKey(configuration)
-                        : null;
+                    const cacheKey =
+                        (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
+                            ? getCacheKey(configuration)
+                            : null;
 
                     if (cacheKey) {
                         // Check pending compilations
@@ -751,11 +764,14 @@ async function handleCompileBatch(
                                 },
                             });
 
-                            const compiler = new WorkerCompiler({ 
+                            const compiler = new WorkerCompiler({
                                 preFetchedContent,
                                 tracingContext,
                             });
-                            const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
+                            const result = await compiler.compileWithMetrics(
+                                configuration,
+                                benchmark ?? false,
+                            );
 
                             // Emit diagnostics to tail worker
                             if (result.diagnostics) {
@@ -777,7 +793,7 @@ async function handleCompileBatch(
                                     await env.COMPILATION_CACHE.put(
                                         cacheKey,
                                         compressed,
-                                        { expirationTtl: CACHE_TTL }
+                                        { expirationTtl: CACHE_TTL },
                                     );
                                 } catch (error) {
                                     console.error('Cache compression failed:', error);
@@ -805,29 +821,29 @@ async function handleCompileBatch(
                     const message = error instanceof Error ? error.message : String(error);
                     return { id: req.id, success: false, error: message };
                 }
-            })
+            }),
         );
 
         // Record success metrics
         await recordMetric(env, '/compile/batch', Date.now() - startTime, true);
-        
+
         return Response.json(
             { success: true, results },
             {
                 headers: {
                     'Access-Control-Allow-Origin': '*',
                 },
-            }
+            },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        
+
         // Record error metrics
         await recordMetric(env, '/compile/batch', Date.now() - startTime, false, message);
-        
+
         return Response.json(
             { success: false, error: message },
-            { status: 500 }
+            { status: 500 },
         );
     }
 }
@@ -975,7 +991,7 @@ export default {
         if (pathname === '/api' && request.method === 'GET') {
             return handleInfo(env);
         }
-        
+
         // Handle metrics endpoint
         if (pathname === '/metrics' && request.method === 'GET') {
             const metrics = await getMetrics(env);
@@ -988,23 +1004,26 @@ export default {
         }
 
         // Rate limit compile endpoints
-        if ((pathname === '/compile' || pathname === '/compile/stream' || pathname === '/compile/batch') && request.method === 'POST') {
+        if (
+            (pathname === '/compile' || pathname === '/compile/stream' ||
+                pathname === '/compile/batch') && request.method === 'POST'
+        ) {
             const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
             const allowed = await checkRateLimit(env, ip);
-            
+
             if (!allowed) {
                 return Response.json(
-                    { 
-                        success: false, 
-                        error: 'Rate limit exceeded. Maximum 10 requests per minute.' 
+                    {
+                        success: false,
+                        error: 'Rate limit exceeded. Maximum 10 requests per minute.',
                     },
-                    { 
+                    {
                         status: 429,
                         headers: {
                             'Retry-After': '60',
                             'Access-Control-Allow-Origin': '*',
                         },
-                    }
+                    },
                 );
             }
 
@@ -1015,7 +1034,7 @@ export default {
             if (pathname === '/compile/stream') {
                 return handleCompileStream(request, env);
             }
-            
+
             if (pathname === '/compile/batch') {
                 return handleCompileBatch(request, env);
             }
@@ -1026,9 +1045,12 @@ export default {
             // Try to serve from ASSETS
             if (env.ASSETS) {
                 try {
-                    const assetUrl = new URL(pathname === '/' ? '/index.html' : pathname, 'http://assets');
+                    const assetUrl = new URL(
+                        pathname === '/' ? '/index.html' : pathname,
+                        'http://assets',
+                    );
                     let response = await env.ASSETS.fetch(assetUrl);
-                    
+
                     // Follow redirects for .html files (ASSETS automatically redirects .html to extensionless)
                     if (response.status === 307 || response.status === 308) {
                         const location = response.headers.get('Location');
@@ -1037,7 +1059,7 @@ export default {
                             response = await env.ASSETS.fetch(redirectUrl);
                         }
                     }
-                    
+
                     if (response.ok) {
                         return response;
                     }
@@ -1045,7 +1067,7 @@ export default {
                     console.error('Asset fetch error:', error);
                 }
             }
-            
+
             // Fallback for root path
             if (pathname === '/') {
                 return serveWebUI(env);

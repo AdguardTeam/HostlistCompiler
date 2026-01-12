@@ -134,28 +134,43 @@ export interface NetworkEvent extends DiagnosticEvent {
 export interface IDiagnosticsCollector {
     /** Record an operation start */
     operationStart(operation: string, input?: Record<string, unknown>): string;
-    
+
     /** Record an operation completion */
     operationComplete(eventId: string, output?: Record<string, unknown>): void;
-    
+
     /** Record an operation error */
     operationError(eventId: string, error: Error): void;
-    
+
     /** Record a performance metric */
-    recordMetric(metric: string, value: number, unit: string, dimensions?: Record<string, string>): void;
-    
+    recordMetric(
+        metric: string,
+        value: number,
+        unit: string,
+        dimensions?: Record<string, string>,
+    ): void;
+
     /** Record a cache event */
-    recordCacheEvent(operation: 'hit' | 'miss' | 'write' | 'evict', key: string, size?: number): void;
-    
+    recordCacheEvent(
+        operation: 'hit' | 'miss' | 'write' | 'evict',
+        key: string,
+        size?: number,
+    ): void;
+
     /** Record a network event */
-    recordNetworkEvent(method: string, url: string, statusCode?: number, durationMs?: number, responseSize?: number): void;
-    
+    recordNetworkEvent(
+        method: string,
+        url: string,
+        statusCode?: number,
+        durationMs?: number,
+        responseSize?: number,
+    ): void;
+
     /** Emit a custom diagnostic event */
     emit(event: DiagnosticEvent): void;
-    
+
     /** Get all collected events */
     getEvents(): DiagnosticEvent[];
-    
+
     /** Clear all collected events */
     clear(): void;
 }
@@ -166,16 +181,16 @@ export interface IDiagnosticsCollector {
 export interface TracingContext {
     /** Correlation ID for this compilation run */
     correlationId: string;
-    
+
     /** Diagnostics collector */
     diagnostics: IDiagnosticsCollector;
-    
+
     /** Start time of the context */
     startTime: number;
-    
+
     /** Optional parent context for nested operations */
     parent?: TracingContext;
-    
+
     /** Custom metadata for the context */
     metadata?: Record<string, unknown>;
 }
@@ -186,13 +201,13 @@ export interface TracingContext {
 export interface TracingContextOptions {
     /** Optional correlation ID (auto-generated if not provided) */
     correlationId?: string;
-    
+
     /** Optional parent context */
     parent?: TracingContext;
-    
+
     /** Custom metadata */
     metadata?: Record<string, unknown>;
-    
+
     /** Custom diagnostics collector */
     diagnostics?: IDiagnosticsCollector;
 }

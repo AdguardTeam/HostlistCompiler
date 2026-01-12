@@ -4,11 +4,11 @@
 
 import { assertEquals, assertExists } from '@std/assert';
 import {
-    createTracingContext,
     createChildContext,
     createNoOpContext,
-    traceSync,
+    createTracingContext,
     traceAsync,
+    traceSync,
 } from './TracingContext.ts';
 
 Deno.test('createTracingContext - creates valid context', () => {
@@ -54,7 +54,7 @@ Deno.test('createNoOpContext - creates no-op context', () => {
 
     assertEquals(context.correlationId, 'noop');
     assertEquals(context.startTime, 0);
-    
+
     // Verify it's truly no-op
     context.diagnostics.recordMetric('test', 1, 'count');
     assertEquals(context.diagnostics.getEvents().length, 0);
@@ -68,7 +68,7 @@ Deno.test('traceSync - traces synchronous function execution', () => {
     }, { input: 'test' });
 
     assertEquals(result, 42);
-    
+
     const events = context.diagnostics.getEvents();
     assertEquals(events.length, 2); // start + complete
     assertEquals(events[0].operation, 'testOperation');
@@ -97,12 +97,12 @@ Deno.test('traceAsync - traces async function execution', async () => {
     const context = createTracingContext();
 
     const result = await traceAsync(context, 'asyncOperation', async () => {
-        await new Promise(resolve => setTimeout(resolve, 1));
+        await new Promise((resolve) => setTimeout(resolve, 1));
         return 'success';
     }, { input: 'test' });
 
     assertEquals(result, 'success');
-    
+
     const events = context.diagnostics.getEvents();
     assertEquals(events.length, 2); // start + complete
     assertEquals(events[0].operation, 'asyncOperation');
@@ -114,7 +114,7 @@ Deno.test('traceAsync - captures async errors', async () => {
     const testError = new Error('Async error');
 
     try {
-        await traceAsync(context, 'failingAsyncOperation', async () => {
+        await traceAsync(context, 'failingAsyncOperation', () => {
             throw testError;
         });
     } catch (error) {
@@ -137,10 +137,10 @@ Deno.test('tracing - events have correct timestamps and IDs', () => {
     assertEquals(events.length, 4); // 2 operations * (start + complete)
 
     // Verify each event has unique ID and timestamp
-    const ids = new Set(events.map(e => e.eventId));
+    const ids = new Set(events.map((e) => e.eventId));
     assertEquals(ids.size, 4);
 
-    events.forEach(event => {
+    events.forEach((event) => {
         assertExists(event.timestamp);
         assertExists(event.eventId);
         assertEquals(event.correlationId, context.correlationId);

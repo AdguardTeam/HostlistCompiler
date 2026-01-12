@@ -4,14 +4,14 @@
  */
 
 import {
+    CacheEvent,
     DiagnosticEvent,
     IDiagnosticsCollector,
+    NetworkEvent,
     OperationCompleteEvent,
     OperationErrorEvent,
     OperationStartEvent,
     PerformanceMetricEvent,
-    CacheEvent,
-    NetworkEvent,
     TraceCategory,
     TraceSeverity,
 } from './types.ts';
@@ -67,7 +67,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
     public operationStart(operation: string, input?: Record<string, unknown>): string {
         const eventId = generateEventId();
         const startTime = performance.now();
-        
+
         this.operationStartTimes.set(eventId, startTime);
         this.operationNames.set(eventId, operation);
 
@@ -92,11 +92,13 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
     public operationComplete(eventId: string, output?: Record<string, unknown>): void {
         const startTime = this.operationStartTimes.get(eventId);
         const operation = this.operationNames.get(eventId);
-        
+
         if (!operation) {
             // Internal diagnostic warning - using console.warn for system-level issues
             // This is intentional to catch bugs in how the diagnostics system is used
-            console.warn(`[DiagnosticsCollector] Operation complete called for unknown event: ${eventId}`);
+            console.warn(
+                `[DiagnosticsCollector] Operation complete called for unknown event: ${eventId}`,
+            );
             return;
         }
 
@@ -115,7 +117,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
         };
 
         this.emit(event);
-        
+
         // Cleanup
         this.operationStartTimes.delete(eventId);
         this.operationNames.delete(eventId);
@@ -127,11 +129,13 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
     public operationError(eventId: string, error: Error): void {
         const startTime = this.operationStartTimes.get(eventId);
         const operation = this.operationNames.get(eventId);
-        
+
         if (!operation) {
             // Internal diagnostic warning - using console.warn for system-level issues
             // This is intentional to catch bugs in how the diagnostics system is used
-            console.warn(`[DiagnosticsCollector] Operation error called for unknown event: ${eventId}`);
+            console.warn(
+                `[DiagnosticsCollector] Operation error called for unknown event: ${eventId}`,
+            );
             return;
         }
 
@@ -152,7 +156,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
         };
 
         this.emit(event);
-        
+
         // Cleanup
         this.operationStartTimes.delete(eventId);
         this.operationNames.delete(eventId);
@@ -165,7 +169,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
         metric: string,
         value: number,
         unit: string,
-        dimensions?: Record<string, string>
+        dimensions?: Record<string, string>,
     ): void {
         const event: PerformanceMetricEvent = {
             eventId: generateEventId(),
@@ -189,7 +193,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
     public recordCacheEvent(
         operation: 'hit' | 'miss' | 'write' | 'evict',
         key: string,
-        size?: number
+        size?: number,
     ): void {
         const event: CacheEvent = {
             eventId: generateEventId(),
@@ -214,16 +218,18 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
         url: string,
         statusCode?: number,
         durationMs?: number,
-        responseSize?: number
+        responseSize?: number,
     ): void {
         const sanitizedUrl = sanitizeUrl(url);
-        
+
         const event: NetworkEvent = {
             eventId: generateEventId(),
             timestamp: new Date().toISOString(),
             category: TraceCategory.Network,
             severity: statusCode && statusCode >= 400 ? TraceSeverity.Warn : TraceSeverity.Debug,
-            message: `${method} ${sanitizedUrl}${statusCode ? ` - ${statusCode}` : ''}${durationMs ? ` (${durationMs.toFixed(2)}ms)` : ''}`,
+            message: `${method} ${sanitizedUrl}${statusCode ? ` - ${statusCode}` : ''}${
+                durationMs ? ` (${durationMs.toFixed(2)}ms)` : ''
+            }`,
             correlationId: this.correlationId,
             method,
             url: sanitizedUrl,
@@ -240,11 +246,11 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
      */
     public emit(event: DiagnosticEvent): void {
         this.events.push(event);
-        
+
         if (this.emitToConsole) {
             const level = event.severity;
             const message = `[${event.category}] ${event.message}`;
-            
+
             switch (level) {
                 case TraceSeverity.Error:
                     console.error(message, event);
@@ -316,7 +322,7 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
         _metric: string,
         _value: number,
         _unit: string,
-        _dimensions?: Record<string, string>
+        _dimensions?: Record<string, string>,
     ): void {
         // No-op
     }
@@ -324,7 +330,7 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
     public recordCacheEvent(
         _operation: 'hit' | 'miss' | 'write' | 'evict',
         _key: string,
-        _size?: number
+        _size?: number,
     ): void {
         // No-op
     }
@@ -334,7 +340,7 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
         _url: string,
         _statusCode?: number,
         _durationMs?: number,
-        _responseSize?: number
+        _responseSize?: number,
     ): void {
         // No-op
     }

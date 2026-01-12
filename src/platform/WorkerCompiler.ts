@@ -4,13 +4,27 @@
  * No file system access - all content must be fetched over HTTP or pre-provided.
  */
 
-import type { IConfiguration, ILogger, ISource, TransformationType, ICompilerEvents } from '../types/index.ts';
+import type {
+    ICompilerEvents,
+    IConfiguration,
+    ILogger,
+    ISource,
+    TransformationType,
+} from '../types/index.ts';
 import type { IContentFetcher, IPlatformCompilerOptions } from './types.ts';
-import type { TracingContext, DiagnosticEvent } from '../diagnostics/index.ts';
+import type { DiagnosticEvent, TracingContext } from '../diagnostics/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { HeaderGenerator } from '../compiler/HeaderGenerator.ts';
-import { silentLogger, createEventEmitter, CompilerEventEmitter, BenchmarkCollector, CompilationMetrics, addChecksumToHeader, stripUpstreamHeaders } from '../utils/index.ts';
+import {
+    addChecksumToHeader,
+    BenchmarkCollector,
+    CompilationMetrics,
+    CompilerEventEmitter,
+    createEventEmitter,
+    silentLogger,
+    stripUpstreamHeaders,
+} from '../utils/index.ts';
 import { createNoOpContext } from '../diagnostics/index.ts';
 import { HttpFetcher } from './HttpFetcher.ts';
 import { PreFetchedContentFetcher } from './PreFetchedContentFetcher.ts';
@@ -116,27 +130,36 @@ export class WorkerCompiler {
         const compilationStartTime = performance.now();
 
         // Start tracing compilation
-        const compilationEventId = this.tracingContext.diagnostics.operationStart('workerCompileFilterList', {
-            name: configuration.name,
-            sourceCount: configuration.sources.length,
-            transformationCount: configuration.transformations?.length || 0,
-        });
+        const compilationEventId = this.tracingContext.diagnostics.operationStart(
+            'workerCompileFilterList',
+            {
+                name: configuration.name,
+                sourceCount: configuration.sources.length,
+                transformationCount: configuration.transformations?.length || 0,
+            },
+        );
 
         try {
             this.logger.info('Starting the compiler');
 
             // Trace validation
-            const validationEventId = this.tracingContext.diagnostics.operationStart('validateConfiguration', {
-                name: configuration.name,
-            });
+            const validationEventId = this.tracingContext.diagnostics.operationStart(
+                'validateConfiguration',
+                {
+                    name: configuration.name,
+                },
+            );
 
             const validationResult = this.validator.validate(configuration);
             if (!validationResult.valid) {
-                this.tracingContext.diagnostics.operationError(validationEventId, new Error(validationResult.errorsText || 'Unknown validation error'));
+                this.tracingContext.diagnostics.operationError(
+                    validationEventId,
+                    new Error(validationResult.errorsText || 'Unknown validation error'),
+                );
                 this.logger.info(validationResult.errorsText || 'Unknown validation error');
                 throw new Error('Failed to validate configuration');
             }
-            
+
             this.tracingContext.diagnostics.operationComplete(validationEventId, { valid: true });
 
             const totalSources = configuration.sources.length;
@@ -149,29 +172,79 @@ export class WorkerCompiler {
             );
 
             // Trace source compilation
-            const sourcesEventId = this.tracingContext.diagnostics.operationStart('compileSources', {
-                totalSources,
-            });
+            const sourcesEventId = this.tracingContext.diagnostics.operationStart(
+                'compileSources',
+                {
+                    totalSources,
+                },
+            );
 
             const sourceResults = await (collector
                 ? collector.timeAsync(
                     'Fetch & compile sources',
-                    () => Promise.all(
-                        configuration.sources.map(async (source, index) => {
-                            this.eventEmitter.emitSourceStart({
-                                source,
-                                sourceIndex: index,
-                                totalSources,
-                            });
+                    () =>
+                        Promise.all(
+                            configuration.sources.map(async (source, index) => {
+                                this.eventEmitter.emitSourceStart({
+                                    source,
+                                    sourceIndex: index,
+                                    totalSources,
+                                });
 
-                            const startTime = performance.now();
-                            try {
-                                let rules = await downloader.download(source.source);
+                                const startTime = performance.now();
+                                try {
+                                    let rules = await downloader.download(source.source);
+
+                                    // Strip upstream metadata headers to avoid redundancy
+                                    rules = stripUpstreamHeaders(rules);
+
+                                    // Apply source-level transformations
+                                    const transformedRules = await this.applySourceTransformations(
+                                        rules,
+                                        source,
+                                        configuration,
+                                    );
+
+                                    const durationMs = performance.now() - startTime;
+                                    this.eventEmitter.emitSourceComplete({
+                                        source,
+                                        sourceIndex: index,
+                                        totalSources,
+                                        ruleCount: transformedRules.length,
+                                        durationMs,
+                                    });
+
+                                    return { source, rules: transformedRules };
+                                } catch (error) {
+                                    this.eventEmitter.emitSourceError({
+                                        source,
+                                        sourceIndex: index,
+                                        totalSources,
+                                        error: error instanceof Error
+                                            ? error
+                                            : new Error(String(error)),
+                                    });
+                                    throw error;
+                                }
+                            }),
+                        ),
+                    (results) => results.reduce((sum, r) => sum + r.rules.length, 0),
+                )
+                : Promise.all(
+                    configuration.sources.map(async (source, index) => {
+                        this.eventEmitter.emitSourceStart({
+                            source,
+                            sourceIndex: index,
+                            totalSources,
+                        });
+
+                        const startTime = performance.now();
+                        try {
+                            let rules = await downloader.download(source.source);
 
                             // Strip upstream metadata headers to avoid redundancy
                             rules = stripUpstreamHeaders(rules);
 
-                            // Apply source-level transformations
                             const transformedRules = await this.applySourceTransformations(
                                 rules,
                                 source,
@@ -198,51 +271,7 @@ export class WorkerCompiler {
                             throw error;
                         }
                     }),
-                ),
-                (results) => results.reduce((sum, r) => sum + r.rules.length, 0),
-            )
-            : Promise.all(
-                configuration.sources.map(async (source, index) => {
-                    this.eventEmitter.emitSourceStart({
-                        source,
-                        sourceIndex: index,
-                        totalSources,
-                    });
-
-                    const startTime = performance.now();
-                    try {
-                        let rules = await downloader.download(source.source);
-                        
-                        // Strip upstream metadata headers to avoid redundancy
-                        rules = stripUpstreamHeaders(rules);
-                        
-                        const transformedRules = await this.applySourceTransformations(
-                            rules,
-                            source,
-                            configuration,
-                        );
-
-                        const durationMs = performance.now() - startTime;
-                        this.eventEmitter.emitSourceComplete({
-                            source,
-                            sourceIndex: index,
-                            totalSources,
-                            ruleCount: transformedRules.length,
-                            durationMs,
-                        });
-
-                        return { source, rules: transformedRules };
-                    } catch (error) {
-                        this.eventEmitter.emitSourceError({
-                            source,
-                            sourceIndex: index,
-                            totalSources,
-                            error: error instanceof Error ? error : new Error(String(error)),
-                        });
-                        throw error;
-                    }
-                }),
-            ));
+                ));
 
             this.tracingContext.diagnostics.operationComplete(sourcesEventId, {
                 totalRules: sourceResults.reduce((sum, r) => sum + r.rules.length, 0),
@@ -259,7 +288,7 @@ export class WorkerCompiler {
 
             const inputRuleCount = finalList.length;
             collector?.setRuleCount(inputRuleCount);
-            
+
             // Record metrics
             this.tracingContext.diagnostics.recordMetric('inputRuleCount', inputRuleCount, 'rules');
 
@@ -273,19 +302,23 @@ export class WorkerCompiler {
             });
 
             // Trace transformations
-            const transformEventId = this.tracingContext.diagnostics.operationStart('applyTransformations', {
-                count: transformations.length,
-                inputRuleCount,
-            });
+            const transformEventId = this.tracingContext.diagnostics.operationStart(
+                'applyTransformations',
+                {
+                    count: transformations.length,
+                    inputRuleCount,
+                },
+            );
 
             finalList = await (collector
                 ? collector.timeAsync(
                     'Apply transformations',
-                    () => this.pipeline.transform(
-                        finalList,
-                        configuration,
-                        transformations as TransformationType[],
-                    ),
+                    () =>
+                        this.pipeline.transform(
+                            finalList,
+                            configuration,
+                            transformations as TransformationType[],
+                        ),
                     (result) => result.length,
                 )
                 : this.pipeline.transform(
@@ -309,17 +342,21 @@ export class WorkerCompiler {
             // Prepend header
             const header = this.prepareHeader(configuration);
             let rules = [...header, ...finalList];
-            
+
             // Add checksum to the header
             rules = await addChecksumToHeader(rules);
-            
+
             collector?.setOutputRuleCount(rules.length);
 
             const metrics = collector?.finish();
 
             // Record final metrics
             this.tracingContext.diagnostics.recordMetric('outputRuleCount', rules.length, 'rules');
-            this.tracingContext.diagnostics.recordMetric('compilationDuration', performance.now() - compilationStartTime, 'ms');
+            this.tracingContext.diagnostics.recordMetric(
+                'compilationDuration',
+                performance.now() - compilationStartTime,
+                'ms',
+            );
 
             // Emit completion event
             const totalDurationMs = performance.now() - compilationStartTime;
@@ -336,8 +373,8 @@ export class WorkerCompiler {
                 totalDurationMs,
             });
 
-            return { 
-                rules, 
+            return {
+                rules,
                 metrics,
                 diagnostics: this.tracingContext.diagnostics.getEvents(),
             };
