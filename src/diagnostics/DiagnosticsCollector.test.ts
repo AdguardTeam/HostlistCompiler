@@ -4,7 +4,16 @@
 
 import { assertEquals, assertExists } from '@std/assert';
 import { DiagnosticsCollector, NoOpDiagnosticsCollector } from './DiagnosticsCollector.ts';
-import { TraceCategory, TraceSeverity } from './types.ts';
+import {
+    CacheEvent,
+    NetworkEvent,
+    OperationCompleteEvent,
+    OperationErrorEvent,
+    OperationStartEvent,
+    PerformanceMetricEvent,
+    TraceCategory,
+    TraceSeverity,
+} from './types.ts';
 
 Deno.test('DiagnosticsCollector - operationStart creates event', () => {
     const collector = new DiagnosticsCollector('test-correlation');
@@ -13,7 +22,7 @@ Deno.test('DiagnosticsCollector - operationStart creates event', () => {
     assertExists(eventId);
     const events = collector.getEvents();
     assertEquals(events.length, 1);
-    assertEquals(events[0].operation, 'testOperation');
+    assertEquals((events[0] as OperationStartEvent).operation, 'testOperation');
     assertEquals(events[0].category, TraceCategory.Compilation);
     assertEquals(events[0].severity, TraceSeverity.Debug);
 });
@@ -33,7 +42,7 @@ Deno.test('DiagnosticsCollector - operationComplete records duration', () => {
     const events = collector.getEvents();
     assertEquals(events.length, 2); // start + complete
 
-    const completeEvent = events[1];
+    const completeEvent = events[1] as OperationCompleteEvent;
     assertEquals(completeEvent.operation, 'testOperation');
     assertEquals(completeEvent.severity, TraceSeverity.Info);
     assertExists(completeEvent.durationMs);
@@ -49,7 +58,7 @@ Deno.test('DiagnosticsCollector - operationError records error details', () => {
     const events = collector.getEvents();
     assertEquals(events.length, 2); // start + error
 
-    const errorEvent = events[1];
+    const errorEvent = events[1] as OperationErrorEvent;
     assertEquals(errorEvent.operation, 'testOperation');
     assertEquals(errorEvent.category, TraceCategory.Error);
     assertEquals(errorEvent.severity, TraceSeverity.Error);
@@ -66,7 +75,7 @@ Deno.test('DiagnosticsCollector - recordMetric creates performance event', () =>
     const events = collector.getEvents();
     assertEquals(events.length, 1);
 
-    const metricEvent = events[0];
+    const metricEvent = events[0] as PerformanceMetricEvent;
     assertEquals(metricEvent.category, TraceCategory.Performance);
     assertEquals(metricEvent.metric, 'responseTime');
     assertEquals(metricEvent.value, 123.45);
@@ -82,7 +91,7 @@ Deno.test('DiagnosticsCollector - recordCacheEvent creates cache event', () => {
     const events = collector.getEvents();
     assertEquals(events.length, 1);
 
-    const cacheEvent = events[0];
+    const cacheEvent = events[0] as CacheEvent;
     assertEquals(cacheEvent.category, TraceCategory.Cache);
     assertEquals(cacheEvent.operation, 'hit');
     assertEquals(cacheEvent.key, 'cache-key-123');
@@ -103,7 +112,7 @@ Deno.test('DiagnosticsCollector - recordNetworkEvent sanitizes URL', () => {
     const events = collector.getEvents();
     assertEquals(events.length, 1);
 
-    const networkEvent = events[0];
+    const networkEvent = events[0] as NetworkEvent;
     assertEquals(networkEvent.category, TraceCategory.Network);
     assertEquals(networkEvent.method, 'GET');
     assertEquals(networkEvent.url, 'https://example.com/api/data');

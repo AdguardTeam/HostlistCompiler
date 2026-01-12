@@ -10,6 +10,10 @@ import {
     traceAsync,
     traceSync,
 } from './TracingContext.ts';
+import {
+    OperationErrorEvent,
+    OperationStartEvent,
+} from './types.ts';
 
 Deno.test('createTracingContext - creates valid context', () => {
     const context = createTracingContext();
@@ -45,6 +49,7 @@ Deno.test('createChildContext - inherits from parent', () => {
     assertEquals(child.correlationId, parent.correlationId);
     assertEquals(child.parent, parent);
     assertEquals(child.diagnostics, parent.diagnostics);
+    assertExists(child.metadata);
     assertEquals(child.metadata.parentKey, 'parentValue');
     assertEquals(child.metadata.childKey, 'childValue');
 });
@@ -71,8 +76,8 @@ Deno.test('traceSync - traces synchronous function execution', () => {
 
     const events = context.diagnostics.getEvents();
     assertEquals(events.length, 2); // start + complete
-    assertEquals(events[0].operation, 'testOperation');
-    assertEquals(events[1].operation, 'testOperation');
+    assertEquals((events[0] as OperationStartEvent).operation, 'testOperation');
+    assertEquals((events[1] as OperationStartEvent).operation, 'testOperation');
 });
 
 Deno.test('traceSync - captures errors', () => {
@@ -89,8 +94,8 @@ Deno.test('traceSync - captures errors', () => {
 
     const events = context.diagnostics.getEvents();
     assertEquals(events.length, 2); // start + error
-    assertEquals(events[0].operation, 'failingOperation');
-    assertEquals(events[1].errorMessage, 'Test error');
+    assertEquals((events[0] as OperationStartEvent).operation, 'failingOperation');
+    assertEquals((events[1] as OperationErrorEvent).errorMessage, 'Test error');
 });
 
 Deno.test('traceAsync - traces async function execution', async () => {
@@ -105,8 +110,8 @@ Deno.test('traceAsync - traces async function execution', async () => {
 
     const events = context.diagnostics.getEvents();
     assertEquals(events.length, 2); // start + complete
-    assertEquals(events[0].operation, 'asyncOperation');
-    assertEquals(events[1].operation, 'asyncOperation');
+    assertEquals((events[0] as OperationStartEvent).operation, 'asyncOperation');
+    assertEquals((events[1] as OperationStartEvent).operation, 'asyncOperation');
 });
 
 Deno.test('traceAsync - captures async errors', async () => {
@@ -123,8 +128,8 @@ Deno.test('traceAsync - captures async errors', async () => {
 
     const events = context.diagnostics.getEvents();
     assertEquals(events.length, 2); // start + error
-    assertEquals(events[0].operation, 'failingAsyncOperation');
-    assertEquals(events[1].errorMessage, 'Async error');
+    assertEquals((events[0] as OperationStartEvent).operation, 'failingAsyncOperation');
+    assertEquals((events[1] as OperationErrorEvent).errorMessage, 'Async error');
 });
 
 Deno.test('tracing - events have correct timestamps and IDs', () => {

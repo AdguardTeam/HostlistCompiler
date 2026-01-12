@@ -129,6 +129,18 @@ export interface NetworkEvent extends DiagnosticEvent {
 }
 
 /**
+ * Union type of all possible diagnostic events
+ */
+export type AnyDiagnosticEvent =
+    | DiagnosticEvent
+    | OperationStartEvent
+    | OperationCompleteEvent
+    | OperationErrorEvent
+    | PerformanceMetricEvent
+    | CacheEvent
+    | NetworkEvent;
+
+/**
  * Diagnostic collector interface for aggregating events
  */
 export interface IDiagnosticsCollector {
@@ -169,7 +181,7 @@ export interface IDiagnosticsCollector {
     emit(event: DiagnosticEvent): void;
 
     /** Get all collected events */
-    getEvents(): DiagnosticEvent[];
+    getEvents(): AnyDiagnosticEvent[];
 
     /** Clear all collected events */
     clear(): void;
