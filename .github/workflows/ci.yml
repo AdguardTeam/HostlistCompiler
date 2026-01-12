@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: ['2.0', '2.4']
+        deno-version: ['2.4']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -56,14 +56,7 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Run tests
-        run: |
-          # Deno 2.0-2.2 only support lockfile v4, but we use v5 (requires 2.3+)
-          # Use --no-lock for Deno 2.0 to test runtime compatibility without strict lock
-          if [ "${{ matrix.deno-version }}" = "2.0" ]; then
-            deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv --no-lock
-          else
-            deno task test
-          fi
+        run: deno task test
 
       - name: Run tests with coverage
         if: matrix.deno-version == '2.4'
