@@ -69,7 +69,7 @@ examples/             # Example implementations
 - **Classes**: PascalCase (e.g., `FilterCompiler`, `DeduplicateTransformation`)
 - **Interfaces**: PascalCase with `I` prefix (e.g., `IConfiguration`, `ILogger`)
 - **Methods/Functions**: camelCase (e.g., `executeSync`, `prepareHeader`)
-- **Constants**: UPPER_SNAKE_CASE for true constants (e.g., `MAX_RETRIES`)
+- **Constants**: UPPER_SNAKE_CASE for true constants (e.g., `MAX_RETRIES`, `DEFAULT_TIMEOUT`). These are typically module-level or class-level constants with values that never change.
 - **Private fields**: Use `private readonly` when fields shouldn't change after construction
 
 ### Error Handling
@@ -89,6 +89,7 @@ Transformations are the core of the filter list processing pipeline. When creati
 ### Transformation Pattern
 ```typescript
 import { TransformationType } from '../types/index.ts';
+import { RuleUtils } from '../utils/index.ts';
 import { SyncTransformation } from './base/Transformation.ts';
 
 export class MyTransformation extends SyncTransformation {
@@ -99,10 +100,10 @@ export class MyTransformation extends SyncTransformation {
         // Use this.info(), this.debug(), this.warn() for logging
         this.info('Starting transformation');
         
-        // Process rules
-        const result = rules.filter(/* logic */);
+        // Example: Remove all comment lines
+        const result = rules.filter(rule => !RuleUtils.isComment(rule));
         
-        this.info(`Transformation completed, processed ${rules.length} rules`);
+        this.info(`Transformation completed: ${rules.length} → ${result.length} rules`);
         return result;
     }
 }
@@ -235,8 +236,8 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 ## Common Tasks
 
 ### Adding a New Transformation
-1. Create `src/transformations/MyTransformation.ts` extending `SyncTransformation` or `AsyncTransformation`
-2. Add the transformation type to `TransformationType` enum in `src/types/index.ts`
+1. Add the transformation type to `TransformationType` enum in `src/types/index.ts`
+2. Create `src/transformations/MyTransformation.ts` extending `SyncTransformation` or `AsyncTransformation`
 3. Register in `TransformationRegistry.ts`
 4. Create `src/transformations/MyTransformation.test.ts` with comprehensive tests
 5. Document in `README.md` transformations section
