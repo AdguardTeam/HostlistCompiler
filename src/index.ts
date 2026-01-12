@@ -42,10 +42,10 @@ export {
     createNoOpContext,
     traceSync,
     traceAsync,
-} from './diagnostics/index.ts';
-export type {
     TraceSeverity,
     TraceCategory,
+} from './diagnostics/index.ts';
+export type {
     DiagnosticEvent,
     OperationStartEvent,
     OperationCompleteEvent,
