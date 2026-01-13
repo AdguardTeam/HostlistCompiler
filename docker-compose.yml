@@ -9,7 +9,7 @@ services:
         ports:
             - '8787:8787'
         environment:
-            - COMPILER_VERSION=0.7.16
+            - COMPILER_VERSION=0.7.17
             - DENO_DIR=/app/.deno
             - PORT=8787
         volumes:
