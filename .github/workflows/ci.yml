@@ -10,6 +10,10 @@ on:
 env:
     DENO_VERSION: '2.x'
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     ci:
         name: Lint, Test & Type Check
@@ -57,6 +61,53 @@ jobs:
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+    benchmark:
+        name: Performance Benchmarks
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
+            - name: Cache dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: deno-${{ runner.os }}-
+
+            - name: Run benchmarks
+              run: deno bench --allow-read --allow-write --allow-net --allow-env --json > benchmark-results.json
+
+            - name: Upload benchmark results
+              uses: actions/upload-artifact@v4
+              with:
+                  name: benchmark-results-${{ github.sha }}
+                  path: benchmark-results.json
+                  retention-days: 90
+
+            - name: Display results in summary
+              if: github.event_name == 'pull_request'
+              continue-on-error: true
+              run: |
+                  echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "Benchmark results saved as artifact for commit ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "<details><summary>View Results</summary>" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo '```json' >> $GITHUB_STEP_SUMMARY
+                  cat benchmark-results.json >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  echo "</details>" >> $GITHUB_STEP_SUMMARY
+
     security:
         name: Security Scan
         runs-on: ubuntu-latest
@@ -73,6 +124,7 @@ jobs:
                   scan-ref: .
                   format: sarif
                   output: trivy-results.sarif
+                  severity: 'CRITICAL,HIGH,MEDIUM'
 
             - name: Upload results
               if: always()
@@ -80,6 +132,71 @@ jobs:
               continue-on-error: true
               with:
                   sarif_file: trivy-results.sarif
+
+    build:
+        name: Build Artifacts
+        runs-on: ubuntu-latest
+        needs: ci
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
+            - name: Build CLI binary
+              run: deno compile --allow-read --allow-write --allow-net --output=hostlist-compiler src/cli.ts
+
+            - name: Upload CLI binary
+              uses: actions/upload-artifact@v4
+              with:
+                  name: hostlist-compiler-linux-x64
+                  path: hostlist-compiler
+                  retention-days: 30
+
+    docker:
+        name: Build Docker Image
+        runs-on: ubuntu-latest
+        needs: ci
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Extract metadata
+              id: meta
+              uses: docker/metadata-action@v5
+              with:
+                  images: ghcr.io/${{ github.repository }}
+                  tags: |
+                      type=raw,value=latest,enable={{is_default_branch}}
+                      type=sha,prefix=
+                      type=ref,event=branch
+
+            - name: Build and push Docker image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
 
     publish:
         name: Publish to JSR
@@ -116,6 +233,7 @@ jobs:
     deploy-worker:
         name: Deploy Cloudflare Worker
         runs-on: ubuntu-latest
+        needs: [ci, security]
         needs: ci
         if: |
             github.event_name == 'push' &&
@@ -152,6 +270,21 @@ jobs:
             - name: Deploy Worker
               run: wrangler deploy
 
+            - name: Post-deployment smoke test
+              continue-on-error: true
+              run: |
+                  sleep 10
+                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://adblock-compiler.jayson-knight.workers.dev/api || echo "000")
+                  if [ "$RESPONSE" = "200" ]; then
+                    echo "Smoke test passed - API responding"
+                  else
+                    echo "Warning: Smoke test returned HTTP $RESPONSE"
+                  fi
+
+    deploy-pages:
+        name: Deploy Cloudflare Pages
+        runs-on: ubuntu-latest
+        needs: [ci, security]
     deploy-pages:
         name: Deploy Cloudflare Pages
         runs-on: ubuntu-latest
