@@ -55,7 +55,7 @@ tag = "v1"
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.7.4"
+COMPILER_VERSION = "0.7.5"
 
 # Static assets configuration using modern assets
 [assets]
@@ -73,12 +73,23 @@ tail_consumers = [{ service = "adblock-compiler-tail" }]
  queue = "adblock-compiler-worker-queue"
  binding = "ADBLOCK_COMPILER_QUEUE"
 
+[[queues.producers]]
+ queue = "adblock-compiler-worker-queue-high-priority"
+ binding = "ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY"
+
  [[queues.consumers]]
  queue = "adblock-compiler-worker-queue"
  # Required: this should match the name of the queue you created in step 3.
  # If you misspell the name, you will receive an error when attempting to publish your Worker.
  max_batch_size = 10 # optional: defaults to 10
  max_batch_timeout = 5 # optional: defaults to 5 seconds
+ dead_letter_queue = "dead-letter-queue"
+
+ [[queues.consumers]]
+ queue = "adblock-compiler-worker-queue-high-priority"
+ # High-priority queue for premium users and urgent compilations
+ max_batch_size = 5 # smaller batch size for faster processing
+ max_batch_timeout = 2 # shorter timeout for quicker response
  dead_letter_queue = "dead-letter-queue"
 
 # Development settings
