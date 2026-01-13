@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.7.13",
+    "version": "0.7.14",
     "exports": "./src/index.ts",
     "publish": {
         "include": [
@@ -62,7 +62,11 @@
             "worker/",
             "src/storage/example.ts",
             "src/storage/prisma-example.ts",
-            "examples/"
+            "examples/",
+            "prisma/",
+            "docs/",
+            ".github/",
+            "*.d.ts"
         ]
     },
     "fmt": {
@@ -80,7 +84,13 @@
             "worker/",
             "src/storage/example.ts",
             "src/storage/prisma-example.ts",
-            "examples/"
+            "examples/",
+            "prisma/",
+            "docs/",
+            ".github/",
+            "*.lock",
+            "*.lcov",
+            "*.d.ts"
         ]
     },
     "test": {

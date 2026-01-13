@@ -25,7 +25,7 @@ id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace cr
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.7.13"
+COMPILER_VERSION = "0.7.14"
 
 # Static assets configuration using modern assets
 [assets]
