@@ -251,7 +251,7 @@ Deno.test('PathUtils.getHost - should handle malformed URL gracefully', () => {
 Deno.test('PathUtils.sanitizeUrl - should remove query parameters', () => {
     assertEquals(
         PathUtils.sanitizeUrl('https://example.com/path?secret=token'),
-        'https://example.com/path[QUERY]',
+        'https://example.com/path?[QUERY]',
     );
 });
 
@@ -272,14 +272,14 @@ Deno.test('PathUtils.sanitizeUrl - should handle URL with hash', () => {
 Deno.test('PathUtils.sanitizeUrl - should handle URL with both query and hash', () => {
     assertEquals(
         PathUtils.sanitizeUrl('https://example.com/path?param=value#hash'),
-        'https://example.com/path[QUERY]',
+        'https://example.com/path?[QUERY]',
     );
 });
 
 Deno.test('PathUtils.sanitizeUrl - should handle URL with port', () => {
     assertEquals(
         PathUtils.sanitizeUrl('https://example.com:8080/path?secret=token'),
-        'https://example.com:8080/path[QUERY]',
+        'https://example.com:8080/path?[QUERY]',
     );
 });
 

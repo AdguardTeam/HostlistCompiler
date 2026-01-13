@@ -9,30 +9,34 @@ This document evaluates whether the existing NoSQL storage classes in the adbloc
 Prisma is a next-generation ORM for Node.js and TypeScript that supports the following databases:
 
 ### Relational Databases (SQL)
-| Database | Status | Notes |
-|----------|--------|-------|
-| **PostgreSQL** | Full Support | Primary recommendation for production |
-| **MySQL** | Full Support | Including MySQL 5.7+ |
-| **MariaDB** | Full Support | MySQL-compatible |
-| **SQLite** | Full Support | Great for local development/embedded |
-| **SQL Server** | Full Support | Microsoft SQL Server 2017+ |
-| **CockroachDB** | Full Support | Distributed SQL database |
+
+| Database        | Status       | Notes                                 |
+| --------------- | ------------ | ------------------------------------- |
+| **PostgreSQL**  | Full Support | Primary recommendation for production |
+| **MySQL**       | Full Support | Including MySQL 5.7+                  |
+| **MariaDB**     | Full Support | MySQL-compatible                      |
+| **SQLite**      | Full Support | Great for local development/embedded  |
+| **SQL Server**  | Full Support | Microsoft SQL Server 2017+            |
+| **CockroachDB** | Full Support | Distributed SQL database              |
 
 ### NoSQL Databases
-| Database | Status | Notes |
-|----------|--------|-------|
+
+| Database    | Status       | Notes                                   |
+| ----------- | ------------ | --------------------------------------- |
 | **MongoDB** | Full Support | Special connector with some limitations |
 
 ### Cloud Database Integrations
-| Provider | Status | Notes |
-|----------|-------|-------|
-| **Supabase** | Supported | PostgreSQL-based |
-| **PlanetScale** | Supported | MySQL-compatible |
-| **Turso** | Supported | SQLite edge database |
-| **Cloudflare D1** | Supported | SQLite at the edge |
-| **Neon** | Supported | Serverless PostgreSQL |
+
+| Provider          | Status    | Notes                 |
+| ----------------- | --------- | --------------------- |
+| **Supabase**      | Supported | PostgreSQL-based      |
+| **PlanetScale**   | Supported | MySQL-compatible      |
+| **Turso**         | Supported | SQLite edge database  |
+| **Cloudflare D1** | Supported | SQLite at the edge    |
+| **Neon**          | Supported | Serverless PostgreSQL |
 
 ### Upcoming Features (2025)
+
 - PostgreSQL extensions support (PGVector, Full-Text Search via ParadeDB)
 - Prisma 7 major release with modernized foundations
 
@@ -51,6 +55,7 @@ NoSqlStorage (Deno KV)
 ```
 
 **Key Characteristics:**
+
 - Embedded key-value store
 - Zero external dependencies
 - Hierarchical keys: `['cache', 'filters', source]`
@@ -59,36 +64,37 @@ NoSqlStorage (Deno KV)
 
 ### Storage Classes Summary
 
-| Class | Purpose | Complexity |
-|-------|---------|------------|
-| `NoSqlStorage` | Core KV operations | Low |
-| `CachingDownloader` | Smart download caching | Medium |
-| `ChangeDetector` | Track filter changes | Low |
-| `SourceHealthMonitor` | Track source reliability | Low |
-| `IncrementalCompiler` | Compilation caching | Medium |
+| Class                 | Purpose                  | Complexity |
+| --------------------- | ------------------------ | ---------- |
+| `NoSqlStorage`        | Core KV operations       | Low        |
+| `CachingDownloader`   | Smart download caching   | Medium     |
+| `ChangeDetector`      | Track filter changes     | Low        |
+| `SourceHealthMonitor` | Track source reliability | Low        |
+| `IncrementalCompiler` | Compilation caching      | Medium     |
 
 ## Comparison: Deno KV vs Prisma
 
 ### Feature Comparison
 
-| Feature | Deno KV | Prisma |
-|---------|---------|--------|
-| **Schema Definition** | None (schemaless) | Prisma Schema Language |
-| **Type Safety** | Manual generics | Generated types |
-| **Queries** | Simple KV ops | Rich query API |
-| **Relations** | Manual | First-class support |
-| **Migrations** | None needed | Built-in migrations |
-| **TTL Support** | Native | Application-level |
-| **Transactions** | Atomic operations | Full ACID |
-| **Tooling** | Minimal | Prisma Studio, CLI |
-| **Runtime** | Deno only | Node.js, Deno, Bun |
-| **Infrastructure** | Zero | Database server required |
+| Feature               | Deno KV           | Prisma                   |
+| --------------------- | ----------------- | ------------------------ |
+| **Schema Definition** | None (schemaless) | Prisma Schema Language   |
+| **Type Safety**       | Manual generics   | Generated types          |
+| **Queries**           | Simple KV ops     | Rich query API           |
+| **Relations**         | Manual            | First-class support      |
+| **Migrations**        | None needed       | Built-in migrations      |
+| **TTL Support**       | Native            | Application-level        |
+| **Transactions**      | Atomic operations | Full ACID                |
+| **Tooling**           | Minimal           | Prisma Studio, CLI       |
+| **Runtime**           | Deno only         | Node.js, Deno, Bun       |
+| **Infrastructure**    | Zero              | Database server required |
 
 ### Pros and Cons
 
 #### Deno KV (Current)
 
 **Pros:**
+
 - Zero infrastructure overhead
 - Built into Deno runtime
 - Simple API for KV operations
@@ -98,6 +104,7 @@ NoSqlStorage (Deno KV)
 - Fast for simple operations
 
 **Cons:**
+
 - Deno-specific (not portable to Node.js)
 - Limited query capabilities
 - No relational features
@@ -108,6 +115,7 @@ NoSqlStorage (Deno KV)
 #### Prisma
 
 **Pros:**
+
 - Type-safe auto-generated client
 - Rich query API with filters, pagination, sorting
 - Built-in migrations and schema management
@@ -118,6 +126,7 @@ NoSqlStorage (Deno KV)
 - Production-ready for scaled deployments
 
 **Cons:**
+
 - Requires external database server
 - Additional complexity and dependencies
 - MongoDB connector has fewer features than SQL
@@ -129,12 +138,12 @@ NoSqlStorage (Deno KV)
 
 ### Current Use Cases
 
-| Use Case | Data Pattern | Complexity | Deno KV Fit | Prisma Fit |
-|----------|-------------|------------|-------------|------------|
-| Filter list caching | Simple KV with TTL | Low | Excellent | Overkill |
-| Health monitoring | Append-only metrics | Low | Good | Good |
-| Change detection | Snapshot comparison | Low | Good | Good |
-| Compilation history | Time-series queries | Medium | Good | Better |
+| Use Case            | Data Pattern        | Complexity | Deno KV Fit | Prisma Fit |
+| ------------------- | ------------------- | ---------- | ----------- | ---------- |
+| Filter list caching | Simple KV with TTL  | Low        | Excellent   | Overkill   |
+| Health monitoring   | Append-only metrics | Low        | Good        | Good       |
+| Change detection    | Snapshot comparison | Low        | Good        | Good       |
+| Compilation history | Time-series queries | Medium     | Good        | Better     |
 
 ### When to Consider Prisma
 
@@ -200,12 +209,12 @@ The project now includes:
 
 ## Conclusion
 
-| Aspect | Recommendation |
-|--------|----------------|
-| **Current Usage** | Keep Deno KV |
-| **Future Growth** | Add storage abstraction layer |
-| **Prisma for MongoDB** | Only if cross-runtime needed |
-| **Prisma for SQL** | Consider for analytics/reporting features |
+| Aspect                 | Recommendation                            |
+| ---------------------- | ----------------------------------------- |
+| **Current Usage**      | Keep Deno KV                              |
+| **Future Growth**      | Add storage abstraction layer             |
+| **Prisma for MongoDB** | Only if cross-runtime needed              |
+| **Prisma for SQL**     | Consider for analytics/reporting features |
 
 The storage abstraction layer has been added to enable future migration if requirements change, without affecting the existing codebase.
 
