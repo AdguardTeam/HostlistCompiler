@@ -34,7 +34,7 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json') }}
                   restore-keys: deno-${{ runner.os }}-
 
             - name: Lint
@@ -234,6 +234,7 @@ jobs:
         name: Deploy Cloudflare Worker
         runs-on: ubuntu-latest
         needs: [ci, security]
+        needs: ci
         if: |
             github.event_name == 'push' &&
             (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&
@@ -284,6 +285,10 @@ jobs:
         name: Deploy Cloudflare Pages
         runs-on: ubuntu-latest
         needs: [ci, security]
+    deploy-pages:
+        name: Deploy Cloudflare Pages
+        runs-on: ubuntu-latest
+        needs: ci
         if: |
             github.event_name == 'push' &&
             (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&

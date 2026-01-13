@@ -17,32 +17,32 @@ Prisma supports the following databases:
 
 ### Relational Databases (SQL)
 
-| Database | Provider | Connection String Example |
-|----------|----------|---------------------------|
-| **PostgreSQL** | `postgresql` | `postgresql://user:pass@localhost:5432/adblock` |
-| **MySQL** | `mysql` | `mysql://user:pass@localhost:3306/adblock` |
-| **MariaDB** | `mysql` | `mysql://user:pass@localhost:3306/adblock` |
-| **SQLite** | `sqlite` | `file:./dev.db` |
-| **SQL Server** | `sqlserver` | `sqlserver://localhost:1433;database=adblock;user=SA;password=pass` |
-| **CockroachDB** | `cockroachdb` | `postgresql://user:pass@localhost:26257/adblock` |
+| Database        | Provider      | Connection String Example                                           |
+| --------------- | ------------- | ------------------------------------------------------------------- |
+| **PostgreSQL**  | `postgresql`  | `postgresql://user:pass@localhost:5432/adblock`                     |
+| **MySQL**       | `mysql`       | `mysql://user:pass@localhost:3306/adblock`                          |
+| **MariaDB**     | `mysql`       | `mysql://user:pass@localhost:3306/adblock`                          |
+| **SQLite**      | `sqlite`      | `file:./dev.db`                                                     |
+| **SQL Server**  | `sqlserver`   | `sqlserver://localhost:1433;database=adblock;user=SA;password=pass` |
+| **CockroachDB** | `cockroachdb` | `postgresql://user:pass@localhost:26257/adblock`                    |
 
 ### NoSQL Databases
 
-| Database | Provider | Connection String Example |
-|----------|----------|---------------------------|
+| Database    | Provider  | Connection String Example           |
+| ----------- | --------- | ----------------------------------- |
 | **MongoDB** | `mongodb` | `mongodb://localhost:27017/adblock` |
 
 ### Cloud Database Services
 
-| Service | Notes |
-|---------|-------|
-| **Supabase** | PostgreSQL-based, use `postgresql` provider |
-| **PlanetScale** | MySQL-compatible, use `mysql` provider |
-| **Turso** | SQLite edge database |
-| **Cloudflare D1** | SQLite at the edge |
-| **Neon** | Serverless PostgreSQL |
-| **Railway** | PostgreSQL/MySQL hosting |
-| **Render** | PostgreSQL hosting |
+| Service           | Notes                                       |
+| ----------------- | ------------------------------------------- |
+| **Supabase**      | PostgreSQL-based, use `postgresql` provider |
+| **PlanetScale**   | MySQL-compatible, use `mysql` provider      |
+| **Turso**         | SQLite edge database                        |
+| **Cloudflare D1** | SQLite at the edge                          |
+| **Neon**          | Serverless PostgreSQL                       |
+| **Railway**       | PostgreSQL/MySQL hosting                    |
+| **Render**        | PostgreSQL hosting                          |
 
 ## Quick Start
 

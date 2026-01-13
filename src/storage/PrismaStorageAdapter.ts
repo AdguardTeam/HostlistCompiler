@@ -82,10 +82,10 @@ export class PrismaStorageAdapter implements IStorageAdapter {
             this.prisma = new PrismaClient({
                 datasources: this.config.connectionString
                     ? {
-                          db: {
-                              url: this.config.connectionString,
-                          },
-                      }
+                        db: {
+                            url: this.config.connectionString,
+                        },
+                    }
                     : undefined,
             });
 

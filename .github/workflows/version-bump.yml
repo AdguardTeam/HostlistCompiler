@@ -28,6 +28,7 @@ permissions:
 jobs:
     bump:
         name: Bump Version
+        name: Bump Patch Version
         runs-on: ubuntu-latest
         if: |
             github.actor != 'github-actions[bot]' &&
@@ -74,6 +75,11 @@ jobs:
 
                   echo "Bumping version: $OLD -> $NEW ($BUMP_TYPE)"
 
+                  # Calculate new version
+                  IFS='.' read -r major minor patch <<< "$OLD"
+                  NEW="$major.$minor.$((patch + 1))"
+                  echo "new=$NEW" >> $GITHUB_OUTPUT
+
                   # Update deno.json
                   deno eval "
                     const c = JSON.parse(Deno.readTextFileSync('deno.json'));
@@ -86,6 +92,7 @@ jobs:
                     const p = JSON.parse(Deno.readTextFileSync('package.json'));
                     p.version = '${NEW}';
                     Deno.writeTextFileSync('package.json', JSON.stringify(p, null, '\t') + '\n');
+                    Deno.writeTextFileSync('package.json', JSON.stringify(p, null, 4) + '\n');
                   "
 
                   # Update src/version.ts if exists

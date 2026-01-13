@@ -8,6 +8,8 @@
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8771568d1cde4005bb60c5767d0969c4"}'></script>
     <!-- Chart.js for queue visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         * {
             box-sizing: border-box;
@@ -694,6 +696,12 @@
                     <label for="simple-use-queue">Use queue (async compilation) - Job will be processed in background</label>
                 </div>
 
+                <!-- Cloudflare Turnstile Widget -->
+                <div class="form-group" id="turnstile-container-simple">
+                    <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY_PLACEHOLDER" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"></div>
+                    <div class="hint" id="turnstile-hint">Complete the security check to compile</div>
+                </div>
+
                 <div class="button-group">
                     <button class="btn-primary" id="simple-compile">Compile Filter List</button>
                     <button class="btn-secondary" id="simple-clear">Clear</button>
@@ -734,6 +742,12 @@
                 <div class="checkbox-group">
                     <input type="checkbox" id="advanced-use-queue">
                     <label for="advanced-use-queue">Use queue (async compilation) - Job will be processed in background</label>
+                </div>
+
+                <!-- Cloudflare Turnstile Widget -->
+                <div class="form-group" id="turnstile-container-advanced">
+                    <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY_PLACEHOLDER" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"></div>
+                    <div class="hint">Complete the security check to compile</div>
                 </div>
 
                 <div class="button-group">
@@ -1181,6 +1195,78 @@ eventSource.addEventListener('result', (e) => {
         let compilationId = 0;
         let pendingQueuedRequestId = null; // Track the pending queued job for result retrieval
 
+        // Turnstile token management
+        let turnstileToken = null;
+        let turnstileSiteKey = null;
+
+        // Fetch Turnstile site key from server
+        async function fetchTurnstileSiteKey() {
+            try {
+                const apiUrl = window.location.hostname === 'localhost'
+                    ? '/api/turnstile-config'
+                    : 'https://adblock-compiler.jayson-knight.workers.dev/api/turnstile-config';
+
+                const response = await fetch(apiUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.siteKey) {
+                        turnstileSiteKey = data.siteKey;
+                        // Update all Turnstile widgets with the actual site key
+                        document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                            widget.setAttribute('data-sitekey', data.siteKey);
+                        });
+                        // Re-render Turnstile widgets
+                        if (window.turnstile) {
+                            document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                                window.turnstile.render(widget, {
+                                    sitekey: data.siteKey,
+                                    callback: onTurnstileSuccess,
+                                    'expired-callback': onTurnstileExpired,
+                                    'error-callback': onTurnstileError
+                                });
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch Turnstile site key:', error);
+            }
+        }
+
+        // Turnstile callback functions (must be global for the widget)
+        window.onTurnstileSuccess = function(token) {
+            turnstileToken = token;
+            document.getElementById('turnstile-hint').textContent = 'Security check passed';
+            document.getElementById('turnstile-hint').style.color = '#28a745';
+        };
+
+        window.onTurnstileExpired = function() {
+            turnstileToken = null;
+            document.getElementById('turnstile-hint').textContent = 'Security check expired. Please verify again.';
+            document.getElementById('turnstile-hint').style.color = '#dc3545';
+        };
+
+        window.onTurnstileError = function() {
+            turnstileToken = null;
+            document.getElementById('turnstile-hint').textContent = 'Security check failed. Please try again.';
+            document.getElementById('turnstile-hint').style.color = '#dc3545';
+        };
+
+        // Reset Turnstile after compilation
+        function resetTurnstile() {
+            turnstileToken = null;
+            if (window.turnstile) {
+                document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                    window.turnstile.reset(widget);
+                });
+            }
+            document.getElementById('turnstile-hint').textContent = 'Complete the security check to compile';
+            document.getElementById('turnstile-hint').style.color = '#888';
+        }
+
+        // Fetch Turnstile site key when page loads
+        fetchTurnstileSiteKey();
+
         // Initialize the Web Worker
         function initWorker() {
             if (!compilerWorker) {
@@ -1219,6 +1305,12 @@ eventSource.addEventListener('result', (e) => {
         document.getElementById('advanced-compile').addEventListener('click', () => compileAdvanced());
 
         async function compileSimple() {
+            // Check Turnstile token
+            if (!turnstileToken) {
+                alert('Please complete the security check before compiling');
+                return;
+            }
+
             const input = document.getElementById('simple-input').value.trim();
             if (!input) {
                 alert('Please enter at least one URL or some rules');
@@ -1282,6 +1374,12 @@ eventSource.addEventListener('result', (e) => {
         }
 
         async function compileAdvanced() {
+            // Check Turnstile token
+            if (!turnstileToken) {
+                alert('Please complete the security check before compiling');
+                return;
+            }
+
             const configText = document.getElementById('advanced-config').value.trim();
             if (!configText) {
                 alert('Please enter a configuration');
@@ -1380,6 +1478,12 @@ eventSource.addEventListener('result', (e) => {
             progressFill.style.width = '0%';
             compileBtn.disabled = true;
 
+            // Capture the current Turnstile token
+            const token = turnstileToken;
+
+            // Reset Turnstile immediately after capturing the token
+            resetTurnstile();
+
             // Track compilation start
             compileStartTime = Date.now();
             trackEvent('compilation_started', {
@@ -1392,21 +1496,21 @@ eventSource.addEventListener('result', (e) => {
 
             if (useQueue) {
                 // Use async queue endpoint
-                await compileWithQueue(configuration, preFetchedContent, benchmark);
+                await compileWithQueue(configuration, preFetchedContent, benchmark, token);
             } else {
                 // Use streaming SSE endpoint
-                await compileWithStream(configuration, preFetchedContent, benchmark);
+                await compileWithStream(configuration, preFetchedContent, benchmark, token);
             }
         }
 
-        async function compileWithQueue(configuration, preFetchedContent, benchmark) {
-            const apiUrl = window.location.hostname === 'localhost' 
+        async function compileWithQueue(configuration, preFetchedContent, benchmark, turnstileToken) {
+            const apiUrl = window.location.hostname === 'localhost'
                 ? '/compile/async'
                 : 'https://adblock-compiler.jayson-knight.workers.dev/compile/async';
-            
+
             try {
                 addLog('info', '📤 Sending compilation job to queue...');
-                
+
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
@@ -1415,7 +1519,8 @@ eventSource.addEventListener('result', (e) => {
                     body: JSON.stringify({
                         configuration,
                         preFetchedContent,
-                        benchmark
+                        benchmark,
+                        turnstileToken
                     })
                 });
 
@@ -1452,15 +1557,15 @@ eventSource.addEventListener('result', (e) => {
             }
         }
 
-        async function compileWithStream(configuration, preFetchedContent, benchmark) {
+        async function compileWithStream(configuration, preFetchedContent, benchmark, turnstileToken) {
             // Initialize worker if needed
             initWorker();
 
             // Use production API or local dev
-            const apiUrl = window.location.hostname === 'localhost' 
+            const apiUrl = window.location.hostname === 'localhost'
                 ? '/compile/stream'
                 : 'https://adblock-compiler.jayson-knight.workers.dev/compile/stream';
-            
+
             // Send compilation request to worker
             const requestId = ++compilationId;
             compilerWorker.postMessage({
@@ -1470,7 +1575,8 @@ eventSource.addEventListener('result', (e) => {
                 requestBody: {
                     configuration,
                     preFetchedContent,
-                    benchmark
+                    benchmark,
+                    turnstileToken
                 }
             });
         }
