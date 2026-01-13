@@ -10,24 +10,48 @@ The adblock-compiler worker now supports asynchronous compilation through Cloudf
 - **Batch operations** - Process multiple compilations without blocking
 - **Cache warming** - Pre-compile popular filter lists asynchronously
 - **Rate limit bypass** - Queue requests that would otherwise be rate-limited
+- **Priority processing** - Premium users and urgent compilations get faster processing
 
 **See Also:** [Queue Architecture Diagram](./QUEUE_ARCHITECTURE.md) for visual representation of the queue flow.
 
 ## Queue Configuration
 
-The queue is configured in `wrangler.toml`:
+The worker uses two queues for different priority levels:
 
 ```toml
+# Standard priority queue
 [[queues.producers]]
  queue = "adblock-compiler-worker-queue"
  binding = "ADBLOCK_COMPILER_QUEUE"
 
+# High priority queue for premium users
+[[queues.producers]]
+ queue = "adblock-compiler-worker-queue-high-priority"
+ binding = "ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY"
+
+# Standard queue consumer
 [[queues.consumers]]
  queue = "adblock-compiler-worker-queue"
  max_batch_size = 10
  max_batch_timeout = 5
  dead_letter_queue = "dead-letter-queue"
+
+# High priority queue consumer (faster processing)
+[[queues.consumers]]
+ queue = "adblock-compiler-worker-queue-high-priority"
+ max_batch_size = 5     # smaller batches for faster response
+ max_batch_timeout = 2  # shorter timeout for quicker processing
+ dead_letter_queue = "dead-letter-queue"
 ```
+
+## Priority Levels
+
+The worker supports two priority levels:
+
+- **`standard`** (default) - Normal processing speed, larger batches
+- **`high`** - Faster processing with smaller batches and shorter timeouts
+
+High priority jobs are routed to a separate queue with optimized settings for faster turnaround.
 
 ## API Endpoints
 
@@ -47,9 +71,15 @@ Queue a single compilation job for asynchronous processing.
     ],
     "transformations": ["Deduplicate", "RemoveEmptyLines"]
   },
-  "benchmark": true
+  "benchmark": true,
+  "priority": "high"
 }
 ```
+
+**Fields:**
+- `configuration` (required) - Compilation configuration
+- `benchmark` (optional) - Enable benchmarking
+- `priority` (optional) - Priority level: `"standard"` (default) or `"high"`
 
 **Response (202 Accepted):**
 ```json
@@ -57,7 +87,8 @@ Queue a single compilation job for asynchronous processing.
   "success": true,
   "message": "Compilation job queued successfully",
   "note": "The compilation will be processed asynchronously and cached when complete",
-  "requestId": "compile-1704931200000-abc123"
+  "requestId": "compile-1704931200000-abc123",
+  "priority": "high"
 }
 ```
 
@@ -91,16 +122,24 @@ Queue multiple compilation jobs for asynchronous processing.
         ]
       }
     }
-  ]
+  ],
+  "priority": "high"
 }
 ```
+
+**Fields:**
+- `requests` (required) - Array of compilation requests
+- `priority` (optional) - Priority level for the entire batch: `"standard"` (default) or `"high"`
 
 **Response (202 Accepted):**
 ```json
 {
   "success": true,
   "message": "Batch of 2 compilation jobs queued successfully",
-  "note": "The compilations will be processed asynchronously and cached when complete"
+  "note": "The compilations will be processed asynchronously and cached when complete",
+  "requestId": "batch-1704931200000-def456",
+  "batchSize": 2,
+  "priority": "high"
 }
 ```
 
@@ -110,16 +149,17 @@ Queue multiple compilation jobs for asynchronous processing.
 
 ## Queue Message Types
 
-The worker processes three types of queue messages:
+The worker processes three types of queue messages, all supporting optional priority:
 
 ### 1. Compile Message
-Single compilation job with optional pre-fetched content and benchmarking.
+Single compilation job with optional pre-fetched content, benchmarking, and priority.
 
 ```typescript
 {
   type: 'compile',
   requestId: 'compile-123',
   timestamp: 1704931200000,
+  priority: 'high',  // or 'standard' (default)
   configuration: { /* IConfiguration */ },
   preFetchedContent?: { /* url: content */ },
   benchmark?: boolean
@@ -127,13 +167,14 @@ Single compilation job with optional pre-fetched content and benchmarking.
 ```
 
 ### 2. Batch Compile Message
-Multiple compilation jobs processed in parallel.
+Multiple compilation jobs processed in parallel with optional priority.
 
 ```typescript
 {
   type: 'batch-compile',
   requestId: 'batch-123',
   timestamp: 1704931200000,
+  priority: 'high',  // or 'standard' (default)
   requests: [
     {
       id: 'req-1',
@@ -147,13 +188,14 @@ Multiple compilation jobs processed in parallel.
 ```
 
 ### 3. Cache Warm Message
-Pre-compile multiple configurations to warm the cache.
+Pre-compile multiple configurations to warm the cache with optional priority.
 
 ```typescript
 {
   type: 'cache-warm',
   requestId: 'warm-123',
   timestamp: 1704931200000,
+  priority: 'high',  // or 'standard' (default)
   configurations: [
     { /* IConfiguration */ },
     // ... more configurations
@@ -163,9 +205,9 @@ Pre-compile multiple configurations to warm the cache.
 
 ## How It Works
 
-1. **Request** - Client sends a POST request to `/compile/async` or `/compile/batch/async`
-2. **Queue** - Worker sends a message to the Cloudflare Queue
-3. **Response** - Worker immediately returns `202 Accepted`
+1. **Request** - Client sends a POST request to `/compile/async` or `/compile/batch/async` with optional `priority` field
+2. **Routing** - Worker routes the message to the appropriate queue based on priority level
+3. **Response** - Worker immediately returns `202 Accepted` with the priority level
 4. **Processing** - Queue consumer processes the message asynchronously
 5. **Caching** - Compiled results are cached in KV storage
 6. **Retrieval** - Client can later retrieve cached results via `/compile` endpoint
@@ -341,22 +383,31 @@ Errors during queue processing are:
 
 ## Performance Considerations
 
-- Queue messages are processed in batches (max 10 by default)
+### Queue Configuration
+- **Standard queue**: Processes messages in batches (max 10), timeout 5 seconds
+- **High-priority queue**: Smaller batches (max 5), shorter timeout (2 seconds) for faster response
 - Batch compilations process requests in chunks of 3 in parallel
 - Cache TTL is 1 hour (configurable in worker code)
+
+### Processing Times
 - Large filter lists may take several seconds to compile
+- High-priority jobs are processed faster due to smaller batch sizes
 - Compression reduces storage by 70-80%
 - Gzip compression/decompression adds ~100ms overhead
 
+### Priority Queue Benefits
+- **High priority**: Faster turnaround time, ideal for premium users or urgent requests
+- **Standard priority**: Higher throughput, ideal for batch operations and scheduled jobs
+
 ## Local Development
 
-To test queue functionality locally:
+To test queue functionality locally (including priority):
 
 ```bash
 # Start the worker in development mode
 npm run dev
 
-# In another terminal, send a test request
+# In another terminal, send a standard priority request
 curl -X POST http://localhost:8787/compile/async \
   -H "Content-Type: application/json" \
   -d '{
@@ -365,17 +416,31 @@ curl -X POST http://localhost:8787/compile/async \
       "sources": [{"source": "https://example.com/test.txt"}]
     }
   }'
+
+# Send a high priority request
+curl -X POST http://localhost:8787/compile/async \
+  -H "Content-Type: application/json" \
+  -d '{
+    "configuration": {
+      "name": "Urgent Test",
+      "sources": [{"source": "https://example.com/urgent.txt"}]
+    },
+    "priority": "high"
+  }'
 ```
 
 **Note:** Local development mode simulates queue behavior but doesn't persist messages.
 
 ## Deployment
 
-Ensure the queue is created before deploying:
+Ensure both queues are created before deploying:
 
 ```bash
-# Create the queue (first time only)
+# Create the standard priority queue (first time only)
 wrangler queues create adblock-compiler-worker-queue
+
+# Create the high priority queue (first time only)
+wrangler queues create adblock-compiler-worker-queue-high-priority
 
 # Deploy the worker
 npm run deploy
@@ -385,7 +450,7 @@ npm run deploy
 
 **Queue not processing messages**
 - Check queue configuration in `wrangler.toml`
-- Verify queue exists: `wrangler queues list`
+- Verify both queues exist: `wrangler queues list`
 - Check worker logs for errors
 
 **Messages failing repeatedly**

@@ -55,9 +55,15 @@ export interface Env {
     METRICS: KVNamespace;
     // Static assets
     ASSETS?: Fetcher;
-    // Queue binding
+    // Queue bindings
     ADBLOCK_COMPILER_QUEUE: Queue<QueueMessage>;
+    ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY: Queue<QueueMessage>;
 }
+
+/**
+ * Priority levels for queue messages
+ */
+type Priority = 'standard' | 'high';
 
 /**
  * Compile request body structure.
@@ -66,6 +72,7 @@ interface CompileRequest {
     configuration: IConfiguration;
     preFetchedContent?: Record<string, string>;
     benchmark?: boolean;
+    priority?: Priority;
 }
 
 /**
@@ -80,6 +87,7 @@ interface QueueMessage {
     type: QueueMessageType;
     requestId?: string;
     timestamp: number;
+    priority?: Priority;
 }
 
 /**
@@ -1122,13 +1130,13 @@ async function handleCompileAsync(
 
     try {
         const body = await request.json() as CompileRequest;
-        const { configuration, preFetchedContent, benchmark } = body;
+        const { configuration, preFetchedContent, benchmark, priority = 'standard' } = body;
 
         // deno-lint-ignore no-console
-        console.log(`[API:ASYNC] Queueing compilation for "${configuration.name}"`);
+        console.log(`[API:ASYNC] Queueing compilation for "${configuration.name}" with ${priority} priority`);
 
-        // Send to queue
-        const requestId = await queueCompileJob(env, configuration, preFetchedContent, benchmark);
+        // Send to queue with specified priority
+        const requestId = await queueCompileJob(env, configuration, preFetchedContent, benchmark, priority);
         const duration = Date.now() - startTime;
 
         // deno-lint-ignore no-console
@@ -1140,6 +1148,7 @@ async function handleCompileAsync(
                 message: 'Compilation job queued successfully',
                 note: 'The compilation will be processed asynchronously and cached when complete',
                 requestId,
+                priority,
             },
             {
                 status: 202, // Accepted
@@ -1184,10 +1193,11 @@ async function handleCompileBatchAsync(
                 preFetchedContent?: Record<string, string>;
                 benchmark?: boolean;
             }>;
+            priority?: Priority;
         }
 
         const body = await request.json() as BatchRequest;
-        const { requests } = body;
+        const { requests, priority = 'standard' } = body;
 
         if (!requests || !Array.isArray(requests)) {
             return Response.json(
@@ -1214,10 +1224,10 @@ async function handleCompileBatchAsync(
         }
 
         // deno-lint-ignore no-console
-        console.log(`[API:BATCH-ASYNC] Queueing batch of ${requests.length} compilations`);
+        console.log(`[API:BATCH-ASYNC] Queueing batch of ${requests.length} compilations with ${priority} priority`);
 
-        // Send to queue
-        const requestId = await queueBatchCompileJob(env, requests);
+        // Send to queue with specified priority
+        const requestId = await queueBatchCompileJob(env, requests, priority);
         const duration = Date.now() - startTime;
 
         // deno-lint-ignore no-console
@@ -1230,6 +1240,7 @@ async function handleCompileBatchAsync(
                 note: 'The compilations will be processed asynchronously and cached when complete',
                 requestId,
                 batchSize: requests.length,
+                priority,
             },
             {
                 status: 202, // Accepted
@@ -1794,6 +1805,7 @@ async function queueCompileJob(
     configuration: IConfiguration,
     preFetchedContent?: Record<string, string>,
     benchmark?: boolean,
+    priority: Priority = 'standard',
 ): Promise<string> {
     const requestId = generateRequestId('compile');
 
@@ -1808,9 +1820,15 @@ async function queueCompileJob(
         configuration,
         preFetchedContent,
         benchmark,
+        priority,
     };
 
-    await env.ADBLOCK_COMPILER_QUEUE.send(message);
+    // Route to appropriate queue based on priority
+    const queue = priority === 'high' 
+        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY 
+        : env.ADBLOCK_COMPILER_QUEUE;
+    
+    await queue.send(message);
     
     // Track queue statistics
     await updateQueueStats(env, 'enqueued');
@@ -1829,6 +1847,7 @@ async function queueBatchCompileJob(
         preFetchedContent?: Record<string, string>;
         benchmark?: boolean;
     }>,
+    priority: Priority = 'standard',
 ): Promise<string> {
     const requestId = generateRequestId('batch');
 
@@ -1841,9 +1860,15 @@ async function queueBatchCompileJob(
         requestId,
         timestamp: Date.now(),
         requests,
+        priority,
     };
 
-    await env.ADBLOCK_COMPILER_QUEUE.send(message);
+    // Route to appropriate queue based on priority
+    const queue = priority === 'high' 
+        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY 
+        : env.ADBLOCK_COMPILER_QUEUE;
+    
+    await queue.send(message);
     
     // Track queue statistics (batch update for efficiency)
     await updateQueueStats(env, 'enqueued', undefined, requests.length);
