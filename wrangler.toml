@@ -34,60 +34,60 @@ id = "5dc36da36d9142cc9ced6c56328898ee"  # Create with: wrangler kv:namespace cr
 binding = "METRICS"
 id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace create METRICS
 
-# Optional: Add R2 bindings for storing filter lists
+# R2 Storage (auto-created by CI)
 [[r2_buckets]]
 binding = "FILTER_STORAGE"
 bucket_name = "adblock-compiler-r2-storage"
 
-[[containers]]
-class_name = "AdblockCompiler"
-image = "./Dockerfile"
-max_instances = 5
-instance_type = "basic"
+# Containers - requires Dockerfile and Cloudflare Containers beta access
+# [[containers]]
+# class_name = "AdblockCompiler"
+# image = "./Dockerfile"
+# max_instances = 5
+# instance_type = "basic"
 
-[[durable_objects.bindings]]
-class_name = "AdblockCompiler"
-name = "ADBLOCK_COMPILER"
+# Durable Objects - uncomment if using DO for state management
+# [[durable_objects.bindings]]
+# class_name = "AdblockCompiler"
+# name = "ADBLOCK_COMPILER"
 
-[[migrations]]
-new_sqlite_classes = ["AdblockCompiler"]
-tag = "v1"
+# [[migrations]]
+# new_sqlite_classes = ["AdblockCompiler"]
+# tag = "v1"
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.7.8"
+COMPILER_VERSION = "0.7.9"
 
 # Static assets configuration using modern assets
 [assets]
 directory = "./public"
 binding = "ASSETS"
 
-# Tail Workers - for log collection and observability
-[[tail_consumers]]
-service = "adblock-compiler-tail"
+# Tail Workers - uncomment after creating the tail worker service
+# [[tail_consumers]]
+# service = "adblock-compiler-tail"
+
+# Queues (auto-created by CI)
+[[queues.producers]]
+queue = "adblock-compiler-worker-queue"
+binding = "ADBLOCK_COMPILER_QUEUE"
 
 [[queues.producers]]
- queue = "adblock-compiler-worker-queue"
- binding = "ADBLOCK_COMPILER_QUEUE"
+queue = "adblock-compiler-worker-queue-high-priority"
+binding = "ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY"
 
-[[queues.producers]]
- queue = "adblock-compiler-worker-queue-high-priority"
- binding = "ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY"
+[[queues.consumers]]
+queue = "adblock-compiler-worker-queue"
+max_batch_size = 10
+max_batch_timeout = 5
+dead_letter_queue = "adblock-compiler-dlq"
 
- [[queues.consumers]]
- queue = "adblock-compiler-worker-queue"
- # Required: this should match the name of the queue you created in step 3.
- # If you misspell the name, you will receive an error when attempting to publish your Worker.
- max_batch_size = 10 # larger batch size for better throughput on standard priority work
- max_batch_timeout = 5 # longer timeout to allow efficient batching for standard queue
- dead_letter_queue = "dead-letter-queue"
-
- [[queues.consumers]]
- queue = "adblock-compiler-worker-queue-high-priority"
- # High-priority queue for premium users and urgent compilations
- max_batch_size = 5 # smaller batch size for faster processing
- max_batch_timeout = 2 # shorter timeout for quicker response
- dead_letter_queue = "dead-letter-queue"
+[[queues.consumers]]
+queue = "adblock-compiler-worker-queue-high-priority"
+max_batch_size = 5
+max_batch_timeout = 2
+dead_letter_queue = "adblock-compiler-dlq"
 
 # Development settings
 [dev]
@@ -96,10 +96,11 @@ local_protocol = "http"
 enable_containers = false  # Containers not supported on Windows - use WSL or deploy to test
 
 # Production settings (optional)
-[env.production]
-vars = { ENVIRONMENT = "production" }
-tail_consumers = [{ service = "adblock-compiler-tail" }]
+# [env.production]
+# vars = { ENVIRONMENT = "production" }
+# tail_consumers = [{ service = "adblock-compiler-tail" }]
 
-[[analytics_engine_datasets]]
-binding = "ANALYTICS_ENGINE"
-dataset = "adguard-compiler-analytics-engine"
+# Analytics Engine - uncomment after enabling in Cloudflare dashboard
+# [[analytics_engine_datasets]]
+# binding = "ANALYTICS_ENGINE"
+# dataset = "adguard-compiler-analytics-engine"
