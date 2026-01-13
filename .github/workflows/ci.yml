@@ -98,30 +98,32 @@ jobs:
               continue-on-error: true
               run: |
                   set -euo pipefail
-                  echo "## Benchmark Results" >> "$GITHUB_STEP_SUMMARY"
-                  echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo "Benchmark results saved as artifact for commit ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
-                  echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo "<details><summary>View Results</summary>" >> "$GITHUB_STEP_SUMMARY"
-                  echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo '```json' >> "$GITHUB_STEP_SUMMARY"
                   RESULTS_FILE="benchmark-results.json"
                   MAX_BYTES=50000
-                  if [ -f "$RESULTS_FILE" ]; then
-                      FILE_SIZE=$(wc -c < "$RESULTS_FILE" || echo 0)
-                      if [ "$FILE_SIZE" -le "$MAX_BYTES" ]; then
-                          cat "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
+                  {
+                      echo "## Benchmark Results"
+                      echo ""
+                      echo "Benchmark results saved as artifact for commit ${{ github.sha }}"
+                      echo ""
+                      echo "<details><summary>View Results</summary>"
+                      echo ""
+                      echo '```json'
+                      if [ -f "$RESULTS_FILE" ]; then
+                          FILE_SIZE=$(wc -c < "$RESULTS_FILE" || echo 0)
+                          if [ "$FILE_SIZE" -le "$MAX_BYTES" ]; then
+                              cat "$RESULTS_FILE"
+                          else
+                              head -c "$MAX_BYTES" "$RESULTS_FILE"
+                              echo ""
+                              echo ""
+                              echo "...(output truncated in summary; full benchmark results are available in the uploaded artifact)..."
+                          fi
                       else
-                          head -c "$MAX_BYTES" "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
-                          echo "" >> "$GITHUB_STEP_SUMMARY"
-                          echo "" >> "$GITHUB_STEP_SUMMARY"
-                          echo "...(output truncated in summary; full benchmark results are available in the uploaded artifact)..." >> "$GITHUB_STEP_SUMMARY"
+                          echo '{"error":"benchmark-results.json not found"}'
                       fi
-                  else
-                      echo '{"error":"benchmark-results.json not found"}' >> "$GITHUB_STEP_SUMMARY"
-                  fi
-                  echo '```' >> "$GITHUB_STEP_SUMMARY"
-                  echo "</details>" >> "$GITHUB_STEP_SUMMARY"
+                      echo '```'
+                      echo "</details>"
+                  } >> "$GITHUB_STEP_SUMMARY"
 
     security:
         name: Security Scan
