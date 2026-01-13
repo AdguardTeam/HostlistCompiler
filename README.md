@@ -1,6 +1,7 @@
 # Adblock Compiler
 
 <!-- Primary Badges -->
+
 [![JSR](https://jsr.io/badges/@jk-com/adblock-compiler)](https://jsr.io/@jk-com/adblock-compiler)
 [![JSR Score](https://jsr.io/badges/@jk-com/adblock-compiler/score)](https://jsr.io/@jk-com/adblock-compiler)
 [![CI/CD Pipeline](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml)
@@ -8,12 +9,14 @@
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
 <!-- Platform & Service Badges -->
+
 [![Web UI](https://img.shields.io/badge/Web%20UI-Live-brightgreen?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/)
 [![API](https://img.shields.io/badge/API-Live-blue?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/api)
 [![Deno](https://img.shields.io/badge/Deno-2.0+-black?logo=deno)](https://deno.land)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](#docker-deployment)
 
 <!-- Community & Stats Badges -->
+
 [![GitHub Stars](https://img.shields.io/github/stars/jaypatrick/adblock-compiler?style=social)](https://github.com/jaypatrick/adblock-compiler/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/jaypatrick/adblock-compiler?style=social)](https://github.com/jaypatrick/adblock-compiler/network/members)
 [![GitHub Issues](https://img.shields.io/github/issues/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/issues)
@@ -106,7 +109,7 @@ docker run -d -p 8787:8787 adblock-compiler
 
 Access the web UI at http://localhost:8787
 
-📚 **[Quick Start Guide](docs/guides/quick-start.md)** - Get started with Docker in minutes  
+📚 **[Quick Start Guide](docs/guides/quick-start.md)** - Get started with Docker in minutes\
 📚 **[Docker Deployment Guide](docs/deployment/docker.md)** - Complete guide for container deployment, Kubernetes, and production setups
 
 ## <a name="usage"></a> Usage
@@ -158,34 +161,34 @@ Here is an example of this configuration:
 
 ```json
 {
-  "name": "List name",
-  "description": "List description",
-  "homepage": "https://example.org/",
-  "license": "GPLv3",
-  "version": "1.0.0.0",
-  "sources": [
-    {
-      "name": "Local rules",
-      "source": "rules.txt",
-      "type": "adblock",
-      "transformations": ["RemoveComments", "Compress"],
-      "exclusions": ["excluded rule 1"],
-      "exclusions_sources": ["exclusions.txt"],
-      "inclusions": ["*"],
-      "inclusions_sources": ["inclusions.txt"]
-    },
-    {
-      "name": "Remote rules",
-      "source": "https://example.org/rules",
-      "type": "hosts",
-      "exclusions": ["excluded rule 1"]
-    }
-  ],
-  "transformations": ["Deduplicate", "Compress"],
-  "exclusions": ["excluded rule 1", "excluded rule 2"],
-  "exclusions_sources": ["global_exclusions.txt"],
-  "inclusions": ["*"],
-  "inclusions_sources": ["global_inclusions.txt"]
+    "name": "List name",
+    "description": "List description",
+    "homepage": "https://example.org/",
+    "license": "GPLv3",
+    "version": "1.0.0.0",
+    "sources": [
+        {
+            "name": "Local rules",
+            "source": "rules.txt",
+            "type": "adblock",
+            "transformations": ["RemoveComments", "Compress"],
+            "exclusions": ["excluded rule 1"],
+            "exclusions_sources": ["exclusions.txt"],
+            "inclusions": ["*"],
+            "inclusions_sources": ["inclusions.txt"]
+        },
+        {
+            "name": "Remote rules",
+            "source": "https://example.org/rules",
+            "type": "hosts",
+            "exclusions": ["excluded rule 1"]
+        }
+    ],
+    "transformations": ["Deduplicate", "Compress"],
+    "exclusions": ["excluded rule 1", "excluded rule 2"],
+    "exclusions_sources": ["global_exclusions.txt"],
+    "inclusions": ["*"],
+    "inclusions_sources": ["global_inclusions.txt"]
 }
 ```
 
@@ -213,12 +216,12 @@ Here is an example of a minimal configuration:
 
 ```json
 {
-  "name": "test list",
-  "sources": [
-    {
-      "source": "rules.txt"
-    }
-  ]
+    "name": "test list",
+    "sources": [
+        {
+            "source": "rules.txt"
+        }
+    ]
 }
 ```
 
@@ -256,18 +259,18 @@ Configuration of the final list:
 
 ```json
 {
-  "name": "List name",
-  "description": "List description",
-  "sources": [
-    {
-      "name": "HOSTS rules",
-      "source": "hosts.txt",
-      "type": "hosts",
-      "transformations": ["Compress"]
-    }
-  ],
-  "transformations": ["Deduplicate", "Compress"],
-  "exclusions_sources": ["exclusions.txt"]
+    "name": "List name",
+    "description": "List description",
+    "sources": [
+        {
+            "name": "HOSTS rules",
+            "source": "hosts.txt",
+            "type": "hosts",
+            "transformations": ["Compress"]
+        }
+    ],
+    "transformations": ["Deduplicate", "Compress"],
+    "exclusions_sources": ["exclusions.txt"]
 }
 ```
 
@@ -305,62 +308,62 @@ Examples:
 Import from JSR:
 
 ```typescript
-import { compile } from "jsr:@jk-com/adblock-compiler";
+import { compile } from 'jsr:@jk-com/adblock-compiler';
 ```
 
 Or add to your `deno.json`:
 
 ```json
 {
-  "imports": {
-    "@jk-com/adblock-compiler": "jsr:@jk-com/adblock-compiler"
-  }
+    "imports": {
+        "@jk-com/adblock-compiler": "jsr:@jk-com/adblock-compiler"
+    }
 }
 ```
 
 #### TypeScript example:
 
 ```typescript
-import { compile } from "@jk-com/adblock-compiler";
-import type { IConfiguration } from "@jk-com/adblock-compiler";
+import { compile } from '@jk-com/adblock-compiler';
+import type { IConfiguration } from '@jk-com/adblock-compiler';
 
 const config: IConfiguration = {
-  name: "Your Hostlist",
-  sources: [
-    {
-      type: "adblock",
-      source: "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
-      transformations: ["RemoveComments", "Validate"],
-    },
-  ],
-  transformations: ["Deduplicate"],
+    name: 'Your Hostlist',
+    sources: [
+        {
+            type: 'adblock',
+            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+            transformations: ['RemoveComments', 'Validate'],
+        },
+    ],
+    transformations: ['Deduplicate'],
 };
 
 // Compile filters
 const result = await compile(config);
 
 // Write to file
-await Deno.writeTextFile("your-hostlist.txt", result.join("\n"));
+await Deno.writeTextFile('your-hostlist.txt', result.join('\n'));
 ```
 
 #### Using the FilterCompiler class directly:
 
 ```typescript
-import { FilterCompiler, ConsoleLogger } from "@jk-com/adblock-compiler";
-import type { IConfiguration } from "@jk-com/adblock-compiler";
+import { ConsoleLogger, FilterCompiler } from '@jk-com/adblock-compiler';
+import type { IConfiguration } from '@jk-com/adblock-compiler';
 
 const logger = new ConsoleLogger();
 const compiler = new FilterCompiler(logger);
 
 const config: IConfiguration = {
-  name: "Your Hostlist",
-  sources: [
-    {
-      source: "rules.txt",
-      type: "hosts",
-    },
-  ],
-  transformations: ["Compress", "Deduplicate"],
+    name: 'Your Hostlist',
+    sources: [
+        {
+            source: 'rules.txt',
+            type: 'hosts',
+        },
+    ],
+    transformations: ['Compress', 'Deduplicate'],
 };
 
 const result = await compiler.compile(config);
@@ -396,12 +399,14 @@ Access the web UI at http://localhost:8787
 ### Basic Usage
 
 **Web UI and API Server:**
+
 ```bash
 docker-compose up -d
 # Visit http://localhost:8787
 ```
 
 **CLI Mode:**
+
 ```bash
 docker run --rm \
   -v $(pwd)/config.json:/app/config.json:ro \
@@ -457,6 +462,7 @@ Here is the list of modifiers that will be removed:
 
 > [!CAUTION]
 > Blindly removing `$third-party` from traditional ad blocking rules leads to lots of false-positives.
+>
 >> This is exactly why there is an option to exclude rules - you may need to use it.
 
 ### <a name="validate"></a> Validate
@@ -609,7 +615,6 @@ Here's what we will have after applying this transformation:
 rule1
 rule2
 rule3
-
 ```
 
 `RemoveEmptyLines` doesn't delete this empty row due to the execution order.
@@ -649,17 +654,17 @@ AdBlock Compiler is designed to be fully extensible. You can:
 **Example: Custom Transformation**
 
 ```typescript path=null start=null
-import { SyncTransformation, TransformationType, TransformationRegistry } from '@jk-com/adblock-compiler';
+import { SyncTransformation, TransformationRegistry, TransformationType } from '@jk-com/adblock-compiler';
 
 class RemoveSocialMediaTransformation extends SyncTransformation {
     public readonly type = 'RemoveSocialMedia' as TransformationType;
     public readonly name = 'Remove Social Media';
-    
+
     private socialDomains = ['facebook.com', 'twitter.com', 'instagram.com'];
-    
+
     public executeSync(rules: string[]): string[] {
-        return rules.filter(rule => {
-            return !this.socialDomains.some(domain => rule.includes(domain));
+        return rules.filter((rule) => {
+            return !this.socialDomains.some((domain) => rule.includes(domain));
         });
     }
 }
@@ -674,13 +679,13 @@ const compiler = new FilterCompiler({ transformationRegistry: registry });
 **Example: Custom Fetcher**
 
 ```typescript path=null start=null
-import { IContentFetcher, CompositeFetcher, HttpFetcher } from '@jk-com/adblock-compiler';
+import { CompositeFetcher, HttpFetcher, IContentFetcher } from '@jk-com/adblock-compiler';
 
 class DatabaseFetcher implements IContentFetcher {
     async canHandle(source: string): Promise<boolean> {
         return source.startsWith('db://');
     }
-    
+
     async fetchContent(source: string): Promise<string> {
         const [table, column] = source.replace('db://', '').split('/');
         // Your database query implementation
@@ -698,6 +703,7 @@ const fetcher = new CompositeFetcher([
 📚 **For complete extensibility examples and patterns, see [docs/EXTENSIBILITY.md](docs/EXTENSIBILITY.md)**
 
 Topics covered:
+
 - Custom transformations (sync and async)
 - Custom content fetchers
 - Custom event handlers
@@ -825,13 +831,7 @@ The `WorkerCompiler` works in any edge runtime or serverless environment that su
 3. **Configure and compile** using the standard API
 
 ```typescript
-import {
-    WorkerCompiler,
-    HttpFetcher,
-    PreFetchedContentFetcher,
-    CompositeFetcher,
-    type IConfiguration,
-} from '@jk-com/adblock-compiler';
+import { CompositeFetcher, HttpFetcher, type IConfiguration, PreFetchedContentFetcher, WorkerCompiler } from '@jk-com/adblock-compiler';
 
 // Option 1: Use pre-fetched content (recommended for edge)
 async function compileWithPreFetched(sourceUrls: string[]): Promise<string[]> {
@@ -845,7 +845,7 @@ async function compileWithPreFetched(sourceUrls: string[]): Promise<string[]> {
     const compiler = new WorkerCompiler({ preFetchedContent: preFetched });
     const config: IConfiguration = {
         name: 'My Filter List',
-        sources: sourceUrls.map(url => ({ source: url })),
+        sources: sourceUrls.map((url) => ({ source: url })),
         transformations: ['Deduplicate', 'RemoveEmptyLines'],
     };
 
@@ -854,9 +854,11 @@ async function compileWithPreFetched(sourceUrls: string[]): Promise<string[]> {
 
 // Option 2: Build a custom fetcher chain
 function createCustomCompiler() {
-    const preFetched = new PreFetchedContentFetcher(new Map([
-        ['local://rules', 'my-custom-rule'],
-    ]));
+    const preFetched = new PreFetchedContentFetcher(
+        new Map([
+            ['local://rules', 'my-custom-rule'],
+        ]),
+    );
     const http = new HttpFetcher();
     const composite = new CompositeFetcher([preFetched, http]);
 
@@ -869,6 +871,7 @@ function createCustomCompiler() {
 The compiler runs natively in Cloudflare Workers. A production-ready implementation is available at the repository root in the `worker/` directory with a comprehensive web UI in `public/`.
 
 **Quick Start**:
+
 ```bash
 # Install dependencies
 npm install
@@ -883,16 +886,31 @@ npm run deploy
 **Deployment**: A `wrangler.toml` configuration file is provided in the repository root for easy deployment via Cloudflare's Git integration or using `wrangler deploy`.
 
 The production worker (`worker/worker.ts`) includes:
+
 - **Interactive Web UI** at `/` (see `public/index.html`)
 - **API Testing Interface** at `/test.html`
 - **JSON API** at `POST /compile`
 - **Streaming API** at `POST /compile/stream` with Server-Sent Events
 - **Batch API** at `POST /compile/batch`
+- **Async API** at `POST /compile/async` for queue-based processing
+- **Batch Async API** at `POST /compile/batch/async` for queue-based batch processing
 - **Metrics** at `GET /metrics`
 - Pre-fetched content support to bypass CORS restrictions
 - Caching with KV storage
 - Rate limiting
 - Request deduplication
+- Cloudflare Queue integration for async compilation
+
+**Cloudflare Queue Support**:
+
+The worker supports asynchronous compilation through Cloudflare Queues, allowing you to:
+
+- Offload long-running compilations to background processing
+- Process batch operations without blocking
+- Pre-warm the cache with popular filter lists
+- Bypass rate limits for queued requests
+
+📚 **[Queue Support Documentation](docs/QUEUE_SUPPORT.md)** - Complete guide for using async compilation
 
 **Tail Worker for Observability**:
 
@@ -907,6 +925,7 @@ npm run tail:logs
 ```
 
 Features:
+
 - **Log Persistence**: Store logs in Cloudflare KV
 - **Error Forwarding**: Send critical errors to webhooks (Slack, Discord, etc.)
 - **Structured Events**: Format logs for external systems
@@ -914,14 +933,13 @@ Features:
 
 📚 **[Tail Worker Documentation](worker/TAIL_WORKER.md)** - Complete guide for setup and configuration
 
-
 ```typescript
-import { WorkerCompiler, type IConfiguration } from '@jk-com/adblock-compiler';
+import { type IConfiguration, WorkerCompiler } from '@jk-com/adblock-compiler';
 
 export default {
     async fetch(request: Request): Promise<Response> {
         // Pre-fetch content on the server where there are no CORS restrictions
-        const sourceContent = await fetch('https://example.com/filters.txt').then(r => r.text());
+        const sourceContent = await fetch('https://example.com/filters.txt').then((r) => r.text());
 
         const compiler = new WorkerCompiler({
             preFetchedContent: {
@@ -947,6 +965,7 @@ export default {
 ```
 
 **Using the Web UI**:
+
 1. Visit the root URL of your deployed worker
 2. Use **Simple Mode** for quick filter list compilation
 3. Use **Advanced Mode** for JSON configuration
@@ -959,7 +978,7 @@ Use `WorkerCompiler` in Web Workers for background compilation:
 
 ```typescript
 // worker.ts
-import { WorkerCompiler, type IConfiguration } from '@jk-com/adblock-compiler';
+import { type IConfiguration, WorkerCompiler } from '@jk-com/adblock-compiler';
 
 self.onmessage = async (event) => {
     const { configuration, preFetchedContent } = event.data;
@@ -983,7 +1002,7 @@ self.onmessage = async (event) => {
 For browser environments, pre-fetch all source content server-side to avoid CORS issues:
 
 ```typescript
-import { WorkerCompiler, type IConfiguration } from '@jk-com/adblock-compiler';
+import { type IConfiguration, WorkerCompiler } from '@jk-com/adblock-compiler';
 
 // Fetch sources through your server proxy to avoid CORS
 async function fetchSources(urls: string[]): Promise<Map<string, string>> {
@@ -1042,7 +1061,7 @@ class WorkerCompiler {
     // Compile with optional benchmarking metrics
     compileWithMetrics(
         configuration: IConfiguration,
-        benchmark?: boolean
+        benchmark?: boolean,
     ): Promise<WorkerCompilationResult>;
 }
 ```
@@ -1063,12 +1082,7 @@ interface IContentFetcher {
 You can implement custom fetchers for specialized use cases:
 
 ```typescript
-import {
-    WorkerCompiler,
-    CompositeFetcher,
-    HttpFetcher,
-    type IContentFetcher,
-} from '@jk-com/adblock-compiler';
+import { CompositeFetcher, HttpFetcher, type IContentFetcher, WorkerCompiler } from '@jk-com/adblock-compiler';
 
 // Example: Redis-backed cache fetcher
 class RedisCacheFetcher implements IContentFetcher {
@@ -1116,6 +1130,7 @@ const compiler = new WorkerCompiler({
 ```
 
 This pluggable architecture allows you to:
+
 - Add caching layers (Redis, KV, memory)
 - Support custom protocols (S3, R2, database)
 - Implement authentication/authorization

@@ -1,31 +1,24 @@
 /**
  * Storage module exports
  */
-export {
-    NoSqlStorage,
-    type StorageEntry,
-    type QueryOptions,
-    type StorageStats,
-    type CacheEntry,
-    type CompilationMetadata,
-} from './NoSqlStorage.ts';
 
-export {
-    SourceHealthMonitor,
-    HealthStatus,
-    type SourceAttempt,
-    type SourceHealthMetrics,
-} from './SourceHealthMonitor.ts';
+// Core NoSQL storage (Deno KV backend)
+export { type CacheEntry, type CompilationMetadata, NoSqlStorage, type QueryOptions, type StorageEntry, type StorageStats } from './NoSqlStorage.ts';
 
-export {
-    ChangeDetector,
-    type SourceSnapshot,
-    type ChangeDetectionResult,
-    type ChangeSummary,
-} from './ChangeDetector.ts';
+// Health monitoring
+export { HealthStatus, type SourceAttempt, type SourceHealthMetrics, SourceHealthMonitor } from './SourceHealthMonitor.ts';
 
-export {
-    CachingDownloader,
-    type CachingOptions,
-    type DownloadResult,
-} from './CachingDownloader.ts';
+// Change detection
+export { type ChangeDetectionResult, ChangeDetector, type ChangeSummary, type SourceSnapshot } from './ChangeDetector.ts';
+
+// Caching downloader
+export { CachingDownloader, type CachingOptions, type DownloadResult } from './CachingDownloader.ts';
+
+// Storage abstraction layer
+export type { IStorageAdapter, StorageAdapterConfig, StorageAdapterFactory, StorageAdapterType } from './IStorageAdapter.ts';
+
+// Prisma storage adapter (optional, requires @prisma/client)
+export { PrismaStorageAdapter } from './PrismaStorageAdapter.ts';
+
+// Cloudflare D1 storage adapter (for edge deployments)
+export { createD1Storage, D1StorageAdapter, type D1StorageConfig } from './D1StorageAdapter.ts';

@@ -1,7 +1,7 @@
 /**
  * Evaluates preprocessor conditions for filter lists.
  * Follows Single Responsibility Principle - only handles condition evaluation.
- * 
+ *
  * Supports: true, false, !, &&, ||, (), and platform identifiers
  */
 export class ConditionalEvaluator {
@@ -45,7 +45,7 @@ export class ConditionalEvaluator {
      * Evaluates a preprocessor condition
      * @param condition - Condition string to evaluate
      * @returns True if condition is met, false otherwise
-     * 
+     *
      * @example
      * evaluator.evaluate('windows || mac') // true if platform is windows or mac
      * evaluator.evaluate('!ios && adguard') // true if not ios and is adguard

@@ -57,15 +57,15 @@ List entries with flexible filtering options:
 
 ```typescript
 // List all entries with a specific prefix
-const entries = await storage.list({ 
-    prefix: ['users'] 
+const entries = await storage.list({
+    prefix: ['users'],
 });
 
 // List with limit and reverse order
 const recent = await storage.list({
     prefix: ['logs'],
     limit: 10,
-    reverse: true
+    reverse: true,
 });
 ```
 
@@ -80,7 +80,7 @@ await storage.cacheFilterList(
     ['||example.com^', '||test.com^'],
     'abc123hash',
     'etag-value',
-    3600000 // 1 hour TTL
+    3600000, // 1 hour TTL
 );
 
 // Retrieve cached filter list
@@ -102,7 +102,7 @@ await storage.storeCompilationMetadata({
     sourceCount: 5,
     ruleCount: 10000,
     duration: 5000,
-    outputPath: './output/blocklist.txt'
+    outputPath: './output/blocklist.txt',
 });
 
 // Get compilation history
@@ -153,12 +153,8 @@ Keys are hierarchical arrays of strings, similar to a file path:
 
 ```typescript
 // Good key structure
-['cache', 'filters', 'source-url']
-['metadata', 'compilations', 'config-name', 'timestamp']
-['users', 'user-id', 'preferences']
-
-// Keys can be as deep as needed
-['project', 'version', 'module', 'submodule', 'data']
+['cache', 'filters', 'source-url']['metadata', 'compilations', 'config-name', 'timestamp']['users', 'user-id', 'preferences'] // Keys can be as deep as needed
+    ['project', 'version', 'module', 'submodule', 'data'];
 ```
 
 ## Data Types
@@ -174,16 +170,16 @@ await storage.set(['config', 'name'], 'my-app');
 // Objects and arrays
 await storage.set(['config', 'settings'], {
     theme: 'dark',
-    features: ['caching', 'logging']
+    features: ['caching', 'logging'],
 });
 
 // Complex nested structures
 await storage.set(['data', 'complex'], {
     nested: {
         deep: {
-            value: [1, 2, 3]
-        }
-    }
+            value: [1, 2, 3],
+        },
+    },
 });
 ```
 
@@ -235,7 +231,7 @@ async function example() {
             ['||ad.example.com^', '||tracker.example.com^'],
             'content-hash-123',
             undefined,
-            3600000
+            3600000,
         );
 
         // Check if cached before downloading
@@ -252,7 +248,7 @@ async function example() {
             sourceCount: 3,
             ruleCount: 5000,
             duration: 3000,
-            outputPath: './output/filters.txt'
+            outputPath: './output/filters.txt',
         });
 
         // Get storage stats
@@ -304,7 +300,7 @@ The `CachingDownloader` wraps any downloader implementation with intelligent cac
 **Basic Usage:**
 
 ```typescript
-import { NoSqlStorage, CachingDownloader } from './storage/index.ts';
+import { CachingDownloader, NoSqlStorage } from './storage/index.ts';
 import { FilterDownloader } from '../downloader/FilterDownloader.ts';
 
 const storage = new NoSqlStorage(logger);
@@ -319,7 +315,7 @@ const cachingDownloader = new CachingDownloader(
         ttl: 3600000, // 1 hour cache
         detectChanges: true,
         monitorHealth: true,
-    }
+    },
 );
 
 const rules = await cachingDownloader.download('https://example.com/filters.txt');
@@ -337,6 +333,7 @@ console.log(`Delta: ${result.ruleCountDelta} rules`);
 ### Source Health Monitoring
 
 Track the reliability of filter list sources over time. Sources are classified as:
+
 - **Healthy**: 95%+ success rate, no recent failures
 - **Degraded**: 80-95% success rate or 1-2 consecutive failures
 - **Unhealthy**: <80% success rate or 3+ consecutive failures
@@ -402,6 +399,158 @@ if (stats.sizeEstimate > 100 * 1024 * 1024) { // 100MB
 ```typescript
 // Pre-warm cache for scheduled tasks
 await cachingDownloader.prewarmCache(sources);
+```
+
+## Alternative Storage Backends
+
+The storage module supports multiple backends through the `IStorageAdapter` interface:
+
+| Backend               | Use Case                          | Documentation                                        |
+| --------------------- | --------------------------------- | ---------------------------------------------------- |
+| **Deno KV** (default) | Local/single-instance deployments | This document                                        |
+| **Prisma**            | Multi-instance, SQL databases     | [prisma/README.md](../../prisma/README.md)           |
+| **Cloudflare D1**     | Edge deployments                  | [docs/CLOUDFLARE_D1.md](../../docs/CLOUDFLARE_D1.md) |
+
+### Choosing a Backend
+
+| Scenario                 | Recommended Backend |
+| ------------------------ | ------------------- |
+| Local development        | Deno KV             |
+| Single server deployment | Deno KV             |
+| Multi-server deployment  | Prisma (PostgreSQL) |
+| Cloudflare Workers       | D1StorageAdapter    |
+| Need complex queries     | Prisma              |
+| Need SQL Server support  | Prisma              |
+| Need MongoDB             | Prisma              |
+
+### Prisma Supported Databases
+
+Prisma supports these databases (see [PRISMA_EVALUATION.md](../../docs/PRISMA_EVALUATION.md)):
+
+**SQL Databases:**
+
+- PostgreSQL
+- MySQL / MariaDB
+- SQLite
+- Microsoft SQL Server
+- CockroachDB
+
+**NoSQL Databases:**
+
+- MongoDB
+
+**Edge/Cloud:**
+
+- Cloudflare D1
+- Supabase
+- PlanetScale
+- Turso
+- Neon
+
+### Quick Start: Prisma Backend
+
+```bash
+# Install dependencies
+npm install @prisma/client
+npm install -D prisma
+
+# Generate client
+npx prisma generate
+
+# Create database tables
+npx prisma db push
+```
+
+```typescript
+import { PrismaStorageAdapter } from './storage/index.ts';
+
+const storage = new PrismaStorageAdapter(logger, {
+    type: 'prisma',
+    connectionString: 'postgresql://user:pass@localhost:5432/adblock',
+});
+
+await storage.open();
+// Use the same API as NoSqlStorage
+await storage.cacheFilterList(source, rules, hash);
+await storage.close();
+```
+
+### Quick Start: Cloudflare D1 Backend
+
+```bash
+# Install dependencies
+npm install @prisma/client @prisma/adapter-d1
+
+# Create D1 database
+wrangler d1 create adblock-storage
+```
+
+```typescript
+// In Cloudflare Worker
+import { D1StorageAdapter } from './storage/index.ts';
+
+export default {
+    async fetch(request: Request, env: Env): Promise<Response> {
+        const storage = new D1StorageAdapter(env.DB);
+
+        await storage.cacheFilterList(source, rules, hash);
+
+        return new Response('OK');
+    },
+};
+```
+
+### Storage Adapter Interface
+
+All backends implement the `IStorageAdapter` interface:
+
+```typescript
+interface IStorageAdapter {
+    // Lifecycle
+    open(): Promise<void>;
+    close(): Promise<void>;
+    isOpen(): boolean;
+
+    // Core operations
+    set<T>(key: string[], value: T, ttlMs?: number): Promise<boolean>;
+    get<T>(key: string[]): Promise<StorageEntry<T> | null>;
+    delete(key: string[]): Promise<boolean>;
+    list<T>(options?: QueryOptions): Promise<Array<{ key: string[]; value: StorageEntry<T> }>>;
+
+    // Filter caching
+    cacheFilterList(source: string, content: string[], hash: string, etag?: string, ttlMs?: number): Promise<boolean>;
+    getCachedFilterList(source: string): Promise<CacheEntry | null>;
+
+    // Metadata
+    storeCompilationMetadata(metadata: CompilationMetadata): Promise<boolean>;
+    getCompilationHistory(configName: string, limit?: number): Promise<CompilationMetadata[]>;
+
+    // Maintenance
+    clearExpired(): Promise<number>;
+    clearCache(): Promise<number>;
+    getStats(): Promise<StorageStats>;
+}
+```
+
+### Backend Selection at Runtime
+
+```typescript
+import type { IStorageAdapter } from './storage/IStorageAdapter.ts';
+import { NoSqlStorage } from './storage/NoSqlStorage.ts';
+import { PrismaStorageAdapter } from './storage/PrismaStorageAdapter.ts';
+import { D1StorageAdapter } from './storage/D1StorageAdapter.ts';
+
+function createStorage(type: string, env?: { DB: D1Database }): IStorageAdapter {
+    switch (type) {
+        case 'prisma':
+            return new PrismaStorageAdapter(logger, { type: 'prisma' });
+        case 'd1':
+            return new D1StorageAdapter(env!.DB);
+        case 'deno-kv':
+        default:
+            return new NoSqlStorage(logger) as unknown as IStorageAdapter;
+    }
+}
 ```
 
 ## License

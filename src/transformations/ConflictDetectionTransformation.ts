@@ -3,7 +3,7 @@
  * Detects and reports conflicting rules (blocking vs. allowing same domain).
  */
 
-import { TransformationType, ILogger } from '../types/index.ts';
+import { ILogger, TransformationType } from '../types/index.ts';
 import { SyncTransformation } from './base/Transformation.ts';
 import { RuleUtils } from '../utils/RuleUtils.ts';
 
@@ -155,7 +155,7 @@ export class ConflictDetectionTransformation extends SyncTransformation {
                         if (this.options.logConflicts) {
                             this.logger.warn(
                                 `Conflict detected for domain "${domain}": ` +
-                                `blocking rule "${blocking.rule}" vs exception "${allowing.rule}"`,
+                                    `blocking rule "${blocking.rule}" vs exception "${allowing.rule}"`,
                             );
                         }
                     }
@@ -328,8 +328,8 @@ export function detectConflicts(
 
     return {
         conflicts,
-        rulesAnalyzed: rules.filter(r => r && !r.startsWith('!')).length,
-        blockingRules: conflicts.length > 0 ? new Set(conflicts.map(c => c.blockingRule)).size : 0,
-        exceptionRules: conflicts.length > 0 ? new Set(conflicts.map(c => c.allowingRule)).size : 0,
+        rulesAnalyzed: rules.filter((r) => r && !r.startsWith('!')).length,
+        blockingRules: conflicts.length > 0 ? new Set(conflicts.map((c) => c.blockingRule)).size : 0,
+        exceptionRules: conflicts.length > 0 ? new Set(conflicts.map((c) => c.allowingRule)).size : 0,
     };
 }

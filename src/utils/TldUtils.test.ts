@@ -178,10 +178,10 @@ Deno.test('TldUtils - should handle invalid inputs', () => {
 Deno.test('TldUtils - should normalize hostnames', () => {
     const result1 = TldUtils.parse('EXAMPLE.COM');
     assertEquals(result1.hostname, 'example.com');
-    
+
     const result2 = TldUtils.parse('example.com.');
     assertEquals(result2.hostname, 'example.com');
-    
+
     const result3 = TldUtils.parse('  example.com  ');
     assertEquals(result3.hostname, 'example.com');
 });
@@ -191,7 +191,7 @@ Deno.test('TldUtils - should handle edge cases', () => {
     const result1 = TldUtils.parse('localhost');
     assertEquals(result1.hostname, 'localhost');
     assertEquals(result1.domain, null);
-    
+
     // Just TLD
     const result2 = TldUtils.parse('com');
     assertEquals(result2.hostname, 'com');

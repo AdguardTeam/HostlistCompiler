@@ -144,6 +144,7 @@ deno task test:coverage
 ```
 
 Test file conventions:
+
 - Co-located with source: `FileName.ts` -> `FileName.test.ts`
 - Use `Deno.test()` with descriptive names
 - Mock external dependencies (network, file system)
@@ -152,24 +153,24 @@ Test file conventions:
 
 ```typescript
 interface IConfiguration {
-  name: string;                    // Required
-  description?: string;
-  homepage?: string;
-  license?: string;
-  version?: string;
-  sources: ISource[];              // Required, non-empty
-  transformations?: TransformationType[];
-  exclusions?: string[];           // Patterns to exclude
-  inclusions?: string[];           // Patterns to include
+    name: string; // Required
+    description?: string;
+    homepage?: string;
+    license?: string;
+    version?: string;
+    sources: ISource[]; // Required, non-empty
+    transformations?: TransformationType[];
+    exclusions?: string[]; // Patterns to exclude
+    inclusions?: string[]; // Patterns to include
 }
 
 interface ISource {
-  source: string;                  // URL or file path
-  name?: string;
-  type?: 'adblock' | 'hosts';
-  transformations?: TransformationType[];
-  exclusions?: string[];
-  inclusions?: string[];
+    source: string; // URL or file path
+    name?: string;
+    type?: 'adblock' | 'hosts';
+    transformations?: TransformationType[];
+    exclusions?: string[];
+    inclusions?: string[];
 }
 ```
 
@@ -185,17 +186,17 @@ Pattern types: plain string (contains), `*.wildcard`, `/regex/`
 
 ## Key Files to Know
 
-| File | Purpose |
-|------|---------|
-| `src/compiler/FilterCompiler.ts` | Main compilation logic |
-| `src/platform/WorkerCompiler.ts` | Platform-agnostic compiler |
-| `src/transformations/TransformationRegistry.ts` | Transformation management |
-| `src/configuration/ConfigurationValidator.ts` | Config validation |
-| `src/downloader/FilterDownloader.ts` | Content fetching with retries |
-| `src/types/index.ts` | Core type definitions |
-| `worker/worker.ts` | Cloudflare Worker API handler |
-| `deno.json` | Deno tasks and configuration |
-| `wrangler.toml` | Cloudflare Workers config |
+| File                                            | Purpose                       |
+| ----------------------------------------------- | ----------------------------- |
+| `src/compiler/FilterCompiler.ts`                | Main compilation logic        |
+| `src/platform/WorkerCompiler.ts`                | Platform-agnostic compiler    |
+| `src/transformations/TransformationRegistry.ts` | Transformation management     |
+| `src/configuration/ConfigurationValidator.ts`   | Config validation             |
+| `src/downloader/FilterDownloader.ts`            | Content fetching with retries |
+| `src/types/index.ts`                            | Core type definitions         |
+| `worker/worker.ts`                              | Cloudflare Worker API handler |
+| `deno.json`                                     | Deno tasks and configuration  |
+| `wrangler.toml`                                 | Cloudflare Workers config     |
 
 ## Platform Support
 

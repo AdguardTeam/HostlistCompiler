@@ -4,7 +4,7 @@
  * Tests for NoSqlStorage
  */
 import { assertEquals, assertExists } from '@std/assert';
-import { NoSqlStorage, type CompilationMetadata } from './NoSqlStorage.ts';
+import { type CompilationMetadata, NoSqlStorage } from './NoSqlStorage.ts';
 import type { IDetailedLogger } from '../types/index.ts';
 
 // Mock logger for testing
@@ -66,13 +66,13 @@ Deno.test('NoSqlStorage', async (t) => {
 
         // Set with very short TTL
         await storage.set(['test', 'ttl'], { data: 'expires soon' }, 100);
-        
+
         // Should exist immediately
         let entry = await storage.get(['test', 'ttl']);
         assertExists(entry);
 
         // Wait for expiration
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise((resolve) => setTimeout(resolve, 150));
 
         // Should be gone
         entry = await storage.get(['test', 'ttl']);
@@ -101,9 +101,9 @@ Deno.test('NoSqlStorage', async (t) => {
         storage = new NoSqlStorage(mockLogger, tempDbPath);
         await storage.open();
 
-        const entries = await storage.list({ 
+        const entries = await storage.list({
             prefix: ['test', 'list'],
-            limit: 2 
+            limit: 2,
         });
         assertEquals(entries.length, 2);
 
@@ -147,7 +147,7 @@ Deno.test('NoSqlStorage', async (t) => {
         assertEquals(stored, true);
 
         // Add more metadata for history
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
         const metadata2: CompilationMetadata = {
             ...metadata,
             timestamp: Date.now(),
@@ -186,7 +186,7 @@ Deno.test('NoSqlStorage', async (t) => {
         await storage.set(['test', 'expire2'], { data: 'test2' }, 50);
 
         // Wait for expiration
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         const cleared = await storage.clearExpired();
         // Should have cleared at least the 2 we just added

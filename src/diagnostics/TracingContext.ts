@@ -6,6 +6,15 @@ import { DiagnosticsCollector, NoOpDiagnosticsCollector } from './DiagnosticsCol
 import type { TracingContext, TracingContextOptions } from './types.ts';
 
 /**
+ * Type for method decorator functions
+ */
+type MethodDecorator = (
+    target: unknown,
+    propertyKey: string,
+    descriptor: PropertyDescriptor,
+) => PropertyDescriptor;
+
+/**
  * Generates a correlation ID using crypto.randomUUID if available,
  * otherwise falls back to timestamp + random string
  */
@@ -64,8 +73,7 @@ export function createNoOpContext(): TracingContext {
 /**
  * Decorator for tracing synchronous function execution
  */
-export function traced(operationName?: string) {
-    // deno-lint-ignore no-explicit-any
+export function traced(operationName?: string): MethodDecorator {
     return function (
         _target: unknown,
         propertyKey: string,
@@ -106,8 +114,7 @@ export function traced(operationName?: string) {
 /**
  * Decorator for tracing asynchronous function execution
  */
-export function tracedAsync(operationName?: string) {
-    // deno-lint-ignore no-explicit-any
+export function tracedAsync(operationName?: string): MethodDecorator {
     return function (
         _target: unknown,
         propertyKey: string,

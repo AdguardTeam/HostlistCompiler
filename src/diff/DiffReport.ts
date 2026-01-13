@@ -178,23 +178,15 @@ export class DiffGenerator {
             removedCount: removed.length,
             unchangedCount,
             netChange: added.length - removed.length,
-            percentageChange: normalizedOriginal.length > 0
-                ? ((added.length - removed.length) / normalizedOriginal.length) * 100
-                : 0,
+            percentageChange: normalizedOriginal.length > 0 ? ((added.length - removed.length) / normalizedOriginal.length) * 100 : 0,
         };
 
         // Analyze domain changes if requested
-        const domainChanges = this.options.analyzeDomains
-            ? this.analyzeDomainChanges(added, removed)
-            : [];
+        const domainChanges = this.options.analyzeDomains ? this.analyzeDomainChanges(added, removed) : [];
 
         // Limit rules if needed
-        const limitedAdded = this.options.includeFullRules
-            ? added.slice(0, this.options.maxRulesToInclude)
-            : [];
-        const limitedRemoved = this.options.includeFullRules
-            ? removed.slice(0, this.options.maxRulesToInclude)
-            : [];
+        const limitedAdded = this.options.includeFullRules ? added.slice(0, this.options.maxRulesToInclude) : [];
+        const limitedRemoved = this.options.includeFullRules ? removed.slice(0, this.options.maxRulesToInclude) : [];
 
         return {
             timestamp: new Date().toISOString(),
@@ -223,8 +215,8 @@ export class DiffGenerator {
      */
     private normalizeRules(rules: string[]): string[] {
         return rules
-            .map(rule => rule.trim())
-            .filter(rule => {
+            .map((rule) => rule.trim())
+            .filter((rule) => {
                 if (!rule && this.options.ignoreEmptyLines) {
                     return false;
                 }

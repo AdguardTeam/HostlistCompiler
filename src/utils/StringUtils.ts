@@ -5,12 +5,12 @@
 
 /**
  * Extracts a substring between two tags.
- * 
+ *
  * @param str - Original string
  * @param startTag - Start tag to search for
  * @param endTag - End tag to search for
  * @returns The substring between tags, or null if not found
- * 
+ *
  * @example
  * ```ts
  * substringBetween("<div>content</div>", "<div>", "</div>") // "content"
@@ -35,13 +35,13 @@ export function substringBetween(
 
 /**
  * Splits a string by delimiter, respecting escape characters.
- * 
+ *
  * @param str - String to split
  * @param delimiter - Delimiter character
  * @param escapeCharacter - Escape character
  * @param preserveAllTokens - If true, preserve empty parts
  * @returns Array of string parts
- * 
+ *
  * @example
  * ```ts
  * splitByDelimiterWithEscapeCharacter("a,b\\,c,d", ",", "\\", false) // ["a", "b,c", "d"]
@@ -87,10 +87,10 @@ export function splitByDelimiterWithEscapeCharacter(
 
 /**
  * Escapes special regex characters in a string.
- * 
+ *
  * @param str - String to escape
  * @returns Escaped string safe for use in regex
- * 
+ *
  * @example
  * ```ts
  * escapeRegExp("example.com") // "example\\.com"
@@ -103,10 +103,10 @@ export function escapeRegExp(str: string): string {
 
 /**
  * Checks if a string is empty or contains only whitespace.
- * 
+ *
  * @param str - String to check
  * @returns true if string is null, undefined, empty, or whitespace only
- * 
+ *
  * @example
  * ```ts
  * isEmpty("") // true
@@ -121,11 +121,11 @@ export function isEmpty(str: string | null | undefined): str is null | undefined
 
 /**
  * Trims specified characters from both ends of a string.
- * 
+ *
  * @param str - String to trim
  * @param chars - Characters to remove (default: space and tab)
  * @returns Trimmed string
- * 
+ *
  * @example
  * ```ts
  * trim("  text  ") // "text"
@@ -145,16 +145,16 @@ export function trim(str: string, chars: string = ' \t'): string {
 export class StringUtils {
     /** @deprecated Use {@link substringBetween} function instead */
     public static substringBetween = substringBetween;
-    
+
     /** @deprecated Use {@link splitByDelimiterWithEscapeCharacter} function instead */
     public static splitByDelimiterWithEscapeCharacter = splitByDelimiterWithEscapeCharacter;
-    
+
     /** @deprecated Use {@link escapeRegExp} function instead */
     public static escapeRegExp = escapeRegExp;
-    
+
     /** @deprecated Use {@link isEmpty} function instead */
     public static isEmpty = isEmpty;
-    
+
     /** @deprecated Use {@link trim} function instead */
     public static trim = trim;
 }

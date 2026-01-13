@@ -22,22 +22,24 @@ AdBlock Compiler is a **drop-in replacement** for `@adguard/hostlist-compiler` w
 ### 1. Update Package Reference
 
 **npm/Node.js:**
+
 ```json
 {
-  "dependencies": {
-    "@adguard/hostlist-compiler": "^1.0.39"  // OLD
-    "@jk-com/adblock-compiler": "^0.6.0"      // NEW
-  }
+    "dependencies": {
+        "@adguard/hostlist-compiler": "^1.0.39", // OLD
+        "@jk-com/adblock-compiler": "^0.6.0" // NEW
+    }
 }
 ```
 
 **Deno:**
+
 ```typescript
 // OLD
-import { compile } from "npm:@adguard/hostlist-compiler@^1.0.39";
+import { compile } from 'npm:@adguard/hostlist-compiler@^1.0.39';
 
 // NEW
-import { compile } from "jsr:@jk-com/adblock-compiler@^0.6.0";
+import { compile } from 'jsr:@jk-com/adblock-compiler@^0.6.0';
 ```
 
 ### 2. Update Imports
@@ -75,17 +77,17 @@ The configuration schema is **100% compatible**:
 
 ```typescript
 interface IConfiguration {
-  name: string;
-  description?: string;
-  homepage?: string;
-  license?: string;
-  version?: string;
-  sources: ISource[];
-  transformations?: TransformationType[];
-  exclusions?: string[];
-  exclusions_sources?: string[];
-  inclusions?: string[];
-  inclusions_sources?: string[];
+    name: string;
+    description?: string;
+    homepage?: string;
+    license?: string;
+    version?: string;
+    sources: ISource[];
+    transformations?: TransformationType[];
+    exclusions?: string[];
+    exclusions_sources?: string[];
+    inclusions?: string[];
+    inclusions_sources?: string[];
 }
 ```
 
@@ -115,11 +117,11 @@ After migrating, you can optionally use new features:
 import { WorkerCompiler } from '@jk-com/adblock-compiler';
 
 const compiler = new WorkerCompiler({
-  events: {
-    onSourceStart: (event) => console.log('Fetching:', event.source.name),
-    onProgress: (event) => console.log(`${event.current}/${event.total}`),
-    onCompilationComplete: (event) => console.log('Done!', event.ruleCount),
-  }
+    events: {
+        onSourceStart: (event) => console.log('Fetching:', event.source.name),
+        onProgress: (event) => console.log(`${event.current}/${event.total}`),
+        onCompilationComplete: (event) => console.log('Done!', event.ruleCount),
+    },
 });
 
 await compiler.compileWithMetrics(configuration, true);
@@ -130,14 +132,14 @@ await compiler.compileWithMetrics(configuration, true);
 ```typescript
 // Using the deployed API
 const response = await fetch('https://adblock-compiler.jayson-knight.workers.dev/compile/batch', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    requests: [
-      { id: 'list-1', configuration: config1 },
-      { id: 'list-2', configuration: config2 },
-    ]
-  })
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        requests: [
+            { id: 'list-1', configuration: config1 },
+            { id: 'list-2', configuration: config2 },
+        ],
+    }),
 });
 
 const { results } = await response.json();
@@ -152,11 +154,13 @@ Use the Web UI at https://adblock-compiler.jayson-knight.workers.dev/ to see vis
 ### Node.js Projects
 
 **Before:**
+
 ```javascript
 const { compile } = require('@adguard/hostlist-compiler');
 ```
 
 **After:**
+
 ```javascript
 // Install via npm
 npm install @jk-com/adblock-compiler
@@ -168,27 +172,31 @@ const { compile } = require('@jk-com/adblock-compiler');
 ### Deno Projects
 
 **Before:**
+
 ```typescript
-import { compile } from "npm:@adguard/hostlist-compiler";
+import { compile } from 'npm:@adguard/hostlist-compiler';
 ```
 
 **After:**
+
 ```typescript
 // Preferred: Use JSR
-import { compile } from "jsr:@jk-com/adblock-compiler";
+import { compile } from 'jsr:@jk-com/adblock-compiler';
 
 // Or via npm compatibility
-import { compile } from "npm:@jk-com/adblock-compiler";
+import { compile } from 'npm:@jk-com/adblock-compiler';
 ```
 
 ### TypeScript Projects
 
 **Before:**
+
 ```typescript
 import { compile, IConfiguration } from '@adguard/hostlist-compiler';
 ```
 
 **After:**
+
 ```typescript
 import { compile, IConfiguration } from '@jk-com/adblock-compiler';
 ```
@@ -269,8 +277,9 @@ error: JSR package not found: @jk-com/adblock-compiler
 ```
 
 **Solution**: The package needs to be published to JSR first. Use npm import as fallback:
+
 ```typescript
-import { compile } from "npm:@jk-com/adblock-compiler";
+import { compile } from 'npm:@jk-com/adblock-compiler';
 ```
 
 ### Issue: Type errors
@@ -280,6 +289,7 @@ Type 'SourceType' is not assignable to type 'SourceType'
 ```
 
 **Solution**: Clear your TypeScript cache and rebuild:
+
 ```bash
 # Deno
 rm -rf ~/.cache/deno
@@ -291,6 +301,7 @@ rm -rf node_modules && npm install
 ### Issue: Different output
 
 If the compiled output differs significantly, please file an issue with:
+
 1. Your configuration file
 2. Expected output vs actual output
 3. Version numbers of both packages

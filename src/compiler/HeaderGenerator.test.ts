@@ -1,6 +1,6 @@
 import { assertEquals, assertExists } from '@std/assert';
 import { HeaderGenerator } from './HeaderGenerator.ts';
-import { SourceType, type IConfiguration, type ISource } from '../types/index.ts';
+import { type IConfiguration, type ISource, SourceType } from '../types/index.ts';
 
 Deno.test('HeaderGenerator - should generate basic list header', () => {
     const generator = new HeaderGenerator();
@@ -8,13 +8,13 @@ Deno.test('HeaderGenerator - should generate basic list header', () => {
         name: 'Test Filter List',
         sources: [],
     };
-    
+
     const header = generator.generateListHeader(config);
-    
+
     assertExists(header);
-    assertEquals(header.some(line => line.includes('Title: Test Filter List')), true);
-    assertEquals(header.some(line => line.includes('Last modified:')), true);
-    assertEquals(header.some(line => line.includes('Compiled by')), true);
+    assertEquals(header.some((line) => line.includes('Title: Test Filter List')), true);
+    assertEquals(header.some((line) => line.includes('Last modified:')), true);
+    assertEquals(header.some((line) => line.includes('Compiled by')), true);
 });
 
 Deno.test('HeaderGenerator - should include description when provided', () => {
@@ -24,10 +24,10 @@ Deno.test('HeaderGenerator - should include description when provided', () => {
         description: 'This is a test description',
         sources: [],
     };
-    
+
     const header = generator.generateListHeader(config);
-    
-    assertEquals(header.some(line => line.includes('Description: This is a test description')), true);
+
+    assertEquals(header.some((line) => line.includes('Description: This is a test description')), true);
 });
 
 Deno.test('HeaderGenerator - should include version when provided', () => {
@@ -37,10 +37,10 @@ Deno.test('HeaderGenerator - should include version when provided', () => {
         version: '1.2.3',
         sources: [],
     };
-    
+
     const header = generator.generateListHeader(config);
-    
-    assertEquals(header.some(line => line.includes('Version: 1.2.3')), true);
+
+    assertEquals(header.some((line) => line.includes('Version: 1.2.3')), true);
 });
 
 Deno.test('HeaderGenerator - should include homepage when provided', () => {
@@ -50,10 +50,10 @@ Deno.test('HeaderGenerator - should include homepage when provided', () => {
         homepage: 'https://example.com',
         sources: [],
     };
-    
+
     const header = generator.generateListHeader(config);
-    
-    assertEquals(header.some(line => line.includes('Homepage: https://example.com')), true);
+
+    assertEquals(header.some((line) => line.includes('Homepage: https://example.com')), true);
 });
 
 Deno.test('HeaderGenerator - should include license when provided', () => {
@@ -63,10 +63,10 @@ Deno.test('HeaderGenerator - should include license when provided', () => {
         license: 'MIT',
         sources: [],
     };
-    
+
     const header = generator.generateListHeader(config);
-    
-    assertEquals(header.some(line => line.includes('License: MIT')), true);
+
+    assertEquals(header.some((line) => line.includes('License: MIT')), true);
 });
 
 Deno.test('HeaderGenerator - should generate complete header with all fields', () => {
@@ -79,16 +79,16 @@ Deno.test('HeaderGenerator - should generate complete header with all fields', (
         license: 'GPL-3.0',
         sources: [],
     };
-    
+
     const header = generator.generateListHeader(config);
-    
-    assertEquals(header.some(line => line.includes('Title: Complete Test List')), true);
-    assertEquals(header.some(line => line.includes('Description: A comprehensive test list')), true);
-    assertEquals(header.some(line => line.includes('Version: 2.0.0')), true);
-    assertEquals(header.some(line => line.includes('Homepage: https://example.org')), true);
-    assertEquals(header.some(line => line.includes('License: GPL-3.0')), true);
-    assertEquals(header.some(line => line.includes('Last modified:')), true);
-    assertEquals(header.some(line => line.includes('Compiled by')), true);
+
+    assertEquals(header.some((line) => line.includes('Title: Complete Test List')), true);
+    assertEquals(header.some((line) => line.includes('Description: A comprehensive test list')), true);
+    assertEquals(header.some((line) => line.includes('Version: 2.0.0')), true);
+    assertEquals(header.some((line) => line.includes('Homepage: https://example.org')), true);
+    assertEquals(header.some((line) => line.includes('License: GPL-3.0')), true);
+    assertEquals(header.some((line) => line.includes('Last modified:')), true);
+    assertEquals(header.some((line) => line.includes('Compiled by')), true);
 });
 
 Deno.test('HeaderGenerator - header should start and end with comment markers', () => {
@@ -97,9 +97,9 @@ Deno.test('HeaderGenerator - header should start and end with comment markers', 
         name: 'Test List',
         sources: [],
     };
-    
+
     const header = generator.generateListHeader(config);
-    
+
     assertEquals(header[0], '!');
     assertEquals(header[header.length - 1], '!');
 });
@@ -109,11 +109,11 @@ Deno.test('HeaderGenerator - should generate basic source header', () => {
     const source: ISource = {
         source: 'https://example.com/list.txt',
     };
-    
+
     const header = generator.generateSourceHeader(source);
-    
+
     assertExists(header);
-    assertEquals(header.some(line => line.includes('Source: https://example.com/list.txt')), true);
+    assertEquals(header.some((line) => line.includes('Source: https://example.com/list.txt')), true);
 });
 
 Deno.test('HeaderGenerator - should include source name when provided', () => {
@@ -122,11 +122,11 @@ Deno.test('HeaderGenerator - should include source name when provided', () => {
         name: 'Example List',
         source: 'https://example.com/list.txt',
     };
-    
+
     const header = generator.generateSourceHeader(source);
-    
-    assertEquals(header.some(line => line.includes('Source name: Example List')), true);
-    assertEquals(header.some(line => line.includes('Source: https://example.com/list.txt')), true);
+
+    assertEquals(header.some((line) => line.includes('Source name: Example List')), true);
+    assertEquals(header.some((line) => line.includes('Source: https://example.com/list.txt')), true);
 });
 
 Deno.test('HeaderGenerator - source header should start and end with comment markers', () => {
@@ -134,9 +134,9 @@ Deno.test('HeaderGenerator - source header should start and end with comment mar
     const source: ISource = {
         source: 'https://example.com/list.txt',
     };
-    
+
     const header = generator.generateSourceHeader(source);
-    
+
     assertEquals(header[0], '!');
     assertEquals(header[header.length - 1], '!');
 });
@@ -147,9 +147,9 @@ Deno.test('HeaderGenerator - source header without name should only have source 
         source: 'https://example.com/list.txt',
         type: SourceType.Hosts,
     };
-    
+
     const header = generator.generateSourceHeader(source);
-    
+
     assertEquals(header.length, 3); // !, Source: ..., !
     assertEquals(header[0], '!');
     assertEquals(header[1], '! Source: https://example.com/list.txt');
@@ -162,9 +162,9 @@ Deno.test('HeaderGenerator - source header with name should have name and source
         name: 'My List',
         source: 'https://example.com/list.txt',
     };
-    
+
     const header = generator.generateSourceHeader(source);
-    
+
     assertEquals(header.length, 4); // !, Source name: ..., Source: ..., !
     assertEquals(header[0], '!');
     assertEquals(header[1], '! Source name: My List');
@@ -178,12 +178,12 @@ Deno.test('HeaderGenerator - header should contain valid ISO timestamp', () => {
         name: 'Test List',
         sources: [],
     };
-    
+
     const header = generator.generateListHeader(config);
-    
-    const timestampLine = header.find(line => line.includes('Last modified:'));
+
+    const timestampLine = header.find((line) => line.includes('Last modified:'));
     assertExists(timestampLine);
-    
+
     // Extract timestamp and verify it's valid ISO format
     const timestamp = timestampLine!.replace('! Last modified: ', '');
     const date = new Date(timestamp);

@@ -15,6 +15,7 @@
 Returns API information, available endpoints, and usage examples.
 
 **Response**:
+
 ```json
 {
   "name": "Hostlist Compiler Worker",
@@ -41,55 +42,57 @@ Returns API information, available endpoints, and usage examples.
 Compile filter lists and return results as JSON.
 
 **Request Body**:
+
 ```json
 {
-  "configuration": {
-    "name": "My Filter List",
-    "description": "Optional description",
-    "sources": [
-      {
-        "name": "Source Name",
-        "source": "https://example.com/filters.txt",
-        "type": "adblock",
-        "transformations": ["RemoveComments", "Validate"]
-      }
-    ],
-    "transformations": ["Deduplicate", "RemoveEmptyLines"],
-    "exclusions": ["||example.com^"],
-    "inclusions": ["*"]
-  },
-  "preFetchedContent": {
-    "custom-key": "||ads.example.com^\n||tracking.example.com^"
-  },
-  "benchmark": true
+    "configuration": {
+        "name": "My Filter List",
+        "description": "Optional description",
+        "sources": [
+            {
+                "name": "Source Name",
+                "source": "https://example.com/filters.txt",
+                "type": "adblock",
+                "transformations": ["RemoveComments", "Validate"]
+            }
+        ],
+        "transformations": ["Deduplicate", "RemoveEmptyLines"],
+        "exclusions": ["||example.com^"],
+        "inclusions": ["*"]
+    },
+    "preFetchedContent": {
+        "custom-key": "||ads.example.com^\n||tracking.example.com^"
+    },
+    "benchmark": true
 }
 ```
 
 **Configuration Parameters**:
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Name of the compiled list |
-| `description` | string | No | Description of the list |
-| `sources` | array | Yes | Array of source configurations |
-| `transformations` | array | No | Global transformations to apply |
-| `exclusions` | array | No | Rules to exclude (supports wildcards and regex) |
-| `exclusions_sources` | array | No | Files containing exclusion rules |
-| `inclusions` | array | No | Rules to include (supports wildcards and regex) |
-| `inclusions_sources` | array | No | Files containing inclusion rules |
+| Field                | Type   | Required | Description                                     |
+| -------------------- | ------ | -------- | ----------------------------------------------- |
+| `name`               | string | Yes      | Name of the compiled list                       |
+| `description`        | string | No       | Description of the list                         |
+| `sources`            | array  | Yes      | Array of source configurations                  |
+| `transformations`    | array  | No       | Global transformations to apply                 |
+| `exclusions`         | array  | No       | Rules to exclude (supports wildcards and regex) |
+| `exclusions_sources` | array  | No       | Files containing exclusion rules                |
+| `inclusions`         | array  | No       | Rules to include (supports wildcards and regex) |
+| `inclusions_sources` | array  | No       | Files containing inclusion rules                |
 
 **Source Configuration**:
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `source` | string | Yes | URL or key for pre-fetched content |
-| `name` | string | No | Name of the source |
-| `type` | string | No | `adblock` or `hosts` (default: `adblock`) |
-| `transformations` | array | No | Source-specific transformations |
-| `exclusions` | array | No | Source-specific exclusions |
-| `inclusions` | array | No | Source-specific inclusions |
+| Field             | Type   | Required | Description                               |
+| ----------------- | ------ | -------- | ----------------------------------------- |
+| `source`          | string | Yes      | URL or key for pre-fetched content        |
+| `name`            | string | No       | Name of the source                        |
+| `type`            | string | No       | `adblock` or `hosts` (default: `adblock`) |
+| `transformations` | array  | No       | Source-specific transformations           |
+| `exclusions`      | array  | No       | Source-specific exclusions                |
+| `inclusions`      | array  | No       | Source-specific inclusions                |
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -113,14 +116,16 @@ Compile filter lists and return results as JSON.
 ```
 
 **Response Headers**:
+
 - `X-Cache: HIT|MISS` - Indicates if response was served from cache
 - `X-Request-Deduplication: HIT` - Present if request was deduplicated with concurrent request
 
 **Error Response**:
+
 ```json
 {
-  "success": false,
-  "error": "Error message"
+    "success": false,
+    "error": "Error message"
 }
 ```
 
@@ -137,6 +142,7 @@ Compile filter lists with real-time progress updates via Server-Sent Events (SSE
 **Event Types**:
 
 #### `log`
+
 ```
 event: log
 data: {"level":"info","message":"Fetching source..."}
@@ -145,54 +151,63 @@ data: {"level":"info","message":"Fetching source..."}
 Levels: `info`, `warn`, `error`, `debug`
 
 #### `source:start`
+
 ```
 event: source:start
 data: {"source":{"name":"Source 1","source":"https://..."},"sourceIndex":0,"totalSources":2}
 ```
 
 #### `source:complete`
+
 ```
 event: source:complete
 data: {"source":{"name":"Source 1"},"sourceIndex":0,"totalSources":2}
 ```
 
 #### `source:error`
+
 ```
 event: source:error
 data: {"source":{"name":"Source 1"},"error":"Error message","sourceIndex":0}
 ```
 
 #### `transformation:start`
+
 ```
 event: transformation:start
 data: {"transformation":"Deduplicate","transformationIndex":0,"totalTransformations":2}
 ```
 
 #### `transformation:complete`
+
 ```
 event: transformation:complete
 data: {"transformation":"Deduplicate","transformationIndex":0,"totalTransformations":2}
 ```
 
 #### `progress`
+
 ```
 event: progress
 data: {"phase":"transformations","current":1,"total":2,"message":"Applying transformations"}
 ```
 
 #### `result`
+
 ```
 event: result
 data: {"rules":["..."],"ruleCount":1234,"metrics":{...}}
 ```
 
 #### `done`
+
 ```
 event: done
 data: {}
 ```
 
 #### `error`
+
 ```
 event: error
 data: {"error":"Error message"}
@@ -205,36 +220,39 @@ data: {"error":"Error message"}
 Compile multiple filter lists in parallel with a single request.
 
 **Request Body**:
+
 ```json
 {
-  "requests": [
-    {
-      "id": "list-1",
-      "configuration": {
-        "name": "First List",
-        "sources": [{"source": "https://example.com/list1.txt"}],
-        "transformations": ["Deduplicate"]
-      },
-      "benchmark": true
-    },
-    {
-      "id": "list-2",
-      "configuration": {
-        "name": "Second List",
-        "sources": [{"source": "https://example.com/list2.txt"}],
-        "transformations": ["Validate"]
-      }
-    }
-  ]
+    "requests": [
+        {
+            "id": "list-1",
+            "configuration": {
+                "name": "First List",
+                "sources": [{ "source": "https://example.com/list1.txt" }],
+                "transformations": ["Deduplicate"]
+            },
+            "benchmark": true
+        },
+        {
+            "id": "list-2",
+            "configuration": {
+                "name": "Second List",
+                "sources": [{ "source": "https://example.com/list2.txt" }],
+                "transformations": ["Validate"]
+            }
+        }
+    ]
 }
 ```
 
 **Constraints**:
+
 - Maximum 10 requests per batch
 - Each request must have a unique `id`
 - All requests processed in parallel
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -259,14 +277,16 @@ Compile multiple filter lists in parallel with a single request.
 ```
 
 **Error Response** (for entire batch):
+
 ```json
 {
-  "success": false,
-  "error": "Batch request must contain at least one request"
+    "success": false,
+    "error": "Batch request must contain at least one request"
 }
 ```
 
 **Individual Request Errors**:
+
 ```json
 {
   "success": true,
@@ -292,6 +312,7 @@ Compile multiple filter lists in parallel with a single request.
 ### Caching
 
 Compilation results are cached with gzip compression for 1 hour. Cache is automatically invalidated when:
+
 - Configuration changes
 - Sources are updated
 - Pre-fetched content is used (bypasses cache)
@@ -307,6 +328,7 @@ Check `X-Request-Deduplication: HIT` response header to see if your request was 
 ### Circuit Breaker
 
 External source downloads include:
+
 - **Timeout**: 30 seconds per request
 - **Retry Logic**: Up to 3 retries with exponential backoff
 - **Retry Conditions**: 5xx errors, 429 rate limits, timeouts
@@ -340,17 +362,17 @@ Use `preFetchedContent` to bypass CORS restrictions or provide custom rules:
 
 ```json
 {
-  "configuration": {
-    "sources": [
-      {
-        "source": "my-custom-rules",
-        "name": "Custom Rules"
-      }
-    ]
-  },
-  "preFetchedContent": {
-    "my-custom-rules": "||ads.example.com^\n||tracking.example.com^"
-  }
+    "configuration": {
+        "sources": [
+            {
+                "source": "my-custom-rules",
+                "name": "Custom Rules"
+            }
+        ]
+    },
+    "preFetchedContent": {
+        "my-custom-rules": "||ads.example.com^\n||tracking.example.com^"
+    }
 }
 ```
 
@@ -366,6 +388,7 @@ The `source` field references a key in `preFetchedContent` instead of a URL.
 - **Batch Requests**: Maximum 10 compilations per batch
 
 **Rate Limit Headers**:
+
 - `429 Too Many Requests` returned when limit exceeded
 - `Retry-After: 60` indicates seconds until retry allowed
 
@@ -388,10 +411,11 @@ All errors return appropriate HTTP status codes:
 - `404 Not Found` - Invalid endpoint
 
 Error responses include a message:
+
 ```json
 {
-  "success": false,
-  "error": "Detailed error message"
+    "success": false,
+    "error": "Detailed error message"
 }
 ```
 

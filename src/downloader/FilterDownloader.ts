@@ -12,6 +12,7 @@
 import type { ILogger } from '../types/index.ts';
 import { silentLogger } from '../utils/logger.ts';
 import { evaluateBooleanExpression } from '../utils/BooleanExpressionParser.ts';
+import { ErrorUtils, FileSystemError, NetworkError, PathUtils } from '../utils/index.ts';
 import { NETWORK_DEFAULTS, PREPROCESSOR_DEFAULTS } from '../config/defaults.ts';
 import { USER_AGENT } from '../version.ts';
 
@@ -69,45 +70,6 @@ interface ConditionalBlock {
 }
 
 /**
- * Checks if a string is a valid URL
- */
-function isUrl(source: string): boolean {
-    return source.startsWith('http://') || source.startsWith('https://');
-}
-
-/**
- * Checks if a string is an absolute file path
- */
-function isAbsolutePath(path: string): boolean {
-    // Unix absolute path
-    if (path.startsWith('/')) return true;
-    // Windows absolute path (C:\, D:\, etc.)
-    if (/^[a-zA-Z]:[/\\]/.test(path)) return true;
-    return false;
-}
-
-/**
- * Resolves a relative path against a base URL or path
- */
-function resolveIncludePath(includePath: string, basePath: string): string {
-    // If include path is absolute, use it directly
-    if (isAbsolutePath(includePath) || isUrl(includePath)) {
-        return includePath;
-    }
-
-    if (isUrl(basePath)) {
-        // Resolve relative URL
-        const baseUrl = new URL(basePath);
-        return new URL(includePath, baseUrl).toString();
-    } else {
-        // Resolve relative file path
-        const baseDir = basePath.substring(0, basePath.lastIndexOf('/') + 1) ||
-            basePath.substring(0, basePath.lastIndexOf('\\') + 1);
-        return baseDir + includePath;
-    }
-}
-
-/**
  * Evaluates a preprocessor condition using safe expression parser
  * Supports: true, false, !, &&, ||, (), and platform identifiers
  */
@@ -160,13 +122,13 @@ export class FilterDownloader {
         let content: string;
 
         try {
-            if (isUrl(source)) {
+            if (PathUtils.isUrl(source)) {
                 content = await this.fetchUrl(source);
             } else {
                 content = await this.readFile(source);
             }
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
+            const message = ErrorUtils.getMessage(error);
             this.logger.error(`Failed to download ${source}: ${message}`);
             throw error;
         }
@@ -190,14 +152,14 @@ export class FilterDownloader {
      */
     private async fetchUrl(url: string): Promise<string> {
         let lastError: Error | null = null;
-        
+
         for (let attempt = 0; attempt <= this.options.maxRetries; attempt++) {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
 
             try {
                 this.logger.debug(`Fetching ${url} (attempt ${attempt + 1}/${this.options.maxRetries + 1})`);
-                
+
                 const response = await fetch(url, {
                     signal: controller.signal,
                     headers: {
@@ -210,53 +172,62 @@ export class FilterDownloader {
                     // Only retry on 5xx errors and 429 (rate limit)
                     const shouldRetry = response.status >= 500 || response.status === 429;
                     if (!shouldRetry || attempt === this.options.maxRetries) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        throw ErrorUtils.httpError(url, response.status, response.statusText);
                     }
-                    
-                    lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+                    lastError = ErrorUtils.httpError(url, response.status, response.statusText);
                     this.logger.warn(`Request failed with ${response.status}, retrying...`);
                 } else {
                     const text = await response.text();
 
                     if (!text && !this.options.allowEmptyResponse) {
-                        throw new Error('Empty response received');
+                        throw new NetworkError('Empty response received', url);
                     }
 
                     return text;
                 }
             } catch (error) {
-                lastError = error instanceof Error ? error : new Error(String(error));
-                
+                // Preserve NetworkError instances
+                if (error instanceof NetworkError) {
+                    lastError = error;
+                } else {
+                    lastError = ErrorUtils.toError(error);
+                }
+
                 // Check if it's a timeout/abort error
-                const isTimeoutError = lastError.name === 'AbortError' || 
-                                      lastError.message.includes('aborted');
-                
-                // Don't retry on certain errors
+                const isTimeoutError = lastError.name === 'AbortError' ||
+                    lastError.message.includes('aborted');
+
+                if (isTimeoutError) {
+                    lastError = ErrorUtils.timeoutError(url, this.options.timeout);
+                }
+
+                // Don't retry on 4xx client errors
                 if (!isTimeoutError && lastError.message.includes('HTTP 4')) {
                     throw lastError;
                 }
-                
+
                 if (attempt === this.options.maxRetries) {
                     throw lastError;
                 }
-                
+
                 this.logger.warn(`Request failed: ${lastError.message}, retrying...`);
             } finally {
                 clearTimeout(timeoutId);
             }
-            
+
             // Exponential backoff with jitter
             if (attempt < this.options.maxRetries) {
                 const backoffDelay = this.options.retryDelay * Math.pow(2, attempt);
                 const jitter = Math.random() * 0.3 * backoffDelay; // Add up to 30% jitter
                 const delay = backoffDelay + jitter;
-                
+
                 this.logger.debug(`Waiting ${Math.round(delay)}ms before retry...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
+                await new Promise((resolve) => setTimeout(resolve, delay));
             }
         }
-        
-        throw lastError || new Error('Failed to fetch URL after retries');
+
+        throw lastError ?? new NetworkError('Failed to fetch URL after retries', url);
     }
 
     /**
@@ -267,16 +238,16 @@ export class FilterDownloader {
             const content = await Deno.readTextFile(path);
 
             if (!content && !this.options.allowEmptyResponse) {
-                throw new Error('Empty file');
+                throw new FileSystemError('Empty file', path);
             }
 
             return content;
         } catch (error) {
             if (error instanceof Deno.errors.NotFound) {
-                throw new Error(`File not found: ${path}`);
+                throw ErrorUtils.fileNotFoundError(path);
             }
             if (error instanceof Error && error.name === 'NotCapable') {
-                throw new Error(`Permission denied: Reading ${path} requires --allow-read flag`);
+                throw ErrorUtils.permissionDeniedError(path, 'read');
             }
             throw error;
         }
@@ -288,7 +259,7 @@ export class FilterDownloader {
     private async processDirectives(
         lines: string[],
         basePath: string,
-        depth: number
+        depth: number,
     ): Promise<string[]> {
         const result: string[] = [];
         let i = 0;
@@ -319,14 +290,13 @@ export class FilterDownloader {
             // Handle !#include directive
             if (trimmed.startsWith(DirectiveType.Include)) {
                 const includePath = trimmed.substring(DirectiveType.Include.length).trim();
-                const resolvedPath = resolveIncludePath(includePath, basePath);
+                const resolvedPath = PathUtils.resolveIncludePath(includePath, basePath);
 
                 try {
                     const included = await this.downloadInternal(resolvedPath, depth + 1);
                     result.push(...included);
                 } catch (error) {
-                    const message = error instanceof Error ? error.message : String(error);
-                    this.logger.warn(`Failed to include ${includePath}: ${message}`);
+                    this.logger.warn(`Failed to include ${includePath}: ${ErrorUtils.getMessage(error)}`);
                 }
 
                 i++;
@@ -446,7 +416,7 @@ export class FilterDownloader {
     static async download(
         source: string,
         options?: DownloaderOptions,
-        additionalOptions?: { allowEmptyResponse?: boolean }
+        additionalOptions?: { allowEmptyResponse?: boolean },
     ): Promise<string[]> {
         const mergedOptions: DownloaderOptions = {
             ...options,

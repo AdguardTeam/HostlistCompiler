@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+- **Priority Queue Support** for async compilation
+  - Two-tier queue system: standard and high priority
+  - Separate queues with optimized settings for different priority levels
+  - High-priority queue has smaller batch size (5) and shorter timeout (2s) for faster processing
+  - Standard priority queue maintains larger batches (10) and normal timeout (5s) for throughput
+  - Optional `priority` field in async API endpoints (`/compile/async`, `/compile/batch/async`)
+  - Automatic routing to appropriate queue based on priority level
+  - Premium users and urgent compilations can use high-priority processing
+  - Updated documentation with priority queue examples and deployment instructions
 - **Cloudflare Tail Worker** for advanced logging and observability
   - Real-time log capture from main worker (console logs, exceptions, errors)
   - Optional KV storage for log persistence with configurable TTL
@@ -24,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] - 2026-01-01
 
 ### Added
+
 - **Gzip Compression** for cache storage (70-80% size reduction)
 - **Circuit Breaker** with automatic retry (3 attempts) and exponential backoff for external sources
 - **Batch Processing API** (`POST /compile/batch`) for compiling up to 10 lists in parallel
@@ -36,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Status badges in README (JSR, Web UI, API, Deno, License)
 
 ### Changed
+
 - Updated JSR package name to `@jk-com/adblock-compiler`
 - Improved Web UI with batch endpoint and performance features documentation
 - Enhanced README with deployment badges and feature highlights
@@ -43,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation to emphasize Compiler-as-a-Service model
 
 ### Fixed
+
 - Variable scoping issue with `previousCachedVersion`
 - Cache decompression error handling
 - Rate limiting headers (429 with Retry-After)
@@ -50,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2024-12-15
 
 ### Added
+
 - Initial production release as AdBlock Compiler
 - Cloudflare Workers deployment support
 - Server-Sent Events (SSE) for real-time progress tracking
@@ -60,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive API documentation tab
 
 ### Changed
+
 - Complete Deno-native rewrite from @adguard/hostlist-compiler
 - Zero Node.js dependencies
 - Platform-agnostic design (Deno, Node.js, Cloudflare Workers, browsers)
@@ -155,7 +170,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.29]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.28...v1.0.29
 [#72]: https://github.com/AdguardTeam/FiltersCompiler/issues/72
 
-
 ## [1.0.28] - 2024-09-25
 
 ### Fix
@@ -163,7 +177,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add `ValidateAllowIp` to validate configuration schema [#69]
 
 [1.0.28]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.27...v1.0.28
-
 
 ## [1.0.27] - 2024-09-25
 
@@ -173,5 +186,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [1.0.27]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.26...v1.0.27
 [#69]: https://github.com/AdguardTeam/FiltersCompiler/issues/69
-
 [@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/master/CHANGELOG.md

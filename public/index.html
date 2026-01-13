@@ -6,6 +6,10 @@
     <title>Hostlist Compiler</title>
     <!-- Cloudflare Web Analytics -->
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8771568d1cde4005bb60c5767d0969c4"}'></script>
+    <!-- Chart.js for queue visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         * {
             box-sizing: border-box;
@@ -513,6 +517,98 @@
             text-decoration: underline;
         }
 
+        .job-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+
+        .job-history-table th {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .job-history-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .job-history-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-cancelled {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .health-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .health-healthy {
+            background: #28a745;
+        }
+
+        .health-degraded {
+            background: #ffc107;
+        }
+
+        .health-critical {
+            background: #dc3545;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 15px;
+        }
+
+        .cancel-btn {
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .cancel-btn:hover {
+            background: #c82333;
+        }
+
+        .cancel-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 768px) {
             header h1 {
                 font-size: 1.8rem;
@@ -595,6 +691,17 @@
                     <label for="simple-benchmark">Enable benchmarking (performance metrics)</label>
                 </div>
 
+                <div class="checkbox-group">
+                    <input type="checkbox" id="simple-use-queue">
+                    <label for="simple-use-queue">Use queue (async compilation) - Job will be processed in background</label>
+                </div>
+
+                <!-- Cloudflare Turnstile Widget -->
+                <div class="form-group" id="turnstile-container-simple">
+                    <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY_PLACEHOLDER" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"></div>
+                    <div class="hint" id="turnstile-hint">Complete the security check to compile</div>
+                </div>
+
                 <div class="button-group">
                     <button class="btn-primary" id="simple-compile">Compile Filter List</button>
                     <button class="btn-secondary" id="simple-clear">Clear</button>
@@ -630,6 +737,17 @@
                 <div class="checkbox-group">
                     <input type="checkbox" id="advanced-benchmark" checked>
                     <label for="advanced-benchmark">Enable benchmarking (performance metrics)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="advanced-use-queue">
+                    <label for="advanced-use-queue">Use queue (async compilation) - Job will be processed in background</label>
+                </div>
+
+                <!-- Cloudflare Turnstile Widget -->
+                <div class="form-group" id="turnstile-container-advanced">
+                    <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY_PLACEHOLDER" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"></div>
+                    <div class="hint">Complete the security check to compile</div>
                 </div>
 
                 <div class="button-group">
@@ -790,6 +908,78 @@ eventSource.addEventListener('result', (e) => {
                     <p>📚 <a href="https://github.com/jaypatrick/hostlistcompiler" target="_blank">GitHub Repository</a></p>
                     <p>🌐 <a href="https://adblock-compiler.jayson-knight.workers.dev/" target="_blank">Web UI</a></p>
                     <p>⚡ <a href="https://adblock-compiler.jayson-knight.workers.dev/api" target="_blank">API Info Endpoint</a></p>
+                </div>
+            </div>
+
+            <!-- Queue Statistics Section -->
+            <div class="progress-section" id="queue-stats-section" style="display: none;">
+                <div class="progress-header" style="cursor: default;">
+                    <h3>📊 Queue Statistics <span id="queue-health-indicator"></span></h3>
+                    <button class="btn-secondary" id="refresh-queue-stats" style="padding: 6px 12px; font-size: 0.9rem;">Refresh</button>
+                </div>
+                <div class="progress-content expanded" style="max-height: none;">
+                    <div class="stats" id="queue-stats">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                            <div class="stat-value" id="queue-pending">-</div>
+                            <div class="stat-label">Pending Jobs</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            <div class="stat-value" id="queue-completed">-</div>
+                            <div class="stat-label">Completed Jobs</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                            <div class="stat-value" id="queue-failed">-</div>
+                            <div class="stat-label">Failed Jobs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="queue-avg-time">-</div>
+                            <div class="stat-label">Avg Processing Time</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                            <div class="stat-value" id="queue-processing-rate">-</div>
+                            <div class="stat-label">Processing Rate (jobs/min)</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);">
+                            <div class="stat-value" id="queue-lag">-</div>
+                            <div class="stat-label">Queue Lag</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Queue Depth Chart -->
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: #667eea; margin-bottom: 10px;">Queue Depth Over Time</h4>
+                        <div class="chart-container">
+                            <canvas id="queue-depth-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Job History -->
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: #667eea; margin-bottom: 10px;">Recent Job History</h4>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="job-history-table" id="job-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Job Name</th>
+                                        <th>Status</th>
+                                        <th>Duration</th>
+                                        <th>Rules</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="job-history-body">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: #999; padding: 20px;">No job history available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
+                        Last updated: <span id="queue-last-update">Never</span>
+                    </div>
                 </div>
             </div>
 
@@ -1003,6 +1193,79 @@ eventSource.addEventListener('result', (e) => {
         let currentListName = '';
         let compilerWorker = null;
         let compilationId = 0;
+        let pendingQueuedRequestId = null; // Track the pending queued job for result retrieval
+
+        // Turnstile token management
+        let turnstileToken = null;
+        let turnstileSiteKey = null;
+
+        // Fetch Turnstile site key from server
+        async function fetchTurnstileSiteKey() {
+            try {
+                const apiUrl = window.location.hostname === 'localhost'
+                    ? '/api/turnstile-config'
+                    : 'https://adblock-compiler.jayson-knight.workers.dev/api/turnstile-config';
+
+                const response = await fetch(apiUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.siteKey) {
+                        turnstileSiteKey = data.siteKey;
+                        // Update all Turnstile widgets with the actual site key
+                        document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                            widget.setAttribute('data-sitekey', data.siteKey);
+                        });
+                        // Re-render Turnstile widgets
+                        if (window.turnstile) {
+                            document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                                window.turnstile.render(widget, {
+                                    sitekey: data.siteKey,
+                                    callback: onTurnstileSuccess,
+                                    'expired-callback': onTurnstileExpired,
+                                    'error-callback': onTurnstileError
+                                });
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch Turnstile site key:', error);
+            }
+        }
+
+        // Turnstile callback functions (must be global for the widget)
+        window.onTurnstileSuccess = function(token) {
+            turnstileToken = token;
+            document.getElementById('turnstile-hint').textContent = 'Security check passed';
+            document.getElementById('turnstile-hint').style.color = '#28a745';
+        };
+
+        window.onTurnstileExpired = function() {
+            turnstileToken = null;
+            document.getElementById('turnstile-hint').textContent = 'Security check expired. Please verify again.';
+            document.getElementById('turnstile-hint').style.color = '#dc3545';
+        };
+
+        window.onTurnstileError = function() {
+            turnstileToken = null;
+            document.getElementById('turnstile-hint').textContent = 'Security check failed. Please try again.';
+            document.getElementById('turnstile-hint').style.color = '#dc3545';
+        };
+
+        // Reset Turnstile after compilation
+        function resetTurnstile() {
+            turnstileToken = null;
+            if (window.turnstile) {
+                document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                    window.turnstile.reset(widget);
+                });
+            }
+            document.getElementById('turnstile-hint').textContent = 'Complete the security check to compile';
+            document.getElementById('turnstile-hint').style.color = '#888';
+        }
+
+        // Fetch Turnstile site key when page loads
+        fetchTurnstileSiteKey();
 
         // Initialize the Web Worker
         function initWorker() {
@@ -1042,6 +1305,12 @@ eventSource.addEventListener('result', (e) => {
         document.getElementById('advanced-compile').addEventListener('click', () => compileAdvanced());
 
         async function compileSimple() {
+            // Check Turnstile token
+            if (!turnstileToken) {
+                alert('Please complete the security check before compiling');
+                return;
+            }
+
             const input = document.getElementById('simple-input').value.trim();
             if (!input) {
                 alert('Please enter at least one URL or some rules');
@@ -1050,6 +1319,7 @@ eventSource.addEventListener('result', (e) => {
 
             const listName = document.getElementById('list-name').value.trim() || 'My Filter List';
             const benchmark = document.getElementById('simple-benchmark').checked;
+            const useQueue = document.getElementById('simple-use-queue').checked;
 
             // Parse input - separate URLs from raw rules
             const lines = input.split('\n').map(l => l.trim()).filter(l => l);
@@ -1100,10 +1370,16 @@ eventSource.addEventListener('result', (e) => {
                 preFetchedContent['raw-rules'] = rawRules.join('\n');
             }
 
-            await compile(configuration, preFetchedContent, benchmark);
+            await compile(configuration, preFetchedContent, benchmark, useQueue);
         }
 
         async function compileAdvanced() {
+            // Check Turnstile token
+            if (!turnstileToken) {
+                alert('Please complete the security check before compiling');
+                return;
+            }
+
             const configText = document.getElementById('advanced-config').value.trim();
             if (!configText) {
                 alert('Please enter a configuration');
@@ -1119,7 +1395,8 @@ eventSource.addEventListener('result', (e) => {
             }
 
             const benchmark = document.getElementById('advanced-benchmark').checked;
-            await compile(configuration, {}, benchmark);
+            const useQueue = document.getElementById('advanced-use-queue').checked;
+            await compile(configuration, {}, benchmark, useQueue);
         }
 
         // Store compilation state
@@ -1188,7 +1465,7 @@ eventSource.addEventListener('result', (e) => {
             compileBtn.disabled = false;
         }
 
-        async function compile(configuration, preFetchedContent, benchmark) {
+        async function compile(configuration, preFetchedContent, benchmark, useQueue = false) {
             currentListName = configuration.name || 'filter-list';
             hideResults();
             showProgress();
@@ -1201,23 +1478,94 @@ eventSource.addEventListener('result', (e) => {
             progressFill.style.width = '0%';
             compileBtn.disabled = true;
 
+            // Capture the current Turnstile token
+            const token = turnstileToken;
+
+            // Reset Turnstile immediately after capturing the token
+            resetTurnstile();
+
             // Track compilation start
             compileStartTime = Date.now();
             trackEvent('compilation_started', {
                 list_name: currentListName,
                 source_count: configuration.sources?.length || 0,
                 has_transformations: (configuration.transformations?.length || 0) > 0,
-                benchmark: benchmark
+                benchmark: benchmark,
+                use_queue: useQueue
             });
 
+            if (useQueue) {
+                // Use async queue endpoint
+                await compileWithQueue(configuration, preFetchedContent, benchmark, token);
+            } else {
+                // Use streaming SSE endpoint
+                await compileWithStream(configuration, preFetchedContent, benchmark, token);
+            }
+        }
+
+        async function compileWithQueue(configuration, preFetchedContent, benchmark, turnstileToken) {
+            const apiUrl = window.location.hostname === 'localhost'
+                ? '/compile/async'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/compile/async';
+
+            try {
+                addLog('info', '📤 Sending compilation job to queue...');
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        configuration,
+                        preFetchedContent,
+                        benchmark,
+                        turnstileToken
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog('success', `✓ Job queued successfully! Request ID: ${result.requestId}`);
+                    addLog('info', result.note);
+                    addLog('info', '⏳ Your compilation will be processed in the background.');
+                    addLog('info', '💡 Download and Copy options will appear when the job completes.');
+
+                    // Store the requestId for result retrieval when job completes
+                    pendingQueuedRequestId = result.requestId;
+
+                    // Show queue stats
+                    showQueueStats();
+                    await fetchQueueStats();
+
+                    // Track successful queue
+                    trackEvent('compilation_queued', {
+                        list_name: currentListName,
+                        request_id: result.requestId,
+                        duration_ms: Date.now() - compileStartTime
+                    });
+                } else {
+                    throw new Error(result.error || 'Failed to queue compilation');
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                handleCompilationError(errorMessage);
+            } finally {
+                const compileBtn = document.querySelector('.btn-primary');
+                compileBtn.disabled = false;
+            }
+        }
+
+        async function compileWithStream(configuration, preFetchedContent, benchmark, turnstileToken) {
             // Initialize worker if needed
             initWorker();
 
             // Use production API or local dev
-            const apiUrl = window.location.hostname === 'localhost' 
+            const apiUrl = window.location.hostname === 'localhost'
                 ? '/compile/stream'
                 : 'https://adblock-compiler.jayson-knight.workers.dev/compile/stream';
-            
+
             // Send compilation request to worker
             const requestId = ++compilationId;
             compilerWorker.postMessage({
@@ -1227,9 +1575,290 @@ eventSource.addEventListener('result', (e) => {
                 requestBody: {
                     configuration,
                     preFetchedContent,
-                    benchmark
+                    benchmark,
+                    turnstileToken
                 }
             });
+        }
+
+        // Chart instance for queue depth
+        let queueDepthChart = null;
+
+        async function fetchQueueStats() {
+            const apiUrl = window.location.hostname === 'localhost' 
+                ? '/queue/stats'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/queue/stats';
+            
+            try {
+                const response = await fetch(apiUrl);
+                const stats = await response.json();
+                
+                // Update basic stats
+                document.getElementById('queue-pending').textContent = stats.pending.toLocaleString();
+                document.getElementById('queue-completed').textContent = stats.completed.toLocaleString();
+                document.getElementById('queue-failed').textContent = stats.failed.toLocaleString();
+                document.getElementById('queue-avg-time').textContent = 
+                    stats.averageProcessingTime > 0 ? `${stats.averageProcessingTime}ms` : '-';
+                document.getElementById('queue-processing-rate').textContent = 
+                    stats.processingRate || '0';
+                document.getElementById('queue-lag').textContent = 
+                    stats.queueLag > 0 ? `${Math.round(stats.queueLag / 1000)}s` : '-';
+                document.getElementById('queue-last-update').textContent = 
+                    new Date(stats.lastUpdate).toLocaleTimeString();
+                
+                // Update health indicator
+                updateQueueHealth(stats);
+                
+                // Update queue depth chart
+                updateQueueDepthChart(stats.depthHistory || []);
+                
+                // Update job history table
+                updateJobHistory(stats.history || []);
+                
+                // Check for recently completed jobs and show notifications
+                checkForCompletedJobs(stats.history || []);
+            } catch (error) {
+                console.error('Failed to fetch queue stats:', error);
+            }
+        }
+
+        function updateQueueHealth(stats) {
+            const indicator = document.getElementById('queue-health-indicator');
+            const pending = stats.pending || 0;
+            const processingRate = stats.processingRate || 0;
+            const queueLag = stats.queueLag || 0;
+            
+            let healthClass = 'health-healthy';
+            let healthText = 'Healthy';
+            
+            // Determine health based on queue lag and pending jobs
+            if (queueLag > 60000 || pending > 50) {
+                healthClass = 'health-critical';
+                healthText = 'Critical';
+            } else if (queueLag > 30000 || pending > 20) {
+                healthClass = 'health-degraded';
+                healthText = 'Degraded';
+            }
+            
+            indicator.innerHTML = `<span class="health-indicator ${healthClass}"></span>${healthText}`;
+        }
+
+        function updateQueueDepthChart(depthHistory) {
+            const canvas = document.getElementById('queue-depth-chart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Check if Chart.js is available
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not loaded, skipping chart update');
+                return;
+            }
+            
+            if (queueDepthChart) {
+                queueDepthChart.destroy();
+            }
+            
+            const labels = depthHistory.map(entry => {
+                const date = new Date(entry.timestamp);
+                return date.toLocaleTimeString();
+            });
+            
+            const data = depthHistory.map(entry => entry.pending);
+            
+            try {
+                queueDepthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Pending Jobs',
+                            data: data,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                display: labels.length > 0
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.warn('Failed to create chart:', error);
+            }
+        }
+
+        function updateJobHistory(history) {
+            const tbody = document.getElementById('job-history-body');
+            
+            if (!history || history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 20px;">No job history available</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = history.map(job => {
+                const date = new Date(job.timestamp);
+                const timeStr = date.toLocaleTimeString();
+                const statusClass = `status-${job.status}`;
+                const duration = job.duration ? `${job.duration}ms` : '-';
+                const ruleCount = job.ruleCount ? job.ruleCount.toLocaleString() : '-';
+                
+                return `
+                    <tr>
+                        <td>${timeStr}</td>
+                        <td>${escapeHtml(job.configName)}</td>
+                        <td><span class="status-badge ${statusClass}">${job.status}</span></td>
+                        <td>${duration}</td>
+                        <td>${ruleCount}</td>
+                        <td>
+                            ${job.status === 'failed' && job.error ? `<span title="${escapeHtml(job.error)}" style="cursor: help;">ℹ️</span>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Track shown notifications to avoid duplicates
+        const shownNotifications = new Set();
+        // Track jobs that we've already fetched results for
+        const fetchedResultsFor = new Set();
+
+        function checkForCompletedJobs(history) {
+            if (!history || history.length === 0) return;
+
+            // Check for completed jobs in the last minute
+            const oneMinuteAgo = Date.now() - 60000;
+            const recentCompleted = history.filter(job => {
+                const jobTime = new Date(job.timestamp).getTime();
+                return job.status === 'completed' &&
+                       jobTime > oneMinuteAgo &&
+                       !shownNotifications.has(job.requestId);
+            });
+
+            // Show browser notifications if permission granted
+            if (recentCompleted.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
+                recentCompleted.forEach(job => {
+                    showJobNotification(job);
+                    shownNotifications.add(job.requestId);
+                });
+            }
+
+            // Check if our pending queued job has completed and fetch results
+            if (pendingQueuedRequestId && !fetchedResultsFor.has(pendingQueuedRequestId)) {
+                const ourJob = history.find(job => job.requestId === pendingQueuedRequestId);
+                if (ourJob && ourJob.status === 'completed') {
+                    fetchQueuedResults(pendingQueuedRequestId);
+                    fetchedResultsFor.add(pendingQueuedRequestId);
+                } else if (ourJob && ourJob.status === 'failed') {
+                    addLog('error', `Queued job failed: ${ourJob.error || 'Unknown error'}`);
+                    fetchedResultsFor.add(pendingQueuedRequestId);
+                    pendingQueuedRequestId = null;
+                }
+            }
+        }
+
+        // Fetch results for a completed queued job and display them
+        async function fetchQueuedResults(requestId) {
+            const apiUrl = window.location.hostname === 'localhost'
+                ? `/queue/results/${requestId}`
+                : `https://adblock-compiler.jayson-knight.workers.dev/queue/results/${requestId}`;
+
+            try {
+                addLog('info', '📥 Fetching compilation results...');
+
+                const response = await fetch(apiUrl);
+                const result = await response.json();
+
+                if (result.success && result.rules) {
+                    // Store the rules for download/copy functionality
+                    compiledRules = result.rules;
+
+                    // Show the results section with download/copy buttons
+                    showResults({
+                        rules: result.rules,
+                        ruleCount: result.ruleCount,
+                        metrics: result.metrics,
+                        previousVersion: null // Diff not available for queued results
+                    });
+
+                    addLog('success', `✓ Results loaded! ${result.ruleCount} rules compiled.`);
+
+                    // Track successful result retrieval
+                    trackEvent('queued_results_loaded', {
+                        list_name: currentListName,
+                        request_id: requestId,
+                        rule_count: result.ruleCount
+                    });
+                } else {
+                    // Handle various error statuses
+                    if (result.status === 'cache_miss') {
+                        addLog('warning', 'Cached results have expired. Please compile again to get results.');
+                    } else if (result.status === 'no_cache') {
+                        addLog('warning', 'Results cannot be retrieved (pre-fetched content was used).');
+                    } else {
+                        addLog('error', `Failed to fetch results: ${result.error || 'Unknown error'}`);
+                    }
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                addLog('error', `Failed to fetch queued results: ${errorMessage}`);
+            } finally {
+                // Clear the pending request
+                pendingQueuedRequestId = null;
+            }
+        }
+
+        function showJobNotification(job) {
+            const notification = new Notification('Compilation Complete', {
+                body: `${job.configName} - ${job.ruleCount} rules compiled in ${job.duration}ms`,
+                icon: '/favicon.ico',
+                tag: job.requestId
+            });
+            
+            setTimeout(() => notification.close(), 5000);
+        }
+
+        // Request notification permission when showing queue stats
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        function showQueueStats() {
+            document.getElementById('queue-stats-section').style.display = 'block';
+            // Request notification permission
+            requestNotificationPermission();
+            // Start auto-refresh when showing queue stats
+            if (typeof startQueueStatsAutoRefresh === 'function') {
+                startQueueStatsAutoRefresh();
+            }
+        }
+
+        function hideQueueStats() {
+            document.getElementById('queue-stats-section').style.display = 'none';
+            // Stop auto-refresh immediately when hiding
+            if (typeof stopQueueStatsAutoRefresh === 'function') {
+                stopQueueStatsAutoRefresh();
+            }
         }
 
         function addLog(level, message) {
@@ -1265,6 +1894,8 @@ eventSource.addEventListener('result', (e) => {
         function hideResults() {
             document.getElementById('results').classList.remove('visible');
             document.getElementById('progress').classList.remove('visible');
+            // Hide and stop auto-refresh for queue stats
+            hideQueueStats();
         }
 
         function showResults(data) {
@@ -1430,6 +2061,44 @@ eventSource.addEventListener('result', (e) => {
                 alert('Failed to copy to clipboard: ' + error.message);
             }
         });
+
+        // Queue stats refresh button
+        document.getElementById('refresh-queue-stats').addEventListener('click', async () => {
+            await fetchQueueStats();
+        });
+
+        // Auto-refresh queue stats every 5 seconds when visible
+        let queueStatsIntervalId = null;
+        
+        function isQueueStatsSectionVisible() {
+            const queueStatsSection = document.getElementById('queue-stats-section');
+            // Check if element is visible using computed style
+            const computedStyle = window.getComputedStyle(queueStatsSection);
+            return computedStyle.display !== 'none';
+        }
+        
+        function startQueueStatsAutoRefresh() {
+            if (queueStatsIntervalId === null) {
+                queueStatsIntervalId = setInterval(async () => {
+                    if (isQueueStatsSectionVisible()) {
+                        await fetchQueueStats();
+                    } else {
+                        // Stop auto-refresh when hidden
+                        stopQueueStatsAutoRefresh();
+                    }
+                }, 5000);
+            }
+        }
+        
+        function stopQueueStatsAutoRefresh() {
+            if (queueStatsIntervalId !== null) {
+                clearInterval(queueStatsIntervalId);
+                queueStatsIntervalId = null;
+            }
+        }
+        
+        // Don't start auto-refresh on page load - only when queue stats are shown
+        // startQueueStatsAutoRefresh(); is called in showQueueStats()
     </script>
 </body>
 </html>

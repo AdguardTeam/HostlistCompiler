@@ -227,13 +227,14 @@ class BooleanParser {
                 // Check if identifier matches current platform
                 return this.evaluateIdentifier(token.value);
 
-            case TokenType.LPAREN:
+            case TokenType.LPAREN: {
                 this.advance(); // consume '('
                 const result = this.parseOr();
                 if (this.current().type === TokenType.RPAREN) {
                     this.advance(); // consume ')'
                 }
                 return result;
+            }
 
             default:
                 // Unknown token, treat as false
