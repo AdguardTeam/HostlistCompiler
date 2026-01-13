@@ -11,28 +11,28 @@ export { TldUtils } from './TldUtils.ts';
 export type { ParsedHost } from './TldUtils.ts';
 
 // Async utilities
-export { withRetry, RetryStrategies } from './AsyncRetry.ts';
+export { RetryStrategies, withRetry } from './AsyncRetry.ts';
 export type { RetryOptions, RetryResult } from './AsyncRetry.ts';
 
 // Logging
-export { Logger, LogLevel, createLogger, logger, silentLogger } from './logger.ts';
+export { createLogger, Logger, logger, LogLevel, silentLogger } from './logger.ts';
 export type { LoggerOptions } from './logger.ts';
 
 // Benchmarking
-export { Timer, BenchmarkCollector, formatDuration, formatNumber } from './Benchmark.ts';
+export { BenchmarkCollector, formatDuration, formatNumber, Timer } from './Benchmark.ts';
 export type { BenchmarkResult, CompilationMetrics } from './Benchmark.ts';
 
 // Event system
-export { CompilerEventEmitter, NoOpEventEmitter, createEventEmitter } from './EventEmitter.ts';
+export { CompilerEventEmitter, createEventEmitter, NoOpEventEmitter } from './EventEmitter.ts';
 
 // Checksum utilities
-export { calculateChecksum, addChecksumToHeader } from './checksum.ts';
+export { addChecksumToHeader, calculateChecksum } from './checksum.ts';
 
 // Header filtering utilities
 export { stripUpstreamHeaders } from './headerFilter.ts';
 
 // Error utilities
-export { ErrorUtils, CompilationError, ValidationError, NetworkError, SourceError } from './ErrorUtils.ts';
+export { CompilationError, ErrorUtils, NetworkError, SourceError, ValidationError } from './ErrorUtils.ts';
 
 // Boolean expression parser (safe alternative to Function constructor)
-export { evaluateBooleanExpression, isKnownPlatform, getKnownPlatforms } from './BooleanExpressionParser.ts';
+export { evaluateBooleanExpression, getKnownPlatforms, isKnownPlatform } from './BooleanExpressionParser.ts';

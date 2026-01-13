@@ -73,7 +73,7 @@ export class ConfigurationValidator {
         if (config.transformations !== undefined) {
             const transformErrors = this.validateTransformations(
                 config.transformations,
-                '/transformations'
+                '/transformations',
             );
             errors.push(...transformErrors);
         }
@@ -86,9 +86,17 @@ export class ConfigurationValidator {
 
         // Check for unknown properties
         const validProps = new Set([
-            'name', 'description', 'homepage', 'license', 'version',
-            'sources', 'transformations', 'exclusions', 'exclusions_sources',
-            'inclusions', 'inclusions_sources'
+            'name',
+            'description',
+            'homepage',
+            'license',
+            'version',
+            'sources',
+            'transformations',
+            'exclusions',
+            'exclusions_sources',
+            'inclusions',
+            'inclusions_sources',
         ]);
         for (const key of Object.keys(config)) {
             if (!validProps.has(key)) {
@@ -98,7 +106,7 @@ export class ConfigurationValidator {
 
         if (errors.length > 0) {
             const errorsText = errors
-                .map(e => `${e.path}: ${e.message}`)
+                .map((e) => `${e.path}: ${e.message}`)
                 .join('\n');
             return { valid: false, errorsText };
         }
@@ -156,7 +164,7 @@ export class ConfigurationValidator {
         if (src.transformations !== undefined) {
             const transformErrors = this.validateTransformations(
                 src.transformations,
-                `${basePath}/transformations`
+                `${basePath}/transformations`,
             );
             errors.push(...transformErrors);
         }
@@ -169,8 +177,14 @@ export class ConfigurationValidator {
 
         // Check for unknown properties
         const validProps = new Set([
-            'name', 'source', 'type', 'transformations',
-            'exclusions', 'exclusions_sources', 'inclusions', 'inclusions_sources'
+            'name',
+            'source',
+            'type',
+            'transformations',
+            'exclusions',
+            'exclusions_sources',
+            'inclusions',
+            'inclusions_sources',
         ]);
         for (const key of Object.keys(src)) {
             if (!validProps.has(key)) {
@@ -198,7 +212,7 @@ export class ConfigurationValidator {
             } else if (!VALID_TRANSFORMATIONS.has(item)) {
                 errors.push({
                     path: `${path}/${index}`,
-                    message: `invalid transformation: ${item}. Valid values: ${[...VALID_TRANSFORMATIONS].join(', ')}`
+                    message: `invalid transformation: ${item}. Valid values: ${[...VALID_TRANSFORMATIONS].join(', ')}`,
                 });
             }
         });
@@ -212,7 +226,7 @@ export class ConfigurationValidator {
     private validateStringArray(
         value: unknown,
         path: string,
-        errors: ValidationError[]
+        errors: ValidationError[],
     ): void {
         if (value === undefined) {
             return;

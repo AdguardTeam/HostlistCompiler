@@ -3,18 +3,18 @@
 
 import { parse } from '@std/flags';
 import {
+    ICompilationCompleteEvent,
+    ICompilerEvents,
     IConfiguration,
     ILogger,
+    IProgressEvent,
     ISource,
-    SourceType,
-    TransformationType,
-    ICompilerEvents,
-    ISourceStartEvent,
     ISourceCompleteEvent,
     ISourceErrorEvent,
+    ISourceStartEvent,
     ITransformationCompleteEvent,
-    IProgressEvent,
-    ICompilationCompleteEvent,
+    SourceType,
+    TransformationType,
 } from '../types/index.ts';
 import { FilterCompiler, FilterCompilerOptions } from '../compiler/index.ts';
 import { formatDuration } from '../utils/index.ts';
@@ -226,7 +226,7 @@ Examples:
 
     /**
      * Reads the configuration file using Deno's file system API.
-     * 
+     *
      * NOTE: This currently doesn't validate the configuration schema.
      * In the full migration, this should use ConfigurationValidator
      * which validates against the JSON schema. For now, validation
@@ -314,9 +314,7 @@ Examples:
             this.initCompiler();
 
             // Get configuration
-            const config = this.args.input
-                ? this.createConfig()
-                : await this.readConfig();
+            const config = this.args.input ? this.createConfig() : await this.readConfig();
 
             this.logger.debug(`Configuration: ${JSON.stringify(config, null, 4)}`);
 

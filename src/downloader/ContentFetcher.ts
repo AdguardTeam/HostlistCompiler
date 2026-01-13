@@ -95,9 +95,7 @@ export class ContentFetcher {
         this.logger.debug(`Fetching: ${source}`);
 
         try {
-            const content = this.isUrl(source)
-                ? await this.fetchFromUrl(source)
-                : await this.fetchFromFile(source);
+            const content = this.isUrl(source) ? await this.fetchFromUrl(source) : await this.fetchFromFile(source);
 
             if (!content && !this.options.allowEmptyResponse) {
                 throw new Error('Empty content received');

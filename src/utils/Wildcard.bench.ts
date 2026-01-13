@@ -167,7 +167,7 @@ Deno.bench('Wildcard - property access', { group: 'properties' }, () => {
     const plain = new Wildcard('example.com');
     const wildcard = new Wildcard('*.example.com');
     const regex = new Wildcard('/example/');
-    
+
     for (let i = 0; i < 1000; i++) {
         plain.isPlain;
         plain.isWildcard;
@@ -193,7 +193,7 @@ Deno.bench('Wildcard - filter list exclusion patterns', { group: 'realworld' }, 
         new Wildcard('*/ads/*'),
         new Wildcard('*.doubleclick.*'),
     ];
-    
+
     const rules = [
         '||ads.example.com^',
         '||tracker.example.org^',
@@ -201,7 +201,7 @@ Deno.bench('Wildcard - filter list exclusion patterns', { group: 'realworld' }, 
         '||ad.doubleclick.net^',
         '||safe-site.com^',
     ];
-    
+
     for (let i = 0; i < 100; i++) {
         for (const pattern of patterns) {
             for (const rule of rules) {
@@ -217,14 +217,14 @@ Deno.bench('Wildcard - filter list inclusion patterns', { group: 'realworld' }, 
         new Wildcard('@@*'),
         new Wildcard('*$important*'),
     ];
-    
+
     const rules = [
         '||ads.example.com^',
         '@@||whitelist.com^',
         '||tracking.org^$important',
         '||test.example.com^$third-party',
     ];
-    
+
     for (let i = 0; i < 100; i++) {
         for (const pattern of patterns) {
             for (const rule of rules) {
@@ -239,9 +239,9 @@ Deno.bench('Wildcard - plain vs wildcard vs regex comparison', { group: 'compari
     const plain = new Wildcard('example.com');
     const wildcard = new Wildcard('*.example.com');
     const regex = new Wildcard('/^.*\\.example\\.com$/');
-    
+
     const testStr = 'ads.example.com';
-    
+
     for (let i = 0; i < 1000; i++) {
         plain.test(testStr);
         wildcard.test(testStr);

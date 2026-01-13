@@ -1,5 +1,5 @@
-import { ILogger, ISource, IConfiguration, TransformationType } from '../types/index.ts';
-import { logger as defaultLogger, Wildcard, CompilerEventEmitter, createEventEmitter } from '../utils/index.ts';
+import { IConfiguration, ILogger, ISource, TransformationType } from '../types/index.ts';
+import { CompilerEventEmitter, createEventEmitter, logger as defaultLogger, Wildcard } from '../utils/index.ts';
 import { Transformation } from './base/Transformation.ts';
 import { RemoveCommentsTransformation } from './RemoveCommentsTransformation.ts';
 import { TrimLinesTransformation } from './TrimLinesTransformation.ts';
@@ -9,7 +9,7 @@ import { ConvertToAsciiTransformation } from './ConvertToAsciiTransformation.ts'
 import { InvertAllowTransformation } from './InvertAllowTransformation.ts';
 import { RemoveModifiersTransformation } from './RemoveModifiersTransformation.ts';
 import { DeduplicateTransformation } from './DeduplicateTransformation.ts';
-import { ValidateTransformation, ValidateAllowIpTransformation } from './ValidateTransformation.ts';
+import { ValidateAllowIpTransformation, ValidateTransformation } from './ValidateTransformation.ts';
 import { CompressTransformation } from './CompressTransformation.ts';
 import { FilterService } from '../services/FilterService.ts';
 
@@ -191,8 +191,10 @@ export class TransformationPipeline {
         const exclusions = configuration.exclusions;
         const exclusionsSources = configuration.exclusions_sources;
 
-        if ((!exclusions || exclusions.length === 0)
-            && (!exclusionsSources || exclusionsSources.length === 0)) {
+        if (
+            (!exclusions || exclusions.length === 0) &&
+            (!exclusionsSources || exclusionsSources.length === 0)
+        ) {
             return rules;
         }
 
@@ -252,8 +254,10 @@ export class TransformationPipeline {
         const inclusions = configuration.inclusions;
         const inclusionsSources = configuration.inclusions_sources;
 
-        if ((!inclusions || inclusions.length === 0)
-            && (!inclusionsSources || inclusionsSources.length === 0)) {
+        if (
+            (!inclusions || inclusions.length === 0) &&
+            (!inclusionsSources || inclusionsSources.length === 0)
+        ) {
             return rules;
         }
 

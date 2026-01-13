@@ -25,13 +25,7 @@ export { RuleUtils, StringUtils, TldUtils, Wildcard } from './utils/index.ts';
 export type { ParsedHost } from './utils/index.ts';
 
 // Error utilities
-export {
-    CompilationError,
-    ErrorUtils,
-    NetworkError,
-    SourceError,
-    ValidationError,
-} from './utils/index.ts';
+export { CompilationError, ErrorUtils, NetworkError, SourceError, ValidationError } from './utils/index.ts';
 
 // Boolean expression parser
 export { evaluateBooleanExpression, getKnownPlatforms, isKnownPlatform } from './utils/index.ts';
@@ -101,13 +95,7 @@ export { compile, FilterCompiler, SourceCompiler } from './compiler/index.ts';
 export type { CompilationResult, FilterCompilerOptions } from './compiler/index.ts';
 
 // Platform abstraction layer (for Web Workers, Cloudflare Workers, browsers)
-export {
-    CompositeFetcher,
-    HttpFetcher,
-    PlatformDownloader,
-    PreFetchedContentFetcher,
-    WorkerCompiler,
-} from './platform/index.ts';
+export { CompositeFetcher, HttpFetcher, PlatformDownloader, PreFetchedContentFetcher, WorkerCompiler } from './platform/index.ts';
 export type {
     IContentFetcher,
     IHttpFetcherOptions,
@@ -120,12 +108,7 @@ export type {
 
 // Incremental compilation
 export { IncrementalCompiler, MemoryCacheStorage } from './compiler/IncrementalCompiler.ts';
-export type {
-    ICacheStorage,
-    IncrementalCompilationResult,
-    IncrementalCompilerOptions,
-    SourceCacheEntry,
-} from './compiler/IncrementalCompiler.ts';
+export type { ICacheStorage, IncrementalCompilationResult, IncrementalCompilerOptions, SourceCacheEntry } from './compiler/IncrementalCompiler.ts';
 
 // Header generation
 export { HeaderGenerator } from './compiler/HeaderGenerator.ts';
@@ -150,42 +133,16 @@ export { DiffGenerator, generateDiff, generateDiffMarkdown } from './diff/index.
 export type { DiffOptions, DiffReport, DiffSummary, DomainDiff, RuleDiff } from './diff/index.ts';
 
 // Conflict detection
-export {
-    ConflictDetectionTransformation,
-    detectConflicts,
-} from './transformations/ConflictDetectionTransformation.ts';
-export type {
-    ConflictDetectionOptions,
-    ConflictDetectionResult,
-    RuleConflict,
-} from './transformations/ConflictDetectionTransformation.ts';
+export { ConflictDetectionTransformation, detectConflicts } from './transformations/ConflictDetectionTransformation.ts';
+export type { ConflictDetectionOptions, ConflictDetectionResult, RuleConflict } from './transformations/ConflictDetectionTransformation.ts';
 
 // Rule optimizer
-export {
-    optimizeRules,
-    RuleOptimizerTransformation,
-} from './transformations/RuleOptimizerTransformation.ts';
-export type {
-    OptimizationStats,
-    RuleOptimizerOptions,
-} from './transformations/RuleOptimizerTransformation.ts';
+export { optimizeRules, RuleOptimizerTransformation } from './transformations/RuleOptimizerTransformation.ts';
+export type { OptimizationStats, RuleOptimizerOptions } from './transformations/RuleOptimizerTransformation.ts';
 
 // Plugin system
-export {
-    createSimplePlugin,
-    globalRegistry,
-    loadPlugin,
-    PluginRegistry,
-    PluginTransformationWrapper,
-} from './plugins/index.ts';
-export type {
-    DownloaderPlugin,
-    Plugin,
-    PluginContext,
-    PluginLoadOptions,
-    PluginManifest,
-    TransformationPlugin,
-} from './plugins/index.ts';
+export { createSimplePlugin, globalRegistry, loadPlugin, PluginRegistry, PluginTransformationWrapper } from './plugins/index.ts';
+export type { DownloaderPlugin, Plugin, PluginContext, PluginLoadOptions, PluginManifest, TransformationPlugin } from './plugins/index.ts';
 
 // Default export for backward compatibility
 import { compile as compileFunc } from './compiler/index.ts';

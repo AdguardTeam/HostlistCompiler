@@ -204,7 +204,7 @@ Deno.test('FilterDownloader', async (t) => {
                 await downloader.download(`${TEST_DIR}/does_not_exist.txt`);
             },
             Error,
-            'File not found'
+            'File not found',
         );
     });
 

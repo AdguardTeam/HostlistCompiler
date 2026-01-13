@@ -1,9 +1,4 @@
-import {
-    IAdblockRule,
-    IAdblockRuleTokens,
-    IEtcHostsRule,
-    IRuleModifier,
-} from '../types/index.ts';
+import { IAdblockRule, IAdblockRuleTokens, IEtcHostsRule, IRuleModifier } from '../types/index.ts';
 import { StringUtils } from './StringUtils.ts';
 
 /**
@@ -27,7 +22,7 @@ function domainToASCII(domain: string): string {
 const DOMAIN_REGEX = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;
 const ETC_HOSTS_REGEX = /^([a-f0-9.:\][]+)(%[a-z0-9]+)?\s+([^#]+)(#.*)?$/;
 const DOMAIN_PATTERN_REGEX = /(\*\.|)([^\s^$|=]+(?:\.[^\s^$|=]+)+)/g;
-// eslint-disable-next-line no-control-regex
+// deno-lint-ignore no-control-regex
 const NON_ASCII_REGEX = /[^\x00-\x7F]/;
 
 /**
@@ -41,10 +36,10 @@ export class RuleUtils {
      * Comments start with ! or # (with space or ####)
      */
     public static isComment(ruleText: string): boolean {
-        return ruleText.startsWith('!')
-            || ruleText.startsWith('# ')
-            || ruleText === '#'
-            || ruleText.startsWith('####');
+        return ruleText.startsWith('!') ||
+            ruleText.startsWith('# ') ||
+            ruleText === '#' ||
+            ruleText.startsWith('####');
     }
 
     /**
@@ -114,9 +109,11 @@ export class RuleUtils {
         tokens.pattern = ruleText.substring(startIndex);
 
         // Avoid parsing options inside of a regex rule
-        if (tokens.pattern.startsWith('/')
-            && tokens.pattern.endsWith('/')
-            && !tokens.pattern.includes('replace=')) {
+        if (
+            tokens.pattern.startsWith('/') &&
+            tokens.pattern.endsWith('/') &&
+            !tokens.pattern.includes('replace=')
+        ) {
             return tokens;
         }
 

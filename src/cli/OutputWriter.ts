@@ -28,10 +28,10 @@ export class OutputWriter {
     public async writeToFile(path: string, rules: string[]): Promise<void> {
         try {
             this.logger.info(`Writing ${rules.length} rules to ${path}`);
-            
+
             const content = rules.join('\n');
             await this.fileSystem.writeTextFile(path, content);
-            
+
             this.logger.info(`Successfully wrote output to ${path}`);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);

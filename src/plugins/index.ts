@@ -2,19 +2,6 @@
  * Plugin system exports
  */
 
-export {
-    PluginRegistry,
-    PluginTransformationWrapper,
-    loadPlugin,
-    createSimplePlugin,
-    globalRegistry,
-} from './PluginSystem.ts';
+export { createSimplePlugin, globalRegistry, loadPlugin, PluginRegistry, PluginTransformationWrapper } from './PluginSystem.ts';
 
-export type {
-    PluginManifest,
-    TransformationPlugin,
-    DownloaderPlugin,
-    Plugin,
-    PluginContext,
-    PluginLoadOptions,
-} from './PluginSystem.ts';
+export type { DownloaderPlugin, Plugin, PluginContext, PluginLoadOptions, PluginManifest, TransformationPlugin } from './PluginSystem.ts';

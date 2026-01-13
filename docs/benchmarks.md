@@ -78,6 +78,7 @@ Each benchmark file follows this structure:
 Benchmarks are organized into groups for easy filtering:
 
 #### RuleUtils Groups
+
 - `isComment` - Comment detection
 - `isAllowRule` - Allow rule detection
 - `isJustDomain` - Domain validation
@@ -91,6 +92,7 @@ Benchmarks are organized into groups for easy filtering:
 - `batch` - Batch processing
 
 #### StringUtils Groups
+
 - `substringBetween` - Substring extraction
 - `split` - Delimiter splitting with escapes
 - `escapeRegExp` - Regex escaping
@@ -100,6 +102,7 @@ Benchmarks are organized into groups for easy filtering:
 - `realworld` - Real-world usage
 
 #### Wildcard Groups
+
 - `creation` - Pattern creation
 - `plainMatch` - Plain string matching
 - `wildcardMatch` - Wildcard pattern matching
@@ -110,6 +113,7 @@ Benchmarks are organized into groups for easy filtering:
 - `comparison` - Pattern type comparison
 
 #### Transformation Groups
+
 - `deduplicate` - Deduplication
 - `compress` - Compression
 - `removeComments` - Comment removal
@@ -140,8 +144,8 @@ Add benchmarks to your CI pipeline:
 - name: Upload Results
   uses: actions/upload-artifact@v3
   with:
-    name: benchmark-results
-    path: benchmarks.json
+      name: benchmark-results
+      path: benchmarks.json
 ```
 
 ## Interpreting Results
@@ -172,7 +176,7 @@ Deno.bench('MyComponent - operation description', { group: 'myGroup' }, () => {
     // Setup
     const component = new MyComponent();
     const input = generateTestData();
-    
+
     // Benchmark
     component.process(input);
 });

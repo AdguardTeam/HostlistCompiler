@@ -27,7 +27,7 @@ That's it! The compiler is now running.
 ### 3. Access the Application
 
 - **Web UI**: http://localhost:8787
-- **API Documentation**: http://localhost:8787/api  
+- **API Documentation**: http://localhost:8787/api
 - **Test Interface**: http://localhost:8787/test.html
 - **Metrics**: http://localhost:8787/metrics
 
@@ -118,6 +118,7 @@ cp .env.example .env
 ```
 
 Available variables:
+
 - `COMPILER_VERSION`: Version identifier (default: 0.6.0)
 - `PORT`: Server port (default: 8787)
 - `DENO_DIR`: Deno cache directory (default: /app/.deno)
@@ -128,7 +129,7 @@ To run on a different port, edit `docker-compose.yml`:
 
 ```yaml
 ports:
-  - "8080:8787"  # Runs on port 8080 instead
+    - '8080:8787' # Runs on port 8080 instead
 ```
 
 ## Development Mode

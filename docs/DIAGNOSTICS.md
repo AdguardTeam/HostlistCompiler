@@ -232,9 +232,7 @@ export default {
     async tail(events: TailEvent[], env: TailEnv, ctx: ExecutionContext) {
         for (const event of events) {
             // Filter for diagnostic events
-            const diagnosticLogs = event.logs.filter((log) =>
-                log.message.some((m) => typeof m === 'string' && m.includes('[DIAGNOSTIC]'))
-            );
+            const diagnosticLogs = event.logs.filter((log) => log.message.some((m) => typeof m === 'string' && m.includes('[DIAGNOSTIC]')));
 
             for (const log of diagnosticLogs) {
                 // Parse and process diagnostic event

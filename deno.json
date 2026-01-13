@@ -50,20 +50,23 @@
                 "no-console"
             ],
             "exclude": [
-                "no-explicit-any"
+                "no-explicit-any",
+                "require-await"
             ]
         },
         "exclude": [
             "dist/",
             "node_modules/",
             "coverage/",
+            "public/",
+            "worker/",
             "src/storage/example.ts",
             "examples/"
         ]
     },
     "fmt": {
         "useTabs": false,
-        "lineWidth": 100,
+        "lineWidth": 180,
         "indentWidth": 4,
         "semiColons": true,
         "singleQuote": true,
@@ -71,7 +74,11 @@
         "exclude": [
             "dist/",
             "node_modules/",
-            "coverage/"
+            "coverage/",
+            "public/",
+            "worker/",
+            "src/storage/example.ts",
+            "examples/"
         ]
     },
     "test": {

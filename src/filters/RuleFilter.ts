@@ -5,7 +5,7 @@ import type { Wildcard } from '../utils/Wildcard.ts';
 /**
  * Handles rule filtering through exclusions and inclusions.
  * Follows Single Responsibility Principle - only responsible for filtering rules.
- * 
+ *
  * This class is optimized for performance by partitioning patterns into
  * plain strings (fast) and regex/wildcards (slower) for efficient matching.
  */
@@ -32,8 +32,10 @@ export class RuleFilter {
         const exclusions = filterable.exclusions;
         const exclusionsSources = filterable.exclusions_sources;
 
-        if ((!exclusions || exclusions.length === 0) &&
-            (!exclusionsSources || exclusionsSources.length === 0)) {
+        if (
+            (!exclusions || exclusions.length === 0) &&
+            (!exclusionsSources || exclusionsSources.length === 0)
+        ) {
             return rules;
         }
 
@@ -78,8 +80,10 @@ export class RuleFilter {
         const inclusions = filterable.inclusions;
         const inclusionsSources = filterable.inclusions_sources;
 
-        if ((!inclusions || inclusions.length === 0) &&
-            (!inclusionsSources || inclusionsSources.length === 0)) {
+        if (
+            (!inclusions || inclusions.length === 0) &&
+            (!inclusionsSources || inclusionsSources.length === 0)
+        ) {
             return rules;
         }
 
@@ -111,7 +115,7 @@ export class RuleFilter {
     /**
      * Filters rules based on wildcard patterns.
      * Optimized by partitioning patterns into plain strings and regex.
-     * 
+     *
      * @param rules - Rules to filter
      * @param wildcards - Patterns to match against
      * @param mode - Whether to exclude or include matching rules
