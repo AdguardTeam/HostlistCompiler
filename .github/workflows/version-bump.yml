@@ -85,10 +85,12 @@ jobs:
                   [ -f package.json ] && deno eval "
                     const p = JSON.parse(Deno.readTextFileSync('package.json'));
                     p.version = '${NEW}';
-                    Deno.writeTextFileSync('package.json', JSON.stringify(p, null, '\t') + '\n');
+                    Deno.writeTextFileSync('package.json', JSON.stringify(p, null, 4) + '\n');
                   "
 
                   # Update src/version.ts if exists
+                  # Note: sed -i is used here and behaves differently on macOS vs Linux.
+                  # This workflow runs on ubuntu-latest, so the Linux behavior is expected.
                   [ -f src/version.ts ] && sed -i "s/VERSION = '[^']*'/VERSION = '$NEW'/" src/version.ts
 
                   # Update wrangler.toml if exists

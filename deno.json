@@ -61,6 +61,7 @@
             "public/",
             "worker/",
             "src/storage/example.ts",
+            "src/storage/prisma-example.ts",
             "examples/"
         ]
     },
@@ -78,6 +79,7 @@
             "public/",
             "worker/",
             "src/storage/example.ts",
+            "src/storage/prisma-example.ts",
             "examples/"
         ]
     },

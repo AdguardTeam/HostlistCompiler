@@ -106,7 +106,7 @@ Deno.test('DiagnosticsCollector - recordNetworkEvent sanitizes URL', () => {
     const networkEvent = events[0] as NetworkEvent;
     assertEquals(networkEvent.category, TraceCategory.Network);
     assertEquals(networkEvent.method, 'GET');
-    assertEquals(networkEvent.url, 'https://example.com/api/data');
+    assertEquals(networkEvent.url, 'https://example.com/api/data?[QUERY]');
     assertEquals(networkEvent.statusCode, 200);
     assertEquals(networkEvent.durationMs, 45.67);
     assertEquals(networkEvent.responseSize, 2048);

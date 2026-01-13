@@ -72,7 +72,7 @@ Deno.test('FilterCompiler - should reject invalid configuration', async () => {
     await assertRejects(
         () => compiler.compile(invalidConfig),
         Error,
-        'Failed to validate configuration',
+        '/name: name is required and must be a non-empty string',
     );
 });
 
@@ -86,7 +86,7 @@ Deno.test('FilterCompiler - should reject empty sources array', async () => {
     await assertRejects(
         () => compiler.compile(config),
         Error,
-        'Failed to validate configuration',
+        '/sources: sources is required and must be a non-empty array',
     );
 });
 
