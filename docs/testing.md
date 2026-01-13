@@ -9,6 +9,7 @@ This project has comprehensive unit test coverage using Deno's native testing fr
 Tests follow the pattern: `*.test.ts` files are placed next to their corresponding source files.
 
 Example:
+
 ```
 src/cli/
 ├── ArgumentParser.ts
@@ -44,21 +45,25 @@ deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv
 ### Modules with Complete Coverage
 
 #### CLI Module
+
 - ✅ `ArgumentParser.ts` - Argument parsing and validation (22 tests)
 - ✅ `ConfigurationLoader.ts` - JSON loading and validation (16 tests)
 - ✅ `OutputWriter.ts` - File writing (8 tests)
 
 #### Compiler Module
+
 - ✅ `FilterCompiler.ts` - Main compilation logic (existing tests)
 - ✅ `HeaderGenerator.ts` - Header generation (16 tests)
 
 #### Downloader Module
+
 - ✅ `ConditionalEvaluator.ts` - Boolean expression evaluation (25 tests)
 - ✅ `ContentFetcher.ts` - HTTP/file fetching (18 tests)
 - ✅ `FilterDownloader.ts` - Filter list downloading (existing tests)
 - ✅ `PreprocessorEvaluator.ts` - Directive processing (23 tests)
 
 #### Transformations Module (11 transformations)
+
 - ✅ `CompressTransformation.ts` - Hosts to adblock conversion
 - ✅ `ConvertToAsciiTransformation.ts` - Unicode to ASCII conversion
 - ✅ `DeduplicateTransformation.ts` - Remove duplicate rules
@@ -74,6 +79,7 @@ deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv
 - ✅ `TransformationRegistry.ts` - Transformation management (13 tests)
 
 #### Utils Module
+
 - ✅ `Benchmark.ts` - Performance benchmarking (existing tests)
 - ✅ `EventEmitter.ts` - Event emission (existing tests)
 - ✅ `logger.ts` - Logging functionality (17 tests)
@@ -83,12 +89,15 @@ deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv
 - ✅ `Wildcard.ts` - Wildcard pattern matching (existing tests)
 
 #### Configuration Module
+
 - ✅ `ConfigurationValidator.ts` - Configuration validation (existing tests)
 
 #### Platform Module
+
 - ✅ `platform.test.ts` - Platform abstractions (existing tests)
 
 #### Storage Module
+
 - ✅ `NoSqlStorage.test.ts` - Storage operations (existing tests)
 
 ## Test Statistics
@@ -135,22 +144,23 @@ Deno.test('MyClass - should handle errors', async () => {
 ### Mock Examples
 
 #### Mock File System
+
 ```typescript
 class MockFileSystem implements IFileSystem {
     private files: Map<string, string> = new Map();
-    
+
     setFile(path: string, content: string) {
         this.files.set(path, content);
     }
-    
+
     async readTextFile(path: string): Promise<string> {
         return this.files.get(path) ?? '';
     }
-    
+
     async writeTextFile(path: string, content: string): Promise<void> {
         this.files.set(path, content);
     }
-    
+
     async exists(path: string): Promise<boolean> {
         return this.files.has(path);
     }
@@ -158,14 +168,15 @@ class MockFileSystem implements IFileSystem {
 ```
 
 #### Mock HTTP Client
+
 ```typescript
 class MockHttpClient implements IHttpClient {
     private responses: Map<string, Response> = new Map();
-    
+
     setResponse(url: string, response: Response) {
         this.responses.set(url, response);
     }
-    
+
     async fetch(url: string): Promise<Response> {
         return this.responses.get(url) ?? new Response('', { status: 404 });
     }
@@ -173,6 +184,7 @@ class MockHttpClient implements IHttpClient {
 ```
 
 #### Mock Logger
+
 ```typescript
 const mockLogger = {
     debug: () => {},
@@ -185,6 +197,7 @@ const mockLogger = {
 ## Continuous Integration
 
 Tests are automatically run on:
+
 - Push to main branch
 - Pull requests
 - Pre-deployment
@@ -204,13 +217,17 @@ deno coverage coverage --html
 ## Troubleshooting
 
 ### Tests fail with permission errors
+
 Make sure to run with required permissions:
+
 ```bash
 deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv
 ```
 
 ### Tests timeout
+
 Increase timeout for slow operations:
+
 ```typescript
 Deno.test({
     name: 'slow operation',
@@ -223,7 +240,9 @@ Deno.test({
 ```
 
 ### Mock not working
+
 Ensure mocks are passed to constructors:
+
 ```typescript
 const mockFs = new MockFileSystem();
 const instance = new MyClass(mockFs); // Pass mock

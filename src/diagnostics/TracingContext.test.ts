@@ -3,17 +3,8 @@
  */
 
 import { assertEquals, assertExists } from '@std/assert';
-import {
-    createChildContext,
-    createNoOpContext,
-    createTracingContext,
-    traceAsync,
-    traceSync,
-} from './TracingContext.ts';
-import {
-    OperationErrorEvent,
-    OperationStartEvent,
-} from './types.ts';
+import { createChildContext, createNoOpContext, createTracingContext, traceAsync, traceSync } from './TracingContext.ts';
+import { OperationErrorEvent, OperationStartEvent } from './types.ts';
 
 Deno.test('createTracingContext - creates valid context', () => {
     const context = createTracingContext();

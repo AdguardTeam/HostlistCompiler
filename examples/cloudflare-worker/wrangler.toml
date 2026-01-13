@@ -1,6 +1,6 @@
 name = "adblock-compiler"
 main = "src/worker.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-12-01"
 
 # Enable the Workers runtime
 workers_dev = true
@@ -25,11 +25,12 @@ id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace cr
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.6.0"
+COMPILER_VERSION = "0.7.10"
 
-# Static assets configuration
-[site]
-bucket = "./public"
+# Static assets configuration using modern assets
+[assets]
+directory = "./public"
+binding = "ASSETS"
 
 # Development settings
 [dev]

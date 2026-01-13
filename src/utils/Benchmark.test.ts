@@ -1,10 +1,5 @@
 import { assertEquals, assertExists, assertGreaterOrEqual } from '@std/assert';
-import {
-    Timer,
-    BenchmarkCollector,
-    formatDuration,
-    formatNumber,
-} from '../../src/utils/Benchmark.ts';
+import { BenchmarkCollector, formatDuration, formatNumber, Timer } from '../../src/utils/Benchmark.ts';
 
 // Timer tests
 Deno.test('Timer - should measure elapsed time', async () => {

@@ -2,124 +2,192 @@
 
 This directory contains the GitHub Actions workflows for the adblock-compiler project.
 
-## Workflows
+## Workflows Overview
 
-### Auto Version Bump (`version-bump.yml`)
+| Workflow           | Trigger           | Purpose                                                  |
+| ------------------ | ----------------- | -------------------------------------------------------- |
+| `ci.yml`           | Push, PR          | Main CI/CD pipeline with tests, security, and deployment |
+| `version-bump.yml` | PR opened, Manual | Automatic version bumping                                |
+| `release.yml`      | Tag push, Manual  | Create GitHub releases with binaries                     |
+
+## CI/CD Pipeline (`ci.yml`)
+
+The main CI/CD pipeline runs on every push and pull request to master/main branches.
+
+### Jobs
+
+```
+┌─────────┐     ┌───────────┐     ┌─────────┐
+│   CI    │────▶│  Build    │────▶│ Docker  │ (main branch only)
+│ (tests) │     │ Artifacts │     │  Image  │
+└─────────┘     └───────────┘     └─────────┘
+     │
+     ├──────────▶ Security ───────▶ Deploy Worker ───▶ Smoke Test
+     │                    └───────▶ Deploy Pages
+     │
+     └──────────▶ Publish (JSR)
+
+┌───────────┐
+│ Benchmark │ (runs in parallel)
+└───────────┘
+```
+
+#### 1. **CI** - Lint, Test & Type Check
+
+- Runs `deno lint` and `deno fmt --check`
+- Type checks with `deno check src/index.ts`
+- Runs test suite with coverage
+- Uploads coverage to Codecov
+
+#### 2. **Benchmark** - Performance Benchmarks
+
+- Runs `deno bench` and outputs JSON results
+- Uploads benchmark results as artifacts (90-day retention)
+- Displays results in PR summary for easy comparison
+
+#### 3. **Security** - Vulnerability Scan
+
+- Uses Trivy to scan for vulnerabilities (CRITICAL, HIGH, MEDIUM)
+- Uploads SARIF results to GitHub Security tab
+
+#### 4. **Build** - Build Artifacts
+
+- Compiles CLI binary using `deno compile`
+- Uploads binary as artifact (30-day retention)
+
+#### 5. **Docker** - Build & Push Image
+
+- Builds multi-stage Docker image
+- Pushes to GitHub Container Registry (ghcr.io)
+- Tags: `latest`, commit SHA, branch name
+- Uses GitHub Actions cache for faster builds
+
+#### 6. **Publish** - Publish to JSR
+
+- Publishes package to JSR registry
+- Uses OIDC authentication (no token needed)
+- Only runs on main branch pushes
+
+#### 7. **Deploy Worker** - Cloudflare Worker Deployment
+
+- Creates Cloudflare resources (queues, R2 bucket)
+- Deploys worker using Wrangler
+- Runs post-deployment smoke test
+- Only runs when `ENABLE_CLOUDFLARE_DEPLOY=true`
+
+#### 8. **Deploy Pages** - Cloudflare Pages Deployment
+
+- Deploys static UI to Cloudflare Pages
+- Only runs when `ENABLE_CLOUDFLARE_DEPLOY=true`
+
+### Concurrency Control
+
+The CI workflow uses concurrency groups to automatically cancel outdated runs:
+
+```yaml
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+```
+
+## Version Bump (`version-bump.yml`)
 
 Automatically bumps the version number when a pull request is opened.
 
-#### Trigger
-- Runs when a pull request is opened targeting master/main branches
-- Does not run for PRs created by automation bots (github-actions[bot], dependabot[bot])
-- Copilot bot PRs ARE allowed since they represent user-initiated feature work
-- Can be manually triggered via workflow_dispatch for edge cases
+### Trigger
 
-#### Important Note
-**Why didn't this run for PR #47?**
-This workflow was added in PR #47 itself. GitHub Actions only runs workflows that exist on the base branch (master/main) at the time the triggering event occurs. Since the workflow file didn't exist on master when PR #47 was opened, it couldn't run for that PR. The workflow is now on master and will run for all future PRs.
+- Runs when a PR is opened targeting master/main branches
+- Does not run for automation bots (github-actions[bot], dependabot[bot])
+- Can be manually triggered with version type selection
 
-#### What it does
-1. Extracts the current version from `deno.json`
-2. Increments the patch version (e.g., 0.6.88 → 0.6.89)
-3. Updates the version in both `deno.json` and `package.json`
-4. Commits the changes with message: `chore: bump version to X.Y.Z`
-5. Pushes the commit to the PR branch
-6. Adds a comment to the PR confirming the version bump
+### Manual Trigger Options
 
-#### Why it's needed
-JSR (JavaScript Registry) only accepts new versions when publishing. Without automatic version bumping, merged PRs would not trigger a new JSR publication, preventing updated code from being available to users.
+- **bump_type**: `patch` (default), `minor`, or `major`
+- **create_release**: Optionally trigger a release after bumping
 
-#### Permissions
-- `contents: write` - Required to commit and push version changes
-- `pull-requests: write` - Required to add comments to PRs
+### What it does
 
-### CI/CD Pipeline (`ci.yml`)
+1. Extracts current version from `deno.json`
+2. Calculates new version based on bump type
+3. Updates version in all relevant files:
+   - `deno.json`
+   - `package.json`
+   - `src/version.ts`
+   - `wrangler.toml`
+   - `docker-compose.yml`
+   - Example configurations
+4. Commits and pushes changes
+5. Comments on PR with version change
 
-The main CI/CD pipeline that runs on every push and pull request to master/main branches.
+## Release (`release.yml`)
 
-#### Jobs
+Creates GitHub releases with compiled binaries for all platforms.
 
-1. **Lint Code** - Runs Deno linting and formatting checks
-   - Uses `deno task lint` and `deno task fmt:check`
-   - Runs on Deno 2.4
+### Trigger
 
-2. **Run Tests** - Executes the test suite
-   - Matrix strategy: Tests on Deno 2.0 and 2.4
-   - Generates code coverage on Deno 2.4
-   - Uploads coverage to Codecov (optional, requires CODECOV_TOKEN)
+- Pushing a tag matching `v*` (e.g., `v0.8.0`)
+- Manual trigger with version input
 
-3. **Type Check** - Validates TypeScript types
-   - Uses `deno task check`
-   - Runs on Deno 2.4
+### What it creates
 
-4. **Build Worker** - Bundles the Cloudflare Worker
-   - Requires lint, test, and type-check to pass
-   - Uses Deno 2.4's `deno bundle` command
-   - Checks bundle size (warns if > 1MB)
-   - Uploads bundle as artifact
+- **Binaries** for:
+  - Linux x64 and ARM64
+  - macOS x64 (Intel) and ARM64 (Apple Silicon)
+  - Windows x64
+- **Docker images** pushed to ghcr.io with version tag
+- **GitHub Release** with:
+  - Auto-generated release notes
+  - Installation instructions
+  - SHA256 checksums for all binaries
 
-5. **Security Scan** - Scans for vulnerabilities
-   - Uses Trivy vulnerability scanner
-   - Attempts to upload SARIF results (only on non-fork repositories with Advanced Security enabled)
-   - Continues on error
+### Creating a Release
 
-6. **Publish to JSR** - Publishes package to JSR registry
-   - Only runs on pushes to master branch
-   - Requires JSR_TOKEN secret
-   - Continues on error if publishing fails
+**Option 1: Tag-based (recommended)**
 
-7. **Deploy Worker** - Deploys to Cloudflare Workers
-   - Only runs on pushes to master branch
-   - Requires CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets
-   - Continues on error if deployment fails
+```bash
+git tag v0.8.0
+git push origin v0.8.0
+```
 
-8. **Deploy Pages** - Deploys to Cloudflare Pages
-   - Only runs on pushes to master branch
-   - Requires CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets
-   - Continues on error if deployment fails
+**Option 2: Manual via GitHub UI**
 
-9. **Notify on Failure** - Sends notifications on build failures
-   - Only runs on push events if any required job fails
+1. Go to Actions → Release
+2. Click "Run workflow"
+3. Enter version (e.g., `0.8.0`)
 
-## Required Secrets
+**Option 3: Via Version Bump workflow**
 
-For full functionality, configure these secrets in your repository settings:
+1. Go to Actions → Version Bump
+2. Select bump type (patch/minor/major)
+3. Check "Create a release after bumping"
 
-- `JSR_TOKEN` - Token for publishing to JSR registry
-- `CODECOV_TOKEN` - Token for uploading code coverage (optional)
-- `CLOUDFLARE_API_TOKEN` - Token for Cloudflare deployments (optional)
-- `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account ID (optional)
+## Required Secrets & Variables
 
-## Deno Version Requirements
+### Secrets
 
-- **Minimum**: Deno 2.0
-- **Recommended**: Deno 2.4 or later
-- **Reason**: Deno 2.4 restored the `deno bundle` command which is required for the build step
+| Secret                  | Required       | Purpose                       |
+| ----------------------- | -------------- | ----------------------------- |
+| `CODECOV_TOKEN`         | Optional       | Upload code coverage reports  |
+| `CLOUDFLARE_API_TOKEN`  | For deployment | Cloudflare API access         |
+| `CLOUDFLARE_ACCOUNT_ID` | For deployment | Cloudflare account identifier |
 
-## Production-Ready Features
+### Repository Variables
 
-- ✅ All external service failures are handled gracefully (continue-on-error)
-- ✅ Works on repository forks (SARIF upload is conditional)
-- ✅ Matrix testing across multiple Deno versions
-- ✅ Proper caching for faster builds
-- ✅ Comprehensive error handling
-- ✅ Security scanning included
-- ✅ Deployment automation (optional, requires secrets)
-- ✅ Code coverage reporting (optional, requires token)
+| Variable                   | Default | Purpose                                |
+| -------------------------- | ------- | -------------------------------------- |
+| `ENABLE_CLOUDFLARE_DEPLOY` | `false` | Set to `true` to enable CF deployments |
 
 ## Local Development
 
-To run the same checks locally:
+Run the same checks locally:
 
 ```bash
-# Lint
-deno task lint
-
-# Format check
-deno task fmt:check
+# Lint and format
+deno lint
+deno fmt --check
 
 # Type check
-deno task check
+deno check src/index.ts
 
 # Run tests
 deno task test
@@ -128,29 +196,63 @@ deno task test
 deno task test:coverage
 deno coverage coverage --lcov --output=coverage.lcov
 
-# Bundle worker (requires Deno 2.4+)
-cd examples/cloudflare-worker
-deno bundle --output=dist/worker.js src/worker.ts
+# Run benchmarks
+deno bench --allow-read --allow-write --allow-net --allow-env
+
+# Build CLI binary
+deno compile --allow-read --allow-write --allow-net --output=hostlist-compiler src/cli.ts
+
+# Build Docker image
+docker build -t adblock-compiler .
 ```
 
 ## Troubleshooting
 
-### Bundle Step Fails
+### CI Fails on Format Check
 
-If the bundle step fails with "deno bundle command not found", ensure you're using Deno 2.4 or later:
+Run `deno fmt` locally and commit the changes.
 
-```bash
-deno upgrade --version 2.4.0
-```
+### Security Scan Fails
 
-### SARIF Upload Fails
+Check the Trivy output for vulnerabilities. Non-critical issues won't block the build.
 
-This is expected on forks or repositories without GitHub Advanced Security. The workflow is configured to continue on error.
+### Docker Build Fails
 
-### JSR Publish Fails
-
-Ensure the JSR_TOKEN secret is correctly configured. The workflow will continue even if publishing fails.
+Ensure the Dockerfile is valid and all required files are present.
 
 ### Deployment Fails
 
-Deployment jobs require Cloudflare secrets. The workflow will continue even if deployment fails, allowing other jobs to complete.
+1. Verify `ENABLE_CLOUDFLARE_DEPLOY` is set to `true`
+2. Check Cloudflare secrets are configured correctly
+3. Review Wrangler logs in the action output
+
+### JSR Publish Fails
+
+- The version may already exist on JSR
+- Check that `deno.json` has valid exports configuration
+
+### Release Binaries Missing
+
+- Ensure the tag format is correct (`v*`)
+- Check the build logs for compilation errors
+
+## Architecture Decisions
+
+### Why Deno 2.x?
+
+- Native TypeScript support
+- Built-in testing, benchmarking, and coverage
+- JSR publishing support
+- Cross-platform binary compilation
+
+### Why GitHub Container Registry?
+
+- Free for public repositories
+- Integrated with GitHub Actions
+- Automatic authentication via GITHUB_TOKEN
+
+### Why Concurrency Control?
+
+- Saves CI minutes on rapid pushes
+- Prevents deployment race conditions
+- Ensures only latest code is deployed

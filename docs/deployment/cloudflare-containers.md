@@ -47,6 +47,7 @@ npx wrangler deploy
 ```
 
 This command will:
+
 - Build your Docker container image using the Dockerfile
 - Push the image to Cloudflare's Container Registry (backed by R2)
 - Deploy your Worker
@@ -89,6 +90,7 @@ npx wrangler dev --local
 ```
 
 Visit http://localhost:8787 to access:
+
 - `/api` - API documentation
 - `/compile` - JSON compilation endpoint
 - `/compile/stream` - Streaming compilation with SSE
@@ -101,10 +103,10 @@ Visit http://localhost:8787 to access:
 The `AdblockCompiler` class in `worker/worker.ts` is currently a stub for local development. When you deploy to Cloudflare with containers enabled, you can update it to extend the Container class:
 
 ```typescript
-import { Container } from "cloudflare:workers";
+import { Container } from 'cloudflare:workers';
 
 export class AdblockCompiler extends Container {
-  defaultPort = 8787;
+    defaultPort = 8787;
 }
 ```
 
@@ -141,6 +143,7 @@ export class AdblockCompiler extends Container {
 ### Instance Types
 
 Available instance types in `wrangler.toml`:
+
 - `basic` - Default, suitable for most workloads
 - `standard` - More CPU/memory for intensive tasks
 - `premium` - Maximum resources
@@ -156,6 +159,7 @@ instance_type = "basic"
 ```
 
 Future autoscaling support:
+
 ```toml
 autoscaling = true  # Coming soon
 cpu_target = 75     # Target CPU utilization
@@ -164,6 +168,7 @@ cpu_target = 75     # Target CPU utilization
 ## Bindings Available
 
 Your container/worker has access to:
+
 - `env.COMPILATION_CACHE` - KV Namespace for caching compiled results
 - `env.RATE_LIMIT` - KV Namespace for rate limiting
 - `env.METRICS` - KV Namespace for metrics storage
@@ -195,7 +200,8 @@ Error: Docker is not running
 Error: Container failed to start
 ```
 
-**Solution:** 
+**Solution:**
+
 1. Check `npx wrangler containers list` for status
 2. Check container logs with `npx wrangler tail`
 3. Verify Dockerfile builds locally: `docker build -t test .`
@@ -235,5 +241,6 @@ If you see `Cannot find module 'cloudflare:workers'`:
 ## Support
 
 For issues or questions:
+
 - GitHub Issues: https://github.com/jaypatrick/adblock-compiler/issues
 - Cloudflare Discord: https://discord.gg/cloudflaredev

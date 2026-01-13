@@ -164,9 +164,7 @@ export class HeaderGenerator {
     }
 
     // Static methods for convenience
-    static prepareHeader = (config: IConfiguration, options?: HeaderOptions) =>
-        new HeaderGenerator().generateListHeader(config, options);
+    static prepareHeader = (config: IConfiguration, options?: HeaderOptions): string[] => new HeaderGenerator().generateListHeader(config, options);
 
-    static prepareSourceHeader = (source: ISource) =>
-        new HeaderGenerator().generateSourceHeader(source);
+    static prepareSourceHeader = (source: ISource): string[] => new HeaderGenerator().generateSourceHeader(source);
 }

@@ -50,6 +50,16 @@ bucket_name = "adblock-compiler-r2-storage"
 # [[durable_objects.bindings]]
 # class_name = "AdblockCompiler"
 # name = "ADBLOCK_COMPILER"
+[[containers]]
+class_name = "AdblockCompiler"
+image = "./Dockerfile"
+max_instances = 5
+instance_type = "basic"
+
+# Durable Objects - uncomment if using DO for state management
+[[durable_objects.bindings]]
+class_name = "AdblockCompiler"
+name = "ADBLOCK_COMPILER"
 
 # [[migrations]]
 # new_sqlite_classes = ["AdblockCompiler"]

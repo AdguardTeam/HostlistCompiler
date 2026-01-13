@@ -10,9 +10,9 @@ Deno.test('stripUpstreamHeaders - should remove Title header', () => {
         '! Title: AdGuard DNS Filter',
         '||example.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     assertEquals(result.includes('! Title: AdGuard DNS Filter'), false);
     assertEquals(result.includes('||example.com^'), true);
 });
@@ -31,17 +31,17 @@ Deno.test('stripUpstreamHeaders - should remove all metadata headers', () => {
         '||example.com^',
         '||test.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     // All metadata headers should be removed
-    assertEquals(result.some(line => line.includes('Title:')), false);
-    assertEquals(result.some(line => line.includes('Description:')), false);
-    assertEquals(result.some(line => line.includes('Homepage:')), false);
-    assertEquals(result.some(line => line.includes('License:')), false);
-    assertEquals(result.some(line => line.includes('Last modified:')), false);
-    assertEquals(result.some(line => line.includes('Compiled by')), false);
-    
+    assertEquals(result.some((line) => line.includes('Title:')), false);
+    assertEquals(result.some((line) => line.includes('Description:')), false);
+    assertEquals(result.some((line) => line.includes('Homepage:')), false);
+    assertEquals(result.some((line) => line.includes('License:')), false);
+    assertEquals(result.some((line) => line.includes('Last modified:')), false);
+    assertEquals(result.some((line) => line.includes('Compiled by')), false);
+
     // Rules should be preserved
     assertEquals(result.includes('||example.com^'), true);
     assertEquals(result.includes('||test.com^'), true);
@@ -56,16 +56,16 @@ Deno.test('stripUpstreamHeaders - should preserve informational comments', () =>
         '!',
         '||example.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     // Metadata should be removed
-    assertEquals(result.some(line => line.includes('Title:')), false);
-    
+    assertEquals(result.some((line) => line.includes('Title:')), false);
+
     // Informational comments should be preserved
-    assertEquals(result.some(line => line.includes('This section contains ad servers')), true);
-    assertEquals(result.some(line => line.includes('Good: ||doubleclick.net^$third-party')), true);
-    
+    assertEquals(result.some((line) => line.includes('This section contains ad servers')), true);
+    assertEquals(result.some((line) => line.includes('Good: ||doubleclick.net^$third-party')), true);
+
     // Rules should be preserved
     assertEquals(result.includes('||example.com^'), true);
 });
@@ -75,17 +75,17 @@ Deno.test('stripUpstreamHeaders - should handle lists with no headers', () => {
         '||example.com^',
         '||test.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     assertEquals(result, lines);
 });
 
 Deno.test('stripUpstreamHeaders - should handle empty lists', () => {
     const lines: string[] = [];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     assertEquals(result, []);
 });
 
@@ -95,10 +95,10 @@ Deno.test('stripUpstreamHeaders - should remove checksum header', () => {
         '! Checksum: abc123',
         '||example.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
-    assertEquals(result.some(line => line.includes('Checksum:')), false);
+
+    assertEquals(result.some((line) => line.includes('Checksum:')), false);
     assertEquals(result.includes('||example.com^'), true);
 });
 
@@ -123,19 +123,19 @@ Deno.test('stripUpstreamHeaders - should handle complex upstream headers', () =>
         '||doubleclick.net^$third-party',
         '||ads.example.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     // All AdGuard metadata should be removed
-    assertEquals(result.some(line => line.includes('Title:')), false);
-    assertEquals(result.some(line => line.includes('Description:')), false);
-    assertEquals(result.some(line => line.includes('Compiled by @adguard')), false);
-    assertEquals(result.some(line => line.includes('Source name:')), false);
-    assertEquals(result.some(line => line.includes('Source:')), false);
-    
+    assertEquals(result.some((line) => line.includes('Title:')), false);
+    assertEquals(result.some((line) => line.includes('Description:')), false);
+    assertEquals(result.some((line) => line.includes('Compiled by @adguard')), false);
+    assertEquals(result.some((line) => line.includes('Source name:')), false);
+    assertEquals(result.some((line) => line.includes('Source:')), false);
+
     // Section comments should be preserved
-    assertEquals(result.some(line => line.includes('This section contains the list')), true);
-    
+    assertEquals(result.some((line) => line.includes('This section contains the list')), true);
+
     // Rules should be preserved
     assertEquals(result.includes('||doubleclick.net^$third-party'), true);
     assertEquals(result.includes('||ads.example.com^'), true);
@@ -151,13 +151,13 @@ Deno.test('stripUpstreamHeaders - should clean up excessive empty comment marker
         '!',
         '||example.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     // Should not have multiple consecutive ! at the start
-    const emptyCommentCount = result.filter(line => line.trim() === '!').length;
+    const emptyCommentCount = result.filter((line) => line.trim() === '!').length;
     assertEquals(emptyCommentCount <= 1, true);
-    
+
     // Rule should be preserved
     assertEquals(result.includes('||example.com^'), true);
 });
@@ -168,12 +168,12 @@ Deno.test('stripUpstreamHeaders - should preserve rules that start with !', () =
         '@@||example.com^',
         '||test.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     // Metadata should be removed
-    assertEquals(result.some(line => line.includes('Title:')), false);
-    
+    assertEquals(result.some((line) => line.includes('Title:')), false);
+
     // Allow rule (@@) should be preserved
     assertEquals(result.includes('@@||example.com^'), true);
     assertEquals(result.includes('||test.com^'), true);
@@ -208,18 +208,18 @@ Deno.test('stripUpstreamHeaders - real world example from problem statement', ()
         '! This section contains the list of third-party advertising networks domains.',
         '||example.com^',
     ];
-    
+
     const result = stripUpstreamHeaders(lines);
-    
+
     // All duplicate/redundant headers should be removed
-    assertEquals(result.filter(line => line.includes('Title:')).length, 0);
-    assertEquals(result.filter(line => line.includes('Compiled by')).length, 0);
-    assertEquals(result.filter(line => line.includes('Source name:')).length, 0);
-    assertEquals(result.filter(line => line.includes('Source:')).length, 0);
-    
+    assertEquals(result.filter((line) => line.includes('Title:')).length, 0);
+    assertEquals(result.filter((line) => line.includes('Compiled by')).length, 0);
+    assertEquals(result.filter((line) => line.includes('Source name:')).length, 0);
+    assertEquals(result.filter((line) => line.includes('Source:')).length, 0);
+
     // Informational comment should be preserved
-    assertEquals(result.some(line => line.includes('This section contains')), true);
-    
+    assertEquals(result.some((line) => line.includes('This section contains')), true);
+
     // Rule should be preserved
     assertEquals(result.includes('||example.com^'), true);
 });

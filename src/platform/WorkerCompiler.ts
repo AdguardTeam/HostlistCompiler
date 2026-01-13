@@ -4,27 +4,13 @@
  * No file system access - all content must be fetched over HTTP or pre-provided.
  */
 
-import type {
-    ICompilerEvents,
-    IConfiguration,
-    ILogger,
-    ISource,
-    TransformationType,
-} from '../types/index.ts';
+import type { ICompilerEvents, IConfiguration, ILogger, ISource, TransformationType } from '../types/index.ts';
 import type { IContentFetcher, IPlatformCompilerOptions } from './types.ts';
 import type { DiagnosticEvent, TracingContext } from '../diagnostics/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { HeaderGenerator } from '../compiler/HeaderGenerator.ts';
-import {
-    addChecksumToHeader,
-    BenchmarkCollector,
-    CompilationMetrics,
-    CompilerEventEmitter,
-    createEventEmitter,
-    silentLogger,
-    stripUpstreamHeaders,
-} from '../utils/index.ts';
+import { addChecksumToHeader, BenchmarkCollector, CompilationMetrics, CompilerEventEmitter, createEventEmitter, silentLogger, stripUpstreamHeaders } from '../utils/index.ts';
 import { createNoOpContext } from '../diagnostics/index.ts';
 import { HttpFetcher } from './HttpFetcher.ts';
 import { PreFetchedContentFetcher } from './PreFetchedContentFetcher.ts';
@@ -220,9 +206,7 @@ export class WorkerCompiler {
                                         source,
                                         sourceIndex: index,
                                         totalSources,
-                                        error: error instanceof Error
-                                            ? error
-                                            : new Error(String(error)),
+                                        error: error instanceof Error ? error : new Error(String(error)),
                                     });
                                     throw error;
                                 }

@@ -26,8 +26,10 @@ export class DeduplicateTransformation extends SyncTransformation {
             if (isCommentOrEmpty) {
                 // Check if the next non-comment rule is a duplicate
                 let nextRuleIdx = i + 1;
-                while (nextRuleIdx < rules.length
-                    && (RuleUtils.isComment(rules[nextRuleIdx]) || StringUtils.isEmpty(rules[nextRuleIdx]))) {
+                while (
+                    nextRuleIdx < rules.length &&
+                    (RuleUtils.isComment(rules[nextRuleIdx]) || StringUtils.isEmpty(rules[nextRuleIdx]))
+                ) {
                     nextRuleIdx += 1;
                 }
 

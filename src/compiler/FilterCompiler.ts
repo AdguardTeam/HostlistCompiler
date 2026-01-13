@@ -1,10 +1,4 @@
-import {
-    ICompilerEvents,
-    IConfiguration,
-    ILogger,
-    ISource,
-    TransformationType,
-} from '../types/index.ts';
+import { ICompilerEvents, IConfiguration, ILogger, ISource, TransformationType } from '../types/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
@@ -12,9 +6,12 @@ import { HeaderGenerator } from './HeaderGenerator.ts';
 import {
     addChecksumToHeader,
     BenchmarkCollector,
+    CompilationError,
     CompilationMetrics,
     CompilerEventEmitter,
+    ConfigurationError,
     createEventEmitter,
+    ErrorUtils,
     logger as defaultLogger,
 } from '../utils/index.ts';
 import type { DiagnosticEvent, TracingContext } from '../diagnostics/index.ts';
@@ -118,11 +115,14 @@ export class FilterCompiler {
         collector?.start();
         const compilationStartTime = performance.now();
 
+        // Get configuration name safely (it's required but we handle missing gracefully)
+        const configName = configuration?.name ?? 'unknown';
+
         // Start tracing compilation - use placeholder values until validation passes
         const compilationEventId = this.tracingContext.diagnostics.operationStart(
             'compileFilterList',
             {
-                name: (configuration as any)?.name || 'unknown',
+                name: configName,
                 sourceCount: 0,
                 transformationCount: 0,
             },
@@ -135,18 +135,19 @@ export class FilterCompiler {
             const validationEventId = this.tracingContext.diagnostics.operationStart(
                 'validateConfiguration',
                 {
-                    name: (configuration as any)?.name || 'unknown',
+                    name: configName,
                 },
             );
 
             const validationResult = this.validator.validate(configuration);
             if (!validationResult.valid) {
-                this.tracingContext.diagnostics.operationError(
-                    validationEventId,
-                    new Error(validationResult.errorsText || 'Unknown validation error'),
+                const validationError = new ConfigurationError(
+                    validationResult.errorsText ?? 'Unknown validation error',
+                    configName,
                 );
-                this.logger.info(validationResult.errorsText || 'Unknown validation error');
-                throw new Error('Failed to validate configuration');
+                this.tracingContext.diagnostics.operationError(validationEventId, validationError);
+                this.logger.error(validationError.message);
+                throw validationError;
             }
 
             this.tracingContext.diagnostics.operationComplete(validationEventId, { valid: true });
@@ -300,9 +301,20 @@ export class FilterCompiler {
                 diagnostics: this.tracingContext.diagnostics.getEvents(),
             };
         } catch (error) {
-            // Record compilation error
-            this.tracingContext.diagnostics.operationError(compilationEventId, error as Error);
-            throw error;
+            // Normalize error and record in diagnostics
+            const normalizedError = ErrorUtils.toError(error);
+            this.tracingContext.diagnostics.operationError(compilationEventId, normalizedError);
+
+            // Wrap in CompilationError if not already a typed error
+            if (error instanceof ConfigurationError || error instanceof CompilationError) {
+                throw error;
+            }
+
+            throw new CompilationError(
+                `Compilation failed: ${normalizedError.message}`,
+                undefined,
+                normalizedError,
+            );
         }
     }
 

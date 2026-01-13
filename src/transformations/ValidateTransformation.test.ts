@@ -1,5 +1,5 @@
 import { assertEquals } from '@std/assert';
-import { ValidateTransformation, ValidateAllowIpTransformation } from '../../src/transformations/ValidateTransformation.ts';
+import { ValidateAllowIpTransformation, ValidateTransformation } from '../../src/transformations/ValidateTransformation.ts';
 
 // ValidateTransformation - valid rules
 Deno.test('ValidateTransformation - should keep valid domain rules', () => {

@@ -216,7 +216,7 @@ export class PluginRegistry {
      * Lists all registered plugins
      */
     listPlugins(): PluginManifest[] {
-        return Array.from(this.plugins.values()).map(p => p.manifest);
+        return Array.from(this.plugins.values()).map((p) => p.manifest);
     }
 
     /**
@@ -353,4 +353,4 @@ export function createSimplePlugin(
 /**
  * Global plugin registry instance
  */
-export const globalRegistry = new PluginRegistry();
+export const globalRegistry: PluginRegistry = new PluginRegistry();

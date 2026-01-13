@@ -9,7 +9,7 @@ declare namespace Cloudflare {
 		COMPILATION_CACHE: KVNamespace;
 		RATE_LIMIT: KVNamespace;
 		METRICS: KVNamespace;
-		COMPILER_VERSION: "2.0.0";
+		COMPILER_VERSION: "0.7.7";
 	}
 }
 interface Env extends Cloudflare.Env {}

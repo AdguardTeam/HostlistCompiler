@@ -30,7 +30,7 @@ export type IncludeLoader = (path: string) => Promise<string[]>;
 /**
  * Processes preprocessor directives in filter lists.
  * Follows Single Responsibility Principle - only handles directive processing.
- * 
+ *
  * Supports:
  * - !#if / !#else / !#endif conditionals
  * - !#include file inclusion

@@ -86,7 +86,6 @@ export class ArgumentParser {
      * Displays help message
      */
     public showHelp(): void {
-        // deno-lint-ignore no-console
         console.log(`
 Usage: hostlist-compiler [options]
 
@@ -118,7 +117,6 @@ Examples:
      * @param version - Version string to display
      */
     public showVersion(version: string): void {
-        // deno-lint-ignore no-console
         console.log(`hostlist-compiler ${version}`);
     }
 }

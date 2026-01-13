@@ -9,9 +9,9 @@ Deno.test('IncludeTransformation - should include only matching rules', () => {
         '||example.com^',
     ];
     const wildcards = [new Wildcard('*example*')];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||example.org^', '||example.com^']);
 });
 
@@ -26,9 +26,9 @@ Deno.test('IncludeTransformation - should include rules matching any pattern', (
         new Wildcard('*example*'),
         new Wildcard('*test*'),
     ];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||ads.example.org^', '||tracking.test.com^']);
 });
 
@@ -37,17 +37,17 @@ Deno.test('IncludeTransformation - should return empty when no wildcards', () =>
         '||example.org^',
         '||test.com^',
     ];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, []);
-    
+
     assertEquals(result, []);
 });
 
 Deno.test('IncludeTransformation - should handle empty rules array', () => {
     const wildcards = [new Wildcard('*example*')];
-    
+
     const result = IncludeTransformation.includeWithWildcards([], wildcards);
-    
+
     assertEquals(result, []);
 });
 
@@ -58,9 +58,9 @@ Deno.test('IncludeTransformation - should handle exact matches', () => {
         '||other.net^',
     ];
     const wildcards = [new Wildcard('||example.org^')];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||example.org^']);
 });
 
@@ -71,9 +71,9 @@ Deno.test('IncludeTransformation - should handle wildcard at start', () => {
         '||test.com^',
     ];
     const wildcards = [new Wildcard('*example.org^')];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||example.org^', '||my-example.org^']);
 });
 
@@ -84,9 +84,9 @@ Deno.test('IncludeTransformation - should handle wildcard at end', () => {
         '||test.com^',
     ];
     const wildcards = [new Wildcard('||example*')];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||example.org^', '||example.com^']);
 });
 
@@ -97,9 +97,9 @@ Deno.test('IncludeTransformation - should return empty for non-matching rules', 
         '||other.net^',
     ];
     const wildcards = [new Wildcard('*nonexistent*')];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, []);
 });
 
@@ -110,9 +110,9 @@ Deno.test('IncludeTransformation - should handle case-insensitive matching', () 
         '||test.com^',
     ];
     const wildcards = [new Wildcard('*example.org*')];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
-    
+
     // Should include both case variants
     assertEquals(result, ['||Example.org^', '||example.org^']);
 });
@@ -125,9 +125,9 @@ Deno.test('IncludeTransformation - should include all matching rules', () => {
         '||analytics.example.net^',
     ];
     const wildcards = [new Wildcard('*example*')];
-    
+
     const result = IncludeTransformation.includeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result.length, 3);
     assertEquals(result.includes('||ads.example.com^'), true);
     assertEquals(result.includes('||tracker.example.org^'), true);

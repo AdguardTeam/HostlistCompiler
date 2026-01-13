@@ -177,9 +177,7 @@ export class BenchmarkCollector {
         for (const stage of metrics.stages) {
             const name = stage.name.padEnd(30).substring(0, 30);
             const time = formatDuration(stage.durationMs).padStart(10);
-            const throughput = stage.itemsPerSecond
-                ? formatNumber(stage.itemsPerSecond).padStart(10)
-                : '       N/A';
+            const throughput = stage.itemsPerSecond ? formatNumber(stage.itemsPerSecond).padStart(10) : '       N/A';
             lines.push(`│  ${name}  ${time}  ${throughput}  │`);
         }
 

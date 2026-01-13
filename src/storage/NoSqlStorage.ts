@@ -172,7 +172,7 @@ export class NoSqlStorage {
 
         try {
             const result = await kv.get<StorageEntry<T>>(key);
-            
+
             if (!result.value) {
                 return null;
             }
@@ -222,9 +222,7 @@ export class NoSqlStorage {
         const results: Array<{ key: string[]; value: StorageEntry<T> }> = [];
 
         try {
-            const selector: Deno.KvListSelector = options.prefix 
-                ? { prefix: options.prefix }
-                : { start: options.start || [], end: options.end || [] };
+            const selector: Deno.KvListSelector = options.prefix ? { prefix: options.prefix } : { start: options.start || [], end: options.end || [] };
 
             const listOptions: Deno.KvListOptions = {
                 limit: options.limit,
@@ -315,7 +313,7 @@ export class NoSqlStorage {
 
             for await (const entry of entries) {
                 entryCount++;
-                
+
                 if (entry.value.expiresAt && entry.value.expiresAt < Date.now()) {
                     expiredCount++;
                 }
@@ -387,7 +385,7 @@ export class NoSqlStorage {
             reverse: true, // Most recent first
         });
 
-        return entries.map(e => e.value.data);
+        return entries.map((e) => e.value.data);
     }
 
     /**

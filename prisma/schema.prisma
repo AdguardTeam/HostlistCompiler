@@ -1,0 +1,141 @@
+// Prisma Schema for AdBlock Compiler Storage
+// This schema supports SQLite (default), PostgreSQL, and MongoDB
+//
+// Usage:
+//   SQLite:     DATABASE_URL="file:./dev.db"
+//   PostgreSQL: DATABASE_URL="postgresql://user:pass@localhost:5432/adblock"
+//   MongoDB:    DATABASE_URL="mongodb://localhost:27017/adblock"
+
+generator client {
+  provider = "prisma-client-js"
+  // For Deno support, uncomment the following:
+  // previewFeatures = ["deno"]
+  // output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  // Switch provider based on your needs:
+  // - "sqlite" for local/embedded (default)
+  // - "postgresql" for production SQL
+  // - "mongodb" for NoSQL
+  provider = "sqlite"
+}
+
+// ============================================================================
+// Storage Entry - Generic key-value storage with metadata
+// ============================================================================
+
+model StorageEntry {
+  id        String   @id @default(cuid())
+  key       String   @unique // Serialized key path (e.g., "cache/filters/source")
+  data      String   // JSON-serialized data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime?
+  tags      String?  // JSON array of tags
+
+  @@index([key])
+  @@index([expiresAt])
+  @@map("storage_entries")
+}
+
+// ============================================================================
+// Filter Cache - Cached filter list downloads
+// ============================================================================
+
+model FilterCache {
+  id        String   @id @default(cuid())
+  source    String   @unique // Source URL or path
+  content   String   // JSON array of filter rules
+  hash      String   // Content hash for validation
+  etag      String?  // ETag from server response
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime?
+
+  @@index([source])
+  @@index([expiresAt])
+  @@map("filter_cache")
+}
+
+// ============================================================================
+// Compilation Metadata - Build history tracking
+// ============================================================================
+
+model CompilationMetadata {
+  id          String   @id @default(cuid())
+  configName  String
+  timestamp   DateTime @default(now())
+  sourceCount Int
+  ruleCount   Int
+  duration    Int      // Duration in milliseconds
+  outputPath  String?
+
+  @@index([configName])
+  @@index([timestamp])
+  @@map("compilation_metadata")
+}
+
+// ============================================================================
+// Source Snapshot - Point-in-time source state for change detection
+// ============================================================================
+
+model SourceSnapshot {
+  id          String   @id @default(cuid())
+  source      String
+  timestamp   DateTime @default(now())
+  contentHash String
+  ruleCount   Int
+  ruleSample  String?  // JSON array of sample rules
+  etag        String?
+  isCurrent   Boolean  @default(true)
+
+  @@unique([source, isCurrent])
+  @@index([source])
+  @@index([timestamp])
+  @@map("source_snapshots")
+}
+
+// ============================================================================
+// Source Health - Reliability metrics for filter sources
+// ============================================================================
+
+model SourceHealth {
+  id                  String   @id @default(cuid())
+  source              String   @unique
+  status              String   // HealthStatus enum: healthy, degraded, unhealthy, unknown
+  totalAttempts       Int      @default(0)
+  successfulAttempts  Int      @default(0)
+  failedAttempts      Int      @default(0)
+  consecutiveFailures Int      @default(0)
+  averageDuration     Float    @default(0)
+  averageRuleCount    Float    @default(0)
+  lastAttemptAt       DateTime?
+  lastSuccessAt       DateTime?
+  lastFailureAt       DateTime?
+  recentAttempts      String?  // JSON array of recent SourceAttempt records
+  updatedAt           DateTime @updatedAt
+
+  @@index([source])
+  @@index([status])
+  @@map("source_health")
+}
+
+// ============================================================================
+// Source Attempt - Individual fetch attempt record
+// ============================================================================
+
+model SourceAttempt {
+  id        String   @id @default(cuid())
+  source    String
+  timestamp DateTime @default(now())
+  success   Boolean
+  duration  Int      // Duration in milliseconds
+  error     String?
+  ruleCount Int?
+  etag      String?
+
+  @@index([source])
+  @@index([timestamp])
+  @@map("source_attempts")
+}
