@@ -336,6 +336,7 @@ interface JobHistoryEntry {
     timestamp: string;
     error?: string;
     ruleCount?: number;
+    cacheKey?: string;
 }
 
 /**
@@ -363,7 +364,7 @@ async function updateQueueStats(
     type: 'enqueued' | 'completed' | 'failed' | 'cancelled',
     processingTime?: number,
     count: number = 1,
-    jobInfo?: { requestId?: string; configName?: string; error?: string; ruleCount?: number },
+    jobInfo?: { requestId?: string; configName?: string; error?: string; ruleCount?: number; cacheKey?: string },
 ): Promise<void> {
     try {
         // Validate count parameter
@@ -420,6 +421,7 @@ async function updateQueueStats(
                     duration: processingTime || 0,
                     timestamp: now,
                     ruleCount: jobInfo.ruleCount,
+                    cacheKey: jobInfo.cacheKey,
                 });
                 // Keep only last 50 entries
                 if (stats.history.length > 50) {
@@ -1499,11 +1501,12 @@ async function processCompileMessage(
         // deno-lint-ignore no-console
         console.log(`[QUEUE:COMPILE] Total processing time: ${totalDuration}ms for "${configuration.name}"`);
         
-        // Track successful completion with job info
+        // Track successful completion with job info (include cacheKey for result retrieval)
         await updateQueueStats(env, 'completed', totalDuration, 1, {
             requestId: message.requestId,
             configName: configuration.name,
             ruleCount: result.rules.length,
+            cacheKey: cacheKey || undefined,
         });
     } catch (error) {
         const totalDuration = Date.now() - startTime;
@@ -1928,6 +1931,123 @@ export default {
                     'Cache-Control': 'no-cache',
                 },
             });
+        }
+
+        // Handle queue results endpoint - fetch cached results for a completed job
+        if (pathname.startsWith('/queue/results/') && request.method === 'GET') {
+            const requestId = pathname.split('/').pop();
+            if (!requestId) {
+                return Response.json({
+                    success: false,
+                    error: 'Invalid request ID'
+                }, {
+                    status: 400,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                });
+            }
+
+            // Look up the job in history to get the cacheKey
+            const stats = await getQueueStats(env);
+            const job = stats.history.find(j => j.requestId === requestId);
+
+            if (!job) {
+                return Response.json({
+                    success: false,
+                    error: 'Job not found in history',
+                    status: 'not_found'
+                }, {
+                    status: 404,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                });
+            }
+
+            if (job.status !== 'completed') {
+                return Response.json({
+                    success: false,
+                    error: `Job status is '${job.status}'`,
+                    status: job.status,
+                    jobInfo: {
+                        configName: job.configName,
+                        duration: job.duration,
+                        timestamp: job.timestamp,
+                        error: job.error,
+                    }
+                }, {
+                    status: 200, // Still 200 so frontend can handle status
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                });
+            }
+
+            if (!job.cacheKey) {
+                return Response.json({
+                    success: false,
+                    error: 'No cache key available for this job (possibly used pre-fetched content)',
+                    status: 'no_cache'
+                }, {
+                    status: 200,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                });
+            }
+
+            // Fetch the cached result
+            try {
+                const cached = await env.COMPILATION_CACHE.get(job.cacheKey, 'arrayBuffer');
+                if (!cached) {
+                    return Response.json({
+                        success: false,
+                        error: 'Cached result has expired or was not found',
+                        status: 'cache_miss'
+                    }, {
+                        status: 200,
+                        headers: {
+                            'Access-Control-Allow-Origin': '*',
+                        },
+                    });
+                }
+
+                const decompressed = await decompress(cached);
+                const result = JSON.parse(decompressed);
+
+                return Response.json({
+                    success: true,
+                    status: 'completed',
+                    rules: result.rules || [],
+                    ruleCount: result.ruleCount || result.rules?.length || 0,
+                    metrics: result.metrics,
+                    compiledAt: result.compiledAt,
+                    jobInfo: {
+                        configName: job.configName,
+                        duration: job.duration,
+                        timestamp: job.timestamp,
+                    }
+                }, {
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                        'Cache-Control': 'no-cache',
+                    },
+                });
+            } catch (error) {
+                // deno-lint-ignore no-console
+                console.error('Failed to decompress cached result:', error);
+                return Response.json({
+                    success: false,
+                    error: 'Failed to decompress cached result',
+                    status: 'decompress_error'
+                }, {
+                    status: 500,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                });
+            }
         }
 
         // Handle cancel job endpoint
