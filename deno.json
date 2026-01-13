@@ -57,6 +57,7 @@
             "dist/",
             "node_modules/",
             "coverage/",
+            "worker/",
             "src/storage/example.ts",
             "examples/"
         ]
@@ -71,7 +72,8 @@
         "exclude": [
             "dist/",
             "node_modules/",
-            "coverage/"
+            "coverage/",
+            "worker/"
         ]
     },
     "test": {
