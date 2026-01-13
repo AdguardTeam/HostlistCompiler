@@ -176,9 +176,8 @@ jobs:
                   ```
                   EOF
                   cd release
-                  set -- *
-                  if [ "$1" != "*" ] && [ -e "$1" ]; then
-                      sha256sum "$@" >> ../release-notes.md 2>/dev/null || shasum -a 256 "$@" >> ../release-notes.md
+                  if [ -n "$(ls -A 2>/dev/null)" ]; then
+                      sha256sum * >> ../release-notes.md 2>/dev/null || shasum -a 256 * >> ../release-notes.md
                   else
                       echo 'No binary artifacts were generated; no checksums available.' >> ../release-notes.md
                   fi
@@ -192,7 +191,7 @@ jobs:
                   git fetch --tags
                   TAG_NAME="${{ steps.version.outputs.tag }}"
                   VERSION="${{ steps.version.outputs.version }}"
-                  if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+                  if [ -n "$(git tag -l \"$TAG_NAME\")" ]; then
                     echo "Tag $TAG_NAME already exists locally, skipping creation."
                   else
                     echo "Creating new tag $TAG_NAME for version $VERSION."
