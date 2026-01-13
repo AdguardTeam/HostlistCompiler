@@ -7,7 +7,7 @@
  * Package version - should match deno.json
  * Updated automatically by version bump scripts.
  */
-export const VERSION = '0.7.2';
+export const VERSION = '0.7.10';
 
 /**
  * Package name as published to JSR
@@ -25,4 +25,4 @@ export const PACKAGE_INFO = {
 /**
  * User agent string for HTTP requests
  */
-export const USER_AGENT = `${PACKAGE_NAME}/${VERSION} (Deno)`;
+export const USER_AGENT: string = `${PACKAGE_NAME}/${VERSION} (Deno)`;

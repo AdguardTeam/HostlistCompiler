@@ -1,18 +1,18 @@
 {
-	"name": "adblock-compiler",
-	"version": "0.7.2",
-	"description": "Compiler-as-a-Service for adblock filter lists",
-	"type": "module",
-	"scripts": {
-		"dev": "wrangler dev",
-		"deploy": "wrangler deploy",
-		"tail": "wrangler tail",
-		"tail:deploy": "wrangler deploy --config wrangler.tail.toml",
-		"tail:dev": "wrangler dev --config wrangler.tail.toml",
-		"tail:logs": "wrangler tail adblock-compiler-tail"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20260103.0",
-		"wrangler": "^4.54.0"
-	}
+    "name": "adblock-compiler",
+    "version": "0.7.10",
+    "description": "Compiler-as-a-Service for adblock filter lists",
+    "type": "module",
+    "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "tail": "wrangler tail",
+        "tail:deploy": "wrangler deploy --config wrangler.tail.toml",
+        "tail:dev": "wrangler dev --config wrangler.tail.toml",
+        "tail:logs": "wrangler tail adblock-compiler-tail"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20260103.0",
+        "wrangler": "^4.54.0"
+    }
 }
