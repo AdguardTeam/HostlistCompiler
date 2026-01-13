@@ -19,3 +19,6 @@ export type { IStorageAdapter, StorageAdapterConfig, StorageAdapterFactory, Stor
 
 // Prisma storage adapter (optional, requires @prisma/client)
 export { PrismaStorageAdapter } from './PrismaStorageAdapter.ts';
+
+// Cloudflare D1 storage adapter (for edge deployments)
+export { createD1Storage, D1StorageAdapter, type D1StorageConfig } from './D1StorageAdapter.ts';
