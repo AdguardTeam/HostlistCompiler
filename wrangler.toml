@@ -67,7 +67,7 @@ name = "ADBLOCK_COMPILER"
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.7.11"
+COMPILER_VERSION = "0.7.12"
 TURNSTILE_SITE_KEY = "0x4AAAAAACMKiPZdJh8I8IEM"
 
 # Static assets configuration using modern assets

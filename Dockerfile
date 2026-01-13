@@ -1,5 +1,6 @@
 # Multi-stage build for adblock-compiler with Cloudflare Worker support
 # This Dockerfile creates a container that can run both the compiler CLI and the web UI
+# Version: 0.7.11
 
 # Build argument for Deno version
 ARG DENO_VERSION=2.6.3
