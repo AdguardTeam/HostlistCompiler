@@ -45,20 +45,21 @@ export class SourceCompiler {
         eventEmitter?: CompilerEventEmitter,
     ) {
         // Handle both old signature and new options object
-        if (pipelineOrOptions && 'pipeline' in pipelineOrOptions) {
-            // New options object
-            const options = pipelineOrOptions as SourceCompilerOptions;
-            this.logger = options.logger ?? defaultLogger;
-            this.eventEmitter = options.eventEmitter ?? createEventEmitter();
-            this.diagnostics = options.diagnostics ?? NoOpDiagnosticsCollector.getInstance();
-            this.pipeline = options.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
-        } else {
-            // Legacy signature
+        if (pipelineOrOptions instanceof TransformationPipeline || logger !== undefined ||
+            eventEmitter !== undefined) {
+            // Legacy signature: (pipeline?: TransformationPipeline, logger?: ILogger, eventEmitter?: CompilerEventEmitter)
             this.logger = logger ?? defaultLogger;
             this.eventEmitter = eventEmitter ?? createEventEmitter();
             this.diagnostics = NoOpDiagnosticsCollector.getInstance();
             this.pipeline = (pipelineOrOptions as TransformationPipeline | undefined) ??
                 new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        } else {
+            // New options object signature: (options?: SourceCompilerOptions)
+            const options: SourceCompilerOptions = (pipelineOrOptions ?? {}) as SourceCompilerOptions;
+            this.logger = options.logger ?? defaultLogger;
+            this.eventEmitter = options.eventEmitter ?? createEventEmitter();
+            this.diagnostics = options.diagnostics ?? NoOpDiagnosticsCollector.getInstance();
+            this.pipeline = options.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
         }
     }
 

@@ -73,7 +73,6 @@ export class PathUtils {
             }
         } else {
             // Resolve relative file path
-            const separator = basePath.includes('\\') ? '\\' : '/';
             const lastSeparatorIndex = Math.max(
                 basePath.lastIndexOf('/'),
                 basePath.lastIndexOf('\\'),
@@ -178,7 +177,7 @@ export class PathUtils {
             if (urlObj.search) {
                 urlObj.search = '[QUERY]';
             }
-            return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+            return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}${urlObj.search}`;
         } catch {
             // If URL parsing fails, return a generic indicator
             return '[INVALID_URL]';

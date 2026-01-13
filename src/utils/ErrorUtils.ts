@@ -14,6 +14,7 @@ export enum ErrorCode {
     TRANSFORMATION_FAILED = 'TRANSFORMATION_FAILED',
 
     // Network errors
+    NETWORK_ERROR = 'NETWORK_ERROR',
     NETWORK_TIMEOUT = 'NETWORK_TIMEOUT',
     NETWORK_CONNECTION_REFUSED = 'NETWORK_CONNECTION_REFUSED',
     HTTP_ERROR = 'HTTP_ERROR',
@@ -126,7 +127,7 @@ export class NetworkError extends BaseError {
     private static getErrorCode(statusCode?: number): ErrorCode {
         if (statusCode === 429) return ErrorCode.HTTP_RATE_LIMITED;
         if (statusCode && statusCode >= 400) return ErrorCode.HTTP_ERROR;
-        return ErrorCode.NETWORK_TIMEOUT;
+        return ErrorCode.NETWORK_ERROR;
     }
 }
 
