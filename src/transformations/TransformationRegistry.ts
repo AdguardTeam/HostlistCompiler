@@ -188,23 +188,60 @@ export class TransformationPipeline {
         rules: string[],
         configuration: IConfiguration | ISource,
     ): Promise<string[]> {
-        const exclusions = configuration.exclusions;
-        const exclusionsSources = configuration.exclusions_sources;
+        return this.applyPatternFilter(
+            rules,
+            configuration.exclusions,
+            configuration.exclusions_sources,
+            'exclude',
+        );
+    }
 
+    /**
+     * Applies inclusion patterns.
+     * Optimized to partition patterns by type for faster matching.
+     */
+    private async applyInclusions(
+        rules: string[],
+        configuration: IConfiguration | ISource,
+    ): Promise<string[]> {
+        return this.applyPatternFilter(
+            rules,
+            configuration.inclusions,
+            configuration.inclusions_sources,
+            'include',
+        );
+    }
+
+    /**
+     * Common pattern matching logic for exclusions and inclusions.
+     * Partitions patterns by type for optimized matching.
+     * @param rules - Rules to filter
+     * @param patterns - Pattern strings
+     * @param patternSources - URLs/paths to pattern files
+     * @param mode - 'exclude' removes matching rules, 'include' keeps only matching rules
+     */
+    private async applyPatternFilter(
+        rules: string[],
+        patterns?: string[],
+        patternSources?: string[],
+        mode: 'exclude' | 'include' = 'exclude',
+    ): Promise<string[]> {
+        // Check if we have any patterns to apply
         if (
-            (!exclusions || exclusions.length === 0) &&
-            (!exclusionsSources || exclusionsSources.length === 0)
+            (!patterns || patterns.length === 0) &&
+            (!patternSources || patternSources.length === 0)
         ) {
             return rules;
         }
 
-        const wildcards = await this.filterService.prepareWildcards(exclusions, exclusionsSources);
+        const wildcards = await this.filterService.prepareWildcards(patterns, patternSources);
 
         if (wildcards.length === 0) {
             return rules;
         }
 
-        this.logger.info(`Filtering the list of rules using ${wildcards.length} exclusion rules`);
+        const modeLabel = mode === 'exclude' ? 'exclusion' : 'inclusion';
+        this.logger.info(`Filtering the list of rules using ${wildcards.length} ${modeLabel} rules`);
 
         // Partition patterns by type for optimized matching
         // Plain string patterns can use fast includes() check
@@ -219,69 +256,8 @@ export class TransformationPipeline {
             }
         }
 
-        const filtered = rules.filter((rule) => {
-            // Fast path: check plain string patterns first (simple includes)
-            for (const pattern of plainPatterns) {
-                if (rule.includes(pattern)) {
-                    this.logger.debug(`${rule} excluded by ${pattern}`);
-                    return false;
-                }
-            }
-
-            // Slow path: regex/wildcard patterns
-            for (const w of regexWildcards) {
-                if (w.test(rule)) {
-                    this.logger.debug(`${rule} excluded by ${w.toString()}`);
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
-        this.logger.info(`Excluded ${rules.length - filtered.length} rules. ${filtered.length} rules left.`);
-        return filtered;
-    }
-
-    /**
-     * Applies inclusion patterns.
-     * Optimized to partition patterns by type for faster matching.
-     */
-    private async applyInclusions(
-        rules: string[],
-        configuration: IConfiguration | ISource,
-    ): Promise<string[]> {
-        const inclusions = configuration.inclusions;
-        const inclusionsSources = configuration.inclusions_sources;
-
-        if (
-            (!inclusions || inclusions.length === 0) &&
-            (!inclusionsSources || inclusionsSources.length === 0)
-        ) {
-            return rules;
-        }
-
-        const wildcards = await this.filterService.prepareWildcards(inclusions, inclusionsSources);
-
-        if (wildcards.length === 0) {
-            return rules;
-        }
-
-        this.logger.info(`Filtering the list of rules using ${wildcards.length} inclusion rules`);
-
-        // Partition patterns by type for optimized matching
-        const plainPatterns: string[] = [];
-        const regexWildcards: Wildcard[] = [];
-
-        for (const w of wildcards) {
-            if (w.isPlain) {
-                plainPatterns.push(w.pattern);
-            } else {
-                regexWildcards.push(w);
-            }
-        }
-
-        const filtered = rules.filter((rule) => {
+        // Create the appropriate filter predicate based on mode
+        const matchesPattern = (rule: string): boolean => {
             // Fast path: check plain string patterns first
             for (const pattern of plainPatterns) {
                 if (rule.includes(pattern)) {
@@ -296,11 +272,31 @@ export class TransformationPipeline {
                 }
             }
 
-            this.logger.debug(`${rule} does not match inclusions list`);
             return false;
-        });
+        };
 
-        this.logger.info(`Included ${filtered.length} rules`);
+        const filtered = mode === 'exclude'
+            ? rules.filter((rule) => {
+                const matches = matchesPattern(rule);
+                if (matches) {
+                    this.logger.debug(`${rule} excluded by pattern`);
+                }
+                return !matches;
+            })
+            : rules.filter((rule) => {
+                const matches = matchesPattern(rule);
+                if (!matches) {
+                    this.logger.debug(`${rule} does not match inclusions list`);
+                }
+                return matches;
+            });
+
+        if (mode === 'exclude') {
+            this.logger.info(`Excluded ${rules.length - filtered.length} rules. ${filtered.length} rules left.`);
+        } else {
+            this.logger.info(`Included ${filtered.length} rules`);
+        }
+
         return filtered;
     }
 }
