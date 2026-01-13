@@ -38,7 +38,7 @@ jobs:
                       os: ubuntu-latest
                       artifact: hostlist-compiler-linux-arm64
                     - target: x86_64-apple-darwin
-                      os: macos-13
+                      os: macos-15-intel
                       artifact: hostlist-compiler-macos-x64
                     - target: aarch64-apple-darwin
                       os: macos-14
@@ -150,7 +150,6 @@ jobs:
               id: notes
               run: |
                   set -euo pipefail
-                  VERSION="${{ steps.version.outputs.version }}"
                   cat << 'EOF' > release-notes.md
                   ## What's Changed
 
@@ -184,7 +183,7 @@ jobs:
                   EOF
                   cd release
                   if [ -n "$(ls -A 2>/dev/null)" ]; then
-                      sha256sum * >> ../release-notes.md 2>/dev/null || shasum -a 256 * >> ../release-notes.md
+                      sha256sum ./* >> ../release-notes.md 2>/dev/null || shasum -a 256 ./* >> ../release-notes.md
                   else
                       echo 'No binary artifacts were generated; no checksums available.' >> ../release-notes.md
                   fi

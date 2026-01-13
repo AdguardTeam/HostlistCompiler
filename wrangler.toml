@@ -67,7 +67,7 @@ name = "ADBLOCK_COMPILER"
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.7.10"
+COMPILER_VERSION = "0.7.11"
 TURNSTILE_SITE_KEY = "0x4AAAAAACMKiPZdJh8I8IEM"
 
 # Static assets configuration using modern assets
@@ -79,26 +79,31 @@ binding = "ASSETS"
 # [[tail_consumers]]
 # service = "adblock-compiler-tail"
 
-# Queues (auto-created by CI)
-[[queues.producers]]
-queue = "adblock-compiler-worker-queue"
-binding = "ADBLOCK_COMPILER_QUEUE"
-
-[[queues.producers]]
-queue = "adblock-compiler-worker-queue-high-priority"
-binding = "ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY"
-
-[[queues.consumers]]
-queue = "adblock-compiler-worker-queue"
-max_batch_size = 10
-max_batch_timeout = 5
-dead_letter_queue = "adblock-compiler-dlq"
-
-[[queues.consumers]]
-queue = "adblock-compiler-worker-queue-high-priority"
-max_batch_size = 5
-max_batch_timeout = 2
-dead_letter_queue = "adblock-compiler-dlq"
+# Queues - commented out until queues are created in Cloudflare dashboard
+# To enable queues, first create them in Cloudflare dashboard or run:
+#   wrangler queues create adblock-compiler-worker-queue
+#   wrangler queues create adblock-compiler-worker-queue-high-priority
+#   wrangler queues create adblock-compiler-dlq
+#
+# [[queues.producers]]
+# queue = "adblock-compiler-worker-queue"
+# binding = "ADBLOCK_COMPILER_QUEUE"
+#
+# [[queues.producers]]
+# queue = "adblock-compiler-worker-queue-high-priority"
+# binding = "ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY"
+#
+# [[queues.consumers]]
+# queue = "adblock-compiler-worker-queue"
+# max_batch_size = 10
+# max_batch_timeout = 5
+# dead_letter_queue = "adblock-compiler-dlq"
+#
+# [[queues.consumers]]
+# queue = "adblock-compiler-worker-queue-high-priority"
+# max_batch_size = 5
+# max_batch_timeout = 2
+# dead_letter_queue = "adblock-compiler-dlq"
 
 # Development settings
 [dev]

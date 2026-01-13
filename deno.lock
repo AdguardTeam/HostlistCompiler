@@ -5,7 +5,8 @@
     "jsr:@std/assert@1": "1.0.16",
     "jsr:@std/flags@0.224": "0.224.0",
     "jsr:@std/internal@^1.0.12": "1.0.12",
-    "jsr:@std/path@1": "1.1.4"
+    "jsr:@std/path@1": "1.1.4",
+    "jsr:@std/yaml@*": "1.0.10"
   },
   "jsr": {
     "@std/assert@0.224.0": {
@@ -31,6 +32,9 @@
       "dependencies": [
         "jsr:@std/internal"
       ]
+    },
+    "@std/yaml@1.0.10": {
+      "integrity": "245706ea3511cc50c8c6d00339c23ea2ffa27bd2c7ea5445338f8feff31fa58e"
     }
   },
   "workspace": {
