@@ -3,7 +3,7 @@
  * Only recompiles sources that have changed since the last compilation.
  */
 
-import type { IConfiguration, ISource, ILogger } from '../types/index.ts';
+import type { IConfiguration, ILogger, ISource } from '../types/index.ts';
 import type { CompilationResult } from './FilterCompiler.ts';
 import { FilterCompiler, FilterCompilerOptions } from './FilterCompiler.ts';
 import { logger as defaultLogger } from '../utils/logger.ts';
@@ -197,7 +197,7 @@ export class IncrementalCompiler {
             {
                 ...configuration,
                 // Override sources to use pre-compiled rules
-                sources: sourceResults.map(sr => ({
+                sources: sourceResults.map((sr) => ({
                     ...sr.source,
                     _precompiled: sr.rules,
                 })) as ISource[],
@@ -207,8 +207,8 @@ export class IncrementalCompiler {
 
         this.logger.info(
             `Incremental compilation complete: ` +
-            `${recompiledSources.length} recompiled, ${cachedSources.length} from cache, ` +
-            `~${estimatedTimeSaved}ms saved`,
+                `${recompiledSources.length} recompiled, ${cachedSources.length} from cache, ` +
+                `~${estimatedTimeSaved}ms saved`,
         );
 
         return {
@@ -267,7 +267,7 @@ export class IncrementalCompiler {
         try {
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
         } catch {
             // Fallback for environments without crypto.subtle
             let hash = 0;
@@ -310,10 +310,10 @@ export class IncrementalCompiler {
 
         return {
             entries: entries.length,
-            sources: entries.map(e => e.source),
+            sources: entries.map((e) => e.source),
             totalRules: entries.reduce((sum, e) => sum + e.rules.length, 0),
-            oldestEntry: entries.length > 0 ? Math.min(...entries.map(e => e.timestamp)) : 0,
-            newestEntry: entries.length > 0 ? Math.max(...entries.map(e => e.timestamp)) : 0,
+            oldestEntry: entries.length > 0 ? Math.min(...entries.map((e) => e.timestamp)) : 0,
+            newestEntry: entries.length > 0 ? Math.max(...entries.map((e) => e.timestamp)) : 0,
         };
     }
 }

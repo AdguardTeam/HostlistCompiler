@@ -48,12 +48,12 @@ export interface RetryResult<T> {
 
 /**
  * Executes an async operation with retry logic and exponential backoff.
- * 
+ *
  * @param operation - Async function to execute
  * @param options - Retry configuration options
  * @returns Promise resolving to the operation result
  * @throws The last error if all retries are exhausted
- * 
+ *
  * @example
  * ```ts
  * const result = await withRetry(
@@ -71,40 +71,40 @@ export interface RetryResult<T> {
  */
 export async function withRetry<T>(
     operation: () => Promise<T>,
-    options?: RetryOptions
+    options?: RetryOptions,
 ): Promise<RetryResult<T>> {
     const opts = { ...DEFAULT_RETRY_OPTIONS, ...options };
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
         try {
             const value = await operation();
             return { value, attempts: attempt + 1 };
         } catch (error) {
             lastError = error instanceof Error ? error : new Error(String(error));
-            
+
             // Check if we should retry
             const isLastAttempt = attempt === opts.maxRetries;
             if (isLastAttempt || !opts.shouldRetry(lastError, attempt)) {
                 throw lastError;
             }
-            
+
             // Calculate delay with exponential backoff and jitter
             const exponentialDelay = Math.min(
                 opts.initialDelay * Math.pow(opts.backoffFactor, attempt),
-                opts.maxDelay
+                opts.maxDelay,
             );
             const jitter = Math.random() * opts.jitterFactor * exponentialDelay;
             const delay = Math.floor(exponentialDelay + jitter);
-            
+
             // Notify before retry
             opts.onRetry(lastError, attempt + 1, delay);
-            
+
             // Wait before retrying
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
-    
+
     // This should never be reached due to the throw in the loop,
     // but TypeScript requires it
     throw lastError ?? new Error('Retry failed with unknown error');
@@ -120,23 +120,23 @@ export const RetryStrategies = {
     networkErrors: (error: Error): boolean => {
         const message = error.message.toLowerCase();
         return message.includes('timeout') ||
-               message.includes('network') ||
-               message.includes('econnrefused') ||
-               message.includes('enotfound') ||
-               message.includes('http 5') ||
-               message.includes('http 429'); // Rate limiting
+            message.includes('network') ||
+            message.includes('econnrefused') ||
+            message.includes('enotfound') ||
+            message.includes('http 5') ||
+            message.includes('http 429'); // Rate limiting
     },
-    
+
     /**
      * Retry on any error (use with caution)
      */
     allErrors: (): boolean => true,
-    
+
     /**
      * Never retry (for critical errors)
      */
     never: (): boolean => false,
-    
+
     /**
      * Retry only on specific HTTP status codes
      */

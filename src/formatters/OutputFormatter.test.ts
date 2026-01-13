@@ -1,12 +1,5 @@
 import { assertEquals, assertExists } from '@std/assert';
-import {
-    formatOutput,
-    HostsFormatter,
-    DnsmasqFormatter,
-    PiHoleFormatter,
-    JsonFormatter,
-    UnboundFormatter,
-} from './OutputFormatter.ts';
+import { DnsmasqFormatter, formatOutput, HostsFormatter, JsonFormatter, PiHoleFormatter, UnboundFormatter } from './OutputFormatter.ts';
 import { OutputFormat } from '../config/defaults.ts';
 
 const sampleRules = [

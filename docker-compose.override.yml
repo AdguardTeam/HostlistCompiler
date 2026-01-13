@@ -3,9 +3,9 @@
 # It adds volume mounts for live code reloading during development
 
 services:
-  adblock-compiler:
-    volumes:
-      # Mount source code for live reloading
-      - ./src:/app/src
-      - ./worker:/app/worker
-      - ./public:/app/public
+    adblock-compiler:
+        volumes:
+            # Mount source code for live reloading
+            - ./src:/app/src
+            - ./worker:/app/worker
+            - ./public:/app/public

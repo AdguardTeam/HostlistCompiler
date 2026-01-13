@@ -1,5 +1,5 @@
 import { assertEquals, assertExists, assertRejects } from '@std/assert';
-import { FilterCompiler, compile } from '../../src/compiler/FilterCompiler.ts';
+import { compile, FilterCompiler } from '../../src/compiler/FilterCompiler.ts';
 import { IConfiguration, SourceType, TransformationType } from '../../src/types/index.ts';
 import { silentLogger } from '../../src/utils/index.ts';
 import { fromFileUrl } from '@std/path';
@@ -229,7 +229,7 @@ Deno.test('FilterCompiler - should add checksum to compiled output', async () =>
 
     // Should have a checksum line
     assertEquals(result.some((line) => line.startsWith('! Checksum:')), true);
-    
+
     // Checksum should be in the header section (before source headers)
     const checksumIndex = result.findIndex((line) => line.startsWith('! Checksum:'));
     const firstSourceIndex = result.findIndex((line) => line.includes('Source name:') || line.includes('! Source:'));

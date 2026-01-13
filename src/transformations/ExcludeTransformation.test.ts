@@ -9,9 +9,9 @@ Deno.test('ExcludeTransformation - should exclude rules matching pattern', () =>
         '||example.com^',
     ];
     const wildcards = [new Wildcard('*example*')];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||test.com^']);
 });
 
@@ -23,9 +23,9 @@ Deno.test('ExcludeTransformation - should exclude multiple matching rules', () =
         '||banner.test.com^',
     ];
     const wildcards = [new Wildcard('*example*')];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||safe.org^', '||banner.test.com^']);
 });
 
@@ -39,9 +39,9 @@ Deno.test('ExcludeTransformation - should handle multiple exclusion patterns', (
         new Wildcard('*example*'),
         new Wildcard('*test*'),
     ];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||safe.org^']);
 });
 
@@ -50,17 +50,17 @@ Deno.test('ExcludeTransformation - should return all rules when no wildcards', (
         '||example.org^',
         '||test.com^',
     ];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, []);
-    
+
     assertEquals(result, rules);
 });
 
 Deno.test('ExcludeTransformation - should handle empty rules array', () => {
     const wildcards = [new Wildcard('*example*')];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards([], wildcards);
-    
+
     assertEquals(result, []);
 });
 
@@ -71,9 +71,9 @@ Deno.test('ExcludeTransformation - should handle exact matches', () => {
         '||other.net^',
     ];
     const wildcards = [new Wildcard('||example.org^')];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||test.com^', '||other.net^']);
 });
 
@@ -84,9 +84,9 @@ Deno.test('ExcludeTransformation - should handle wildcard at start', () => {
         '||test.com^',
     ];
     const wildcards = [new Wildcard('*example.org^')];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||test.com^']);
 });
 
@@ -97,9 +97,9 @@ Deno.test('ExcludeTransformation - should handle wildcard at end', () => {
         '||test.com^',
     ];
     const wildcards = [new Wildcard('||example*')];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, ['||test.com^']);
 });
 
@@ -110,9 +110,9 @@ Deno.test('ExcludeTransformation - should not exclude non-matching rules', () =>
         '||other.net^',
     ];
     const wildcards = [new Wildcard('*nonexistent*')];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
-    
+
     assertEquals(result, rules);
 });
 
@@ -123,9 +123,9 @@ Deno.test('ExcludeTransformation - should handle case-insensitive matching', () 
         '||test.com^',
     ];
     const wildcards = [new Wildcard('*example.org*')];
-    
+
     const result = ExcludeTransformation.excludeWithWildcards(rules, wildcards);
-    
+
     // Should exclude both case variants
     assertEquals(result, ['||test.com^']);
 });

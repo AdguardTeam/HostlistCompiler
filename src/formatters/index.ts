@@ -3,18 +3,15 @@
  */
 
 export {
-    formatOutput,
+    AdblockFormatter,
     createFormatter,
-    HostsFormatter,
     DnsmasqFormatter,
+    DoHFormatter,
+    formatOutput,
+    HostsFormatter,
+    JsonFormatter,
     PiHoleFormatter,
     UnboundFormatter,
-    JsonFormatter,
-    DoHFormatter,
-    AdblockFormatter,
 } from './OutputFormatter.ts';
 
-export type {
-    FormatterOptions,
-    FormatterResult,
-} from './OutputFormatter.ts';
+export type { FormatterOptions, FormatterResult } from './OutputFormatter.ts';

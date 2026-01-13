@@ -24,7 +24,7 @@ The adblock-compiler is a well-architected Deno-native project with solid fundam
 // Current (wrong):
 const PACKAGE_INFO = {
     name: '@jk-com/adblock-compiler',
-    version: '0.6.88',  // Hardcoded, out of sync!
+    version: '0.6.88', // Hardcoded, out of sync!
 } as const;
 ```
 
@@ -46,6 +46,7 @@ export const VERSION = '0.6.91';
 **Location:** `src/compiler/FilterCompiler.ts` and `src/platform/WorkerCompiler.ts`
 
 **Problem:** Both classes contain nearly identical implementations of:
+
 - `prepareHeader()` method (lines 216-243 and 315-340)
 - `prepareSourceHeader()` method (lines 248-258 and 345-355)
 - `compileWithMetrics()` structure
@@ -195,9 +196,9 @@ private async readConfig(): Promise<IConfiguration> {
 **Problem:** Multiple full array copies during transformation pipeline:
 
 ```typescript
-finalList.push(...sourceHeader, ...rules);  // Spread creates copies
+finalList.push(...sourceHeader, ...rules); // Spread creates copies
 // ...
-return Array.from(readonlyTransformed);  // Another copy
+return Array.from(readonlyTransformed); // Another copy
 ```
 
 **Recommendation:** For very large lists, consider streaming transformations or in-place operations:
@@ -213,12 +214,14 @@ for (const item of rules) finalList.push(item);
 ### 8. **Test Coverage Gaps** 🟠 Medium Priority
 
 **Observations:**
+
 - No integration tests for the full Worker deployment
 - No tests for error recovery scenarios (network failures, partial downloads)
 - Missing edge case tests for preprocessor directives
 - No load/stress tests for large filter lists
 
 **Recommendation:** Add:
+
 - `worker/worker.test.ts` - Worker endpoint tests
 - `src/downloader/FilterDownloader.integration.test.ts` - Network failure scenarios
 - `src/transformations/stress.test.ts` - Large dataset tests
@@ -316,12 +319,14 @@ public async compile(configuration: IConfiguration): Promise<string[]> {
 **Description:** Only recompile sources that have changed since last compilation.
 
 **Implementation:**
+
 - Store content hashes in `NoSqlStorage`
 - Check ETag/Last-Modified headers
 - Skip unchanged sources
 - Merge with cached results
 
 **Benefits:**
+
 - 50-90% faster subsequent compilations
 - Reduced bandwidth for remote sources
 - Lower API rate limit impact
@@ -330,7 +335,7 @@ public async compile(configuration: IConfiguration): Promise<string[]> {
 interface IncrementalCompilationOptions {
     enableCache: boolean;
     storage: NoSqlStorage;
-    forceRefresh?: string[];  // Force refresh specific sources
+    forceRefresh?: string[]; // Force refresh specific sources
 }
 ```
 
@@ -341,12 +346,14 @@ interface IncrementalCompilationOptions {
 **Description:** Web UI dashboard showing source availability and health trends.
 
 **Features:**
+
 - Historical availability charts
 - Response time tracking
 - Content change frequency
 - Alert configuration for degraded sources
 
 **Implementation:** Extend `SourceHealthMonitor` with:
+
 ```typescript
 interface SourceHealthDashboard {
     getHealthHistory(source: string, days: number): HealthRecord[];
@@ -362,12 +369,14 @@ interface SourceHealthDashboard {
 **Description:** Detect and report conflicting rules (blocking vs. allowing same domain).
 
 **Example:**
+
 ```
 ||example.com^      <- blocks example.com
 @@||example.com^    <- allows example.com (conflict!)
 ```
 
 **Implementation:**
+
 ```typescript
 interface ConflictReport {
     blockingRule: string;
@@ -389,6 +398,7 @@ class ConflictDetectionTransformation extends AsyncTransformation {
 **Description:** Automatically optimize rules for better performance.
 
 **Optimizations:**
+
 - Merge similar rules: `||a.com^`, `||b.com^` → `||a.com^$domain=a.com|b.com`
 - Remove redundant modifiers
 - Suggest regex patterns for repeated patterns
@@ -401,18 +411,22 @@ class ConflictDetectionTransformation extends AsyncTransformation {
 **Description:** Generate detailed diff reports between compilations.
 
 **Output:**
+
 ```markdown
 ## Compilation Diff Report
+
 - Added: 150 rules
 - Removed: 23 rules
 - Modified: 45 rules
 
 ### New Domains Blocked:
+
 - tracking.newsite.com (from EasyList)
 - ads.example.org (from Custom List)
 ```
 
 **Implementation:**
+
 ```typescript
 interface DiffReport {
     added: RuleDiff[];
@@ -431,6 +445,7 @@ interface DiffReport {
 **Description:** Test mode that validates rules against sample URLs.
 
 **Features:**
+
 - Input: rule + test URLs
 - Output: which URLs would be blocked/allowed
 - Support for URL pattern matching simulation
@@ -449,6 +464,7 @@ interface RuleTester {
 **Description:** Allow users to create custom transformations without modifying core code.
 
 **Implementation:**
+
 ```typescript
 interface PluginManifest {
     name: string;
@@ -473,6 +489,7 @@ interface PluginManifest {
 **Description:** Support multiple output formats beyond text.
 
 **Formats:**
+
 - **AdBlock Plus format** (current default)
 - **Hosts file format** (for system-level blocking)
 - **dnsmasq format** (for router configurations)
@@ -498,6 +515,7 @@ enum OutputFormat {
 **Description:** Built-in scheduling for automatic recompilation.
 
 **Features:**
+
 - Cron expression support
 - Webhook notifications on completion
 - Auto-deploy to CDN/storage
@@ -524,6 +542,7 @@ enum OutputFormat {
 **Description:** Detailed statistics about the compiled filter list.
 
 **Metrics:**
+
 - Top blocked domains
 - Rule type distribution (domain, regex, cosmetic)
 - Source contribution breakdown
@@ -547,6 +566,7 @@ interface CompilationStats {
 **Description:** Validate that blocked domains actually resolve.
 
 **Benefits:**
+
 - Remove dead domains
 - Reduce list size
 - Improve performance
@@ -567,6 +587,7 @@ interface DNSValidationTransformation {
 **Description:** Internationalized documentation and error messages.
 
 **Implementation:**
+
 - Extract all user-facing strings to resource files
 - Support locale detection
 - Community translation workflow
@@ -578,6 +599,7 @@ interface DNSValidationTransformation {
 **Description:** Web-based editor for collaborative filter list maintenance.
 
 **Features:**
+
 - Multi-user editing with conflict resolution
 - Rule syntax highlighting
 - Auto-complete for common patterns
@@ -589,10 +611,10 @@ interface DNSValidationTransformation {
 
 ### Priority Matrix
 
-| Category | High Priority | Medium Priority | Low Priority |
-|----------|--------------|-----------------|--------------|
-| **Bugs/Issues** | Version sync, Security (`Function`) | Error handling, CLI validation, Memory | Logger deprecation, Hash function |
-| **Features** | Incremental compilation, Health dashboard, Conflict detection | Rule optimizer, Diff reports, Plugins, Output formats | Scheduling, Analytics, DNS validation |
+| Category        | High Priority                                                 | Medium Priority                                       | Low Priority                          |
+| --------------- | ------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------- |
+| **Bugs/Issues** | Version sync, Security (`Function`)                           | Error handling, CLI validation, Memory                | Logger deprecation, Hash function     |
+| **Features**    | Incremental compilation, Health dashboard, Conflict detection | Rule optimizer, Diff reports, Plugins, Output formats | Scheduling, Analytics, DNS validation |
 
 ### Recommended Next Steps
 
@@ -617,4 +639,4 @@ interface DNSValidationTransformation {
 
 ---
 
-*This code review was generated by Claude Code Review. The analysis is based on static code review and may not cover all runtime behaviors.*
+_This code review was generated by Claude Code Review. The analysis is based on static code review and may not cover all runtime behaviors._

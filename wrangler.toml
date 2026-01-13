@@ -62,12 +62,9 @@ COMPILER_VERSION = "0.7.7"
 directory = "./public"
 binding = "ASSETS"
 
+# Tail Workers - for log collection and observability
 [[tail_consumers]]
 service = "adblock-compiler-tail"
-
-# Tail Workers - for log collection and observability
-# Uncomment to enable tail worker (must be deployed separately first)
-tail_consumers = [{ service = "adblock-compiler-tail" }]
 
 [[queues.producers]]
  queue = "adblock-compiler-worker-queue"

@@ -38,7 +38,7 @@ const NON_ASCII_RULES = [
     '||münchen.de^',
 ];
 
-const ADBLOCK_RULES = [
+const _ADBLOCK_RULES = [
     '||example.com^',
     '@@||whitelist.example.com^$important',
     '||ads.example.org^$third-party,script',

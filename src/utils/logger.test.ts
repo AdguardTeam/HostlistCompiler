@@ -1,5 +1,5 @@
 import { assertEquals } from '@std/assert';
-import { Logger, LogLevel, createLogger, silentLogger } from './logger.ts';
+import { createLogger, Logger, LogLevel, silentLogger } from './logger.ts';
 
 Deno.test('Logger - should create logger with default options', () => {
     const logger = new Logger();

@@ -345,7 +345,7 @@ export class AdblockFormatter extends BaseFormatter {
     format(rules: string[]): FormatterResult {
         return {
             content: rules.join('\n'),
-            ruleCount: rules.filter(r => r && !r.startsWith('!')).length,
+            ruleCount: rules.filter((r) => r && !r.startsWith('!')).length,
             skippedCount: 0,
             format: OutputFormat.Adblock,
         };

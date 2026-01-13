@@ -4,16 +4,7 @@
 
 import { assertEquals, assertExists } from '@std/assert';
 import { DiagnosticsCollector, NoOpDiagnosticsCollector } from './DiagnosticsCollector.ts';
-import {
-    CacheEvent,
-    NetworkEvent,
-    OperationCompleteEvent,
-    OperationErrorEvent,
-    OperationStartEvent,
-    PerformanceMetricEvent,
-    TraceCategory,
-    TraceSeverity,
-} from './types.ts';
+import { CacheEvent, NetworkEvent, OperationCompleteEvent, OperationErrorEvent, OperationStartEvent, PerformanceMetricEvent, TraceCategory, TraceSeverity } from './types.ts';
 
 Deno.test('DiagnosticsCollector - operationStart creates event', () => {
     const collector = new DiagnosticsCollector('test-correlation');

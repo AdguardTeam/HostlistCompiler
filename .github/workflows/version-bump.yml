@@ -1,163 +1,125 @@
 name: Auto Version Bump
 
-# This workflow automatically bumps the patch version when a PR is opened.
-# Note: This workflow only runs if it exists on the base branch (master/main).
-# It did not run for PR #47 because the workflow itself was added in that PR.
-# It will run for all subsequent PRs.
-
 on:
-  pull_request:
-    types: [opened]
-    branches: [master, main]
-  workflow_dispatch:  # Allow manual triggering for edge cases
+    pull_request:
+        types: [opened]
+        branches: [master, main]
+    workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+    contents: write
+    pull-requests: write
 
 jobs:
-  bump-version:
-    name: Bump Version Number
-    runs-on: ubuntu-latest
-    # Only run on PRs not created by automation bots (github-actions, dependabot)
-    # Note: Copilot bot PRs ARE allowed since they represent user-initiated feature work
-    if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]'
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+    bump-version:
+        name: Bump Version Number
+        runs-on: ubuntu-latest
+        if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]'
+        steps:
+            - name: Checkout PR branch
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.head_ref || github.ref }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  fetch-depth: 0
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: v2.4
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: v2.x
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+            - name: Configure Git
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+            - name: Bump version
+              id: bump_version
+              run: |
+                  # Read and validate current version
+                  CURRENT_VERSION=$(deno eval 'console.log(JSON.parse(Deno.readTextFileSync("deno.json")).version)')
+                  echo "Current version: $CURRENT_VERSION"
 
-      - name: Bump version in deno.json
-        id: bump_version
-        run: |
-          # Read current version from deno.json using deno for robust JSON parsing
-          if [ ! -f "deno.json" ]; then
-            echo "Error: deno.json not found"
-            exit 1
-          fi
-          
-          CURRENT_VERSION=$(deno eval 'console.log(JSON.parse(Deno.readTextFileSync("deno.json")).version)' 2>&1) || {
-            echo "Error: Failed to read version from deno.json"
-            exit 1
-          }
-          echo "Current version: $CURRENT_VERSION"
-          
-          # Validate version format (must be major.minor.patch with numeric parts only)
-          if ! [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Version '$CURRENT_VERSION' is not in valid semver format (major.minor.patch)"
-            exit 1
-          fi
-          
-          # Split version into parts
-          IFS='.' read -r -a version_parts <<< "$CURRENT_VERSION"
-          MAJOR="${version_parts[0]}"
-          MINOR="${version_parts[1]}"
-          PATCH="${version_parts[2]}"
-          
-          # Validate PATCH is numeric (extra safety check)
-          if ! [[ "$PATCH" =~ ^[0-9]+$ ]]; then
-            echo "Error: Patch version '$PATCH' is not numeric"
-            exit 1
-          fi
-          
-          # Bump patch version
-          NEW_PATCH=$((PATCH + 1))
-          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
-          echo "New version: $NEW_VERSION"
-          
-          # Update deno.json using deno for safe JSON manipulation
-          # Pass version as command-line argument to avoid shell injection
-          deno eval "
-          const newVersion = Deno.args[0];
-          const config = JSON.parse(Deno.readTextFileSync('deno.json'));
-          config.version = newVersion;
-          Deno.writeTextFileSync('deno.json', JSON.stringify(config, null, 4) + '\n');
-          " "$NEW_VERSION"
-          
-          # Output for later steps
-          echo "old_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+                  if ! [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "Error: Invalid version format"
+                    exit 1
+                  fi
 
-      - name: Bump version in package.json
-        run: |
-          # Update package.json if it exists with a version field
-          if [ -f "package.json" ] && grep -q '"version"' package.json; then
-            NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
-            # Use deno for safe JSON manipulation
-            # Pass version as command-line argument to avoid shell injection
-            deno eval "
-            const newVersion = Deno.args[0];
-            const pkg = JSON.parse(Deno.readTextFileSync('package.json'));
-            pkg.version = newVersion;
-            Deno.writeTextFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
-            " "$NEW_VERSION"
-            echo "Updated package.json version to ${NEW_VERSION}"
-          fi
+                  # Bump patch version
+                  IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+                  NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+                  echo "New version: $NEW_VERSION"
 
-      - name: Bump version in src/version.ts
-        run: |
-          # Update src/version.ts if it exists
-          if [ -f "src/version.ts" ]; then
-            NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
-            # Use sed to replace the VERSION constant
-            sed -i "s/export const VERSION = '[^']*';/export const VERSION = '${NEW_VERSION}';/" src/version.ts
-            echo "Updated src/version.ts version to ${NEW_VERSION}"
-          fi
+                  echo "old_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+                  echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Bump version in wrangler.toml
-        run: |
-          # Update wrangler.toml COMPILER_VERSION if it exists
-          if [ -f "wrangler.toml" ] && grep -q 'COMPILER_VERSION' wrangler.toml; then
-            NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
-            # Use sed to replace the COMPILER_VERSION value
-            sed -i "s/COMPILER_VERSION = \"[^\"]*\"/COMPILER_VERSION = \"${NEW_VERSION}\"/" wrangler.toml
-            echo "Updated wrangler.toml COMPILER_VERSION to ${NEW_VERSION}"
-          fi
+                  # Update deno.json (source of truth)
+                  deno eval "
+                    const v = Deno.args[0];
+                    const c = JSON.parse(Deno.readTextFileSync('deno.json'));
+                    c.version = v;
+                    Deno.writeTextFileSync('deno.json', JSON.stringify(c, null, 4) + '\n');
+                  " "$NEW_VERSION"
 
-      - name: Check for changes
-        id: check_changes
-        run: |
-          if git diff --quiet; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "No version changes needed"
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Version files updated"
-          fi
+                  # Update package.json
+                  if [ -f "package.json" ]; then
+                    deno eval "
+                      const v = Deno.args[0];
+                      const p = JSON.parse(Deno.readTextFileSync('package.json'));
+                      p.version = v;
+                      Deno.writeTextFileSync('package.json', JSON.stringify(p, null, '\t') + '\n');
+                    " "$NEW_VERSION"
+                  fi
 
-      - name: Commit and push version bump
-        if: steps.check_changes.outputs.has_changes == 'true'
-        run: |
-          git add deno.json package.json src/version.ts wrangler.toml
-          git commit -m "chore: bump version to ${{ steps.bump_version.outputs.new_version }}"
-          git push origin ${{ github.head_ref || github.ref_name }}
+                  # Update src/version.ts
+                  if [ -f "src/version.ts" ]; then
+                    sed -i "s/export const VERSION = '[^']*'/export const VERSION = '${NEW_VERSION}'/" src/version.ts
+                  fi
 
-      - name: Add comment to PR
-        if: steps.check_changes.outputs.has_changes == 'true' && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: '🚀 Version automatically bumped from `${{ steps.bump_version.outputs.old_version }}` to `${{ steps.bump_version.outputs.new_version }}`'
-            })
+                  # Update wrangler.toml
+                  if [ -f "wrangler.toml" ]; then
+                    sed -i "s/COMPILER_VERSION = \"[^\"]*\"/COMPILER_VERSION = \"${NEW_VERSION}\"/" wrangler.toml
+                  fi
+
+                  # Update examples/cloudflare-worker/package.json
+                  if [ -f "examples/cloudflare-worker/package.json" ]; then
+                    deno eval "
+                      const v = Deno.args[0];
+                      const p = JSON.parse(Deno.readTextFileSync('examples/cloudflare-worker/package.json'));
+                      p.version = v;
+                      Deno.writeTextFileSync('examples/cloudflare-worker/package.json', JSON.stringify(p, null, 2) + '\n');
+                    " "$NEW_VERSION"
+                  fi
+
+                  # Update examples/cloudflare-worker/wrangler.toml
+                  if [ -f "examples/cloudflare-worker/wrangler.toml" ]; then
+                    sed -i "s/COMPILER_VERSION = \"[^\"]*\"/COMPILER_VERSION = \"${NEW_VERSION}\"/" examples/cloudflare-worker/wrangler.toml
+                  fi
+
+                  # Update docker-compose.yml
+                  if [ -f "docker-compose.yml" ]; then
+                    sed -i "s/COMPILER_VERSION=[0-9.]\+/COMPILER_VERSION=${NEW_VERSION}/" docker-compose.yml
+                  fi
+
+            - name: Commit and push
+              run: |
+                  if git diff --quiet; then
+                    echo "No changes to commit"
+                    exit 0
+                  fi
+
+                  git add -A
+                  git commit -m "chore: bump version to ${{ steps.bump_version.outputs.new_version }}"
+                  git push origin ${{ github.head_ref || github.ref_name }}
+
+            - name: Comment on PR
+              if: github.event_name == 'pull_request'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: context.issue.number,
+                        body: '🚀 Version bumped from `${{ steps.bump_version.outputs.old_version }}` to `${{ steps.bump_version.outputs.new_version }}`'
+                      })

@@ -17,17 +17,20 @@ Common issues and solutions for AdBlock Compiler.
 ### Package not found on JSR
 
 **Error:**
+
 ```
 error: JSR package not found: @jk-com/adblock-compiler
 ```
 
 **Solution:**
 Use npm import as fallback:
+
 ```typescript
-import { compile } from "npm:@jk-com/adblock-compiler";
+import { compile } from 'npm:@jk-com/adblock-compiler';
 ```
 
 Or install via npm:
+
 ```bash
 npm install @jk-com/adblock-compiler
 ```
@@ -35,12 +38,14 @@ npm install @jk-com/adblock-compiler
 ### Deno version incompatibility
 
 **Error:**
+
 ```
 error: Unsupported Deno version
 ```
 
 **Solution:**
 AdBlock Compiler requires Deno 2.0 or higher:
+
 ```bash
 deno upgrade
 deno --version  # Should be 2.0.0 or higher
@@ -49,12 +54,14 @@ deno --version  # Should be 2.0.0 or higher
 ### Permission denied errors
 
 **Error:**
+
 ```
 error: Requires net access to "example.com"
 ```
 
 **Solution:**
 Grant necessary permissions:
+
 ```bash
 # Allow all network access
 deno run --allow-net your-script.ts
@@ -71,28 +78,31 @@ deno run --allow-read --allow-net your-script.ts
 ### Invalid configuration
 
 **Error:**
+
 ```
 ValidationError: Invalid configuration: sources is required
 ```
 
 **Solution:**
 Ensure your configuration has required fields:
+
 ```typescript
 const config: IConfiguration = {
-  name: "My Filter List",  // REQUIRED
-  sources: [               // REQUIRED
-    {
-      name: "Source 1",
-      source: "https://example.com/list.txt"
-    }
-  ],
-  // Optional fields...
+    name: 'My Filter List', // REQUIRED
+    sources: [ // REQUIRED
+        {
+            name: 'Source 1',
+            source: 'https://example.com/list.txt',
+        },
+    ],
+    // Optional fields...
 };
 ```
 
 ### Source fetch failures
 
 **Error:**
+
 ```
 Error fetching source: 404 Not Found
 ```
@@ -100,26 +110,29 @@ Error fetching source: 404 Not Found
 **Solutions:**
 
 1. **Check URL validity:**
+
 ```typescript
 // Verify the URL is accessible
 const response = await fetch(sourceUrl);
-console.log(response.status);  // Should be 200
+console.log(response.status); // Should be 200
 ```
 
 2. **Handle 404s gracefully:**
+
 ```typescript
 // Use exclusions_sources to skip broken sources
 const config = {
-  name: "My List",
-  sources: [
-    { name: "Good", source: "https://good.com/list.txt" },
-    { name: "Broken", source: "https://broken.com/404.txt" }
-  ],
-  exclusions_sources: ["https://broken.com/404.txt"]
+    name: 'My List',
+    sources: [
+        { name: 'Good', source: 'https://good.com/list.txt' },
+        { name: 'Broken', source: 'https://broken.com/404.txt' },
+    ],
+    exclusions_sources: ['https://broken.com/404.txt'],
 };
 ```
 
 3. **Check circuit breaker:**
+
 ```
 Source temporarily disabled due to repeated failures
 ```
@@ -129,12 +142,14 @@ Wait 5 minutes for circuit breaker to reset, or check the source availability.
 ### Transformation errors
 
 **Error:**
+
 ```
 TransformationError: Invalid rule at line 42
 ```
 
 **Solution:**
 Enable validation transformation to see detailed errors:
+
 ```typescript
 const config = {
   name: "My List",
@@ -150,6 +165,7 @@ const config = {
 ### Memory issues
 
 **Error:**
+
 ```
 JavaScript heap out of memory
 ```
@@ -157,22 +173,25 @@ JavaScript heap out of memory
 **Solutions:**
 
 1. **Increase memory limit (Node.js):**
+
 ```bash
 node --max-old-space-size=4096 your-script.js
 ```
 
 2. **Use streaming for large files:**
+
 ```typescript
 // Process sources in chunks
 const config = {
-  sources: smallBatch,  // Process 10-20 sources at a time
-  transformations: ["Compress", "Deduplicate"]
+    sources: smallBatch, // Process 10-20 sources at a time
+    transformations: ['Compress', 'Deduplicate'],
 };
 ```
 
 3. **Enable compression:**
+
 ```typescript
-transformations: ["Compress"]  // Reduces memory usage
+transformations: ['Compress']; // Reduces memory usage
 ```
 
 ## Performance Issues
@@ -180,6 +199,7 @@ transformations: ["Compress"]  // Reduces memory usage
 ### Slow compilation
 
 **Symptoms:**
+
 - Compilation takes >60 seconds
 - High CPU usage
 - Unresponsive UI
@@ -187,6 +207,7 @@ transformations: ["Compress"]  // Reduces memory usage
 **Solutions:**
 
 1. **Enable caching (API/Worker):**
+
 ```typescript
 // Cloudflare Worker automatically caches
 // Check cache headers:
@@ -194,6 +215,7 @@ X-Cache-Status: HIT
 ```
 
 2. **Use batch API for multiple lists:**
+
 ```typescript
 // Compile in parallel
 POST /compile/batch
@@ -206,13 +228,14 @@ POST /compile/batch
 ```
 
 3. **Optimize transformations:**
+
 ```typescript
 // Minimal transformations for speed
 transformations: [
-  "RemoveComments",
-  "Deduplicate",
-  "RemoveEmptyLines"
-]
+    'RemoveComments',
+    'Deduplicate',
+    'RemoveEmptyLines',
+];
 
 // Remove expensive transformations like:
 // - Validate (checks every rule)
@@ -220,6 +243,7 @@ transformations: [
 ```
 
 4. **Check source count:**
+
 ```typescript
 // Limit to 20-30 sources max
 // Too many sources = slow compilation
@@ -229,9 +253,10 @@ console.log(config.sources.length);
 ### High memory usage
 
 **Solution:**
+
 ```typescript
 // Use Compress transformation
-transformations: ["Compress", "Deduplicate"]
+transformations: ['Compress', 'Deduplicate'];
 
 // This reduces memory usage by 70-80%
 ```
@@ -243,6 +268,7 @@ Multiple identical requests all compile instead of using cached result.
 
 **Solution:**
 Ensure requests are identical:
+
 ```typescript
 // These are DIFFERENT requests (different order)
 const req1 = { sources: [a, b] };
@@ -254,6 +280,7 @@ const req2 = { sources: [a, b] };
 ```
 
 Check for deduplication:
+
 ```
 X-Request-Deduplication: HIT
 ```
@@ -263,6 +290,7 @@ X-Request-Deduplication: HIT
 ### Rate limiting
 
 **Error:**
+
 ```
 429 Too Many Requests
 Retry-After: 60
@@ -270,30 +298,34 @@ Retry-After: 60
 
 **Solution:**
 Respect rate limits:
+
 ```typescript
 const retryAfter = response.headers.get('Retry-After');
-await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
 ```
 
 Rate limits:
+
 - **Per IP**: 60 requests/minute
 - **Per endpoint**: 100 requests/minute
 
 ### CORS errors
 
 **Error:**
+
 ```
 Access to fetch at 'https://...' from origin 'https://...' has been blocked by CORS
 ```
 
 **Solution:**
 Use the API endpoint which has CORS enabled:
+
 ```typescript
 // ✅ CORRECT - CORS enabled
 fetch('https://adblock-compiler.jayson-knight.workers.dev/compile', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ configuration })
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ configuration }),
 });
 
 // ❌ WRONG - Direct source fetch (no CORS)
@@ -303,6 +335,7 @@ fetch('https://random-site.com/list.txt');
 ### Timeout errors
 
 **Error:**
+
 ```
 TimeoutError: Request timed out after 30000ms
 ```
@@ -310,31 +343,36 @@ TimeoutError: Request timed out after 30000ms
 **Solution:**
 
 1. **Check source availability:**
+
 ```bash
 curl -I https://source-url.com/list.txt
 ```
 
 2. **Circuit breaker will retry:**
+
 - Automatic retry with exponential backoff
 - Up to 3 attempts
 - Then source is temporarily disabled
 
 3. **Use fallback sources:**
+
 ```typescript
 sources: [
-  { name: "Primary", source: "https://primary.com/list.txt" },
-  { name: "Mirror", source: "https://mirror.com/list.txt" }  // Fallback
-]
+    { name: 'Primary', source: 'https://primary.com/list.txt' },
+    { name: 'Mirror', source: 'https://mirror.com/list.txt' }, // Fallback
+];
 ```
 
 ### SSL/TLS errors
 
 **Error:**
+
 ```
 error: Invalid certificate
 ```
 
 **Solution:**
+
 ```bash
 # Deno - use --unsafely-ignore-certificate-errors (not recommended)
 deno run --unsafely-ignore-certificate-errors script.ts
@@ -353,13 +391,15 @@ API returns old/outdated results.
 **Solution:**
 
 1. **Check cache age:**
+
 ```typescript
 const response = await fetch('/compile', {...});
 console.log(response.headers.get('X-Cache-Age'));  // Seconds
 ```
 
 2. **Force cache refresh:**
-Add a unique parameter:
+   Add a unique parameter:
+
 ```typescript
 const config = {
   name: "My List",
@@ -369,19 +409,23 @@ const config = {
 ```
 
 3. **Cache TTL:**
+
 - Default: 1 hour
 - Max: 24 hours
 
 ### Cache miss rate high
 
 **Issue:**
+
 ```
 X-Cache-Status: MISS
 ```
+
 Most requests miss cache.
 
 **Solution:**
 Use consistent configuration:
+
 ```typescript
 // BAD - timestamp changes every time
 const config = {
@@ -401,12 +445,14 @@ const config = {
 ### Compressed cache errors
 
 **Error:**
+
 ```
 DecompressionError: Invalid compressed data
 ```
 
 **Solution:**
 Clear cache and recompile:
+
 ```typescript
 // Cache will be automatically rebuilt
 // If persistent, file a GitHub issue
@@ -417,6 +463,7 @@ Clear cache and recompile:
 ### Cloudflare Worker deployment fails
 
 **Error:**
+
 ```
 Error: Worker exceeded memory limit
 ```
@@ -424,17 +471,20 @@ Error: Worker exceeded memory limit
 **Solutions:**
 
 1. **Check bundle size:**
+
 ```bash
 du -h dist/worker.js
 # Should be < 1MB
 ```
 
 2. **Minify code:**
+
 ```bash
 deno bundle --minify src/worker.ts dist/worker.js
 ```
 
 3. **Remove unused imports:**
+
 ```typescript
 // BAD
 import * as everything from '@jk-com/adblock-compiler';
@@ -446,12 +496,14 @@ import { compile, FilterCompiler } from '@jk-com/adblock-compiler';
 ### Worker KV errors
 
 **Error:**
+
 ```
 KV namespace not found
 ```
 
 **Solution:**
 Ensure KV namespace is bound in wrangler.toml:
+
 ```toml
 [[kv_namespaces]]
 binding = "CACHE"
@@ -459,6 +511,7 @@ id = "your-kv-namespace-id"
 ```
 
 Create namespace:
+
 ```bash
 wrangler kv:namespace create CACHE
 ```
@@ -466,12 +519,14 @@ wrangler kv:namespace create CACHE
 ### Environment variables not set
 
 **Error:**
+
 ```
 ReferenceError: CACHE is not defined
 ```
 
 **Solution:**
 Add bindings in wrangler.toml:
+
 ```toml
 [env.production]
 vars = { ENVIRONMENT = "production" }
@@ -488,6 +543,7 @@ id = "production-kv-id"
 **Issue: Import map not working**
 
 **Solution:**
+
 ```bash
 # Use deno.json, not import_map.json
 # Ensure deno.json is in project root
@@ -496,6 +552,7 @@ id = "production-kv-id"
 **Issue: Type errors**
 
 **Solution:**
+
 ```bash
 # Clear Deno cache
 rm -rf ~/.cache/deno
@@ -508,13 +565,15 @@ deno cache --reload src/main.ts
 
 **Solution:**
 Add to package.json:
+
 ```json
 {
-  "type": "module"
+    "type": "module"
 }
 ```
 
 Or use .mjs extension:
+
 ```bash
 mv index.js index.mjs
 ```
@@ -522,6 +581,7 @@ mv index.js index.mjs
 **Issue: CommonJS require() not working**
 
 **Solution:**
+
 ```javascript
 // Use dynamic import
 const { compile } = await import('@jk-com/adblock-compiler');
@@ -535,6 +595,7 @@ const { compile } = await import('@jk-com/adblock-compiler');
 
 **Solution:**
 Use a bundler (esbuild, webpack):
+
 ```bash
 npm install -D esbuild
 npx esbuild src/main.ts --bundle --outfile=dist/bundle.js
@@ -544,6 +605,7 @@ npx esbuild src/main.ts --bundle --outfile=dist/bundle.js
 
 **Solution:**
 Run a local server:
+
 ```bash
 # Python
 python -m http.server 8000
@@ -561,10 +623,10 @@ npx serve .
 
 ```typescript
 // Set environment variable
-Deno.env.set("DEBUG", "true");
+Deno.env.set('DEBUG', 'true');
 
 // Or in .env file
-DEBUG=true
+DEBUG = true;
 ```
 
 ### Collect diagnostics
@@ -584,6 +646,7 @@ deno run --allow-net test.ts
 ### Report an issue
 
 Include:
+
 1. Error message (full stack trace)
 2. Minimal reproduction code
 3. Configuration file (sanitized)
