@@ -103,7 +103,7 @@ interface MockEnv {
 
 function createMockEnv(): MockEnv {
     return {
-        COMPILER_VERSION: '0.7.4-test',
+        COMPILER_VERSION: '0.7.6-test',
         COMPILATION_CACHE: new MockKVNamespace(),
         RATE_LIMIT: new MockKVNamespace(),
         METRICS: new MockKVNamespace(),
