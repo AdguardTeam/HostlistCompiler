@@ -1,14 +1,7 @@
 import { FilterDownloader } from '../downloader/index.ts';
 import { ILogger, ISource, TransformationType } from '../types/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
-import {
-    CompilerEventEmitter,
-    createEventEmitter,
-    ErrorUtils,
-    logger as defaultLogger,
-    SourceError,
-    stripUpstreamHeaders,
-} from '../utils/index.ts';
+import { CompilerEventEmitter, createEventEmitter, ErrorUtils, logger as defaultLogger, SourceError, stripUpstreamHeaders } from '../utils/index.ts';
 import type { IDiagnosticsCollector } from '../diagnostics/types.ts';
 import { NoOpDiagnosticsCollector } from '../diagnostics/DiagnosticsCollector.ts';
 
@@ -45,8 +38,10 @@ export class SourceCompiler {
         eventEmitter?: CompilerEventEmitter,
     ) {
         // Handle both old signature and new options object
-        if (pipelineOrOptions instanceof TransformationPipeline || logger !== undefined ||
-            eventEmitter !== undefined) {
+        if (
+            pipelineOrOptions instanceof TransformationPipeline || logger !== undefined ||
+            eventEmitter !== undefined
+        ) {
             // Legacy signature: (pipeline?: TransformationPipeline, logger?: ILogger, eventEmitter?: CompilerEventEmitter)
             this.logger = logger ?? defaultLogger;
             this.eventEmitter = eventEmitter ?? createEventEmitter();
@@ -190,13 +185,11 @@ export class SourceCompiler {
             return rules;
         } catch (error) {
             const durationMs = performance.now() - startTime;
-            const normalizedError = error instanceof SourceError
-                ? error
-                : new SourceError(
-                    `Failed to compile source: ${ErrorUtils.getMessage(error)}`,
-                    source.source,
-                    ErrorUtils.toError(error),
-                );
+            const normalizedError = error instanceof SourceError ? error : new SourceError(
+                `Failed to compile source: ${ErrorUtils.getMessage(error)}`,
+                source.source,
+                ErrorUtils.toError(error),
+            );
 
             // Record error in diagnostics
             this.diagnostics.operationError(operationId, normalizedError);

@@ -77,9 +77,7 @@ export class PathUtils {
                 basePath.lastIndexOf('/'),
                 basePath.lastIndexOf('\\'),
             );
-            const baseDir = lastSeparatorIndex >= 0
-                ? basePath.substring(0, lastSeparatorIndex + 1)
-                : '';
+            const baseDir = lastSeparatorIndex >= 0 ? basePath.substring(0, lastSeparatorIndex + 1) : '';
             return baseDir + includePath;
         }
     }

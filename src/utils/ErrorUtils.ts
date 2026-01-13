@@ -334,9 +334,7 @@ export class ErrorUtils {
      * @param cause - The underlying error
      */
     static sourceDownloadError(source: string, cause?: Error): SourceError {
-        const message = cause
-            ? `Failed to download source ${source}: ${cause.message}`
-            : `Failed to download source ${source}`;
+        const message = cause ? `Failed to download source ${source}: ${cause.message}` : `Failed to download source ${source}`;
         return new SourceError(message, source, cause);
     }
 
@@ -394,9 +392,7 @@ export class ErrorUtils {
      */
     static storageError(operation: string, key?: string[], cause?: Error): StorageError {
         const keyStr = key ? key.join('/') : 'unknown';
-        const message = cause
-            ? `Storage ${operation} failed for key ${keyStr}: ${cause.message}`
-            : `Storage ${operation} failed for key ${keyStr}`;
+        const message = cause ? `Storage ${operation} failed for key ${keyStr}: ${cause.message}` : `Storage ${operation} failed for key ${keyStr}`;
         return new StorageError(message, operation, key, cause);
     }
 
