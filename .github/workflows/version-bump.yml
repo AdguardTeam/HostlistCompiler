@@ -51,9 +51,10 @@ jobs:
             - name: Bump version in all files
               id: bump
               run: |
+                  set -euo pipefail
                   # Get current version
                   OLD=$(deno eval "console.log(JSON.parse(Deno.readTextFileSync('deno.json')).version)")
-                  echo "old=$OLD" >> $GITHUB_OUTPUT
+                  echo "old=$OLD" >> "$GITHUB_OUTPUT"
 
                   # Calculate new version based on bump type
                   IFS='.' read -r major minor patch <<< "$OLD"
@@ -69,8 +70,12 @@ jobs:
                     patch)
                       NEW="$major.$minor.$((patch + 1))"
                       ;;
+                    *)
+                      echo "Warning: Unknown bump type '$BUMP_TYPE', defaulting to patch" >&2
+                      NEW="$major.$minor.$((patch + 1))"
+                      ;;
                   esac
-                  echo "new=$NEW" >> $GITHUB_OUTPUT
+                  echo "new=$NEW" >> "$GITHUB_OUTPUT"
 
                   echo "Bumping version: $OLD -> $NEW ($BUMP_TYPE)"
 
@@ -89,6 +94,8 @@ jobs:
                   "
 
                   # Update src/version.ts if exists
+                  # Note: sed -i is used here and behaves differently on macOS vs Linux.
+                  # This workflow runs on ubuntu-latest, so the Linux behavior is expected.
                   [ -f src/version.ts ] && sed -i "s/VERSION = '[^']*'/VERSION = '$NEW'/" src/version.ts
 
                   # Update wrangler.toml if exists

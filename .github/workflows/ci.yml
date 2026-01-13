@@ -34,7 +34,7 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json') }}
                   restore-keys: deno-${{ runner.os }}-
 
             - name: Lint
@@ -80,7 +80,7 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json') }}
                   restore-keys: deno-${{ runner.os }}-
 
             - name: Run benchmarks
@@ -97,16 +97,30 @@ jobs:
               if: github.event_name == 'pull_request'
               continue-on-error: true
               run: |
-                  echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "Benchmark results saved as artifact for commit ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "<details><summary>View Results</summary>" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo '```json' >> $GITHUB_STEP_SUMMARY
-                  cat benchmark-results.json >> $GITHUB_STEP_SUMMARY
-                  echo '```' >> $GITHUB_STEP_SUMMARY
-                  echo "</details>" >> $GITHUB_STEP_SUMMARY
+                  echo "## Benchmark Results" >> "$GITHUB_STEP_SUMMARY"
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "Benchmark results saved as artifact for commit ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "<details><summary>View Results</summary>" >> "$GITHUB_STEP_SUMMARY"
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo '```json' >> "$GITHUB_STEP_SUMMARY"
+                  RESULTS_FILE="benchmark-results.json"
+                  MAX_BYTES=50000
+                  if [ -f "$RESULTS_FILE" ]; then
+                      FILE_SIZE=$(wc -c < "$RESULTS_FILE" || echo 0)
+                      if [ "$FILE_SIZE" -le "$MAX_BYTES" ]; then
+                          cat "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
+                      else
+                          head -c "$MAX_BYTES" "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
+                          echo "" >> "$GITHUB_STEP_SUMMARY"
+                          echo "" >> "$GITHUB_STEP_SUMMARY"
+                          echo "...(output truncated in summary; full benchmark results are available in the uploaded artifact)..." >> "$GITHUB_STEP_SUMMARY"
+                      fi
+                  else
+                      echo '{"error":"benchmark-results.json not found"}' >> "$GITHUB_STEP_SUMMARY"
+                  fi
+                  echo '```' >> "$GITHUB_STEP_SUMMARY"
+                  echo "</details>" >> "$GITHUB_STEP_SUMMARY"
 
     security:
         name: Security Scan
@@ -272,8 +286,11 @@ jobs:
             - name: Post-deployment smoke test
               continue-on-error: true
               run: |
+                  set -euo pipefail
                   sleep 10
-                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://adblock-compiler.jayson-knight.workers.dev/api || echo "000")
+                  # Use repository variable SMOKE_TEST_URL if configured, otherwise use default
+                  SMOKE_TEST_URL="${{ vars.SMOKE_TEST_URL || 'https://adblock-compiler.jayson-knight.workers.dev/api' }}"
+                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$SMOKE_TEST_URL" || echo "000")
                   if [ "$RESPONSE" = "200" ]; then
                     echo "Smoke test passed - API responding"
                   else
