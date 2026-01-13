@@ -52,26 +52,26 @@ jobs:
             - name: Bump version in all files
               id: bump
               run: |
+                  set -euo pipefail
                   # Get current version
                   OLD=$(deno eval "console.log(JSON.parse(Deno.readTextFileSync('deno.json')).version)")
-                  echo "old=$OLD" >> $GITHUB_OUTPUT
+                  echo "old=$OLD" >> "$GITHUB_OUTPUT"
 
                   # Calculate new version based on bump type
                   IFS='.' read -r major minor patch <<< "$OLD"
 
                   BUMP_TYPE="${{ inputs.bump_type || 'patch' }}"
-                  case "$BUMP_TYPE" in
-                    major)
-                      NEW="$((major + 1)).0.0"
-                      ;;
-                    minor)
-                      NEW="$major.$((minor + 1)).0"
-                      ;;
-                    patch)
-                      NEW="$major.$minor.$((patch + 1))"
-                      ;;
-                  esac
-                  echo "new=$NEW" >> $GITHUB_OUTPUT
+                  if [ "$BUMP_TYPE" = "major" ]; then
+                    NEW="$((major + 1)).0.0"
+                  elif [ "$BUMP_TYPE" = "minor" ]; then
+                    NEW="$major.$((minor + 1)).0"
+                  elif [ "$BUMP_TYPE" = "patch" ]; then
+                    NEW="$major.$minor.$((patch + 1))"
+                  else
+                    echo "Warning: Unknown bump type '$BUMP_TYPE', defaulting to patch" >&2
+                    NEW="$major.$minor.$((patch + 1))"
+                  fi
+                  echo "new=$NEW" >> "$GITHUB_OUTPUT"
 
                   echo "Bumping version: $OLD -> $NEW ($BUMP_TYPE)"
 
