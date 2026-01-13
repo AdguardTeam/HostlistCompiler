@@ -57,6 +57,7 @@
             "dist/",
             "node_modules/",
             "coverage/",
+            "public/",
             "worker/",
             "src/storage/example.ts",
             "examples/"
@@ -73,6 +74,7 @@
             "dist/",
             "node_modules/",
             "coverage/",
+            "public/",
             "worker/"
         ]
     },
