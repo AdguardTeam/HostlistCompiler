@@ -140,6 +140,8 @@ jobs:
         runs-on: ubuntu-latest
         needs: bump
         if: inputs.create_release == true && github.event_name == 'workflow_dispatch'
+        permissions:
+            actions: write
         steps:
             - name: Trigger release workflow
               uses: actions/github-script@v7

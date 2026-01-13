@@ -273,7 +273,7 @@ jobs:
               continue-on-error: true
               run: |
                   sleep 10
-                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://adblock-compiler.jaypatrick.workers.dev/api || echo "000")
+                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://adblock-compiler.jayson-knight.workers.dev/api || echo "000")
                   if [ "$RESPONSE" = "200" ]; then
                     echo "Smoke test passed - API responding"
                   else
