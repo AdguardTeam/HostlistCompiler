@@ -32,7 +32,22 @@ export { addChecksumToHeader, calculateChecksum } from './checksum.ts';
 export { stripUpstreamHeaders } from './headerFilter.ts';
 
 // Error utilities
-export { CompilationError, ErrorUtils, NetworkError, SourceError, ValidationError } from './ErrorUtils.ts';
+export {
+    BaseError,
+    CompilationError,
+    ConfigurationError,
+    ErrorCode,
+    ErrorUtils,
+    FileSystemError,
+    NetworkError,
+    SourceError,
+    StorageError,
+    TransformationError,
+    ValidationError,
+} from './ErrorUtils.ts';
+
+// Path utilities
+export { PathUtils } from './PathUtils.ts';
 
 // Boolean expression parser (safe alternative to Function constructor)
 export { evaluateBooleanExpression, getKnownPlatforms, isKnownPlatform } from './BooleanExpressionParser.ts';

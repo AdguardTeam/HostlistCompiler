@@ -16,6 +16,7 @@ import {
     TraceCategory,
     TraceSeverity,
 } from './types.ts';
+import { BaseError, PathUtils } from '../utils/index.ts';
 
 /**
  * Generates a unique event ID using crypto.randomUUID if available,
@@ -28,22 +29,6 @@ function generateEventId(): string {
     }
     // Fallback for environments without crypto.randomUUID
     return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-}
-
-/**
- * Sanitizes a URL by removing sensitive information
- */
-function sanitizeUrl(url: string): string {
-    try {
-        const urlObj = new URL(url);
-        // Remove query parameters that might contain sensitive data
-        urlObj.search = urlObj.search ? '[QUERY]' : '';
-        // Keep the pathname but indicate if it exists
-        return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
-    } catch {
-        // If URL parsing fails, return a generic indicator
-        return '[URL]';
-    }
 }
 
 /**
@@ -125,7 +110,8 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
     }
 
     /**
-     * Records an error during an operation
+     * Records an error during an operation.
+     * Extracts additional metadata from BaseError subclasses.
      */
     public operationError(eventId: string, error: Error): void {
         const startTime = this.operationStartTimes.get(eventId);
@@ -142,6 +128,16 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
 
         const durationMs = startTime ? performance.now() - startTime : undefined;
 
+        // Extract additional error metadata if it's a BaseError
+        const errorMetadata: Record<string, unknown> = {};
+        if (error instanceof BaseError) {
+            errorMetadata.errorCode = error.code;
+            errorMetadata.errorTimestamp = error.timestamp;
+            if (error.cause) {
+                errorMetadata.causeMessage = error.cause.message;
+            }
+        }
+
         const event: OperationErrorEvent = {
             eventId: generateEventId(),
             timestamp: new Date().toISOString(),
@@ -154,6 +150,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
             errorMessage: error.message,
             stack: error.stack,
             durationMs,
+            ...errorMetadata,
         };
 
         this.emit(event);
@@ -221,7 +218,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
         durationMs?: number,
         responseSize?: number,
     ): void {
-        const sanitizedUrl = sanitizeUrl(url);
+        const sanitizedUrl = PathUtils.sanitizeUrl(url);
 
         const event: NetworkEvent = {
             eventId: generateEventId(),
