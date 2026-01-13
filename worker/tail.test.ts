@@ -1,30 +1,18 @@
 /**
  * Tests for the Cloudflare Tail Worker
- * 
+ *
  * Note: These are unit tests for the tail worker logic.
  * Integration testing requires actual Cloudflare deployment.
  */
 
+import { assertEquals, assertExists } from '@std/assert';
 import {
+    createStructuredEvent,
     formatLogMessage,
     shouldForwardEvent,
-    createStructuredEvent,
     type TailEvent,
     type TailLog,
 } from './tail.ts';
-
-// Simple assertion helpers
-function assertEquals<T>(actual: T, expected: T, msg?: string): void {
-    if (actual !== expected) {
-        throw new Error(msg || `Expected ${expected} but got ${actual}`);
-    }
-}
-
-function assertExists<T>(actual: T | null | undefined, msg?: string): void {
-    if (actual === null || actual === undefined) {
-        throw new Error(msg || 'Expected value to exist');
-    }
-}
 
 // Tests
 Deno.test('formatLogMessage - formats simple string message', () => {
