@@ -44,14 +44,14 @@ jobs:
           # Update deno.json
           deno eval "
             const c = JSON.parse(Deno.readTextFileSync('deno.json'));
-            c.version = '$NEW';
+            c.version = '${NEW}';
             Deno.writeTextFileSync('deno.json', JSON.stringify(c, null, 4) + '\n');
           "
 
           # Update package.json if exists
           [ -f package.json ] && deno eval "
             const p = JSON.parse(Deno.readTextFileSync('package.json'));
-            p.version = '$NEW';
+            p.version = '${NEW}';
             Deno.writeTextFileSync('package.json', JSON.stringify(p, null, '\t') + '\n');
           "
 
@@ -64,7 +64,7 @@ jobs:
           # Update examples/cloudflare-worker/package.json if exists
           [ -f examples/cloudflare-worker/package.json ] && deno eval "
             const p = JSON.parse(Deno.readTextFileSync('examples/cloudflare-worker/package.json'));
-            p.version = '$NEW';
+            p.version = '${NEW}';
             Deno.writeTextFileSync('examples/cloudflare-worker/package.json', JSON.stringify(p, null, 2) + '\n');
           "
 
@@ -81,7 +81,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git diff --quiet && exit 0
+          if git diff --quiet; then
+            echo "No changes detected; skipping version bump commit and push."
+            exit 0
+          fi
 
           git add -A
           git commit -m "chore: bump version to ${{ steps.bump.outputs.new }}"
