@@ -57,7 +57,7 @@ bucket_name = "adblock-compiler-r2-storage"
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.7.9"
+COMPILER_VERSION = "0.7.10"
 
 # Static assets configuration using modern assets
 [assets]
