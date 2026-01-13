@@ -1,5 +1,6 @@
 import type { IDetailedLogger, IFileSystem, IHttpClient } from '../types/index.ts';
 import { ErrorUtils, FileSystemError, NetworkError, PathUtils } from '../utils/index.ts';
+import { NETWORK_DEFAULTS } from '../config/defaults.ts';
 
 /**
  * Options for content fetching
@@ -17,7 +18,7 @@ export interface FetchOptions {
  * Default fetch options
  */
 const DEFAULT_FETCH_OPTIONS: Required<FetchOptions> = {
-    timeout: 30000,
+    timeout: NETWORK_DEFAULTS.TIMEOUT_MS,
     userAgent: 'HostlistCompiler/2.0 (Deno)',
     allowEmptyResponse: false,
 };

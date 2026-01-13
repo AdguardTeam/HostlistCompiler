@@ -37,6 +37,7 @@ export class AdblockCompiler {
 // with the actual Container class by extending from cloudflare:workers Container
 
 import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
+import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
 
 /**
  * Environment bindings for the worker.
@@ -120,20 +121,20 @@ interface CacheWarmQueueMessage extends QueueMessage {
 }
 
 /**
- * Rate limiting configuration
+ * Rate limiting configuration (from centralized defaults)
  */
-const RATE_LIMIT_WINDOW = 60; // 60 seconds
-const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
+const RATE_LIMIT_WINDOW = WORKER_DEFAULTS.RATE_LIMIT_WINDOW_SECONDS;
+const RATE_LIMIT_MAX_REQUESTS = WORKER_DEFAULTS.RATE_LIMIT_MAX_REQUESTS;
 
 /**
- * Cache TTL in seconds
+ * Cache TTL in seconds (from centralized defaults)
  */
-const CACHE_TTL = 3600; // 1 hour
+const CACHE_TTL = WORKER_DEFAULTS.CACHE_TTL_SECONDS;
 
 /**
- * Metrics aggregation window
+ * Metrics aggregation window (from centralized defaults)
  */
-const METRICS_WINDOW = 300; // 5 minutes
+const METRICS_WINDOW = WORKER_DEFAULTS.METRICS_WINDOW_SECONDS;
 
 /**
  * Error message for when queue bindings are not configured

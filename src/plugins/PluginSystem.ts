@@ -6,6 +6,7 @@
 import type { ILogger, ITransformationContext, TransformationType } from '../types/index.ts';
 import { Transformation } from '../transformations/base/Transformation.ts';
 import { logger as defaultLogger } from '../utils/logger.ts';
+import { VERSION } from '../version.ts';
 
 /**
  * Plugin metadata
@@ -150,7 +151,7 @@ export class PluginRegistry {
             const context: PluginContext = {
                 logger: this.logger,
                 registry: this,
-                compilerVersion: '0.6.91',
+                compilerVersion: VERSION,
             };
             await plugin.init(context);
         }

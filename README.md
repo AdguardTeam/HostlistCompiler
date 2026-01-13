@@ -421,6 +421,7 @@ docker run --rm \
 
 Here is the full list of transformations that are available:
 
+1. `ConvertToAscii`
 1. `RemoveComments`
 1. `Compress`
 1. `RemoveModifiers`
@@ -432,7 +433,7 @@ Here is the full list of transformations that are available:
 1. `TrimLines`
 1. `InsertFinalNewLine`
 
-Please note that these transformations are are always applied in the order specified here.
+Please note that these transformations are always applied in the order specified here.
 
 ### <a name="remove-comments"></a> RemoveComments
 

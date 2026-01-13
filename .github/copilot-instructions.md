@@ -50,7 +50,7 @@ examples/             # Example implementations
 ### Formatting
 
 - **Indentation**: 4 spaces (not tabs)
-- **Line width**: 100 characters maximum
+- **Line width**: 180 characters maximum (as configured in deno.json)
 - **Semicolons**: Always use semicolons
 - **Quotes**: Single quotes for strings (use double quotes for strings containing apostrophes)
 - **Imports**:
