@@ -19,7 +19,6 @@ datasource db {
   // - "postgresql" for production SQL
   // - "mongodb" for NoSQL
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 // ============================================================================
