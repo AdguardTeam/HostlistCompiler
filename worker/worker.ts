@@ -45,11 +45,6 @@ import {
 } from '../src/index.ts';
 
 /**
- * Priority levels for queue messages
- */
-type QueuePriority = 'standard' | 'high';
-
-/**
  * Environment bindings for the worker.
  */
 export interface Env {
@@ -66,13 +61,18 @@ export interface Env {
 }
 
 /**
+ * Priority levels for queue messages
+ */
+type Priority = 'standard' | 'high';
+
+/**
  * Compile request body structure.
  */
 interface CompileRequest {
     configuration: IConfiguration;
     preFetchedContent?: Record<string, string>;
     benchmark?: boolean;
-    priority?: QueuePriority;
+    priority?: Priority;
 }
 
 /**
@@ -87,7 +87,7 @@ interface QueueMessage {
     type: QueueMessageType;
     requestId?: string;
     timestamp: number;
-    priority?: QueuePriority;
+    priority?: Priority;
 }
 
 /**
@@ -1133,14 +1133,14 @@ async function handleCompileAsync(
         const { configuration, preFetchedContent, benchmark, priority = 'standard' } = body;
 
         // deno-lint-ignore no-console
-        console.log(`[API:ASYNC] Queueing ${priority}-priority compilation for "${configuration.name}"`);
+        console.log(`[API:ASYNC] Queueing compilation for "${configuration.name}" with ${priority} priority`);
 
-        // Send to queue with priority routing
+        // Send to queue with specified priority
         const requestId = await queueCompileJob(env, configuration, preFetchedContent, benchmark, priority);
         const duration = Date.now() - startTime;
 
         // deno-lint-ignore no-console
-        console.log(`[API:ASYNC] Queued successfully in ${duration}ms (requestId: ${requestId}, priority: ${priority})`);
+        console.log(`[API:ASYNC] Queued successfully in ${duration}ms (requestId: ${requestId})`);
 
         return Response.json(
             {
@@ -1193,7 +1193,7 @@ async function handleCompileBatchAsync(
                 preFetchedContent?: Record<string, string>;
                 benchmark?: boolean;
             }>;
-            priority?: QueuePriority;
+            priority?: Priority;
         }
 
         const body = await request.json() as BatchRequest;
@@ -1224,14 +1224,14 @@ async function handleCompileBatchAsync(
         }
 
         // deno-lint-ignore no-console
-        console.log(`[API:BATCH-ASYNC] Queueing ${priority}-priority batch of ${requests.length} compilations`);
+        console.log(`[API:BATCH-ASYNC] Queueing batch of ${requests.length} compilations with ${priority} priority`);
 
-        // Send to queue with priority routing
+        // Send to queue with specified priority
         const requestId = await queueBatchCompileJob(env, requests, priority);
         const duration = Date.now() - startTime;
 
         // deno-lint-ignore no-console
-        console.log(`[API:BATCH-ASYNC] Queued successfully in ${duration}ms (requestId: ${requestId}, priority: ${priority})`);
+        console.log(`[API:BATCH-ASYNC] Queued successfully in ${duration}ms (requestId: ${requestId})`);
 
         return Response.json(
             {
@@ -1285,13 +1285,8 @@ function handleInfo(env: Env): Response {
             'POST /compile': 'Compile a filter list (JSON response)',
             'POST /compile/stream': 'Compile with real-time progress (SSE)',
             'POST /compile/batch': 'Compile multiple filter lists in parallel',
-            'POST /compile/async': 'Queue a compilation job for async processing (supports priority: "standard" | "high")',
-            'POST /compile/batch/async': 'Queue multiple compilations for async processing (supports priority: "standard" | "high")',
-        },
-        priorityQueues: {
-            description: 'Two-tier priority queue system for async compilations',
-            standard: 'Default queue with batch_size=10, timeout=5s',
-            high: 'Priority queue with batch_size=5, timeout=2s for faster processing',
+            'POST /compile/async': 'Queue a compilation job for async processing',
+            'POST /compile/batch/async': 'Queue multiple compilations for async processing',
         },
         example: {
             method: 'POST',
@@ -1810,9 +1805,9 @@ async function queueCompileJob(
     configuration: IConfiguration,
     preFetchedContent?: Record<string, string>,
     benchmark?: boolean,
-    priority: QueuePriority = 'standard',
+    priority: Priority = 'standard',
 ): Promise<string> {
-    const requestId = generateRequestId(priority === 'high' ? 'compile-hp' : 'compile');
+    const requestId = generateRequestId('compile');
 
     if (!requestId) {
         throw new Error('Failed to generate request ID');
@@ -1829,17 +1824,14 @@ async function queueCompileJob(
     };
 
     // Route to appropriate queue based on priority
-    const queue = priority === 'high'
-        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY
+    const queue = priority === 'high' 
+        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY 
         : env.ADBLOCK_COMPILER_QUEUE;
-
+    
     await queue.send(message);
-
+    
     // Track queue statistics
     await updateQueueStats(env, 'enqueued');
-
-    // deno-lint-ignore no-console
-    console.log(`[QUEUE:ROUTE] Job ${requestId} sent to ${priority}-priority queue`);
 
     return requestId;
 }
@@ -1855,9 +1847,9 @@ async function queueBatchCompileJob(
         preFetchedContent?: Record<string, string>;
         benchmark?: boolean;
     }>,
-    priority: QueuePriority = 'standard',
+    priority: Priority = 'standard',
 ): Promise<string> {
-    const requestId = generateRequestId(priority === 'high' ? 'batch-hp' : 'batch');
+    const requestId = generateRequestId('batch');
 
     if (!requestId) {
         throw new Error('Failed to generate request ID');
@@ -1872,17 +1864,14 @@ async function queueBatchCompileJob(
     };
 
     // Route to appropriate queue based on priority
-    const queue = priority === 'high'
-        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY
+    const queue = priority === 'high' 
+        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY 
         : env.ADBLOCK_COMPILER_QUEUE;
-
+    
     await queue.send(message);
-
+    
     // Track queue statistics (batch update for efficiency)
     await updateQueueStats(env, 'enqueued', undefined, requests.length);
-
-    // deno-lint-ignore no-console
-    console.log(`[QUEUE:ROUTE] Batch job ${requestId} (${requests.length} items) sent to ${priority}-priority queue`);
 
     return requestId;
 }

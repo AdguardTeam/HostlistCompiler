@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Priority Queue Support** for async compilation
+  - Two-tier queue system: standard and high priority
+  - Separate queues with optimized settings for different priority levels
+  - High-priority queue has smaller batch size (5) and shorter timeout (2s) for faster processing
+  - Standard priority queue maintains larger batches (10) and normal timeout (5s) for throughput
+  - Optional `priority` field in async API endpoints (`/compile/async`, `/compile/batch/async`)
+  - Automatic routing to appropriate queue based on priority level
+  - Premium users and urgent compilations can use high-priority processing
+  - Updated documentation with priority queue examples and deployment instructions
 - **Cloudflare Tail Worker** for advanced logging and observability
   - Real-time log capture from main worker (console logs, exceptions, errors)
   - Optional KV storage for log persistence with configurable TTL

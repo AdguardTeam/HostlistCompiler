@@ -16,6 +16,7 @@ declare namespace Cloudflare {
 		FILTER_STORAGE: R2Bucket;
 		ANALYTICS_ENGINE: AnalyticsEngineDataset;
 		ADBLOCK_COMPILER_QUEUE: Queue;
+		ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY: Queue;
 		ASSETS: Fetcher;
 	}
 }
