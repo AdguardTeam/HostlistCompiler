@@ -58,6 +58,7 @@ bucket_name = "adblock-compiler-r2-storage"
 # Environment variables
 [vars]
 COMPILER_VERSION = "0.7.9"
+TURNSTILE_SITE_KEY = "0x4AAAAAACMKiPZdJh8I8IEM"
 
 # Static assets configuration using modern assets
 [assets]
