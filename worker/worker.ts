@@ -58,6 +58,9 @@ export interface Env {
     // Queue bindings
     ADBLOCK_COMPILER_QUEUE: Queue<QueueMessage>;
     ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY: Queue<QueueMessage>;
+    // Turnstile configuration
+    TURNSTILE_SITE_KEY?: string;
+    TURNSTILE_SECRET_KEY?: string;
 }
 
 /**
@@ -73,6 +76,7 @@ interface CompileRequest {
     preFetchedContent?: Record<string, string>;
     benchmark?: boolean;
     priority?: Priority;
+    turnstileToken?: string;
 }
 
 /**
@@ -192,6 +196,70 @@ async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
     );
 
     return true;
+}
+
+/**
+ * Turnstile verification response
+ */
+interface TurnstileVerifyResponse {
+    success: boolean;
+    challenge_ts?: string;
+    hostname?: string;
+    'error-codes'?: string[];
+    action?: string;
+    cdata?: string;
+}
+
+/**
+ * Verify Cloudflare Turnstile token
+ */
+async function verifyTurnstileToken(
+    env: Env,
+    token: string,
+    ip: string,
+): Promise<{ success: boolean; error?: string }> {
+    // If Turnstile is not configured, skip verification
+    if (!env.TURNSTILE_SECRET_KEY) {
+        return { success: true };
+    }
+
+    if (!token) {
+        return { success: false, error: 'Missing Turnstile token' };
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('secret', env.TURNSTILE_SECRET_KEY);
+        formData.append('response', token);
+        formData.append('remoteip', ip);
+
+        const response = await fetch(
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+            {
+                method: 'POST',
+                body: formData,
+            },
+        );
+
+        const result = await response.json() as TurnstileVerifyResponse;
+
+        if (result.success) {
+            return { success: true };
+        }
+
+        const errorCodes = result['error-codes'] || [];
+        return {
+            success: false,
+            error: `Turnstile verification failed: ${errorCodes.join(', ') || 'unknown error'}`,
+        };
+    } catch (error) {
+        // deno-lint-ignore no-console
+        console.error('Turnstile verification error:', error);
+        return {
+            success: false,
+            error: 'Turnstile verification service unavailable',
+        };
+    }
 }
 
 /**
@@ -1897,6 +1965,22 @@ export default {
             return handleInfo(env);
         }
 
+        // Handle Turnstile config endpoint (provides site key to frontend)
+        if (pathname === '/api/turnstile-config' && request.method === 'GET') {
+            return Response.json(
+                {
+                    siteKey: env.TURNSTILE_SITE_KEY || null,
+                    enabled: !!env.TURNSTILE_SECRET_KEY,
+                },
+                {
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                        'Cache-Control': 'public, max-age=3600',
+                    },
+                },
+            );
+        }
+
         // Handle metrics endpoint
         if (pathname === '/metrics' && request.method === 'GET') {
             const metrics = await getMetrics(env);
@@ -2079,7 +2163,7 @@ export default {
             });
         }
 
-        // Rate limit compile endpoints
+        // Rate limit and Turnstile verify compile endpoints
         if (
             (pathname === '/compile' || pathname === '/compile/stream' ||
                 pathname === '/compile/batch') && request.method === 'POST'
@@ -2103,6 +2187,36 @@ export default {
                 );
             }
 
+            // Verify Turnstile token if configured
+            if (env.TURNSTILE_SECRET_KEY) {
+                const clonedRequest = request.clone();
+                try {
+                    const body = await clonedRequest.json() as CompileRequest;
+                    const turnstileResult = await verifyTurnstileToken(
+                        env,
+                        body.turnstileToken || '',
+                        ip,
+                    );
+                    if (!turnstileResult.success) {
+                        return Response.json(
+                            {
+                                success: false,
+                                error: turnstileResult.error || 'Turnstile verification failed',
+                            },
+                            {
+                                status: 403,
+                                headers: {
+                                    'Access-Control-Allow-Origin': '*',
+                                },
+                            },
+                        );
+                    }
+                } catch (error) {
+                    // deno-lint-ignore no-console
+                    console.error('Error parsing request for Turnstile:', error);
+                }
+            }
+
             if (pathname === '/compile') {
                 return handleCompileJson(request, env);
             }
@@ -2116,12 +2230,72 @@ export default {
             }
         }
 
-        // Async compilation endpoints (not rate limited - they use queue instead)
+        // Async compilation endpoints (Turnstile verified)
         if (pathname === '/compile/async' && request.method === 'POST') {
+            // Verify Turnstile token if configured
+            if (env.TURNSTILE_SECRET_KEY) {
+                const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+                const clonedRequest = request.clone();
+                try {
+                    const body = await clonedRequest.json() as CompileRequest;
+                    const turnstileResult = await verifyTurnstileToken(
+                        env,
+                        body.turnstileToken || '',
+                        ip,
+                    );
+                    if (!turnstileResult.success) {
+                        return Response.json(
+                            {
+                                success: false,
+                                error: turnstileResult.error || 'Turnstile verification failed',
+                            },
+                            {
+                                status: 403,
+                                headers: {
+                                    'Access-Control-Allow-Origin': '*',
+                                },
+                            },
+                        );
+                    }
+                } catch (error) {
+                    // deno-lint-ignore no-console
+                    console.error('Error parsing request for Turnstile:', error);
+                }
+            }
             return handleCompileAsync(request, env);
         }
 
         if (pathname === '/compile/batch/async' && request.method === 'POST') {
+            // Verify Turnstile token if configured
+            if (env.TURNSTILE_SECRET_KEY) {
+                const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+                const clonedRequest = request.clone();
+                try {
+                    const body = await clonedRequest.json() as CompileRequest;
+                    const turnstileResult = await verifyTurnstileToken(
+                        env,
+                        body.turnstileToken || '',
+                        ip,
+                    );
+                    if (!turnstileResult.success) {
+                        return Response.json(
+                            {
+                                success: false,
+                                error: turnstileResult.error || 'Turnstile verification failed',
+                            },
+                            {
+                                status: 403,
+                                headers: {
+                                    'Access-Control-Allow-Origin': '*',
+                                },
+                            },
+                        );
+                    }
+                } catch (error) {
+                    // deno-lint-ignore no-console
+                    console.error('Error parsing request for Turnstile:', error);
+                }
+            }
             return handleCompileBatchAsync(request, env);
         }
 

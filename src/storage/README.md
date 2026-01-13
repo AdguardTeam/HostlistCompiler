@@ -405,29 +405,30 @@ await cachingDownloader.prewarmCache(sources);
 
 The storage module supports multiple backends through the `IStorageAdapter` interface:
 
-| Backend | Use Case | Documentation |
-|---------|----------|---------------|
-| **Deno KV** (default) | Local/single-instance deployments | This document |
-| **Prisma** | Multi-instance, SQL databases | [prisma/README.md](../../prisma/README.md) |
-| **Cloudflare D1** | Edge deployments | [docs/CLOUDFLARE_D1.md](../../docs/CLOUDFLARE_D1.md) |
+| Backend               | Use Case                          | Documentation                                        |
+| --------------------- | --------------------------------- | ---------------------------------------------------- |
+| **Deno KV** (default) | Local/single-instance deployments | This document                                        |
+| **Prisma**            | Multi-instance, SQL databases     | [prisma/README.md](../../prisma/README.md)           |
+| **Cloudflare D1**     | Edge deployments                  | [docs/CLOUDFLARE_D1.md](../../docs/CLOUDFLARE_D1.md) |
 
 ### Choosing a Backend
 
-| Scenario | Recommended Backend |
-|----------|---------------------|
-| Local development | Deno KV |
-| Single server deployment | Deno KV |
-| Multi-server deployment | Prisma (PostgreSQL) |
-| Cloudflare Workers | D1StorageAdapter |
-| Need complex queries | Prisma |
-| Need SQL Server support | Prisma |
-| Need MongoDB | Prisma |
+| Scenario                 | Recommended Backend |
+| ------------------------ | ------------------- |
+| Local development        | Deno KV             |
+| Single server deployment | Deno KV             |
+| Multi-server deployment  | Prisma (PostgreSQL) |
+| Cloudflare Workers       | D1StorageAdapter    |
+| Need complex queries     | Prisma              |
+| Need SQL Server support  | Prisma              |
+| Need MongoDB             | Prisma              |
 
 ### Prisma Supported Databases
 
 Prisma supports these databases (see [PRISMA_EVALUATION.md](../../docs/PRISMA_EVALUATION.md)):
 
 **SQL Databases:**
+
 - PostgreSQL
 - MySQL / MariaDB
 - SQLite
@@ -435,9 +436,11 @@ Prisma supports these databases (see [PRISMA_EVALUATION.md](../../docs/PRISMA_EV
 - CockroachDB
 
 **NoSQL Databases:**
+
 - MongoDB
 
 **Edge/Cloud:**
+
 - Cloudflare D1
 - Supabase
 - PlanetScale
@@ -463,7 +466,7 @@ import { PrismaStorageAdapter } from './storage/index.ts';
 
 const storage = new PrismaStorageAdapter(logger, {
     type: 'prisma',
-    connectionString: 'postgresql://user:pass@localhost:5432/adblock'
+    connectionString: 'postgresql://user:pass@localhost:5432/adblock',
 });
 
 await storage.open();
@@ -493,7 +496,7 @@ export default {
         await storage.cacheFilterList(source, rules, hash);
 
         return new Response('OK');
-    }
+    },
 };
 ```
 

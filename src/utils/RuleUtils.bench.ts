@@ -38,14 +38,6 @@ const NON_ASCII_RULES = [
     '||münchen.de^',
 ];
 
-const _ADBLOCK_RULES = [
-    '||example.com^',
-    '@@||whitelist.example.com^$important',
-    '||ads.example.org^$third-party,script',
-    '###ad-banner',
-    '/ads/banner/$domain=example.com',
-];
-
 Deno.bench('RuleUtils.isComment - mixed rules', { group: 'isComment' }, () => {
     for (const rule of COMMENT_RULES) {
         RuleUtils.isComment(rule);

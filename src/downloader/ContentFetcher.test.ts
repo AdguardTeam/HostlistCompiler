@@ -124,7 +124,7 @@ Deno.test('ContentFetcher - should throw on empty content by default', async () 
     await assertRejects(
         async () => await fetcher.fetch('/path/to/empty.txt'),
         Error,
-        'Empty content',
+        'Empty file',
     );
 });
 
