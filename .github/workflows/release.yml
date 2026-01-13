@@ -29,14 +29,16 @@ jobs:
                     - target: x86_64-unknown-linux-gnu
                       os: ubuntu-latest
                       artifact: hostlist-compiler-linux-x64
+                    # Cross-compilation for ARM64 Linux - may require additional toolchain setup
+                    # Build may fail without proper cross-compilation support
                     - target: aarch64-unknown-linux-gnu
                       os: ubuntu-latest
                       artifact: hostlist-compiler-linux-arm64
                     - target: x86_64-apple-darwin
-                      os: macos-latest
+                      os: macos-13
                       artifact: hostlist-compiler-macos-x64
                     - target: aarch64-apple-darwin
-                      os: macos-latest
+                      os: macos-14
                       artifact: hostlist-compiler-macos-arm64
                     - target: x86_64-pc-windows-msvc
                       os: windows-latest
@@ -100,6 +102,8 @@ jobs:
                       org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
+                  # Multi-platform build with QEMU emulation - ARM64 build may be slower
+                  # Consider using only 'linux/amd64' if build time is a concern
                   platforms: linux/amd64,linux/arm64
 
     create-release:
@@ -172,7 +176,11 @@ jobs:
                   ```
                   EOF
                   cd release
-                  sha256sum * >> ../release-notes.md || shasum -a 256 * >> ../release-notes.md
+                  if [ -n "$(ls -A 2>/dev/null)" ]; then
+                      sha256sum * >> ../release-notes.md 2>/dev/null || shasum -a 256 * >> ../release-notes.md
+                  else
+                      echo 'No binary artifacts were generated; no checksums available.' >> ../release-notes.md
+                  fi
                   echo '```' >> ../release-notes.md
 
             - name: Create tag (workflow_dispatch only)
@@ -180,8 +188,21 @@ jobs:
               run: |
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
-                  git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.version }}"
-                  git push origin "${{ steps.version.outputs.tag }}"
+                  git fetch --tags
+                  TAG_NAME="${{ steps.version.outputs.tag }}"
+                  VERSION="${{ steps.version.outputs.version }}"
+                  if [ -n "$(git tag -l \"$TAG_NAME\")" ]; then
+                    echo "Tag $TAG_NAME already exists locally, skipping creation."
+                  else
+                    echo "Creating new tag $TAG_NAME for version $VERSION."
+                    git tag -a "$TAG_NAME" -m "Release $VERSION"
+                  fi
+                  if git ls-remote --exit-code --tags origin "$TAG_NAME" >/dev/null 2>&1; then
+                    echo "Tag $TAG_NAME already exists on origin, skipping push."
+                  else
+                    echo "Pushing tag $TAG_NAME to origin."
+                    git push origin "$TAG_NAME"
+                  fi
 
             - name: Create GitHub Release
               uses: softprops/action-gh-release@v2
