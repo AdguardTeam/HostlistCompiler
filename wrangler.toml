@@ -78,8 +78,8 @@ service = "adblock-compiler-tail"
  queue = "adblock-compiler-worker-queue"
  # Required: this should match the name of the queue you created in step 3.
  # If you misspell the name, you will receive an error when attempting to publish your Worker.
- max_batch_size = 10 # optional: defaults to 10
- max_batch_timeout = 5 # optional: defaults to 5 seconds
+ max_batch_size = 10 # larger batch size for better throughput on standard priority work
+ max_batch_timeout = 5 # longer timeout to allow efficient batching for standard queue
  dead_letter_queue = "dead-letter-queue"
 
  [[queues.consumers]]
