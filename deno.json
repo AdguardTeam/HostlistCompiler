@@ -66,6 +66,8 @@
             "prisma/",
             "docs/",
             ".github/",
+            "*.lock",
+            "*.lcov",
             "*.d.ts"
         ]
     },
