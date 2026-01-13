@@ -21,8 +21,10 @@ export class ExcludeTransformation extends AsyncTransformation {
         const exclusions = context?.configuration?.exclusions;
         const exclusionsSources = context?.configuration?.exclusions_sources;
 
-        if ((!exclusions || exclusions.length === 0)
-            && (!exclusionsSources || exclusionsSources.length === 0)) {
+        if (
+            (!exclusions || exclusions.length === 0) &&
+            (!exclusionsSources || exclusionsSources.length === 0)
+        ) {
             return rules;
         }
 

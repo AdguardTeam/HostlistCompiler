@@ -1,5 +1,5 @@
 import { assertEquals } from '@std/assert';
-import { evaluateBooleanExpression, isKnownPlatform, getKnownPlatforms } from './BooleanExpressionParser.ts';
+import { evaluateBooleanExpression, getKnownPlatforms, isKnownPlatform } from './BooleanExpressionParser.ts';
 
 Deno.test('BooleanExpressionParser - evaluates true literal', () => {
     assertEquals(evaluateBooleanExpression('true'), true);

@@ -190,14 +190,14 @@ export class FilterDownloader {
      */
     private async fetchUrl(url: string): Promise<string> {
         let lastError: Error | null = null;
-        
+
         for (let attempt = 0; attempt <= this.options.maxRetries; attempt++) {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
 
             try {
                 this.logger.debug(`Fetching ${url} (attempt ${attempt + 1}/${this.options.maxRetries + 1})`);
-                
+
                 const response = await fetch(url, {
                     signal: controller.signal,
                     headers: {
@@ -212,7 +212,7 @@ export class FilterDownloader {
                     if (!shouldRetry || attempt === this.options.maxRetries) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
-                    
+
                     lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
                     this.logger.warn(`Request failed with ${response.status}, retrying...`);
                 } else {
@@ -226,36 +226,36 @@ export class FilterDownloader {
                 }
             } catch (error) {
                 lastError = error instanceof Error ? error : new Error(String(error));
-                
+
                 // Check if it's a timeout/abort error
-                const isTimeoutError = lastError.name === 'AbortError' || 
-                                      lastError.message.includes('aborted');
-                
+                const isTimeoutError = lastError.name === 'AbortError' ||
+                    lastError.message.includes('aborted');
+
                 // Don't retry on certain errors
                 if (!isTimeoutError && lastError.message.includes('HTTP 4')) {
                     throw lastError;
                 }
-                
+
                 if (attempt === this.options.maxRetries) {
                     throw lastError;
                 }
-                
+
                 this.logger.warn(`Request failed: ${lastError.message}, retrying...`);
             } finally {
                 clearTimeout(timeoutId);
             }
-            
+
             // Exponential backoff with jitter
             if (attempt < this.options.maxRetries) {
                 const backoffDelay = this.options.retryDelay * Math.pow(2, attempt);
                 const jitter = Math.random() * 0.3 * backoffDelay; // Add up to 30% jitter
                 const delay = backoffDelay + jitter;
-                
+
                 this.logger.debug(`Waiting ${Math.round(delay)}ms before retry...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
+                await new Promise((resolve) => setTimeout(resolve, delay));
             }
         }
-        
+
         throw lastError || new Error('Failed to fetch URL after retries');
     }
 
@@ -288,7 +288,7 @@ export class FilterDownloader {
     private async processDirectives(
         lines: string[],
         basePath: string,
-        depth: number
+        depth: number,
     ): Promise<string[]> {
         const result: string[] = [];
         let i = 0;
@@ -446,7 +446,7 @@ export class FilterDownloader {
     static async download(
         source: string,
         options?: DownloaderOptions,
-        additionalOptions?: { allowEmptyResponse?: boolean }
+        additionalOptions?: { allowEmptyResponse?: boolean },
     ): Promise<string[]> {
         const mergedOptions: DownloaderOptions = {
             ...options,

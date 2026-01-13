@@ -10,7 +10,7 @@ declare namespace Cloudflare {
 		COMPILATION_CACHE: KVNamespace;
 		RATE_LIMIT: KVNamespace;
 		METRICS: KVNamespace;
-		COMPILER_VERSION: "0.7.3";
+		COMPILER_VERSION: "0.7.7";
 		ENVIRONMENT: "production";
 		ADBLOCK_COMPILER: DurableObjectNamespace<import("./worker/worker").AdblockCompiler>;
 		FILTER_STORAGE: R2Bucket;

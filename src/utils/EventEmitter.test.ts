@@ -1,18 +1,14 @@
 import { assertEquals, assertExists } from '@std/assert';
+import { CompilerEventEmitter, createEventEmitter, NoOpEventEmitter } from '../../src/utils/EventEmitter.ts';
 import {
-    CompilerEventEmitter,
-    NoOpEventEmitter,
-    createEventEmitter,
-} from '../../src/utils/EventEmitter.ts';
-import {
+    ICompilationCompleteEvent,
     ICompilerEvents,
-    ISourceStartEvent,
+    IProgressEvent,
     ISourceCompleteEvent,
     ISourceErrorEvent,
-    ITransformationStartEvent,
+    ISourceStartEvent,
     ITransformationCompleteEvent,
-    IProgressEvent,
-    ICompilationCompleteEvent,
+    ITransformationStartEvent,
     SourceType,
     TransformationType,
 } from '../../src/types/index.ts';
@@ -236,9 +232,15 @@ Deno.test('CompilerEventEmitter - should support multiple handlers', () => {
     let progressCalled = false;
 
     const events: ICompilerEvents = {
-        onSourceStart: () => { sourceStartCalled = true; },
-        onSourceComplete: () => { sourceCompleteCalled = true; },
-        onProgress: () => { progressCalled = true; },
+        onSourceStart: () => {
+            sourceStartCalled = true;
+        },
+        onSourceComplete: () => {
+            sourceCompleteCalled = true;
+        },
+        onProgress: () => {
+            progressCalled = true;
+        },
     };
     const emitter = new CompilerEventEmitter(events);
 

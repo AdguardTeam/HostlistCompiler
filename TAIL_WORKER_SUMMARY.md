@@ -10,12 +10,13 @@ A Cloudflare Tail Worker is a special type of Worker that receives logs and even
 
 - Console logs (all levels: log, debug, info, warn, error)
 - Unhandled exceptions
-- Request/response metadata  
+- Request/response metadata
 - Worker execution outcomes
 
 ## Features Implemented
 
 ### Core Functionality
+
 - **Log Capture**: Automatically receives all logs and events from the main worker
 - **Structured Logging**: Formats events into structured JSON for easy parsing
 - **KV Storage**: Optional persistent storage of logs with configurable TTL
@@ -23,7 +24,9 @@ A Cloudflare Tail Worker is a special type of Worker that receives logs and even
 - **Smart Filtering**: Only forwards events that match specific criteria (exceptions, errors)
 
 ### Integrations
+
 The tail worker includes example integrations for:
+
 - **Slack**: Formatted messages with rich blocks
 - **Discord**: Formatted embeds with color coding
 - **Datadog**: HTTP API log submission
@@ -31,6 +34,7 @@ The tail worker includes example integrations for:
 - **Custom endpoints**: Flexible webhook support
 
 ### Configuration
+
 - Separate wrangler configuration (`wrangler.tail.toml`)
 - Environment variables for customization
 - Optional KV namespace binding
@@ -39,19 +43,23 @@ The tail worker includes example integrations for:
 ## Files Added
 
 ### Core Files
+
 - `worker/tail.ts` - Main tail worker implementation (173 lines)
 - `wrangler.tail.toml` - Tail worker configuration
 
 ### Documentation
+
 - `worker/TAIL_WORKER.md` - Complete documentation (280+ lines)
 - `worker/QUICKSTART.md` - Quick start guide
 - Updates to main `README.md` and `CHANGELOG.md`
 
 ### Examples & Tests
+
 - `worker/tail-examples.ts` - Integration examples for popular services
 - `worker/tail.test.ts` - Unit tests (10 tests, all passing)
 
 ### Package Scripts
+
 - `npm run tail:deploy` - Deploy tail worker
 - `npm run tail:dev` - Run tail worker locally
 - `npm run tail:logs` - View tail worker logs
@@ -59,7 +67,9 @@ The tail worker includes example integrations for:
 ## Configuration Updates
 
 ### Main Worker (`wrangler.toml`)
+
 Added (commented out by default):
+
 ```toml
 tail_consumers = [
     { service = "adblock-compiler-tail" }
@@ -67,6 +77,7 @@ tail_consumers = [
 ```
 
 ### Package.json
+
 Added new scripts for tail worker management.
 
 ## Testing
@@ -79,6 +90,7 @@ Added new scripts for tail worker management.
 ## Usage
 
 ### Basic Setup
+
 ```bash
 # 1. Deploy tail worker
 npm run tail:deploy
@@ -92,6 +104,7 @@ npm run tail:logs
 ```
 
 ### With KV Storage
+
 ```bash
 # Create KV namespace
 wrangler kv:namespace create TAIL_LOGS
@@ -102,6 +115,7 @@ npm run tail:deploy
 ```
 
 ### With Webhooks
+
 ```bash
 # Add webhook URL to wrangler.tail.toml
 # ERROR_WEBHOOK_URL = "https://hooks.slack.com/..."
@@ -141,6 +155,7 @@ The tail worker is **opt-in** by default:
 ## Future Enhancements (Not in this PR)
 
 Potential future additions:
+
 - Metrics aggregation and dashboards
 - Advanced filtering rules UI
 - Log search and query interface

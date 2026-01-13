@@ -80,10 +80,10 @@ Successfully implemented comprehensive Cloudflare Queue support for the adblock-
 ```typescript
 try {
     await processMessage(msg, env);
-    message.ack();  // Success
+    message.ack(); // Success
 } catch (error) {
     console.error('Processing failed:', error);
-    message.retry();  // Automatic retry with backoff
+    message.retry(); // Automatic retry with backoff
 }
 ```
 
@@ -99,18 +99,21 @@ await processInChunks(items, 3, async (item) => {
 ## Benefits
 
 ### Performance
+
 - ✅ Async processing doesn't block the worker
 - ✅ Chunked processing prevents resource exhaustion
 - ✅ Gzip compression reduces cache storage by 70-80%
 - ✅ KV caching provides fast retrieval
 
 ### Reliability
+
 - ✅ Automatic retries with exponential backoff
 - ✅ Proper error handling and logging
 - ✅ Message deduplication via unique IDs
 - ✅ No data loss on failures
 
 ### Scalability
+
 - ✅ Queue handles unlimited backpressure
 - ✅ No rate limiting on async endpoints
 - ✅ Batch processing for efficiency
@@ -119,7 +122,9 @@ await processInChunks(items, 3, async (item) => {
 ## Use Cases
 
 ### 1. Batch Processing
+
 Compile multiple filter lists efficiently without blocking:
+
 ```bash
 curl -X POST https://worker.dev/compile/batch/async \
   -H "Content-Type: application/json" \
@@ -127,7 +132,9 @@ curl -X POST https://worker.dev/compile/batch/async \
 ```
 
 ### 2. Cache Warming
+
 Pre-compile popular filter lists during off-peak hours:
+
 ```bash
 curl -X POST https://worker.dev/compile/async \
   -H "Content-Type: application/json" \
@@ -135,9 +142,11 @@ curl -X POST https://worker.dev/compile/async \
 ```
 
 ### 3. Scheduled Updates
+
 Update cached compilations via cron triggers using queue messages.
 
 ### 4. Rate Limit Bypass
+
 Queue requests that would otherwise be rate-limited.
 
 ## Deployment Checklist
@@ -173,32 +182,36 @@ Before deploying to production:
 ## Files Modified
 
 ### Core Implementation
+
 - `worker/worker.ts` - Queue consumer and producer logic
 - `worker-configuration.d.ts` - Type definitions for queue binding
 
 ### Documentation
+
 - `docs/QUEUE_SUPPORT.md` - Comprehensive usage guide
 - `README.md` - Updated with queue information
 
 ### Tests
+
 - `worker/queue.test.ts` - Unit tests for message structures
 
 ### Configuration
+
 - `wrangler.toml` - Queue configuration (already existed)
 
 ## Performance Metrics
 
 Expected improvements with queue implementation:
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Rate Limit | 10 req/min | Unlimited* | N/A |
-| Batch Size | 10 max | 100 max | 10x |
-| Response Time | 5-30s | <100ms** | 50-300x |
-| Resource Usage | High peaks | Smooth | More efficient |
-| Reliability | Synchronous | Async + Retry | Higher |
+| Metric         | Before      | After         | Improvement    |
+| -------------- | ----------- | ------------- | -------------- |
+| Rate Limit     | 10 req/min  | Unlimited*    | N/A            |
+| Batch Size     | 10 max      | 100 max       | 10x            |
+| Response Time  | 5-30s       | <100ms**      | 50-300x        |
+| Resource Usage | High peaks  | Smooth        | More efficient |
+| Reliability    | Synchronous | Async + Retry | Higher         |
 
-\* Queue handles backpressure automatically  
+\* Queue handles backpressure automatically\
 \*\* Async endpoints return immediately with 202 Accepted
 
 ## Code Quality Improvements
@@ -255,11 +268,11 @@ Future improvements that could be added:
 
 The Cloudflare Queue implementation is **production-ready** with:
 
-✅ All features implemented  
-✅ Code review feedback addressed  
-✅ Comprehensive documentation  
-✅ Unit tests added  
-✅ Best practices followed  
+✅ All features implemented\
+✅ Code review feedback addressed\
+✅ Comprehensive documentation\
+✅ Unit tests added\
+✅ Best practices followed
 
 **Ready for deployment!** 🚀
 

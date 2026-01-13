@@ -16,7 +16,7 @@ declare module 'better-ajv-errors' {
         schema: object,
         data: unknown,
         errors: AjvErrorObject[] | null | undefined,
-        options?: Options
+        options?: Options,
     ): string | object[];
 
     export default betterAjvErrors;

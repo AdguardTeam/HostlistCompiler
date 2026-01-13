@@ -3,7 +3,7 @@
  * Automatically optimizes rules for better performance and smaller file size.
  */
 
-import { TransformationType, ITransformationContext, ILogger } from '../types/index.ts';
+import { ILogger, ITransformationContext, TransformationType } from '../types/index.ts';
 import { SyncTransformation } from './base/Transformation.ts';
 import { RuleUtils } from '../utils/RuleUtils.ts';
 
@@ -119,14 +119,12 @@ export class RuleOptimizerTransformation extends SyncTransformation {
 
         // Calculate stats
         this.stats.finalCount = result.length;
-        this.stats.sizeReduction = this.stats.originalCount > 0
-            ? ((this.stats.originalCount - this.stats.finalCount) / this.stats.originalCount) * 100
-            : 0;
+        this.stats.sizeReduction = this.stats.originalCount > 0 ? ((this.stats.originalCount - this.stats.finalCount) / this.stats.originalCount) * 100 : 0;
 
         this.info(
             `Optimized ${this.stats.rulesOptimized} rules, ` +
-            `removed ${this.stats.redundantRemoved} redundant, ` +
-            `${this.stats.sizeReduction.toFixed(1)}% reduction`,
+                `removed ${this.stats.redundantRemoved} redundant, ` +
+                `${this.stats.sizeReduction.toFixed(1)}% reduction`,
         );
 
         return result;
@@ -240,7 +238,7 @@ export class RuleOptimizerTransformation extends SyncTransformation {
      * Simplifies modifier lists
      */
     private simplifyModifiers(rules: string[]): string[] {
-        return rules.map(rule => {
+        return rules.map((rule) => {
             const trimmed = rule.trim();
 
             // Skip non-adblock rules
@@ -260,7 +258,7 @@ export class RuleOptimizerTransformation extends SyncTransformation {
 
                 // Remove duplicate modifiers
                 const seen = new Set<string>();
-                const uniqueOptions = parsed.options.filter(opt => {
+                const uniqueOptions = parsed.options.filter((opt) => {
                     const key = opt.value ? `${opt.name}=${opt.value}` : opt.name;
                     if (seen.has(key)) {
                         this.stats.modifiersSimplified++;
@@ -272,10 +270,10 @@ export class RuleOptimizerTransformation extends SyncTransformation {
 
                 // Remove redundant type modifiers (e.g., having both ~script and ~image)
                 const typeModifiers = uniqueOptions.filter(
-                    opt => ['script', 'image', 'stylesheet', 'font', 'xmlhttprequest', 'media'].includes(opt.name.replace('~', '')),
+                    (opt) => ['script', 'image', 'stylesheet', 'font', 'xmlhttprequest', 'media'].includes(opt.name.replace('~', '')),
                 );
 
-                const negatedCount = typeModifiers.filter(opt => opt.name.startsWith('~')).length;
+                const negatedCount = typeModifiers.filter((opt) => opt.name.startsWith('~')).length;
                 const totalTypes = 6; // Common type modifiers
 
                 // If all types are negated except one, simplify to just that one
@@ -313,7 +311,7 @@ export class RuleOptimizerTransformation extends SyncTransformation {
 
             try {
                 const parsed = RuleUtils.loadAdblockRuleProperties(rule);
-                const domainOption = parsed.options?.find(opt => opt.name === 'domain');
+                const domainOption = parsed.options?.find((opt) => opt.name === 'domain');
 
                 if (parsed.pattern && domainOption?.value) {
                     const patternKey = parsed.pattern;
@@ -357,7 +355,7 @@ export class RuleOptimizerTransformation extends SyncTransformation {
         // Apply merges
         return rules
             .map((rule, i) => {
-                const merged = mergedRules.find(m => m.index === i);
+                const merged = mergedRules.find((m) => m.index === i);
                 return merged ? merged.rule : rule;
             })
             .filter((_, i) => !indicesToRemove.has(i));

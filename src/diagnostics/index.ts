@@ -33,13 +33,4 @@
 
 export * from './types.ts';
 export { DiagnosticsCollector, NoOpDiagnosticsCollector } from './DiagnosticsCollector.ts';
-export {
-    createChildContext,
-    createNoOpContext,
-    createTracingContext,
-    getOrCreateContext,
-    traceAsync,
-    traced,
-    tracedAsync,
-    traceSync,
-} from './TracingContext.ts';
+export { createChildContext, createNoOpContext, createTracingContext, getOrCreateContext, traceAsync, traced, tracedAsync, traceSync } from './TracingContext.ts';

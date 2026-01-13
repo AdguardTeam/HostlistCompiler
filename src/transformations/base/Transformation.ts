@@ -21,11 +21,11 @@ export abstract class Transformation {
 
     /**
      * Executes the transformation on the given rules.
-     * 
+     *
      * @param rules - Array of rules to transform
      * @param context - Optional transformation context
      * @returns Promise resolving to transformed rules
-     * 
+     *
      * @remarks
      * All transformations are async to support:
      * - Non-blocking operations
@@ -35,7 +35,7 @@ export abstract class Transformation {
      */
     public abstract execute(
         rules: readonly string[],
-        context?: ITransformationContext
+        context?: ITransformationContext,
     ): Promise<readonly string[]>;
 
     /**
@@ -64,7 +64,7 @@ export abstract class Transformation {
  * Abstract base class for synchronous transformations.
  * These transformations perform CPU-bound operations without I/O.
  * The sync method is wrapped in a resolved Promise for consistency with async operations.
- * 
+ *
  * @remarks
  * Use this for transformations that:
  * - Don't perform I/O operations
@@ -74,14 +74,14 @@ export abstract class Transformation {
 export abstract class SyncTransformation extends Transformation {
     /**
      * Synchronously executes the transformation on the given rules.
-     * 
+     *
      * @param rules - Array of rules to transform
      * @param context - Optional transformation context
      * @returns Transformed rules
      */
     public abstract executeSync(
         rules: readonly string[],
-        context?: ITransformationContext
+        context?: ITransformationContext,
     ): readonly string[];
 
     /**
@@ -89,7 +89,7 @@ export abstract class SyncTransformation extends Transformation {
      */
     public override execute(
         rules: readonly string[],
-        context?: ITransformationContext
+        context?: ITransformationContext,
     ): Promise<readonly string[]> {
         return Promise.resolve(this.executeSync(rules, context));
     }
@@ -98,7 +98,7 @@ export abstract class SyncTransformation extends Transformation {
 /**
  * Abstract base class for async transformations.
  * Use this for transformations that need to fetch external resources or perform I/O.
- * 
+ *
  * @remarks
  * Use this for transformations that:
  * - Fetch external resources (HTTP, file system)
@@ -109,13 +109,13 @@ export abstract class SyncTransformation extends Transformation {
 export abstract class AsyncTransformation extends Transformation {
     /**
      * Asynchronously executes the transformation on the given rules.
-     * 
+     *
      * @param rules - Array of rules to transform
      * @param context - Optional transformation context
      * @returns Promise resolving to transformed rules
      */
     public abstract override execute(
         rules: readonly string[],
-        context?: ITransformationContext
+        context?: ITransformationContext,
     ): Promise<readonly string[]>;
 }

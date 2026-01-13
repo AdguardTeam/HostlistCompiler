@@ -1,35 +1,35 @@
 services:
-  # Main adblock-compiler service
-  adblock-compiler:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    container_name: adblock-compiler
-    ports:
-      - "8787:8787"
-    environment:
-      - COMPILER_VERSION=0.6.0
-      - DENO_DIR=/app/.deno
-      - PORT=8787
-    volumes:
-      # Persist Deno cache
-      - deno-cache:/app/.deno
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8787/api"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
-    networks:
-      - adblock-network
+    # Main adblock-compiler service
+    adblock-compiler:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: runtime
+        container_name: adblock-compiler
+        ports:
+            - '8787:8787'
+        environment:
+            - COMPILER_VERSION=0.7.7
+            - DENO_DIR=/app/.deno
+            - PORT=8787
+        volumes:
+            # Persist Deno cache
+            - deno-cache:/app/.deno
+        restart: unless-stopped
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:8787/api']
+            interval: 30s
+            timeout: 3s
+            retries: 3
+            start_period: 5s
+        networks:
+            - adblock-network
 
 volumes:
-  deno-cache:
-    name: adblock-compiler-deno-cache
+    deno-cache:
+        name: adblock-compiler-deno-cache
 
 networks:
-  adblock-network:
-    name: adblock-compiler-network
-    driver: bridge
+    adblock-network:
+        name: adblock-compiler-network
+        driver: bridge

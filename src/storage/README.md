@@ -57,15 +57,15 @@ List entries with flexible filtering options:
 
 ```typescript
 // List all entries with a specific prefix
-const entries = await storage.list({ 
-    prefix: ['users'] 
+const entries = await storage.list({
+    prefix: ['users'],
 });
 
 // List with limit and reverse order
 const recent = await storage.list({
     prefix: ['logs'],
     limit: 10,
-    reverse: true
+    reverse: true,
 });
 ```
 
@@ -80,7 +80,7 @@ await storage.cacheFilterList(
     ['||example.com^', '||test.com^'],
     'abc123hash',
     'etag-value',
-    3600000 // 1 hour TTL
+    3600000, // 1 hour TTL
 );
 
 // Retrieve cached filter list
@@ -102,7 +102,7 @@ await storage.storeCompilationMetadata({
     sourceCount: 5,
     ruleCount: 10000,
     duration: 5000,
-    outputPath: './output/blocklist.txt'
+    outputPath: './output/blocklist.txt',
 });
 
 // Get compilation history
@@ -153,12 +153,8 @@ Keys are hierarchical arrays of strings, similar to a file path:
 
 ```typescript
 // Good key structure
-['cache', 'filters', 'source-url']
-['metadata', 'compilations', 'config-name', 'timestamp']
-['users', 'user-id', 'preferences']
-
-// Keys can be as deep as needed
-['project', 'version', 'module', 'submodule', 'data']
+['cache', 'filters', 'source-url']['metadata', 'compilations', 'config-name', 'timestamp']['users', 'user-id', 'preferences'] // Keys can be as deep as needed
+    ['project', 'version', 'module', 'submodule', 'data'];
 ```
 
 ## Data Types
@@ -174,16 +170,16 @@ await storage.set(['config', 'name'], 'my-app');
 // Objects and arrays
 await storage.set(['config', 'settings'], {
     theme: 'dark',
-    features: ['caching', 'logging']
+    features: ['caching', 'logging'],
 });
 
 // Complex nested structures
 await storage.set(['data', 'complex'], {
     nested: {
         deep: {
-            value: [1, 2, 3]
-        }
-    }
+            value: [1, 2, 3],
+        },
+    },
 });
 ```
 
@@ -235,7 +231,7 @@ async function example() {
             ['||ad.example.com^', '||tracker.example.com^'],
             'content-hash-123',
             undefined,
-            3600000
+            3600000,
         );
 
         // Check if cached before downloading
@@ -252,7 +248,7 @@ async function example() {
             sourceCount: 3,
             ruleCount: 5000,
             duration: 3000,
-            outputPath: './output/filters.txt'
+            outputPath: './output/filters.txt',
         });
 
         // Get storage stats
@@ -304,7 +300,7 @@ The `CachingDownloader` wraps any downloader implementation with intelligent cac
 **Basic Usage:**
 
 ```typescript
-import { NoSqlStorage, CachingDownloader } from './storage/index.ts';
+import { CachingDownloader, NoSqlStorage } from './storage/index.ts';
 import { FilterDownloader } from '../downloader/FilterDownloader.ts';
 
 const storage = new NoSqlStorage(logger);
@@ -319,7 +315,7 @@ const cachingDownloader = new CachingDownloader(
         ttl: 3600000, // 1 hour cache
         detectChanges: true,
         monitorHealth: true,
-    }
+    },
 );
 
 const rules = await cachingDownloader.download('https://example.com/filters.txt');
@@ -337,6 +333,7 @@ console.log(`Delta: ${result.ruleCountDelta} rules`);
 ### Source Health Monitoring
 
 Track the reliability of filter list sources over time. Sources are classified as:
+
 - **Healthy**: 95%+ success rate, no recent failures
 - **Degraded**: 80-95% success rate or 1-2 consecutive failures
 - **Unhealthy**: <80% success rate or 3+ consecutive failures

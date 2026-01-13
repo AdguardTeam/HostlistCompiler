@@ -60,35 +60,38 @@ High priority jobs are routed to a separate queue with optimized settings for fa
 Queue a single compilation job for asynchronous processing.
 
 **Request Body:**
+
 ```json
 {
-  "configuration": {
-    "name": "My Filter List",
-    "sources": [
-      {
-        "source": "https://example.com/filters.txt"
-      }
-    ],
-    "transformations": ["Deduplicate", "RemoveEmptyLines"]
-  },
-  "benchmark": true,
-  "priority": "high"
+    "configuration": {
+        "name": "My Filter List",
+        "sources": [
+            {
+                "source": "https://example.com/filters.txt"
+            }
+        ],
+        "transformations": ["Deduplicate", "RemoveEmptyLines"]
+    },
+    "benchmark": true,
+    "priority": "high"
 }
 ```
 
 **Fields:**
+
 - `configuration` (required) - Compilation configuration
 - `benchmark` (optional) - Enable benchmarking
 - `priority` (optional) - Priority level: `"standard"` (default) or `"high"`
 
 **Response (202 Accepted):**
+
 ```json
 {
-  "success": true,
-  "message": "Compilation job queued successfully",
-  "note": "The compilation will be processed asynchronously and cached when complete",
-  "requestId": "compile-1704931200000-abc123",
-  "priority": "high"
+    "success": true,
+    "message": "Compilation job queued successfully",
+    "note": "The compilation will be processed asynchronously and cached when complete",
+    "requestId": "compile-1704931200000-abc123",
+    "priority": "high"
 }
 ```
 
@@ -97,53 +100,57 @@ Queue a single compilation job for asynchronous processing.
 Queue multiple compilation jobs for asynchronous processing.
 
 **Request Body:**
+
 ```json
 {
-  "requests": [
-    {
-      "id": "filter-1",
-      "configuration": {
-        "name": "Filter List 1",
-        "sources": [
-          {
-            "source": "https://example.com/filter1.txt"
-          }
-        ]
-      }
-    },
-    {
-      "id": "filter-2",
-      "configuration": {
-        "name": "Filter List 2",
-        "sources": [
-          {
-            "source": "https://example.com/filter2.txt"
-          }
-        ]
-      }
-    }
-  ],
-  "priority": "high"
+    "requests": [
+        {
+            "id": "filter-1",
+            "configuration": {
+                "name": "Filter List 1",
+                "sources": [
+                    {
+                        "source": "https://example.com/filter1.txt"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "filter-2",
+            "configuration": {
+                "name": "Filter List 2",
+                "sources": [
+                    {
+                        "source": "https://example.com/filter2.txt"
+                    }
+                ]
+            }
+        }
+    ],
+    "priority": "high"
 }
 ```
 
 **Fields:**
+
 - `requests` (required) - Array of compilation requests
 - `priority` (optional) - Priority level for the entire batch: `"standard"` (default) or `"high"`
 
 **Response (202 Accepted):**
+
 ```json
 {
-  "success": true,
-  "message": "Batch of 2 compilation jobs queued successfully",
-  "note": "The compilations will be processed asynchronously and cached when complete",
-  "requestId": "batch-1704931200000-def456",
-  "batchSize": 2,
-  "priority": "high"
+    "success": true,
+    "message": "Batch of 2 compilation jobs queued successfully",
+    "note": "The compilations will be processed asynchronously and cached when complete",
+    "requestId": "batch-1704931200000-def456",
+    "batchSize": 2,
+    "priority": "high"
 }
 ```
 
 **Limits:**
+
 - Maximum 100 requests per batch
 - No rate limiting (queue handles backpressure)
 
@@ -152,6 +159,7 @@ Queue multiple compilation jobs for asynchronous processing.
 The worker processes three types of queue messages, all supporting optional priority:
 
 ### 1. Compile Message
+
 Single compilation job with optional pre-fetched content, benchmarking, and priority.
 
 ```typescript
@@ -167,6 +175,7 @@ Single compilation job with optional pre-fetched content, benchmarking, and prio
 ```
 
 ### 2. Batch Compile Message
+
 Multiple compilation jobs processed in parallel with optional priority.
 
 ```typescript
@@ -188,6 +197,7 @@ Multiple compilation jobs processed in parallel with optional priority.
 ```
 
 ### 3. Cache Warm Message
+
 Pre-compile multiple configurations to warm the cache with optional priority.
 
 ```typescript
@@ -224,16 +234,17 @@ The queue consumer automatically retries failed messages:
 
 ### Compared to Synchronous Endpoints
 
-| Feature | Sync (`/compile`) | Async (`/compile/async`) |
-|---------|------------------|--------------------------|
-| Response Time | Waits for compilation | Immediate (202 Accepted) |
-| Rate Limiting | Yes (10 req/min) | No (queue handles backpressure) |
-| CPU Usage | Blocks worker | Background processing |
-| Use Case | Interactive requests | Batch operations, pre-warming |
+| Feature       | Sync (`/compile`)     | Async (`/compile/async`)        |
+| ------------- | --------------------- | ------------------------------- |
+| Response Time | Waits for compilation | Immediate (202 Accepted)        |
+| Rate Limiting | Yes (10 req/min)      | No (queue handles backpressure) |
+| CPU Usage     | Blocks worker         | Background processing           |
+| Use Case      | Interactive requests  | Batch operations, pre-warming   |
 
 ### Use Cases
 
 **Cache Warming**
+
 ```bash
 # Pre-compile popular filter lists during low-traffic periods
 curl -X POST https://your-worker.dev/compile/async \
@@ -249,6 +260,7 @@ curl -X POST https://your-worker.dev/compile/async \
 ```
 
 **Batch Processing**
+
 ```bash
 # Process multiple filter lists without blocking
 curl -X POST https://your-worker.dev/compile/batch/async \
@@ -349,7 +361,7 @@ The following metrics are logged for each operation:
    ```bash
    # Stream logs in real-time
    wrangler tail
-   
+
    # Filter by prefix
    wrangler tail | grep "QUEUE:COMPILE"
    ```
@@ -367,6 +379,7 @@ The following metrics are logged for each operation:
 ## Error Handling
 
 Errors during queue processing are:
+
 1. Logged to console with full error details
 2. Message is retried automatically with exponential backoff
 3. After max retries, message is sent to dead letter queue (if configured)
@@ -384,18 +397,21 @@ Errors during queue processing are:
 ## Performance Considerations
 
 ### Queue Configuration
+
 - **Standard queue**: Processes messages in batches (max 10), timeout 5 seconds
 - **High-priority queue**: Smaller batches (max 5), shorter timeout (2 seconds) for faster response
 - Batch compilations process requests in chunks of 3 in parallel
 - Cache TTL is 1 hour (configurable in worker code)
 
 ### Processing Times
+
 - Large filter lists may take several seconds to compile
 - High-priority jobs are processed faster due to smaller batch sizes
 - Compression reduces storage by 70-80%
 - Gzip compression/decompression adds ~100ms overhead
 
 ### Priority Queue Benefits
+
 - **High priority**: Faster turnaround time, ideal for premium users or urgent requests
 - **Standard priority**: Higher throughput, ideal for batch operations and scheduled jobs
 
@@ -449,16 +465,19 @@ npm run deploy
 ## Troubleshooting
 
 **Queue not processing messages**
+
 - Check queue configuration in `wrangler.toml`
 - Verify both queues exist: `wrangler queues list`
 - Check worker logs for errors
 
 **Messages failing repeatedly**
+
 - Check error logs for specific failure reasons
 - Verify source URLs are accessible
 - Check KV namespace bindings are correct
 
 **Slow processing**
+
 - Increase `max_batch_size` in `wrangler.toml`
 - Consider scaling worker resources
 - Review filter list sizes and complexity

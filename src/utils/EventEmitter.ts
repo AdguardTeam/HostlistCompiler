@@ -6,14 +6,14 @@
  */
 
 import type {
+    ICompilationCompleteEvent,
     ICompilerEvents,
-    ISourceStartEvent,
+    IProgressEvent,
     ISourceCompleteEvent,
     ISourceErrorEvent,
-    ITransformationStartEvent,
+    ISourceStartEvent,
     ITransformationCompleteEvent,
-    IProgressEvent,
-    ICompilationCompleteEvent,
+    ITransformationStartEvent,
 } from '../types/index.ts';
 
 /**
@@ -32,7 +32,7 @@ type EventMap = {
 /**
  * Event emitter that wraps ICompilerEvents callbacks.
  * Provides safe event emission with error handling and type safety.
- * 
+ *
  * @remarks
  * All event emissions are wrapped in try-catch to prevent user code from
  * breaking the compilation process. Errors are logged to console.
@@ -46,7 +46,7 @@ export class CompilerEventEmitter {
 
     /**
      * Check if any event handlers are registered
-     * 
+     *
      * @returns true if at least one event handler is registered
      */
     public hasListeners(): boolean {
@@ -105,10 +105,10 @@ export class CompilerEventEmitter {
     /**
      * Safely emit an event, catching any errors thrown by handlers.
      * This prevents user code from breaking the compilation process.
-     * 
+     *
      * @param eventName - Name of the event to emit
      * @param event - Event data to pass to the handler
-     * 
+     *
      * @remarks
      * Errors thrown by event handlers are caught and logged to console.
      * The compilation process continues even if a handler throws.
@@ -124,12 +124,10 @@ export class CompilerEventEmitter {
             (handler as (event: EventMap[K]) => void)(event);
         } catch (error) {
             // Log but don't throw - event handlers shouldn't break compilation
-            const errorMessage = error instanceof Error
-                ? error.message
-                : String(error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(
                 `Error in event handler '${String(eventName)}': ${errorMessage}`,
-                error
+                error,
             );
         }
     }
@@ -165,10 +163,10 @@ export class NoOpEventEmitter extends CompilerEventEmitter {
 /**
  * Factory function to create the appropriate emitter.
  * Returns a singleton NoOpEventEmitter if no handlers are provided for efficiency.
- * 
+ *
  * @param events - Optional event handlers configuration
  * @returns CompilerEventEmitter instance (NoOp if no handlers)
- * 
+ *
  * @example
  * ```ts
  * const emitter = createEventEmitter({

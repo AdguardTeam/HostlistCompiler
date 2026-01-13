@@ -138,9 +138,7 @@ export class ChangeDetector {
         // Compare hashes
         const hasChanged = previous.hash !== current.hash;
         const ruleCountDelta = current.ruleCount - previous.ruleCount;
-        const ruleCountChangePercent = previous.ruleCount > 0
-            ? (ruleCountDelta / previous.ruleCount) * 100
-            : 0;
+        const ruleCountChangePercent = previous.ruleCount > 0 ? (ruleCountDelta / previous.ruleCount) * 100 : 0;
         const timeSinceLastSnapshot = current.timestamp - previous.timestamp;
 
         if (hasChanged) {

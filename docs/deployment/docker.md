@@ -72,6 +72,7 @@ The standalone CLI executable is not included in the Docker image due to JSR (Ja
 The container is designed to run the Cloudflare Worker with the web UI and API endpoints.
 
 For CLI usage:
+
 - Build the executable on your host machine: `deno task build`
 - Mount it as a volume when running the container
 - Or use the web UI/API endpoints which provide the same functionality
@@ -82,18 +83,18 @@ For CLI usage:
 
 The container supports the following environment variables:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `COMPILER_VERSION` | `0.6.0` | Compiler version identifier |
-| `PORT` | `8787` | Port for the web server |
-| `DENO_DIR` | `/app/.deno` | Deno cache directory |
+| Variable           | Default      | Description                 |
+| ------------------ | ------------ | --------------------------- |
+| `COMPILER_VERSION` | `0.6.0`      | Compiler version identifier |
+| `PORT`             | `8787`       | Port for the web server     |
+| `DENO_DIR`         | `/app/.deno` | Deno cache directory        |
 
 ### Build Arguments
 
 Customize the Docker image at build time:
 
-| Argument | Default | Description |
-|----------|---------|-------------|
+| Argument       | Default | Description             |
+| -------------- | ------- | ----------------------- |
 | `DENO_VERSION` | `2.6.3` | Deno version to install |
 
 To build with a different Deno version:
@@ -108,19 +109,19 @@ You can mount volumes for persistent data:
 
 ```yaml
 volumes:
-  # Source code (for development - use docker-compose.override.yml)
-  - ./src:/app/src
-  - ./worker:/app/worker
-  - ./public:/app/public
-  
-  # Configuration files
-  - ./config.json:/app/config.json:ro
-  
-  # Output directory
-  - ./output:/app/output
-  
-  # Deno cache
-  - deno-cache:/app/.deno
+    # Source code (for development - use docker-compose.override.yml)
+    - ./src:/app/src
+    - ./worker:/app/worker
+    - ./public:/app/public
+
+    # Configuration files
+    - ./config.json:/app/config.json:ro
+
+    # Output directory
+    - ./output:/app/output
+
+    # Deno cache
+    - deno-cache:/app/.deno
 ```
 
 ## Usage Examples
@@ -134,6 +135,7 @@ docker compose up -d
 ```
 
 Then visit:
+
 - Web UI: http://localhost:8787
 - API Docs: http://localhost:8787/api
 - Test Interface: http://localhost:8787/test.html
@@ -254,49 +256,49 @@ Example Kubernetes deployment:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: adblock-compiler
+    name: adblock-compiler
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: adblock-compiler
-  template:
-    metadata:
-      labels:
-        app: adblock-compiler
-    spec:
-      containers:
-      - name: adblock-compiler
-        image: adblock-compiler:0.6.0
-        ports:
-        - containerPort: 8787
-        env:
-        - name: COMPILER_VERSION
-          value: "0.6.0"
-        livenessProbe:
-          httpGet:
-            path: /api
-            port: 8787
-          initialDelaySeconds: 10
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /api
-            port: 8787
-          initialDelaySeconds: 5
-          periodSeconds: 10
+    replicas: 2
+    selector:
+        matchLabels:
+            app: adblock-compiler
+    template:
+        metadata:
+            labels:
+                app: adblock-compiler
+        spec:
+            containers:
+                - name: adblock-compiler
+                  image: adblock-compiler:0.6.0
+                  ports:
+                      - containerPort: 8787
+                  env:
+                      - name: COMPILER_VERSION
+                        value: '0.6.0'
+                  livenessProbe:
+                      httpGet:
+                          path: /api
+                          port: 8787
+                      initialDelaySeconds: 10
+                      periodSeconds: 30
+                  readinessProbe:
+                      httpGet:
+                          path: /api
+                          port: 8787
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: adblock-compiler
+    name: adblock-compiler
 spec:
-  selector:
-    app: adblock-compiler
-  ports:
-  - port: 80
-    targetPort: 8787
-  type: LoadBalancer
+    selector:
+        app: adblock-compiler
+    ports:
+        - port: 80
+          targetPort: 8787
+    type: LoadBalancer
 ```
 
 ## Troubleshooting
@@ -304,6 +306,7 @@ spec:
 ### Container won't start
 
 Check logs:
+
 ```bash
 docker-compose logs -f adblock-compiler
 ```
@@ -311,14 +314,16 @@ docker-compose logs -f adblock-compiler
 ### Port already in use
 
 Change the port mapping in docker-compose.yml:
+
 ```yaml
 ports:
-  - "8788:8787"  # Use port 8788 instead
+    - '8788:8787' # Use port 8788 instead
 ```
 
 ### Permission issues
 
 The container runs as a non-root user (uid 1001). If you're mounting volumes, ensure they have appropriate permissions:
+
 ```bash
 chown -R 1001:1001 ./output
 ```
@@ -326,6 +331,7 @@ chown -R 1001:1001 ./output
 ### Out of memory
 
 Increase Docker memory limit:
+
 ```bash
 docker run -d \
   --name adblock-compiler \
@@ -337,6 +343,7 @@ docker run -d \
 ### Deno cache issues
 
 Clear the Deno cache volume:
+
 ```bash
 docker-compose down -v
 docker volume rm adblock-compiler-deno-cache
@@ -370,19 +377,19 @@ docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' adblock-
 1. **Use volume mounts for cache:**
    ```yaml
    volumes:
-     - deno-cache:/app/.deno
+       - deno-cache:/app/.deno
    ```
 
 2. **Limit container resources:**
    ```yaml
    deploy:
-     resources:
-       limits:
-         cpus: '1.0'
-         memory: 1G
-       reservations:
-         cpus: '0.5'
-         memory: 512M
+       resources:
+           limits:
+               cpus: '1.0'
+               memory: 1G
+           reservations:
+               cpus: '0.5'
+               memory: 512M
    ```
 
 3. **Enable gzip compression at reverse proxy level**
@@ -390,5 +397,6 @@ docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' adblock-
 ## Support
 
 For issues or questions:
+
 - GitHub Issues: https://github.com/jaypatrick/adblock-compiler/issues
 - Documentation: https://github.com/jaypatrick/adblock-compiler/blob/main/README.md
