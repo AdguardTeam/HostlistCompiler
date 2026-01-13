@@ -1139,4 +1139,4 @@ This pluggable architecture allows you to:
 
 ## License
 
-MIT
+GPL-3.0 - See [LICENSE](LICENSE) for details.

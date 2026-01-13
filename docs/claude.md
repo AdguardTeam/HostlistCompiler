@@ -6,7 +6,7 @@ This document provides essential context for AI assistants working with the adbl
 
 **AdBlock Compiler** is a Compiler-as-a-Service for adblock filter lists. It transforms, optimizes, and combines filter lists from multiple sources with real-time progress tracking.
 
-- **Version:** 0.6.0
+- **Version:** 0.7.12
 - **Runtime:** Deno 2.4+ (primary), Node.js compatible, Cloudflare Workers compatible
 - **Language:** TypeScript (strict mode, 100% type-safe)
 - **License:** GPL-3.0
@@ -181,6 +181,8 @@ Pattern types: plain string (contains), `*.wildcard`, `/regex/`
 - `POST /compile` - JSON compilation API
 - `POST /compile/stream` - Streaming with SSE
 - `POST /compile/batch` - Batch up to 10 lists
+- `POST /compile/async` - Queue-based async compilation
+- `POST /compile/batch/async` - Queue-based batch compilation
 - `GET /metrics` - Performance metrics
 - `GET /` - Interactive web UI
 

@@ -482,6 +482,156 @@ npm run deploy
 - Consider scaling worker resources
 - Review filter list sizes and complexity
 
+## Architecture
+
+### Queue Flow Diagram
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        CLIENT[Client/Browser]
+    end
+
+    subgraph "API Endpoints"
+        ASYNC_EP[POST /compile/async]
+        BATCH_EP[POST /compile/batch/async]
+        SYNC_EP[POST /compile]
+    end
+
+    subgraph "Queue Producer"
+        ENQUEUE[Queue Message Producer]
+        GEN_ID[Generate Request ID]
+        CREATE_MSG[Create Queue Message]
+    end
+
+    subgraph "Cloudflare Queue"
+        QUEUE[(adblock-compiler-worker-queue)]
+        QUEUE_HIGH[(adblock-compiler-worker-queue-high-priority)]
+        QUEUE_BATCH[Message Batching]
+    end
+
+    subgraph "Queue Consumer"
+        CONSUMER[Queue Consumer Handler]
+        DISPATCHER[Message Type Dispatcher]
+        COMPILE_PROC[Process Compile Message]
+        BATCH_PROC[Process Batch Message]
+        CACHE_PROC[Process Cache Warm Message]
+    end
+
+    subgraph "Storage Layer"
+        KV_CACHE[(KV: COMPILATION_CACHE)]
+        COMPRESS[Gzip Compression]
+    end
+
+    CLIENT -->|POST request| ASYNC_EP
+    CLIENT -->|POST request| BATCH_EP
+    CLIENT -->|GET cached result| SYNC_EP
+
+    ASYNC_EP -->|Queue message| ENQUEUE
+    BATCH_EP -->|Queue message| ENQUEUE
+
+    ENQUEUE --> GEN_ID
+    GEN_ID --> CREATE_MSG
+    CREATE_MSG -->|standard priority| QUEUE
+    CREATE_MSG -->|high priority| QUEUE_HIGH
+
+    QUEUE --> QUEUE_BATCH
+    QUEUE_HIGH --> QUEUE_BATCH
+    QUEUE_BATCH -->|Batched messages| CONSUMER
+
+    CONSUMER --> DISPATCHER
+    DISPATCHER -->|type: 'compile'| COMPILE_PROC
+    DISPATCHER -->|type: 'batch-compile'| BATCH_PROC
+    DISPATCHER -->|type: 'cache-warm'| CACHE_PROC
+
+    COMPILE_PROC --> COMPRESS
+    COMPRESS --> KV_CACHE
+
+    SYNC_EP -.->|Read cache| KV_CACHE
+
+    style QUEUE fill:#f9f,stroke:#333,stroke-width:4px
+    style QUEUE_HIGH fill:#ff9,stroke:#333,stroke-width:4px
+    style CONSUMER fill:#bbf,stroke:#333,stroke-width:4px
+    style KV_CACHE fill:#bfb,stroke:#333,stroke-width:2px
+```
+
+### Message Flow Sequence
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as API Endpoint
+    participant Q as Queue
+    participant QC as Queue Consumer
+    participant Comp as Compiler
+    participant Cache as KV Cache
+
+    Note over C,Cache: Async Compile Flow
+
+    C->>API: POST /compile/async
+    API->>API: Generate Request ID
+    API->>Q: Send CompileQueueMessage
+    API-->>C: 202 Accepted (requestId)
+
+    Q->>QC: Deliver message batch
+    QC->>QC: Dispatch by type
+    QC->>Comp: Execute compilation
+    Comp-->>QC: Compiled rules + metrics
+    QC->>Cache: Store compressed result
+    QC->>Q: ACK message
+
+    Note over C,Cache: Cache Result Retrieval
+
+    C->>API: POST /compile (with config)
+    API->>Cache: Check for cached result
+    Cache-->>API: Compressed result
+    API-->>C: 200 OK (rules, cached: true)
+```
+
+### Processing Flow
+
+```mermaid
+flowchart TD
+    START[Queue Message Received] --> VALIDATE{Validate Message Type}
+
+    VALIDATE -->|compile| SINGLE[Single Compilation]
+    VALIDATE -->|batch-compile| BATCH[Batch Compilation]
+    VALIDATE -->|cache-warm| WARM[Cache Warming]
+    VALIDATE -->|unknown| UNKNOWN[Unknown Type]
+
+    SINGLE --> COMP1[Run Compilation]
+    COMP1 --> COMPRESS1[Compress Result]
+    COMPRESS1 --> STORE1[Store in KV]
+    STORE1 --> ACK1[ACK Message]
+
+    BATCH --> CHUNK[Split into Chunks of 3]
+    CHUNK --> PARALLEL[Process Chunks in Parallel]
+    PARALLEL --> STATS{All Successful?}
+    STATS -->|Yes| ACK2[ACK Message]
+    STATS -->|No| RETRY2[RETRY Message]
+
+    WARM --> CHUNK2[Split into Chunks]
+    CHUNK2 --> PARALLEL2[Process in Parallel]
+    PARALLEL2 --> ACK3[ACK Message]
+
+    UNKNOWN --> ACK_UNK[ACK to prevent infinite retries]
+
+    ACK1 --> END[Processing Complete]
+    ACK2 --> END
+    ACK3 --> END
+    ACK_UNK --> END
+    RETRY2 --> RETRY_QUEUE[Back to Queue with Backoff]
+```
+
+## Key Features
+
+- **Asynchronous Processing**: Non-blocking API endpoints with immediate 202 response
+- **Priority Queues**: Two-tier system for standard and high-priority processing
+- **Concurrency Control**: Chunked batch processing (max 3 parallel compilations)
+- **Caching**: Gzip compression reduces storage by 70-80%
+- **Error Handling**: Automatic retry with exponential backoff
+- **Monitoring**: Structured logging with prefixes for easy filtering
+
 ## Further Reading
 
 - [Cloudflare Queues Documentation](https://developers.cloudflare.com/queues/)

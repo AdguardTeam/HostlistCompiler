@@ -20,11 +20,25 @@ Welcome to the AdBlock Compiler documentation. This directory contains all the d
 - [Docker Deployment](deployment/docker.md) - Complete Docker guide with Kubernetes examples
 - [Cloudflare Containers](deployment/cloudflare-containers.md) - Deploy to Cloudflare edge network
 
+### Cloudflare Worker
+
+- [Queue Support](QUEUE_SUPPORT.md) - Async compilation via Cloudflare Queues
+- [Tail Worker](../worker/TAIL_WORKER.md) - Observability and logging
+- [Tail Worker Quick Start](../worker/QUICKSTART.md) - Get tail worker running in 5 minutes
+
+### Storage
+
+- [NoSQL Storage](../src/storage/README.md) - Deno KV-based storage module
+- [Prisma Backend](../prisma/README.md) - SQL/NoSQL database support
+- [Cloudflare D1](CLOUDFLARE_D1.md) - Edge database integration
+- [Prisma Evaluation](PRISMA_EVALUATION.md) - Storage backend comparison
+
 ### Development
 
 - [Testing Guide](testing.md) - How to run and write tests
 - [Benchmarks](benchmarks.md) - Performance benchmarking guide
 - [Extensibility](EXTENSIBILITY.md) - Custom transformations and extensions
+- [Diagnostics](DIAGNOSTICS.md) - Event emission and tracing
 
 ### Reference
 
