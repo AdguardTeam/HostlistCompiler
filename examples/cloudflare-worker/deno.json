@@ -1,12 +1,14 @@
 {
     "compilerOptions": {
-        "lib": ["deno.window", "dom"],
+        "lib": ["deno.worker"],
+        "types": ["@cloudflare/workers-types"],
         "strict": true,
         "noImplicitAny": true,
         "strictNullChecks": true
     },
     "imports": {
-        "@/": "../../src/",
+        "@jk-com/adblock-compiler": "../../src/index.ts",
+        "@cloudflare/workers-types": "npm:@cloudflare/workers-types@^4.20240405.0",
         "@luca/cases": "jsr:@luca/cases@^1.0.0",
         "@std/path": "jsr:@std/path@^1.0.0",
         "@std/fs": "jsr:@std/fs@^1.0.0",
@@ -18,7 +20,7 @@
     "lint": {
         "rules": {
             "tags": ["recommended"],
-            "exclude": ["no-explicit-any"]
+            "exclude": ["no-explicit-any", "no-console"]
         }
     },
     "fmt": {
