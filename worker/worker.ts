@@ -55,9 +55,9 @@ export interface Env {
     METRICS: KVNamespace;
     // Static assets
     ASSETS?: Fetcher;
-    // Queue bindings
-    ADBLOCK_COMPILER_QUEUE: Queue<QueueMessage>;
-    ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY: Queue<QueueMessage>;
+    // Queue bindings (optional - queues must be created in Cloudflare dashboard first)
+    ADBLOCK_COMPILER_QUEUE?: Queue<QueueMessage>;
+    ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY?: Queue<QueueMessage>;
     // Turnstile configuration
     TURNSTILE_SITE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
@@ -1618,7 +1618,7 @@ async function processInChunks<T>(
         // deno-lint-ignore no-console
         console.log(`[QUEUE:CHUNKS] Processing chunk ${chunkNumber}/${totalChunks} (${chunk.length} items)`);
 
-        const results = await Promise.allSettled(chunk.map((item, idx) => processor(item)));
+        const results = await Promise.allSettled(chunk.map((item) => processor(item)));
 
         results.forEach((result, idx) => {
             const item = chunk[idx];
@@ -1878,6 +1878,11 @@ async function queueCompileJob(
     benchmark?: boolean,
     priority: Priority = 'standard',
 ): Promise<string> {
+    // Check if queues are available
+    if (!env.ADBLOCK_COMPILER_QUEUE || !env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY) {
+        throw new Error('Queue bindings not configured. Async compilation is not available.');
+    }
+
     const requestId = generateRequestId('compile');
 
     if (!requestId) {
@@ -1895,12 +1900,12 @@ async function queueCompileJob(
     };
 
     // Route to appropriate queue based on priority
-    const queue = priority === 'high' 
-        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY 
+    const queue = priority === 'high'
+        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY
         : env.ADBLOCK_COMPILER_QUEUE;
-    
+
     await queue.send(message);
-    
+
     // Track queue statistics
     await updateQueueStats(env, 'enqueued');
 
@@ -1920,6 +1925,11 @@ async function queueBatchCompileJob(
     }>,
     priority: Priority = 'standard',
 ): Promise<string> {
+    // Check if queues are available
+    if (!env.ADBLOCK_COMPILER_QUEUE || !env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY) {
+        throw new Error('Queue bindings not configured. Async compilation is not available.');
+    }
+
     const requestId = generateRequestId('batch');
 
     if (!requestId) {
@@ -1935,12 +1945,12 @@ async function queueBatchCompileJob(
     };
 
     // Route to appropriate queue based on priority
-    const queue = priority === 'high' 
-        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY 
+    const queue = priority === 'high'
+        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY
         : env.ADBLOCK_COMPILER_QUEUE;
-    
+
     await queue.send(message);
-    
+
     // Track queue statistics (batch update for efficiency)
     await updateQueueStats(env, 'enqueued', undefined, requests.length);
 
