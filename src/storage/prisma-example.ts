@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-console
 /**
  * Prisma Storage Adapter - Usage Examples
  *
