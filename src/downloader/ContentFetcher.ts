@@ -96,14 +96,10 @@ export class ContentFetcher {
         this.logger.debug(`Fetching: ${source}`);
 
         try {
-            const content = PathUtils.isUrl(source)
-                ? await this.fetchFromUrl(source)
-                : await this.fetchFromFile(source);
+            const content = PathUtils.isUrl(source) ? await this.fetchFromUrl(source) : await this.fetchFromFile(source);
 
             if (!content && !this.options.allowEmptyResponse) {
-                throw PathUtils.isUrl(source)
-                    ? new NetworkError('Empty content received', source)
-                    : new FileSystemError('Empty file', source);
+                throw PathUtils.isUrl(source) ? new NetworkError('Empty content received', source) : new FileSystemError('Empty file', source);
             }
 
             return content;

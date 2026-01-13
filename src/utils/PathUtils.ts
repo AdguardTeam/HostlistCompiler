@@ -73,14 +73,11 @@ export class PathUtils {
             }
         } else {
             // Resolve relative file path
-            const separator = basePath.includes('\\') ? '\\' : '/';
             const lastSeparatorIndex = Math.max(
                 basePath.lastIndexOf('/'),
                 basePath.lastIndexOf('\\'),
             );
-            const baseDir = lastSeparatorIndex >= 0
-                ? basePath.substring(0, lastSeparatorIndex + 1)
-                : '';
+            const baseDir = lastSeparatorIndex >= 0 ? basePath.substring(0, lastSeparatorIndex + 1) : '';
             return baseDir + includePath;
         }
     }
@@ -178,7 +175,7 @@ export class PathUtils {
             if (urlObj.search) {
                 urlObj.search = '[QUERY]';
             }
-            return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+            return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}${urlObj.search}`;
         } catch {
             // If URL parsing fails, return a generic indicator
             return '[INVALID_URL]';
