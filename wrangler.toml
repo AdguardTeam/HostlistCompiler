@@ -58,6 +58,11 @@ bucket_name = "adblock-compiler-r2-storage"
 # Environment variables
 [vars]
 COMPILER_VERSION = "0.7.9"
+# Turnstile site key (public, can be in vars)
+# TURNSTILE_SITE_KEY = "your-turnstile-site-key"
+
+# NOTE: TURNSTILE_SECRET_KEY should be set as a secret, not in vars:
+# wrangler secret put TURNSTILE_SECRET_KEY
 
 # Static assets configuration using modern assets
 [assets]
