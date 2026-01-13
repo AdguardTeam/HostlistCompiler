@@ -632,8 +632,9 @@
     <div class="container">
         <header>
             <h1>🛡️ Adblock Compiler</h1>
-            <p><strong>Compiler-as-a-Service</strong> | Real-time filter list compilation with event-driven pipeline</p>
-            <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">Powered by Cloudflare Workers • <a href="https://adblock-compiler.jayson-knight.workers.dev/api" style="color: white; text-decoration: underline;" target="_blank">API</a> • <span id="header-version">v0.6.90</span></p>
+            <p><strong>Compiler-as-a-Service</strong> | Real-time streaming compilation with SSE event pipeline</p>
+            <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">Powered by Cloudflare Workers • <a href="https://adblock-compiler.jayson-knight.workers.dev/api" style="color: white; text-decoration: underline;" target="_blank">API</a> • <span id="header-version">v0.7.15</span></p>
+            <p style="font-size: 0.8rem; opacity: 0.8; margin-top: 3px;">New: Streaming API, Rule Optimizer, Conflict Detection, Multiple Output Formats</p>
         </header>
 
         <div class="content">
@@ -684,6 +685,33 @@
                         <input type="checkbox" id="trans-remove-empty" checked>
                         <label for="trans-remove-empty">RemoveEmptyLines - Clean up empty lines</label>
                     </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-optimize">
+                        <label for="trans-optimize">RuleOptimizer - Optimize patterns and remove redundant rules</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-conflict">
+                        <label for="trans-conflict">ConflictDetection - Detect blocking/allowing conflicts</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="output-format">Output Format</label>
+                    <select id="output-format" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 0.95rem; background: white;">
+                        <option value="adblock" selected>Adblock (default)</option>
+                        <option value="hosts">Hosts (/etc/hosts format)</option>
+                        <option value="pihole">Pi-hole (domain list)</option>
+                        <option value="dnsmasq">Dnsmasq</option>
+                        <option value="unbound">Unbound DNS</option>
+                        <option value="doh">DoH (DNS-over-HTTPS)</option>
+                        <option value="json">JSON</option>
+                    </select>
+                    <div class="hint">Select output format for the compiled rules</div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="simple-streaming" checked>
+                    <label for="simple-streaming">Use Streaming API (real-time progress via SSE)</label>
                 </div>
 
                 <div class="checkbox-group">
@@ -727,11 +755,30 @@
       "transformations": ["RemoveComments", "Validate"]
     }
   ],
-  "transformations": ["Deduplicate", "Compress", "RemoveEmptyLines"],
+  "transformations": ["Deduplicate", "Compress", "RemoveEmptyLines", "RuleOptimizer"],
   "exclusions": [],
   "inclusions": ["*"]
 }</textarea>
-                    <div class="hint">Enter a complete configuration JSON. See <a href="https://github.com/AdguardTeam/HostlistCompiler#configuration" target="_blank">documentation</a> for all options.</div>
+                    <div class="hint">Enter a complete configuration JSON. Available transformations: RemoveComments, TrimLines, RemoveEmptyLines, Deduplicate, Compress, Validate, ValidateAllowIp, RemoveModifiers, InvertAllow, ConvertToAscii, InsertFinalNewLine, RuleOptimizer, ConflictDetection</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="advanced-output-format">Output Format</label>
+                    <select id="advanced-output-format" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 0.95rem; background: white;">
+                        <option value="adblock" selected>Adblock (default)</option>
+                        <option value="hosts">Hosts (/etc/hosts format)</option>
+                        <option value="pihole">Pi-hole (domain list)</option>
+                        <option value="dnsmasq">Dnsmasq</option>
+                        <option value="unbound">Unbound DNS</option>
+                        <option value="doh">DoH (DNS-over-HTTPS)</option>
+                        <option value="json">JSON</option>
+                    </select>
+                    <div class="hint">Select output format for the compiled rules</div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="advanced-streaming" checked>
+                    <label for="advanced-streaming">Use Streaming API (real-time progress via SSE)</label>
                 </div>
 
                 <div class="checkbox-group">
@@ -782,6 +829,18 @@
                     <div class="example-card" data-example="exclusions">
                         <h3>With Exclusions</h3>
                         <p>Filter out unwanted rules using exclusions</p>
+                    </div>
+                    <div class="example-card" data-example="optimized" style="border-color: #28a745;">
+                        <h3 style="color: #28a745;">Rule Optimizer <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">NEW</span></h3>
+                        <p>Optimize patterns and remove redundant rules</p>
+                    </div>
+                    <div class="example-card" data-example="pihole-format" style="border-color: #17a2b8;">
+                        <h3 style="color: #17a2b8;">Pi-hole Format <span style="background: #d1ecf1; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">NEW</span></h3>
+                        <p>Output in Pi-hole domain list format</p>
+                    </div>
+                    <div class="example-card" data-example="conflict-check" style="border-color: #ffc107;">
+                        <h3 style="color: #856404;">Conflict Detection <span style="background: #fff3cd; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">NEW</span></h3>
+                        <p>Detect blocking/allowing rule conflicts</p>
                     </div>
                 </div>
             </div>
@@ -897,7 +956,33 @@ eventSource.addEventListener('result', (e) => {
                     <li><strong>Deduplicate</strong> - Remove duplicates</li>
                     <li><strong>RemoveEmptyLines</strong> - Clean empty lines</li>
                     <li><strong>InsertFinalNewLine</strong> - Add final newline</li>
+                    <li><strong style="color: #28a745;">RuleOptimizer</strong> <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">NEW</span> - Optimize patterns, remove redundant rules</li>
+                    <li><strong style="color: #28a745;">ConflictDetection</strong> <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">NEW</span> - Detect blocking/allowing conflicts</li>
                 </ol>
+
+                <h3 style="margin-top: 30px;">Output Formats</h3>
+                <p>The compiler supports multiple output formats:</p>
+                <ul style="line-height: 1.8;">
+                    <li><strong>Adblock</strong> - Standard adblock filter syntax (default)</li>
+                    <li><strong>Hosts</strong> - /etc/hosts format (0.0.0.0 domain.com)</li>
+                    <li><strong>Pi-hole</strong> - Simple domain list for Pi-hole</li>
+                    <li><strong>Dnsmasq</strong> - Dnsmasq address= format</li>
+                    <li><strong>Unbound</strong> - Unbound DNS resolver format</li>
+                    <li><strong>DoH</strong> - DNS-over-HTTPS blocklist format</li>
+                    <li><strong>JSON</strong> - Structured JSON with metadata</li>
+                </ul>
+
+                <h3 style="margin-top: 30px;">Streaming API (SSE)</h3>
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <p>The streaming API provides real-time progress updates using Server-Sent Events (SSE). This is now the default compilation method in the web UI.</p>
+                    <p style="margin-top: 10px;"><strong>Benefits:</strong></p>
+                    <ul style="margin-top: 5px;">
+                        <li>Real-time progress tracking for each source</li>
+                        <li>Live transformation status updates</li>
+                        <li>Immediate error notifications</li>
+                        <li>Non-blocking UI during compilation</li>
+                    </ul>
+                </div>
 
                 <h3 style="margin-top: 30px;">CORS & Rate Limits</h3>
                 <p><strong>CORS:</strong> All endpoints support CORS with <code>Access-Control-Allow-Origin: *</code></p>
@@ -1023,8 +1108,8 @@ eventSource.addEventListener('result', (e) => {
         </div>
 
         <footer>
-            <p>Powered by <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank">@jk-com/adblock-compiler</a> • <span id="footer-version">v0.6.90</span></p>
-            <p>Made with ❤️ for better internet filtering</p>
+            <p>Powered by <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank">@jk-com/adblock-compiler</a> • <span id="footer-version">v0.7.15</span></p>
+            <p>Made with ❤️ for better internet filtering | Streaming API enabled</p>
         </footer>
     </div>
 
@@ -1156,6 +1241,53 @@ eventSource.addEventListener('result', (e) => {
                     transformations: ['Deduplicate', 'Compress', 'RemoveEmptyLines'],
                     exclusions: ['||github.com^', '||stackoverflow.com^']
                 }
+            },
+            'optimized': {
+                mode: 'advanced',
+                config: {
+                    name: 'Optimized Filter List',
+                    description: 'Filter list with rule optimization enabled',
+                    sources: [
+                        {
+                            name: 'AdGuard DNS Filter',
+                            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                            transformations: ['RemoveComments', 'Validate']
+                        }
+                    ],
+                    transformations: ['Deduplicate', 'Compress', 'RemoveEmptyLines', 'RuleOptimizer']
+                }
+            },
+            'pihole-format': {
+                mode: 'advanced',
+                config: {
+                    name: 'Pi-hole Blocklist',
+                    description: 'Filter list formatted for Pi-hole',
+                    sources: [
+                        {
+                            name: 'AdGuard DNS Filter',
+                            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt'
+                        }
+                    ],
+                    transformations: ['Deduplicate', 'Compress', 'RemoveEmptyLines'],
+                    outputFormat: 'pihole'
+                }
+            },
+            'conflict-check': {
+                mode: 'advanced',
+                config: {
+                    name: 'Conflict-Checked List',
+                    description: 'Detect blocking/allowing conflicts',
+                    sources: [
+                        {
+                            name: 'Sample Rules',
+                            source: 'sample-rules'
+                        }
+                    ],
+                    transformations: ['ConflictDetection', 'Deduplicate', 'RemoveEmptyLines']
+                },
+                preFetchedContent: {
+                    'sample-rules': '||ads.example.com^\n@@||ads.example.com^\n||tracking.example.com^\n@@||tracking.example.com^$important\n||doubleclick.net^\n||googleadservices.com^'
+                }
             }
         };
 
@@ -1172,6 +1304,22 @@ eventSource.addEventListener('result', (e) => {
                 } else {
                     document.querySelector('.tab[data-tab="advanced"]').click();
                     document.getElementById('advanced-config').value = JSON.stringify(example.config, null, 2);
+
+                    // Set output format if specified
+                    if (example.config.outputFormat) {
+                        document.getElementById('advanced-output-format').value = example.config.outputFormat;
+                    } else {
+                        document.getElementById('advanced-output-format').value = 'adblock';
+                    }
+
+                    // Show info about preFetchedContent if present
+                    if (example.preFetchedContent) {
+                        const configWithContent = {
+                            ...example.config,
+                            _note: 'This example uses pre-fetched content. Click Compile to test conflict detection.'
+                        };
+                        document.getElementById('advanced-config').value = JSON.stringify(configWithContent, null, 2);
+                    }
                 }
             });
         });
@@ -1320,6 +1468,8 @@ eventSource.addEventListener('result', (e) => {
             const listName = document.getElementById('list-name').value.trim() || 'My Filter List';
             const benchmark = document.getElementById('simple-benchmark').checked;
             const useQueue = document.getElementById('simple-use-queue').checked;
+            const useStreaming = document.getElementById('simple-streaming').checked;
+            const outputFormat = document.getElementById('output-format').value;
 
             // Parse input - separate URLs from raw rules
             const lines = input.split('\n').map(l => l.trim()).filter(l => l);
@@ -1328,7 +1478,7 @@ eventSource.addEventListener('result', (e) => {
 
             // Build configuration
             const sources = [];
-            
+
             // Add URL sources
             urls.forEach((url, idx) => {
                 sources.push({
@@ -1357,11 +1507,14 @@ eventSource.addEventListener('result', (e) => {
             if (document.getElementById('trans-validate').checked) transformations.push('Validate');
             if (document.getElementById('trans-remove-comments').checked) transformations.push('RemoveComments');
             if (document.getElementById('trans-remove-empty').checked) transformations.push('RemoveEmptyLines');
+            if (document.getElementById('trans-optimize').checked) transformations.push('RuleOptimizer');
+            if (document.getElementById('trans-conflict').checked) transformations.push('ConflictDetection');
 
             const configuration = {
                 name: listName,
                 sources,
-                transformations
+                transformations,
+                outputFormat: outputFormat !== 'adblock' ? outputFormat : undefined
             };
 
             // Prepare pre-fetched content
@@ -1370,7 +1523,7 @@ eventSource.addEventListener('result', (e) => {
                 preFetchedContent['raw-rules'] = rawRules.join('\n');
             }
 
-            await compile(configuration, preFetchedContent, benchmark, useQueue);
+            await compile(configuration, preFetchedContent, benchmark, useQueue, useStreaming);
         }
 
         async function compileAdvanced() {
@@ -1396,7 +1549,15 @@ eventSource.addEventListener('result', (e) => {
 
             const benchmark = document.getElementById('advanced-benchmark').checked;
             const useQueue = document.getElementById('advanced-use-queue').checked;
-            await compile(configuration, {}, benchmark, useQueue);
+            const useStreaming = document.getElementById('advanced-streaming').checked;
+            const outputFormat = document.getElementById('advanced-output-format').value;
+
+            // Add output format to configuration if not adblock
+            if (outputFormat !== 'adblock') {
+                configuration.outputFormat = outputFormat;
+            }
+
+            await compile(configuration, {}, benchmark, useQueue, useStreaming);
         }
 
         // Store compilation state
@@ -1465,7 +1626,7 @@ eventSource.addEventListener('result', (e) => {
             compileBtn.disabled = false;
         }
 
-        async function compile(configuration, preFetchedContent, benchmark, useQueue = false) {
+        async function compile(configuration, preFetchedContent, benchmark, useQueue = false, useStreaming = true) {
             currentListName = configuration.name || 'filter-list';
             hideResults();
             showProgress();
@@ -1491,15 +1652,75 @@ eventSource.addEventListener('result', (e) => {
                 source_count: configuration.sources?.length || 0,
                 has_transformations: (configuration.transformations?.length || 0) > 0,
                 benchmark: benchmark,
-                use_queue: useQueue
+                use_queue: useQueue,
+                use_streaming: useStreaming,
+                output_format: configuration.outputFormat || 'adblock'
             });
 
             if (useQueue) {
                 // Use async queue endpoint
                 await compileWithQueue(configuration, preFetchedContent, benchmark, token);
-            } else {
+            } else if (useStreaming) {
                 // Use streaming SSE endpoint
                 await compileWithStream(configuration, preFetchedContent, benchmark, token);
+            } else {
+                // Use standard JSON endpoint
+                await compileWithJson(configuration, preFetchedContent, benchmark, token);
+            }
+        }
+
+        // Non-streaming JSON compilation
+        async function compileWithJson(configuration, preFetchedContent, benchmark, turnstileToken) {
+            const apiUrl = window.location.hostname === 'localhost'
+                ? '/compile'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/compile';
+
+            try {
+                addLog('info', 'Starting compilation (non-streaming mode)...');
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        configuration,
+                        preFetchedContent,
+                        benchmark,
+                        turnstileToken
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    compiledRules = result.rules || [];
+                    showResults({
+                        rules: result.rules,
+                        ruleCount: result.ruleCount,
+                        metrics: result.metrics,
+                        previousVersion: result.previousVersion
+                    });
+                    addLog('success', `Compilation complete! ${result.ruleCount} rules compiled.`);
+
+                    // Track successful compilation
+                    const compileTime = Date.now() - compileStartTime;
+                    trackEvent('compilation_completed', {
+                        list_name: currentListName,
+                        rule_count: result.ruleCount,
+                        duration_ms: compileTime,
+                        cache_status: result.cached ? 'hit' : 'miss',
+                        mode: 'json'
+                    });
+                } else {
+                    throw new Error(result.error || 'Compilation failed');
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                handleCompilationError(errorMessage);
+            } finally {
+                const compileBtn = document.querySelector('.btn-primary');
+                compileBtn.disabled = false;
             }
         }
 
