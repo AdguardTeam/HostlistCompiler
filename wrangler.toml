@@ -40,20 +40,20 @@ binding = "FILTER_STORAGE"
 bucket_name = "adblock-compiler-r2-storage"
 
 # Containers - requires Dockerfile and Cloudflare Containers beta access
-# [[containers]]
-# class_name = "AdblockCompiler"
-# image = "./Dockerfile"
-# max_instances = 5
-# instance_type = "basic"
+[[containers]]
+class_name = "AdblockCompiler"
+image = "./Dockerfile"
+max_instances = 5
+instance_type = "basic"
 
 # Durable Objects - uncomment if using DO for state management
-# [[durable_objects.bindings]]
-# class_name = "AdblockCompiler"
-# name = "ADBLOCK_COMPILER"
+[[durable_objects.bindings]]
+class_name = "AdblockCompiler"
+name = "ADBLOCK_COMPILER"
 
-# [[migrations]]
-# new_sqlite_classes = ["AdblockCompiler"]
-# tag = "v1"
+[[migrations]]
+new_sqlite_classes = ["AdblockCompiler"]
+tag = "v1"
 
 # Environment variables
 [vars]
