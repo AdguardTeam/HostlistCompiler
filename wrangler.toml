@@ -1,15 +1,11 @@
 name = "adblock-compiler"
 main = "worker/worker.ts"
 compatibility_date = "2024-01-01"
-
-# Enable the Workers runtime
 workers_dev = true
 
-# Build configuration
 [build]
 command = ""
 
-[observability]
 [observability.logs]
 enabled = true
 head_sampling_rate = 1
@@ -21,54 +17,32 @@ enabled = true
 head_sampling_rate = 1
 persist = true
 
-# KV bindings for caching and rate limiting
+# KV Namespaces
 [[kv_namespaces]]
 binding = "COMPILATION_CACHE"
-id = "7772628dc4ae46fbb145a811d2de351e"  # Create with: wrangler kv:namespace create COMPILATION_CACHE
+id = "7772628dc4ae46fbb145a811d2de351e"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "5dc36da36d9142cc9ced6c56328898ee"  # Create with: wrangler kv:namespace create RATE_LIMIT
+id = "5dc36da36d9142cc9ced6c56328898ee"
 
 [[kv_namespaces]]
 binding = "METRICS"
-id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace create METRICS
+id = "025c3f10527c46c0be559f299bdba994"
 
-# R2 Storage (auto-created by CI)
+# R2 Storage
 [[r2_buckets]]
 binding = "FILTER_STORAGE"
 bucket_name = "adblock-compiler-r2-storage"
 
-# Containers - requires Dockerfile and Cloudflare Containers beta access
-# [[containers]]
-# class_name = "AdblockCompiler"
-# image = "./Dockerfile"
-# max_instances = 5
-# instance_type = "basic"
-
-# Durable Objects - uncomment if using DO for state management
-# [[durable_objects.bindings]]
-# class_name = "AdblockCompiler"
-# name = "ADBLOCK_COMPILER"
-
-# [[migrations]]
-# new_sqlite_classes = ["AdblockCompiler"]
-# tag = "v1"
-
-# Environment variables
 [vars]
 COMPILER_VERSION = "0.7.9"
 
-# Static assets configuration using modern assets
 [assets]
 directory = "./public"
 binding = "ASSETS"
 
-# Tail Workers - uncomment after creating the tail worker service
-# [[tail_consumers]]
-# service = "adblock-compiler-tail"
-
-# Queues (auto-created by CI)
+# Queues
 [[queues.producers]]
 queue = "adblock-compiler-worker-queue"
 binding = "ADBLOCK_COMPILER_QUEUE"
@@ -89,18 +63,36 @@ max_batch_size = 5
 max_batch_timeout = 2
 dead_letter_queue = "adblock-compiler-dlq"
 
-# Development settings
 [dev]
 port = 8787
 local_protocol = "http"
-enable_containers = false  # Containers not supported on Windows - use WSL or deploy to test
+enable_containers = false
 
-# Production settings (optional)
-# [env.production]
-# vars = { ENVIRONMENT = "production" }
-# tail_consumers = [{ service = "adblock-compiler-tail" }]
+# --- Disabled features (uncomment when ready) ---
+# Containers: requires beta access
+# [[containers]]
+# class_name = "AdblockCompiler"
+# image = "./Dockerfile"
+# max_instances = 5
+# instance_type = "basic"
 
-# Analytics Engine - uncomment after enabling in Cloudflare dashboard
+# Durable Objects
+# [[durable_objects.bindings]]
+# class_name = "AdblockCompiler"
+# name = "ADBLOCK_COMPILER"
+# [[migrations]]
+# new_sqlite_classes = ["AdblockCompiler"]
+# tag = "v1"
+
+# Tail Workers
+# [[tail_consumers]]
+# service = "adblock-compiler-tail"
+
+# Analytics Engine
 # [[analytics_engine_datasets]]
 # binding = "ANALYTICS_ENGINE"
 # dataset = "adguard-compiler-analytics-engine"
+
+# [env.production]
+# vars = { ENVIRONMENT = "production" }
+# tail_consumers = [{ service = "adblock-compiler-tail" }]
