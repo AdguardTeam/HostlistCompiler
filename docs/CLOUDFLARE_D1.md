@@ -203,35 +203,38 @@ import { PrismaD1 } from '@prisma/adapter-d1';
 import { D1StorageAdapter } from './storage/D1StorageAdapter';
 
 export interface Env {
-  DB: D1Database;
+    DB: D1Database;
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    // Create Prisma client with D1 adapter
-    const adapter = new PrismaD1(env.DB);
-    const prisma = new PrismaClient({ adapter });
+    async fetch(request: Request, env: Env): Promise<Response> {
+        // Create Prisma client with D1 adapter
+        const adapter = new PrismaD1(env.DB);
+        const prisma = new PrismaClient({ adapter });
 
-    // Create storage adapter
-    const storage = new D1StorageAdapter(prisma);
+        // Create storage adapter
+        const storage = new D1StorageAdapter(prisma);
 
-    // Example: Cache a filter list
-    await storage.cacheFilterList(
-      'https://example.com/filters.txt',
-      ['||ad.example.com^'],
-      'hash123'
-    );
+        // Example: Cache a filter list
+        await storage.cacheFilterList(
+            'https://example.com/filters.txt',
+            ['||ad.example.com^'],
+            'hash123',
+        );
 
-    // Example: Get cached filter
-    const cached = await storage.getCachedFilterList('https://example.com/filters.txt');
+        // Example: Get cached filter
+        const cached = await storage.getCachedFilterList('https://example.com/filters.txt');
 
-    return new Response(JSON.stringify({
-      cached: cached !== null,
-      ruleCount: cached?.content.length || 0
-    }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+        return new Response(
+            JSON.stringify({
+                cached: cached !== null,
+                ruleCount: cached?.content.length || 0,
+            }),
+            {
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
+    },
 };
 ```
 
@@ -240,9 +243,9 @@ export default {
 ```typescript
 // src/types/env.d.ts
 interface Env {
-  DB: D1Database;
-  CACHE_TTL?: string;
-  DEBUG?: string;
+    DB: D1Database;
+    CACHE_TTL?: string;
+    DEBUG?: string;
 }
 ```
 
@@ -252,24 +255,24 @@ The D1 adapter implements the same `IStorageAdapter` interface:
 
 ```typescript
 interface ID1StorageAdapter {
-  // Core operations
-  set<T>(key: string[], value: T, ttlMs?: number): Promise<boolean>;
-  get<T>(key: string[]): Promise<StorageEntry<T> | null>;
-  delete(key: string[]): Promise<boolean>;
-  list<T>(options?: QueryOptions): Promise<Array<{ key: string[]; value: StorageEntry<T> }>>;
+    // Core operations
+    set<T>(key: string[], value: T, ttlMs?: number): Promise<boolean>;
+    get<T>(key: string[]): Promise<StorageEntry<T> | null>;
+    delete(key: string[]): Promise<boolean>;
+    list<T>(options?: QueryOptions): Promise<Array<{ key: string[]; value: StorageEntry<T> }>>;
 
-  // Filter caching
-  cacheFilterList(source: string, content: string[], hash: string, etag?: string, ttlMs?: number): Promise<boolean>;
-  getCachedFilterList(source: string): Promise<CacheEntry | null>;
+    // Filter caching
+    cacheFilterList(source: string, content: string[], hash: string, etag?: string, ttlMs?: number): Promise<boolean>;
+    getCachedFilterList(source: string): Promise<CacheEntry | null>;
 
-  // Metadata
-  storeCompilationMetadata(metadata: CompilationMetadata): Promise<boolean>;
-  getCompilationHistory(configName: string, limit?: number): Promise<CompilationMetadata[]>;
+    // Metadata
+    storeCompilationMetadata(metadata: CompilationMetadata): Promise<boolean>;
+    getCompilationHistory(configName: string, limit?: number): Promise<CompilationMetadata[]>;
 
-  // Maintenance
-  clearExpired(): Promise<number>;
-  clearCache(): Promise<number>;
-  getStats(): Promise<StorageStats>;
+    // Maintenance
+    clearExpired(): Promise<number>;
+    clearCache(): Promise<number>;
+    getStats(): Promise<StorageStats>;
 }
 ```
 
@@ -307,11 +310,11 @@ const storage = new NoSqlStorage(logger);
 await storage.open();
 
 const entries = await storage.list({ prefix: [] });
-const exportData = entries.map(e => ({
-  key: e.key.join('/'),
-  data: JSON.stringify(e.value.data),
-  createdAt: e.value.createdAt,
-  expiresAt: e.value.expiresAt
+const exportData = entries.map((e) => ({
+    key: e.key.join('/'),
+    data: JSON.stringify(e.value.data),
+    createdAt: e.value.createdAt,
+    expiresAt: e.value.expiresAt,
 }));
 
 await Deno.writeTextFile('export.json', JSON.stringify(exportData, null, 2));
@@ -324,16 +327,16 @@ await Deno.writeTextFile('export.json', JSON.stringify(exportData, null, 2));
 const data = JSON.parse(await Deno.readTextFile('export.json'));
 
 for (const entry of data) {
-  await env.DB.prepare(`
+    await env.DB.prepare(`
     INSERT INTO storage_entries (id, key, data, createdAt, expiresAt)
     VALUES (?, ?, ?, ?, ?)
   `).bind(
-    crypto.randomUUID(),
-    entry.key,
-    entry.data,
-    entry.createdAt,
-    entry.expiresAt
-  ).run();
+            crypto.randomUUID(),
+            entry.key,
+            entry.data,
+            entry.createdAt,
+            entry.expiresAt,
+        ).run();
 }
 ```
 
@@ -342,6 +345,7 @@ for (const entry of data) {
 ### Indexing Strategy
 
 The schema includes indexes on:
+
 - `key` - Primary lookup
 - `source` - Filter cache queries
 - `configName` - Compilation history
@@ -374,11 +378,11 @@ For frequently accessed data, combine D1 with Workers KV:
 let data = await env.KV.get(key, 'json');
 
 if (!data) {
-  // Fall back to D1
-  data = await storage.get(key);
+    // Fall back to D1
+    data = await storage.get(key);
 
-  // Cache in KV for faster access
-  await env.KV.put(key, JSON.stringify(data), { expirationTtl: 300 });
+    // Cache in KV for faster access
+    await env.KV.put(key, JSON.stringify(data), { expirationTtl: 300 });
 }
 ```
 
@@ -387,6 +391,7 @@ if (!data) {
 ### D1 Analytics
 
 Access D1 metrics in Cloudflare Dashboard:
+
 - Query counts
 - Read/write operations
 - Storage usage
@@ -396,8 +401,8 @@ Access D1 metrics in Cloudflare Dashboard:
 
 ```typescript
 const prisma = new PrismaClient({
-  adapter,
-  log: ['query', 'info', 'warn', 'error']
+    adapter,
+    log: ['query', 'info', 'warn', 'error'],
 });
 ```
 
@@ -405,13 +410,13 @@ const prisma = new PrismaClient({
 
 ```typescript
 try {
-  await storage.set(['key'], value);
+    await storage.set(['key'], value);
 } catch (error) {
-  if (error.message.includes('D1_ERROR')) {
-    console.error('D1 database error:', error);
-    // Implement retry logic or fallback
-  }
-  throw error;
+    if (error.message.includes('D1_ERROR')) {
+        console.error('D1 database error:', error);
+        // Implement retry logic or fallback
+    }
+    throw error;
 }
 ```
 
@@ -442,35 +447,35 @@ wrangler secret put DEBUG
 # .github/workflows/deploy.yml
 name: Deploy to Cloudflare
 on:
-  push:
-    branches: [main]
+    push:
+        branches: [main]
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Generate Prisma
-        run: npx prisma generate --schema=prisma/schema.d1.prisma
+            - name: Generate Prisma
+              run: npx prisma generate --schema=prisma/schema.d1.prisma
 
-      - name: Run D1 migrations
-        run: wrangler d1 migrations apply adblock-storage
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+            - name: Run D1 migrations
+              run: wrangler d1 migrations apply adblock-storage
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
 
-      - name: Deploy Worker
-        run: wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+            - name: Deploy Worker
+              run: wrangler deploy
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
 ```
 
 ## Limitations
@@ -485,13 +490,14 @@ jobs:
 ### Workarounds
 
 For large filter lists:
+
 ```typescript
 // Split large content into chunks
 const CHUNK_SIZE = 500000; // 500KB chunks
 const chunks = splitIntoChunks(content, CHUNK_SIZE);
 
 for (let i = 0; i < chunks.length; i++) {
-  await storage.set(['cache', 'filters', source, `chunk-${i}`], chunks[i]);
+    await storage.set(['cache', 'filters', source, `chunk-${i}`], chunks[i]);
 }
 ```
 
@@ -500,16 +506,20 @@ for (let i = 0; i < chunks.length; i++) {
 ### Common Issues
 
 **"D1_ERROR: no such table"**
+
 - Run migrations: `wrangler d1 execute adblock-storage --file=migrations/0001_init.sql`
 
 **"BINDING_NOT_FOUND"**
+
 - Verify `wrangler.toml` has correct `[[d1_databases]]` configuration
 
 **"Query timeout"**
+
 - Optimize query or add pagination
 - Check for missing indexes
 
 **Local vs Remote mismatch**
+
 - Ensure migrations applied to both: `--local` and remote
 
 ### Debug Commands
