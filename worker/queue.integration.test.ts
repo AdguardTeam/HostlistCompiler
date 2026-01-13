@@ -1,9 +1,9 @@
 /**
  * Integration tests for the Cloudflare Queue functionality
- * 
+ *
  * These tests simulate end-to-end queue processing scenarios.
  * They require mocking Cloudflare Workers environment bindings.
- * 
+ *
  * Note: For actual production testing, deploy to Cloudflare and use
  * their testing tools or wrangler dev mode.
  */

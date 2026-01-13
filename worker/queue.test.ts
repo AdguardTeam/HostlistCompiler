@@ -1,6 +1,6 @@
 /**
  * Tests for the Cloudflare Queue functionality
- * 
+ *
  * Note: These are unit tests for queue message structure and handlers.
  * Integration testing requires actual Cloudflare deployment with queue.
  */
@@ -544,5 +544,3 @@ Deno.test('Queue Message - priority field is properly typed', () => {
     const priority: Priority = message.priority!;
     assertEquals(priority === 'high' || priority === 'standard', true);
 });
-
-

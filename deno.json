@@ -46,20 +46,18 @@
                 "recommended"
             ],
             "include": [
-                "ban-untagged-todo",
-                "no-console"
+                "ban-untagged-todo"
             ],
             "exclude": [
                 "no-explicit-any",
-                "require-await"
+                "require-await",
+                "no-console"
             ]
         },
         "exclude": [
             "dist/",
             "node_modules/",
             "coverage/",
-            "public/",
-            "worker/",
             "src/storage/example.ts",
             "src/storage/prisma-example.ts",
             "examples/",
@@ -82,8 +80,7 @@
             "dist/",
             "node_modules/",
             "coverage/",
-            "public/",
-            "worker/",
+            "public/*.html",
             "src/storage/example.ts",
             "src/storage/prisma-example.ts",
             "examples/",

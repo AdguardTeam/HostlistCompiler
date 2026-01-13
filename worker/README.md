@@ -5,6 +5,7 @@ This directory contains comprehensive tests for the Cloudflare Queue integration
 ## Test Files
 
 ### Unit Tests
+
 - **`queue.test.ts`** - Unit tests for queue message structures, validation, and helper functions
   - Tests message type structures (compile, batch-compile, cache-warm)
   - Tests request ID generation and uniqueness
@@ -13,6 +14,7 @@ This directory contains comprehensive tests for the Cloudflare Queue integration
   - Tests type discrimination
 
 ### Integration Tests
+
 - **`queue.integration.test.ts`** - Integration tests simulating end-to-end queue processing
   - Tests queue message enqueuing
   - Tests KV cache storage and retrieval
@@ -24,21 +26,25 @@ This directory contains comprehensive tests for the Cloudflare Queue integration
 ## Running Tests
 
 ### Run All Queue Tests
+
 ```bash
 deno test worker/queue.test.ts worker/queue.integration.test.ts
 ```
 
 ### Run Unit Tests Only
+
 ```bash
 deno test worker/queue.test.ts
 ```
 
 ### Run Integration Tests Only
+
 ```bash
 deno test worker/queue.integration.test.ts
 ```
 
 ### Run with Coverage
+
 ```bash
 deno test --coverage=coverage worker/queue.test.ts worker/queue.integration.test.ts
 deno coverage coverage --lcov
@@ -47,6 +53,7 @@ deno coverage coverage --lcov
 ## Test Coverage
 
 ### Unit Tests Coverage
+
 - ✅ Message structure validation (100%)
 - ✅ Request ID generation (100%)
 - ✅ Optional fields handling (100%)
@@ -54,6 +61,7 @@ deno coverage coverage --lcov
 - ✅ Type discrimination (100%)
 
 ### Integration Tests Coverage
+
 - ✅ Queue enqueuing (100%)
 - ✅ KV cache operations (100%)
 - ✅ Message batch processing (100%)
@@ -72,6 +80,7 @@ The integration tests use mock implementations of Cloudflare bindings:
 ## Test Output
 
 Example test run output:
+
 ```
 running 30 tests from ./worker/queue.test.ts
 Queue Message - compile message has correct structure ... ok (2ms)

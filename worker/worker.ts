@@ -36,13 +36,7 @@ export class AdblockCompiler {
 // When deploying with containers to production, the above stub will be replaced
 // with the actual Container class by extending from cloudflare:workers Container
 
-import {
-    createTracingContext,
-    type DiagnosticEvent,
-    type ICompilerEvents,
-    type IConfiguration,
-    WorkerCompiler,
-} from '../src/index.ts';
+import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
 
 /**
  * Environment bindings for the worker.
@@ -144,8 +138,7 @@ const METRICS_WINDOW = 300; // 5 minutes
 /**
  * Error message for when queue bindings are not configured
  */
-const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR = 
-    `Queue bindings are not available. \
+const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR = `Queue bindings are not available. \
 To use async compilation, you must configure Cloudflare Queues in wrangler.toml. \
 See https://github.com/jaypatrick/adblock-compiler/blob/master/docs/QUEUE_SUPPORT.md for setup instructions. \
 Alternatively, use the synchronous endpoints: POST /compile or POST /compile/batch`;
@@ -382,9 +375,8 @@ async function getMetrics(env: Env): Promise<any> {
                 stats[endpoint].count += data.count;
                 stats[endpoint].success += data.success;
                 stats[endpoint].failed += data.failed;
-                stats[endpoint].avgDuration =
-                    (stats[endpoint].avgDuration * (stats[endpoint].count - data.count) +
-                        (data.totalDuration / data.count) * data.count) / stats[endpoint].count;
+                stats[endpoint].avgDuration = (stats[endpoint].avgDuration * (stats[endpoint].count - data.count) +
+                    (data.totalDuration / data.count) * data.count) / stats[endpoint].count;
 
                 // Merge errors
                 for (const [err, count] of Object.entries(data.errors)) {
@@ -450,7 +442,7 @@ async function updateQueueStats(
             console.warn(`Invalid count parameter: ${count}, defaulting to 1`);
             count = 1;
         }
-        
+
         const key = 'queue:stats';
         const existing = await env.METRICS.get(key, 'json') as QueueStats | null;
 
@@ -544,7 +536,7 @@ async function updateQueueStats(
 
         // Calculate processing rate (jobs per minute) based on recent history
         const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
-        const recentJobs = stats.history.filter(job => job.timestamp > oneMinuteAgo);
+        const recentJobs = stats.history.filter((job) => job.timestamp > oneMinuteAgo);
         stats.processingRate = recentJobs.length;
 
         // Calculate queue lag based on depth history
@@ -727,9 +719,7 @@ async function handleCompileStream(
     const { configuration, preFetchedContent, benchmark } = body;
 
     // Check cache for previous version (for diff comparison)
-    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-        ? getCacheKey(configuration)
-        : null;
+    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? getCacheKey(configuration) : null;
 
     let previousCachedVersion:
         | { rules: string[]; ruleCount: number; compiledAt: string }
@@ -857,9 +847,7 @@ async function handleCompileJson(
     const { configuration, preFetchedContent, benchmark } = body;
 
     // Check cache if no pre-fetched content (pre-fetched = dynamic, don't cache)
-    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-        ? getCacheKey(configuration)
-        : null;
+    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? getCacheKey(configuration) : null;
 
     // Declare previousCachedVersion at function scope
     let previousCachedVersion:
@@ -1074,10 +1062,7 @@ async function handleCompileBatch(
                     const { configuration, preFetchedContent, benchmark } = req;
 
                     // Check cache
-                    const cacheKey =
-                        (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-                            ? getCacheKey(configuration)
-                            : null;
+                    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? getCacheKey(configuration) : null;
 
                     if (cacheKey) {
                         // Check pending compilations
@@ -1501,9 +1486,7 @@ async function processCompileMessage(
 
     try {
         // Create cache key
-        const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-            ? getCacheKey(configuration)
-            : null;
+        const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? getCacheKey(configuration) : null;
 
         // deno-lint-ignore no-console
         console.log(`[QUEUE:COMPILE] Cache key: ${cacheKey ? cacheKey.substring(0, 20) + '...' : 'none (pre-fetched content)'}`);
@@ -1577,7 +1560,7 @@ async function processCompileMessage(
         const totalDuration = Date.now() - startTime;
         // deno-lint-ignore no-console
         console.log(`[QUEUE:COMPILE] Total processing time: ${totalDuration}ms for "${configuration.name}"`);
-        
+
         // Track successful completion with job info (include cacheKey for result retrieval)
         await updateQueueStats(env, 'completed', totalDuration, 1, {
             requestId: message.requestId,
@@ -1594,14 +1577,14 @@ async function processCompileMessage(
             `[QUEUE:COMPILE] Processing failed after ${totalDuration}ms for "${configuration.name}":`,
             errorMessage,
         );
-        
+
         // Track failure with job info
         await updateQueueStats(env, 'failed', totalDuration, 1, {
             requestId: message.requestId,
             configName: configuration.name,
             error: errorMessage,
         });
-        
+
         throw error; // Re-throw to trigger retry
     }
 }
@@ -1637,9 +1620,7 @@ async function processInChunks<T>(
                 successful++;
             } else {
                 failed++;
-                const errorMessage = result.reason instanceof Error
-                    ? result.reason.message
-                    : String(result.reason);
+                const errorMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
 
                 failures.push({
                     item: itemId,
@@ -1909,9 +1890,7 @@ async function queueCompileJob(
     };
 
     // Route to appropriate queue based on priority
-    const queue = priority === 'high'
-        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY
-        : env.ADBLOCK_COMPILER_QUEUE;
+    const queue = priority === 'high' ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY : env.ADBLOCK_COMPILER_QUEUE;
 
     await queue.send(message);
 
@@ -1954,9 +1933,7 @@ async function queueBatchCompileJob(
     };
 
     // Route to appropriate queue based on priority
-    const queue = priority === 'high'
-        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY
-        : env.ADBLOCK_COMPILER_QUEUE;
+    const queue = priority === 'high' ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY : env.ADBLOCK_COMPILER_QUEUE;
 
     await queue.send(message);
 
@@ -2042,7 +2019,7 @@ export default {
             if (!requestId) {
                 return Response.json({
                     success: false,
-                    error: 'Invalid request ID'
+                    error: 'Invalid request ID',
                 }, {
                     status: 400,
                     headers: {
@@ -2053,13 +2030,13 @@ export default {
 
             // Look up the job in history to get the cacheKey
             const stats = await getQueueStats(env);
-            const job = stats.history.find(j => j.requestId === requestId);
+            const job = stats.history.find((j) => j.requestId === requestId);
 
             if (!job) {
                 return Response.json({
                     success: false,
                     error: 'Job not found in history',
-                    status: 'not_found'
+                    status: 'not_found',
                 }, {
                     status: 404,
                     headers: {
@@ -2078,7 +2055,7 @@ export default {
                         duration: job.duration,
                         timestamp: job.timestamp,
                         error: job.error,
-                    }
+                    },
                 }, {
                     status: 200, // Still 200 so frontend can handle status
                     headers: {
@@ -2091,7 +2068,7 @@ export default {
                 return Response.json({
                     success: false,
                     error: 'No cache key available for this job (possibly used pre-fetched content)',
-                    status: 'no_cache'
+                    status: 'no_cache',
                 }, {
                     status: 200,
                     headers: {
@@ -2107,7 +2084,7 @@ export default {
                     return Response.json({
                         success: false,
                         error: 'Cached result has expired or was not found',
-                        status: 'cache_miss'
+                        status: 'cache_miss',
                     }, {
                         status: 200,
                         headers: {
@@ -2130,7 +2107,7 @@ export default {
                         configName: job.configName,
                         duration: job.duration,
                         timestamp: job.timestamp,
-                    }
+                    },
                 }, {
                     headers: {
                         'Access-Control-Allow-Origin': '*',
@@ -2143,7 +2120,7 @@ export default {
                 return Response.json({
                     success: false,
                     error: 'Failed to decompress cached result',
-                    status: 'decompress_error'
+                    status: 'decompress_error',
                 }, {
                     status: 500,
                     headers: {
@@ -2164,7 +2141,7 @@ export default {
                 return Response.json({
                     success: true,
                     message: `Job ${requestId} marked as cancelled`,
-                    note: 'Job may still process if already started'
+                    note: 'Job may still process if already started',
                 }, {
                     headers: {
                         'Access-Control-Allow-Origin': '*',
@@ -2173,7 +2150,7 @@ export default {
             }
             return Response.json({
                 success: false,
-                error: 'Invalid request ID'
+                error: 'Invalid request ID',
             }, {
                 status: 400,
                 headers: {

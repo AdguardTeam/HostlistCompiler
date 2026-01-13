@@ -111,6 +111,7 @@ Configure the tail worker behavior in `wrangler.tail.toml`:
 ### Log Filtering
 
 The tail worker forwards events to webhooks when:
+
 - Worker execution outcome is `exception`
 - Any unhandled exceptions occur
 - Any error-level logs are present
@@ -139,25 +140,25 @@ The webhook receives POST requests with this JSON structure:
 
 ```json
 {
-  "timestamp": "2024-01-11T00:00:00.000Z",
-  "scriptName": "adblock-compiler",
-  "outcome": "exception",
-  "url": "https://example.com/compile",
-  "method": "POST",
-  "logs": [
-    {
-      "timestamp": "2024-01-11T00:00:00.000Z",
-      "level": "error",
-      "message": ["Error message here"]
-    }
-  ],
-  "exceptions": [
-    {
-      "timestamp": "2024-01-11T00:00:00.000Z",
-      "name": "Error",
-      "message": "Something went wrong"
-    }
-  ]
+    "timestamp": "2024-01-11T00:00:00.000Z",
+    "scriptName": "adblock-compiler",
+    "outcome": "exception",
+    "url": "https://example.com/compile",
+    "method": "POST",
+    "logs": [
+        {
+            "timestamp": "2024-01-11T00:00:00.000Z",
+            "level": "error",
+            "message": ["Error message here"]
+        }
+    ],
+    "exceptions": [
+        {
+            "timestamp": "2024-01-11T00:00:00.000Z",
+            "name": "Error",
+            "message": "Something went wrong"
+        }
+    ]
 }
 ```
 

@@ -104,11 +104,13 @@ Now you'll get Slack notifications when errors occur!
 ## Troubleshooting
 
 **Tail worker not receiving events?**
+
 - Make sure it's deployed: `wrangler deployments list --name adblock-compiler-tail`
 - Check `tail_consumers` is uncommented in `wrangler.toml`
 - Redeploy the main worker after adding tail consumers
 
 **Webhook not working?**
+
 - Verify the URL is correct in `wrangler.tail.toml`
 - Check tail worker logs: `npm run tail:logs`
 - Ensure only errors are being sent (webhook only triggers on exceptions/errors)

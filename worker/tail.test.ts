@@ -6,13 +6,7 @@
  */
 
 import { assertEquals, assertExists } from '@std/assert';
-import {
-    createStructuredEvent,
-    formatLogMessage,
-    shouldForwardEvent,
-    type TailEvent,
-    type TailLog,
-} from './tail.ts';
+import { createStructuredEvent, formatLogMessage, shouldForwardEvent, type TailEvent, type TailLog } from './tail.ts';
 
 // Tests
 Deno.test('formatLogMessage - formats simple string message', () => {
@@ -46,6 +40,22 @@ Deno.test('formatLogMessage - formats object messages', () => {
 
     const formatted = formatLogMessage(log);
     assertEquals(formatted, '[2024-01-11T00:00:00.000Z] [LOG] {"foo":"bar","count":42}');
+});
+
+Deno.test('formatLogMessage - handles circular reference in objects', () => {
+    // Create an object with circular reference
+    const obj: any = { foo: 'bar' };
+    obj.self = obj; // circular reference
+
+    const log: TailLog = {
+        timestamp: 1704931200000,
+        level: 'log',
+        message: [obj],
+    };
+
+    const formatted = formatLogMessage(log);
+    // Should fall back to String() when JSON.stringify fails
+    assertEquals(formatted, '[2024-01-11T00:00:00.000Z] [LOG] [object Object]');
 });
 
 Deno.test('shouldForwardEvent - forwards exception outcome', () => {

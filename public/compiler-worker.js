@@ -13,9 +13,9 @@ self.addEventListener('message', async (event) => {
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
@@ -44,13 +44,13 @@ self.addEventListener('message', async (event) => {
                         currentEventType = line.slice(7).trim();
                     } else if (line.startsWith('data: ')) {
                         const data = JSON.parse(line.slice(6));
-                        
+
                         // Forward the event to the main thread
                         self.postMessage({
                             type: 'event',
                             id,
                             eventType: currentEventType,
-                            data
+                            data,
                         });
                     }
                 }
@@ -59,15 +59,14 @@ self.addEventListener('message', async (event) => {
             // Signal completion
             self.postMessage({
                 type: 'complete',
-                id
+                id,
             });
-
         } catch (error) {
             // Forward errors to the main thread
             self.postMessage({
                 type: 'error',
                 id,
-                error: error.message
+                error: error.message,
             });
         }
     }

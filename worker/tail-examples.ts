@@ -1,6 +1,6 @@
 /**
  * Example integrations for the Cloudflare Tail Worker
- * 
+ *
  * This file demonstrates how to extend the tail worker to integrate
  * with popular logging, monitoring, and alerting services.
  */
@@ -80,9 +80,11 @@ export async function sendToSlack(event: StructuredTailEvent, webhookUrl: string
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `*Exceptions:*\n${event.exceptions
-                    .map((exc: any) => `• ${exc.name}: ${exc.message}`)
-                    .join('\n')}`,
+                text: `*Exceptions:*\n${
+                    event.exceptions
+                        .map((exc: any) => `• ${exc.name}: ${exc.message}`)
+                        .join('\n')
+                }`,
             },
         });
     }
@@ -162,7 +164,7 @@ export async function sendToDiscord(event: StructuredTailEvent, webhookUrl: stri
 export async function sendToDatadog(
     event: StructuredTailEvent,
     apiKey: string,
-    service: string = 'adblock-compiler'
+    service: string = 'adblock-compiler',
 ): Promise<void> {
     const datadogLogs = event.logs.map((log: any) => ({
         ddsource: 'cloudflare-workers',
@@ -218,9 +220,9 @@ export async function sendToSentry(event: StructuredTailEvent, dsn: string): Pro
             },
             request: event.url
                 ? {
-                      url: event.url,
-                      method: event.method,
-                  }
+                    url: event.url,
+                    method: event.method,
+                }
                 : undefined,
         };
 
@@ -242,7 +244,7 @@ export async function sendToSentry(event: StructuredTailEvent, dsn: string): Pro
 export async function sendToCustomEndpoint(
     event: StructuredTailEvent,
     endpoint: string,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
 ): Promise<void> {
     await fetch(endpoint, {
         method: 'POST',
@@ -402,7 +404,7 @@ export default {
                 ctx.waitUntil(
                     env.TAIL_LOGS.put(logKey, JSON.stringify(structuredEvent), {
                         expirationTtl: 86400,
-                    })
+                    }),
                 );
             }
         }

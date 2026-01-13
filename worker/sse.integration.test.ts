@@ -161,23 +161,17 @@ function createMockStreamingLogger(writer: MockWritableStreamDefaultWriter) {
  */
 function createMockStreamingEvents(sendEvent: (type: string, data: unknown) => void) {
     return {
-        onSourceStart: (event: { source: { name?: string; source: string } }) =>
-            sendEvent('source:start', event),
-        onSourceComplete: (event: { source: { name?: string; source: string } }) =>
-            sendEvent('source:complete', event),
+        onSourceStart: (event: { source: { name?: string; source: string } }) => sendEvent('source:start', event),
+        onSourceComplete: (event: { source: { name?: string; source: string } }) => sendEvent('source:complete', event),
         onSourceError: (event: { source: { name?: string; source: string }; error: Error }) =>
             sendEvent('source:error', {
                 ...event,
                 error: event.error.message,
             }),
-        onTransformationStart: (event: { name: string }) =>
-            sendEvent('transformation:start', event),
-        onTransformationComplete: (event: { name: string; outputCount: number }) =>
-            sendEvent('transformation:complete', event),
-        onProgress: (event: { current: number; total: number; message?: string }) =>
-            sendEvent('progress', event),
-        onCompilationComplete: (event: { ruleCount: number }) =>
-            sendEvent('compilation:complete', event),
+        onTransformationStart: (event: { name: string }) => sendEvent('transformation:start', event),
+        onTransformationComplete: (event: { name: string; outputCount: number }) => sendEvent('transformation:complete', event),
+        onProgress: (event: { current: number; total: number; message?: string }) => sendEvent('progress', event),
+        onCompilationComplete: (event: { ruleCount: number }) => sendEvent('compilation:complete', event),
     };
 }
 
@@ -629,8 +623,7 @@ Deno.test('Event Parsing - parseSSEStream handles single event', () => {
 });
 
 Deno.test('Event Parsing - parseSSEStream handles multiple events', () => {
-    const stream =
-        'event: first\ndata: {"id":1}\n\nevent: second\ndata: {"id":2}\n\nevent: third\ndata: {"id":3}\n\n';
+    const stream = 'event: first\ndata: {"id":1}\n\nevent: second\ndata: {"id":2}\n\nevent: third\ndata: {"id":3}\n\n';
     const events = parseSSEStream(stream);
 
     assertEquals(events.length, 3);

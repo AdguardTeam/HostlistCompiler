@@ -21,10 +21,10 @@
 export interface TailEnv {
     // KV namespace for storing logs
     TAIL_LOGS?: KVNamespace;
-    
+
     // Optional webhook URL for forwarding critical errors
     ERROR_WEBHOOK_URL?: string;
-    
+
     // Optional log retention period in seconds (default: 24 hours)
     LOG_RETENTION_TTL?: string;
 }
@@ -64,10 +64,10 @@ export interface TailException {
  */
 export function formatLogMessage(log: TailLog): string {
     const timestamp = new Date(log.timestamp).toISOString();
-    const messages = log.message.map(m => {
+    const messages = log.message.map((m) => {
         try {
             return typeof m === 'object' ? JSON.stringify(m) : String(m);
-        } catch (error) {
+        } catch (_error) {
             // Handle circular references or other JSON.stringify errors
             return String(m);
         }
@@ -80,9 +80,9 @@ export function formatLogMessage(log: TailLog): string {
  */
 export function shouldForwardEvent(event: TailEvent): boolean {
     // Forward exceptions and critical errors
-    return event.outcome === 'exception' || 
-           event.exceptions.length > 0 ||
-           event.logs.some(log => log.level === 'error');
+    return event.outcome === 'exception' ||
+        event.exceptions.length > 0 ||
+        event.logs.some((log) => log.level === 'error');
 }
 
 /**
@@ -95,12 +95,12 @@ export function createStructuredEvent(event: TailEvent): Record<string, unknown>
         outcome: event.outcome,
         url: event.event?.request?.url,
         method: event.event?.request?.method,
-        logs: event.logs.map(log => ({
+        logs: event.logs.map((log) => ({
             timestamp: new Date(log.timestamp).toISOString(),
             level: log.level,
             message: log.message,
         })),
-        exceptions: event.exceptions.map(exc => ({
+        exceptions: event.exceptions.map((exc) => ({
             timestamp: new Date(exc.timestamp).toISOString(),
             name: exc.name,
             message: exc.message,
@@ -144,15 +144,15 @@ export default {
                     env.TAIL_LOGS.put(
                         logKey,
                         JSON.stringify(logData),
-                        { expirationTtl: ttl }
-                    )
+                        { expirationTtl: ttl },
+                    ),
                 );
             }
 
             // Forward critical errors to webhook if configured
             if (env.ERROR_WEBHOOK_URL && shouldForwardEvent(event)) {
                 const structuredEvent = createStructuredEvent(event);
-                
+
                 promises.push(
                     fetch(env.ERROR_WEBHOOK_URL, {
                         method: 'POST',
@@ -161,16 +161,16 @@ export default {
                         },
                         body: JSON.stringify(structuredEvent),
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            console.error(
-                                `Failed to forward event to webhook: ${response.status} ${response.statusText}`
-                            );
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error forwarding event to webhook:', error);
-                    })
+                        .then((response) => {
+                            if (!response.ok) {
+                                console.error(
+                                    `Failed to forward event to webhook: ${response.status} ${response.statusText}`,
+                                );
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Error forwarding event to webhook:', error);
+                        }),
                 );
             }
 
@@ -178,14 +178,14 @@ export default {
             if (event.outcome !== 'ok') {
                 console.log(
                     `[TAIL] ${event.outcome} - ${event.event?.request?.method} ${event.event?.request?.url} - ` +
-                    `${event.exceptions.length} exceptions, ${event.logs.length} logs`
+                        `${event.exceptions.length} exceptions, ${event.logs.length} logs`,
                 );
             }
 
             // Log exceptions
             for (const exception of event.exceptions) {
                 console.error(
-                    `[TAIL] Exception: ${exception.name}: ${exception.message} at ${new Date(exception.timestamp).toISOString()}`
+                    `[TAIL] Exception: ${exception.name}: ${exception.message} at ${new Date(exception.timestamp).toISOString()}`,
                 );
             }
 

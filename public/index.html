@@ -11,6 +11,113 @@
     <!-- Cloudflare Turnstile -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
+        /* CSS Variables for theming */
+        :root {
+            /* Light theme (default) */
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #666666;
+            --text-hint: #888888;
+            --border-color: #e0e0e0;
+            --input-bg: #ffffff;
+            --code-bg: #f5f5f5;
+            --section-bg: #f8f9fa;
+            --footer-bg: #f8f9fa;
+            --footer-text: #666666;
+            --tab-text: #666666;
+            --tab-active: #667eea;
+            --card-border: #e0e0e0;
+            --alert-info-bg: #d1ecf1;
+            --alert-info-text: #0c5460;
+            --alert-info-border: #0c5460;
+            --alert-success-bg: #d4edda;
+            --alert-success-text: #155724;
+            --alert-success-border: #28a745;
+            --alert-error-bg: #f8d7da;
+            --alert-error-text: #721c24;
+            --alert-error-border: #dc3545;
+            --log-info-bg: #d1ecf1;
+            --log-info-text: #0c5460;
+            --log-info-border: #17a2b8;
+            --log-warn-bg: #fff3cd;
+            --log-warn-text: #856404;
+            --log-warn-border: #ffc107;
+            --log-error-bg: #f8d7da;
+            --log-error-text: #721c24;
+            --log-error-border: #dc3545;
+            --log-success-bg: #d4edda;
+            --log-success-text: #155724;
+            --log-success-border: #28a745;
+            --diff-added-bg: #d4edda;
+            --diff-added-text: #155724;
+            --diff-added-border: #28a745;
+            --diff-removed-bg: #f8d7da;
+            --diff-removed-text: #721c24;
+            --diff-removed-border: #dc3545;
+            --diff-unchanged-bg: #f8f9fa;
+            --diff-unchanged-text: #6c757d;
+            --table-header-bg: #f8f9fa;
+            --table-row-hover: #f8f9fa;
+            --table-border: #f0f0f0;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --output-bg: #f8f9fa;
+        }
+
+        /* Dark theme */
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --container-bg: #1e1e2e;
+            --text-color: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --text-hint: #888888;
+            --border-color: #3a3a4a;
+            --input-bg: #2a2a3a;
+            --code-bg: #2a2a3a;
+            --section-bg: #252535;
+            --footer-bg: #1a1a2a;
+            --footer-text: #a0a0a0;
+            --tab-text: #a0a0a0;
+            --tab-active: #8b9aef;
+            --card-border: #3a3a4a;
+            --alert-info-bg: #1a3a4a;
+            --alert-info-text: #7dd3fc;
+            --alert-info-border: #0ea5e9;
+            --alert-success-bg: #1a3a2a;
+            --alert-success-text: #86efac;
+            --alert-success-border: #22c55e;
+            --alert-error-bg: #3a1a1a;
+            --alert-error-text: #fca5a5;
+            --alert-error-border: #ef4444;
+            --log-info-bg: #1a3a4a;
+            --log-info-text: #7dd3fc;
+            --log-info-border: #0ea5e9;
+            --log-warn-bg: #3a3a1a;
+            --log-warn-text: #fde047;
+            --log-warn-border: #eab308;
+            --log-error-bg: #3a1a1a;
+            --log-error-text: #fca5a5;
+            --log-error-border: #ef4444;
+            --log-success-bg: #1a3a2a;
+            --log-success-text: #86efac;
+            --log-success-border: #22c55e;
+            --diff-added-bg: #1a3a2a;
+            --diff-added-text: #86efac;
+            --diff-added-border: #22c55e;
+            --diff-removed-bg: #3a1a1a;
+            --diff-removed-text: #fca5a5;
+            --diff-removed-border: #ef4444;
+            --diff-unchanged-bg: #252535;
+            --diff-unchanged-text: #a0a0a0;
+            --table-header-bg: #252535;
+            --table-row-hover: #2a2a3a;
+            --table-border: #3a3a4a;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --output-bg: #252535;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -20,8 +127,8 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-color);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -29,9 +136,9 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
+            background: var(--container-bg);
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px var(--shadow-color);
             overflow: hidden;
         }
 
@@ -60,7 +167,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 30px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .tab {
@@ -69,18 +176,18 @@
             border: none;
             font-size: 1rem;
             cursor: pointer;
-            color: #666;
+            color: var(--tab-text);
             border-bottom: 3px solid transparent;
             transition: all 0.3s;
         }
 
         .tab:hover {
-            color: #667eea;
+            color: var(--tab-active);
         }
 
         .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            color: var(--tab-active);
+            border-bottom-color: var(--tab-active);
             font-weight: 600;
         }
 
@@ -100,29 +207,31 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #555;
+            color: var(--text-muted);
         }
 
         .hint {
             font-size: 0.9rem;
-            color: #888;
+            color: var(--text-hint);
             margin-top: 4px;
         }
 
         textarea, input[type="text"] {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 6px;
             font-family: 'Courier New', monospace;
             font-size: 0.95rem;
             resize: vertical;
             transition: border-color 0.3s;
+            background: var(--input-bg);
+            color: var(--text-color);
         }
 
         textarea:focus, input[type="text"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--tab-active);
         }
 
         textarea {
@@ -208,35 +317,36 @@
 
         .example-card {
             padding: 15px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--card-border);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
+            background: var(--container-bg);
         }
 
         .example-card:hover {
-            border-color: #667eea;
+            border-color: var(--tab-active);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
         .example-card h3 {
             font-size: 1.1rem;
-            color: #667eea;
+            color: var(--tab-active);
             margin-bottom: 8px;
         }
 
         .example-card p {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--text-muted);
         }
 
         .progress-section {
             display: none;
             margin-top: 20px;
-            background: #f8f9fa;
+            background: var(--section-bg);
             border-radius: 6px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
         }
 
         .progress-section.visible {
@@ -289,7 +399,7 @@
         .progress-bar {
             width: 100%;
             height: 8px;
-            background: #e0e0e0;
+            background: var(--border-color);
             border-radius: 4px;
             overflow: hidden;
             margin-bottom: 15px;
@@ -313,27 +423,27 @@
         }
 
         .log-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border-left-color: #17a2b8;
+            background: var(--log-info-bg);
+            color: var(--log-info-text);
+            border-left-color: var(--log-info-border);
         }
 
         .log-warn {
-            background: #fff3cd;
-            color: #856404;
-            border-left-color: #ffc107;
+            background: var(--log-warn-bg);
+            color: var(--log-warn-text);
+            border-left-color: var(--log-warn-border);
         }
 
         .log-error {
-            background: #f8d7da;
-            color: #721c24;
-            border-left-color: #dc3545;
+            background: var(--log-error-bg);
+            color: var(--log-error-text);
+            border-left-color: var(--log-error-border);
         }
 
         .log-success {
-            background: #d4edda;
-            color: #155724;
-            border-left-color: #28a745;
+            background: var(--log-success-bg);
+            color: var(--log-success-text);
+            border-left-color: var(--log-success-border);
         }
 
         .results-section {
@@ -372,8 +482,8 @@
         }
 
         .output-box {
-            background: #f8f9fa;
-            border: 2px solid #e0e0e0;
+            background: var(--output-bg);
+            border: 2px solid var(--border-color);
             border-radius: 6px;
             padding: 15px;
             max-height: 400px;
@@ -382,6 +492,7 @@
             font-size: 0.85rem;
             white-space: pre-wrap;
             word-break: break-all;
+            color: var(--text-color);
         }
 
         .alert {
@@ -392,29 +503,29 @@
         }
 
         .alert-info {
-            background: #d1ecf1;
-            border-color: #0c5460;
-            color: #0c5460;
+            background: var(--alert-info-bg);
+            border-color: var(--alert-info-border);
+            color: var(--alert-info-text);
         }
 
         .alert-success {
-            background: #d4edda;
-            border-color: #28a745;
-            color: #155724;
+            background: var(--alert-success-bg);
+            border-color: var(--alert-success-border);
+            color: var(--alert-success-text);
         }
 
         .alert-error {
-            background: #f8d7da;
-            border-color: #dc3545;
-            color: #721c24;
+            background: var(--alert-error-bg);
+            border-color: var(--alert-error-border);
+            color: var(--alert-error-text);
         }
 
         .diff-section {
             margin-top: 20px;
             padding: 20px;
-            background: #f8f9fa;
+            background: var(--section-bg);
             border-radius: 6px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
         }
 
         .diff-header {
@@ -426,7 +537,7 @@
 
         .diff-header h4 {
             margin: 0;
-            color: #667eea;
+            color: var(--tab-active);
         }
 
         .diff-stats {
@@ -453,7 +564,7 @@
         .diff-container {
             max-height: 400px;
             overflow-y: auto;
-            background: white;
+            background: var(--container-bg);
             border-radius: 4px;
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
@@ -467,20 +578,20 @@
         }
 
         .diff-line-added {
-            background: #d4edda;
-            border-left-color: #28a745;
-            color: #155724;
+            background: var(--diff-added-bg);
+            border-left-color: var(--diff-added-border);
+            color: var(--diff-added-text);
         }
 
         .diff-line-removed {
-            background: #f8d7da;
-            border-left-color: #dc3545;
-            color: #721c24;
+            background: var(--diff-removed-bg);
+            border-left-color: var(--diff-removed-border);
+            color: var(--diff-removed-text);
         }
 
         .diff-line-unchanged {
-            background: #f8f9fa;
-            color: #6c757d;
+            background: var(--diff-unchanged-bg);
+            color: var(--diff-unchanged-text);
         }
 
         .diff-line-symbol {
@@ -503,13 +614,13 @@
         footer {
             padding: 20px;
             text-align: center;
-            background: #f8f9fa;
-            color: #666;
+            background: var(--footer-bg);
+            color: var(--footer-text);
             font-size: 0.9rem;
         }
 
         footer a {
-            color: #667eea;
+            color: var(--tab-active);
             text-decoration: none;
         }
 
@@ -525,20 +636,22 @@
         }
 
         .job-history-table th {
-            background: #f8f9fa;
+            background: var(--table-header-bg);
             padding: 10px;
             text-align: left;
             font-weight: 600;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-color);
         }
 
         .job-history-table td {
             padding: 8px 10px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--table-border);
+            color: var(--text-color);
         }
 
         .job-history-table tr:hover {
-            background: #f8f9fa;
+            background: var(--table-row-hover);
         }
 
         .status-badge {
@@ -626,6 +739,47 @@
                 overflow-x: auto;
             }
         }
+
+        /* Dark mode toggle button */
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        [data-theme="dark"] .theme-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .theme-toggle-label {
+            display: none;
+        }
+
+        @media (min-width: 480px) {
+            .theme-toggle-label {
+                display: inline;
+            }
+        }
     </style>
 </head>
 <body>
@@ -634,7 +788,10 @@
             <h1>🛡️ Adblock Compiler</h1>
             <p><strong>Compiler-as-a-Service</strong> | Real-time streaming compilation with SSE event pipeline</p>
             <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">Powered by Cloudflare Workers • <a href="https://adblock-compiler.jayson-knight.workers.dev/api" style="color: white; text-decoration: underline;" target="_blank">API</a> • <span id="header-version">v0.7.15</span></p>
-            <p style="font-size: 0.8rem; opacity: 0.8; margin-top: 3px;">New: Streaming API, Rule Optimizer, Conflict Detection, Multiple Output Formats</p>
+            <button class="theme-toggle" id="theme-toggle">
+                <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                <span class="theme-toggle-label" id="theme-label">Dark Mode</span>
+            </button>
         </header>
 
         <div class="content">
@@ -855,7 +1012,7 @@
                 <p>Our compiler uses Server-Sent Events (SSE) to provide real-time progress updates throughout the compilation process.</p>
                 
                 <h3>Event Types</h3>
-                <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <div style="background: var(--code-bg); padding: 15px; border-radius: 6px; margin-bottom: 20px;">
                     <p><strong>source:start</strong> - Fires when fetching a source begins</p>
                     <p><strong>source:complete</strong> - Source successfully fetched and parsed</p>
                     <p><strong>source:error</strong> - Source fetching or parsing failed</p>
@@ -873,7 +1030,7 @@
                 <div style="margin: 20px 0;">
                     <h4>POST /compile</h4>
                     <p>Compile filter lists and return complete results as JSON</p>
-                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto;">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile \\
+                    <pre style="background: var(--code-bg); padding: 15px; border-radius: 6px; overflow-x: auto; color: var(--text-color);">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile \\
   -H "Content-Type: application/json" \\
   -d '{
     "configuration": {
@@ -888,7 +1045,7 @@
                 <div style="margin: 20px 0;">
                     <h4>POST /compile/stream</h4>
                     <p>Compile with real-time Server-Sent Events for progress tracking</p>
-                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto;">const eventSource = new EventSource('/compile/stream');
+                    <pre style="background: var(--code-bg); padding: 15px; border-radius: 6px; overflow-x: auto; color: var(--text-color);">const eventSource = new EventSource('/compile/stream');
 
 eventSource.addEventListener('source:start', (e) => {
   const data = JSON.parse(e.data);
@@ -904,7 +1061,7 @@ eventSource.addEventListener('result', (e) => {
                 <div style="margin: 20px 0;">
                     <h4>POST /compile/batch</h4>
                     <p>Compile multiple filter lists in parallel (max 10 per batch)</p>
-                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto;">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile/batch \\
+                    <pre style="background: var(--code-bg); padding: 15px; border-radius: 6px; overflow-x: auto; color: var(--text-color);">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile/batch \\
   -H "Content-Type: application/json" \\
   -d '{
     "requests": [
@@ -927,7 +1084,7 @@ eventSource.addEventListener('result', (e) => {
                 </div>
 
                 <h3>Performance Features</h3>
-                <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <div style="background: var(--code-bg); padding: 15px; border-radius: 6px; margin-bottom: 20px;">
                     <p><strong>✨ Gzip Compression:</strong> Cache storage uses gzip compression (70-80% size reduction)</p>
                     <p><strong>⚡ Request Deduplication:</strong> Identical concurrent requests share results</p>
                     <p><strong>🔄 Circuit Breaker:</strong> Automatic retry with exponential backoff for failed sources</p>
@@ -1032,7 +1189,7 @@ eventSource.addEventListener('result', (e) => {
                     
                     <!-- Queue Depth Chart -->
                     <div style="margin-top: 20px;">
-                        <h4 style="color: #667eea; margin-bottom: 10px;">Queue Depth Over Time</h4>
+                        <h4 style="color: var(--tab-active); margin-bottom: 10px;">Queue Depth Over Time</h4>
                         <div class="chart-container">
                             <canvas id="queue-depth-chart"></canvas>
                         </div>
@@ -1040,7 +1197,7 @@ eventSource.addEventListener('result', (e) => {
                     
                     <!-- Job History -->
                     <div style="margin-top: 20px;">
-                        <h4 style="color: #667eea; margin-bottom: 10px;">Recent Job History</h4>
+                        <h4 style="color: var(--tab-active); margin-bottom: 10px;">Recent Job History</h4>
                         <div style="max-height: 300px; overflow-y: auto;">
                             <table class="job-history-table" id="job-history-table">
                                 <thead>
@@ -1055,14 +1212,14 @@ eventSource.addEventListener('result', (e) => {
                                 </thead>
                                 <tbody id="job-history-body">
                                     <tr>
-                                        <td colspan="6" style="text-align: center; color: #999; padding: 20px;">No job history available</td>
+                                        <td colspan="6" style="text-align: center; color: var(--text-hint); padding: 20px;">No job history available</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
+                    <div style="text-align: center; margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">
                         Last updated: <span id="queue-last-update">Never</span>
                     </div>
                 </div>
@@ -1114,6 +1271,107 @@ eventSource.addEventListener('result', (e) => {
     </div>
 
     <script>
+        // Dark Mode Management
+        const ThemeManager = {
+            STORAGE_KEY: 'theme-preference',
+
+            init() {
+                // Check for saved preference or system preference
+                const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+                if (savedTheme) {
+                    this.setTheme(savedTheme);
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    this.setTheme('dark');
+                }
+
+                // Listen for system theme changes
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                    if (!localStorage.getItem(this.STORAGE_KEY)) {
+                        this.setTheme(e.matches ? 'dark' : 'light');
+                    }
+                });
+
+                // Setup toggle button
+                const toggleBtn = document.getElementById('theme-toggle');
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => this.toggle());
+                }
+            },
+
+            getTheme() {
+                return document.documentElement.getAttribute('data-theme') || 'light';
+            },
+
+            setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem(this.STORAGE_KEY, theme);
+                this.updateToggleButton(theme);
+                this.updateTurnstileTheme(theme);
+            },
+
+            toggle() {
+                const currentTheme = this.getTheme();
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                this.setTheme(newTheme);
+            },
+
+            updateToggleButton(theme) {
+                const icon = document.getElementById('theme-icon');
+                const label = document.getElementById('theme-label');
+                if (icon && label) {
+                    if (theme === 'dark') {
+                        icon.textContent = '☀️';
+                        label.textContent = 'Light Mode';
+                    } else {
+                        icon.textContent = '🌙';
+                        label.textContent = 'Dark Mode';
+                    }
+                }
+
+                const toggleButton = document.getElementById('theme-toggle');
+                if (toggleButton) {
+                    const ariaLabel = theme === 'dark'
+                        ? 'Switch to light mode'
+                        : 'Switch to dark mode';
+                    toggleButton.setAttribute('aria-label', ariaLabel);
+                }
+            },
+
+            updateTurnstileTheme(theme) {
+                // Re-render Turnstile widgets with new theme
+                if (window.turnstile && turnstileSiteKey) {
+                    document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                        // Remove existing widget content, if it has been rendered
+                        if (typeof window.turnstile.remove === 'function' && widget.firstChild) {
+                            try {
+                                window.turnstile.remove(widget);
+                            } catch (error) {
+                                console.error(
+                                    'Failed to remove Turnstile widget:',
+                                    error instanceof Error ? error.message : String(error),
+                                );
+                            }
+                        }
+                        // Re-render with new theme
+                        window.turnstile.render(widget, {
+                            sitekey: turnstileSiteKey,
+                            theme: theme === 'dark' ? 'dark' : 'light',
+                            callback: onTurnstileSuccess,
+                            'expired-callback': onTurnstileExpired,
+                            'error-callback': onTurnstileError
+                        });
+                    });
+                }
+            },
+
+            getTurnstileTheme() {
+                return this.getTheme() === 'dark' ? 'dark' : 'light';
+            }
+        };
+
+        // Initialize theme manager immediately
+        ThemeManager.init();
+
         // Fetch compiler version from API
         async function fetchCompilerVersion() {
             try {
@@ -1363,11 +1621,13 @@ eventSource.addEventListener('result', (e) => {
                         document.querySelectorAll('.cf-turnstile').forEach(widget => {
                             widget.setAttribute('data-sitekey', data.siteKey);
                         });
-                        // Re-render Turnstile widgets
+                        // Re-render Turnstile widgets with appropriate theme
                         if (window.turnstile) {
+                            const turnstileTheme = ThemeManager.getTurnstileTheme();
                             document.querySelectorAll('.cf-turnstile').forEach(widget => {
                                 window.turnstile.render(widget, {
                                     sitekey: data.siteKey,
+                                    theme: turnstileTheme,
                                     callback: onTurnstileSuccess,
                                     'expired-callback': onTurnstileExpired,
                                     'error-callback': onTurnstileError
@@ -1385,19 +1645,19 @@ eventSource.addEventListener('result', (e) => {
         window.onTurnstileSuccess = function(token) {
             turnstileToken = token;
             document.getElementById('turnstile-hint').textContent = 'Security check passed';
-            document.getElementById('turnstile-hint').style.color = '#28a745';
+            document.getElementById('turnstile-hint').style.color = 'var(--log-success-border)';
         };
 
         window.onTurnstileExpired = function() {
             turnstileToken = null;
             document.getElementById('turnstile-hint').textContent = 'Security check expired. Please verify again.';
-            document.getElementById('turnstile-hint').style.color = '#dc3545';
+            document.getElementById('turnstile-hint').style.color = 'var(--log-error-border)';
         };
 
         window.onTurnstileError = function() {
             turnstileToken = null;
             document.getElementById('turnstile-hint').textContent = 'Security check failed. Please try again.';
-            document.getElementById('turnstile-hint').style.color = '#dc3545';
+            document.getElementById('turnstile-hint').style.color = 'var(--log-error-border)';
         };
 
         // Reset Turnstile after compilation
@@ -1409,7 +1669,7 @@ eventSource.addEventListener('result', (e) => {
                 });
             }
             document.getElementById('turnstile-hint').textContent = 'Complete the security check to compile';
-            document.getElementById('turnstile-hint').style.color = '#888';
+            document.getElementById('turnstile-hint').style.color = 'var(--text-hint)';
         }
 
         // Fetch Turnstile site key when page loads
@@ -1931,7 +2191,7 @@ eventSource.addEventListener('result', (e) => {
             const tbody = document.getElementById('job-history-body');
             
             if (!history || history.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 20px;">No job history available</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-hint); padding: 20px;">No job history available</td></tr>';
                 return;
             }
             
