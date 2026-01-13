@@ -29,8 +29,11 @@ jobs:
                     - target: x86_64-unknown-linux-gnu
                       os: ubuntu-latest
                       artifact: hostlist-compiler-linux-x64
-                    # Cross-compilation for ARM64 Linux - may require additional toolchain setup
-                    # Build may fail without proper cross-compilation support
+                    # Cross-compilation for ARM64 Linux. GitHub's ubuntu-latest runners do not
+                    # include an aarch64 cross-compilation toolchain by default. If this target
+                    # fails with linker or toolchain errors, either add a preceding setup step
+                    # to install the required aarch64 toolchain on ubuntu-latest, or temporarily
+                    # remove/disable this matrix entry when ARM64 Linux binaries are not needed.
                     - target: aarch64-unknown-linux-gnu
                       os: ubuntu-latest
                       artifact: hostlist-compiler-linux-arm64
@@ -73,10 +76,11 @@ jobs:
             - name: Get version
               id: version
               run: |
+                  set -euo pipefail
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+                    echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
                   else
-                    echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+                    echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
                   fi
 
             - name: Set up Docker Buildx
@@ -102,8 +106,8 @@ jobs:
                       org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
-                  # Multi-platform build with QEMU emulation - ARM64 build may be slower
-                  # Consider using only 'linux/amd64' if build time is a concern
+                  # Multi-platform build with QEMU emulation; linux/arm64 may build significantly slower.
+                  # If you do not need ARM64 images and want faster builds, change the line below to: platforms: linux/amd64
                   platforms: linux/amd64,linux/arm64
 
     create-release:
@@ -116,12 +120,13 @@ jobs:
             - name: Get version
               id: version
               run: |
+                  set -euo pipefail
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
-                    echo "tag=v${{ inputs.version }}" >> $GITHUB_OUTPUT
+                    echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+                    echo "tag=v${{ inputs.version }}" >> "$GITHUB_OUTPUT"
                   else
-                    echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-                    echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+                    echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+                    echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
                   fi
 
             - name: Download all artifacts
@@ -131,6 +136,7 @@ jobs:
 
             - name: Prepare release assets
               run: |
+                  set -euo pipefail
                   mkdir -p release
                   for dir in artifacts/*/; do
                     artifact_name=$(basename "$dir")
@@ -143,6 +149,7 @@ jobs:
             - name: Generate release notes
               id: notes
               run: |
+                  set -euo pipefail
                   VERSION="${{ steps.version.outputs.version }}"
                   cat << 'EOF' > release-notes.md
                   ## What's Changed
@@ -186,6 +193,7 @@ jobs:
             - name: Create tag (workflow_dispatch only)
               if: github.event_name == 'workflow_dispatch'
               run: |
+                  set -euo pipefail
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
                   git fetch --tags
