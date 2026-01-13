@@ -12,6 +12,7 @@
  * - Event parsing and validation
  */
 
+import { assertEquals, assertExists, assertStringIncludes } from '@std/assert';
 // Self-contained assertion functions to avoid network dependencies
 function assertEquals<T>(actual: T, expected: T, msg?: string): void {
     const actualStr = JSON.stringify(actual);
