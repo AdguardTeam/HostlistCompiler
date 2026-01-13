@@ -65,7 +65,7 @@
     },
     "fmt": {
         "useTabs": false,
-        "lineWidth": 100,
+        "lineWidth": 180,
         "indentWidth": 4,
         "semiColons": true,
         "singleQuote": true,
@@ -75,7 +75,9 @@
             "node_modules/",
             "coverage/",
             "public/",
-            "worker/"
+            "worker/",
+            "src/storage/example.ts",
+            "examples/"
         ]
     },
     "test": {
