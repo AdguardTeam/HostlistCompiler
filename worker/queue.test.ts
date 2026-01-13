@@ -8,6 +8,11 @@
 import { assertEquals, assertExists, assertNotEquals } from '@std/assert';
 
 /**
+ * Priority levels for queue messages
+ */
+type QueuePriority = 'standard' | 'high';
+
+/**
  * Queue message types for different operations
  */
 type QueueMessageType = 'compile' | 'batch-compile' | 'cache-warm';
@@ -19,6 +24,7 @@ interface QueueMessage {
     type: QueueMessageType;
     requestId?: string;
     timestamp: number;
+    priority?: QueuePriority;
 }
 
 /**
@@ -424,5 +430,100 @@ Deno.test('Queue Message - type field correctly discriminates message types', ()
     assertEquals(compileMsg.type, 'compile');
     assertEquals(batchMsg.type, 'batch-compile');
     assertEquals(warmMsg.type, 'cache-warm');
+});
+
+// Priority Queue Tests
+Deno.test('Queue Message - compile message with standard priority', () => {
+    const message: CompileQueueMessage = {
+        type: 'compile',
+        requestId: 'test-standard-priority',
+        timestamp: Date.now(),
+        priority: 'standard',
+        configuration: {
+            name: 'Standard Priority Filter',
+            sources: [{ source: 'https://example.com/filters.txt' }],
+        },
+    };
+
+    assertEquals(message.priority, 'standard');
+    assertEquals(message.type, 'compile');
+});
+
+Deno.test('Queue Message - compile message with high priority', () => {
+    const message: CompileQueueMessage = {
+        type: 'compile',
+        requestId: 'test-high-priority',
+        timestamp: Date.now(),
+        priority: 'high',
+        configuration: {
+            name: 'High Priority Filter',
+            sources: [{ source: 'https://example.com/filters.txt' }],
+        },
+    };
+
+    assertEquals(message.priority, 'high');
+    assertEquals(message.type, 'compile');
+});
+
+Deno.test('Queue Message - compile message without priority defaults to undefined', () => {
+    const message: CompileQueueMessage = {
+        type: 'compile',
+        requestId: 'test-no-priority',
+        timestamp: Date.now(),
+        configuration: {
+            name: 'No Priority Filter',
+            sources: [{ source: 'https://example.com/filters.txt' }],
+        },
+    };
+
+    assertEquals(message.priority, undefined);
+});
+
+Deno.test('Queue Message - batch message with high priority', () => {
+    const message: BatchCompileQueueMessage = {
+        type: 'batch-compile',
+        requestId: 'batch-high-priority',
+        timestamp: Date.now(),
+        priority: 'high',
+        requests: [
+            {
+                id: 'req-1',
+                configuration: {
+                    name: 'Filter 1',
+                    sources: [{ source: 'https://example.com/filter1.txt' }],
+                },
+            },
+        ],
+    };
+
+    assertEquals(message.priority, 'high');
+    assertEquals(message.type, 'batch-compile');
+});
+
+Deno.test('generateRequestId - should use different prefix for high priority', () => {
+    const standardId = generateRequestId('compile');
+    const highPriorityId = generateRequestId('compile-hp');
+
+    assertEquals(standardId.startsWith('compile-'), true);
+    assertEquals(highPriorityId.startsWith('compile-hp-'), true);
+});
+
+Deno.test('Queue Message - priority field is optional for backwards compatibility', () => {
+    // Old messages without priority should still work
+    const legacyMessage: CompileQueueMessage = {
+        type: 'compile',
+        requestId: 'legacy-test',
+        timestamp: Date.now(),
+        configuration: {
+            name: 'Legacy Filter',
+            sources: [{ source: 'https://example.com/filters.txt' }],
+        },
+    };
+
+    // Should not throw
+    assertExists(legacyMessage.type);
+    assertExists(legacyMessage.configuration);
+    // Priority is optional
+    assertEquals(legacyMessage.priority, undefined);
 });
 
