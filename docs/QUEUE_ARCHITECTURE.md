@@ -364,34 +364,40 @@ graph TB
 ## Key Features
 
 ### 1. Asynchronous Processing
+
 - Non-blocking API endpoints
 - Immediate 202 Accepted response
 - Background compilation via queue
 
 ### 2. Concurrency Control
+
 - Sequential message processing to avoid overwhelming resources
 - Chunked batch processing (max 3 parallel compilations per chunk)
 - Configurable chunk size
 
 ### 3. Caching Strategy
+
 - Gzip compression reduces storage by 70-80%
 - 1-hour TTL for compiled results
 - Cache key based on configuration hash
 - No caching for pre-fetched content
 
 ### 4. Error Handling
+
 - Automatic retry with exponential backoff
 - Message acknowledgment on success
 - Retry on failure
 - Unknown message types acknowledged to prevent infinite loops
 
 ### 5. Monitoring and Diagnostics
+
 - Structured console logging with prefixes
 - Detailed metrics tracking
 - Diagnostic events emitted to tail worker
 - Performance timing at every stage
 
 ### 6. Scalability
+
 - Queue handles unlimited backpressure
 - No rate limiting on async endpoints
 - Horizontal scaling via queue
@@ -400,6 +406,7 @@ graph TB
 ## Configuration
 
 ### Queue Settings (wrangler.toml)
+
 ```toml
 [[queues.producers]]
  queue = "adblock-compiler-worker-queue"
@@ -413,12 +420,14 @@ graph TB
 ```
 
 ### Resource Limits
+
 - **Batch Size**: Up to 100 requests per batch
 - **Chunk Size**: 3 concurrent compilations
 - **Message Timeout**: 5 seconds before batch delivery
 - **Cache TTL**: 3600 seconds (1 hour)
 
 ### Performance Characteristics
+
 - **Enqueue Time**: < 100ms
 - **Processing Time**: 5-30 seconds per compilation (varies by filter list size)
 - **Compression Ratio**: 70-80% reduction
@@ -427,6 +436,7 @@ graph TB
 ## Usage Examples
 
 ### Single Async Compilation
+
 ```bash
 curl -X POST https://worker.dev/compile/async \
   -H "Content-Type: application/json" \
@@ -439,15 +449,17 @@ curl -X POST https://worker.dev/compile/async \
 ```
 
 Response:
+
 ```json
 {
-  "success": true,
-  "message": "Compilation job queued successfully",
-  "requestId": "compile-1234567890-abc123"
+    "success": true,
+    "message": "Compilation job queued successfully",
+    "requestId": "compile-1234567890-abc123"
 }
 ```
 
 ### Batch Async Compilation
+
 ```bash
 curl -X POST https://worker.dev/compile/batch/async \
   -H "Content-Type: application/json" \
@@ -472,28 +484,32 @@ curl -X POST https://worker.dev/compile/batch/async \
 ```
 
 Response:
+
 ```json
 {
-  "success": true,
-  "message": "Batch of 2 compilation jobs queued successfully",
-  "requestId": "batch-1234567890-def456",
-  "batchSize": 2
+    "success": true,
+    "message": "Batch of 2 compilation jobs queued successfully",
+    "requestId": "batch-1234567890-def456",
+    "batchSize": 2
 }
 ```
 
 ## Troubleshooting
 
 ### Queue Not Processing
+
 1. Check queue exists: `wrangler queues list`
 2. Verify queue bindings in `wrangler.toml`
 3. Check worker logs: `wrangler tail`
 
 ### Messages Failing
+
 1. Check error logs for specific failure reasons
 2. Verify source URLs are accessible
 3. Check KV namespace bindings
 
 ### Performance Issues
+
 1. Increase `max_batch_size` for higher throughput
 2. Adjust chunk size for batch processing
 3. Monitor queue depth and consumer lag

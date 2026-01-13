@@ -15,10 +15,10 @@ export class InvertAllowTransformation extends SyncTransformation {
 
         const filtered = rules.map((rule) => {
             if (
-                rule
-                && !RuleUtils.isComment(rule)
-                && !RuleUtils.isEtcHostsRule(rule)
-                && !RuleUtils.isAllowRule(rule)
+                rule &&
+                !RuleUtils.isComment(rule) &&
+                !RuleUtils.isEtcHostsRule(rule) &&
+                !RuleUtils.isAllowRule(rule)
             ) {
                 inverted += 1;
                 return `@@${rule}`;

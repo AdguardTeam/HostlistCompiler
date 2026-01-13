@@ -13,7 +13,7 @@ const mockLogger = {
 Deno.test('PreprocessorEvaluator - should process lines without directives', async () => {
     const evaluator = new PreprocessorEvaluator(mockLogger);
     const lines = ['||example.org^', '||test.com^'];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, lines);
 });
@@ -27,7 +27,7 @@ Deno.test('PreprocessorEvaluator - should process !#if with true condition', asy
         '!#endif',
         '||after.com^',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||before.com^', '||included.com^', '||after.com^']);
 });
@@ -41,7 +41,7 @@ Deno.test('PreprocessorEvaluator - should process !#if with false condition', as
         '!#endif',
         '||after.com^',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||before.com^', '||after.com^']);
 });
@@ -55,7 +55,7 @@ Deno.test('PreprocessorEvaluator - should process !#if/!#else with false conditi
         '||else-branch.com^',
         '!#endif',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||else-branch.com^']);
 });
@@ -69,7 +69,7 @@ Deno.test('PreprocessorEvaluator - should process !#if/!#else with true conditio
         '||else-branch.com^',
         '!#endif',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||if-branch.com^']);
 });
@@ -84,7 +84,7 @@ Deno.test('PreprocessorEvaluator - should process nested !#if directives', async
         '!#endif',
         '!#endif',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||outer.com^', '||inner.com^']);
 });
@@ -99,7 +99,7 @@ Deno.test('PreprocessorEvaluator - should handle platform conditions', async () 
         '||mac-only.com^',
         '!#endif',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||windows-only.com^']);
 });
@@ -111,14 +111,14 @@ Deno.test('PreprocessorEvaluator - should process !#include directive with loade
         }
         throw new Error('File not found');
     };
-    
+
     const evaluator = new PreprocessorEvaluator(mockLogger, undefined, includeLoader);
     const lines = [
         '||before.com^',
         '!#include included.txt',
         '||after.com^',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||before.com^', '||included.com^', '||after.com^']);
 });
@@ -130,7 +130,7 @@ Deno.test('PreprocessorEvaluator - should skip !#include without loader', async 
         '!#include included.txt',
         '||after.com^',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||before.com^', '||after.com^']);
 });
@@ -139,14 +139,14 @@ Deno.test('PreprocessorEvaluator - should handle failed !#include gracefully', a
     const includeLoader = async (_path: string) => {
         throw new Error('File not found');
     };
-    
+
     const evaluator = new PreprocessorEvaluator(mockLogger, undefined, includeLoader);
     const lines = [
         '||before.com^',
         '!#include missing.txt',
         '||after.com^',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||before.com^', '||after.com^']);
 });
@@ -160,7 +160,7 @@ Deno.test('PreprocessorEvaluator - should skip !#safari_cb_affinity blocks', asy
         '!#safari_cb_affinity',
         '||after.com^',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||before.com^', '||after.com^']);
 });
@@ -172,7 +172,7 @@ Deno.test('PreprocessorEvaluator - should validate balanced !#if/!#endif', () =>
         '||rule.com^',
         '!#endif',
     ];
-    
+
     assertEquals(evaluator.validate(validLines), true);
 });
 
@@ -182,7 +182,7 @@ Deno.test('PreprocessorEvaluator - should detect unmatched !#if', () => {
         '!#if true',
         '||rule.com^',
     ];
-    
+
     assertEquals(evaluator.validate(invalidLines), false);
 });
 
@@ -192,7 +192,7 @@ Deno.test('PreprocessorEvaluator - should detect unmatched !#endif', () => {
         '||rule.com^',
         '!#endif',
     ];
-    
+
     assertEquals(evaluator.validate(invalidLines), false);
 });
 
@@ -205,7 +205,7 @@ Deno.test('PreprocessorEvaluator - should validate nested !#if/!#endif', () => {
         '!#endif',
         '!#endif',
     ];
-    
+
     assertEquals(evaluator.validate(validLines), true);
 });
 
@@ -219,7 +219,7 @@ Deno.test('PreprocessorEvaluator - should handle complex boolean expressions', a
         '||windows-or-mac.com^',
         '!#endif',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||windows-not-mac.com^', '||windows-or-mac.com^']);
 });
@@ -236,7 +236,7 @@ Deno.test('PreprocessorEvaluator - should handle empty lines', async () => {
         '!#endif',
         '',
     ];
-    
+
     const result = await evaluator.process(lines);
     assertEquals(result, ['||rule.com^', '', '', '||included.com^', '', '']);
 });

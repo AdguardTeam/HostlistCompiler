@@ -1,22 +1,9 @@
-import {
-    ICompilerEvents,
-    IConfiguration,
-    ILogger,
-    ISource,
-    TransformationType,
-} from '../types/index.ts';
+import { ICompilerEvents, IConfiguration, ILogger, ISource, TransformationType } from '../types/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
 import { HeaderGenerator } from './HeaderGenerator.ts';
-import {
-    addChecksumToHeader,
-    BenchmarkCollector,
-    CompilationMetrics,
-    CompilerEventEmitter,
-    createEventEmitter,
-    logger as defaultLogger,
-} from '../utils/index.ts';
+import { addChecksumToHeader, BenchmarkCollector, CompilationMetrics, CompilerEventEmitter, createEventEmitter, logger as defaultLogger } from '../utils/index.ts';
 import type { DiagnosticEvent, TracingContext } from '../diagnostics/index.ts';
 import { createNoOpContext } from '../diagnostics/index.ts';
 

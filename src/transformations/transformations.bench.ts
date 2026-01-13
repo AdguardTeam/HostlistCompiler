@@ -209,13 +209,13 @@ Deno.bench('RemoveEmptyLines - rules with empty lines', { group: 'removeEmptyLin
 Deno.bench('Chained - Deduplicate + Compress (500 rules)', { group: 'chained' }, () => {
     const dedup = new DeduplicateTransformation(noopLogger);
     const compress = new CompressTransformation(noopLogger);
-    
+
     const rules = [
         ...Array(200).fill('||example.com^'),
         ...Array(200).fill('0.0.0.0 ads.example.com'),
         ...Array(100).fill('||tracker.example.org^'),
     ];
-    
+
     const deduplicated = dedup.executeSync(rules);
     compress.executeSync(deduplicated);
 });
@@ -226,7 +226,7 @@ Deno.bench('Chained - Full pipeline (1000 rules)', { group: 'chained' }, () => {
     const removeEmpty = new RemoveEmptyLinesTransformation(noopLogger);
     const dedup = new DeduplicateTransformation(noopLogger);
     const compress = new CompressTransformation(noopLogger);
-    
+
     const rules = [
         '! Large filter list',
         ...Array(300).fill('  ||example.com^  '),
@@ -237,7 +237,7 @@ Deno.bench('Chained - Full pipeline (1000 rules)', { group: 'chained' }, () => {
         '',
         ...Array(100).fill('\t||analytics.net^\t'),
     ];
-    
+
     let result = removeComments.executeSync(rules);
     result = trim.executeSync(result);
     result = removeEmpty.executeSync(result);

@@ -330,7 +330,7 @@ Deno.test('ConfigurationValidator.validate - should reject non-array source tran
 
 Deno.test('ConfigurationValidator.validate - should accept all valid source types', () => {
     const validator = new ConfigurationValidator();
-    
+
     // Test adblock type
     const config1 = {
         name: 'Test',
@@ -342,7 +342,7 @@ Deno.test('ConfigurationValidator.validate - should accept all valid source type
         ],
     };
     assertEquals(validator.validate(config1).valid, true);
-    
+
     // Test hosts type
     const config2 = {
         name: 'Test',
@@ -371,7 +371,7 @@ Deno.test('ConfigurationValidator.validate - should accept all valid transformat
         TransformationType.RemoveEmptyLines,
         TransformationType.InsertFinalNewLine,
     ];
-    
+
     const config = {
         name: 'Test',
         sources: [{ source: 'https://example.org/list.txt' }],
@@ -397,18 +397,18 @@ Deno.test('ConfigurationValidator.validate - should handle inclusions and exclus
 
 Deno.test('ConfigurationValidator.validateAndGet - should throw with detailed error message', () => {
     const validator = new ConfigurationValidator();
-    const config = { 
-        name: '',  // Invalid: empty name
-        sources: [],  // Invalid: empty sources
+    const config = {
+        name: '', // Invalid: empty name
+        sources: [], // Invalid: empty sources
     };
-    
+
     try {
         validator.validateAndGet(config);
         throw new Error('Should have thrown');
     } catch (error) {
         if (error instanceof Error) {
             assertEquals(error.message.includes('Configuration validation failed'), true);
-            assertEquals(error.message.length > 50, true);  // Should have detailed errors
+            assertEquals(error.message.length > 50, true); // Should have detailed errors
         } else {
             throw error;
         }

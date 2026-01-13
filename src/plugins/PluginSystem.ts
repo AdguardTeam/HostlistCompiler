@@ -216,7 +216,7 @@ export class PluginRegistry {
      * Lists all registered plugins
      */
     listPlugins(): PluginManifest[] {
-        return Array.from(this.plugins.values()).map(p => p.manifest);
+        return Array.from(this.plugins.values()).map((p) => p.manifest);
     }
 
     /**

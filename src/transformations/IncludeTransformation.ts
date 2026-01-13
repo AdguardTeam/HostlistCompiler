@@ -21,8 +21,10 @@ export class IncludeTransformation extends AsyncTransformation {
         const inclusions = context?.configuration?.inclusions;
         const inclusionsSources = context?.configuration?.inclusions_sources;
 
-        if ((!inclusions || inclusions.length === 0)
-            && (!inclusionsSources || inclusionsSources.length === 0)) {
+        if (
+            (!inclusions || inclusions.length === 0) &&
+            (!inclusionsSources || inclusionsSources.length === 0)
+        ) {
             return rules;
         }
 

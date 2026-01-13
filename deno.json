@@ -50,7 +50,8 @@
                 "no-console"
             ],
             "exclude": [
-                "no-explicit-any"
+                "no-explicit-any",
+                "require-await"
             ]
         },
         "exclude": [

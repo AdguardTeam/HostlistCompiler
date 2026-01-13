@@ -1,7 +1,7 @@
 import { FilterDownloader } from '../downloader/index.ts';
 import { ILogger, ISource, TransformationType } from '../types/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
-import { logger as defaultLogger, CompilerEventEmitter, createEventEmitter, stripUpstreamHeaders } from '../utils/index.ts';
+import { CompilerEventEmitter, createEventEmitter, logger as defaultLogger, stripUpstreamHeaders } from '../utils/index.ts';
 
 /**
  * Compiles an individual source according to its configuration.

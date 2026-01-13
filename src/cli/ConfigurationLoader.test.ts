@@ -1,6 +1,6 @@
-import { assertEquals, assertRejects, assertExists } from '@std/assert';
+import { assertEquals, assertExists, assertRejects } from '@std/assert';
 import { ConfigurationLoader } from './ConfigurationLoader.ts';
-import type { IFileSystem, IConfiguration } from '../types/index.ts';
+import type { IConfiguration, IFileSystem } from '../types/index.ts';
 
 // Mock file system
 class MockFileSystem implements IFileSystem {

@@ -16,7 +16,7 @@ export class FilterService {
     /**
      * Downloads all specified files and returns non-empty, non-comment lines.
      * Processes sources in parallel for optimal performance.
-     * 
+     *
      * @param sources - Array of source URLs or paths
      * @returns Promise resolving to array of filtered rules
      */
@@ -32,16 +32,14 @@ export class FilterService {
                     const rulesStr = await FilterDownloader.download(
                         source,
                         {},
-                        { allowEmptyResponse: true }
+                        { allowEmptyResponse: true },
                     );
-                    return rulesStr.filter((el) => 
-                        el.trim().length > 0 && !RuleUtils.isComment(el)
-                    );
+                    return rulesStr.filter((el) => el.trim().length > 0 && !RuleUtils.isComment(el));
                 } catch (error) {
                     this.logger.warn(`Failed to download source ${source}: ${error}`);
                     return [];
                 }
-            })
+            }),
         );
 
         return results.flat();
@@ -50,7 +48,7 @@ export class FilterService {
     /**
      * Prepares a list of Wildcard patterns from rules and sources.
      * Downloads sources asynchronously and deduplicates the results.
-     * 
+     *
      * @param rules - Optional array of rule patterns
      * @param sources - Optional array of source URLs or paths
      * @returns Promise resolving to array of Wildcard objects
@@ -60,9 +58,7 @@ export class FilterService {
         sources?: readonly string[],
     ): Promise<readonly Wildcard[]> {
         const rulesList = rules ?? [];
-        const downloadedList = sources?.length
-            ? await this.downloadAll(sources)
-            : [];
+        const downloadedList = sources?.length ? await this.downloadAll(sources) : [];
 
         // Combine, deduplicate, filter empty, and convert to Wildcards
         const uniqueRules = [...new Set([...rulesList, ...downloadedList])]

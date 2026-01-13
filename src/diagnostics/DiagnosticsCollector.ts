@@ -228,9 +228,7 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
             timestamp: new Date().toISOString(),
             category: TraceCategory.Network,
             severity: statusCode && statusCode >= 400 ? TraceSeverity.Warn : TraceSeverity.Debug,
-            message: `${method} ${sanitizedUrl}${statusCode ? ` - ${statusCode}` : ''}${
-                durationMs ? ` (${durationMs.toFixed(2)}ms)` : ''
-            }`,
+            message: `${method} ${sanitizedUrl}${statusCode ? ` - ${statusCode}` : ''}${durationMs ? ` (${durationMs.toFixed(2)}ms)` : ''}`,
             correlationId: this.correlationId,
             method,
             url: sanitizedUrl,

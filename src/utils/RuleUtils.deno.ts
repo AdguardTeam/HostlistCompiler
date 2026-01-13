@@ -7,13 +7,13 @@
 // Regular expressions for rule parsing
 const DOMAIN_REGEX = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;
 const DOMAIN_PATTERN_REGEX = /(\*\.|)([^\s^$|=]+(?:\.[^\s^$|=]+)+)/g;
-// eslint-disable-next-line no-control-regex
+// deno-lint-ignore no-control-regex
 const NON_ASCII_REGEX = /[^\x00-\x7F]/;
 
 /**
  * Converts a domain name to ASCII/Punycode using native URL API
  * This is the Deno-compatible replacement for Node.js's domainToASCII
- * 
+ *
  * @param domain - Domain name to convert (may contain unicode characters)
  * @returns ASCII/Punycode version of the domain
  */
@@ -41,10 +41,10 @@ export class RuleUtils {
      * Comments start with ! or # (with space or ####)
      */
     public static isComment(ruleText: string): boolean {
-        return ruleText.startsWith('!')
-            || ruleText.startsWith('# ')
-            || ruleText === '#'
-            || ruleText.startsWith('####');
+        return ruleText.startsWith('!') ||
+            ruleText.startsWith('# ') ||
+            ruleText === '#' ||
+            ruleText.startsWith('####');
     }
 
     /**

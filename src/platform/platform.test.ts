@@ -2,8 +2,8 @@
  * Tests for the platform abstraction layer.
  */
 
-import { describe, it } from 'jsr:@std/testing/bdd';
-import { expect } from 'jsr:@std/expect';
+import { describe, it } from '@std/testing/bdd';
+import { expect } from '@std/testing/expect';
 
 import { HttpFetcher } from './HttpFetcher.ts';
 import { PreFetchedContentFetcher } from './PreFetchedContentFetcher.ts';
@@ -11,7 +11,7 @@ import { CompositeFetcher } from './CompositeFetcher.ts';
 import { PlatformDownloader } from './PlatformDownloader.ts';
 import { WorkerCompiler } from './WorkerCompiler.ts';
 import type { IContentFetcher } from './types.ts';
-import { TransformationType, type IConfiguration } from '../types/index.ts';
+import { type IConfiguration, TransformationType } from '../types/index.ts';
 
 describe('HttpFetcher', () => {
     it('should handle HTTP URLs', () => {

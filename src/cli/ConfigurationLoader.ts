@@ -51,9 +51,7 @@ export class ConfigurationLoader {
         inputType: string = 'hosts',
     ): IConfiguration {
         // Convert input type string to SourceType enum
-        const sourceType: SourceType = inputType === 'adblock'
-            ? 'adblock' as SourceType
-            : 'hosts' as SourceType;
+        const sourceType: SourceType = inputType === 'adblock' ? 'adblock' as SourceType : 'hosts' as SourceType;
 
         const sources: ISource[] = inputs.map((input) => ({
             source: input,

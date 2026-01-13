@@ -72,24 +72,18 @@ export class Logger implements ILogger {
 
         if (this.timestamps) {
             parts.push(
-                this.colors
-                    ? `${Colors.dim}${getTimestamp()}${Colors.reset}`
-                    : getTimestamp()
+                this.colors ? `${Colors.dim}${getTimestamp()}${Colors.reset}` : getTimestamp(),
             );
         }
 
         if (this.prefix) {
             parts.push(
-                this.colors
-                    ? `${Colors.cyan}[${this.prefix}]${Colors.reset}`
-                    : `[${this.prefix}]`
+                this.colors ? `${Colors.cyan}[${this.prefix}]${Colors.reset}` : `[${this.prefix}]`,
             );
         }
 
         parts.push(
-            this.colors
-                ? `${color}${levelName}${Colors.reset}`
-                : levelName
+            this.colors ? `${color}${levelName}${Colors.reset}` : levelName,
         );
 
         parts.push(message);

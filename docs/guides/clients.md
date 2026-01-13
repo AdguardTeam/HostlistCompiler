@@ -153,123 +153,123 @@ if __name__ == "__main__":
 
 ```typescript
 interface CompileConfig {
-  name: string;
-  sources: Array<{
-    name?: string;
-    source: string;
-    type?: 'adblock' | 'hosts';
+    name: string;
+    sources: Array<{
+        name?: string;
+        source: string;
+        type?: 'adblock' | 'hosts';
+        transformations?: string[];
+    }>;
     transformations?: string[];
-  }>;
-  transformations?: string[];
-  exclusions?: string[];
-  inclusions?: string[];
+    exclusions?: string[];
+    inclusions?: string[];
 }
 
 interface CompileResult {
-  success: boolean;
-  rules: string[];
-  ruleCount: number;
-  metrics?: {
-    totalDurationMs: number;
-    sourceCount: number;
+    success: boolean;
+    rules: string[];
     ruleCount: number;
-  };
-  cached?: boolean;
+    metrics?: {
+        totalDurationMs: number;
+        sourceCount: number;
+        ruleCount: number;
+    };
+    cached?: boolean;
 }
 
 class AdblockCompiler {
-  constructor(
-    private baseUrl: string = 'https://adblock-compiler.jayson-knight.workers.dev'
-  ) {}
+    constructor(
+        private baseUrl: string = 'https://adblock-compiler.jayson-knight.workers.dev',
+    ) {}
 
-  async compile(
-    sources: CompileConfig['sources'],
-    options: {
-      name?: string;
-      transformations?: string[];
-      benchmark?: boolean;
-    } = {}
-  ): Promise<CompileResult> {
-    const config: CompileConfig = {
-      name: options.name || 'Compiled List',
-      sources,
-      transformations: options.transformations || ['Deduplicate', 'RemoveEmptyLines'],
-    };
+    async compile(
+        sources: CompileConfig['sources'],
+        options: {
+            name?: string;
+            transformations?: string[];
+            benchmark?: boolean;
+        } = {},
+    ): Promise<CompileResult> {
+        const config: CompileConfig = {
+            name: options.name || 'Compiled List',
+            sources,
+            transformations: options.transformations || ['Deduplicate', 'RemoveEmptyLines'],
+        };
 
-    const response = await fetch(`${this.baseUrl}/compile`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        configuration: config,
-        benchmark: options.benchmark || false,
-      }),
-    });
+        const response = await fetch(`${this.baseUrl}/compile`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                configuration: config,
+                benchmark: options.benchmark || false,
+            }),
+        });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    
-    if (!result.success) {
-      throw new Error(`Compilation failed: ${result.error}`);
-    }
-
-    return result;
-  }
-
-  async *compileStream(
-    sources: CompileConfig['sources'],
-    options: {
-      name?: string;
-      transformations?: string[];
-    } = {}
-  ): AsyncGenerator<{ event: string; data: any }> {
-    const config: CompileConfig = {
-      name: options.name || 'Compiled List',
-      sources,
-      transformations: options.transformations || ['Deduplicate', 'RemoveEmptyLines'],
-    };
-
-    const response = await fetch(`${this.baseUrl}/compile/stream`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        configuration: config,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const reader = response.body!.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let currentEvent = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        if (line.startsWith('event: ')) {
-          currentEvent = line.slice(7);
-        } else if (line.startsWith('data: ')) {
-          const data = JSON.parse(line.slice(6));
-          yield { event: currentEvent, data };
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-      }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(`Compilation failed: ${result.error}`);
+        }
+
+        return result;
     }
-  }
+
+    async *compileStream(
+        sources: CompileConfig['sources'],
+        options: {
+            name?: string;
+            transformations?: string[];
+        } = {},
+    ): AsyncGenerator<{ event: string; data: any }> {
+        const config: CompileConfig = {
+            name: options.name || 'Compiled List',
+            sources,
+            transformations: options.transformations || ['Deduplicate', 'RemoveEmptyLines'],
+        };
+
+        const response = await fetch(`${this.baseUrl}/compile/stream`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                configuration: config,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let currentEvent = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+                if (line.startsWith('event: ')) {
+                    currentEvent = line.slice(7);
+                } else if (line.startsWith('data: ')) {
+                    const data = JSON.parse(line.slice(6));
+                    yield { event: currentEvent, data };
+                }
+            }
+        }
+    }
 }
 
 // Example usage
@@ -277,23 +277,25 @@ const client = new AdblockCompiler();
 
 // Simple compilation
 const result = await client.compile([
-  { source: 'https://example.com/filters.txt' }
+    { source: 'https://example.com/filters.txt' },
 ], {
-  name: 'My Filter List',
-  benchmark: true
+    name: 'My Filter List',
+    benchmark: true,
 });
 
 console.log(`Compiled ${result.ruleCount} rules in ${result.metrics?.totalDurationMs}ms`);
 
 // Streaming compilation
-for await (const { event, data } of client.compileStream([
-  { source: 'https://example.com/filters.txt' }
-])) {
-  if (event === 'progress') {
-    console.log(`Progress: ${data.message}`);
-  } else if (event === 'result') {
-    console.log(`Complete! ${data.ruleCount} rules`);
-  }
+for await (
+    const { event, data } of client.compileStream([
+        { source: 'https://example.com/filters.txt' },
+    ])
+) {
+    if (event === 'progress') {
+        console.log(`Progress: ${data.message}`);
+    } else if (event === 'result') {
+        console.log(`Complete! ${data.ruleCount} rules`);
+    }
 }
 ```
 
@@ -513,6 +515,7 @@ func main() {
 ## Community Clients
 
 Coming soon! Contributions welcome for:
+
 - Rust
 - Ruby
 - PHP
@@ -522,18 +525,21 @@ Coming soon! Contributions welcome for:
 ## Installation
 
 ### Python
+
 ```bash
 pip install requests  # Only dependency
 # Save the client code as adblock_compiler.py
 ```
 
 ### JavaScript/TypeScript
+
 ```bash
 npm install node-fetch  # For Node.js
 # Built-in fetch works in browsers and modern Node.js
 ```
 
 ### Go
+
 ```bash
 go get  # No external dependencies
 # Save as adblock/compiler.go
@@ -542,6 +548,7 @@ go get  # No external dependencies
 ## Error Handling
 
 All clients handle the following errors:
+
 - **429 Too Many Requests**: Rate limit exceeded (max 10 req/min)
 - **400 Bad Request**: Invalid configuration
 - **500 Internal Server Error**: Compilation failed
@@ -549,6 +556,7 @@ All clients handle the following errors:
 ## Caching
 
 The API automatically caches compilation results for 1 hour. Check the `X-Cache` header:
+
 - `HIT`: Result served from cache
 - `MISS`: Fresh compilation
 
