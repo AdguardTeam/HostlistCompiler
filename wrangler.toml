@@ -34,11 +34,10 @@ id = "5dc36da36d9142cc9ced6c56328898ee"  # Create with: wrangler kv:namespace cr
 binding = "METRICS"
 id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace create METRICS
 
-# R2 Storage - uncomment after creating bucket with:
-#   wrangler r2 bucket create adblock-compiler-r2-storage
-# [[r2_buckets]]
-# binding = "FILTER_STORAGE"
-# bucket_name = "adblock-compiler-r2-storage"
+# R2 Storage (auto-created by CI)
+[[r2_buckets]]
+binding = "FILTER_STORAGE"
+bucket_name = "adblock-compiler-r2-storage"
 
 # Containers - requires Dockerfile and Cloudflare Containers beta access
 # [[containers]]
@@ -69,30 +68,26 @@ binding = "ASSETS"
 # [[tail_consumers]]
 # service = "adblock-compiler-tail"
 
-# Queues - uncomment after creating with:
-#   wrangler queues create adblock-compiler-worker-queue
-#   wrangler queues create adblock-compiler-worker-queue-high-priority
-#   wrangler queues create dead-letter-queue
-#
-# [[queues.producers]]
-# queue = "adblock-compiler-worker-queue"
-# binding = "ADBLOCK_COMPILER_QUEUE"
-#
-# [[queues.producers]]
-# queue = "adblock-compiler-worker-queue-high-priority"
-# binding = "ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY"
-#
-# [[queues.consumers]]
-# queue = "adblock-compiler-worker-queue"
-# max_batch_size = 10
-# max_batch_timeout = 5
-# dead_letter_queue = "dead-letter-queue"
-#
-# [[queues.consumers]]
-# queue = "adblock-compiler-worker-queue-high-priority"
-# max_batch_size = 5
-# max_batch_timeout = 2
-# dead_letter_queue = "dead-letter-queue"
+# Queues (auto-created by CI)
+[[queues.producers]]
+queue = "adblock-compiler-worker-queue"
+binding = "ADBLOCK_COMPILER_QUEUE"
+
+[[queues.producers]]
+queue = "adblock-compiler-worker-queue-high-priority"
+binding = "ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY"
+
+[[queues.consumers]]
+queue = "adblock-compiler-worker-queue"
+max_batch_size = 10
+max_batch_timeout = 5
+dead_letter_queue = "adblock-compiler-dlq"
+
+[[queues.consumers]]
+queue = "adblock-compiler-worker-queue-high-priority"
+max_batch_size = 5
+max_batch_timeout = 2
+dead_letter_queue = "adblock-compiler-dlq"
 
 # Development settings
 [dev]
