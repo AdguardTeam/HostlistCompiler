@@ -43,7 +43,7 @@ COPY package.json package-lock.json ./
 # Install npm dependencies (Wrangler)
 RUN npm ci --omit=dev
 
-# Copy Deno configuration (deno.lock is optional and not present in this repo)
+# Copy Deno configuration (deno.lock excluded as it's not tracked in this repo)
 COPY deno.json ./
 
 # Copy source files
