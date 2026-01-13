@@ -1179,6 +1179,7 @@ eventSource.addEventListener('result', (e) => {
         let currentListName = '';
         let compilerWorker = null;
         let compilationId = 0;
+        let pendingQueuedRequestId = null; // Track the pending queued job for result retrieval
 
         // Initialize the Web Worker
         function initWorker() {
@@ -1424,12 +1425,15 @@ eventSource.addEventListener('result', (e) => {
                     addLog('success', `✓ Job queued successfully! Request ID: ${result.requestId}`);
                     addLog('info', result.note);
                     addLog('info', '⏳ Your compilation will be processed in the background.');
-                    addLog('info', '💡 The result will be cached and available for subsequent requests.');
-                    
+                    addLog('info', '💡 Download and Copy options will appear when the job completes.');
+
+                    // Store the requestId for result retrieval when job completes
+                    pendingQueuedRequestId = result.requestId;
+
                     // Show queue stats
                     showQueueStats();
                     await fetchQueueStats();
-                    
+
                     // Track successful queue
                     trackEvent('compilation_queued', {
                         list_name: currentListName,
@@ -1628,27 +1632,91 @@ eventSource.addEventListener('result', (e) => {
 
         // Track shown notifications to avoid duplicates
         const shownNotifications = new Set();
+        // Track jobs that we've already fetched results for
+        const fetchedResultsFor = new Set();
 
         function checkForCompletedJobs(history) {
             if (!history || history.length === 0) return;
-            
-            // Check if browser supports notifications
-            if (!('Notification' in window)) return;
-            
+
             // Check for completed jobs in the last minute
             const oneMinuteAgo = Date.now() - 60000;
             const recentCompleted = history.filter(job => {
                 const jobTime = new Date(job.timestamp).getTime();
-                return job.status === 'completed' && 
-                       jobTime > oneMinuteAgo && 
+                return job.status === 'completed' &&
+                       jobTime > oneMinuteAgo &&
                        !shownNotifications.has(job.requestId);
             });
-            
-            if (recentCompleted.length > 0 && Notification.permission === 'granted') {
+
+            // Show browser notifications if permission granted
+            if (recentCompleted.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
                 recentCompleted.forEach(job => {
                     showJobNotification(job);
                     shownNotifications.add(job.requestId);
                 });
+            }
+
+            // Check if our pending queued job has completed and fetch results
+            if (pendingQueuedRequestId && !fetchedResultsFor.has(pendingQueuedRequestId)) {
+                const ourJob = history.find(job => job.requestId === pendingQueuedRequestId);
+                if (ourJob && ourJob.status === 'completed') {
+                    fetchQueuedResults(pendingQueuedRequestId);
+                    fetchedResultsFor.add(pendingQueuedRequestId);
+                } else if (ourJob && ourJob.status === 'failed') {
+                    addLog('error', `Queued job failed: ${ourJob.error || 'Unknown error'}`);
+                    fetchedResultsFor.add(pendingQueuedRequestId);
+                    pendingQueuedRequestId = null;
+                }
+            }
+        }
+
+        // Fetch results for a completed queued job and display them
+        async function fetchQueuedResults(requestId) {
+            const apiUrl = window.location.hostname === 'localhost'
+                ? `/queue/results/${requestId}`
+                : `https://adblock-compiler.jayson-knight.workers.dev/queue/results/${requestId}`;
+
+            try {
+                addLog('info', '📥 Fetching compilation results...');
+
+                const response = await fetch(apiUrl);
+                const result = await response.json();
+
+                if (result.success && result.rules) {
+                    // Store the rules for download/copy functionality
+                    compiledRules = result.rules;
+
+                    // Show the results section with download/copy buttons
+                    showResults({
+                        rules: result.rules,
+                        ruleCount: result.ruleCount,
+                        metrics: result.metrics,
+                        previousVersion: null // Diff not available for queued results
+                    });
+
+                    addLog('success', `✓ Results loaded! ${result.ruleCount} rules compiled.`);
+
+                    // Track successful result retrieval
+                    trackEvent('queued_results_loaded', {
+                        list_name: currentListName,
+                        request_id: requestId,
+                        rule_count: result.ruleCount
+                    });
+                } else {
+                    // Handle various error statuses
+                    if (result.status === 'cache_miss') {
+                        addLog('warning', 'Cached results have expired. Please compile again to get results.');
+                    } else if (result.status === 'no_cache') {
+                        addLog('warning', 'Results cannot be retrieved (pre-fetched content was used).');
+                    } else {
+                        addLog('error', `Failed to fetch results: ${result.error || 'Unknown error'}`);
+                    }
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                addLog('error', `Failed to fetch queued results: ${errorMessage}`);
+            } finally {
+                // Clear the pending request
+                pendingQueuedRequestId = null;
             }
         }
 
