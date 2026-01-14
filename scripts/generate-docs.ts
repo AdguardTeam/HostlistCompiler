@@ -2,7 +2,7 @@
 
 /**
  * OpenAPI Documentation Generator
- * 
+ *
  * Generates beautiful HTML documentation from the OpenAPI specification.
  * Uses Redoc for rendering.
  */
@@ -112,7 +112,7 @@ async function generateMarkdownDocs(spec: any): Promise<void> {
     lines.push('');
     lines.push(`**Version:** ${spec.info.version}`);
     lines.push('');
-    
+
     if (spec.info.description) {
         lines.push('## Description');
         lines.push('');
@@ -132,10 +132,10 @@ async function generateMarkdownDocs(spec: any): Promise<void> {
 
     // Group endpoints by tag
     const endpointsByTag: Record<string, any[]> = {};
-    
+
     for (const [path, pathItem] of Object.entries(spec.paths)) {
         const methods = ['get', 'post', 'put', 'patch', 'delete'];
-        
+
         for (const method of methods) {
             const operation = (pathItem as any)[method];
             if (operation) {

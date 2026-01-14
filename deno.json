@@ -31,7 +31,7 @@
         "cache": "deno cache src/index.ts",
         "openapi:validate": "deno run --allow-read --allow-net scripts/validate-openapi.ts",
         "openapi:docs": "deno run --allow-read --allow-write --allow-net scripts/generate-docs.ts",
-        "test:contract": "deno test --allow-read --allow-write --allow-net --allow-env worker/openapi-contract.test.ts"
+        "test:contract": "SKIP_CONTRACT_TESTS=false deno test --allow-read --allow-write --allow-net --allow-env worker/openapi-contract.test.ts"
     },
     "imports": {
         "@/": "./src/",

@@ -793,7 +793,7 @@ async function handleCompileStream(
                             sendEvent('diagnostic', diagEvent);
                     }
                 }
-                
+
                 // Also emit diagnostics to tail worker for logging
                 emitDiagnosticsToTailWorker(result.diagnostics);
             }
