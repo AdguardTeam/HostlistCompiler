@@ -24,9 +24,18 @@
 
 **Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.
 
-🌐 **[Try the Web UI](https://adblock-compiler.jayson-knight.workers.dev/)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[API Documentation](docs/api/README.md)**
+🌐 **[Try the Admin Dashboard](https://adblock-compiler.jayson-knight.workers.dev/)** | 🔧 **[Compiler UI](https://adblock-compiler.jayson-knight.workers.dev/compiler.html)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[Documentation](docs/api/README.md)**
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). The package provides more functionality with improved performance and no Node.js dependencies.
+
+## 🎉 New in v0.8.0
+
+- **🎯 Admin Dashboard** - Beautiful landing page with real-time metrics and navigation
+- **🔔 Notifications** - Browser notifications for async compilation jobs
+- **📊 Queue Visualization** - Live Chart.js graphs of queue depth
+- **📚 Comprehensive Guides** - Learn when to use WebSocket vs SSE vs Queue
+- **🎨 Modern UI/UX** - Polished, professional interface
+- **📂 Clean Organization** - Streamlined project structure
 
 ## ✨ Features
 
@@ -35,7 +44,9 @@
 - **🔄 Circuit Breaker** - Automatic retry with exponential backoff for unreliable sources
 - **📊 Visual Diff** - See what changed between compilations
 - **🎪 Batch Processing** - Compile up to 10 lists in parallel
-- **📡 Event Pipeline** - Real-time progress tracking via Server-Sent Events
+- **📡 Real-time Updates** - Server-Sent Events (SSE) and WebSocket support
+- **🔔 Async Notifications** - Get notified when background jobs complete
+- **🌐 Admin Dashboard** - Monitor metrics, queue depth, and system health
 - **🌍 Universal** - Works in Deno, Node.js, Cloudflare Workers, browsers
 - **🎨 11 Transformations** - Deduplicate, compress, validate, and more
 

@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-01-14
+
+🎉 **Major Release - Admin Dashboard & Enhanced User Experience**
+
+This release transforms the Adblock Compiler into a comprehensive, user-friendly platform with an intuitive admin dashboard, real-time notifications, and streamlined project organization.
+
+### Added
+
+- **🎯 Admin Dashboard** - New landing page (`/`) showcasing the power of Adblock Compiler
+  - Real-time metrics display (requests, queue depth, cache hit rate, response time)
+  - Interactive queue depth visualization with Chart.js
+  - Quick navigation to all tools and test pages
+  - Responsive design with modern UI/UX
+  - Auto-refresh every 30 seconds
+  - Quick action panel for common tasks
+
+- **🔔 Notification System** for async operations
+  - Browser/OS notifications when compilation jobs complete
+  - In-page toast notifications with multiple styles (success, error, warning, info)
+  - Persistent job tracking across page refreshes via LocalStorage
+  - Automatic cleanup of old jobs (1 hour retention)
+  - Polling for job completion every 10 seconds
+  - Toggle to enable/disable notifications with permission management
+
+- **📚 Enhanced Documentation**
+  - New `docs/ADMIN_DASHBOARD.md` - Comprehensive dashboard guide
+  - WebSocket usage explanations and comparisons
+  - Endpoint selection guide (JSON vs SSE vs WebSocket vs Queue)
+  - Benchmark information and instructions
+  - Notification system documentation
+
+- **🎨 UI/UX Improvements**
+  - Renamed `/index.html` → `/compiler.html` (compilation UI)
+  - New `/index.html` as admin dashboard (landing page)
+  - Clear visual hierarchy with card-based navigation
+  - Informative descriptions for each tool
+  - "Why WebSocket?" educational content
+  - Endpoint comparison with use case guidance
+
+### Changed
+
+- **📂 Project Organization** - Cleaner root directory
+  - Moved `postman-collection.json` → `docs/tools/postman-collection.json`
+  - Moved `postman-environment.json` → `docs/tools/postman-environment.json`
+  - Moved `prisma.config.ts` → `prisma/prisma.config.ts`
+  - Updated all documentation references to new file locations
+
+- **🗑️ Removed Outdated Files**
+  - Deleted `CODE_REVIEW.old.md` (superseded by `CODE_REVIEW.md`)
+  - Deleted `REVIEW_SUMMARY.md` (info consolidated in `CODE_REVIEW.md`)
+  - Added `coverage.lcov` to `.gitignore` (build artifact)
+
+- **📄 Documentation Updates**
+  - Updated `docs/POSTMAN_TESTING.md` with new file paths
+  - Updated `docs/api/QUICK_REFERENCE.md` with new file paths
+  - Updated `docs/OPENAPI_TOOLING.md` with new file paths
+
+### Highlights
+
+This release focuses on **showcasing the power and versatility** of Adblock Compiler:
+
+- **User-Friendly**: New admin dashboard makes it easy to discover features
+- **Real-time**: Live metrics and notifications keep users informed
+- **Educational**: Built-in guidance on when to use each endpoint
+- **Professional**: Polished UI demonstrates production-ready quality
+- **Organized**: Clean project structure improves maintainability
+
 ## [Unreleased]
 
 ### Added

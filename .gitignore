@@ -44,3 +44,4 @@ examples/whitelist/filter.txt
 .env
 .env.local
 .env.*.local
+coverage.lcov
