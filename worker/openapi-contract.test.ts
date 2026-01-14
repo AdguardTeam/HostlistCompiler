@@ -1,6 +1,6 @@
 /**
  * OpenAPI Contract Validation Tests
- * 
+ *
  * These tests validate that the actual API responses conform to the OpenAPI specification.
  * Run these tests against a live server to ensure contract compliance.
  */

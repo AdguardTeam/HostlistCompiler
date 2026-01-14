@@ -2,7 +2,7 @@
 
 /**
  * OpenAPI Specification Validator
- * 
+ *
  * Validates the openapi.yaml file against the OpenAPI 3.0 specification.
  * Also performs additional checks for consistency and best practices.
  */
@@ -63,7 +63,7 @@ async function validateOpenAPI(): Promise<ValidationResult> {
     } else {
         console.log(`✅ Title: ${spec.info.title}`);
         console.log(`✅ Version: ${spec.info.version}`);
-        
+
         if (!spec.info.title) {
             result.errors.push('Missing info.title');
             result.valid = false;
@@ -104,12 +104,12 @@ async function validateOpenAPI(): Promise<ValidationResult> {
 
         for (const [path, pathItem] of Object.entries(spec.paths)) {
             const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
-            
+
             for (const method of methods) {
                 if ((pathItem as any)[method]) {
                     operationCount++;
                     const operation = (pathItem as any)[method];
-                    
+
                     // Check operationId
                     if (operation.operationId) {
                         if (operationIds.has(operation.operationId)) {
@@ -132,9 +132,7 @@ async function validateOpenAPI(): Promise<ValidationResult> {
                         result.valid = false;
                     } else {
                         // Check for 200/201 success response
-                        const hasSuccess = Object.keys(operation.responses).some(code => 
-                            code.startsWith('2')
-                        );
+                        const hasSuccess = Object.keys(operation.responses).some((code) => code.startsWith('2'));
                         if (!hasSuccess) {
                             result.warnings.push(`${method.toUpperCase()} ${path} has no success response (2xx)`);
                         }
@@ -151,7 +149,7 @@ async function validateOpenAPI(): Promise<ValidationResult> {
         }
 
         console.log(`✅ Operations: ${operationCount} total`);
-        
+
         if (missingOperationIds.length > 0) {
             result.warnings.push(`${missingOperationIds.length} operations missing operationId`);
         }
@@ -164,7 +162,7 @@ async function validateOpenAPI(): Promise<ValidationResult> {
 
         for (const [name, schema] of Object.entries(spec.components.schemas)) {
             const schemaObj = schema as any;
-            
+
             // Check for description
             if (!schemaObj.description) {
                 result.warnings.push(`Schema "${name}" missing description`);
@@ -190,7 +188,7 @@ async function validateOpenAPI(): Promise<ValidationResult> {
     // Validate tags
     if (spec.tags) {
         console.log(`✅ Tags: ${spec.tags.length} defined`);
-        
+
         // Check if all tags used in operations are defined
         const definedTags = new Set(spec.tags.map((t: any) => t.name));
         const usedTags = new Set<string>();
@@ -205,7 +203,7 @@ async function validateOpenAPI(): Promise<ValidationResult> {
             }
         }
 
-        usedTags.forEach(tag => {
+        usedTags.forEach((tag) => {
             if (!definedTags.has(tag)) {
                 result.warnings.push(`Tag "${tag}" used but not defined in tags section`);
             }
@@ -274,13 +272,13 @@ function printResults(result: ValidationResult): void {
 
     if (result.errors.length > 0) {
         console.log('❌ ERRORS:\n');
-        result.errors.forEach(error => console.log(`  • ${error}`));
+        result.errors.forEach((error) => console.log(`  • ${error}`));
         console.log();
     }
 
     if (result.warnings.length > 0) {
         console.log('⚠️  WARNINGS:\n');
-        result.warnings.forEach(warning => console.log(`  • ${warning}`));
+        result.warnings.forEach((warning) => console.log(`  • ${warning}`));
         console.log();
     }
 

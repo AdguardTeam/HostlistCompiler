@@ -7,12 +7,7 @@
 
 import { createTracingContext, WorkerCompiler } from '../src/index.ts';
 import type { Env } from './worker.ts';
-import type {
-    ClientMessage,
-    CompilationSession,
-    ServerMessage,
-    WebSocketConnectionState,
-} from '../src/types/websocket.ts';
+import type { ClientMessage, CompilationSession, ServerMessage, WebSocketConnectionState } from '../src/types/websocket.ts';
 
 /**
  * WebSocket handler configuration
@@ -91,9 +86,7 @@ function setupWebSocketHandlers(
     // Handle incoming messages
     ws.addEventListener('message', async (event) => {
         try {
-            const data = typeof event.data === 'string'
-                ? event.data
-                : await event.data.text();
+            const data = typeof event.data === 'string' ? event.data : await event.data.text();
 
             // Check message size
             if (data.length > WS_CONFIG.MAX_MESSAGE_SIZE) {
@@ -207,7 +200,7 @@ async function handleCompileRequest(
     ws: WebSocket,
     message: ClientMessage & { type: 'compile' },
     state: WebSocketConnectionState,
-    env: Env,
+    _env: Env,
 ): Promise<void> {
     const { sessionId, configuration, preFetchedContent, benchmark } = message;
 

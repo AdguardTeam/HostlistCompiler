@@ -92,7 +92,7 @@ export interface EventMessage extends WebSocketMessage {
     /** Session ID this event belongs to */
     sessionId: string;
     /** Event type (matches SSE event names) */
-    eventType: 
+    eventType:
         | 'log'
         | 'source:start'
         | 'source:complete'
