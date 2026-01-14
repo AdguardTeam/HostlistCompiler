@@ -1,6 +1,6 @@
 {
     "name": "adblock-compiler",
-    "version": "0.7.18",
+    "version": "0.7.19",
     "description": "Compiler-as-a-Service for adblock filter lists",
     "type": "module",
     "scripts": {

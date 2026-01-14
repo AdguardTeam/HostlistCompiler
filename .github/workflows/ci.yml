@@ -43,8 +43,11 @@ jobs:
             - name: Format check
               run: deno fmt --check
 
+            - name: Install dependencies
+              run: deno install
+
             - name: Type check
-              run: deno check src/index.ts
+              run: deno check src/index.ts worker/tail.ts
 
             - name: Test with coverage
               run: |
