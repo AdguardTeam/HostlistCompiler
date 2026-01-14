@@ -38,6 +38,7 @@ export class AdblockCompiler {
 
 import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
+import { handleWebSocketUpgrade } from './websocket.ts';
 
 /**
  * Environment bindings for the worker.
@@ -774,8 +775,26 @@ async function handleCompileStream(
 
             const result = await compiler.compileWithMetrics(configuration, benchmark ?? false);
 
-            // Emit diagnostics to tail worker
-            if (result.diagnostics) {
+            // Send diagnostic events to client via SSE
+            if (result.diagnostics && result.diagnostics.length > 0) {
+                for (const diagEvent of result.diagnostics) {
+                    // Categorize and emit diagnostic events
+                    switch (diagEvent.category) {
+                        case 'cache':
+                            sendEvent('cache', diagEvent);
+                            break;
+                        case 'network':
+                            sendEvent('network', diagEvent);
+                            break;
+                        case 'performance':
+                            sendEvent('metric', diagEvent);
+                            break;
+                        default:
+                            sendEvent('diagnostic', diagEvent);
+                    }
+                }
+                
+                // Also emit diagnostics to tail worker for logging
                 emitDiagnosticsToTailWorker(result.diagnostics);
             }
 
@@ -1352,6 +1371,7 @@ function handleInfo(env: Env): Response {
             'POST /compile/batch': 'Compile multiple filter lists in parallel',
             'POST /compile/async': 'Queue a compilation job for async processing',
             'POST /compile/batch/async': 'Queue multiple compilations for async processing',
+            'GET /ws/compile': 'WebSocket endpoint for bidirectional real-time compilation',
         },
         example: {
             method: 'POST',
@@ -2225,6 +2245,11 @@ export default {
             if (pathname === '/compile/batch') {
                 return handleCompileBatch(request, env);
             }
+        }
+
+        // WebSocket endpoint
+        if (pathname === '/ws/compile' && request.method === 'GET') {
+            return handleWebSocketUpgrade(request, env);
         }
 
         // Async compilation endpoints (Turnstile verified)

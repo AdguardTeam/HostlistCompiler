@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test - Adblock Compiler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .status-connected {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-disconnected {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-connecting {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            color: #2d3748;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+
+        .events-log {
+            height: 500px;
+            overflow-y: auto;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .event-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .event-welcome {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        .event-compile-started {
+            background: #dcfce7;
+            border-color: #10b981;
+        }
+
+        .event-event {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .event-compile-complete {
+            background: #d1fae5;
+            border-color: #059669;
+        }
+
+        .event-error {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .event-diagnostic {
+            background: #e0e7ff;
+            border-color: #6366f1;
+        }
+
+        .event-cache {
+            background: #ddd6fe;
+            border-color: #8b5cf6;
+        }
+
+        .event-network {
+            background: #fce7f3;
+            border-color: #ec4899;
+        }
+
+        .event-metric {
+            background: #ccfbf1;
+            border-color: #14b8a6;
+        }
+
+        .event-timestamp {
+            color: #6b7280;
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .event-type {
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .event-data {
+            margin-top: 4px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .stat-card {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .session-id {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        .quick-config {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .quick-config button {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .code-block {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔌 WebSocket Test - Adblock Compiler</h1>
+            <div>
+                <span id="status" class="status-badge status-disconnected">Disconnected</span>
+                <span id="connectionId" style="margin-left: 12px; color: #6b7280; font-size: 14px;"></span>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Connection Control -->
+            <div class="card">
+                <h2>🔗 Connection</h2>
+                <div class="controls">
+                    <div>
+                        <label class="input-label">WebSocket URL</label>
+                        <input type="text" id="wsUrl" value="ws://localhost:8787/ws/compile" placeholder="ws://localhost:8787/ws/compile">
+                    </div>
+                    <div class="control-group">
+                        <button class="btn-success" id="connectBtn" onclick="connect()">Connect</button>
+                        <button class="btn-danger" id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span id="eventCount" class="stat-value">0</span>
+                        <span class="stat-label">Events</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="sessionCount" class="stat-value">0</span>
+                        <span class="stat-label">Sessions</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="ruleCount" class="stat-value">0</span>
+                        <span class="stat-label">Rules</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compilation Control -->
+            <div class="card">
+                <h2>⚙️ Compile Request</h2>
+                <div class="controls">
+                    <div>
+                        <label class="input-label">Session ID</label>
+                        <input type="text" id="sessionId" value="test-session-1" placeholder="Unique session ID">
+                    </div>
+                    <div>
+                        <label class="input-label">Configuration (JSON)</label>
+                        <textarea id="configJson" placeholder='{"name":"Test","sources":[{"source":"https://..."}]}'></textarea>
+                    </div>
+                    <div class="control-group">
+                        <button class="btn-primary" id="compileBtn" onclick="compile()" disabled>🚀 Compile</button>
+                        <button class="btn-danger" id="cancelBtn" onclick="cancel()" disabled>❌ Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Quick Configs -->
+                <div class="quick-config">
+                    <label class="input-label">Quick Configs</label>
+                    <button class="btn-secondary" onclick="loadSimpleConfig()">Simple Test</button>
+                    <button class="btn-secondary" onclick="loadMultiSourceConfig()">Multi-Source</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Log -->
+        <div class="card">
+            <h2>
+                📋 Event Stream
+                <button class="btn-secondary" onclick="clearEvents()" style="margin-left: auto; flex: 0;">Clear</button>
+            </h2>
+            <div id="eventsLog" class="events-log"></div>
+        </div>
+
+        <!-- Example Code -->
+        <div class="card">
+            <h2>💻 Example Code</h2>
+            <div class="code-block" id="exampleCode"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let eventCount = 0;
+        let sessionCount = 0;
+        let totalRules = 0;
+        let activeSessions = new Set();
+
+        // Initialize example code
+        document.getElementById('exampleCode').textContent = `// JavaScript WebSocket Client Example
+const ws = new WebSocket('ws://localhost:8787/ws/compile');
+
+ws.onopen = () => {
+    // Send compile request
+    ws.send(JSON.stringify({
+        type: 'compile',
+        sessionId: 'my-session-1',
+        configuration: {
+            name: 'My Filter List',
+            sources: [
+                { source: 'https://example.com/filters.txt' }
+            ],
+            transformations: ['Deduplicate', 'RemoveEmptyLines']
+        },
+        benchmark: true
+    }));
+};
+
+ws.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    console.log('Received:', message);
+    
+    // Handle different message types
+    switch (message.type) {
+        case 'welcome':
+            console.log('Connected:', message.connectionId);
+            break;
+        case 'compile:started':
+            console.log('Compilation started:', message.sessionId);
+            break;
+        case 'event':
+            console.log('Event:', message.eventType, message.data);
+            break;
+        case 'compile:complete':
+            console.log('Complete:', message.ruleCount, 'rules');
+            break;
+    }
+};`;
+
+        function connect() {
+            const url = document.getElementById('wsUrl').value;
+            updateStatus('connecting', 'Connecting...');
+            
+            try {
+                ws = new WebSocket(url);
+                
+                ws.onopen = () => {
+                    updateStatus('connected', 'Connected');
+                    document.getElementById('connectBtn').disabled = true;
+                    document.getElementById('disconnectBtn').disabled = false;
+                    document.getElementById('compileBtn').disabled = false;
+                    logEvent('system', 'WebSocket connection opened');
+                };
+                
+                ws.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    handleMessage(message);
+                };
+                
+                ws.onerror = (error) => {
+                    logEvent('error', 'WebSocket error', error);
+                };
+                
+                ws.onclose = () => {
+                    updateStatus('disconnected', 'Disconnected');
+                    document.getElementById('connectBtn').disabled = false;
+                    document.getElementById('disconnectBtn').disabled = true;
+                    document.getElementById('compileBtn').disabled = true;
+                    document.getElementById('cancelBtn').disabled = true;
+                    logEvent('system', 'WebSocket connection closed');
+                };
+            } catch (error) {
+                updateStatus('disconnected', 'Failed to connect');
+                logEvent('error', 'Connection failed', error.message);
+            }
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function compile() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Not connected to WebSocket');
+                return;
+            }
+
+            const sessionId = document.getElementById('sessionId').value;
+            const configText = document.getElementById('configJson').value;
+
+            if (!sessionId) {
+                alert('Please enter a session ID');
+                return;
+            }
+
+            if (!configText) {
+                alert('Please enter a configuration');
+                return;
+            }
+
+            try {
+                const configuration = JSON.parse(configText);
+                
+                const message = {
+                    type: 'compile',
+                    sessionId: sessionId,
+                    configuration: configuration,
+                    benchmark: true
+                };
+
+                ws.send(JSON.stringify(message));
+                logEvent('sent', 'Compile request sent', message);
+                
+                activeSessions.add(sessionId);
+                sessionCount = activeSessions.size;
+                updateStats();
+
+                document.getElementById('cancelBtn').disabled = false;
+            } catch (error) {
+                alert('Invalid JSON configuration: ' + error.message);
+            }
+        }
+
+        function cancel() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                return;
+            }
+
+            const sessionId = document.getElementById('sessionId').value;
+            const message = {
+                type: 'cancel',
+                sessionId: sessionId
+            };
+
+            ws.send(JSON.stringify(message));
+            logEvent('sent', 'Cancel request sent', message);
+        }
+
+        function handleMessage(message) {
+            eventCount++;
+            updateStats();
+
+            switch (message.type) {
+                case 'welcome':
+                    document.getElementById('connectionId').textContent = `Connection: ${message.connectionId}`;
+                    logEvent('welcome', 'Welcome message', message);
+                    break;
+
+                case 'compile:started':
+                    logEvent('compile-started', 'Compilation started', message);
+                    break;
+
+                case 'event':
+                    const eventClass = message.eventType.replace(/:/g, '-');
+                    logEvent(eventClass, `Event: ${message.eventType}`, message.data);
+                    break;
+
+                case 'compile:complete':
+                    totalRules += message.ruleCount || 0;
+                    updateStats();
+                    logEvent('compile-complete', 'Compilation complete', message);
+                    document.getElementById('cancelBtn').disabled = true;
+                    break;
+
+                case 'compile:error':
+                    logEvent('error', 'Compilation error', message);
+                    document.getElementById('cancelBtn').disabled = true;
+                    break;
+
+                case 'compile:cancelled':
+                    logEvent('error', 'Compilation cancelled', message);
+                    document.getElementById('cancelBtn').disabled = true;
+                    break;
+
+                case 'error':
+                    logEvent('error', 'Error message', message);
+                    break;
+
+                case 'pong':
+                    // Don't log pongs to reduce noise
+                    break;
+
+                default:
+                    logEvent('event', 'Unknown message', message);
+            }
+        }
+
+        function logEvent(type, title, data) {
+            const log = document.getElementById('eventsLog');
+            const item = document.createElement('div');
+            item.className = `event-item event-${type}`;
+
+            const timestamp = new Date().toLocaleTimeString();
+            let html = `
+                <div>
+                    <span class="event-timestamp">${timestamp}</span>
+                    <span class="event-type">${title}</span>
+                </div>
+            `;
+
+            if (data) {
+                html += `<div class="event-data">${JSON.stringify(data, null, 2)}</div>`;
+            }
+
+            item.innerHTML = html;
+            log.insertBefore(item, log.firstChild);
+
+            // Limit to 100 events
+            while (log.children.length > 100) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        function updateStatus(status, text) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = text;
+            statusEl.className = `status-badge status-${status}`;
+        }
+
+        function updateStats() {
+            document.getElementById('eventCount').textContent = eventCount;
+            document.getElementById('sessionCount').textContent = sessionCount;
+            document.getElementById('ruleCount').textContent = totalRules;
+        }
+
+        function clearEvents() {
+            document.getElementById('eventsLog').innerHTML = '';
+            eventCount = 0;
+            updateStats();
+        }
+
+        function loadSimpleConfig() {
+            const config = {
+                name: 'Simple Test List',
+                sources: [
+                    {
+                        name: 'AdGuard DNS Filter',
+                        source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                        transformations: ['RemoveComments', 'Validate']
+                    }
+                ],
+                transformations: ['Deduplicate', 'RemoveEmptyLines']
+            };
+
+            document.getElementById('configJson').value = JSON.stringify(config, null, 2);
+            document.getElementById('sessionId').value = 'session-' + Date.now();
+        }
+
+        function loadMultiSourceConfig() {
+            const config = {
+                name: 'Multi-Source Test',
+                sources: [
+                    {
+                        name: 'AdGuard DNS',
+                        source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                        transformations: ['RemoveComments']
+                    },
+                    {
+                        name: 'EasyList',
+                        source: 'https://easylist.to/easylist/easylist.txt',
+                        transformations: ['RemoveComments', 'Validate']
+                    }
+                ],
+                transformations: ['Deduplicate', 'Compress', 'RemoveEmptyLines']
+            };
+
+            document.getElementById('configJson').value = JSON.stringify(config, null, 2);
+            document.getElementById('sessionId').value = 'multi-' + Date.now();
+        }
+
+        // Load simple config by default
+        loadSimpleConfig();
+
+        // Send ping every 30 seconds
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
