@@ -210,8 +210,11 @@ Generate coverage reports:
 # Generate coverage
 deno task test:coverage
 
-# View coverage report
-deno coverage coverage --html
+# View coverage report (HTML)
+deno coverage coverage --html --include="^file:"
+
+# Generate lcov report for CI
+deno coverage coverage --lcov --output=coverage.lcov --include="^file:"
 ```
 
 ## Troubleshooting

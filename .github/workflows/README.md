@@ -194,7 +194,7 @@ deno task test
 
 # Run tests with coverage
 deno task test:coverage
-deno coverage coverage --lcov --output=coverage.lcov
+deno coverage coverage --lcov --output=coverage.lcov --include="^file:"
 
 # Run benchmarks
 deno bench --allow-read --allow-write --allow-net --allow-env

@@ -47,7 +47,7 @@ deno test worker/queue.integration.test.ts
 
 ```bash
 deno test --coverage=coverage worker/queue.test.ts worker/queue.integration.test.ts
-deno coverage coverage --lcov
+deno coverage coverage --lcov --include="^file:"
 ```
 
 ## Test Coverage

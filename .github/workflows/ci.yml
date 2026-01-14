@@ -49,7 +49,7 @@ jobs:
             - name: Test with coverage
               run: |
                   deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv --coverage=coverage
-                  deno coverage coverage --lcov --output=coverage.lcov
+                  deno coverage coverage --lcov --output=coverage.lcov --include="^file:"
 
             - name: Upload coverage
               if: github.event_name == 'push'
