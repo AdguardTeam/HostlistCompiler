@@ -1,6 +1,6 @@
 {
   "name": "adblock-compiler",
-  "version": "0.7.22",
+  "version": "0.7.23",
   "description": "Cloudflare Worker for compiling adblock filter lists",
   "type": "module",
   "scripts": {

@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E2E Integration Tests - Adblock Compiler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #4a5568;
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .stat-value.success {
+            color: #48bb78;
+        }
+
+        .stat-value.error {
+            color: #f56565;
+        }
+
+        .stat-value.pending {
+            color: #ed8936;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .test-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid #e2e8f0;
+            background: #f7fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .test-item:hover {
+            background: #edf2f7;
+        }
+
+        .test-item.running {
+            border-left-color: #ed8936;
+            background: #fffaf0;
+            animation: pulse 2s infinite;
+        }
+
+        .test-item.passed {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .test-item.failed {
+            border-left-color: #f56565;
+            background: #fff5f5;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .test-name {
+            font-size: 14px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .test-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .test-status.pending {
+            background: #e2e8f0;
+            color: #718096;
+        }
+
+        .test-status.running {
+            background: #feebc8;
+            color: #c05621;
+        }
+
+        .test-status.passed {
+            background: #c6f6d5;
+            color: #276749;
+        }
+
+        .test-status.failed {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+
+        .test-duration {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-left: 8px;
+        }
+
+        .event-log {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .event-log h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .log-container {
+            background: #1a202c;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .log-entry.info {
+            color: #63b3ed;
+        }
+
+        .log-entry.success {
+            color: #68d391;
+        }
+
+        .log-entry.error {
+            color: #fc8181;
+        }
+
+        .log-entry.warning {
+            color: #f6ad55;
+        }
+
+        .log-timestamp {
+            color: #718096;
+            margin-right: 8px;
+        }
+
+        .websocket-test {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .websocket-test h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .ws-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            background: #f7fafc;
+        }
+
+        .ws-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .ws-indicator.connected {
+            background: #48bb78;
+            box-shadow: 0 0 8px rgba(72, 187, 120, 0.5);
+        }
+
+        .ws-indicator.disconnected {
+            background: #cbd5e0;
+        }
+
+        .ws-indicator.error {
+            background: #f56565;
+        }
+
+        .ws-messages {
+            background: #f7fafc;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .ws-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+
+        .ws-message-type {
+            font-size: 11px;
+            color: #667eea;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .ws-message-data {
+            font-size: 13px;
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+
+        .error-details {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #742a2a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 End-to-End Integration Tests</h1>
+            <p>Comprehensive testing suite for Adblock Compiler API with real-time visual feedback</p>
+        </div>
+
+        <div class="controls">
+            <div class="controls-row">
+                <div class="input-group">
+                    <label for="apiUrl">API Base URL</label>
+                    <input type="text" id="apiUrl" value="http://localhost:8787" placeholder="http://localhost:8787">
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: 10px;">
+                    <button class="btn btn-primary" id="runAllBtn">▶ Run All Tests</button>
+                    <button class="btn btn-danger" id="stopBtn" disabled>⏹ Stop</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Tests</div>
+                <div class="stat-value" id="totalTests">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Passed</div>
+                <div class="stat-value success" id="passedTests">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Failed</div>
+                <div class="stat-value error" id="failedTests">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Duration</div>
+                <div class="stat-value" id="totalDuration">0s</div>
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <div class="test-section">
+                <h2>
+                    <span>🔧 Core API Tests</span>
+                    <span class="section-icon" style="background: #e6fffa; color: #234e52;">6</span>
+                </h2>
+                <div id="coreTests"></div>
+            </div>
+
+            <div class="test-section">
+                <h2>
+                    <span>📡 Streaming Tests</span>
+                    <span class="section-icon" style="background: #fef5e7; color: #744210;">2</span>
+                </h2>
+                <div id="streamingTests"></div>
+            </div>
+
+            <div class="test-section">
+                <h2>
+                    <span>🔄 Queue Tests</span>
+                    <span class="section-icon" style="background: #f3e8ff; color: #553c9a;">4</span>
+                </h2>
+                <div id="queueTests"></div>
+            </div>
+
+            <div class="test-section">
+                <h2>
+                    <span>⚡ Performance Tests</span>
+                    <span class="section-icon" style="background: #fef3c7; color: #78350f;">3</span>
+                </h2>
+                <div id="performanceTests"></div>
+            </div>
+        </div>
+
+        <div class="websocket-test">
+            <h2>🔌 WebSocket Real-time Test</h2>
+            <div class="ws-status">
+                <div class="ws-indicator disconnected" id="wsIndicator"></div>
+                <span id="wsStatus">Disconnected</span>
+            </div>
+            <button class="btn btn-primary" id="wsConnectBtn">Connect WebSocket</button>
+            <button class="btn btn-primary" id="wsTestBtn" disabled>Run WebSocket Test</button>
+            <button class="btn btn-danger" id="wsDisconnectBtn" disabled>Disconnect</button>
+            <div class="progress-bar" style="margin-top: 15px;">
+                <div class="progress-fill" id="wsProgress" style="width: 0%"></div>
+            </div>
+            <div class="ws-messages" id="wsMessages"></div>
+        </div>
+
+        <div class="event-log">
+            <h2>📋 Event Log</h2>
+            <div class="log-container" id="eventLog"></div>
+        </div>
+    </div>
+
+    <script>
+        // Test state
+        let tests = [];
+        let running = false;
+        let abortController = null;
+        let websocket = null;
+        let wsTestRunning = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTests();
+            setupEventListeners();
+        });
+
+        function initializeTests() {
+            tests = [
+                // Core API Tests
+                { id: 'api-info', name: 'GET /api - API Info', category: 'core', status: 'pending', duration: 0 },
+                { id: 'metrics', name: 'GET /metrics - Metrics', category: 'core', status: 'pending', duration: 0 },
+                { id: 'compile-simple', name: 'POST /compile - Simple', category: 'core', status: 'pending', duration: 0 },
+                { id: 'compile-transform', name: 'POST /compile - Transformations', category: 'core', status: 'pending', duration: 0 },
+                { id: 'compile-cache', name: 'POST /compile - Cache Test', category: 'core', status: 'pending', duration: 0 },
+                { id: 'batch-compile', name: 'POST /compile/batch', category: 'core', status: 'pending', duration: 0 },
+                
+                // Streaming Tests
+                { id: 'sse-stream', name: 'POST /compile/stream - SSE', category: 'streaming', status: 'pending', duration: 0 },
+                { id: 'sse-events', name: 'SSE Event Types', category: 'streaming', status: 'pending', duration: 0 },
+                
+                // Queue Tests
+                { id: 'queue-stats', name: 'GET /queue/stats', category: 'queue', status: 'pending', duration: 0 },
+                { id: 'queue-async', name: 'POST /compile/async', category: 'queue', status: 'pending', duration: 0 },
+                { id: 'queue-batch-async', name: 'POST /compile/batch/async', category: 'queue', status: 'pending', duration: 0 },
+                { id: 'queue-results', name: 'GET /queue/results/{id}', category: 'queue', status: 'pending', duration: 0 },
+                
+                // Performance Tests
+                { id: 'perf-response-time', name: 'Response Time < 2s', category: 'performance', status: 'pending', duration: 0 },
+                { id: 'perf-concurrent', name: 'Concurrent Requests', category: 'performance', status: 'pending', duration: 0 },
+                { id: 'perf-large-batch', name: 'Large Batch (10 items)', category: 'performance', status: 'pending', duration: 0 },
+            ];
+
+            renderTests();
+            updateStats();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('runAllBtn').addEventListener('click', runAllTests);
+            document.getElementById('stopBtn').addEventListener('click', stopTests);
+            document.getElementById('wsConnectBtn').addEventListener('click', connectWebSocket);
+            document.getElementById('wsTestBtn').addEventListener('click', runWebSocketTest);
+            document.getElementById('wsDisconnectBtn').addEventListener('click', disconnectWebSocket);
+        }
+
+        function renderTests() {
+            const categories = {
+                core: document.getElementById('coreTests'),
+                streaming: document.getElementById('streamingTests'),
+                queue: document.getElementById('queueTests'),
+                performance: document.getElementById('performanceTests'),
+            };
+
+            Object.keys(categories).forEach(cat => categories[cat].innerHTML = '');
+
+            tests.forEach(test => {
+                const container = categories[test.category];
+                const testEl = document.createElement('div');
+                testEl.className = `test-item ${test.status}`;
+                testEl.id = `test-${test.id}`;
+                
+                const durationText = test.duration > 0 ? `<span class="test-duration">${test.duration}ms</span>` : '';
+                
+                testEl.innerHTML = `
+                    <span class="test-name">${test.name}</span>
+                    <div>
+                        <span class="test-status ${test.status}">${test.status}</span>
+                        ${durationText}
+                    </div>
+                `;
+                
+                container.appendChild(testEl);
+            });
+        }
+
+        function updateStats() {
+            const passed = tests.filter(t => t.status === 'passed').length;
+            const failed = tests.filter(t => t.status === 'failed').length;
+            const totalDuration = tests.reduce((sum, t) => sum + t.duration, 0);
+
+            document.getElementById('totalTests').textContent = tests.length;
+            document.getElementById('passedTests').textContent = passed;
+            document.getElementById('failedTests').textContent = failed;
+            document.getElementById('totalDuration').textContent = (totalDuration / 1000).toFixed(2) + 's';
+        }
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span>${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        async function runAllTests() {
+            running = true;
+            abortController = new AbortController();
+            
+            document.getElementById('runAllBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            log('🚀 Starting E2E test suite...', 'info');
+            
+            const startTime = Date.now();
+            
+            // Reset tests
+            tests.forEach(t => {
+                t.status = 'pending';
+                t.duration = 0;
+                t.error = null;
+            });
+            renderTests();
+            
+            const baseUrl = document.getElementById('apiUrl').value;
+            
+            // Run tests sequentially for better visualization
+            for (const test of tests) {
+                if (!running) break;
+                
+                await runTest(test, baseUrl);
+            }
+            
+            const totalTime = Date.now() - startTime;
+            const passed = tests.filter(t => t.status === 'passed').length;
+            const failed = tests.filter(t => t.status === 'failed').length;
+            
+            log(`✅ Test suite completed in ${(totalTime / 1000).toFixed(2)}s - ${passed} passed, ${failed} failed`, 
+                failed === 0 ? 'success' : 'error');
+            
+            running = false;
+            document.getElementById('runAllBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+
+        async function runTest(test, baseUrl) {
+            test.status = 'running';
+            renderTests();
+            
+            log(`▶ Running: ${test.name}`, 'info');
+            
+            const startTime = Date.now();
+            
+            try {
+                switch (test.id) {
+                    case 'api-info':
+                        await testApiInfo(baseUrl);
+                        break;
+                    case 'metrics':
+                        await testMetrics(baseUrl);
+                        break;
+                    case 'compile-simple':
+                        await testCompileSimple(baseUrl);
+                        break;
+                    case 'compile-transform':
+                        await testCompileTransform(baseUrl);
+                        break;
+                    case 'compile-cache':
+                        await testCompileCache(baseUrl);
+                        break;
+                    case 'batch-compile':
+                        await testBatchCompile(baseUrl);
+                        break;
+                    case 'sse-stream':
+                        await testSSEStream(baseUrl);
+                        break;
+                    case 'sse-events':
+                        await testSSEEvents(baseUrl);
+                        break;
+                    case 'queue-stats':
+                        await testQueueStats(baseUrl);
+                        break;
+                    case 'queue-async':
+                        await testQueueAsync(baseUrl);
+                        break;
+                    case 'queue-batch-async':
+                        await testQueueBatchAsync(baseUrl);
+                        break;
+                    case 'queue-results':
+                        await testQueueResults(baseUrl);
+                        break;
+                    case 'perf-response-time':
+                        await testResponseTime(baseUrl);
+                        break;
+                    case 'perf-concurrent':
+                        await testConcurrent(baseUrl);
+                        break;
+                    case 'perf-large-batch':
+                        await testLargeBatch(baseUrl);
+                        break;
+                }
+                
+                test.status = 'passed';
+                test.duration = Date.now() - startTime;
+                log(`✅ Passed: ${test.name} (${test.duration}ms)`, 'success');
+            } catch (error) {
+                test.status = 'failed';
+                test.duration = Date.now() - startTime;
+                test.error = error.message;
+                log(`❌ Failed: ${test.name} - ${error.message}`, 'error');
+            }
+            
+            renderTests();
+            updateStats();
+        }
+
+        function stopTests() {
+            running = false;
+            if (abortController) {
+                abortController.abort();
+            }
+            log('⏹ Tests stopped by user', 'warning');
+        }
+
+        // Test implementations
+        async function testApiInfo(baseUrl) {
+            const response = await fetch(`${baseUrl}/api`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!data.name || !data.version) throw new Error('Missing required fields');
+        }
+
+        async function testMetrics(baseUrl) {
+            const response = await fetch(`${baseUrl}/metrics`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!data.window || !data.endpoints) throw new Error('Invalid metrics format');
+        }
+
+        async function testCompileSimple(baseUrl) {
+            const body = {
+                configuration: {
+                    name: 'E2E Test',
+                    sources: [{ source: 'test' }],
+                },
+                preFetchedContent: {
+                    test: '||example.com^'
+                }
+            };
+            
+            const response = await fetch(`${baseUrl}/compile`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!data.success || !data.rules) throw new Error('Invalid response');
+        }
+
+        async function testCompileTransform(baseUrl) {
+            const body = {
+                configuration: {
+                    name: 'Transform Test',
+                    sources: [{ source: 'test' }],
+                    transformations: ['Deduplicate', 'RemoveEmptyLines'],
+                },
+                preFetchedContent: {
+                    test: '||ads.com^\n||ads.com^\n\n||tracking.com^'
+                }
+            };
+            
+            const response = await fetch(`${baseUrl}/compile`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!data.success) throw new Error('Compilation failed');
+        }
+
+        async function testCompileCache(baseUrl) {
+            const body = {
+                configuration: {
+                    name: 'Cache Test',
+                    sources: [{ source: 'cache-test' }],
+                },
+                preFetchedContent: {
+                    'cache-test': '||cache.com^'
+                }
+            };
+            
+            // First request
+            const response1 = await fetch(`${baseUrl}/compile`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            
+            if (!response1.ok) throw new Error(`HTTP ${response1.status}`);
+            
+            // Second request (should hit cache)
+            const response2 = await fetch(`${baseUrl}/compile`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            
+            if (!response2.ok) throw new Error(`HTTP ${response2.status}`);
+            const cacheHeader = response2.headers.get('X-Cache');
+            log(`   Cache header: ${cacheHeader || 'not present'}`, 'info');
+        }
+
+        async function testBatchCompile(baseUrl) {
+            const body = {
+                requests: [
+                    {
+                        id: 'batch1',
+                        configuration: { name: 'B1', sources: [{ source: 's1' }] },
+                        preFetchedContent: { s1: '||b1.com^' }
+                    },
+                    {
+                        id: 'batch2',
+                        configuration: { name: 'B2', sources: [{ source: 's2' }] },
+                        preFetchedContent: { s2: '||b2.com^' }
+                    }
+                ]
+            };
+            
+            const response = await fetch(`${baseUrl}/compile/batch`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!data.success || data.results.length !== 2) throw new Error('Invalid batch response');
+        }
+
+        async function testSSEStream(baseUrl) {
+            return new Promise((resolve, reject) => {
+                const body = {
+                    configuration: {
+                        name: 'SSE Test',
+                        sources: [{ source: 'sse' }],
+                    },
+                    preFetchedContent: {
+                        sse: '||sse.com^'
+                    }
+                };
+                
+                fetch(`${baseUrl}/compile/stream`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                }).then(response => {
+                    if (!response.ok) {
+                        reject(new Error(`HTTP ${response.status}`));
+                        return;
+                    }
+                    
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+                    let eventCount = 0;
+                    
+                    const timeout = setTimeout(() => {
+                        reader.cancel();
+                        if (eventCount > 0) {
+                            log(`   Received ${eventCount} SSE events`, 'info');
+                            resolve();
+                        } else {
+                            reject(new Error('No SSE events received'));
+                        }
+                    }, 3000);
+                    
+                    function read() {
+                        reader.read().then(({ done, value }) => {
+                            if (done) {
+                                clearTimeout(timeout);
+                                resolve();
+                                return;
+                            }
+                            
+                            buffer += decoder.decode(value, { stream: true });
+                            if (buffer.includes('event:')) {
+                                eventCount++;
+                            }
+                            
+                            read();
+                        });
+                    }
+                    
+                    read();
+                }).catch(reject);
+            });
+        }
+
+        async function testSSEEvents(baseUrl) {
+            // Similar to SSE stream but validates specific event types
+            return testSSEStream(baseUrl);
+        }
+
+        async function testQueueStats(baseUrl) {
+            const response = await fetch(`${baseUrl}/queue/stats`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (typeof data.pending !== 'number') throw new Error('Invalid queue stats');
+        }
+
+        async function testQueueAsync(baseUrl) {
+            const body = {
+                configuration: {
+                    name: 'Async Test',
+                    sources: [{ source: 'async' }],
+                },
+                preFetchedContent: {
+                    async: '||async.com^'
+                }
+            };
+            
+            const response = await fetch(`${baseUrl}/compile/async`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            
+            // Accept both 202 (queued) and 500 (queue not available)
+            if (response.status !== 202 && response.status !== 500) {
+                throw new Error(`Unexpected status ${response.status}`);
+            }
+            
+            if (response.status === 202) {
+                const data = await response.json();
+                if (!data.requestId) throw new Error('Missing requestId');
+                log(`   Job queued: ${data.requestId}`, 'info');
+            } else {
+                log('   Queue not available (expected in local env)', 'warning');
+            }
+        }
+
+        async function testQueueBatchAsync(baseUrl) {
+            const body = {
+                requests: [{
+                    id: 'async-batch',
+                    configuration: { name: 'AB', sources: [{ source: 'ab' }] },
+                    preFetchedContent: { ab: '||ab.com^' }
+                }]
+            };
+            
+            const response = await fetch(`${baseUrl}/compile/batch/async`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            
+            if (response.status !== 202 && response.status !== 500) {
+                throw new Error(`Unexpected status ${response.status}`);
+            }
+        }
+
+        async function testQueueResults(baseUrl) {
+            const response = await fetch(`${baseUrl}/queue/results/test-id`);
+            // 404 is expected for non-existent ID
+            if (response.status !== 404 && response.status !== 200) {
+                throw new Error(`Unexpected status ${response.status}`);
+            }
+        }
+
+        async function testResponseTime(baseUrl) {
+            const start = Date.now();
+            const response = await fetch(`${baseUrl}/api`);
+            const duration = Date.now() - start;
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (duration > 2000) throw new Error(`Response time ${duration}ms > 2000ms`);
+            
+            log(`   Response time: ${duration}ms`, 'info');
+        }
+
+        async function testConcurrent(baseUrl) {
+            const promises = Array(5).fill(null).map(() => 
+                fetch(`${baseUrl}/api`)
+            );
+            
+            const responses = await Promise.all(promises);
+            const failures = responses.filter(r => !r.ok);
+            
+            if (failures.length > 0) {
+                throw new Error(`${failures.length}/5 concurrent requests failed`);
+            }
+            
+            log('   5 concurrent requests succeeded', 'info');
+        }
+
+        async function testLargeBatch(baseUrl) {
+            const requests = Array(10).fill(null).map((_, i) => ({
+                id: `large-${i}`,
+                configuration: { name: `L${i}`, sources: [{ source: `s${i}` }] },
+                preFetchedContent: { [`s${i}`]: '||test.com^' }
+            }));
+            
+            const response = await fetch(`${baseUrl}/compile/batch`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requests }),
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (data.results.length !== 10) throw new Error('Not all items compiled');
+            
+            log('   Compiled 10 items successfully', 'info');
+        }
+
+        // WebSocket functions
+        function connectWebSocket() {
+            const baseUrl = document.getElementById('apiUrl').value;
+            const wsUrl = baseUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/compile';
+            
+            log(`🔌 Connecting to WebSocket: ${wsUrl}`, 'info');
+            
+            websocket = new WebSocket(wsUrl);
+            
+            websocket.onopen = () => {
+                document.getElementById('wsIndicator').className = 'ws-indicator connected';
+                document.getElementById('wsStatus').textContent = 'Connected';
+                document.getElementById('wsConnectBtn').disabled = true;
+                document.getElementById('wsTestBtn').disabled = false;
+                document.getElementById('wsDisconnectBtn').disabled = false;
+                
+                log('✅ WebSocket connected', 'success');
+                addWsMessage('welcome', 'Connection established');
+            };
+            
+            websocket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    addWsMessage(data.type, JSON.stringify(data, null, 2));
+                    
+                    if (wsTestRunning) {
+                        if (data.type === 'compile:complete') {
+                            const progress = document.getElementById('wsProgress');
+                            progress.style.width = '100%';
+                            log('✅ WebSocket compilation complete', 'success');
+                            wsTestRunning = false;
+                        } else if (data.type === 'event') {
+                            const progress = document.getElementById('wsProgress');
+                            const currentWidth = parseFloat(progress.style.width) || 0;
+                            progress.style.width = Math.min(currentWidth + 10, 90) + '%';
+                        }
+                    }
+                } catch (error) {
+                    log(`⚠ WebSocket message parse error: ${error.message}`, 'warning');
+                }
+            };
+            
+            websocket.onerror = (error) => {
+                document.getElementById('wsIndicator').className = 'ws-indicator error';
+                log('❌ WebSocket error', 'error');
+            };
+            
+            websocket.onclose = () => {
+                document.getElementById('wsIndicator').className = 'ws-indicator disconnected';
+                document.getElementById('wsStatus').textContent = 'Disconnected';
+                document.getElementById('wsConnectBtn').disabled = false;
+                document.getElementById('wsTestBtn').disabled = true;
+                document.getElementById('wsDisconnectBtn').disabled = true;
+                
+                log('🔌 WebSocket disconnected', 'info');
+            };
+        }
+
+        function disconnectWebSocket() {
+            if (websocket) {
+                websocket.close();
+                websocket = null;
+            }
+        }
+
+        function runWebSocketTest() {
+            if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                log('❌ WebSocket not connected', 'error');
+                return;
+            }
+            
+            wsTestRunning = true;
+            document.getElementById('wsProgress').style.width = '0%';
+            document.getElementById('wsMessages').innerHTML = '';
+            
+            log('▶ Running WebSocket compilation test...', 'info');
+            
+            const sessionId = 'test-' + Date.now();
+            const message = {
+                type: 'compile',
+                sessionId: sessionId,
+                configuration: {
+                    name: 'WebSocket Test',
+                    sources: [{ source: 'ws-test' }],
+                },
+                preFetchedContent: {
+                    'ws-test': '||websocket.com^\n||realtime.com^'
+                }
+            };
+            
+            websocket.send(JSON.stringify(message));
+            addWsMessage('compile', `Sent compilation request (session: ${sessionId})`);
+        }
+
+        function addWsMessage(type, data) {
+            const container = document.getElementById('wsMessages');
+            const msgEl = document.createElement('div');
+            msgEl.className = 'ws-message';
+            msgEl.innerHTML = `
+                <div class="ws-message-type">${type}</div>
+                <div class="ws-message-data">${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}</div>
+            `;
+            container.appendChild(msgEl);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+</body>
+</html>

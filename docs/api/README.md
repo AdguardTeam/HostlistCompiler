@@ -1,447 +1,554 @@
-# Adblock Compiler API Reference
+# Adblock Compiler API
 
-> **Compiler-as-a-Service**: Transform and optimize adblock filter lists through a simple REST API
+**Version:** 2.0.0
 
-## Base URL
+## Description
 
-**Production**: `https://adblock-compiler.jayson-knight.workers.dev`
+**Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.
 
-**Local Development**: `http://localhost:8787`
+## Features
+- 🎯 Multi-Source Compilation
+- ⚡ Performance (Gzip compression, caching, request deduplication)
+- 🔄 Circuit Breaker with retry logic
+- 📊 Visual Diff between compilations
+- 📡 Real-time progress via SSE and WebSocket
+- 🎪 Batch Processing
+- 🌍 Universal (Deno, Node.js, Cloudflare Workers, browsers)
+
+## Links
+- [GitHub Repository](https://github.com/jaypatrick/adblock-compiler)
+- [Documentation](https://github.com/jaypatrick/adblock-compiler/tree/master/docs)
+- [Web UI](https://adblock-compiler.jayson-knight.workers.dev/)
+
+
+## Servers
+
+- **Production server**: `https://adblock-compiler.jayson-knight.workers.dev`
+- **Local development server**: `http://localhost:8787`
 
 ## Endpoints
 
-### GET /api
+### Metrics
 
-Returns API information, available endpoints, and usage examples.
+#### `GET /api`
 
-**Response**:
+**Summary:** Get API information
 
-```json
-{
-  "name": "Hostlist Compiler Worker",
-  "version": "2.0.0",
-  "endpoints": {
-    "GET /": "Web UI for interactive compilation",
-    "GET /api": "API information (this endpoint)",
-    "POST /compile": "Compile a filter list (JSON response)",
-    "POST /compile/stream": "Compile with real-time progress (SSE)",
-    "POST /compile/batch": "Compile multiple filter lists in parallel"
-  },
-  "example": {
-    "method": "POST",
-    "url": "/compile",
-    "body": { ... }
-  }
-}
-```
+Returns API version, available endpoints, and usage examples
+
+**Operation ID:** `getApiInfo`
+
+**Responses:**
+
+- `200`: API information
 
 ---
 
-### POST /compile
+#### `GET /metrics`
 
-Compile filter lists and return results as JSON.
+**Summary:** Get performance metrics
 
-**Request Body**:
+Returns aggregated metrics for the last 30 minutes
 
-```json
-{
-    "configuration": {
-        "name": "My Filter List",
-        "description": "Optional description",
-        "sources": [
-            {
-                "name": "Source Name",
-                "source": "https://example.com/filters.txt",
-                "type": "adblock",
-                "transformations": ["RemoveComments", "Validate"]
-            }
-        ],
-        "transformations": ["Deduplicate", "RemoveEmptyLines"],
-        "exclusions": ["||example.com^"],
-        "inclusions": ["*"]
-    },
-    "preFetchedContent": {
-        "custom-key": "||ads.example.com^\n||tracking.example.com^"
-    },
-    "benchmark": true
-}
-```
+**Operation ID:** `getMetrics`
 
-**Configuration Parameters**:
+**Responses:**
 
-| Field                | Type   | Required | Description                                     |
-| -------------------- | ------ | -------- | ----------------------------------------------- |
-| `name`               | string | Yes      | Name of the compiled list                       |
-| `description`        | string | No       | Description of the list                         |
-| `sources`            | array  | Yes      | Array of source configurations                  |
-| `transformations`    | array  | No       | Global transformations to apply                 |
-| `exclusions`         | array  | No       | Rules to exclude (supports wildcards and regex) |
-| `exclusions_sources` | array  | No       | Files containing exclusion rules                |
-| `inclusions`         | array  | No       | Rules to include (supports wildcards and regex) |
-| `inclusions_sources` | array  | No       | Files containing inclusion rules                |
-
-**Source Configuration**:
-
-| Field             | Type   | Required | Description                               |
-| ----------------- | ------ | -------- | ----------------------------------------- |
-| `source`          | string | Yes      | URL or key for pre-fetched content        |
-| `name`            | string | No       | Name of the source                        |
-| `type`            | string | No       | `adblock` or `hosts` (default: `adblock`) |
-| `transformations` | array  | No       | Source-specific transformations           |
-| `exclusions`      | array  | No       | Source-specific exclusions                |
-| `inclusions`      | array  | No       | Source-specific inclusions                |
-
-**Response**:
-
-```json
-{
-  "success": true,
-  "rules": [
-    "||ads.example.com^",
-    "||tracking.example.com^"
-  ],
-  "ruleCount": 2,
-  "metrics": {
-    "totalDurationMs": 1234,
-    "sourceCount": 1,
-    "ruleCount": 2
-  },
-  "compiledAt": "2026-01-01T12:00:00.000Z",
-  "previousVersion": {
-    "rules": [...],
-    "ruleCount": 1800,
-    "compiledAt": "2026-01-01T11:00:00.000Z"
-  }
-}
-```
-
-**Response Headers**:
-
-- `X-Cache: HIT|MISS` - Indicates if response was served from cache
-- `X-Request-Deduplication: HIT` - Present if request was deduplicated with concurrent request
-
-**Error Response**:
-
-```json
-{
-    "success": false,
-    "error": "Error message"
-}
-```
+- `200`: Performance metrics
 
 ---
 
-### POST /compile/stream
+### Compilation
 
-Compile filter lists with real-time progress updates via Server-Sent Events (SSE).
+#### `POST /compile`
 
-**Request Body**: Same as `/compile`
+**Summary:** Compile filter list (JSON)
 
-**Response**: Server-Sent Events stream
+Compile filter lists and return results as JSON. Results are cached for 1 hour.
+Supports request deduplication for concurrent identical requests.
 
-**Event Types**:
 
-#### `log`
+**Operation ID:** `compileJson`
 
-```
-event: log
-data: {"level":"info","message":"Fetching source..."}
-```
+**Request Body:**
 
-Levels: `info`, `warn`, `error`, `debug`
+- Content-Type: `application/json`
+  - Schema: [`CompileRequest`](#compilerequest)
 
-#### `source:start`
+**Responses:**
 
-```
-event: source:start
-data: {"source":{"name":"Source 1","source":"https://..."},"sourceIndex":0,"totalSources":2}
-```
-
-#### `source:complete`
-
-```
-event: source:complete
-data: {"source":{"name":"Source 1"},"sourceIndex":0,"totalSources":2}
-```
-
-#### `source:error`
-
-```
-event: source:error
-data: {"source":{"name":"Source 1"},"error":"Error message","sourceIndex":0}
-```
-
-#### `transformation:start`
-
-```
-event: transformation:start
-data: {"transformation":"Deduplicate","transformationIndex":0,"totalTransformations":2}
-```
-
-#### `transformation:complete`
-
-```
-event: transformation:complete
-data: {"transformation":"Deduplicate","transformationIndex":0,"totalTransformations":2}
-```
-
-#### `progress`
-
-```
-event: progress
-data: {"phase":"transformations","current":1,"total":2,"message":"Applying transformations"}
-```
-
-#### `result`
-
-```
-event: result
-data: {"rules":["..."],"ruleCount":1234,"metrics":{...}}
-```
-
-#### `done`
-
-```
-event: done
-data: {}
-```
-
-#### `error`
-
-```
-event: error
-data: {"error":"Error message"}
-```
+- `200`: Compilation successful
+- `429`: No description
+- `500`: No description
 
 ---
 
-### POST /compile/batch
+#### `POST /compile/batch`
 
-Compile multiple filter lists in parallel with a single request.
+**Summary:** Batch compile multiple lists
 
-**Request Body**:
+Compile multiple filter lists in parallel (max 10 per batch)
 
-```json
-{
-    "requests": [
-        {
-            "id": "list-1",
-            "configuration": {
-                "name": "First List",
-                "sources": [{ "source": "https://example.com/list1.txt" }],
-                "transformations": ["Deduplicate"]
-            },
-            "benchmark": true
-        },
-        {
-            "id": "list-2",
-            "configuration": {
-                "name": "Second List",
-                "sources": [{ "source": "https://example.com/list2.txt" }],
-                "transformations": ["Validate"]
-            }
-        }
-    ]
-}
-```
+**Operation ID:** `compileBatch`
 
-**Constraints**:
+**Request Body:**
 
-- Maximum 10 requests per batch
-- Each request must have a unique `id`
-- All requests processed in parallel
+- Content-Type: `application/json`
+  - Schema: [`BatchCompileRequest`](#batchcompilerequest)
 
-**Response**:
+**Responses:**
 
-```json
-{
-  "success": true,
-  "results": [
-    {
-      "id": "list-1",
-      "success": true,
-      "rules": [...],
-      "ruleCount": 1234,
-      "metrics": {...},
-      "cached": false
-    },
-    {
-      "id": "list-2",
-      "success": true,
-      "rules": [...],
-      "ruleCount": 567,
-      "cached": true
-    }
-  ]
-}
-```
-
-**Error Response** (for entire batch):
-
-```json
-{
-    "success": false,
-    "error": "Batch request must contain at least one request"
-}
-```
-
-**Individual Request Errors**:
-
-```json
-{
-  "success": true,
-  "results": [
-    {
-      "id": "list-1",
-      "success": false,
-      "error": "Failed to fetch source"
-    },
-    {
-      "id": "list-2",
-      "success": true,
-      "rules": [...]
-    }
-  ]
-}
-```
+- `200`: Batch compilation results
+- `400`: Invalid batch request
+- `429`: No description
 
 ---
 
-## Performance Features
+### Streaming
 
-### Caching
+#### `POST /compile/stream`
 
-Compilation results are cached with gzip compression for 1 hour. Cache is automatically invalidated when:
+**Summary:** Compile with real-time progress (SSE)
 
-- Configuration changes
-- Sources are updated
-- Pre-fetched content is used (bypasses cache)
+Compile filter lists with real-time progress updates via Server-Sent Events.
+Streams events including source downloads, transformations, diagnostics, cache operations, network events, and metrics.
 
-Cache compression typically reduces storage by 70-80%.
 
-### Request Deduplication
+**Operation ID:** `compileStream`
 
-Identical concurrent requests are automatically deduplicated. Only one compilation executes, with all requests receiving the same result.
+**Request Body:**
 
-Check `X-Request-Deduplication: HIT` response header to see if your request was deduplicated.
+- Content-Type: `application/json`
+  - Schema: [`CompileRequest`](#compilerequest)
 
-### Circuit Breaker
+**Responses:**
 
-External source downloads include:
-
-- **Timeout**: 30 seconds per request
-- **Retry Logic**: Up to 3 retries with exponential backoff
-- **Retry Conditions**: 5xx errors, 429 rate limits, timeouts
-- **No Retry**: 4xx client errors (except 429)
+- `200`: Event stream
+- `429`: No description
 
 ---
 
-## Available Transformations
+### Queue
 
-All transformations are applied in the following fixed order:
+#### `POST /compile/async`
 
-1. **ConvertToAscii** - Convert internationalized domains to ASCII
-2. **TrimLines** - Remove leading/trailing whitespace
-3. **RemoveComments** - Remove comment lines
-4. **Compress** - Convert hosts format to adblock syntax
-5. **RemoveModifiers** - Strip unsupported modifiers
-6. **InvertAllow** - Convert blocking rules to allowlist
-7. **Validate** - Remove invalid/dangerous rules
-8. **ValidateAllowIp** - Like Validate but keeps IP addresses
-9. **Deduplicate** - Remove duplicate rules
-10. **RemoveEmptyLines** - Remove blank lines
-11. **InsertFinalNewLine** - Add final newline
+**Summary:** Queue async compilation job
 
-See [Transformations Guide](../guides/transformations.md) for detailed documentation.
+Queue a compilation job for asynchronous processing. Returns immediately with a request ID.
+Use GET /queue/results/{requestId} to retrieve results when complete.
 
----
 
-## Pre-fetched Content
+**Operation ID:** `compileAsync`
 
-Use `preFetchedContent` to bypass CORS restrictions or provide custom rules:
+**Request Body:**
 
-```json
-{
-    "configuration": {
-        "sources": [
-            {
-                "source": "my-custom-rules",
-                "name": "Custom Rules"
-            }
-        ]
-    },
-    "preFetchedContent": {
-        "my-custom-rules": "||ads.example.com^\n||tracking.example.com^"
-    }
-}
-```
+- Content-Type: `application/json`
+  - Schema: [`CompileRequest`](#compilerequest)
 
-The `source` field references a key in `preFetchedContent` instead of a URL.
+**Responses:**
+
+- `202`: Job queued successfully
+- `500`: Queue not available
 
 ---
 
-## Rate Limits
+#### `POST /compile/batch/async`
 
-- **Requests**: 10 requests per minute per IP address
-- **Response Size**: Limited by Cloudflare Workers (typically 25MB)
-- **Execution Time**: Maximum 50 seconds per request (streaming continues)
-- **Batch Requests**: Maximum 10 compilations per batch
+**Summary:** Queue batch async compilation
 
-**Rate Limit Headers**:
+Queue multiple compilations for async processing
 
-- `429 Too Many Requests` returned when limit exceeded
-- `Retry-After: 60` indicates seconds until retry allowed
+**Operation ID:** `compileBatchAsync`
 
----
+**Request Body:**
 
-## CORS
+- Content-Type: `application/json`
+  - Schema: [`BatchCompileRequest`](#batchcompilerequest)
 
-All endpoints support CORS with `Access-Control-Allow-Origin: *`
+**Responses:**
 
-Preflight requests (`OPTIONS`) are handled automatically.
+- `202`: Batch queued successfully
 
 ---
 
-## Error Handling
+#### `GET /queue/stats`
 
-All errors return appropriate HTTP status codes:
+**Summary:** Get queue statistics
 
-- `400 Bad Request` - Invalid configuration
-- `500 Internal Server Error` - Compilation failed
-- `404 Not Found` - Invalid endpoint
+Returns queue health metrics and job statistics
 
-Error responses include a message:
+**Operation ID:** `getQueueStats`
 
-```json
-{
-    "success": false,
-    "error": "Detailed error message"
-}
-```
+**Responses:**
+
+- `200`: Queue statistics
 
 ---
 
-## Examples
+#### `GET /queue/results/{requestId}`
 
-See the [Examples Guide](../guides/examples.md) for detailed usage examples in multiple languages.
+**Summary:** Get async job results
+
+Retrieve results for a completed async compilation job
+
+**Operation ID:** `getQueueResults`
+
+**Parameters:**
+
+- `requestId` (path) (required): Request ID returned from async endpoints
+
+**Responses:**
+
+- `200`: Job results
+- `404`: Job not found
 
 ---
 
-## Client Libraries
+### WebSocket
 
-Currently, the API is REST-based and works with any HTTP client. Community libraries:
+#### `GET /ws/compile`
 
-- JavaScript/TypeScript: Use `fetch()` or `axios`
-- Python: Use `requests` or `httpx`
-- Go: Use `net/http`
-- Rust: Use `reqwest`
+**Summary:** WebSocket endpoint for real-time compilation
 
-See [Client Examples](../guides/clients.md) for code samples.
+Bidirectional WebSocket connection for real-time compilation with event streaming.
+
+**Client → Server Messages:**
+- `compile` - Start compilation
+- `cancel` - Cancel running compilation
+- `ping` - Heartbeat ping
+
+**Server → Client Messages:**
+- `welcome` - Connection established
+- `pong` - Heartbeat response
+- `compile:started` - Compilation started
+- `event` - Compilation event (source, transformation, progress, diagnostic, cache, network, metric)
+- `compile:complete` - Compilation finished successfully
+- `compile:error` - Compilation failed
+- `compile:cancelled` - Compilation cancelled
+- `error` - Error message
+
+**Features:**
+- Up to 3 concurrent compilations per connection
+- Automatic heartbeat (30s interval)
+- Connection timeout (5 minutes idle)
+- Session-based compilation tracking
+- Cancellation support
+
+
+**Operation ID:** `websocketCompile`
+
+**Responses:**
+
+- `101`: WebSocket connection established
+- `426`: Upgrade required (not a WebSocket request)
 
 ---
 
-## Support
+## Schemas
 
-- **GitHub Issues**: [jaypatrick/hostlistcompiler](https://github.com/jaypatrick/hostlistcompiler/issues)
-- **Documentation**: [docs/](../)
-- **Web UI**: [https://adblock-compiler.jayson-knight.workers.dev/](https://adblock-compiler.jayson-knight.workers.dev/)
+### CompileRequest
+
+**Properties:**
+
+- `configuration` (required): `Configuration` - 
+- `preFetchedContent`: `object` - Map of source keys to pre-fetched content
+- `benchmark`: `boolean` - Include detailed performance metrics
+- `turnstileToken`: `string` - Cloudflare Turnstile token (if enabled)
+
+---
+
+### Configuration
+
+**Properties:**
+
+- `name` (required): `string` - Name of the compiled list
+- `description`: `string` - Description of the list
+- `homepage`: `string` - Homepage URL
+- `license`: `string` - License identifier
+- `version`: `string` - Version string
+- `sources` (required): `array` - 
+- `transformations`: `array` - Global transformations to apply
+- `exclusions`: `array` - Rules to exclude (supports wildcards and regex)
+- `exclusions_sources`: `array` - Files containing exclusion rules
+- `inclusions`: `array` - Rules to include (supports wildcards and regex)
+- `inclusions_sources`: `array` - Files containing inclusion rules
+
+---
+
+### Source
+
+**Properties:**
+
+- `source` (required): `string` - URL or key for pre-fetched content
+- `name`: `string` - Name of the source
+- `type`: `string` - Source type
+- `transformations`: `array` - 
+- `exclusions`: `array` - 
+- `inclusions`: `array` - 
+
+---
+
+### Transformation
+
+Available transformations (applied in this order):
+- **ConvertToAscii**: Convert internationalized domains to ASCII
+- **RemoveComments**: Remove comment lines
+- **Compress**: Convert hosts format to adblock syntax
+- **RemoveModifiers**: Strip unsupported modifiers
+- **Validate**: Remove invalid/dangerous rules
+- **ValidateAllowIp**: Like Validate but keeps IP addresses
+- **Deduplicate**: Remove duplicate rules
+- **InvertAllow**: Convert blocking rules to allowlist
+- **RemoveEmptyLines**: Remove blank lines
+- **TrimLines**: Remove leading/trailing whitespace
+- **InsertFinalNewLine**: Add final newline
+
+
+**Enum values:**
+
+- `ConvertToAscii`
+- `RemoveComments`
+- `Compress`
+- `RemoveModifiers`
+- `Validate`
+- `ValidateAllowIp`
+- `Deduplicate`
+- `InvertAllow`
+- `RemoveEmptyLines`
+- `TrimLines`
+- `InsertFinalNewLine`
+
+---
+
+### BatchCompileRequest
+
+**Properties:**
+
+- `requests` (required): `array` - 
+
+---
+
+### BatchRequestItem
+
+**Properties:**
+
+- `id` (required): `string` - Unique request identifier
+- `configuration` (required): `Configuration` - 
+- `preFetchedContent`: `object` - 
+- `benchmark`: `boolean` - 
+
+---
+
+### CompileResponse
+
+**Properties:**
+
+- `success` (required): `boolean` - 
+- `rules`: `array` - Compiled filter rules
+- `ruleCount`: `integer` - Number of rules
+- `metrics`: `CompilationMetrics` - 
+- `compiledAt`: `string` - 
+- `previousVersion`: `PreviousVersion` - 
+- `cached`: `boolean` - Whether result was served from cache
+- `deduplicated`: `boolean` - Whether request was deduplicated
+- `error`: `string` - Error message if success=false
+
+---
+
+### CompilationMetrics
+
+**Properties:**
+
+- `totalDurationMs`: `integer` - 
+- `sourceCount`: `integer` - 
+- `ruleCount`: `integer` - 
+- `transformationMetrics`: `array` - 
+
+---
+
+### PreviousVersion
+
+**Properties:**
+
+- `rules`: `array` - 
+- `ruleCount`: `integer` - 
+- `compiledAt`: `string` - 
+
+---
+
+### BatchCompileResponse
+
+**Properties:**
+
+- `success`: `boolean` - 
+- `results`: `array` - 
+
+---
+
+### QueueResponse
+
+**Properties:**
+
+- `success`: `boolean` - 
+- `message`: `string` - 
+- `requestId`: `string` - 
+- `priority`: `string` - 
+
+---
+
+### QueueJobStatus
+
+**Properties:**
+
+- `success`: `boolean` - 
+- `status`: `string` - 
+- `jobInfo`: `object` - 
+
+---
+
+### QueueStats
+
+**Properties:**
+
+- `pending`: `integer` - 
+- `completed`: `integer` - 
+- `failed`: `integer` - 
+- `cancelled`: `integer` - 
+- `totalProcessingTime`: `integer` - 
+- `averageProcessingTime`: `integer` - 
+- `processingRate`: `number` - Jobs per minute
+- `queueLag`: `integer` - Average time in queue (ms)
+- `lastUpdate`: `string` - 
+- `history`: `array` - 
+- `depthHistory`: `array` - 
+
+---
+
+### JobHistoryEntry
+
+**Properties:**
+
+- `requestId`: `string` - 
+- `configName`: `string` - 
+- `status`: `string` - 
+- `duration`: `integer` - 
+- `timestamp`: `string` - 
+- `error`: `string` - 
+- `ruleCount`: `integer` - 
+
+---
+
+### MetricsResponse
+
+**Properties:**
+
+- `window`: `string` - 
+- `timestamp`: `string` - 
+- `endpoints`: `object` - 
+
+---
+
+### ApiInfo
+
+**Properties:**
+
+- `name`: `string` - 
+- `version`: `string` - 
+- `endpoints`: `object` - 
+- `example`: `object` - 
+
+---
+
+### WsCompileRequest
+
+**Properties:**
+
+- `type` (required): `string` - 
+- `sessionId` (required): `string` - 
+- `configuration` (required): `Configuration` - 
+- `preFetchedContent`: `object` - 
+- `benchmark`: `boolean` - 
+
+---
+
+### WsCancelRequest
+
+**Properties:**
+
+- `type` (required): `string` - 
+- `sessionId` (required): `string` - 
+
+---
+
+### WsPingMessage
+
+**Properties:**
+
+- `type` (required): `string` - 
+
+---
+
+### WsWelcomeMessage
+
+**Properties:**
+
+- `type` (required): `string` - 
+- `version` (required): `string` - 
+- `connectionId` (required): `string` - 
+- `capabilities` (required): `object` - 
+
+---
+
+### WsPongMessage
+
+**Properties:**
+
+- `type` (required): `string` - 
+- `timestamp`: `string` - 
+
+---
+
+### WsCompileStartedMessage
+
+**Properties:**
+
+- `type` (required): `string` - 
+- `sessionId` (required): `string` - 
+- `configurationName` (required): `string` - 
+
+---
+
+### WsEventMessage
+
+**Properties:**
+
+- `type` (required): `string` - 
+- `sessionId` (required): `string` - 
+- `eventType` (required): `string` - 
+- `data` (required): `object` - 
+
+---
+
+### WsCompileCompleteMessage
+
+**Properties:**
+
+- `type` (required): `string` - 
+- `sessionId` (required): `string` - 
+- `rules` (required): `array` - 
+- `ruleCount` (required): `integer` - 
+- `metrics`: `object` - 
+- `compiledAt`: `string` - 
+
+---
+
+### WsCompileErrorMessage
+
+**Properties:**
+
+- `type` (required): `string` - 
+- `sessionId` (required): `string` - 
+- `error` (required): `string` - 
+- `details`: `object` - 
+
+---
