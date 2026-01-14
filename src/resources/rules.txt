@@ -1,3 +1,8 @@
+[FILTER_RULES]
+||example.com^
+||test.org^
+@@||exception.com^
+
 ! Test filter rules
 ||example.com^
 ||test.com^
