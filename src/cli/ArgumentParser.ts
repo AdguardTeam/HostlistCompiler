@@ -11,6 +11,8 @@ export interface ParsedArguments {
     output?: string;
     verbose?: boolean;
     benchmark?: boolean;
+    useQueue?: boolean;
+    priority?: 'standard' | 'high';
     help?: boolean;
     version?: boolean;
 }
@@ -27,8 +29,8 @@ export class ArgumentParser {
      */
     public parse(argv: string[]): ParsedArguments {
         const parsed = parse(argv, {
-            string: ['config', 'input-type', 'output'],
-            boolean: ['verbose', 'benchmark', 'help', 'version'],
+            string: ['config', 'input-type', 'output', 'priority'],
+            boolean: ['verbose', 'benchmark', 'use-queue', 'help', 'version'],
             collect: ['input'],
             alias: {
                 c: 'config',
@@ -37,6 +39,7 @@ export class ArgumentParser {
                 o: 'output',
                 v: 'verbose',
                 b: 'benchmark',
+                q: 'use-queue',
                 h: 'help',
             },
         });
@@ -48,6 +51,8 @@ export class ArgumentParser {
             output: parsed.output as string | undefined,
             verbose: parsed.verbose as boolean | undefined,
             benchmark: parsed.benchmark as boolean | undefined,
+            useQueue: parsed['use-queue'] as boolean | undefined,
+            priority: parsed.priority as 'standard' | 'high' | undefined,
             help: parsed.help as boolean | undefined,
             version: parsed.version as boolean | undefined,
         };
@@ -97,6 +102,9 @@ Options:
   -o, --output <file>      Path to the output file [required]
   -v, --verbose            Run with verbose logging
   -b, --benchmark          Show performance benchmark report
+  -q, --use-queue          Use asynchronous queue-based compilation (requires worker API)
+  --priority <level>       Queue priority level: standard|high [default: standard]
+                           Only applies when --use-queue is enabled
   --version                Show version number
   -h, --help               Show help
 
@@ -109,6 +117,9 @@ Examples:
 
   hostlist-compiler -c config.json -o output.txt --benchmark
       compile and show performance metrics
+
+  hostlist-compiler -c config.json -o output.txt --use-queue --priority high
+      queue a compilation job with high priority (async processing)
 `);
     }
 
