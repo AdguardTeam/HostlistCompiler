@@ -13,26 +13,6 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from '@std/assert';
-// Self-contained assertion functions to avoid network dependencies
-function assertEquals<T>(actual: T, expected: T, msg?: string): void {
-    const actualStr = JSON.stringify(actual);
-    const expectedStr = JSON.stringify(expected);
-    if (actualStr !== expectedStr) {
-        throw new Error(msg ?? `Expected ${expectedStr}, but got ${actualStr}`);
-    }
-}
-
-function assertExists<T>(value: T, msg?: string): void {
-    if (value === undefined || value === null) {
-        throw new Error(msg ?? `Expected value to exist, but got ${value}`);
-    }
-}
-
-function assertStringIncludes(actual: string, expected: string, msg?: string): void {
-    if (!actual.includes(expected)) {
-        throw new Error(msg ?? `Expected "${actual}" to include "${expected}"`);
-    }
-}
 
 /**
  * SSE Event Types emitted during compilation

@@ -63,7 +63,7 @@ class MockKVNamespace {
  * Mock Queue for testing
  */
 class MockQueue<T = unknown> {
-    public messages: T[] = [];
+    public messages: Array<T> = [];
 
     async send(message: T): Promise<void> {
         this.messages.push(message);
@@ -91,6 +91,44 @@ class MockMessageBatch<T> {
 }
 
 /**
+ * Queue message types
+ */
+interface CompileMessage {
+    type: 'compile';
+    requestId: string;
+    timestamp: number;
+    configuration: {
+        name: string;
+        sources: Array<{ source: string }>;
+    };
+}
+
+interface BatchCompileMessage {
+    type: 'batch-compile';
+    requestId: string;
+    timestamp: number;
+    requests: Array<{
+        id: string;
+        configuration: {
+            name: string;
+            sources: Array<{ source: string }>;
+        };
+    }>;
+}
+
+interface CacheWarmMessage {
+    type: 'cache-warm';
+    requestId: string;
+    timestamp: number;
+    configurations: Array<{
+        name: string;
+        sources: Array<{ source: string }>;
+    }>;
+}
+
+type QueueMessage = CompileMessage | BatchCompileMessage | CacheWarmMessage;
+
+/**
  * Mock Environment bindings
  */
 interface MockEnv {
@@ -98,7 +136,7 @@ interface MockEnv {
     COMPILATION_CACHE: MockKVNamespace;
     RATE_LIMIT: MockKVNamespace;
     METRICS: MockKVNamespace;
-    ADBLOCK_COMPILER_QUEUE: MockQueue;
+    ADBLOCK_COMPILER_QUEUE: MockQueue<QueueMessage>;
 }
 
 function createMockEnv(): MockEnv {
@@ -129,8 +167,9 @@ Deno.test('Integration - Queue message enqueuing', async () => {
     await env.ADBLOCK_COMPILER_QUEUE.send(message);
 
     assertEquals(env.ADBLOCK_COMPILER_QUEUE.length, 1);
-    assertEquals(env.ADBLOCK_COMPILER_QUEUE.messages[0].type, 'compile');
-    assertEquals(env.ADBLOCK_COMPILER_QUEUE.messages[0].requestId, 'test-123');
+    const queuedMessage = env.ADBLOCK_COMPILER_QUEUE.messages[0];
+    assertEquals(queuedMessage.type, 'compile');
+    assertEquals(queuedMessage.requestId, 'test-123');
 });
 
 Deno.test('Integration - Batch message enqueuing', async () => {
@@ -229,9 +268,9 @@ Deno.test('Integration - Multiple messages enqueuing', async () => {
     await env.ADBLOCK_COMPILER_QUEUE.sendBatch(messages);
 
     assertEquals(env.ADBLOCK_COMPILER_QUEUE.length, 3);
-    assertEquals(env.ADBLOCK_COMPILER_QUEUE.messages[0].requestId, 'msg-1');
-    assertEquals(env.ADBLOCK_COMPILER_QUEUE.messages[1].requestId, 'msg-2');
-    assertEquals(env.ADBLOCK_COMPILER_QUEUE.messages[2].requestId, 'msg-3');
+    assertEquals(env.ADBLOCK_COMPILER_QUEUE.messages[0]!.requestId, 'msg-1');
+    assertEquals(env.ADBLOCK_COMPILER_QUEUE.messages[1]!.requestId, 'msg-2');
+    assertEquals(env.ADBLOCK_COMPILER_QUEUE.messages[2]!.requestId, 'msg-3');
 });
 
 Deno.test('Integration - KV cache storage and retrieval', async () => {
