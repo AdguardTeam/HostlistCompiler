@@ -255,7 +255,7 @@ See [POSTMAN_TESTING.md](POSTMAN_TESTING.md) for complete Postman documentation.
 
 # Or use Newman CLI
 npm install -g newman
-newman run postman-collection.json -e postman-environment.json
+newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json
 ```
 
 ### Postman Features
@@ -332,7 +332,7 @@ jobs:
         run: npm install -g newman
         
       - name: Run Postman tests
-        run: newman run postman-collection.json -e postman-environment.json --reporters cli,json
+        run: newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json --reporters cli,json
         
       - name: Upload results
         uses: actions/upload-artifact@v3

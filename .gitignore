@@ -11,10 +11,14 @@ Thumbs.db
 # Deno
 .deno/
 
-# Node / pnpm
+# Node / pnpm / Yarn
 node_modules/
 .npmrc
 *.tgz
+.yarn/
+.pnp.*
+yarn.lock
+.yarnrc.yml
 
 # Build output
 dist/
@@ -44,3 +48,4 @@ examples/whitelist/filter.txt
 .env
 .env.local
 .env.*.local
+coverage.lcov

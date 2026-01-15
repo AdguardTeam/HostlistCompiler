@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.7.23",
+    "version": "0.8.1",
     "exports": "./src/index.ts",
     "publish": {
         "include": [
@@ -68,6 +68,8 @@
             "prisma/",
             "docs/",
             ".github/",
+            ".yarn/",
+            ".pnp.*",
             "*.lock",
             "*.lcov",
             "*.d.ts"
@@ -91,6 +93,8 @@
             "prisma/",
             "docs/",
             ".github/",
+            ".yarn/",
+            ".pnp.*",
             "*.lock",
             "*.lcov",
             "*.d.ts"

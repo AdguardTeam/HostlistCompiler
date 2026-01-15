@@ -23,6 +23,9 @@ Welcome to the AdBlock Compiler documentation. This directory contains all the d
 ### Cloudflare Worker
 
 - [Queue Support](QUEUE_SUPPORT.md) - Async compilation via Cloudflare Queues
+- [**Batch API Guide** (Visual Learning Edition)](BATCH_API_GUIDE.md) - 📊 Comprehensive guide with diagrams
+- [Workflow Diagrams](WORKFLOW_DIAGRAMS.md) - System architecture and flow diagrams
+- [Streaming API](STREAMING_API.md) - Real-time event streaming via SSE and WebSocket
 - [Tail Worker](../worker/TAIL_WORKER.md) - Observability and logging
 - [Tail Worker Quick Start](../worker/QUICKSTART.md) - Get tail worker running in 5 minutes
 

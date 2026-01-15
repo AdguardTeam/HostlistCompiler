@@ -151,13 +151,13 @@ Contract tests verify:
 
 ```bash
 # Run all Postman tests
-newman run postman-collection.json -e postman-environment.json
+newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json
 
 # Run specific folder
-newman run postman-collection.json -e postman-environment.json --folder "Compilation"
+newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json --folder "Compilation"
 
 # With detailed reporting
-newman run postman-collection.json -e postman-environment.json --reporters cli,json,html
+newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json --reporters cli,json,html
 ```
 
 ## 📈 Monitoring

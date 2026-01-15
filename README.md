@@ -12,6 +12,7 @@
 
 [![Web UI](https://img.shields.io/badge/Web%20UI-Live-brightgreen?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/)
 [![API](https://img.shields.io/badge/API-Live-blue?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/api)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-6BA539?logo=openapiinitiative&logoColor=white)](openapi.yaml)
 [![Deno](https://img.shields.io/badge/Deno-2.0+-black?logo=deno)](https://deno.land)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](#docker-deployment)
 
@@ -24,9 +25,18 @@
 
 **Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.
 
-🌐 **[Try the Web UI](https://adblock-compiler.jayson-knight.workers.dev/)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[API Documentation](docs/api/README.md)**
+🌐 **[Try the Admin Dashboard](https://adblock-compiler.jayson-knight.workers.dev/)** | 🔧 **[Compiler UI](https://adblock-compiler.jayson-knight.workers.dev/compiler.html)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[Documentation](docs/api/README.md)**
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). The package provides more functionality with improved performance and no Node.js dependencies.
+
+## 🎉 New in v0.8.0
+
+- **🎯 Admin Dashboard** - Beautiful landing page with real-time metrics and navigation
+- **🔔 Notifications** - Browser notifications for async compilation jobs
+- **📊 Queue Visualization** - Live Chart.js graphs of queue depth
+- **📚 Comprehensive Guides** - Learn when to use WebSocket vs SSE vs Queue
+- **🎨 Modern UI/UX** - Polished, professional interface
+- **📂 Clean Organization** - Streamlined project structure
 
 ## ✨ Features
 
@@ -35,7 +45,10 @@
 - **🔄 Circuit Breaker** - Automatic retry with exponential backoff for unreliable sources
 - **📊 Visual Diff** - See what changed between compilations
 - **🎪 Batch Processing** - Compile up to 10 lists in parallel
-- **📡 Event Pipeline** - Real-time progress tracking via Server-Sent Events
+- **📡 Real-time Updates** - Server-Sent Events (SSE) and WebSocket support
+- **🔔 Async Notifications** - Get notified when background jobs complete
+- **🌐 Admin Dashboard** - Monitor metrics, queue depth, and system health
+- **📖 OpenAPI 3.0 Specification** - Full API documentation with contract tests
 - **🌍 Universal** - Works in Deno, Node.js, Cloudflare Workers, browsers
 - **🎨 11 Transformations** - Deduplicate, compress, validate, and more
 
@@ -44,6 +57,7 @@
   - [Configuration](#configuration)
   - [Command-line](#command-line)
   - [API](#api)
+- [OpenAPI Specification](#openapi-specification)
 - [Docker Deployment](#docker-deployment)
 - [Transformations](#transformations)
   - [RemoveComments](#remove-comments)
@@ -369,6 +383,60 @@ const config: IConfiguration = {
 const result = await compiler.compile(config);
 console.log(`Compiled ${result.length} rules`);
 ```
+
+## <a name="openapi-specification"></a> OpenAPI Specification
+
+This package includes a comprehensive **OpenAPI 3.0.3** specification for the REST API, enabling:
+
+- **📄 Interactive API Documentation** - Beautiful, auto-generated docs with Redoc
+- **✅ Contract Testing** - Automated validation that API matches specification
+- **🔧 Code Generation** - Generate client SDKs in multiple languages
+- **📮 Postman Collections** - Import ready-to-use API collections
+- **🧪 Automated Validation** - CI/CD integration for spec validation
+
+### Quick Start
+
+```bash
+# Validate the OpenAPI specification
+deno task openapi:validate
+
+# Generate interactive HTML documentation
+deno task openapi:docs
+
+# Run contract tests against live API
+deno task test:contract
+```
+
+### OpenAPI Features
+
+The OpenAPI specification (`openapi.yaml`) documents all API endpoints:
+
+- **Compilation Endpoints** - `/compile`, `/compile/stream`, `/compile/batch`
+- **Async Queue Operations** - `/compile/async`, `/queue/stats`, `/queue/results/{id}`
+- **WebSocket Support** - `/ws/compile` for real-time bidirectional communication
+- **Metrics & Monitoring** - `/metrics`, `/queue/stats` for performance tracking
+
+### Documentation
+
+- **📚 [OpenAPI Tooling Guide](docs/OPENAPI_TOOLING.md)** - Complete guide to validation, testing, and documentation generation
+- **📖 [API Quick Reference](docs/api/QUICK_REFERENCE.md)** - Common commands and workflows
+- **🌐 [Interactive API Docs](docs/api/index.html)** - Auto-generated HTML documentation
+- **📮 [Postman Testing Guide](docs/POSTMAN_TESTING.md)** - Import and test with Postman
+
+### Example: Using the OpenAPI Spec
+
+```bash
+# Generate a client SDK (using openapi-generator)
+openapi-generator-cli generate -i openapi.yaml -g typescript-fetch -o ./client
+
+# Import into Postman
+# File → Import → openapi.yaml
+
+# Test against production
+curl https://adblock-compiler.jayson-knight.workers.dev/api
+```
+
+**View the full OpenAPI specification:** [`openapi.yaml`](openapi.yaml)
 
 ## <a name="docker-deployment"></a> Docker Deployment
 

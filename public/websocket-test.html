@@ -178,6 +178,11 @@
             padding: 16px;
             font-family: 'Courier New', monospace;
             font-size: 13px;
+            scroll-behavior: smooth;
+        }
+
+        .events-log.scroll-locked {
+            scroll-behavior: auto;
         }
 
         .event-item {
@@ -325,6 +330,69 @@
             line-height: 1.6;
             margin-top: 12px;
         }
+
+        /* Enhanced logging controls */
+        .log-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .log-controls input[type="search"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .log-controls select {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+        }
+
+        .btn-icon {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .auto-scroll-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .auto-scroll-indicator.active {
+            background: #10b981;
+            color: white;
+        }
+
+        .auto-scroll-indicator.inactive {
+            background: #ef4444;
+            color: white;
+        }
+
+        .event-count-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -401,9 +469,35 @@
         <!-- Events Log -->
         <div class="card">
             <h2>
-                📋 Event Stream
-                <button class="btn-secondary" onclick="clearEvents()" style="margin-left: auto; flex: 0;">Clear</button>
+                📋 Real-Time Event Stream
+                <span class="event-count-badge" id="eventCountBadge">0</span>
+                <span class="auto-scroll-indicator active" id="autoScrollIndicator">
+                    <span>●</span> Auto-scroll
+                </span>
             </h2>
+            
+            <!-- Log Controls -->
+            <div class="log-controls">
+                <input type="search" id="logSearch" placeholder="🔍 Search logs..." oninput="filterLogs()">
+                <select id="eventTypeFilter" onchange="filterLogs()">
+                    <option value="all">All Events</option>
+                    <option value="welcome">Welcome</option>
+                    <option value="compile-started">Compile Started</option>
+                    <option value="event">Events</option>
+                    <option value="compile-complete">Complete</option>
+                    <option value="error">Errors</option>
+                    <option value="diagnostic">Diagnostics</option>
+                    <option value="cache">Cache</option>
+                    <option value="network">Network</option>
+                    <option value="metric">Metrics</option>
+                </select>
+                <button class="btn-secondary btn-icon" onclick="toggleAutoScroll()">
+                    <span id="autoScrollBtn">⏸️ Pause</span>
+                </button>
+                <button class="btn-secondary btn-icon" onclick="exportLogs()">💾 Export</button>
+                <button class="btn-secondary btn-icon" onclick="clearEvents()">🗑️ Clear</button>
+            </div>
+            
             <div id="eventsLog" class="events-log"></div>
         </div>
 
@@ -420,6 +514,10 @@
         let sessionCount = 0;
         let totalRules = 0;
         let activeSessions = new Set();
+        let autoScroll = true;
+        let allEvents = []; // Store all events for filtering
+        let currentFilter = 'all';
+        let searchTerm = '';
 
         // Initialize example code
         document.getElementById('exampleCode').textContent = `// JavaScript WebSocket Client Example
@@ -617,8 +715,17 @@ ws.onmessage = (event) => {
             const log = document.getElementById('eventsLog');
             const item = document.createElement('div');
             item.className = `event-item event-${type}`;
+            item.dataset.eventType = type;
+            item.dataset.timestamp = Date.now();
 
-            const timestamp = new Date().toLocaleTimeString();
+            const timestamp = new Date().toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                fractionalSecondDigits: 3
+            });
+            
             let html = `
                 <div>
                     <span class="event-timestamp">${timestamp}</span>
@@ -631,12 +738,107 @@ ws.onmessage = (event) => {
             }
 
             item.innerHTML = html;
-            log.insertBefore(item, log.firstChild);
+            item.dataset.searchText = (title + JSON.stringify(data || '')).toLowerCase();
+            
+            // Store event for filtering
+            allEvents.unshift({
+                type,
+                title,
+                data,
+                timestamp,
+                element: item
+            });
 
-            // Limit to 100 events
-            while (log.children.length > 100) {
+            // Apply current filters
+            if (shouldShowEvent(item)) {
+                log.insertBefore(item, log.firstChild);
+            }
+
+            // Update event count badge
+            document.getElementById('eventCountBadge').textContent = allEvents.length;
+
+            // Limit stored events to 1000
+            if (allEvents.length > 1000) {
+                allEvents = allEvents.slice(0, 1000);
+            }
+
+            // Limit DOM to 500 visible events
+            while (log.children.length > 500) {
                 log.removeChild(log.lastChild);
             }
+
+            // Auto-scroll to bottom if enabled
+            if (autoScroll) {
+                log.scrollTop = 0; // Scroll to top since we insert at beginning
+            }
+        }
+
+        function shouldShowEvent(item) {
+            const eventType = item.dataset.eventType;
+            const searchText = item.dataset.searchText;
+            
+            // Filter by type
+            if (currentFilter !== 'all' && eventType !== currentFilter) {
+                return false;
+            }
+            
+            // Filter by search term
+            if (searchTerm && !searchText.includes(searchTerm.toLowerCase())) {
+                return false;
+            }
+            
+            return true;
+        }
+
+        function filterLogs() {
+            const log = document.getElementById('eventsLog');
+            currentFilter = document.getElementById('eventTypeFilter').value;
+            searchTerm = document.getElementById('logSearch').value;
+            
+            // Clear and rebuild display
+            log.innerHTML = '';
+            
+            let displayedCount = 0;
+            for (const event of allEvents) {
+                if (shouldShowEvent(event.element) && displayedCount < 500) {
+                    log.appendChild(event.element.cloneNode(true));
+                    displayedCount++;
+                }
+            }
+        }
+
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const indicator = document.getElementById('autoScrollIndicator');
+            const btn = document.getElementById('autoScrollBtn');
+            
+            if (autoScroll) {
+                indicator.className = 'auto-scroll-indicator active';
+                indicator.innerHTML = '<span>●</span> Auto-scroll';
+                btn.textContent = '⏸️ Pause';
+            } else {
+                indicator.className = 'auto-scroll-indicator inactive';
+                indicator.innerHTML = '<span>●</span> Paused';
+                btn.textContent = '▶️ Resume';
+            }
+        }
+
+        function exportLogs() {
+            const exportData = allEvents.map(event => ({
+                timestamp: event.timestamp,
+                type: event.type,
+                title: event.title,
+                data: event.data
+            }));
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `websocket-logs-${new Date().toISOString()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
         }
 
         function updateStatus(status, text) {

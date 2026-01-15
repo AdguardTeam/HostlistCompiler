@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostlist Compiler</title>
+    <!-- Cloudflare Web Analytics -->
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8771568d1cde4005bb60c5767d0969c4"}'></script>
+    <!-- Chart.js for queue visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <style>
+        /* CSS Variables for theming */
+        :root {
+            /* Light theme (default) */
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #666666;
+            --text-hint: #888888;
+            --border-color: #e0e0e0;
+            --input-bg: #ffffff;
+            --code-bg: #f5f5f5;
+            --section-bg: #f8f9fa;
+            --footer-bg: #f8f9fa;
+            --footer-text: #666666;
+            --tab-text: #666666;
+            --tab-active: #667eea;
+            --card-border: #e0e0e0;
+            --alert-info-bg: #d1ecf1;
+            --alert-info-text: #0c5460;
+            --alert-info-border: #0c5460;
+            --alert-success-bg: #d4edda;
+            --alert-success-text: #155724;
+            --alert-success-border: #28a745;
+            --alert-error-bg: #f8d7da;
+            --alert-error-text: #721c24;
+            --alert-error-border: #dc3545;
+            --log-info-bg: #d1ecf1;
+            --log-info-text: #0c5460;
+            --log-info-border: #17a2b8;
+            --log-warn-bg: #fff3cd;
+            --log-warn-text: #856404;
+            --log-warn-border: #ffc107;
+            --log-error-bg: #f8d7da;
+            --log-error-text: #721c24;
+            --log-error-border: #dc3545;
+            --log-success-bg: #d4edda;
+            --log-success-text: #155724;
+            --log-success-border: #28a745;
+            --diff-added-bg: #d4edda;
+            --diff-added-text: #155724;
+            --diff-added-border: #28a745;
+            --diff-removed-bg: #f8d7da;
+            --diff-removed-text: #721c24;
+            --diff-removed-border: #dc3545;
+            --diff-unchanged-bg: #f8f9fa;
+            --diff-unchanged-text: #6c757d;
+            --table-header-bg: #f8f9fa;
+            --table-row-hover: #f8f9fa;
+            --table-border: #f0f0f0;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --output-bg: #f8f9fa;
+        }
+
+        /* Dark theme */
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --container-bg: #1e1e2e;
+            --text-color: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --text-hint: #888888;
+            --border-color: #3a3a4a;
+            --input-bg: #2a2a3a;
+            --code-bg: #2a2a3a;
+            --section-bg: #252535;
+            --footer-bg: #1a1a2a;
+            --footer-text: #a0a0a0;
+            --tab-text: #a0a0a0;
+            --tab-active: #8b9aef;
+            --card-border: #3a3a4a;
+            --alert-info-bg: #1a3a4a;
+            --alert-info-text: #7dd3fc;
+            --alert-info-border: #0ea5e9;
+            --alert-success-bg: #1a3a2a;
+            --alert-success-text: #86efac;
+            --alert-success-border: #22c55e;
+            --alert-error-bg: #3a1a1a;
+            --alert-error-text: #fca5a5;
+            --alert-error-border: #ef4444;
+            --log-info-bg: #1a3a4a;
+            --log-info-text: #7dd3fc;
+            --log-info-border: #0ea5e9;
+            --log-warn-bg: #3a3a1a;
+            --log-warn-text: #fde047;
+            --log-warn-border: #eab308;
+            --log-error-bg: #3a1a1a;
+            --log-error-text: #fca5a5;
+            --log-error-border: #ef4444;
+            --log-success-bg: #1a3a2a;
+            --log-success-text: #86efac;
+            --log-success-border: #22c55e;
+            --diff-added-bg: #1a3a2a;
+            --diff-added-text: #86efac;
+            --diff-added-border: #22c55e;
+            --diff-removed-bg: #3a1a1a;
+            --diff-removed-text: #fca5a5;
+            --diff-removed-border: #ef4444;
+            --diff-unchanged-bg: #252535;
+            --diff-unchanged-text: #a0a0a0;
+            --table-header-bg: #252535;
+            --table-row-hover: #2a2a3a;
+            --table-border: #3a3a4a;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --output-bg: #252535;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--tab-text);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--tab-active);
+        }
+
+        .tab.active {
+            color: var(--tab-active);
+            border-bottom-color: var(--tab-active);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .hint {
+            font-size: 0.9rem;
+            color: var(--text-hint);
+            margin-top: 4px;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--tab-active);
+        }
+
+        textarea {
+            min-height: 200px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .example-card {
+            padding: 15px;
+            border: 2px solid var(--card-border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--container-bg);
+        }
+
+        .example-card:hover {
+            border-color: var(--tab-active);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .example-card h3 {
+            font-size: 1.1rem;
+            color: var(--tab-active);
+            margin-bottom: 8px;
+        }
+
+        .example-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 20px;
+            background: var(--section-bg);
+            border-radius: 6px;
+            border: 2px solid var(--border-color);
+        }
+
+        .progress-section.visible {
+            display: block;
+        }
+
+        .progress-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px 4px 0 0;
+            user-select: none;
+        }
+
+        .progress-header:hover {
+            opacity: 0.95;
+        }
+
+        .progress-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .progress-toggle {
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .progress-toggle.collapsed {
+            transform: rotate(90deg);
+        }
+
+        .progress-content {
+            padding: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .progress-content.expanded {
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .log-entry {
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border-left: 4px solid transparent;
+        }
+
+        .log-info {
+            background: var(--log-info-bg);
+            color: var(--log-info-text);
+            border-left-color: var(--log-info-border);
+        }
+
+        .log-warn {
+            background: var(--log-warn-bg);
+            color: var(--log-warn-text);
+            border-left-color: var(--log-warn-border);
+        }
+
+        .log-error {
+            background: var(--log-error-bg);
+            color: var(--log-error-text);
+            border-left-color: var(--log-error-border);
+        }
+
+        .log-success {
+            background: var(--log-success-bg);
+            color: var(--log-success-text);
+            border-left-color: var(--log-success-border);
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .output-box {
+            background: var(--output-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: var(--text-color);
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: var(--alert-info-bg);
+            border-color: var(--alert-info-border);
+            color: var(--alert-info-text);
+        }
+
+        .alert-success {
+            background: var(--alert-success-bg);
+            border-color: var(--alert-success-border);
+            color: var(--alert-success-text);
+        }
+
+        .alert-error {
+            background: var(--alert-error-bg);
+            border-color: var(--alert-error-border);
+            color: var(--alert-error-text);
+        }
+
+        .diff-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--section-bg);
+            border-radius: 6px;
+            border: 2px solid var(--border-color);
+        }
+
+        .diff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .diff-header h4 {
+            margin: 0;
+            color: var(--tab-active);
+        }
+
+        .diff-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+
+        .diff-stat-added {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .diff-stat-removed {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .diff-stat-unchanged {
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .diff-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: var(--container-bg);
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .diff-line {
+            padding: 4px 8px;
+            border-left: 4px solid transparent;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .diff-line-added {
+            background: var(--diff-added-bg);
+            border-left-color: var(--diff-added-border);
+            color: var(--diff-added-text);
+        }
+
+        .diff-line-removed {
+            background: var(--diff-removed-bg);
+            border-left-color: var(--diff-removed-border);
+            color: var(--diff-removed-text);
+        }
+
+        .diff-line-unchanged {
+            background: var(--diff-unchanged-bg);
+            color: var(--diff-unchanged-text);
+        }
+
+        .diff-line-symbol {
+            display: inline-block;
+            width: 20px;
+            font-weight: bold;
+        }
+
+        .diff-toggle {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .diff-toggle label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--tab-active);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .job-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+
+        .job-history-table th {
+            background: var(--table-header-bg);
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .job-history-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--table-border);
+            color: var(--text-color);
+        }
+
+        .job-history-table tr:hover {
+            background: var(--table-row-hover);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-cancelled {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .health-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .health-healthy {
+            background: #28a745;
+        }
+
+        .health-degraded {
+            background: #ffc107;
+        }
+
+        .health-critical {
+            background: #dc3545;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 15px;
+        }
+
+        .cancel-btn {
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .cancel-btn:hover {
+            background: #c82333;
+        }
+
+        .cancel-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                border-radius: 0;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+        }
+
+        /* Dark mode toggle button */
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        [data-theme="dark"] .theme-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .theme-toggle-label {
+            display: none;
+        }
+
+        @media (min-width: 480px) {
+            .theme-toggle-label {
+                display: inline;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Adblock Compiler</h1>
+            <p><strong>Compiler-as-a-Service</strong> | Real-time streaming compilation with SSE event pipeline</p>
+            <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">Powered by Cloudflare Workers • <a href="https://adblock-compiler.jayson-knight.workers.dev/api" style="color: white; text-decoration: underline;" target="_blank">API</a> • <span id="header-version">v0.7.15</span></p>
+            <button class="theme-toggle" id="theme-toggle">
+                <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                <span class="theme-toggle-label" id="theme-label">Dark Mode</span>
+            </button>
+        </header>
+
+        <div class="content">
+            <div class="tabs">
+                <button class="tab active" data-tab="simple">Simple Mode</button>
+                <button class="tab" data-tab="advanced">Advanced Mode</button>
+                <button class="tab" data-tab="examples">Examples</button>
+                <button class="tab" data-tab="docs">API Docs</button>
+                <button class="tab" onclick="window.location.href='test.html'; return false;">Test Page</button>
+            </div>
+
+            <!-- Simple Mode -->
+            <div class="tab-content active" id="simple">
+                <div class="alert alert-info">
+                    <strong>Quick Start:</strong> Paste filter list URLs (one per line) or raw rules directly, select transformations, and compile!
+                </div>
+
+                <div class="form-group">
+                    <label for="simple-input">Filter Lists URLs or Raw Rules</label>
+                    <textarea id="simple-input" placeholder="https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt&#10;https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt&#10;&#10;Or paste raw rules:&#10;||ads.example.com^&#10;||tracking.example.com^"></textarea>
+                    <div class="hint">Enter URLs or paste rules directly. Mix and match as needed. Try the AdGuard URLs above!</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="list-name">List Name</label>
+                    <input type="text" id="list-name" value="My Custom Filter List" placeholder="My Filter List">
+                </div>
+
+                <div class="form-group">
+                    <label>Transformations</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-dedupe" checked>
+                        <label for="trans-dedupe">Deduplicate - Remove duplicate rules</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-compress" checked>
+                        <label for="trans-compress">Compress - Convert hosts format to adblock syntax</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-validate" checked>
+                        <label for="trans-validate">Validate - Remove invalid or dangerous rules</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-remove-comments">
+                        <label for="trans-remove-comments">RemoveComments - Strip out comments</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-remove-empty" checked>
+                        <label for="trans-remove-empty">RemoveEmptyLines - Clean up empty lines</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-optimize">
+                        <label for="trans-optimize">RuleOptimizer - Optimize patterns and remove redundant rules</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="trans-conflict">
+                        <label for="trans-conflict">ConflictDetection - Detect blocking/allowing conflicts</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="output-format">Output Format</label>
+                    <select id="output-format" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 0.95rem; background: white;">
+                        <option value="adblock" selected>Adblock (default)</option>
+                        <option value="hosts">Hosts (/etc/hosts format)</option>
+                        <option value="pihole">Pi-hole (domain list)</option>
+                        <option value="dnsmasq">Dnsmasq</option>
+                        <option value="unbound">Unbound DNS</option>
+                        <option value="doh">DoH (DNS-over-HTTPS)</option>
+                        <option value="json">JSON</option>
+                    </select>
+                    <div class="hint">Select output format for the compiled rules</div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="simple-streaming" checked>
+                    <label for="simple-streaming">Use Streaming API (real-time progress via SSE)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="simple-benchmark">
+                    <label for="simple-benchmark">Enable benchmarking (performance metrics)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="simple-use-queue">
+                    <label for="simple-use-queue">Use queue (async compilation) - Job will be processed in background</label>
+                </div>
+
+                <!-- Cloudflare Turnstile Widget -->
+                <div class="form-group" id="turnstile-container-simple">
+                    <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY_PLACEHOLDER" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"></div>
+                    <div class="hint" id="turnstile-hint">Complete the security check to compile</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="simple-compile">Compile Filter List</button>
+                    <button class="btn-secondary" id="simple-clear">Clear</button>
+                </div>
+            </div>
+
+            <!-- Advanced Mode -->
+            <div class="tab-content" id="advanced">
+                <div class="alert alert-info">
+                    <strong>Advanced Mode:</strong> Provide a full JSON configuration for maximum control over sources, transformations, and filters.
+                </div>
+
+                <div class="form-group">
+                    <label for="advanced-config">Configuration (JSON)</label>
+                    <textarea id="advanced-config" style="min-height: 300px;">{
+  "name": "My Advanced Filter List",
+  "description": "Custom compiled filter list",
+  "sources": [
+    {
+      "name": "AdGuard DNS Filter",
+      "source": "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
+      "type": "adblock",
+      "transformations": ["RemoveComments", "Validate"]
+    }
+  ],
+  "transformations": ["Deduplicate", "Compress", "RemoveEmptyLines", "RuleOptimizer"],
+  "exclusions": [],
+  "inclusions": ["*"]
+}</textarea>
+                    <div class="hint">Enter a complete configuration JSON. Available transformations: RemoveComments, TrimLines, RemoveEmptyLines, Deduplicate, Compress, Validate, ValidateAllowIp, RemoveModifiers, InvertAllow, ConvertToAscii, InsertFinalNewLine, RuleOptimizer, ConflictDetection</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="advanced-output-format">Output Format</label>
+                    <select id="advanced-output-format" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 0.95rem; background: white;">
+                        <option value="adblock" selected>Adblock (default)</option>
+                        <option value="hosts">Hosts (/etc/hosts format)</option>
+                        <option value="pihole">Pi-hole (domain list)</option>
+                        <option value="dnsmasq">Dnsmasq</option>
+                        <option value="unbound">Unbound DNS</option>
+                        <option value="doh">DoH (DNS-over-HTTPS)</option>
+                        <option value="json">JSON</option>
+                    </select>
+                    <div class="hint">Select output format for the compiled rules</div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="advanced-streaming" checked>
+                    <label for="advanced-streaming">Use Streaming API (real-time progress via SSE)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="advanced-benchmark" checked>
+                    <label for="advanced-benchmark">Enable benchmarking (performance metrics)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="advanced-use-queue">
+                    <label for="advanced-use-queue">Use queue (async compilation) - Job will be processed in background</label>
+                </div>
+
+                <!-- Cloudflare Turnstile Widget -->
+                <div class="form-group" id="turnstile-container-advanced">
+                    <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY_PLACEHOLDER" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"></div>
+                    <div class="hint">Complete the security check to compile</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="advanced-compile">Compile Filter List</button>
+                    <button class="btn-secondary" id="advanced-clear">Clear</button>
+                </div>
+            </div>
+
+            <!-- Examples -->
+            <div class="tab-content" id="examples-tab">
+                <div class="alert alert-info">
+                    <strong>Examples:</strong> Click any example to load it into the compiler.
+                </div>
+
+                <div class="examples">
+                    <div class="example-card" data-example="basic">
+                        <h3>Basic Compilation</h3>
+                        <p>Simple URL-based compilation with standard transformations</p>
+                    </div>
+                    <div class="example-card" data-example="hosts">
+                        <h3>Hosts File Conversion</h3>
+                        <p>Convert /etc/hosts format to AdGuard syntax</p>
+                    </div>
+                    <div class="example-card" data-example="raw-rules">
+                        <h3>Raw Rules</h3>
+                        <p>Compile directly from pasted filter rules</p>
+                    </div>
+                    <div class="example-card" data-example="multiple-sources">
+                        <h3>Multiple Sources</h3>
+                        <p>Combine multiple filter lists with different transformations</p>
+                    </div>
+                    <div class="example-card" data-example="exclusions">
+                        <h3>With Exclusions</h3>
+                        <p>Filter out unwanted rules using exclusions</p>
+                    </div>
+                    <div class="example-card" data-example="optimized" style="border-color: #28a745;">
+                        <h3 style="color: #28a745;">Rule Optimizer <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">NEW</span></h3>
+                        <p>Optimize patterns and remove redundant rules</p>
+                    </div>
+                    <div class="example-card" data-example="pihole-format" style="border-color: #17a2b8;">
+                        <h3 style="color: #17a2b8;">Pi-hole Format <span style="background: #d1ecf1; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">NEW</span></h3>
+                        <p>Output in Pi-hole domain list format</p>
+                    </div>
+                    <div class="example-card" data-example="conflict-check" style="border-color: #ffc107;">
+                        <h3 style="color: #856404;">Conflict Detection <span style="background: #fff3cd; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">NEW</span></h3>
+                        <p>Detect blocking/allowing rule conflicts</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Documentation -->
+            <div class="tab-content" id="docs">
+                <div class="alert alert-info">
+                    <strong>Compiler-as-a-Service:</strong> Real-time event pipeline for observability and monitoring
+                </div>
+
+                <h2 style="margin-top: 0;">🔄 Event Pipeline</h2>
+                <p>Our compiler uses Server-Sent Events (SSE) to provide real-time progress updates throughout the compilation process.</p>
+                
+                <h3>Event Types</h3>
+                <div style="background: var(--code-bg); padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <p><strong>source:start</strong> - Fires when fetching a source begins</p>
+                    <p><strong>source:complete</strong> - Source successfully fetched and parsed</p>
+                    <p><strong>source:error</strong> - Source fetching or parsing failed</p>
+                    <p><strong>transformation:start</strong> - Transformation begins (e.g., Deduplicate)</p>
+                    <p><strong>transformation:complete</strong> - Transformation finished</p>
+                    <p><strong>progress</strong> - General progress updates with current phase</p>
+                    <p><strong>result</strong> - Final compilation results with rules and metrics</p>
+                    <p><strong>done</strong> - Compilation process complete</p>
+                    <p><strong>error</strong> - Fatal error occurred</p>
+                </div>
+
+                <h3>API Endpoints</h3>
+                <p><strong>Base URL:</strong> <code>https://adblock-compiler.jayson-knight.workers.dev</code></p>
+                
+                <div style="margin: 20px 0;">
+                    <h4>POST /compile</h4>
+                    <p>Compile filter lists and return complete results as JSON</p>
+                    <pre style="background: var(--code-bg); padding: 15px; border-radius: 6px; overflow-x: auto; color: var(--text-color);">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "configuration": {
+      "name": "My Filter List",
+      "sources": [{"source": "https://example.com/filters.txt"}],
+      "transformations": ["Deduplicate", "RemoveEmptyLines"]
+    },
+    "benchmark": true
+  }'</pre>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <h4>POST /compile/stream</h4>
+                    <p>Compile with real-time Server-Sent Events for progress tracking</p>
+                    <pre style="background: var(--code-bg); padding: 15px; border-radius: 6px; overflow-x: auto; color: var(--text-color);">const eventSource = new EventSource('/compile/stream');
+
+eventSource.addEventListener('source:start', (e) => {
+  const data = JSON.parse(e.data);
+  console.log('Fetching:', data.source.name);
+});
+
+eventSource.addEventListener('result', (e) => {
+  const data = JSON.parse(e.data);
+  console.log('Compiled', data.ruleCount, 'rules');
+});</pre>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <h4>POST /compile/batch</h4>
+                    <p>Compile multiple filter lists in parallel (max 10 per batch)</p>
+                    <pre style="background: var(--code-bg); padding: 15px; border-radius: 6px; overflow-x: auto; color: var(--text-color);">curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile/batch \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "requests": [
+      {
+        "id": "list-1",
+        "configuration": {
+          "name": "First List",
+          "sources": [{"source": "https://example.com/list1.txt"}]
+        }
+      },
+      {
+        "id": "list-2",
+        "configuration": {
+          "name": "Second List",
+          "sources": [{"source": "https://example.com/list2.txt"}]
+        }
+      }
+    ]
+  }'</pre>
+                </div>
+
+                <h3>Performance Features</h3>
+                <div style="background: var(--code-bg); padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <p><strong>✨ Gzip Compression:</strong> Cache storage uses gzip compression (70-80% size reduction)</p>
+                    <p><strong>⚡ Request Deduplication:</strong> Identical concurrent requests share results</p>
+                    <p><strong>🔄 Circuit Breaker:</strong> Automatic retry with exponential backoff for failed sources</p>
+                    <p><strong>📊 Diff Visualization:</strong> See changes between cached and new compilations</p>
+                    <p><strong>Cache TTL:</strong> Results cached for 1 hour with automatic invalidation</p>
+                </div>
+
+                <h3>Try It Now</h3>
+                <p>Switch to <strong>Simple Mode</strong> or <strong>Advanced Mode</strong> and compile a list. Watch the "Compilation Progress" section below to see the event pipeline in action!</p>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 6px;">
+                    <strong>✨ Live Demo:</strong> Every compilation on this page uses the SSE event pipeline. The progress bar and logs you see are powered by real-time events from our compiler.
+                </div>
+
+                <h3 style="margin-top: 30px;">Available Transformations</h3>
+                <p>Transformations are applied in the following fixed order:</p>
+                <ol style="line-height: 1.8;">
+                    <li><strong>ConvertToAscii</strong> - Convert internationalized domains</li>
+                    <li><strong>TrimLines</strong> - Remove whitespace</li>
+                    <li><strong>RemoveComments</strong> - Strip comments</li>
+                    <li><strong>Compress</strong> - Convert hosts to adblock syntax</li>
+                    <li><strong>RemoveModifiers</strong> - Remove unsupported modifiers</li>
+                    <li><strong>InvertAllow</strong> - Convert to allowlist</li>
+                    <li><strong>Validate</strong> - Remove invalid rules</li>
+                    <li><strong>ValidateAllowIp</strong> - Validate but keep IPs</li>
+                    <li><strong>Deduplicate</strong> - Remove duplicates</li>
+                    <li><strong>RemoveEmptyLines</strong> - Clean empty lines</li>
+                    <li><strong>InsertFinalNewLine</strong> - Add final newline</li>
+                    <li><strong style="color: #28a745;">RuleOptimizer</strong> <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">NEW</span> - Optimize patterns, remove redundant rules</li>
+                    <li><strong style="color: #28a745;">ConflictDetection</strong> <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">NEW</span> - Detect blocking/allowing conflicts</li>
+                </ol>
+
+                <h3 style="margin-top: 30px;">Output Formats</h3>
+                <p>The compiler supports multiple output formats:</p>
+                <ul style="line-height: 1.8;">
+                    <li><strong>Adblock</strong> - Standard adblock filter syntax (default)</li>
+                    <li><strong>Hosts</strong> - /etc/hosts format (0.0.0.0 domain.com)</li>
+                    <li><strong>Pi-hole</strong> - Simple domain list for Pi-hole</li>
+                    <li><strong>Dnsmasq</strong> - Dnsmasq address= format</li>
+                    <li><strong>Unbound</strong> - Unbound DNS resolver format</li>
+                    <li><strong>DoH</strong> - DNS-over-HTTPS blocklist format</li>
+                    <li><strong>JSON</strong> - Structured JSON with metadata</li>
+                </ul>
+
+                <h3 style="margin-top: 30px;">Streaming API (SSE)</h3>
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <p>The streaming API provides real-time progress updates using Server-Sent Events (SSE). This is now the default compilation method in the web UI.</p>
+                    <p style="margin-top: 10px;"><strong>Benefits:</strong></p>
+                    <ul style="margin-top: 5px;">
+                        <li>Real-time progress tracking for each source</li>
+                        <li>Live transformation status updates</li>
+                        <li>Immediate error notifications</li>
+                        <li>Non-blocking UI during compilation</li>
+                    </ul>
+                </div>
+
+                <h3 style="margin-top: 30px;">CORS & Rate Limits</h3>
+                <p><strong>CORS:</strong> All endpoints support CORS with <code>Access-Control-Allow-Origin: *</code></p>
+                <p><strong>Rate Limits:</strong> No hard limits currently. Execution timeout: 50 seconds</p>
+
+                <div style="margin-top: 30px;">
+                    <h3>Resources</h3>
+                    <p>📚 <a href="https://github.com/jaypatrick/hostlistcompiler" target="_blank">GitHub Repository</a></p>
+                    <p>🌐 <a href="https://adblock-compiler.jayson-knight.workers.dev/" target="_blank">Web UI</a></p>
+                    <p>⚡ <a href="https://adblock-compiler.jayson-knight.workers.dev/api" target="_blank">API Info Endpoint</a></p>
+                </div>
+            </div>
+
+            <!-- Queue Statistics Section -->
+            <div class="progress-section" id="queue-stats-section" style="display: none;">
+                <div class="progress-header" style="cursor: default;">
+                    <h3>📊 Queue Statistics <span id="queue-health-indicator"></span></h3>
+                    <button class="btn-secondary" id="refresh-queue-stats" style="padding: 6px 12px; font-size: 0.9rem;">Refresh</button>
+                </div>
+                <div class="progress-content expanded" style="max-height: none;">
+                    <div class="stats" id="queue-stats">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                            <div class="stat-value" id="queue-pending">-</div>
+                            <div class="stat-label">Pending Jobs</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            <div class="stat-value" id="queue-completed">-</div>
+                            <div class="stat-label">Completed Jobs</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                            <div class="stat-value" id="queue-failed">-</div>
+                            <div class="stat-label">Failed Jobs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="queue-avg-time">-</div>
+                            <div class="stat-label">Avg Processing Time</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                            <div class="stat-value" id="queue-processing-rate">-</div>
+                            <div class="stat-label">Processing Rate (jobs/min)</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);">
+                            <div class="stat-value" id="queue-lag">-</div>
+                            <div class="stat-label">Queue Lag</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Queue Depth Chart -->
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: var(--tab-active); margin-bottom: 10px;">Queue Depth Over Time</h4>
+                        <div class="chart-container">
+                            <canvas id="queue-depth-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Job History -->
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: var(--tab-active); margin-bottom: 10px;">Recent Job History</h4>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="job-history-table" id="job-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Job Name</th>
+                                        <th>Status</th>
+                                        <th>Duration</th>
+                                        <th>Rules</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="job-history-body">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: var(--text-hint); padding: 20px;">No job history available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                        Last updated: <span id="queue-last-update">Never</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progress">
+                <div class="progress-header" id="progress-header" role="button" aria-expanded="false" aria-controls="progress-content" aria-label="Toggle compilation progress details" tabindex="0">
+                    <h3>📊 Compilation Progress</h3>
+                    <span class="progress-toggle collapsed" id="progress-toggle" aria-hidden="true">▼</span>
+                </div>
+                <div class="progress-content" id="progress-content">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div id="progress-logs"></div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="results">
+                <h3>Compilation Results</h3>
+                <div class="stats" id="stats"></div>
+                
+                <!-- Diff Section -->
+                <div class="diff-section" id="diff-section" style="display: none;">
+                    <div class="diff-header">
+                        <h4>📊 Changes from Cached Version</h4>
+                        <div class="diff-stats" id="diff-stats"></div>
+                    </div>
+                    <div class="diff-container" id="diff-container"></div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-success" id="download-results">Download Filter List</button>
+                    <button class="btn-secondary" id="copy-results">Copy to Clipboard</button>
+                </div>
+                <div class="form-group">
+                    <label>Compiled Rules (Preview)</label>
+                    <div class="output-box" id="output"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank">@jk-com/adblock-compiler</a> • <span id="footer-version">v0.7.15</span></p>
+            <p>Made with ❤️ for better internet filtering | Streaming API enabled</p>
+        </footer>
+    </div>
+
+    <script>
+        // Dark Mode Management
+        const ThemeManager = {
+            STORAGE_KEY: 'theme-preference',
+
+            init() {
+                // Check for saved preference or system preference
+                const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+                if (savedTheme) {
+                    this.setTheme(savedTheme);
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    this.setTheme('dark');
+                }
+
+                // Listen for system theme changes
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                    if (!localStorage.getItem(this.STORAGE_KEY)) {
+                        this.setTheme(e.matches ? 'dark' : 'light');
+                    }
+                });
+
+                // Setup toggle button
+                const toggleBtn = document.getElementById('theme-toggle');
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => this.toggle());
+                }
+            },
+
+            getTheme() {
+                return document.documentElement.getAttribute('data-theme') || 'light';
+            },
+
+            setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem(this.STORAGE_KEY, theme);
+                this.updateToggleButton(theme);
+                this.updateTurnstileTheme(theme);
+            },
+
+            toggle() {
+                const currentTheme = this.getTheme();
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                this.setTheme(newTheme);
+            },
+
+            updateToggleButton(theme) {
+                const icon = document.getElementById('theme-icon');
+                const label = document.getElementById('theme-label');
+                if (icon && label) {
+                    if (theme === 'dark') {
+                        icon.textContent = '☀️';
+                        label.textContent = 'Light Mode';
+                    } else {
+                        icon.textContent = '🌙';
+                        label.textContent = 'Dark Mode';
+                    }
+                }
+
+                const toggleButton = document.getElementById('theme-toggle');
+                if (toggleButton) {
+                    const ariaLabel = theme === 'dark'
+                        ? 'Switch to light mode'
+                        : 'Switch to dark mode';
+                    toggleButton.setAttribute('aria-label', ariaLabel);
+                }
+            },
+
+            updateTurnstileTheme(theme) {
+                // Re-render Turnstile widgets with new theme
+                if (window.turnstile && turnstileSiteKey) {
+                    document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                        // Remove existing widget content, if it has been rendered
+                        if (typeof window.turnstile.remove === 'function' && widget.firstChild) {
+                            try {
+                                window.turnstile.remove(widget);
+                            } catch (error) {
+                                console.error(
+                                    'Failed to remove Turnstile widget:',
+                                    error instanceof Error ? error.message : String(error),
+                                );
+                            }
+                        }
+                        // Re-render with new theme
+                        window.turnstile.render(widget, {
+                            sitekey: turnstileSiteKey,
+                            theme: theme === 'dark' ? 'dark' : 'light',
+                            callback: onTurnstileSuccess,
+                            'expired-callback': onTurnstileExpired,
+                            'error-callback': onTurnstileError
+                        });
+                    });
+                }
+            },
+
+            getTurnstileTheme() {
+                return this.getTheme() === 'dark' ? 'dark' : 'light';
+            }
+        };
+
+        // Initialize theme manager immediately
+        ThemeManager.init();
+
+        // Fetch compiler version from API
+        async function fetchCompilerVersion() {
+            try {
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? '/api'
+                    : 'https://adblock-compiler.jayson-knight.workers.dev/api';
+                
+                const response = await fetch(apiUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.version) {
+                        const versionText = `v${data.version}`;
+                        document.getElementById('header-version').textContent = versionText;
+                        document.getElementById('footer-version').textContent = versionText;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch compiler version:', error);
+                // Keep the default version from HTML if fetch fails
+            }
+        }
+
+        // Fetch version when page loads
+        fetchCompilerVersion();
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                const tabId = targetTab === 'examples' ? 'examples-tab' : targetTab;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Progress section collapse/expand functionality
+        const progressHeader = document.getElementById('progress-header');
+        const progressContent = document.getElementById('progress-content');
+        const progressToggle = document.getElementById('progress-toggle');
+
+        function collapseProgress() {
+            progressContent.classList.remove('expanded');
+            progressToggle.classList.add('collapsed');
+            progressHeader.setAttribute('aria-expanded', 'false');
+            // Don't remove the attribute - just mark as not expanded
+            // This way showProgress() can distinguish between:
+            // - Never expanded by user (undefined)
+            // - User manually collapsed it (but was expanded before)
+        }
+
+        function expandProgress() {
+            progressContent.classList.add('expanded');
+            progressToggle.classList.remove('collapsed');
+            progressHeader.setAttribute('aria-expanded', 'true');
+            progressContent.dataset.wasExpanded = 'true';
+        }
+
+        function toggleProgress() {
+            const isExpanded = progressContent.classList.contains('expanded');
+            if (isExpanded) {
+                collapseProgress();
+            } else {
+                expandProgress();
+            }
+        }
+
+        progressHeader.addEventListener('click', toggleProgress);
+        progressHeader.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleProgress();
+            }
+        });
+
+        // Example data
+        const examples = {
+            'basic': {
+                mode: 'simple',
+                input: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                name: 'Basic AdGuard DNS Filter'
+            },
+            'hosts': {
+                mode: 'simple',
+                input: '0.0.0.0 ads.example.com\n0.0.0.0 tracking.example.com\n0.0.0.0 telemetry.example.com\n0.0.0.0 analytics.example.com\n0.0.0.0 doubleclick.net',
+                name: 'Hosts Format Example'
+            },
+            'raw-rules': {
+                mode: 'simple',
+                input: '||ads.example.com^\n||tracking.example.com^\n||doubleclick.net^\n||googleadservices.com^\n||googlesyndication.com^\n||analytics.google.com^',
+                name: 'Raw Filter Rules'
+            },
+            'multiple-sources': {
+                mode: 'advanced',
+                config: {
+                    name: 'Combined Filter List',
+                    sources: [
+                        {
+                            name: 'AdGuard DNS Filter',
+                            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                            transformations: ['RemoveComments', 'Validate']
+                        },
+                        {
+                            name: 'EasyList',
+                            source: 'https://easylist.to/easylist/easylist.txt',
+                            transformations: ['Validate']
+                        }
+                    ],
+                    transformations: ['Deduplicate', 'RemoveEmptyLines']
+                }
+            },
+            'exclusions': {
+                mode: 'advanced',
+                config: {
+                    name: 'Filtered AdGuard List',
+                    sources: [
+                        {
+                            name: 'AdGuard DNS Filter',
+                            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt'
+                        }
+                    ],
+                    transformations: ['Deduplicate', 'Compress', 'RemoveEmptyLines'],
+                    exclusions: ['||github.com^', '||stackoverflow.com^']
+                }
+            },
+            'optimized': {
+                mode: 'advanced',
+                config: {
+                    name: 'Optimized Filter List',
+                    description: 'Filter list with rule optimization enabled',
+                    sources: [
+                        {
+                            name: 'AdGuard DNS Filter',
+                            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt',
+                            transformations: ['RemoveComments', 'Validate']
+                        }
+                    ],
+                    transformations: ['Deduplicate', 'Compress', 'RemoveEmptyLines', 'RuleOptimizer']
+                }
+            },
+            'pihole-format': {
+                mode: 'advanced',
+                config: {
+                    name: 'Pi-hole Blocklist',
+                    description: 'Filter list formatted for Pi-hole',
+                    sources: [
+                        {
+                            name: 'AdGuard DNS Filter',
+                            source: 'https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt'
+                        }
+                    ],
+                    transformations: ['Deduplicate', 'Compress', 'RemoveEmptyLines'],
+                    outputFormat: 'pihole'
+                }
+            },
+            'conflict-check': {
+                mode: 'advanced',
+                config: {
+                    name: 'Conflict-Checked List',
+                    description: 'Detect blocking/allowing conflicts',
+                    sources: [
+                        {
+                            name: 'Sample Rules',
+                            source: 'sample-rules'
+                        }
+                    ],
+                    transformations: ['ConflictDetection', 'Deduplicate', 'RemoveEmptyLines']
+                },
+                preFetchedContent: {
+                    'sample-rules': '||ads.example.com^\n@@||ads.example.com^\n||tracking.example.com^\n@@||tracking.example.com^$important\n||doubleclick.net^\n||googleadservices.com^'
+                }
+            }
+        };
+
+        // Load examples
+        document.querySelectorAll('.example-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const exampleKey = card.dataset.example;
+                const example = examples[exampleKey];
+
+                if (example.mode === 'simple') {
+                    document.querySelector('.tab[data-tab="simple"]').click();
+                    document.getElementById('simple-input').value = example.input;
+                    document.getElementById('list-name').value = example.name;
+                } else {
+                    document.querySelector('.tab[data-tab="advanced"]').click();
+                    document.getElementById('advanced-config').value = JSON.stringify(example.config, null, 2);
+
+                    // Set output format if specified
+                    if (example.config.outputFormat) {
+                        document.getElementById('advanced-output-format').value = example.config.outputFormat;
+                    } else {
+                        document.getElementById('advanced-output-format').value = 'adblock';
+                    }
+
+                    // Show info about preFetchedContent if present
+                    if (example.preFetchedContent) {
+                        const configWithContent = {
+                            ...example.config,
+                            _note: 'This example uses pre-fetched content. Click Compile to test conflict detection.'
+                        };
+                        document.getElementById('advanced-config').value = JSON.stringify(configWithContent, null, 2);
+                    }
+                }
+            });
+        });
+
+        // Clear buttons
+        document.getElementById('simple-clear').addEventListener('click', () => {
+            document.getElementById('simple-input').value = '';
+            document.getElementById('list-name').value = 'My Custom Filter List';
+            hideResults();
+        });
+
+        document.getElementById('advanced-clear').addEventListener('click', () => {
+            document.getElementById('advanced-config').value = '';
+            hideResults();
+        });
+
+        // Compile functionality
+        let compiledRules = [];
+        let currentListName = '';
+        let compilerWorker = null;
+        let compilationId = 0;
+        let pendingQueuedRequestId = null; // Track the pending queued job for result retrieval
+
+        // Turnstile token management
+        let turnstileToken = null;
+        let turnstileSiteKey = null;
+
+        // Fetch Turnstile site key from server
+        async function fetchTurnstileSiteKey() {
+            try {
+                const apiUrl = window.location.hostname === 'localhost'
+                    ? '/api/turnstile-config'
+                    : 'https://adblock-compiler.jayson-knight.workers.dev/api/turnstile-config';
+
+                const response = await fetch(apiUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.siteKey) {
+                        turnstileSiteKey = data.siteKey;
+                        // Update all Turnstile widgets with the actual site key
+                        document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                            widget.setAttribute('data-sitekey', data.siteKey);
+                        });
+                        // Re-render Turnstile widgets with appropriate theme
+                        if (window.turnstile) {
+                            const turnstileTheme = ThemeManager.getTurnstileTheme();
+                            document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                                window.turnstile.render(widget, {
+                                    sitekey: data.siteKey,
+                                    theme: turnstileTheme,
+                                    callback: onTurnstileSuccess,
+                                    'expired-callback': onTurnstileExpired,
+                                    'error-callback': onTurnstileError
+                                });
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch Turnstile site key:', error);
+            }
+        }
+
+        // Turnstile callback functions (must be global for the widget)
+        window.onTurnstileSuccess = function(token) {
+            turnstileToken = token;
+            document.getElementById('turnstile-hint').textContent = 'Security check passed';
+            document.getElementById('turnstile-hint').style.color = 'var(--log-success-border)';
+        };
+
+        window.onTurnstileExpired = function() {
+            turnstileToken = null;
+            document.getElementById('turnstile-hint').textContent = 'Security check expired. Please verify again.';
+            document.getElementById('turnstile-hint').style.color = 'var(--log-error-border)';
+        };
+
+        window.onTurnstileError = function() {
+            turnstileToken = null;
+            document.getElementById('turnstile-hint').textContent = 'Security check failed. Please try again.';
+            document.getElementById('turnstile-hint').style.color = 'var(--log-error-border)';
+        };
+
+        // Reset Turnstile after compilation
+        function resetTurnstile() {
+            turnstileToken = null;
+            if (window.turnstile) {
+                document.querySelectorAll('.cf-turnstile').forEach(widget => {
+                    window.turnstile.reset(widget);
+                });
+            }
+            document.getElementById('turnstile-hint').textContent = 'Complete the security check to compile';
+            document.getElementById('turnstile-hint').style.color = 'var(--text-hint)';
+        }
+
+        // Fetch Turnstile site key when page loads
+        fetchTurnstileSiteKey();
+
+        // Initialize the Web Worker
+        function initWorker() {
+            if (!compilerWorker) {
+                compilerWorker = new Worker('compiler-worker.js');
+                
+                compilerWorker.addEventListener('message', (event) => {
+                    handleWorkerMessage(event.data);
+                });
+
+                compilerWorker.addEventListener('error', (error) => {
+                    console.error('Worker error:', error);
+                    addLog('error', `Worker error: ${error.message}`);
+                });
+            }
+        }
+
+        // Handle messages from the worker
+        function handleWorkerMessage(message) {
+            if (message.type === 'ready') {
+                console.log('Compiler worker is ready');
+                return;
+            }
+
+            const { type, eventType, data, error } = message;
+
+            if (type === 'event') {
+                handleCompilationEvent(eventType, data);
+            } else if (type === 'error') {
+                handleCompilationError(error);
+            } else if (type === 'complete') {
+                handleCompilationComplete();
+            }
+        }
+
+        document.getElementById('simple-compile').addEventListener('click', () => compileSimple());
+        document.getElementById('advanced-compile').addEventListener('click', () => compileAdvanced());
+
+        async function compileSimple() {
+            // Check Turnstile token
+            if (!turnstileToken) {
+                alert('Please complete the security check before compiling');
+                return;
+            }
+
+            const input = document.getElementById('simple-input').value.trim();
+            if (!input) {
+                alert('Please enter at least one URL or some rules');
+                return;
+            }
+
+            const listName = document.getElementById('list-name').value.trim() || 'My Filter List';
+            const benchmark = document.getElementById('simple-benchmark').checked;
+            const useQueue = document.getElementById('simple-use-queue').checked;
+            const useStreaming = document.getElementById('simple-streaming').checked;
+            const outputFormat = document.getElementById('output-format').value;
+
+            // Parse input - separate URLs from raw rules
+            const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+            const urls = lines.filter(l => l.startsWith('http://') || l.startsWith('https://'));
+            const rawRules = lines.filter(l => !l.startsWith('http://') && !l.startsWith('https://'));
+
+            // Build configuration
+            const sources = [];
+
+            // Add URL sources
+            urls.forEach((url, idx) => {
+                sources.push({
+                    name: `Source ${idx + 1}`,
+                    source: url
+                });
+            });
+
+            // Add raw rules as a source
+            if (rawRules.length > 0) {
+                sources.push({
+                    name: 'Raw Rules',
+                    source: 'raw-rules'
+                });
+            }
+
+            if (sources.length === 0) {
+                alert('No valid sources found');
+                return;
+            }
+
+            // Get selected transformations
+            const transformations = [];
+            if (document.getElementById('trans-dedupe').checked) transformations.push('Deduplicate');
+            if (document.getElementById('trans-compress').checked) transformations.push('Compress');
+            if (document.getElementById('trans-validate').checked) transformations.push('Validate');
+            if (document.getElementById('trans-remove-comments').checked) transformations.push('RemoveComments');
+            if (document.getElementById('trans-remove-empty').checked) transformations.push('RemoveEmptyLines');
+            if (document.getElementById('trans-optimize').checked) transformations.push('RuleOptimizer');
+            if (document.getElementById('trans-conflict').checked) transformations.push('ConflictDetection');
+
+            const configuration = {
+                name: listName,
+                sources,
+                transformations,
+                outputFormat: outputFormat !== 'adblock' ? outputFormat : undefined
+            };
+
+            // Prepare pre-fetched content
+            const preFetchedContent = {};
+            if (rawRules.length > 0) {
+                preFetchedContent['raw-rules'] = rawRules.join('\n');
+            }
+
+            await compile(configuration, preFetchedContent, benchmark, useQueue, useStreaming);
+        }
+
+        async function compileAdvanced() {
+            // Check Turnstile token
+            if (!turnstileToken) {
+                alert('Please complete the security check before compiling');
+                return;
+            }
+
+            const configText = document.getElementById('advanced-config').value.trim();
+            if (!configText) {
+                alert('Please enter a configuration');
+                return;
+            }
+
+            let configuration;
+            try {
+                configuration = JSON.parse(configText);
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
+                return;
+            }
+
+            const benchmark = document.getElementById('advanced-benchmark').checked;
+            const useQueue = document.getElementById('advanced-use-queue').checked;
+            const useStreaming = document.getElementById('advanced-streaming').checked;
+            const outputFormat = document.getElementById('advanced-output-format').value;
+
+            // Add output format to configuration if not adblock
+            if (outputFormat !== 'adblock') {
+                configuration.outputFormat = outputFormat;
+            }
+
+            await compile(configuration, {}, benchmark, useQueue, useStreaming);
+        }
+
+        // Store compilation state
+        let compileStartTime = 0;
+
+        // Handle compilation events from the worker
+        function handleCompilationEvent(eventType, data) {
+            const progressFill = document.getElementById('progress-fill');
+
+            if (eventType === 'log') {
+                addLog(data.level, data.message);
+            } else if (eventType === 'progress') {
+                updateProgress(data);
+            } else if (eventType === 'source:start') {
+                addLog('info', `Fetching: ${data.source.name || data.source.source}`);
+            } else if (eventType === 'source:complete') {
+                addLog('info', `✓ Completed: ${data.source.name || data.source.source}`);
+            } else if (eventType === 'source:error') {
+                addLog('error', `✗ Error: ${data.error}`);
+            } else if (eventType === 'transformation:start') {
+                addLog('info', `Applying: ${data.name}`);
+            } else if (eventType === 'transformation:complete') {
+                addLog('info', `✓ ${data.name} complete (${data.outputCount} rules)`);
+            } else if (eventType === 'compilation:complete') {
+                addLog('success', `✓ Compilation complete! (${data.ruleCount} rules)`);
+            } else if (eventType === 'result') {
+                compiledRules = data.rules;
+                showResults(data);
+                
+                // Track successful compilation
+                const compileTime = Date.now() - compileStartTime;
+                trackEvent('compilation_completed', {
+                    list_name: currentListName,
+                    rule_count: data.ruleCount,
+                    duration_ms: compileTime,
+                    has_diff: !!data.previousVersion,
+                    cache_status: data.cacheStatus || 'unknown'
+                });
+            } else if (eventType === 'done') {
+                addLog('success', '✓ Compilation complete!');
+                progressFill.style.width = '100%';
+            } else if (eventType === 'error') {
+                handleCompilationError(data.error);
+            }
+        }
+
+        // Handle compilation errors
+        function handleCompilationError(errorMessage) {
+            addLog('error', `Compilation failed: ${errorMessage}`);
+            alert('Compilation failed: ' + errorMessage);
+            
+            // Track compilation error
+            trackEvent('compilation_error', {
+                list_name: currentListName,
+                error_message: errorMessage,
+                duration_ms: Date.now() - compileStartTime
+            });
+
+            const compileBtn = document.querySelector('.btn-primary');
+            compileBtn.disabled = false;
+        }
+
+        // Handle compilation completion
+        function handleCompilationComplete() {
+            const compileBtn = document.querySelector('.btn-primary');
+            compileBtn.disabled = false;
+        }
+
+        async function compile(configuration, preFetchedContent, benchmark, useQueue = false, useStreaming = true) {
+            currentListName = configuration.name || 'filter-list';
+            hideResults();
+            showProgress();
+
+            const progressFill = document.getElementById('progress-fill');
+            const progressLogs = document.getElementById('progress-logs');
+            const compileBtn = document.querySelector('.btn-primary');
+
+            progressLogs.innerHTML = '';
+            progressFill.style.width = '0%';
+            compileBtn.disabled = true;
+
+            // Capture the current Turnstile token
+            const token = turnstileToken;
+
+            // Reset Turnstile immediately after capturing the token
+            resetTurnstile();
+
+            // Track compilation start
+            compileStartTime = Date.now();
+            trackEvent('compilation_started', {
+                list_name: currentListName,
+                source_count: configuration.sources?.length || 0,
+                has_transformations: (configuration.transformations?.length || 0) > 0,
+                benchmark: benchmark,
+                use_queue: useQueue,
+                use_streaming: useStreaming,
+                output_format: configuration.outputFormat || 'adblock'
+            });
+
+            if (useQueue) {
+                // Use async queue endpoint
+                await compileWithQueue(configuration, preFetchedContent, benchmark, token);
+            } else if (useStreaming) {
+                // Use streaming SSE endpoint
+                await compileWithStream(configuration, preFetchedContent, benchmark, token);
+            } else {
+                // Use standard JSON endpoint
+                await compileWithJson(configuration, preFetchedContent, benchmark, token);
+            }
+        }
+
+        // Non-streaming JSON compilation
+        async function compileWithJson(configuration, preFetchedContent, benchmark, turnstileToken) {
+            const apiUrl = window.location.hostname === 'localhost'
+                ? '/compile'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/compile';
+
+            try {
+                addLog('info', 'Starting compilation (non-streaming mode)...');
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        configuration,
+                        preFetchedContent,
+                        benchmark,
+                        turnstileToken
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    compiledRules = result.rules || [];
+                    showResults({
+                        rules: result.rules,
+                        ruleCount: result.ruleCount,
+                        metrics: result.metrics,
+                        previousVersion: result.previousVersion
+                    });
+                    addLog('success', `Compilation complete! ${result.ruleCount} rules compiled.`);
+
+                    // Track successful compilation
+                    const compileTime = Date.now() - compileStartTime;
+                    trackEvent('compilation_completed', {
+                        list_name: currentListName,
+                        rule_count: result.ruleCount,
+                        duration_ms: compileTime,
+                        cache_status: result.cached ? 'hit' : 'miss',
+                        mode: 'json'
+                    });
+                } else {
+                    throw new Error(result.error || 'Compilation failed');
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                handleCompilationError(errorMessage);
+            } finally {
+                const compileBtn = document.querySelector('.btn-primary');
+                compileBtn.disabled = false;
+            }
+        }
+
+        async function compileWithQueue(configuration, preFetchedContent, benchmark, turnstileToken) {
+            const apiUrl = window.location.hostname === 'localhost'
+                ? '/compile/async'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/compile/async';
+
+            try {
+                addLog('info', '📤 Sending compilation job to queue...');
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        configuration,
+                        preFetchedContent,
+                        benchmark,
+                        turnstileToken
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog('success', `✓ Job queued successfully! Request ID: ${result.requestId}`);
+                    addLog('info', result.note);
+                    addLog('info', '⏳ Your compilation will be processed in the background.');
+                    addLog('info', '💡 Download and Copy options will appear when the job completes.');
+
+                    // Store the requestId for result retrieval when job completes
+                    pendingQueuedRequestId = result.requestId;
+
+                    // Show queue stats
+                    showQueueStats();
+                    await fetchQueueStats();
+
+                    // Track successful queue
+                    trackEvent('compilation_queued', {
+                        list_name: currentListName,
+                        request_id: result.requestId,
+                        duration_ms: Date.now() - compileStartTime
+                    });
+                } else {
+                    throw new Error(result.error || 'Failed to queue compilation');
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                handleCompilationError(errorMessage);
+            } finally {
+                const compileBtn = document.querySelector('.btn-primary');
+                compileBtn.disabled = false;
+            }
+        }
+
+        async function compileWithStream(configuration, preFetchedContent, benchmark, turnstileToken) {
+            // Initialize worker if needed
+            initWorker();
+
+            // Use production API or local dev
+            const apiUrl = window.location.hostname === 'localhost'
+                ? '/compile/stream'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/compile/stream';
+
+            // Send compilation request to worker
+            const requestId = ++compilationId;
+            compilerWorker.postMessage({
+                type: 'compile',
+                id: requestId,
+                apiUrl,
+                requestBody: {
+                    configuration,
+                    preFetchedContent,
+                    benchmark,
+                    turnstileToken
+                }
+            });
+        }
+
+        // Chart instance for queue depth
+        let queueDepthChart = null;
+
+        async function fetchQueueStats() {
+            const apiUrl = window.location.hostname === 'localhost' 
+                ? '/queue/stats'
+                : 'https://adblock-compiler.jayson-knight.workers.dev/queue/stats';
+            
+            try {
+                const response = await fetch(apiUrl);
+                const stats = await response.json();
+                
+                // Update basic stats
+                document.getElementById('queue-pending').textContent = stats.pending.toLocaleString();
+                document.getElementById('queue-completed').textContent = stats.completed.toLocaleString();
+                document.getElementById('queue-failed').textContent = stats.failed.toLocaleString();
+                document.getElementById('queue-avg-time').textContent = 
+                    stats.averageProcessingTime > 0 ? `${stats.averageProcessingTime}ms` : '-';
+                document.getElementById('queue-processing-rate').textContent = 
+                    stats.processingRate || '0';
+                document.getElementById('queue-lag').textContent = 
+                    stats.queueLag > 0 ? `${Math.round(stats.queueLag / 1000)}s` : '-';
+                document.getElementById('queue-last-update').textContent = 
+                    new Date(stats.lastUpdate).toLocaleTimeString();
+                
+                // Update health indicator
+                updateQueueHealth(stats);
+                
+                // Update queue depth chart
+                updateQueueDepthChart(stats.depthHistory || []);
+                
+                // Update job history table
+                updateJobHistory(stats.history || []);
+                
+                // Check for recently completed jobs and show notifications
+                checkForCompletedJobs(stats.history || []);
+            } catch (error) {
+                console.error('Failed to fetch queue stats:', error);
+            }
+        }
+
+        function updateQueueHealth(stats) {
+            const indicator = document.getElementById('queue-health-indicator');
+            const pending = stats.pending || 0;
+            const queueLag = stats.queueLag || 0;
+            
+            let healthClass = 'health-healthy';
+            let healthText = 'Healthy';
+            
+            // Determine health based on queue lag and pending jobs
+            if (queueLag > 60000 || pending > 50) {
+                healthClass = 'health-critical';
+                healthText = 'Critical';
+            } else if (queueLag > 30000 || pending > 20) {
+                healthClass = 'health-degraded';
+                healthText = 'Degraded';
+            }
+            
+            indicator.innerHTML = `<span class="health-indicator ${healthClass}"></span>${healthText}`;
+        }
+
+        function updateQueueDepthChart(depthHistory) {
+            const canvas = document.getElementById('queue-depth-chart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Check if Chart.js is available
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not loaded, skipping chart update');
+                return;
+            }
+            
+            if (queueDepthChart) {
+                queueDepthChart.destroy();
+            }
+            
+            const labels = depthHistory.map(entry => {
+                const date = new Date(entry.timestamp);
+                return date.toLocaleTimeString();
+            });
+            
+            const data = depthHistory.map(entry => entry.pending);
+            
+            try {
+                queueDepthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Pending Jobs',
+                            data: data,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                display: labels.length > 0
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.warn('Failed to create chart:', error);
+            }
+        }
+
+        function updateJobHistory(history) {
+            const tbody = document.getElementById('job-history-body');
+            
+            if (!history || history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-hint); padding: 20px;">No job history available</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = history.map(job => {
+                const date = new Date(job.timestamp);
+                const timeStr = date.toLocaleTimeString();
+                const statusClass = `status-${job.status}`;
+                const duration = job.duration ? `${job.duration}ms` : '-';
+                const ruleCount = job.ruleCount ? job.ruleCount.toLocaleString() : '-';
+                
+                return `
+                    <tr>
+                        <td>${timeStr}</td>
+                        <td>${escapeHtml(job.configName)}</td>
+                        <td><span class="status-badge ${statusClass}">${job.status}</span></td>
+                        <td>${duration}</td>
+                        <td>${ruleCount}</td>
+                        <td>
+                            ${job.status === 'failed' && job.error ? `<span title="${escapeHtml(job.error)}" style="cursor: help;">ℹ️</span>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Track shown notifications to avoid duplicates
+        const shownNotifications = new Set();
+        // Track jobs that we've already fetched results for
+        const fetchedResultsFor = new Set();
+
+        function checkForCompletedJobs(history) {
+            if (!history || history.length === 0) return;
+
+            // Check for completed jobs in the last minute
+            const oneMinuteAgo = Date.now() - 60000;
+            const recentCompleted = history.filter(job => {
+                const jobTime = new Date(job.timestamp).getTime();
+                return job.status === 'completed' &&
+                       jobTime > oneMinuteAgo &&
+                       !shownNotifications.has(job.requestId);
+            });
+
+            // Show browser notifications if permission granted
+            if (recentCompleted.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
+                recentCompleted.forEach(job => {
+                    showJobNotification(job);
+                    shownNotifications.add(job.requestId);
+                });
+            }
+
+            // Check if our pending queued job has completed and fetch results
+            if (pendingQueuedRequestId && !fetchedResultsFor.has(pendingQueuedRequestId)) {
+                const ourJob = history.find(job => job.requestId === pendingQueuedRequestId);
+                if (ourJob && ourJob.status === 'completed') {
+                    fetchQueuedResults(pendingQueuedRequestId);
+                    fetchedResultsFor.add(pendingQueuedRequestId);
+                } else if (ourJob && ourJob.status === 'failed') {
+                    addLog('error', `Queued job failed: ${ourJob.error || 'Unknown error'}`);
+                    fetchedResultsFor.add(pendingQueuedRequestId);
+                    pendingQueuedRequestId = null;
+                }
+            }
+        }
+
+        // Fetch results for a completed queued job and display them
+        async function fetchQueuedResults(requestId) {
+            const apiUrl = window.location.hostname === 'localhost'
+                ? `/queue/results/${requestId}`
+                : `https://adblock-compiler.jayson-knight.workers.dev/queue/results/${requestId}`;
+
+            try {
+                addLog('info', '📥 Fetching compilation results...');
+
+                const response = await fetch(apiUrl);
+                const result = await response.json();
+
+                if (result.success && result.rules) {
+                    // Store the rules for download/copy functionality
+                    compiledRules = result.rules;
+
+                    // Show the results section with download/copy buttons
+                    showResults({
+                        rules: result.rules,
+                        ruleCount: result.ruleCount,
+                        metrics: result.metrics,
+                        previousVersion: null // Diff not available for queued results
+                    });
+
+                    addLog('success', `✓ Results loaded! ${result.ruleCount} rules compiled.`);
+
+                    // Track successful result retrieval
+                    trackEvent('queued_results_loaded', {
+                        list_name: currentListName,
+                        request_id: requestId,
+                        rule_count: result.ruleCount
+                    });
+                } else {
+                    // Handle various error statuses
+                    if (result.status === 'cache_miss') {
+                        addLog('warning', 'Cached results have expired. Please compile again to get results.');
+                    } else if (result.status === 'no_cache') {
+                        addLog('warning', 'Results cannot be retrieved (pre-fetched content was used).');
+                    } else {
+                        addLog('error', `Failed to fetch results: ${result.error || 'Unknown error'}`);
+                    }
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                addLog('error', `Failed to fetch queued results: ${errorMessage}`);
+            } finally {
+                // Clear the pending request
+                pendingQueuedRequestId = null;
+            }
+        }
+
+        function showJobNotification(job) {
+            const notification = new Notification('Compilation Complete', {
+                body: `${job.configName} - ${job.ruleCount} rules compiled in ${job.duration}ms`,
+                icon: '/favicon.ico',
+                tag: job.requestId
+            });
+            
+            setTimeout(() => notification.close(), 5000);
+        }
+
+        // Request notification permission when showing queue stats
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        function showQueueStats() {
+            document.getElementById('queue-stats-section').style.display = 'block';
+            // Request notification permission
+            requestNotificationPermission();
+            // Start auto-refresh when showing queue stats
+            if (typeof startQueueStatsAutoRefresh === 'function') {
+                startQueueStatsAutoRefresh();
+            }
+        }
+
+        function hideQueueStats() {
+            document.getElementById('queue-stats-section').style.display = 'none';
+            // Stop auto-refresh immediately when hiding
+            if (typeof stopQueueStatsAutoRefresh === 'function') {
+                stopQueueStatsAutoRefresh();
+            }
+        }
+
+        function addLog(level, message) {
+            const progressLogs = document.getElementById('progress-logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${level}`;
+            logEntry.textContent = message;
+            progressLogs.appendChild(logEntry);
+            progressLogs.scrollTop = progressLogs.scrollHeight;
+        }
+
+        function updateProgress(data) {
+            const progressFill = document.getElementById('progress-fill');
+            if (data.total > 0) {
+                const percentage = (data.current / data.total) * 100;
+                progressFill.style.width = `${percentage}%`;
+            }
+            if (data.message) {
+                addLog('info', data.message);
+            }
+        }
+
+        function showProgress() {
+            const progressSection = document.getElementById('progress');
+            progressSection.classList.add('visible');
+            // Keep the current expanded/collapsed state when showing progress again
+            // Only collapse if user hasn't manually expanded it before
+            if (progressContent.dataset.wasExpanded !== 'true') {
+                collapseProgress();
+            }
+        }
+
+        function hideResults() {
+            document.getElementById('results').classList.remove('visible');
+            document.getElementById('progress').classList.remove('visible');
+            // Hide and stop auto-refresh for queue stats
+            hideQueueStats();
+        }
+
+        function showResults(data) {
+            const resultsSection = document.getElementById('results');
+            const statsContainer = document.getElementById('stats');
+            const outputBox = document.getElementById('output');
+
+            // Build stats
+            const stats = [
+                { label: 'Total Rules', value: data.ruleCount.toLocaleString() }
+            ];
+
+            if (data.metrics) {
+                stats.push(
+                    { label: 'Duration', value: `${data.metrics.totalDurationMs}ms` },
+                    { label: 'Sources', value: data.metrics.sourceCount }
+                );
+            }
+
+            statsContainer.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <div class="stat-value">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('');
+
+            // Show diff if there's a previous version
+            if (data.previousVersion && data.previousVersion.rules) {
+                showDiff(data.previousVersion.rules, data.rules, data.previousVersion.compiledAt);
+            } else {
+                document.getElementById('diff-section').style.display = 'none';
+            }
+
+            // Show preview (first 100 rules)
+            const preview = data.rules.slice(0, 100).join('\n');
+            const suffix = data.rules.length > 100 ? `\n\n... and ${data.rules.length - 100} more rules` : '';
+            outputBox.textContent = preview + suffix;
+
+            resultsSection.classList.add('visible');
+        }
+
+        function computeDiff(oldRules, newRules) {
+            // Create sets for fast lookup
+            const oldSet = new Set(oldRules);
+            const newSet = new Set(newRules);
+            
+            const removed = oldRules.filter(rule => !newSet.has(rule));
+            const added = newRules.filter(rule => !oldSet.has(rule));
+            // Don't compute the full unchanged array - it's expensive for large lists
+            // We only need the count, which can be derived: unchanged = total - added
+            const unchangedCount = newRules.length - added.length;
+            
+            return { added, removed, unchangedCount };
+        }
+
+        function showDiff(oldRules, newRules, compiledAt) {
+            const diffSection = document.getElementById('diff-section');
+            const diffStats = document.getElementById('diff-stats');
+            const diffContainer = document.getElementById('diff-container');
+            
+            const diff = computeDiff(oldRules, newRules);
+            
+            // Update stats
+            diffStats.innerHTML = `
+                <span class="diff-stat-added">+${diff.added.length} added</span>
+                <span class="diff-stat-removed">-${diff.removed.length} removed</span>
+                <span class="diff-stat-unchanged">${diff.unchangedCount} unchanged</span>
+            `;
+            
+            // Render diff
+            function renderDiff() {
+                const lines = [];
+                
+                // Show removed lines
+                diff.removed.slice(0, 200).forEach(rule => {
+                    lines.push(`<div class="diff-line diff-line-removed"><span class="diff-line-symbol">-</span>${escapeHtml(rule)}</div>`);
+                });
+                if (diff.removed.length > 200) {
+                    lines.push(`<div class="diff-line diff-line-removed"><span class="diff-line-symbol">...</span>and ${diff.removed.length - 200} more removed</div>`);
+                }
+                
+                // Show added lines
+                diff.added.slice(0, 200).forEach(rule => {
+                    lines.push(`<div class="diff-line diff-line-added"><span class="diff-line-symbol">+</span>${escapeHtml(rule)}</div>`);
+                });
+                if (diff.added.length > 200) {
+                    lines.push(`<div class="diff-line diff-line-added"><span class="diff-line-symbol">...</span>and ${diff.added.length - 200} more added</div>`);
+                }
+                
+                // Show summary of unchanged rules (we don't render them individually for performance)
+                if (diff.unchangedCount > 0) {
+                    lines.push(`<div class="diff-line diff-line-unchanged"><span class="diff-line-symbol"> </span>${diff.unchangedCount} rules unchanged</div>`);
+                }
+                
+                diffContainer.innerHTML = lines.length > 0 ? lines.join('') : '<div class="diff-line">No changes detected</div>';
+            }
+            
+            // Initial render
+            renderDiff();
+            
+            // Show section
+            diffSection.style.display = 'block';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Analytics helper
+        function trackEvent(eventName, eventData = {}) {
+            // Send custom event if analytics is available
+            if (window.gtag) {
+                window.gtag('event', eventName, eventData);
+            }
+            // Also log for debugging (remove in production)
+            console.log('[Analytics]', eventName, eventData);
+        }
+
+        // Download functionality
+        document.getElementById('download-results').addEventListener('click', () => {
+            if (compiledRules.length === 0) {
+                alert('No results to download');
+                return;
+            }
+
+            trackEvent('download_results', {
+                list_name: currentListName,
+                rule_count: compiledRules.length
+            });
+
+            const blob = new Blob([compiledRules.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentListName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Copy to clipboard
+        document.getElementById('copy-results').addEventListener('click', async () => {
+            if (compiledRules.length === 0) {
+                alert('No results to copy');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(compiledRules.join('\n'));
+                const btn = document.getElementById('copy-results');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+                
+                trackEvent('copy_to_clipboard', {
+                    list_name: currentListName,
+                    rule_count: compiledRules.length
+                });
+            } catch (error) {
+                alert('Failed to copy to clipboard: ' + error.message);
+            }
+        });
+
+        // Queue stats refresh button
+        document.getElementById('refresh-queue-stats').addEventListener('click', async () => {
+            await fetchQueueStats();
+        });
+
+        // Auto-refresh queue stats every 5 seconds when visible
+        let queueStatsIntervalId = null;
+        
+        function isQueueStatsSectionVisible() {
+            const queueStatsSection = document.getElementById('queue-stats-section');
+            // Check if element is visible using computed style
+            const computedStyle = window.getComputedStyle(queueStatsSection);
+            return computedStyle.display !== 'none';
+        }
+        
+        function startQueueStatsAutoRefresh() {
+            if (queueStatsIntervalId === null) {
+                queueStatsIntervalId = setInterval(async () => {
+                    if (isQueueStatsSectionVisible()) {
+                        await fetchQueueStats();
+                    } else {
+                        // Stop auto-refresh when hidden
+                        stopQueueStatsAutoRefresh();
+                    }
+                }, 5000);
+            }
+        }
+        
+        function stopQueueStatsAutoRefresh() {
+            if (queueStatsIntervalId !== null) {
+                clearInterval(queueStatsIntervalId);
+                queueStatsIntervalId = null;
+            }
+        }
+        
+        // Don't start auto-refresh on page load - only when queue stats are shown
+        // startQueueStatsAutoRefresh(); is called in showQueueStats()
+    </script>
+</body>
+</html>
