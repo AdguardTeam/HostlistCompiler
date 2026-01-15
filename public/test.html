@@ -4,33 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hostlist Compiler Worker Test</title>
+    <link rel="stylesheet" href="/shared-styles.css">
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--font-family);
             max-width: 1200px;
             margin: 40px auto;
             padding: 20px;
-            background: #f5f5f5;
+            background: var(--bg-color);
+            color: var(--text-color);
         }
         .container {
-            background: white;
+            background: var(--card-bg);
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
             margin-bottom: 20px;
         }
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
+        h1, h2, h3 {
+            color: var(--text-color);
         }
         h2 {
-            color: #333;
             margin-bottom: 10px;
-            border-bottom: 2px solid #007bff;
+            border-bottom: 2px solid var(--primary);
             padding-bottom: 10px;
         }
         .endpoint {
-            color: #666;
+            color: var(--text-muted);
             font-size: 14px;
             margin-bottom: 30px;
         }
@@ -40,16 +40,18 @@
             padding: 10px;
             font-family: 'Courier New', monospace;
             font-size: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             margin-bottom: 10px;
             box-sizing: border-box;
+            background: var(--input-bg);
+            color: var(--text-color);
         }
         textarea.small {
             min-height: 100px;
         }
         button {
-            background: #007bff;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -60,10 +62,10 @@
             margin-bottom: 10px;
         }
         button:hover {
-            background: #0056b3;
+            opacity: 0.9;
         }
         button:disabled {
-            background: #ccc;
+            background: var(--text-muted);
             cursor: not-allowed;
         }
         button.secondary {
@@ -73,21 +75,15 @@
             background: #545b62;
         }
         button.success {
-            background: #28a745;
-        }
-        button.success:hover {
-            background: #218838;
+            background: var(--success);
         }
         button.warning {
-            background: #ffc107;
+            background: var(--warning);
             color: #333;
         }
-        button.warning:hover {
-            background: #e0a800;
-        }
         .log {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 15px;
             margin-top: 20px;
@@ -100,15 +96,15 @@
         .log-entry {
             margin-bottom: 5px;
             padding: 5px;
-            border-left: 3px solid #dee2e6;
+            border-left: 3px solid var(--border-color);
             padding-left: 10px;
         }
         .log-entry.info { border-left-color: #17a2b8; }
-        .log-entry.success { border-left-color: #28a745; }
-        .log-entry.error { border-left-color: #dc3545; }
-        .log-entry.warning { border-left-color: #ffc107; }
+        .log-entry.success { border-left-color: var(--success); }
+        .log-entry.error { border-left-color: var(--danger); }
+        .log-entry.warning { border-left-color: var(--warning); }
         .timestamp {
-            color: #6c757d;
+            color: var(--text-muted);
             margin-right: 10px;
         }
         .stats {
@@ -118,29 +114,29 @@
             margin-top: 20px;
         }
         .stat-card {
-            background: #f8f9fa;
+            background: var(--input-bg);
             padding: 15px;
             border-radius: 4px;
-            border-left: 4px solid #007bff;
+            border-left: 4px solid var(--primary);
         }
         .stat-card.success {
-            border-left-color: #28a745;
+            border-left-color: var(--success);
         }
         .stat-card.warning {
-            border-left-color: #ffc107;
+            border-left-color: var(--warning);
         }
         .stat-card.error {
-            border-left-color: #dc3545;
+            border-left-color: var(--danger);
         }
         .stat-label {
             font-size: 12px;
-            color: #6c757d;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
         .stat-value {
             font-size: 24px;
             font-weight: bold;
-            color: #333;
+            color: var(--text-color);
             margin-top: 5px;
         }
         .workflow-status {
@@ -151,14 +147,14 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        .workflow-status.queued { background: #e9ecef; color: #495057; }
-        .workflow-status.running { background: #cce5ff; color: #004085; }
-        .workflow-status.complete { background: #d4edda; color: #155724; }
-        .workflow-status.errored { background: #f8d7da; color: #721c24; }
-        .workflow-status.unknown { background: #fff3cd; color: #856404; }
+        .workflow-status.queued { background: rgba(128, 128, 128, 0.2); color: var(--text-muted); }
+        .workflow-status.running { background: rgba(0, 123, 255, 0.2); color: var(--primary); }
+        .workflow-status.complete { background: rgba(40, 167, 69, 0.2); color: var(--success); }
+        .workflow-status.errored { background: rgba(220, 53, 69, 0.2); color: var(--danger); }
+        .workflow-status.unknown { background: rgba(255, 193, 7, 0.2); color: var(--warning); }
         .tabs {
             display: flex;
-            border-bottom: 2px solid #dee2e6;
+            border-bottom: 2px solid var(--border-color);
             margin-bottom: 20px;
         }
         .tab {
@@ -167,16 +163,16 @@
             border: none;
             background: none;
             font-size: 14px;
-            color: #6c757d;
+            color: var(--text-muted);
             border-bottom: 2px solid transparent;
             margin-bottom: -2px;
         }
         .tab:hover {
-            color: #333;
+            color: var(--text-color);
         }
         .tab.active {
-            color: #007bff;
-            border-bottom-color: #007bff;
+            color: var(--primary);
+            border-bottom-color: var(--primary);
             font-weight: bold;
         }
         .tab-content {
@@ -188,14 +184,14 @@
         .section {
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--border-color);
         }
         .section:last-child {
             border-bottom: none;
         }
         .info-box {
-            background: #e7f3ff;
-            border: 1px solid #b6d4fe;
+            background: rgba(0, 123, 255, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.3);
             border-radius: 4px;
             padding: 15px;
             margin-bottom: 15px;
@@ -203,11 +199,11 @@
         }
         .info-box h4 {
             margin: 0 0 10px 0;
-            color: #0a58ca;
+            color: var(--primary);
         }
         .workflow-card {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 15px;
@@ -219,32 +215,75 @@
             gap: 10px;
         }
         .workflow-progress {
-            background: #e9ecef;
+            background: var(--border-color);
             border-radius: 4px;
             height: 8px;
             margin: 10px 0;
             overflow: hidden;
         }
         .workflow-progress-bar {
-            background: #007bff;
+            background: var(--primary);
             height: 100%;
             transition: width 0.3s ease;
         }
         .workflow-progress-bar.complete {
-            background: #28a745;
+            background: var(--success);
         }
         .workflow-progress-bar.error {
-            background: #dc3545;
+            background: var(--danger);
+        }
+        /* Header styles */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .page-header h1 {
+            margin: 0;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .back-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        code {
+            background: var(--input-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: var(--input-bg);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div style="margin-bottom: 20px;">
-            <a href="index.html" style="color: #007bff; text-decoration: none; font-size: 14px;">← Back to Main UI</a>
+        <div class="page-header">
+            <div>
+                <a href="/" class="back-link">← Back to Dashboard</a>
+                <h1>Hostlist Compiler Worker Test</h1>
+                <div class="endpoint" id="worker-endpoint">Testing current deployment</div>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                    <span class="theme-toggle-label" id="theme-label">Dark Mode</span>
+                </button>
+            </div>
         </div>
-        <h1>🛡️ Hostlist Compiler Worker Test</h1>
-        <div class="endpoint" id="worker-endpoint">Testing current deployment</div>
 
         <!-- Tabs -->
         <div class="tabs">
@@ -957,5 +996,6 @@
             }
         }
     </script>
+    <script src="/shared-theme.js"></script>
 </body>
 </html>

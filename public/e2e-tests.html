@@ -4,48 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E2E Integration Tests - Adblock Compiler</title>
+    <link rel="stylesheet" href="/shared-styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .header h1 {
-            color: #2d3748;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #718096;
-        }
-
+        /* Page-specific styles */
         .controls {
-            background: white;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
         }
 
         .controls-row {
@@ -60,57 +27,6 @@
             min-width: 200px;
         }
 
-        .input-group label {
-            display: block;
-            color: #4a5568;
-            font-size: 14px;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-right: 10px;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-1px);
-        }
-
-        .btn-danger {
-            background: #f56565;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #e53e3e;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -119,14 +35,14 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
         }
 
         .stat-label {
-            color: #718096;
+            color: var(--text-muted);
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -136,19 +52,19 @@
         .stat-value {
             font-size: 32px;
             font-weight: bold;
-            color: #2d3748;
+            color: var(--text-color);
         }
 
         .stat-value.success {
-            color: #48bb78;
+            color: var(--success);
         }
 
         .stat-value.error {
-            color: #f56565;
+            color: var(--danger);
         }
 
         .stat-value.pending {
-            color: #ed8936;
+            color: var(--warning);
         }
 
         .test-grid {
@@ -159,14 +75,14 @@
         }
 
         .test-section {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
         }
 
         .test-section h2 {
-            color: #2d3748;
+            color: var(--text-color);
             margin-bottom: 15px;
             font-size: 18px;
             display: flex;
@@ -188,8 +104,8 @@
             padding: 12px;
             margin-bottom: 8px;
             border-radius: 6px;
-            border-left: 4px solid #e2e8f0;
-            background: #f7fafc;
+            border-left: 4px solid var(--border-color);
+            background: var(--input-bg);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -197,23 +113,23 @@
         }
 
         .test-item:hover {
-            background: #edf2f7;
+            background: var(--hover-bg);
         }
 
         .test-item.running {
-            border-left-color: #ed8936;
-            background: #fffaf0;
+            border-left-color: var(--warning);
+            background: var(--warning-bg, rgba(237, 137, 54, 0.1));
             animation: pulse 2s infinite;
         }
 
         .test-item.passed {
-            border-left-color: #48bb78;
-            background: #f0fff4;
+            border-left-color: var(--success);
+            background: var(--success-bg, rgba(72, 187, 120, 0.1));
         }
 
         .test-item.failed {
-            border-left-color: #f56565;
-            background: #fff5f5;
+            border-left-color: var(--danger);
+            background: var(--danger-bg, rgba(245, 101, 101, 0.1));
         }
 
         @keyframes pulse {
@@ -223,7 +139,7 @@
 
         .test-name {
             font-size: 14px;
-            color: #2d3748;
+            color: var(--text-color);
             font-weight: 500;
         }
 
@@ -235,47 +151,47 @@
         }
 
         .test-status.pending {
-            background: #e2e8f0;
-            color: #718096;
+            background: var(--border-color);
+            color: var(--text-muted);
         }
 
         .test-status.running {
-            background: #feebc8;
-            color: #c05621;
+            background: rgba(237, 137, 54, 0.2);
+            color: var(--warning);
         }
 
         .test-status.passed {
-            background: #c6f6d5;
-            color: #276749;
+            background: rgba(72, 187, 120, 0.2);
+            color: var(--success);
         }
 
         .test-status.failed {
-            background: #fed7d7;
-            color: #9b2c2c;
+            background: rgba(245, 101, 101, 0.2);
+            color: var(--danger);
         }
 
         .test-duration {
             font-size: 11px;
-            color: #a0aec0;
+            color: var(--text-muted);
             margin-left: 8px;
         }
 
         .event-log {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
             margin-bottom: 20px;
         }
 
         .event-log h2 {
-            color: #2d3748;
+            color: var(--text-color);
             margin-bottom: 15px;
             font-size: 18px;
         }
 
         .log-container {
-            background: #1a202c;
+            background: var(--code-bg, #1a202c);
             border-radius: 6px;
             padding: 15px;
             max-height: 400px;
@@ -312,14 +228,14 @@
         }
 
         .websocket-test {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
         }
 
         .websocket-test h2 {
-            color: #2d3748;
+            color: var(--text-color);
             margin-bottom: 15px;
             font-size: 18px;
         }
@@ -330,7 +246,8 @@
             margin-bottom: 15px;
             padding: 12px;
             border-radius: 6px;
-            background: #f7fafc;
+            background: var(--input-bg);
+            color: var(--text-color);
         }
 
         .ws-indicator {
@@ -341,20 +258,20 @@
         }
 
         .ws-indicator.connected {
-            background: #48bb78;
+            background: var(--success);
             box-shadow: 0 0 8px rgba(72, 187, 120, 0.5);
         }
 
         .ws-indicator.disconnected {
-            background: #cbd5e0;
+            background: var(--text-muted);
         }
 
         .ws-indicator.error {
-            background: #f56565;
+            background: var(--danger);
         }
 
         .ws-messages {
-            background: #f7fafc;
+            background: var(--input-bg);
             border-radius: 6px;
             padding: 15px;
             max-height: 300px;
@@ -364,14 +281,14 @@
         .ws-message {
             margin-bottom: 10px;
             padding: 10px;
-            background: white;
+            background: var(--card-bg);
             border-radius: 4px;
-            border-left: 3px solid #667eea;
+            border-left: 3px solid var(--primary);
         }
 
         .ws-message-type {
             font-size: 11px;
-            color: #667eea;
+            color: var(--primary);
             font-weight: 600;
             text-transform: uppercase;
             margin-bottom: 4px;
@@ -379,14 +296,14 @@
 
         .ws-message-data {
             font-size: 13px;
-            color: #4a5568;
+            color: var(--text-color);
             font-family: 'Courier New', monospace;
         }
 
         .progress-bar {
             width: 100%;
             height: 6px;
-            background: #e2e8f0;
+            background: var(--border-color);
             border-radius: 3px;
             overflow: hidden;
             margin-top: 10px;
@@ -394,26 +311,40 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, var(--primary), var(--secondary, #764ba2));
             transition: width 0.3s;
         }
 
         .error-details {
-            background: #fff5f5;
-            border: 1px solid #feb2b2;
+            background: var(--danger-bg, rgba(245, 101, 101, 0.1));
+            border: 1px solid var(--danger);
             border-radius: 6px;
             padding: 12px;
             margin-top: 10px;
             font-size: 13px;
-            color: #742a2a;
+            color: var(--danger);
+        }
+
+        /* Dark mode variable overrides */
+        [data-theme="dark"] {
+            --warning-bg: rgba(237, 137, 54, 0.15);
+            --success-bg: rgba(72, 187, 120, 0.15);
+            --danger-bg: rgba(245, 101, 101, 0.15);
+            --code-bg: #0d1117;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧪 End-to-End Integration Tests</h1>
-            <p>Comprehensive testing suite for Adblock Compiler API with real-time visual feedback</p>
+            <div class="header-content">
+                <h1>End-to-End Integration Tests</h1>
+                <p>Comprehensive testing suite for Adblock Compiler API with real-time visual feedback</p>
+            </div>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                <span class="theme-toggle-label" id="theme-label">Dark Mode</span>
+            </button>
         </div>
 
         <div class="controls">
@@ -1128,5 +1059,6 @@
             container.scrollTop = container.scrollHeight;
         }
     </script>
+    <script src="/shared-theme.js"></script>
 </body>
 </html>

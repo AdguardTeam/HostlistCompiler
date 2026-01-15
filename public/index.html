@@ -8,50 +8,10 @@
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8771568d1cde4005bb60c5767d0969c4"}'></script>
     <!-- Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Shared styles -->
+    <link rel="stylesheet" href="/shared-styles.css">
     <style>
-        :root {
-            --primary: #667eea;
-            --primary-dark: #5568d3;
-            --secondary: #764ba2;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --dark: #1e293b;
-            --light: #f8fafc;
-            --border: #e2e8f0;
-            --text: #334155;
-            --text-light: #64748b;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            min-height: 100vh;
-            color: var(--text);
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        .header {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            margin-bottom: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
+        /* Page-specific styles */
         .header-content {
             display: flex;
             justify-content: space-between;
@@ -62,22 +22,6 @@
 
         .header-left h1 {
             font-size: 32px;
-            color: var(--dark);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header-left p {
-            color: var(--text-light);
-            font-size: 16px;
-        }
-
-        .header-right {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
         }
 
         .status-indicator {
@@ -85,14 +29,19 @@
             align-items: center;
             gap: 8px;
             padding: 8px 16px;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             font-size: 14px;
             font-weight: 600;
         }
 
         .status-indicator.online {
-            background: #d1fae5;
-            color: #065f46;
+            background: var(--success-light);
+            color: var(--success-dark);
+        }
+
+        [data-theme="dark"] .status-indicator.online {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
         }
 
         .status-dot {
@@ -114,7 +63,7 @@
         }
 
         .section-title {
-            color: white;
+            color: var(--text-inverse);
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 16px;
@@ -129,10 +78,10 @@
         }
 
         .nav-card {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
             padding: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
             transition: all 0.3s ease;
             cursor: pointer;
             text-decoration: none;
@@ -142,7 +91,7 @@
 
         .nav-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: var(--shadow-hover);
         }
 
         .nav-card-icon {
@@ -152,12 +101,12 @@
 
         .nav-card h3 {
             font-size: 20px;
-            color: var(--dark);
+            color: var(--heading-color);
             margin-bottom: 8px;
         }
 
         .nav-card p {
-            color: var(--text-light);
+            color: var(--text-muted);
             font-size: 14px;
             line-height: 1.6;
             margin-bottom: 12px;
@@ -169,21 +118,26 @@
             align-items: center;
             margin-top: 16px;
             padding-top: 16px;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid var(--border-color);
         }
 
         .nav-card-tag {
             display: inline-block;
             padding: 4px 12px;
-            border-radius: 6px;
+            border-radius: var(--radius-md);
             font-size: 12px;
             font-weight: 600;
         }
 
-        .tag-primary { background: #dbeafe; color: #1e40af; }
-        .tag-success { background: #d1fae5; color: #065f46; }
-        .tag-warning { background: #fef3c7; color: #92400e; }
-        .tag-info { background: #e0e7ff; color: #3730a3; }
+        .tag-primary { background: var(--info-light); color: var(--info-dark); }
+        .tag-success { background: var(--success-light); color: var(--success-dark); }
+        .tag-warning { background: var(--warning-light); color: var(--warning-dark); }
+        .tag-info { background: var(--event-info-bg); color: var(--info); }
+
+        [data-theme="dark"] .tag-primary { background: rgba(59, 130, 246, 0.2); }
+        [data-theme="dark"] .tag-success { background: rgba(16, 185, 129, 0.2); }
+        [data-theme="dark"] .tag-warning { background: rgba(245, 158, 11, 0.2); }
+        [data-theme="dark"] .tag-info { background: rgba(99, 102, 241, 0.2); }
 
         .arrow {
             color: var(--primary);
@@ -199,10 +153,10 @@
         }
 
         .stat-card {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
         }
 
         .stat-header {
@@ -214,7 +168,7 @@
 
         .stat-title {
             font-size: 14px;
-            color: var(--text-light);
+            color: var(--text-muted);
             font-weight: 500;
         }
 
@@ -226,7 +180,7 @@
         .stat-value {
             font-size: 32px;
             font-weight: 700;
-            color: var(--dark);
+            color: var(--heading-color);
             margin-bottom: 8px;
         }
 
@@ -245,10 +199,10 @@
 
         /* Charts */
         .chart-container {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
             padding: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
             margin-bottom: 24px;
         }
 
@@ -261,7 +215,7 @@
 
         .chart-header h3 {
             font-size: 18px;
-            color: var(--dark);
+            color: var(--heading-color);
         }
 
         .chart-canvas {
@@ -270,16 +224,16 @@
 
         /* Quick Actions */
         .quick-actions {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
             padding: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
             margin-bottom: 24px;
         }
 
         .quick-actions h3 {
             font-size: 18px;
-            color: var(--dark);
+            color: var(--heading-color);
             margin-bottom: 16px;
         }
 
@@ -287,97 +241,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 12px;
-        }
-
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-
-        .btn-info {
-            background: var(--info);
-            color: white;
-        }
-
-        /* Footer */
-        .footer {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            color: var(--text-light);
-            font-size: 14px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .nav-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Loading spinner */
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.6s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
 
         /* Notification System */
@@ -390,8 +253,8 @@
         }
 
         .notification {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
             padding: 16px 20px;
             margin-bottom: 12px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -439,13 +302,13 @@
 
         .notification-title {
             font-weight: 600;
-            color: var(--dark);
+            color: var(--heading-color);
             margin-bottom: 4px;
         }
 
         .notification-message {
             font-size: 14px;
-            color: var(--text-light);
+            color: var(--text-muted);
         }
 
         .notification-close {
@@ -453,7 +316,7 @@
             border: none;
             font-size: 20px;
             cursor: pointer;
-            color: var(--text-light);
+            color: var(--text-muted);
             padding: 0;
             width: 24px;
             height: 24px;
@@ -464,20 +327,22 @@
         }
 
         .notification-close:hover {
-            color: var(--dark);
+            color: var(--heading-color);
+            transform: none;
+            box-shadow: none;
         }
 
         .notification-settings {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
             padding: 16px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
             margin-bottom: 24px;
         }
 
         .notification-settings h3 {
             font-size: 16px;
-            color: var(--dark);
+            color: var(--heading-color);
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -489,15 +354,16 @@
             align-items: center;
             gap: 12px;
             padding: 12px;
-            background: var(--light);
-            border-radius: 8px;
+            background: var(--section-bg);
+            border-radius: var(--radius-md);
+            cursor: pointer;
         }
 
         .toggle-switch {
             position: relative;
             width: 48px;
             height: 24px;
-            background: #cbd5e1;
+            background: var(--border-color);
             border-radius: 24px;
             cursor: pointer;
             transition: background 0.3s;
@@ -526,7 +392,110 @@
         .toggle-label {
             flex: 1;
             font-size: 14px;
-            color: var(--text);
+            color: var(--text-color);
+        }
+
+        /* JSON Viewer Styling */
+        .json-viewer {
+            background: var(--log-bg);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .json-viewer .json-key {
+            color: #93c5fd;
+        }
+
+        .json-viewer .json-string {
+            color: #86efac;
+        }
+
+        .json-viewer .json-number {
+            color: #fcd34d;
+        }
+
+        .json-viewer .json-boolean {
+            color: #f472b6;
+        }
+
+        .json-viewer .json-null {
+            color: #94a3b8;
+        }
+
+        .json-viewer .json-bracket {
+            color: #e2e8f0;
+        }
+
+        /* Info Box */
+        .info-box {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--section-bg);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+        }
+
+        .info-box-success {
+            background: var(--success-light);
+        }
+
+        .info-box-warning {
+            background: var(--warning-light);
+        }
+
+        [data-theme="dark"] .info-box-success {
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        [data-theme="dark"] .info-box-warning {
+            background: rgba(245, 158, 11, 0.15);
+        }
+
+        /* Endpoint comparison styles */
+        .endpoint-list {
+            margin-top: 12px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .endpoint-item {
+            display: flex;
+            align-items: start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .endpoint-name {
+            font-weight: bold;
+        }
+
+        .endpoint-desc {
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -546,6 +515,10 @@
                     <p>Manage, test, and monitor your filter list compilation service</p>
                 </div>
                 <div class="header-right">
+                    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                        <span class="theme-toggle-label" id="theme-label">Dark Mode</span>
+                    </button>
                     <div class="status-indicator online">
                         <span class="status-dot"></span>
                         <span>API Online</span>
@@ -564,7 +537,7 @@
                 <div class="toggle-switch" id="notificationToggle"></div>
                 <div class="toggle-label">
                     <strong>Enable Browser Notifications</strong>
-                    <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
                         Get notified when async compilation jobs complete
                     </div>
                 </div>
@@ -671,13 +644,13 @@
                     <div class="nav-card-icon">🔌</div>
                     <h3>WebSocket Demo</h3>
                     <p><strong>Use for:</strong> Bidirectional real-time compilation with live progress updates, perfect for interactive applications requiring instant feedback.</p>
-                    <p style="margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 6px; font-size: 13px;">
+                    <div class="info-box info-box-success">
                         <strong>💡 Why WebSocket?</strong><br>
                         • Full-duplex communication<br>
                         • Lower latency than SSE<br>
                         • Send data both ways<br>
                         • Better for interactive apps
-                    </p>
+                    </div>
                     <div class="nav-card-footer">
                         <span class="nav-card-tag tag-info">Real-time</span>
                         <span class="arrow">→</span>
@@ -688,13 +661,13 @@
                     <div class="nav-card-icon">📈</div>
                     <h3>Benchmarks</h3>
                     <p><strong>Performance metrics:</strong> Transformation speed, memory usage, and optimization comparisons across different configurations.</p>
-                    <p style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 6px; font-size: 13px;">
+                    <div class="info-box info-box-warning">
                         <strong>⚡ Available Benchmarks:</strong><br>
                         • String utilities performance<br>
                         • Wildcard matching speed<br>
                         • Rule parsing efficiency<br>
                         • Transformation throughput
-                    </p>
+                    </div>
                     <div class="nav-card-footer">
                         <button class="btn btn-primary" onclick="runBenchmarks()" style="width: 100%; margin: 0;">
                             <span>🏃</span> Run Benchmarks
@@ -706,22 +679,22 @@
                     <div class="nav-card-icon">📡</div>
                     <h3>Endpoint Comparison</h3>
                     <p><strong>Choose the right endpoint:</strong> Understand when to use JSON, SSE, WebSocket, or Queue-based compilation.</p>
-                    <div style="margin-top: 12px; font-size: 13px; line-height: 1.8;">
-                        <div style="display: flex; align-items: start; gap: 8px; margin-bottom: 8px;">
-                            <span style="color: var(--success); font-weight: bold;">POST /compile</span>
-                            <span style="color: var(--text-light);">→ Simple JSON response</span>
+                    <div class="endpoint-list">
+                        <div class="endpoint-item">
+                            <span class="endpoint-name" style="color: var(--success);">POST /compile</span>
+                            <span class="endpoint-desc">→ Simple JSON response</span>
                         </div>
-                        <div style="display: flex; align-items: start; gap: 8px; margin-bottom: 8px;">
-                            <span style="color: var(--info); font-weight: bold;">POST /compile/stream</span>
-                            <span style="color: var(--text-light);">→ SSE progress updates</span>
+                        <div class="endpoint-item">
+                            <span class="endpoint-name" style="color: var(--info);">POST /compile/stream</span>
+                            <span class="endpoint-desc">→ SSE progress updates</span>
                         </div>
-                        <div style="display: flex; align-items: start; gap: 8px; margin-bottom: 8px;">
-                            <span style="color: var(--warning); font-weight: bold;">GET /ws/compile</span>
-                            <span style="color: var(--text-light);">→ WebSocket bidirectional</span>
+                        <div class="endpoint-item">
+                            <span class="endpoint-name" style="color: var(--warning);">GET /ws/compile</span>
+                            <span class="endpoint-desc">→ WebSocket bidirectional</span>
                         </div>
-                        <div style="display: flex; align-items: start; gap: 8px;">
-                            <span style="color: var(--primary); font-weight: bold;">POST /compile/async</span>
-                            <span style="color: var(--text-light);">→ Queue for background</span>
+                        <div class="endpoint-item">
+                            <span class="endpoint-name" style="color: var(--primary);">POST /compile/async</span>
+                            <span class="endpoint-desc">→ Queue for background</span>
                         </div>
                     </div>
                     <div class="nav-card-footer" style="border: none; padding-top: 12px;">
@@ -749,10 +722,10 @@
                 <button class="btn btn-primary" onclick="window.location.href='/docs/api/index.html'">
                     <span>📖</span> API Docs
                 </button>
-                <button class="btn btn-success" onclick="window.location.href='/metrics'">
+                <button class="btn btn-success" onclick="viewEndpointData('/metrics')">
                     <span>📊</span> View Metrics
                 </button>
-                <button class="btn btn-warning" onclick="window.location.href='/queue/stats'">
+                <button class="btn btn-warning" onclick="viewEndpointData('/queue/stats')">
                     <span>⏳</span> Queue Stats
                 </button>
                 <button class="btn btn-info" onclick="testApiEndpoint()">
@@ -769,12 +742,10 @@
                     <span>✕</span> Close
                 </button>
             </div>
-            
+
             <div style="margin-bottom: 16px;">
-                <label style="display: block; font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 8px;">
-                    Select Endpoint:
-                </label>
-                <select id="apiEndpointSelect" onchange="updateApiTesterEndpoint()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px;">
+                <label class="input-label">Select Endpoint:</label>
+                <select id="apiEndpointSelect" onchange="updateApiTesterEndpoint()">
                     <option value="/api">GET /api - API Information</option>
                     <option value="/metrics">GET /metrics - Performance Metrics</option>
                     <option value="/queue/stats">GET /queue/stats - Queue Statistics</option>
@@ -783,10 +754,8 @@
             </div>
 
             <div id="apiRequestBody" style="margin-bottom: 16px;">
-                <label style="display: block; font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 8px;">
-                    Request Body (JSON):
-                </label>
-                <textarea id="apiRequestBodyText" rows="12" style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; resize: vertical;">{
+                <label class="input-label">Request Body (JSON):</label>
+                <textarea id="apiRequestBodyText" rows="12">{
   "configuration": {
     "name": "Test Filter List",
     "sources": [
@@ -812,12 +781,10 @@
 
             <div id="apiTesterResponse" style="display: none; margin-top: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <label style="font-size: 14px; font-weight: 600; color: var(--dark);">
-                        Response:
-                    </label>
-                    <span id="apiResponseStatus" style="padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;"></span>
+                    <label class="input-label" style="margin-bottom: 0;">Response:</label>
+                    <span id="apiResponseStatus" style="padding: 4px 12px; border-radius: var(--radius-md); font-size: 12px; font-weight: 600;"></span>
                 </div>
-                <pre id="apiResponseBody" style="background: var(--code-bg); padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Monaco', 'Courier New', monospace; font-size: 12px; line-height: 1.5; max-height: 400px; overflow-y: auto;"></pre>
+                <pre id="apiResponseBody" class="json-viewer"></pre>
             </div>
         </div>
 
@@ -827,11 +794,13 @@
                 Adblock Compiler v<span id="version">0.8.0</span> •
                 <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank">GitHub</a> •
                 <a href="https://jsr.io/@jk-com/adblock-compiler" target="_blank">JSR Package</a> •
-                <a href="/api" target="_blank">API Documentation</a>
+                <a href="/docs/api/index.html" target="_blank">API Documentation</a>
             </p>
         </footer>
     </div>
 
+    <!-- Shared theme script -->
+    <script src="/shared-theme.js"></script>
     <script>
         // Dashboard state management
         const DashboardState = {
@@ -892,7 +861,7 @@
                     localStorage.setItem('notificationsEnabled', 'true');
                     updateNotificationToggle();
                     showInPageNotification('success', 'Notifications Enabled', 'You will be notified when async jobs complete');
-                    
+
                     // Show test notification
                     new Notification('Adblock Compiler', {
                         body: 'Notifications are now enabled!',
@@ -930,7 +899,7 @@
 
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
-            
+
             const icons = {
                 success: '✅',
                 error: '❌',
@@ -1018,7 +987,7 @@
                         if (completed) {
                             // Job completed!
                             const duration = Math.round(completed.duration || 0);
-                            
+
                             // Show browser notification
                             if (DashboardState.notificationsEnabled && Notification.permission === 'granted') {
                                 new Notification('Compilation Complete', {
@@ -1038,7 +1007,7 @@
                             // Mark as notified
                             jobInfo.notified = true;
                             DashboardState.trackedJobs.set(requestId, jobInfo);
-                            
+
                             // Remove from tracking after notification
                             setTimeout(() => {
                                 DashboardState.trackedJobs.delete(requestId);
@@ -1134,10 +1103,23 @@
             }
         }
 
+        // Get chart colors based on theme
+        function getChartColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                borderColor: isDark ? 'rgb(128, 150, 255)' : 'rgb(102, 126, 234)',
+                backgroundColor: isDark ? 'rgba(128, 150, 255, 0.1)' : 'rgba(102, 126, 234, 0.1)',
+                gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                textColor: isDark ? '#e0e0e0' : '#333333'
+            };
+        }
+
         // Initialize queue chart
         function initQueueChart() {
             const ctx = document.getElementById('queueChart');
             if (!ctx) return;
+
+            const colors = getChartColors();
 
             DashboardState.queueChart = new Chart(ctx, {
                 type: 'line',
@@ -1146,8 +1128,8 @@
                     datasets: [{
                         label: 'Queue Depth',
                         data: [],
-                        borderColor: 'rgb(102, 126, 234)',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderColor: colors.borderColor,
+                        backgroundColor: colors.backgroundColor,
                         tension: 0.4,
                         fill: true
                     }]
@@ -1164,12 +1146,39 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                precision: 0
+                                precision: 0,
+                                color: colors.textColor
+                            },
+                            grid: {
+                                color: colors.gridColor
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: colors.textColor
+                            },
+                            grid: {
+                                color: colors.gridColor
                             }
                         }
                     }
                 }
             });
+
+            // Update chart colors when theme changes
+            const observer = new MutationObserver(() => {
+                if (DashboardState.queueChart) {
+                    const newColors = getChartColors();
+                    DashboardState.queueChart.data.datasets[0].borderColor = newColors.borderColor;
+                    DashboardState.queueChart.data.datasets[0].backgroundColor = newColors.backgroundColor;
+                    DashboardState.queueChart.options.scales.y.ticks.color = newColors.textColor;
+                    DashboardState.queueChart.options.scales.y.grid.color = newColors.gridColor;
+                    DashboardState.queueChart.options.scales.x.ticks.color = newColors.textColor;
+                    DashboardState.queueChart.options.scales.x.grid.color = newColors.gridColor;
+                    DashboardState.queueChart.update();
+                }
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
 
         // Update queue chart
@@ -1195,6 +1204,30 @@
             setInterval(refreshMetrics, 30000);
         }
 
+        // Format JSON with syntax highlighting
+        function formatJsonWithHighlighting(json) {
+            const jsonString = JSON.stringify(json, null, 2);
+
+            // Escape HTML first
+            const escaped = jsonString
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Apply syntax highlighting
+            return escaped
+                // Highlight keys (property names)
+                .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+                // Highlight string values (after colon)
+                .replace(/: "([^"]*)"([,\n])/g, ': <span class="json-string">"$1"</span>$2')
+                // Highlight numbers
+                .replace(/: (-?\d+\.?\d*)(,?\n?)/g, ': <span class="json-number">$1</span>$2')
+                // Highlight booleans
+                .replace(/: (true|false)(,?\n?)/g, ': <span class="json-boolean">$1</span>$2')
+                // Highlight null
+                .replace(/: (null)(,?\n?)/g, ': <span class="json-null">$1</span>$2');
+        }
+
         // Run benchmarks
         function runBenchmarks() {
             alert('Benchmarks are run via Deno CLI:\n\n' +
@@ -1213,6 +1246,27 @@
             }
         }
 
+        // View endpoint data with formatted JSON display
+        async function viewEndpointData(endpoint) {
+            const tester = document.getElementById('apiTester');
+            const select = document.getElementById('apiEndpointSelect');
+
+            if (tester && select) {
+                // Show the API tester panel
+                tester.style.display = 'block';
+
+                // Select the appropriate endpoint
+                select.value = endpoint;
+                updateApiTesterEndpoint();
+
+                // Scroll to the tester
+                tester.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                // Automatically execute the request
+                await executeApiTest();
+            }
+        }
+
         function closeApiTester() {
             const tester = document.getElementById('apiTester');
             if (tester) {
@@ -1224,11 +1278,11 @@
             const select = document.getElementById('apiEndpointSelect');
             const requestBodyDiv = document.getElementById('apiRequestBody');
             const responseDiv = document.getElementById('apiTesterResponse');
-            
+
             if (!select || !requestBodyDiv) return;
 
             const value = select.value;
-            
+
             // Hide response when changing endpoint
             if (responseDiv) responseDiv.style.display = 'none';
 
@@ -1243,7 +1297,7 @@
         function resetApiTester() {
             const textarea = document.getElementById('apiRequestBodyText');
             const responseDiv = document.getElementById('apiTesterResponse');
-            
+
             if (textarea) {
                 textarea.value = `{
   "configuration": {
@@ -1259,7 +1313,7 @@
   "benchmark": true
 }`;
             }
-            
+
             if (responseDiv) {
                 responseDiv.style.display = 'none';
             }
@@ -1272,12 +1326,12 @@
             const responseDiv = document.getElementById('apiTesterResponse');
             const responseStatus = document.getElementById('apiResponseStatus');
             const responseBody = document.getElementById('apiResponseBody');
-            
+
             if (!select) return;
 
             const endpoint = select.value;
             const isPost = endpoint === '/compile';
-            
+
             // Disable button during request
             if (button) {
                 button.disabled = true;
@@ -1307,20 +1361,20 @@
                 // Show response
                 if (responseDiv && responseStatus && responseBody) {
                     responseDiv.style.display = 'block';
-                    
+
                     // Set status badge
                     responseStatus.textContent = `${response.status} ${response.statusText}`;
                     if (response.ok) {
-                        responseStatus.style.background = '#d1fae5';
-                        responseStatus.style.color = '#065f46';
+                        responseStatus.style.background = 'var(--success-light)';
+                        responseStatus.style.color = 'var(--success-dark)';
                     } else {
-                        responseStatus.style.background = '#fecaca';
-                        responseStatus.style.color = '#991b1b';
+                        responseStatus.style.background = 'var(--danger-light)';
+                        responseStatus.style.color = 'var(--danger-dark)';
                     }
-                    
-                    // Format and display response
-                    responseBody.textContent = JSON.stringify(data, null, 2);
-                    
+
+                    // Format and display response with syntax highlighting
+                    responseBody.innerHTML = formatJsonWithHighlighting(data);
+
                     // Scroll to response
                     responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
@@ -1336,11 +1390,11 @@
                 if (responseDiv && responseStatus && responseBody) {
                     responseDiv.style.display = 'block';
                     responseStatus.textContent = 'Error';
-                    responseStatus.style.background = '#fecaca';
-                    responseStatus.style.color = '#991b1b';
+                    responseStatus.style.background = 'var(--danger-light)';
+                    responseStatus.style.color = 'var(--danger-dark)';
                     responseBody.textContent = error.message;
                 }
-                
+
                 showInPageNotification('error', 'API Test Failed', error.message);
             } finally {
                 // Re-enable button
