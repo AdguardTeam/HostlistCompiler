@@ -45,6 +45,7 @@ examples/whitelist/filter.txt
 .claude/settings.local.json
 
 # Environment files
+.envrc
 .env
 .env.local
 .env.*.local
