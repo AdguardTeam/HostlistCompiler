@@ -770,6 +770,7 @@
     ],
     "packageJson": {
       "dependencies": [
+        "npm:@cloudflare/playwright-mcp@^0.0.5",
         "npm:@cloudflare/workers-types@^4.20260103.0",
         "npm:wrangler@^4.54.0"
       ]
