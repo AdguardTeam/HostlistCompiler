@@ -331,13 +331,7 @@ export class AnalyticsService {
         // Extract string values
         blobs.push(data.requestId ?? null); // blobs[0]: Request ID
 
-        const name = 'configName' in data
-            ? data.configName ?? null
-            : 'sourceName' in data
-            ? data.sourceName ?? null
-            : 'workflowType' in data
-            ? data.workflowType ?? null
-            : null;
+        const name = 'configName' in data ? data.configName ?? null : 'sourceName' in data ? data.sourceName ?? null : 'workflowType' in data ? data.workflowType ?? null : null;
         blobs.push(name); // blobs[1]: Name
 
         const error = 'error' in data ? data.error ?? null : null;
@@ -354,11 +348,7 @@ export class AnalyticsService {
             : null;
         blobs.push(context); // blobs[3]: Context
 
-        const cacheInfo = 'cacheKey' in data
-            ? data.cacheKey ?? null
-            : 'etag' in data
-            ? data.etag ?? null
-            : null;
+        const cacheInfo = 'cacheKey' in data ? data.cacheKey ?? null : 'etag' in data ? data.etag ?? null : null;
         blobs.push(cacheInfo); // blobs[4]: Cache info
 
         // Additional blob fields
