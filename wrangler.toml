@@ -55,7 +55,7 @@ tag = "v1"
 
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.8.2"
+COMPILER_VERSION = "0.8.3"
 TURNSTILE_SITE_KEY = "0x4AAAAAACMKiPZdJh8I8IEM"
 ADMIN_KEY = "12345678"
 
