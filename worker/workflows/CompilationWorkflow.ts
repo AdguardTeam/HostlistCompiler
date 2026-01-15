@@ -21,6 +21,7 @@ import type {
     TransformationResult,
     WorkflowCompilationResult,
 } from './types.ts';
+import { WorkflowEvents } from './WorkflowEvents.ts';
 
 /**
  * Compresses data using gzip (duplicated from worker.ts for workflow isolation)
@@ -69,7 +70,17 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
         const startTime = Date.now();
         const { requestId, configuration, preFetchedContent, benchmark } = event.payload;
 
+        // Initialize event emitter for real-time progress tracking
+        const events = new WorkflowEvents(this.env.METRICS, requestId, 'compilation');
+
         console.log(`[WORKFLOW:COMPILE] Starting compilation workflow for "${configuration.name}" (requestId: ${requestId})`);
+
+        // Emit workflow started event
+        await events.emitWorkflowStarted({
+            configName: configuration.name,
+            sourceCount: configuration.sources.length,
+            transformationCount: configuration.transformations?.length || 0,
+        });
 
         const result: WorkflowCompilationResult = {
             success: false,
@@ -82,6 +93,7 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
 
         try {
             // Step 1: Validate configuration
+            await events.emitStepStarted('validate', { step: 1, totalSteps: 4 });
             const validationResult = await step.do('validate', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {
@@ -115,8 +127,14 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
                 durationMs: validationResult.durationMs,
                 success: validationResult.success,
             };
+            await events.emitStepCompleted('validate', {
+                sourceCount: validationResult.sourceCount,
+                transformationCount: validationResult.transformationCount,
+            });
+            await events.emitProgress(25, 'Configuration validated');
 
             // Step 2: Compile sources (fetch and process)
+            await events.emitStepStarted('compile-sources', { step: 2, totalSteps: 4 });
             const compilationResult = await step.do('compile-sources', {
                 retries: { limit: 3, delay: '5 seconds', backoff: 'exponential' },
                 timeout: '5 minutes',
@@ -182,11 +200,18 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
             result.rules = compilationResult.rules;
             result.ruleCount = compilationResult.ruleCount;
 
+            await events.emitStepCompleted('compile-sources', {
+                ruleCount: compilationResult.ruleCount,
+                sourcesProcessed: compilationResult.sourceFetchResults.length,
+            });
+            await events.emitProgress(60, `Compiled ${compilationResult.ruleCount} rules`);
+
             // Step 3: Cache the result (if no pre-fetched content)
             const shouldCache = !preFetchedContent || Object.keys(preFetchedContent).length === 0;
             const cacheKey = shouldCache ? getCacheKey(configuration) : null;
 
             if (cacheKey) {
+                await events.emitStepStarted('cache-result', { step: 3, totalSteps: 4 });
                 const cacheResult = await step.do('cache-result', {
                     retries: { limit: 2, delay: '2 seconds' },
                 }, async () => {
@@ -231,9 +256,14 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
                     sizeBytes: cacheResult.sizeBytes,
                 };
                 result.cacheKey = cacheResult.cacheKey;
+                await events.emitStepCompleted('cache-result', { cacheKey, sizeBytes: cacheResult.sizeBytes });
+                await events.emitCacheStored(cacheKey, cacheResult.sizeBytes);
             }
 
+            await events.emitProgress(85, 'Updating metrics');
+
             // Step 4: Update metrics
+            await events.emitStepStarted('update-metrics', { step: 4, totalSteps: 4 });
             await step.do('update-metrics', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {
@@ -273,8 +303,18 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
                 return { updated: true };
             });
 
+            await events.emitStepCompleted('update-metrics');
+
             result.success = true;
             result.totalDurationMs = Date.now() - startTime;
+
+            // Emit workflow completed event
+            await events.emitProgress(100, 'Compilation complete');
+            await events.emitWorkflowCompleted({
+                ruleCount: result.ruleCount,
+                totalDurationMs: result.totalDurationMs,
+                cacheKey: result.cacheKey,
+            });
 
             console.log(
                 `[WORKFLOW:COMPILE] Workflow completed successfully for "${configuration.name}" ` +
@@ -286,6 +326,12 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:COMPILE] Workflow failed for "${configuration.name}":`, errorMessage);
+
+            // Emit workflow failed event
+            await events.emitWorkflowFailed(errorMessage, {
+                configName: configuration.name,
+                totalDurationMs: Date.now() - startTime,
+            });
 
             // Update failure metrics
             try {

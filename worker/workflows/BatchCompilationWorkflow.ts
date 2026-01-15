@@ -19,6 +19,7 @@ import type {
     BatchWorkflowResult,
     WorkflowCompilationResult,
 } from './types.ts';
+import { WorkflowEvents } from './WorkflowEvents.ts';
 
 /**
  * Compresses data using gzip
@@ -67,10 +68,19 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
         const startTime = Date.now();
         const { batchId, requests, priority } = event.payload;
 
+        // Initialize event emitter for real-time progress tracking
+        const events = new WorkflowEvents(this.env.METRICS, batchId, 'batch');
+
         console.log(
             `[WORKFLOW:BATCH] Starting batch compilation workflow (batchId: ${batchId}, ` +
             `${requests.length} requests, priority: ${priority || 'standard'})`,
         );
+
+        // Emit workflow started event
+        await events.emitWorkflowStarted({
+            totalRequests: requests.length,
+            priority: priority || 'standard',
+        });
 
         const results: WorkflowCompilationResult[] = [];
         let successful = 0;
@@ -78,6 +88,7 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
 
         try {
             // Step 1: Validate all configurations
+            await events.emitStepStarted('validate-batch', { requestCount: requests.length });
             await step.do('validate-batch', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {
@@ -105,6 +116,8 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
 
                 return { valid: true, count: requests.length };
             });
+            await events.emitStepCompleted('validate-batch', { count: requests.length });
+            await events.emitProgress(10, 'Batch validated');
 
             // Step 2: Process in chunks for controlled concurrency
             const chunks: Array<typeof requests> = [];
@@ -117,6 +130,14 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
             for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
                 const chunk = chunks[chunkIndex];
                 const chunkNumber = chunkIndex + 1;
+
+                // Emit progress for chunk start
+                const chunkProgress = 10 + Math.round((chunkIndex / chunks.length) * 70);
+                await events.emitStepStarted(`compile-chunk-${chunkNumber}`, {
+                    chunk: chunkNumber,
+                    totalChunks: chunks.length,
+                    items: chunk.length,
+                });
 
                 // Each chunk is a separate step for durability
                 const chunkResults = await step.do(`compile-chunk-${chunkNumber}`, {
@@ -242,6 +263,12 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
                     }
                 }
 
+                await events.emitStepCompleted(`compile-chunk-${chunkNumber}`, {
+                    successCount: chunkResults.filter((r) => r.success).length,
+                    failCount: chunkResults.filter((r) => !r.success).length,
+                });
+                await events.emitProgress(chunkProgress + Math.round(70 / chunks.length), `Chunk ${chunkNumber}/${chunks.length} complete`);
+
                 console.log(
                     `[WORKFLOW:BATCH] Chunk ${chunkNumber}/${chunks.length} complete: ` +
                     `${chunkResults.filter((r) => r.success).length}/${chunk.length} successful`,
@@ -249,6 +276,7 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
             }
 
             // Step 3: Update metrics
+            await events.emitStepStarted('update-batch-metrics');
             await step.do('update-batch-metrics', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {
@@ -291,7 +319,18 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
                 return { updated: true };
             });
 
+            await events.emitStepCompleted('update-batch-metrics');
+
             const totalDuration = Date.now() - startTime;
+
+            // Emit workflow completed event
+            await events.emitProgress(100, 'Batch compilation complete');
+            await events.emitWorkflowCompleted({
+                successful,
+                failed,
+                totalDurationMs: totalDuration,
+            });
+
             console.log(
                 `[WORKFLOW:BATCH] Batch workflow completed: ${successful}/${requests.length} successful ` +
                 `in ${totalDuration}ms (batchId: ${batchId})`,
@@ -309,6 +348,13 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:BATCH] Batch workflow failed (batchId: ${batchId}):`, errorMessage);
+
+            // Emit workflow failed event
+            await events.emitWorkflowFailed(errorMessage, {
+                successful,
+                failed: requests.length - successful,
+                totalDurationMs: Date.now() - startTime,
+            });
 
             return {
                 batchId,

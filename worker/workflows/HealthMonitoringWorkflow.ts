@@ -18,6 +18,7 @@ import type {
     HealthMonitoringResult,
     SourceHealthResult,
 } from './types.ts';
+import { WorkflowEvents } from './WorkflowEvents.ts';
 
 /**
  * Default sources to monitor
@@ -79,6 +80,9 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
         const startTime = Date.now();
         const { runId, sources, alertOnFailure } = event.payload;
 
+        // Initialize event emitter for real-time progress tracking
+        const events = new WorkflowEvents(this.env.METRICS, runId, 'health-monitoring');
+
         // Use provided sources or defaults
         const sourcesToCheck = sources.length > 0 ? sources : DEFAULT_SOURCES;
 
@@ -87,6 +91,12 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
             `sources: ${sourcesToCheck.length}, alertOnFailure: ${alertOnFailure})`,
         );
 
+        // Emit workflow started event
+        await events.emitWorkflowStarted({
+            sourceCount: sourcesToCheck.length,
+            alertOnFailure,
+        });
+
         const results: SourceHealthResult[] = [];
         let healthySources = 0;
         let unhealthySources = 0;
@@ -94,6 +104,7 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
 
         try {
             // Step 1: Load recent health history for trend analysis
+            await events.emitStepStarted('load-health-history');
             const healthHistory = await step.do('load-health-history', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {
@@ -109,12 +120,15 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
 
                 return history || { checks: [] };
             });
+            await events.emitStepCompleted('load-health-history', { checkCount: healthHistory.checks.length });
+            await events.emitProgress(10, 'Health history loaded');
 
             // Step 2: Check each source
             for (let i = 0; i < sourcesToCheck.length; i++) {
                 const source = sourcesToCheck[i];
                 const sourceNumber = i + 1;
 
+                await events.emitHealthCheckStarted(source.name, source.url);
                 const healthResult = await step.do(`check-source-${sourceNumber}`, {
                     retries: { limit: 2, delay: '5 seconds' },
                     timeout: '2 minutes',
@@ -207,6 +221,16 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                     unhealthySources++;
                 }
 
+                await events.emitHealthCheckCompleted(
+                    source.name,
+                    healthResult.healthy,
+                    healthResult.responseTimeMs,
+                    healthResult.ruleCount,
+                );
+
+                const checkProgress = 10 + Math.round(((i + 1) / sourcesToCheck.length) * 60);
+                await events.emitProgress(checkProgress, `Checked ${sourceNumber}/${sourcesToCheck.length} sources`);
+
                 // Small delay between checks to avoid rate limiting
                 if (i < sourcesToCheck.length - 1) {
                     await step.sleep(`delay-after-${sourceNumber}`, '2 seconds');
@@ -214,6 +238,7 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
             }
 
             // Step 3: Analyze results and determine if alerts needed
+            await events.emitStepStarted('analyze-results', { resultCount: results.length });
             const alertAnalysis = await step.do('analyze-results', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {
@@ -250,6 +275,10 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                     triggeredAlerts: shouldAlert.length > 0,
                 };
             });
+            await events.emitStepCompleted('analyze-results', {
+                alertsNeeded: alertAnalysis.shouldAlert.length,
+            });
+            await events.emitProgress(75, 'Analysis complete');
 
             // Step 4: Send alerts if needed
             if (alertAnalysis.triggeredAlerts && alertAnalysis.shouldAlert.length > 0) {
@@ -285,6 +314,7 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
             }
 
             // Step 5: Store health results
+            await events.emitStepStarted('store-results');
             await step.do('store-results', {
                 retries: { limit: 2, delay: '2 seconds' },
             }, async () => {
@@ -368,8 +398,19 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
 
                 return { stored: true };
             });
+            await events.emitStepCompleted('store-results');
 
             const totalDuration = Date.now() - startTime;
+
+            // Emit workflow completed event
+            await events.emitProgress(100, 'Health monitoring complete');
+            await events.emitWorkflowCompleted({
+                healthySources,
+                unhealthySources,
+                alertsSent,
+                totalDurationMs: totalDuration,
+            });
+
             console.log(
                 `[WORKFLOW:HEALTH] Health monitoring completed: ${healthySources}/${sourcesToCheck.length} ` +
                 `healthy in ${totalDuration}ms (runId: ${runId})`,
@@ -388,6 +429,13 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:HEALTH] Health monitoring failed (runId: ${runId}):`, errorMessage);
+
+            // Emit workflow failed event
+            await events.emitWorkflowFailed(errorMessage, {
+                healthySources,
+                unhealthySources,
+                alertsSent,
+            });
 
             return {
                 runId,

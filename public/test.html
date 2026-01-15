@@ -17,10 +17,17 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         h1 {
             color: #333;
             margin-bottom: 10px;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
         }
         .endpoint {
             color: #666;
@@ -36,6 +43,10 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        textarea.small {
+            min-height: 100px;
         }
         button {
             background: #007bff;
@@ -46,6 +57,7 @@
             cursor: pointer;
             font-size: 14px;
             margin-right: 10px;
+            margin-bottom: 10px;
         }
         button:hover {
             background: #0056b3;
@@ -53,6 +65,25 @@
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #545b62;
+        }
+        button.success {
+            background: #28a745;
+        }
+        button.success:hover {
+            background: #218838;
+        }
+        button.warning {
+            background: #ffc107;
+            color: #333;
+        }
+        button.warning:hover {
+            background: #e0a800;
         }
         .log {
             background: #f8f9fa;
@@ -92,6 +123,15 @@
             border-radius: 4px;
             border-left: 4px solid #007bff;
         }
+        .stat-card.success {
+            border-left-color: #28a745;
+        }
+        .stat-card.warning {
+            border-left-color: #ffc107;
+        }
+        .stat-card.error {
+            border-left-color: #dc3545;
+        }
         .stat-label {
             font-size: 12px;
             color: #6c757d;
@@ -103,6 +143,99 @@
             color: #333;
             margin-top: 5px;
         }
+        .workflow-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .workflow-status.queued { background: #e9ecef; color: #495057; }
+        .workflow-status.running { background: #cce5ff; color: #004085; }
+        .workflow-status.complete { background: #d4edda; color: #155724; }
+        .workflow-status.errored { background: #f8d7da; color: #721c24; }
+        .workflow-status.unknown { background: #fff3cd; color: #856404; }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+            color: #6c757d;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab:hover {
+            color: #333;
+        }
+        .tab.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b6d4fe;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .info-box h4 {
+            margin: 0 0 10px 0;
+            color: #0a58ca;
+        }
+        .workflow-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .workflow-card h4 {
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .workflow-progress {
+            background: #e9ecef;
+            border-radius: 4px;
+            height: 8px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .workflow-progress-bar {
+            background: #007bff;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .workflow-progress-bar.complete {
+            background: #28a745;
+        }
+        .workflow-progress-bar.error {
+            background: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -112,9 +245,18 @@
         </div>
         <h1>🛡️ Hostlist Compiler Worker Test</h1>
         <div class="endpoint" id="worker-endpoint">Testing current deployment</div>
-        
-        <h3>Request Configuration</h3>
-        <textarea id="config">{
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('sync')">Sync Compilation</button>
+            <button class="tab" onclick="switchTab('workflows')">Workflows (Async)</button>
+            <button class="tab" onclick="switchTab('health')">Health & Metrics</button>
+        </div>
+
+        <!-- Tab: Sync Compilation -->
+        <div id="tab-sync" class="tab-content active">
+            <h3>Request Configuration</h3>
+            <textarea id="config">{
   "configuration": {
     "name": "Test Filter List",
     "sources": [
@@ -132,16 +274,144 @@
   "benchmark": true
 }</textarea>
 
-        <div>
-            <button onclick="testJSON()">Test JSON API</button>
-            <button onclick="testStream()">Test Streaming API</button>
-            <button onclick="clearLog()">Clear Log</button>
+            <div>
+                <button onclick="testJSON()">Test JSON API</button>
+                <button onclick="testStream()">Test Streaming API</button>
+                <button onclick="clearLog()">Clear Log</button>
+            </div>
+
+            <div class="stats" id="stats"></div>
+
+            <h3>Response Log</h3>
+            <div class="log" id="log"></div>
         </div>
 
-        <div class="stats" id="stats"></div>
-        
-        <h3>Response Log</h3>
-        <div class="log" id="log"></div>
+        <!-- Tab: Workflows -->
+        <div id="tab-workflows" class="tab-content">
+            <div class="info-box">
+                <h4>📋 About Cloudflare Workflows</h4>
+                <p>Workflows provide durable execution for long-running tasks with automatic state persistence, crash recovery, and step-by-step progress tracking.</p>
+            </div>
+
+            <!-- Compilation Workflow -->
+            <div class="section">
+                <h3>🔧 Async Compilation Workflow</h3>
+                <textarea id="workflow-compile-config" class="small">{
+  "configuration": {
+    "name": "EasyList Subset",
+    "sources": [{"source": "https://easylist.to/easylist/easylist.txt", "name": "EasyList"}],
+    "transformations": ["Deduplicate", "RemoveEmptyLines"]
+  },
+  "priority": "high"
+}</textarea>
+                <div>
+                    <button onclick="startCompilationWorkflow()">Start Workflow</button>
+                    <button class="secondary" onclick="clearWorkflowLog('compile')">Clear</button>
+                </div>
+                <div id="workflow-compile-card" class="workflow-card" style="display: none;">
+                    <h4>
+                        <span id="workflow-compile-name">Compilation</span>
+                        <span id="workflow-compile-status" class="workflow-status queued">queued</span>
+                    </h4>
+                    <div>Workflow ID: <code id="workflow-compile-id">-</code></div>
+                    <div class="workflow-progress">
+                        <div id="workflow-compile-progress-bar" class="workflow-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="log" id="workflow-compile-log" style="min-height: 100px;"></div>
+            </div>
+
+            <!-- Batch Workflow -->
+            <div class="section">
+                <h3>📦 Batch Compilation Workflow</h3>
+                <textarea id="workflow-batch-config" class="small">{
+  "requests": [
+    {"id": "req-1", "configuration": {"name": "List 1", "sources": [{"source": "sample-1", "name": "Sample 1"}]}},
+    {"id": "req-2", "configuration": {"name": "List 2", "sources": [{"source": "sample-2", "name": "Sample 2"}]}}
+  ],
+  "priority": "standard"
+}</textarea>
+                <div>
+                    <button onclick="startBatchWorkflow()">Start Batch</button>
+                    <button class="secondary" onclick="clearWorkflowLog('batch')">Clear</button>
+                </div>
+                <div id="workflow-batch-card" class="workflow-card" style="display: none;">
+                    <h4>
+                        <span id="workflow-batch-name">Batch</span>
+                        <span id="workflow-batch-status" class="workflow-status queued">queued</span>
+                    </h4>
+                    <div>Workflow ID: <code id="workflow-batch-id">-</code></div>
+                    <div class="workflow-progress">
+                        <div id="workflow-batch-progress-bar" class="workflow-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="log" id="workflow-batch-log" style="min-height: 100px;"></div>
+            </div>
+
+            <!-- Cache Warming Workflow -->
+            <div class="section">
+                <h3>🔥 Cache Warming Workflow</h3>
+                <textarea id="workflow-cache-config" class="small">{
+  "configurations": []
+}</textarea>
+                <div>
+                    <button class="success" onclick="startCacheWarmingWorkflow()">Start Cache Warming</button>
+                    <button class="secondary" onclick="clearWorkflowLog('cache')">Clear</button>
+                </div>
+                <div id="workflow-cache-card" class="workflow-card" style="display: none;">
+                    <h4>
+                        <span id="workflow-cache-name">Cache Warming</span>
+                        <span id="workflow-cache-status" class="workflow-status queued">queued</span>
+                    </h4>
+                    <div>Workflow ID: <code id="workflow-cache-id">-</code></div>
+                    <div class="workflow-progress">
+                        <div id="workflow-cache-progress-bar" class="workflow-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="log" id="workflow-cache-log" style="min-height: 100px;"></div>
+            </div>
+
+            <!-- Health Monitoring Workflow -->
+            <div class="section">
+                <h3>🏥 Health Monitoring Workflow</h3>
+                <textarea id="workflow-health-config" class="small">{
+  "sources": [],
+  "alertOnFailure": true
+}</textarea>
+                <div>
+                    <button class="warning" onclick="startHealthWorkflow()">Start Health Check</button>
+                    <button class="secondary" onclick="clearWorkflowLog('health')">Clear</button>
+                </div>
+                <div id="workflow-health-card" class="workflow-card" style="display: none;">
+                    <h4>
+                        <span id="workflow-health-name">Health Check</span>
+                        <span id="workflow-health-status" class="workflow-status queued">queued</span>
+                    </h4>
+                    <div>Workflow ID: <code id="workflow-health-id">-</code></div>
+                    <div class="workflow-progress">
+                        <div id="workflow-health-progress-bar" class="workflow-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="log" id="workflow-health-log" style="min-height: 100px;"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Health & Metrics -->
+        <div id="tab-health" class="tab-content">
+            <div class="section">
+                <h3>📊 Workflow Metrics</h3>
+                <button onclick="loadWorkflowMetrics()">Load Metrics</button>
+                <div id="workflow-metrics-stats" class="stats"></div>
+                <div class="log" id="workflow-metrics-log" style="min-height: 100px;"></div>
+            </div>
+
+            <div class="section">
+                <h3>🏥 Latest Health Results</h3>
+                <button onclick="loadHealthResults()">Load Health Results</button>
+                <div id="health-summary-stats" class="stats"></div>
+                <div id="health-sources-list" style="margin-top: 20px;"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -296,7 +566,396 @@
         }
 
         // Load on page load
-        addLog('✨ Ready to test! Click a button to start.', 'info');
+        window.addEventListener('DOMContentLoaded', () => {
+            addLog('✨ Ready to test! Click a button to start.', 'info');
+            initializeTabs();
+        });
+
+        // ========================================
+        // Tab Navigation
+        // ========================================
+        const tabButtonsByName = {};
+
+        function initializeTabs() {
+            document.querySelectorAll('.tab[onclick]').forEach((tab) => {
+                const onclick = tab.getAttribute('onclick') || '';
+                const match = onclick.match(/switchTab\('([^']+)'\)/);
+                if (match && match[1]) {
+                    tabButtonsByName[match[1]] = tab;
+                }
+            });
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach((tab) => tab.classList.remove('active'));
+            const activeTab = tabButtonsByName[tabName];
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach((content) => content.classList.remove('active'));
+            const activeContent = document.getElementById(`tab-${tabName}`);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+        }
+
+        // ========================================
+        // Workflow Logging Helpers
+        // ========================================
+        function addWorkflowLog(workflowType, message, type = 'info') {
+            const log = document.getElementById(`workflow-${workflowType}-log`);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearWorkflowLog(workflowType) {
+            document.getElementById(`workflow-${workflowType}-log`).innerHTML = '';
+            document.getElementById(`workflow-${workflowType}-card`).style.display = 'none';
+        }
+
+        function updateWorkflowCard(workflowType, id, status, progress = 0) {
+            const card = document.getElementById(`workflow-${workflowType}-card`);
+            card.style.display = 'block';
+            document.getElementById(`workflow-${workflowType}-id`).textContent = id;
+
+            const statusEl = document.getElementById(`workflow-${workflowType}-status`);
+            statusEl.textContent = status;
+            statusEl.className = `workflow-status ${status}`;
+
+            const progressBar = document.getElementById(`workflow-${workflowType}-progress-bar`);
+            progressBar.style.width = `${progress}%`;
+            if (status === 'complete') {
+                progressBar.classList.add('complete');
+            } else if (status === 'errored') {
+                progressBar.classList.add('error');
+            }
+        }
+
+        // ========================================
+        // Workflow Status Polling with Events
+        // ========================================
+        async function pollWorkflowStatus(workflowType, workflowId, statusType) {
+            const maxAttempts = 60; // 5 minutes max
+            let attempts = 0;
+            let lastEventTimestamp = null;
+            let lastLoggedProgress = -1;
+
+            while (attempts < maxAttempts) {
+                try {
+                    // Poll both status and events in parallel
+                    const [statusResponse, eventsResponse] = await Promise.all([
+                        fetch(`${WORKER_URL}/workflow/status/${statusType}/${workflowId}`),
+                        fetch(`${WORKER_URL}/workflow/events/${workflowId}${lastEventTimestamp ? `?since=${encodeURIComponent(lastEventTimestamp)}` : ''}`)
+                    ]);
+
+                    const [statusData, eventsData] = await Promise.all([
+                        statusResponse.json(),
+                        eventsResponse.json()
+                    ]);
+
+                    // Process events for real-time progress
+                    if (eventsData.success && eventsData.events && eventsData.events.length > 0) {
+                        for (const event of eventsData.events) {
+                            lastEventTimestamp = event.timestamp;
+
+                            // Log step events
+                            if (event.type === 'workflow:step:started') {
+                                addWorkflowLog(workflowType, `▶️ Step started: ${event.step}`, 'info');
+                            } else if (event.type === 'workflow:step:completed') {
+                                addWorkflowLog(workflowType, `✅ Step completed: ${event.step}`, 'success');
+                            } else if (event.type === 'workflow:step:failed') {
+                                addWorkflowLog(workflowType, `❌ Step failed: ${event.step} - ${event.data?.error || ''}`, 'error');
+                            } else if (event.type === 'workflow:progress') {
+                                // Only log progress at significant intervals
+                                if (event.progress !== lastLoggedProgress && (event.progress - lastLoggedProgress >= 10 || event.progress === 100)) {
+                                    lastLoggedProgress = event.progress;
+                                    addWorkflowLog(workflowType, `📊 Progress: ${event.progress}% - ${event.message || ''}`, 'info');
+                                }
+                                updateWorkflowCard(workflowType, workflowId, 'running', event.progress);
+                            } else if (event.type === 'source:fetch:completed') {
+                                addWorkflowLog(workflowType, `📥 Source fetched: ${event.data?.sourceName || 'unknown'} (${event.data?.ruleCount || 0} rules)`, 'info');
+                            } else if (event.type === 'health:check:completed') {
+                                const status = event.data?.healthy ? '✅ healthy' : '❌ unhealthy';
+                                addWorkflowLog(workflowType, `🏥 Health check: ${event.data?.sourceName || 'unknown'} - ${status}`, event.data?.healthy ? 'success' : 'warning');
+                            } else if (event.type === 'cache:stored') {
+                                addWorkflowLog(workflowType, `💾 Cached: ${event.data?.cacheKey || 'unknown'} (${event.data?.sizeBytes || 0} bytes)`, 'info');
+                            }
+                        }
+                    }
+
+                    // Check workflow completion status
+                    if (statusData.status === 'complete') {
+                        updateWorkflowCard(workflowType, workflowId, 'complete', 100);
+                        addWorkflowLog(workflowType, '🎉 Workflow completed successfully!', 'success');
+                        if (statusData.output) {
+                            const outputJson = JSON.stringify(statusData.output, null, 2);
+                            const escapedOutputJson = outputJson
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#39;');
+                            addWorkflowLog(workflowType, `<details><summary>📋 Output</summary><pre>${escapedOutputJson}</pre></details>`, 'info');
+                        }
+                        return statusData;
+                    } else if (statusData.status === 'errored') {
+                        updateWorkflowCard(workflowType, workflowId, 'errored', 100);
+                        addWorkflowLog(workflowType, `❌ Workflow failed: ${statusData.error || 'Unknown error'}`, 'error');
+                        return statusData;
+                    } else {
+                        // Use events progress if available, otherwise estimate
+                        const progress = eventsData.progress || Math.min(attempts * 5, 90);
+                        updateWorkflowCard(workflowType, workflowId, statusData.status || 'running', progress);
+                    }
+                } catch (error) {
+                    addWorkflowLog(workflowType, `⚠️ Poll error: ${error.message}`, 'warning');
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 3000)); // Poll every 3 seconds for better responsiveness
+                attempts++;
+            }
+
+            addWorkflowLog(workflowType, '⏰ Polling timed out. Check status manually.', 'warning');
+        }
+
+        // ========================================
+        // Compilation Workflow
+        // ========================================
+        async function startCompilationWorkflow() {
+            clearWorkflowLog('compile');
+            addWorkflowLog('compile', '🚀 Starting compilation workflow...', 'info');
+
+            try {
+                const config = JSON.parse(document.getElementById('workflow-compile-config').value);
+                addWorkflowLog('compile', `📤 POST ${WORKER_URL}/workflow/compile`, 'info');
+
+                const response = await fetch(`${WORKER_URL}/workflow/compile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addWorkflowLog('compile', `✅ Workflow started: ${result.workflowId}`, 'success');
+                    updateWorkflowCard('compile', result.workflowId, 'queued', 10);
+                    pollWorkflowStatus('compile', result.workflowId, 'compilation');
+                } else {
+                    addWorkflowLog('compile', `❌ Failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addWorkflowLog('compile', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // ========================================
+        // Batch Workflow
+        // ========================================
+        async function startBatchWorkflow() {
+            clearWorkflowLog('batch');
+            addWorkflowLog('batch', '🚀 Starting batch compilation workflow...', 'info');
+
+            try {
+                const config = JSON.parse(document.getElementById('workflow-batch-config').value);
+                addWorkflowLog('batch', `📤 POST ${WORKER_URL}/workflow/batch`, 'info');
+
+                const response = await fetch(`${WORKER_URL}/workflow/batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addWorkflowLog('batch', `✅ Batch started: ${result.workflowId}`, 'success');
+                    updateWorkflowCard('batch', result.workflowId, 'queued', 10);
+                    pollWorkflowStatus('batch', result.workflowId, 'batch');
+                } else {
+                    addWorkflowLog('batch', `❌ Failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addWorkflowLog('batch', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // ========================================
+        // Cache Warming Workflow
+        // ========================================
+        async function startCacheWarmingWorkflow() {
+            clearWorkflowLog('cache');
+            addWorkflowLog('cache', '🚀 Starting cache warming workflow...', 'info');
+
+            try {
+                const config = JSON.parse(document.getElementById('workflow-cache-config').value);
+                addWorkflowLog('cache', `📤 POST ${WORKER_URL}/workflow/cache-warm`, 'info');
+
+                const response = await fetch(`${WORKER_URL}/workflow/cache-warm`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addWorkflowLog('cache', `✅ Cache warming started: ${result.workflowId}`, 'success');
+                    updateWorkflowCard('cache', result.workflowId, 'queued', 10);
+                    pollWorkflowStatus('cache', result.workflowId, 'cache-warming');
+                } else {
+                    addWorkflowLog('cache', `❌ Failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addWorkflowLog('cache', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // ========================================
+        // Health Monitoring Workflow
+        // ========================================
+        async function startHealthWorkflow() {
+            clearWorkflowLog('health');
+            addWorkflowLog('health', '🚀 Starting health monitoring workflow...', 'info');
+
+            try {
+                const config = JSON.parse(document.getElementById('workflow-health-config').value);
+                addWorkflowLog('health', `📤 POST ${WORKER_URL}/workflow/health-check`, 'info');
+
+                const response = await fetch(`${WORKER_URL}/workflow/health-check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addWorkflowLog('health', `✅ Health check started: ${result.workflowId}`, 'success');
+                    updateWorkflowCard('health', result.workflowId, 'queued', 10);
+                    pollWorkflowStatus('health', result.workflowId, 'health');
+                } else {
+                    addWorkflowLog('health', `❌ Failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addWorkflowLog('health', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // ========================================
+        // Workflow Metrics
+        // ========================================
+        async function loadWorkflowMetrics() {
+            const log = document.getElementById('workflow-metrics-log');
+            const statsDiv = document.getElementById('workflow-metrics-stats');
+            log.innerHTML = '';
+            statsDiv.innerHTML = '';
+
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `<div class="log-entry info"><span class="timestamp">[${timestamp}]</span>📊 Loading workflow metrics...</div>`;
+
+            try {
+                const response = await fetch(`${WORKER_URL}/workflow/metrics`);
+                const data = await response.json();
+
+                log.innerHTML += `<div class="log-entry success"><span class="timestamp">[${new Date().toLocaleTimeString()}]</span>✅ Metrics loaded</div>`;
+
+                // Display metrics as stats cards
+                const metrics = [];
+                if (data.compilation) {
+                    metrics.push({ label: 'Compilation Runs', value: data.compilation.totalRuns || 0 });
+                    metrics.push({ label: 'Successful', value: data.compilation.successfulRuns || 0, type: 'success' });
+                    metrics.push({ label: 'Failed', value: data.compilation.failedRuns || 0, type: data.compilation.failedRuns > 0 ? 'error' : '' });
+                }
+                if (data.batch) {
+                    metrics.push({ label: 'Batch Runs', value: data.batch.totalRuns || 0 });
+                }
+                if (data.cacheWarming) {
+                    metrics.push({ label: 'Cache Warmings', value: data.cacheWarming.totalRuns || 0 });
+                    metrics.push({ label: 'Configs Warmed', value: data.cacheWarming.totalConfigsWarmed || 0, type: 'success' });
+                }
+                if (data.health) {
+                    metrics.push({ label: 'Health Checks', value: data.health.totalChecks || 0 });
+                    metrics.push({ label: 'Alerts Triggered', value: data.health.alertsTriggered || 0, type: data.health.alertsTriggered > 0 ? 'warning' : '' });
+                }
+
+                statsDiv.innerHTML = metrics.map(m => `
+                    <div class="stat-card ${m.type || ''}">
+                        <div class="stat-label">${m.label}</div>
+                        <div class="stat-value">${m.value}</div>
+                    </div>
+                `).join('');
+
+                log.innerHTML += `<div class="log-entry info"><span class="timestamp">[${new Date().toLocaleTimeString()}]</span><details><summary>📋 Raw Metrics</summary><pre>${JSON.stringify(data, null, 2)}</pre></details></div>`;
+
+            } catch (error) {
+                log.innerHTML += `<div class="log-entry error"><span class="timestamp">[${new Date().toLocaleTimeString()}]</span>❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        // ========================================
+        // Health Results
+        // ========================================
+        async function loadHealthResults() {
+            const statsDiv = document.getElementById('health-summary-stats');
+            const listDiv = document.getElementById('health-sources-list');
+            statsDiv.innerHTML = '';
+            listDiv.innerHTML = '<div class="log-entry info">📊 Loading health results...</div>';
+
+            try {
+                const response = await fetch(`${WORKER_URL}/health/latest`);
+                const data = await response.json();
+
+                if (data.success && data.summary) {
+                    // Summary stats
+                    statsDiv.innerHTML = `
+                        <div class="stat-card success">
+                            <div class="stat-label">Healthy Sources</div>
+                            <div class="stat-value">${data.summary.healthy}</div>
+                        </div>
+                        <div class="stat-card ${data.summary.unhealthy > 0 ? 'error' : ''}">
+                            <div class="stat-label">Unhealthy Sources</div>
+                            <div class="stat-value">${data.summary.unhealthy}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Sources</div>
+                            <div class="stat-value">${data.summary.total}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Last Check</div>
+                            <div class="stat-value" style="font-size: 14px;">${new Date(data.timestamp).toLocaleString()}</div>
+                        </div>
+                    `;
+
+                    // Source list
+                    listDiv.innerHTML = data.results.map(r => `
+                        <div class="workflow-card" style="border-left: 4px solid ${r.healthy ? '#28a745' : '#dc3545'};">
+                            <h4 style="margin: 0;">
+                                ${r.healthy ? '✅' : '❌'} ${r.name}
+                                <span class="workflow-status ${r.healthy ? 'complete' : 'errored'}">${r.healthy ? 'healthy' : 'unhealthy'}</span>
+                            </h4>
+                            <div style="font-size: 12px; color: #666; margin-top: 10px;">
+                                <div>URL: <code>${r.url}</code></div>
+                                <div>Status: ${r.statusCode || 'N/A'} | Response Time: ${r.responseTimeMs || 'N/A'}ms | Rules: ${r.ruleCount || 'N/A'}</div>
+                                ${r.error ? `<div style="color: #dc3545;">Error: ${r.error}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    listDiv.innerHTML = `<div class="log-entry warning">⚠️ No health data available. Run a health check first.</div>`;
+                }
+
+            } catch (error) {
+                listDiv.innerHTML = `<div class="log-entry error">❌ Error: ${error.message}</div>`;
+            }
+        }
     </script>
 </body>
 </html>

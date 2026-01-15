@@ -2729,6 +2729,86 @@ async function handleWorkflowMetrics(env: Env): Promise<Response> {
 }
 
 /**
+ * Get workflow events for real-time progress tracking
+ */
+async function handleWorkflowEvents(
+    workflowId: string,
+    env: Env,
+    since?: string,
+): Promise<Response> {
+    try {
+        const eventsKey = `workflow:events:${workflowId}`;
+        const eventLog = await env.METRICS.get(eventsKey, 'json') as {
+            workflowId: string;
+            workflowType: string;
+            startedAt: string;
+            completedAt?: string;
+            events: Array<{
+                type: string;
+                workflowId: string;
+                workflowType: string;
+                timestamp: string;
+                step?: string;
+                progress?: number;
+                message?: string;
+                data?: Record<string, unknown>;
+            }>;
+        } | null;
+
+        if (!eventLog) {
+            return Response.json(
+                {
+                    success: true,
+                    workflowId,
+                    events: [],
+                    message: 'No events found for this workflow',
+                },
+                { headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
+        }
+
+        // Filter events since a specific timestamp if provided (for returned events only)
+        let events = eventLog.events;
+        if (since) {
+            const sinceTime = new Date(since).getTime();
+            events = events.filter((e) => new Date(e.timestamp).getTime() > sinceTime);
+        }
+
+        // Find the latest overall progress from the full event log
+        const progressEvents = eventLog.events.filter((e) => e.type === 'workflow:progress');
+        const latestProgress = progressEvents.length > 0
+            ? (progressEvents[progressEvents.length - 1].progress ?? 0)
+            : 0;
+
+        // Determine if workflow is complete based on the full event log
+        const isComplete = eventLog.events.some((e) =>
+            e.type === 'workflow:completed' || e.type === 'workflow:failed'
+        );
+
+        return Response.json(
+            {
+                success: true,
+                workflowId,
+                workflowType: eventLog.workflowType,
+                startedAt: eventLog.startedAt,
+                completedAt: eventLog.completedAt,
+                progress: latestProgress,
+                isComplete,
+                events,
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
  * Get latest health check results
  */
 async function handleHealthLatest(env: Env): Promise<Response> {
@@ -3224,6 +3304,21 @@ export default {
         // Workflow: Get workflow metrics
         if (pathname === '/workflow/metrics' && request.method === 'GET') {
             return handleWorkflowMetrics(env);
+        }
+
+        // Workflow: Get workflow events for real-time progress
+        // Pattern: /workflow/events/:workflowId
+        if (pathname.startsWith('/workflow/events/') && request.method === 'GET') {
+            const parts = pathname.split('/');
+            if (parts.length >= 4) {
+                const workflowId = parts[3];
+                const since = url.searchParams.get('since') || undefined;
+                return handleWorkflowEvents(workflowId, env, since);
+            }
+            return Response.json(
+                { success: false, error: 'Invalid workflow events path. Use /workflow/events/:workflowId' },
+                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
         }
 
         // Health: Get latest health check results
