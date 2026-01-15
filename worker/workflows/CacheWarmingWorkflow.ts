@@ -18,6 +18,7 @@ import type {
     CacheWarmingParams,
     CacheWarmingResult,
 } from './types.ts';
+import { WorkflowEvents } from './WorkflowEvents.ts';
 
 /**
  * Compresses data using gzip
@@ -87,6 +88,9 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
         const startTime = Date.now();
         const { runId, configurations, scheduled } = event.payload;
 
+        // Initialize event emitter for real-time progress tracking
+        const events = new WorkflowEvents(this.env.METRICS, runId, 'cache-warming');
+
         // Use provided configurations or fall back to defaults
         const configsToWarm = configurations.length > 0 ? configurations : DEFAULT_POPULAR_CONFIGS;
 
@@ -95,12 +99,19 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
             `scheduled: ${scheduled}, configs: ${configsToWarm.length})`,
         );
 
+        // Emit workflow started event
+        await events.emitWorkflowStarted({
+            scheduled,
+            configCount: configsToWarm.length,
+        });
+
         const details: CacheWarmingResult['details'] = [];
         let warmedConfigurations = 0;
         let failedConfigurations = 0;
 
         try {
             // Step 1: Check which caches need refreshing
+            await events.emitStepStarted('check-cache-status', { configCount: configsToWarm.length });
             const configsNeedingRefresh = await step.do('check-cache-status', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {
@@ -120,8 +131,12 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                 return needsRefresh;
             });
 
+            await events.emitStepCompleted('check-cache-status', { needsRefresh: configsNeedingRefresh.length });
+
             if (configsNeedingRefresh.length === 0) {
                 console.log(`[WORKFLOW:CACHE-WARM] All caches are fresh, nothing to warm`);
+                await events.emitProgress(100, 'All caches are fresh');
+                await events.emitWorkflowCompleted({ warmed: 0, skipped: configsToWarm.length });
                 return {
                     runId,
                     scheduled,
@@ -131,6 +146,8 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                     totalDurationMs: Date.now() - startTime,
                 };
             }
+
+            await events.emitProgress(10, `${configsNeedingRefresh.length} configs need warming`);
 
             // Step 2: Process in chunks
             const chunks: Array<typeof configsNeedingRefresh> = [];
@@ -150,6 +167,12 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                 if (chunkIndex > 0) {
                     await step.sleep('inter-chunk-delay', '10 seconds');
                 }
+
+                await events.emitStepStarted(`warm-chunk-${chunkNumber}`, {
+                    chunk: chunkNumber,
+                    totalChunks: chunks.length,
+                    configs: chunk.map((c) => c.name),
+                });
 
                 const chunkResults = await step.do(`warm-chunk-${chunkNumber}`, {
                     retries: { limit: 2, delay: '30 seconds', backoff: 'exponential' },
@@ -237,9 +260,18 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                         failedConfigurations++;
                     }
                 }
+
+                await events.emitStepCompleted(`warm-chunk-${chunkNumber}`, {
+                    warmed: chunkResults.filter((r) => r.success).length,
+                    failed: chunkResults.filter((r) => !r.success).length,
+                });
+
+                const chunkProgress = 10 + Math.round(((chunkIndex + 1) / chunks.length) * 75);
+                await events.emitProgress(chunkProgress, `Chunk ${chunkNumber}/${chunks.length} complete`);
             }
 
             // Step 3: Update metrics
+            await events.emitStepStarted('update-warming-metrics');
             await step.do('update-warming-metrics', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {
@@ -288,7 +320,18 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                 return { updated: true };
             });
 
+            await events.emitStepCompleted('update-warming-metrics');
+
             const totalDuration = Date.now() - startTime;
+
+            // Emit workflow completed event
+            await events.emitProgress(100, 'Cache warming complete');
+            await events.emitWorkflowCompleted({
+                warmedConfigurations,
+                failedConfigurations,
+                totalDurationMs: totalDuration,
+            });
+
             console.log(
                 `[WORKFLOW:CACHE-WARM] Cache warming completed: ${warmedConfigurations}/${configsToWarm.length} ` +
                 `successful in ${totalDuration}ms (runId: ${runId})`,
@@ -306,6 +349,12 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:CACHE-WARM] Cache warming workflow failed (runId: ${runId}):`, errorMessage);
+
+            // Emit workflow failed event
+            await events.emitWorkflowFailed(errorMessage, {
+                warmedConfigurations,
+                failedConfigurations: configsToWarm.length - warmedConfigurations,
+            });
 
             return {
                 runId,

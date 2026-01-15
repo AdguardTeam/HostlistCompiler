@@ -18,6 +18,9 @@ export { BatchCompilationWorkflow } from './BatchCompilationWorkflow.ts';
 export { CacheWarmingWorkflow } from './CacheWarmingWorkflow.ts';
 export { HealthMonitoringWorkflow } from './HealthMonitoringWorkflow.ts';
 
+// Export event utilities
+export { WorkflowEvents } from './WorkflowEvents.ts';
+
 // Export all types
 export type {
     // Workflow parameters
@@ -36,4 +39,8 @@ export type {
     // Status types
     WorkflowStatus,
     WorkflowInstanceInfo,
+    // Event types
+    WorkflowEventType,
+    WorkflowProgressEvent,
+    WorkflowEventLog,
 } from './types.ts';

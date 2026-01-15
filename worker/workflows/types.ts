@@ -198,3 +198,56 @@ export interface WorkflowInstanceInfo {
     output?: unknown;
     error?: string;
 }
+
+/**
+ * Workflow event types for real-time progress tracking
+ */
+export type WorkflowEventType =
+    | 'workflow:started'
+    | 'workflow:step:started'
+    | 'workflow:step:completed'
+    | 'workflow:step:failed'
+    | 'workflow:progress'
+    | 'workflow:completed'
+    | 'workflow:failed'
+    | 'source:fetch:started'
+    | 'source:fetch:completed'
+    | 'source:fetch:failed'
+    | 'transformation:started'
+    | 'transformation:completed'
+    | 'cache:stored'
+    | 'health:check:started'
+    | 'health:check:completed';
+
+/**
+ * Workflow event payload for real-time updates
+ */
+export interface WorkflowProgressEvent {
+    /** Event type */
+    type: WorkflowEventType;
+    /** Workflow instance ID */
+    workflowId: string;
+    /** Workflow type (compilation, batch, cache-warming, health) */
+    workflowType: string;
+    /** Timestamp when event occurred */
+    timestamp: string;
+    /** Current step name (if applicable) */
+    step?: string;
+    /** Progress percentage (0-100) */
+    progress?: number;
+    /** Human-readable message */
+    message?: string;
+    /** Additional event data */
+    data?: Record<string, unknown>;
+}
+
+/**
+ * Stored events for a workflow instance
+ */
+export interface WorkflowEventLog {
+    workflowId: string;
+    workflowType: string;
+    startedAt: string;
+    completedAt?: string;
+    events: WorkflowProgressEvent[];
+}

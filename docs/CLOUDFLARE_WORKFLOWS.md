@@ -12,6 +12,7 @@ This document describes the Cloudflare Workflows implementation in the adblock-c
   - [CacheWarmingWorkflow](#cachewarmingworkflow)
   - [HealthMonitoringWorkflow](#healthmonitoringworkflow)
 - [API Endpoints](#api-endpoints)
+- [Real-Time Events](#workflow-events-real-time-progress)
 - [Scheduled Workflows (Cron)](#scheduled-workflows-cron)
 - [Workflow Status & Monitoring](#workflow-status--monitoring)
 - [Configuration](#configuration)
@@ -266,6 +267,7 @@ curl -X POST http://localhost:8787/workflow/health-check \
 | POST | `/workflow/cache-warm` | Trigger cache warming |
 | POST | `/workflow/health-check` | Trigger health monitoring |
 | GET | `/workflow/status/:type/:id` | Get workflow instance status |
+| GET | `/workflow/events/:id` | Get real-time progress events |
 | GET | `/workflow/metrics` | Get aggregate workflow metrics |
 | GET | `/health/latest` | Get latest health check results |
 
@@ -378,6 +380,112 @@ curl http://localhost:8787/health/latest
     "healthy": 5,
     "unhealthy": 0
   }
+}
+```
+
+### Workflow Events (Real-Time Progress)
+
+Get real-time progress events for a running workflow:
+
+```bash
+# Get all events for a workflow
+curl http://localhost:8787/workflow/events/wf-compile-abc123
+
+# Get events since a specific timestamp (for polling)
+curl "http://localhost:8787/workflow/events/wf-compile-abc123?since=2024-01-15T10:30:00.000Z"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "workflowId": "wf-compile-abc123",
+  "workflowType": "compilation",
+  "startedAt": "2024-01-15T10:30:00.000Z",
+  "completedAt": "2024-01-15T10:30:05.000Z",
+  "progress": 100,
+  "isComplete": true,
+  "events": [
+    {
+      "type": "workflow:started",
+      "workflowId": "wf-compile-abc123",
+      "workflowType": "compilation",
+      "timestamp": "2024-01-15T10:30:00.000Z",
+      "data": {"configName": "My Filter List", "sourceCount": 2}
+    },
+    {
+      "type": "workflow:step:started",
+      "workflowId": "wf-compile-abc123",
+      "workflowType": "compilation",
+      "timestamp": "2024-01-15T10:30:00.100Z",
+      "step": "validate"
+    },
+    {
+      "type": "workflow:progress",
+      "workflowId": "wf-compile-abc123",
+      "workflowType": "compilation",
+      "timestamp": "2024-01-15T10:30:00.500Z",
+      "progress": 25,
+      "message": "Configuration validated"
+    },
+    {
+      "type": "workflow:completed",
+      "workflowId": "wf-compile-abc123",
+      "workflowType": "compilation",
+      "timestamp": "2024-01-15T10:30:05.000Z",
+      "data": {"ruleCount": 45000, "totalDurationMs": 5000}
+    }
+  ]
+}
+```
+
+**Event Types:**
+| Type | Description |
+|------|-------------|
+| `workflow:started` | Workflow execution began |
+| `workflow:step:started` | A workflow step started |
+| `workflow:step:completed` | A workflow step finished successfully |
+| `workflow:step:failed` | A workflow step failed |
+| `workflow:progress` | Progress update with percentage and message |
+| `workflow:completed` | Workflow finished successfully |
+| `workflow:failed` | Workflow failed with error |
+| `source:fetch:started` | Source fetch operation started |
+| `source:fetch:completed` | Source fetch completed with rule count |
+| `transformation:started` | Transformation step started |
+| `transformation:completed` | Transformation completed |
+| `cache:stored` | Result cached to KV |
+| `health:check:started` | Health check started for a source |
+| `health:check:completed` | Health check completed |
+
+**Polling for Real-Time Updates:**
+
+To monitor workflow progress in real-time, poll the events endpoint:
+
+```javascript
+async function pollWorkflowEvents(workflowId) {
+    let lastTimestamp = null;
+
+    while (true) {
+        const url = `/workflow/events/${workflowId}`;
+        const params = lastTimestamp ? `?since=${encodeURIComponent(lastTimestamp)}` : '';
+
+        const response = await fetch(url + params);
+        const data = await response.json();
+
+        if (data.events?.length > 0) {
+            for (const event of data.events) {
+                console.log(`[${event.type}] ${event.message || event.step || ''}`);
+                lastTimestamp = event.timestamp;
+            }
+        }
+
+        if (data.isComplete) {
+            console.log('Workflow completed!');
+            break;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
 }
 ```
 
