@@ -1,4 +1,4 @@
-import { assertEquals } from '@std/assert';
+import { assertEquals, assertExists } from '@std/assert';
 import { IncludeTransformation } from './IncludeTransformation.ts';
 import { Wildcard } from '../utils/Wildcard.ts';
 
@@ -132,4 +132,81 @@ Deno.test('IncludeTransformation - should include all matching rules', () => {
     assertEquals(result.includes('||ads.example.com^'), true);
     assertEquals(result.includes('||tracker.example.org^'), true);
     assertEquals(result.includes('||analytics.example.net^'), true);
+});
+
+// execute() method tests
+import type { ITransformationContext } from '../types/index.ts';
+
+const mockLogger = {
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+    debug: () => {},
+    trace: () => {},
+};
+
+Deno.test('IncludeTransformation.execute - should return all rules when no inclusions configured', async () => {
+    const transformation = new IncludeTransformation();
+    const rules = ['||example.org^', '||test.com^'];
+
+    const context = {
+        configuration: { name: 'test', sources: [] },
+        logger: mockLogger,
+    } as ITransformationContext;
+
+    const result = await transformation.execute(rules, context);
+    assertEquals(result, rules);
+});
+
+Deno.test('IncludeTransformation.execute - should return all rules when inclusions is empty array', async () => {
+    const transformation = new IncludeTransformation();
+    const rules = ['||example.org^', '||test.com^'];
+
+    const context = {
+        configuration: { name: 'test', sources: [], inclusions: [] },
+        logger: mockLogger,
+    } as ITransformationContext;
+
+    const result = await transformation.execute(rules, context);
+    assertEquals(result, rules);
+});
+
+Deno.test('IncludeTransformation.execute - should return all rules when no context provided', async () => {
+    const transformation = new IncludeTransformation();
+    const rules = ['||example.org^', '||test.com^'];
+
+    const result = await transformation.execute(rules);
+    assertEquals(result, rules);
+});
+
+Deno.test('IncludeTransformation.execute - should include only rules matching inclusion patterns', async () => {
+    const transformation = new IncludeTransformation();
+    const rules = ['||example.org^', '||test.com^', '||example.com^'];
+
+    const context = {
+        configuration: { name: 'test', sources: [], inclusions: ['*example*'] },
+        logger: mockLogger,
+    } as ITransformationContext;
+
+    const result = await transformation.execute(rules, context);
+    assertEquals(result, ['||example.org^', '||example.com^']);
+});
+
+Deno.test('IncludeTransformation.execute - should handle multiple inclusion patterns', async () => {
+    const transformation = new IncludeTransformation();
+    const rules = ['||example.org^', '||test.com^', '||other.net^'];
+
+    const context = {
+        configuration: { name: 'test', sources: [], inclusions: ['*example*', '*test*'] },
+        logger: mockLogger,
+    } as ITransformationContext;
+
+    const result = await transformation.execute(rules, context);
+    assertEquals(result, ['||example.org^', '||test.com^']);
+});
+
+Deno.test('IncludeTransformation - should have correct name and type properties', () => {
+    const transformation = new IncludeTransformation();
+    assertEquals(transformation.name, 'Include');
+    assertExists(transformation.type);
 });

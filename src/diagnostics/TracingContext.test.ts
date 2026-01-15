@@ -142,3 +142,25 @@ Deno.test('tracing - events have correct timestamps and IDs', () => {
         assertEquals(event.correlationId, context.correlationId);
     });
 });
+
+import { getOrCreateContext } from './TracingContext.ts';
+
+Deno.test('getOrCreateContext - returns existing context if provided', () => {
+    const existing = createTracingContext({ correlationId: 'existing' });
+    const result = getOrCreateContext({ tracingContext: existing });
+
+    assertEquals(result.correlationId, 'existing');
+    assertEquals(result, existing);
+});
+
+Deno.test('getOrCreateContext - creates no-op context if not provided', () => {
+    const result = getOrCreateContext({});
+
+    assertEquals(result.correlationId, 'noop');
+});
+
+Deno.test('getOrCreateContext - creates no-op context if options undefined', () => {
+    const result = getOrCreateContext(undefined);
+
+    assertEquals(result.correlationId, 'noop');
+});

@@ -1,4 +1,4 @@
-import { assertEquals } from '@std/assert';
+import { assertEquals, assertExists } from '@std/assert';
 import { ExcludeTransformation } from './ExcludeTransformation.ts';
 import { Wildcard } from '../utils/Wildcard.ts';
 
@@ -128,4 +128,81 @@ Deno.test('ExcludeTransformation - should handle case-insensitive matching', () 
 
     // Should exclude both case variants
     assertEquals(result, ['||test.com^']);
+});
+
+// execute() method tests
+import type { ITransformationContext } from '../types/index.ts';
+
+const mockLogger = {
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+    debug: () => {},
+    trace: () => {},
+};
+
+Deno.test('ExcludeTransformation.execute - should return all rules when no exclusions configured', async () => {
+    const transformation = new ExcludeTransformation();
+    const rules = ['||example.org^', '||test.com^'];
+
+    const context = {
+        configuration: { name: 'test', sources: [] },
+        logger: mockLogger,
+    } as ITransformationContext;
+
+    const result = await transformation.execute(rules, context);
+    assertEquals(result, rules);
+});
+
+Deno.test('ExcludeTransformation.execute - should return all rules when exclusions is empty array', async () => {
+    const transformation = new ExcludeTransformation();
+    const rules = ['||example.org^', '||test.com^'];
+
+    const context = {
+        configuration: { name: 'test', sources: [], exclusions: [] },
+        logger: mockLogger,
+    } as ITransformationContext;
+
+    const result = await transformation.execute(rules, context);
+    assertEquals(result, rules);
+});
+
+Deno.test('ExcludeTransformation.execute - should return all rules when no context provided', async () => {
+    const transformation = new ExcludeTransformation();
+    const rules = ['||example.org^', '||test.com^'];
+
+    const result = await transformation.execute(rules);
+    assertEquals(result, rules);
+});
+
+Deno.test('ExcludeTransformation.execute - should exclude rules matching exclusion patterns', async () => {
+    const transformation = new ExcludeTransformation();
+    const rules = ['||example.org^', '||test.com^', '||example.com^'];
+
+    const context = {
+        configuration: { name: 'test', sources: [], exclusions: ['*example*'] },
+        logger: mockLogger,
+    } as ITransformationContext;
+
+    const result = await transformation.execute(rules, context);
+    assertEquals(result, ['||test.com^']);
+});
+
+Deno.test('ExcludeTransformation.execute - should handle multiple exclusion patterns', async () => {
+    const transformation = new ExcludeTransformation();
+    const rules = ['||example.org^', '||test.com^', '||other.net^'];
+
+    const context = {
+        configuration: { name: 'test', sources: [], exclusions: ['*example*', '*test*'] },
+        logger: mockLogger,
+    } as ITransformationContext;
+
+    const result = await transformation.execute(rules, context);
+    assertEquals(result, ['||other.net^']);
+});
+
+Deno.test('ExcludeTransformation - should have correct name and type properties', () => {
+    const transformation = new ExcludeTransformation();
+    assertEquals(transformation.name, 'Exclude');
+    assertExists(transformation.type);
 });

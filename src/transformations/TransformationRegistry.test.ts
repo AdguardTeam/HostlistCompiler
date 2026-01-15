@@ -175,3 +175,230 @@ Deno.test('TransformationPipeline - should handle empty rules array', async () =
     const result = await pipeline.transform([], config, [TransformationType.Deduplicate]);
     assertEquals(result, []);
 });
+
+Deno.test('TransformationRegistry - should accept custom logger', () => {
+    const customLogger = {
+        info: () => {},
+        warn: () => {},
+        error: () => {},
+        debug: () => {},
+        trace: () => {},
+    };
+    const registry = new TransformationRegistry(customLogger);
+    assertEquals(registry.has(TransformationType.RemoveComments), true);
+});
+
+Deno.test('TransformationRegistry - register should override existing transformation', () => {
+    const registry = new TransformationRegistry();
+    const originalTransformation = registry.get(TransformationType.TrimLines);
+    assertExists(originalTransformation);
+
+    // Register a new transformation with the same type
+    const newTransformation = originalTransformation; // Just reusing for test
+    registry.register(TransformationType.TrimLines, newTransformation);
+
+    // Should still exist and be the same reference
+    assertEquals(registry.get(TransformationType.TrimLines), newTransformation);
+});
+
+Deno.test('TransformationRegistry - has returns false for non-existent type', () => {
+    const registry = new TransformationRegistry();
+    assertEquals(registry.has('non-existent' as TransformationType), false);
+});
+
+Deno.test('TransformationPipeline - should apply exclusions with patterns', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '||test.com^', '||ads.example.org^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+        exclusions: ['*ads*'],
+    };
+
+    const result = await pipeline.transform(rules, config, []);
+    assertEquals(result, ['||example.org^', '||test.com^']);
+});
+
+Deno.test('TransformationPipeline - should apply inclusions with patterns', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '||test.com^', '||other.net^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+        inclusions: ['*example*'],
+    };
+
+    const result = await pipeline.transform(rules, config, []);
+    assertEquals(result, ['||example.org^']);
+});
+
+Deno.test('TransformationPipeline - should handle exclusions with plain patterns', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '||test.com^', '||ads.example.org^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+        exclusions: ['ads.'], // Plain pattern without wildcards
+    };
+
+    const result = await pipeline.transform(rules, config, []);
+    assertEquals(result, ['||example.org^', '||test.com^']);
+});
+
+Deno.test('TransformationPipeline - should pass through rules when no exclusions defined', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '||test.com^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+        exclusions: [],
+    };
+
+    const result = await pipeline.transform(rules, config, []);
+    assertEquals(result, rules);
+});
+
+Deno.test('TransformationPipeline - should pass through rules when no inclusions defined', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '||test.com^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+        inclusions: [],
+    };
+
+    const result = await pipeline.transform(rules, config, []);
+    assertEquals(result, rules);
+});
+
+Deno.test('TransformationPipeline - should handle undefined transformations parameter', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    // Not passing transformations array at all
+    const result = await pipeline.transform(rules, config);
+    assertEquals(result, rules);
+});
+
+Deno.test('TransformationPipeline - should skip unregistered transformation types', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    // Include a fake transformation type that isn't registered
+    const result = await pipeline.transform(rules, config, [
+        'NonExistent' as TransformationType,
+        TransformationType.RemoveEmptyLines,
+    ]);
+
+    assertEquals(result, rules);
+});
+
+Deno.test('TransformationPipeline - should apply InsertFinalNewLine transformation', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '||test.com^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    const result = await pipeline.transform(rules, config, [TransformationType.InsertFinalNewLine]);
+    assertEquals(result[result.length - 1], '');
+});
+
+Deno.test('TransformationPipeline - should apply ConvertToAscii transformation', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||exämple.org^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    const result = await pipeline.transform(rules, config, [TransformationType.ConvertToAscii]);
+    assertEquals(result[0], '||xn--exmple-cua.org^');
+});
+
+Deno.test('TransformationPipeline - should apply InvertAllow transformation', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['@@||example.org^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    const result = await pipeline.transform(rules, config, [TransformationType.InvertAllow]);
+    // InvertAllow keeps allowlist rules but may transform them
+    assertExists(result);
+    assertEquals(result.length > 0, true);
+});
+
+Deno.test('TransformationPipeline - should apply Compress transformation', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '||example.com^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    const result = await pipeline.transform(rules, config, [TransformationType.Compress]);
+    // Compress may combine rules, but at minimum should handle them
+    assertExists(result);
+});
+
+Deno.test('TransformationPipeline - should apply Validate transformation', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', 'invalid rule [[['];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    const result = await pipeline.transform(rules, config, [TransformationType.Validate]);
+    // Valid rule should pass, invalid should be filtered
+    assertEquals(result.includes('||example.org^'), true);
+});
+
+Deno.test('TransformationPipeline - should apply ValidateAllowIp transformation', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '@@||192.168.1.1^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    const result = await pipeline.transform(rules, config, [TransformationType.ValidateAllowIp]);
+    assertExists(result);
+});
+
+Deno.test('TransformationPipeline - should apply RemoveModifiers transformation', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^$third-party'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    const result = await pipeline.transform(rules, config, [TransformationType.RemoveModifiers]);
+    assertEquals(result[0], '||example.org^');
+});

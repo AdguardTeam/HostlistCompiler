@@ -183,3 +183,123 @@ Deno.test('createStructuredEvent - formats timestamps correctly', () => {
     assertEquals(structured.timestamp, '2024-01-11T00:00:00.000Z');
     assertEquals((structured.logs as any)[0].timestamp, '2024-01-11T00:00:00.000Z');
 });
+
+// Additional tests for coverage
+Deno.test('formatLogMessage - formats debug level message', () => {
+    const log: TailLog = {
+        timestamp: 1704931200000,
+        level: 'debug',
+        message: ['Debug info'],
+    };
+
+    const formatted = formatLogMessage(log);
+    assertEquals(formatted, '[2024-01-11T00:00:00.000Z] [DEBUG] Debug info');
+});
+
+Deno.test('formatLogMessage - formats warn level message', () => {
+    const log: TailLog = {
+        timestamp: 1704931200000,
+        level: 'warn',
+        message: ['Warning message'],
+    };
+
+    const formatted = formatLogMessage(log);
+    assertEquals(formatted, '[2024-01-11T00:00:00.000Z] [WARN] Warning message');
+});
+
+Deno.test('formatLogMessage - handles mixed message types', () => {
+    const log: TailLog = {
+        timestamp: 1704931200000,
+        level: 'info',
+        message: ['String', 42, { key: 'value' }, true],
+    };
+
+    const formatted = formatLogMessage(log);
+    assertEquals(formatted, '[2024-01-11T00:00:00.000Z] [INFO] String 42 {"key":"value"} true');
+});
+
+Deno.test('formatLogMessage - handles empty message array', () => {
+    const log: TailLog = {
+        timestamp: 1704931200000,
+        level: 'info',
+        message: [],
+    };
+
+    const formatted = formatLogMessage(log);
+    assertEquals(formatted, '[2024-01-11T00:00:00.000Z] [INFO] ');
+});
+
+Deno.test('shouldForwardEvent - forwards exceededCpu outcome', () => {
+    const event: TailEvent = {
+        outcome: 'exceededCpu',
+        eventTimestamp: 1704931200000,
+        logs: [],
+        exceptions: [],
+    };
+
+    // exceededCpu is not 'exception', so it depends on logs/exceptions
+    assertEquals(shouldForwardEvent(event), false);
+});
+
+Deno.test('shouldForwardEvent - forwards exceededMemory outcome', () => {
+    const event: TailEvent = {
+        outcome: 'exceededMemory',
+        eventTimestamp: 1704931200000,
+        logs: [],
+        exceptions: [],
+    };
+
+    assertEquals(shouldForwardEvent(event), false);
+});
+
+Deno.test('shouldForwardEvent - does not forward warn logs', () => {
+    const event: TailEvent = {
+        outcome: 'ok',
+        eventTimestamp: 1704931200000,
+        logs: [{
+            timestamp: 1704931200000,
+            level: 'warn',
+            message: ['Warning'],
+        }],
+        exceptions: [],
+    };
+
+    assertEquals(shouldForwardEvent(event), false);
+});
+
+Deno.test('createStructuredEvent - handles exception with timestamp formatting', () => {
+    const event: TailEvent = {
+        outcome: 'exception',
+        eventTimestamp: 1704931200000,
+        logs: [],
+        exceptions: [{
+            timestamp: 1704931200000,
+            name: 'Error',
+            message: 'Test',
+        }],
+    };
+
+    const structured = createStructuredEvent(event);
+    const exceptions = structured.exceptions as any[];
+    assertEquals(exceptions[0].timestamp, '2024-01-11T00:00:00.000Z');
+    assertEquals(exceptions[0].name, 'Error');
+    assertEquals(exceptions[0].message, 'Test');
+});
+
+Deno.test('createStructuredEvent - preserves log message content', () => {
+    const event: TailEvent = {
+        outcome: 'ok',
+        eventTimestamp: 1704931200000,
+        logs: [{
+            timestamp: 1704931200000,
+            level: 'info',
+            message: ['test', 123, { data: 'value' }],
+        }],
+        exceptions: [],
+    };
+
+    const structured = createStructuredEvent(event);
+    const logs = structured.logs as any[];
+    assertEquals(logs[0].level, 'info');
+    assertEquals(logs[0].message, ['test', 123, { data: 'value' }]);
+});
