@@ -566,19 +566,40 @@
         }
 
         // Load on page load
-        addLog('✨ Ready to test! Click a button to start.', 'info');
+        window.addEventListener('DOMContentLoaded', () => {
+            addLog('✨ Ready to test! Click a button to start.', 'info');
+            initializeTabs();
+        });
 
         // ========================================
         // Tab Navigation
         // ========================================
+        const tabButtonsByName = {};
+
+        function initializeTabs() {
+            document.querySelectorAll('.tab[onclick]').forEach((tab) => {
+                const onclick = tab.getAttribute('onclick') || '';
+                const match = onclick.match(/switchTab\('([^']+)'\)/);
+                if (match && match[1]) {
+                    tabButtonsByName[match[1]] = tab;
+                }
+            });
+        }
+
         function switchTab(tabName) {
             // Update tab buttons
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.querySelectorAll('.tab').forEach((tab) => tab.classList.remove('active'));
+            const activeTab = tabButtonsByName[tabName];
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
 
             // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelectorAll('.tab-content').forEach((content) => content.classList.remove('active'));
+            const activeContent = document.getElementById(`tab-${tabName}`);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
         }
 
         // ========================================
@@ -674,7 +695,14 @@
                         updateWorkflowCard(workflowType, workflowId, 'complete', 100);
                         addWorkflowLog(workflowType, '🎉 Workflow completed successfully!', 'success');
                         if (statusData.output) {
-                            addWorkflowLog(workflowType, `<details><summary>📋 Output</summary><pre>${JSON.stringify(statusData.output, null, 2)}</pre></details>`, 'info');
+                            const outputJson = JSON.stringify(statusData.output, null, 2);
+                            const escapedOutputJson = outputJson
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#39;');
+                            addWorkflowLog(workflowType, `<details><summary>📋 Output</summary><pre>${escapedOutputJson}</pre></details>`, 'info');
                         }
                         return statusData;
                     } else if (statusData.status === 'errored') {

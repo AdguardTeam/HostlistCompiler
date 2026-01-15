@@ -18,9 +18,10 @@
 import type { WorkflowEventType, WorkflowProgressEvent, WorkflowEventLog } from './types.ts';
 
 /**
- * Event TTL in seconds (1 hour)
+ * Default event TTL in seconds (1 hour)
+ * This can be overridden via constructor for longer-running workflows or historical analysis.
  */
-const EVENT_TTL = 3600;
+const DEFAULT_EVENT_TTL = 3600;
 
 /**
  * Maximum events to retain per workflow
@@ -35,16 +36,31 @@ export class WorkflowEvents {
     private readonly workflowId: string;
     private readonly workflowType: string;
     private readonly eventKey: string;
+    private readonly eventTtl: number;
 
-    constructor(kv: KVNamespace, workflowId: string, workflowType: string) {
+    /**
+     * @param kv - KV namespace for event storage
+     * @param workflowId - Unique workflow identifier
+     * @param workflowType - Type of workflow (e.g., 'compilation', 'health-monitoring')
+     * @param eventTtl - Optional TTL for events in seconds (default: 3600 = 1 hour)
+     */
+    constructor(kv: KVNamespace, workflowId: string, workflowType: string, eventTtl?: number) {
         this.kv = kv;
         this.workflowId = workflowId;
         this.workflowType = workflowType;
         this.eventKey = `workflow:events:${workflowId}`;
+        this.eventTtl = eventTtl ?? DEFAULT_EVENT_TTL;
     }
 
     /**
      * Emit a workflow event and store it in KV
+     *
+     * NOTE: This method has a potential race condition due to read-modify-write operations
+     * not being atomic. If multiple events are emitted concurrently, some events may be lost
+     * as the second put() will overwrite the first. This is an acceptable trade-off for
+     * progress tracking where eventual consistency is sufficient and complete event history
+     * is not critical. For critical events, consider using a queue-based approach or accepting
+     * potential event loss.
      */
     async emit(
         type: WorkflowEventType,
@@ -89,7 +105,7 @@ export class WorkflowEvents {
 
         // Store with TTL
         await this.kv.put(this.eventKey, JSON.stringify(eventLog), {
-            expirationTtl: EVENT_TTL,
+            expirationTtl: this.eventTtl,
         });
 
         // Also log for visibility

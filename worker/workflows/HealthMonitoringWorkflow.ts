@@ -238,7 +238,7 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
             }
 
             // Step 3: Analyze results and determine if alerts needed
-            await events.emitStepStarted('analyze-results', { resultsCount: results.length });
+            await events.emitStepStarted('analyze-results', { resultCount: results.length });
             const alertAnalysis = await step.do('analyze-results', {
                 retries: { limit: 1, delay: '1 second' },
             }, async () => {

@@ -2767,21 +2767,21 @@ async function handleWorkflowEvents(
             );
         }
 
-        // Filter events since a specific timestamp if provided
+        // Filter events since a specific timestamp if provided (for returned events only)
         let events = eventLog.events;
         if (since) {
             const sinceTime = new Date(since).getTime();
             events = events.filter((e) => new Date(e.timestamp).getTime() > sinceTime);
         }
 
-        // Find the latest progress
-        const progressEvents = events.filter((e) => e.type === 'workflow:progress');
+        // Find the latest overall progress from the full event log
+        const progressEvents = eventLog.events.filter((e) => e.type === 'workflow:progress');
         const latestProgress = progressEvents.length > 0
-            ? progressEvents[progressEvents.length - 1].progress
+            ? (progressEvents[progressEvents.length - 1].progress ?? 0)
             : 0;
 
-        // Determine if workflow is complete
-        const isComplete = events.some((e) =>
+        // Determine if workflow is complete based on the full event log
+        const isComplete = eventLog.events.some((e) =>
             e.type === 'workflow:completed' || e.type === 'workflow:failed'
         );
 
