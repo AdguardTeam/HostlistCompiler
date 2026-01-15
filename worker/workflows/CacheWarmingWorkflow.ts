@@ -11,13 +11,10 @@
  * - Built-in progress tracking and metrics
  */
 
-import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
-import { createTracingContext, WorkerCompiler, type IConfiguration, TransformationType } from '../../src/index.ts';
+import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
+import { createTracingContext, type IConfiguration, TransformationType, WorkerCompiler } from '../../src/index.ts';
 import type { Env } from '../worker.ts';
-import type {
-    CacheWarmingParams,
-    CacheWarmingResult,
-} from './types.ts';
+import type { CacheWarmingParams, CacheWarmingResult } from './types.ts';
 import { WorkflowEvents } from './WorkflowEvents.ts';
 
 /**
@@ -96,7 +93,7 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
 
         console.log(
             `[WORKFLOW:CACHE-WARM] Starting cache warming (runId: ${runId}, ` +
-            `scheduled: ${scheduled}, configs: ${configsToWarm.length})`,
+                `scheduled: ${scheduled}, configs: ${configsToWarm.length})`,
         );
 
         // Emit workflow started event
@@ -180,7 +177,7 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                 }, async () => {
                     console.log(
                         `[WORKFLOW:CACHE-WARM] Processing chunk ${chunkNumber}/${chunks.length} ` +
-                        `(${chunk.length} configs)`,
+                            `(${chunk.length} configs)`,
                     );
 
                     const results: CacheWarmingResult['details'] = [];
@@ -221,7 +218,7 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
 
                             console.log(
                                 `[WORKFLOW:CACHE-WARM] Warmed "${config.name}": ` +
-                                `${result.rules.length} rules in ${Date.now() - compileStart}ms`,
+                                    `${result.rules.length} rules in ${Date.now() - compileStart}ms`,
                             );
 
                             results.push({
@@ -229,7 +226,6 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                                 success: true,
                                 cacheKey,
                             });
-
                         } catch (error) {
                             const errorMessage = error instanceof Error ? error.message : String(error);
                             console.error(
@@ -310,7 +306,7 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                 metrics.lastRunAt = new Date().toISOString();
                 metrics.avgDurationMs = Math.round(
                     (metrics.avgDurationMs * (metrics.totalRuns - 1) + totalDuration) /
-                    metrics.totalRuns,
+                        metrics.totalRuns,
                 );
 
                 await this.env.METRICS.put(metricsKey, JSON.stringify(metrics), {
@@ -334,7 +330,7 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
 
             console.log(
                 `[WORKFLOW:CACHE-WARM] Cache warming completed: ${warmedConfigurations}/${configsToWarm.length} ` +
-                `successful in ${totalDuration}ms (runId: ${runId})`,
+                    `successful in ${totalDuration}ms (runId: ${runId})`,
             );
 
             return {
@@ -345,7 +341,6 @@ export class CacheWarmingWorkflow extends WorkflowEntrypoint<Env, CacheWarmingPa
                 details,
                 totalDurationMs: totalDuration,
             };
-
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:CACHE-WARM] Cache warming workflow failed (runId: ${runId}):`, errorMessage);

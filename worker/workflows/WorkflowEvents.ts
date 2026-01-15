@@ -15,7 +15,7 @@
  * ```
  */
 
-import type { WorkflowEventType, WorkflowProgressEvent, WorkflowEventLog } from './types.ts';
+import type { WorkflowEventLog, WorkflowEventType, WorkflowProgressEvent } from './types.ts';
 
 /**
  * Default event TTL in seconds (1 hour)

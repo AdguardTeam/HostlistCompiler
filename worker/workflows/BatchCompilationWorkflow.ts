@@ -11,14 +11,10 @@
  * - Built-in concurrency control
  */
 
-import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
+import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { createTracingContext, WorkerCompiler } from '../../src/index.ts';
 import type { Env } from '../worker.ts';
-import type {
-    BatchCompilationParams,
-    BatchWorkflowResult,
-    WorkflowCompilationResult,
-} from './types.ts';
+import type { BatchCompilationParams, BatchWorkflowResult, WorkflowCompilationResult } from './types.ts';
 import { WorkflowEvents } from './WorkflowEvents.ts';
 
 /**
@@ -73,7 +69,7 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
 
         console.log(
             `[WORKFLOW:BATCH] Starting batch compilation workflow (batchId: ${batchId}, ` +
-            `${requests.length} requests, priority: ${priority || 'standard'})`,
+                `${requests.length} requests, priority: ${priority || 'standard'})`,
         );
 
         // Emit workflow started event
@@ -146,7 +142,7 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
                 }, async () => {
                     console.log(
                         `[WORKFLOW:BATCH] Processing chunk ${chunkNumber}/${chunks.length} ` +
-                        `(${chunk.length} items)`,
+                            `(${chunk.length} items)`,
                     );
 
                     const chunkCompilations = await Promise.allSettled(
@@ -208,7 +204,6 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
                                 };
 
                                 return compileResult;
-
                             } catch (error) {
                                 const errorMessage = error instanceof Error ? error.message : String(error);
                                 console.error(
@@ -271,7 +266,7 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
 
                 console.log(
                     `[WORKFLOW:BATCH] Chunk ${chunkNumber}/${chunks.length} complete: ` +
-                    `${chunkResults.filter((r) => r.success).length}/${chunk.length} successful`,
+                        `${chunkResults.filter((r) => r.success).length}/${chunk.length} successful`,
                 );
             }
 
@@ -309,7 +304,7 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
                 metrics.avgBatchSize = Math.round(metrics.totalRequests / metrics.totalBatches);
                 metrics.avgDurationMs = Math.round(
                     (metrics.avgDurationMs * (metrics.totalBatches - 1) + totalDuration) /
-                    metrics.totalBatches,
+                        metrics.totalBatches,
                 );
 
                 await this.env.METRICS.put(metricsKey, JSON.stringify(metrics), {
@@ -333,7 +328,7 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
 
             console.log(
                 `[WORKFLOW:BATCH] Batch workflow completed: ${successful}/${requests.length} successful ` +
-                `in ${totalDuration}ms (batchId: ${batchId})`,
+                    `in ${totalDuration}ms (batchId: ${batchId})`,
             );
 
             return {
@@ -344,7 +339,6 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
                 results,
                 totalDurationMs: totalDuration,
             };
-
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:BATCH] Batch workflow failed (batchId: ${batchId}):`, errorMessage);

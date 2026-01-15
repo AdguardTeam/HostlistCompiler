@@ -70,10 +70,13 @@ export async function handleWebSocketUpgrade(
 
     // Return the client WebSocket
     // Note: webSocket is a Cloudflare Workers-specific property
-    return new Response(null, {
-        status: 101,
-        webSocket: client,
-    } as ResponseInit & { webSocket: WebSocket });
+    return new Response(
+        null,
+        {
+            status: 101,
+            webSocket: client,
+        } as ResponseInit & { webSocket: WebSocket },
+    );
 }
 
 /**

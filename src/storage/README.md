@@ -211,7 +211,7 @@ deno test src/storage/PrismaStorageAdapter.test.ts
 ## Example: Complete Workflow
 
 ```typescript
-import { PrismaStorageAdapter, CachingDownloader } from './storage/index.ts';
+import { CachingDownloader, PrismaStorageAdapter } from './storage/index.ts';
 import { FilterDownloader } from '../downloader/FilterDownloader.ts';
 import { logger } from './utils/logger.ts';
 
@@ -403,11 +403,11 @@ await cachingDownloader.prewarmCache(sources);
 
 The storage module supports multiple backends through the `IStorageAdapter` interface:
 
-| Backend           | Use Case                          | Documentation                                        |
-| ----------------- | --------------------------------- | ---------------------------------------------------- |
+| Backend                     | Use Case                          | Documentation                                        |
+| --------------------------- | --------------------------------- | ---------------------------------------------------- |
 | **Prisma/SQLite** (default) | Local/single-instance deployments | This document                                        |
 | **Prisma/PostgreSQL**       | Multi-instance, production        | [prisma/README.md](../../prisma/README.md)           |
-| **Cloudflare D1** | Edge deployments                  | [docs/CLOUDFLARE_D1.md](../../docs/CLOUDFLARE_D1.md) |
+| **Cloudflare D1**           | Edge deployments                  | [docs/CLOUDFLARE_D1.md](../../docs/CLOUDFLARE_D1.md) |
 
 ### Choosing a Backend
 

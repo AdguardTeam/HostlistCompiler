@@ -12,15 +12,10 @@
  * - No manual KV state management
  */
 
-import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
+import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { createTracingContext, WorkerCompiler } from '../../src/index.ts';
 import type { Env } from '../worker.ts';
-import type {
-    CompilationParams,
-    SourceFetchResult,
-    TransformationResult,
-    WorkflowCompilationResult,
-} from './types.ts';
+import type { CompilationParams, SourceFetchResult, TransformationResult, WorkflowCompilationResult } from './types.ts';
 import { WorkflowEvents } from './WorkflowEvents.ts';
 
 /**
@@ -239,7 +234,7 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
 
                     console.log(
                         `[WORKFLOW:COMPILE] Cached: ${uncompressedSize} -> ${compressedSize} bytes ` +
-                        `(${((1 - compressedSize / uncompressedSize) * 100).toFixed(1)}% compression)`,
+                            `(${((1 - compressedSize / uncompressedSize) * 100).toFixed(1)}% compression)`,
                     );
 
                     return {
@@ -293,7 +288,7 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
                 metrics.totalRulesGenerated += compilationResult.ruleCount;
                 metrics.avgDurationMs = Math.round(
                     (metrics.avgDurationMs * (metrics.totalCompilations - 1) + totalDuration) /
-                    metrics.totalCompilations,
+                        metrics.totalCompilations,
                 );
 
                 await this.env.METRICS.put(metricsKey, JSON.stringify(metrics), {
@@ -318,11 +313,10 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
 
             console.log(
                 `[WORKFLOW:COMPILE] Workflow completed successfully for "${configuration.name}" ` +
-                `in ${result.totalDurationMs}ms with ${result.ruleCount} rules`,
+                    `in ${result.totalDurationMs}ms with ${result.ruleCount} rules`,
             );
 
             return result;
-
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:COMPILE] Workflow failed for "${configuration.name}":`, errorMessage);
