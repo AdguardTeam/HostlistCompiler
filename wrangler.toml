@@ -114,3 +114,53 @@ tail_consumers = [{ service = "adblock-compiler-tail" }]
 [[analytics_engine_datasets]]
 binding = "ANALYTICS_ENGINE"
 dataset = "adguard-compiler-analytics-engine"
+
+# ============================================================================
+# Cloudflare Workflows - Durable execution for async operations
+# ============================================================================
+# Workflows provide crash-resistant, automatically resumable execution
+# with built-in retry logic and step-by-step checkpointing.
+#
+# Benefits over queue-based processing:
+# - Automatic state persistence between steps
+# - Crash recovery - resumes from last successful step
+# - Built-in retry with configurable policies
+# - Observable step-by-step progress
+# - Reliable scheduled execution with cron triggers
+
+# Compilation Workflow - Handles single async compilations with durability
+[[workflows]]
+name = "compilation-workflow"
+binding = "COMPILATION_WORKFLOW"
+class_name = "CompilationWorkflow"
+
+# Batch Compilation Workflow - Handles batch compilations with per-item recovery
+[[workflows]]
+name = "batch-compilation-workflow"
+binding = "BATCH_COMPILATION_WORKFLOW"
+class_name = "BatchCompilationWorkflow"
+
+# Cache Warming Workflow - Pre-populates cache on schedule
+[[workflows]]
+name = "cache-warming-workflow"
+binding = "CACHE_WARMING_WORKFLOW"
+class_name = "CacheWarmingWorkflow"
+
+# Health Monitoring Workflow - Monitors source health on schedule
+[[workflows]]
+name = "health-monitoring-workflow"
+binding = "HEALTH_MONITORING_WORKFLOW"
+class_name = "HealthMonitoringWorkflow"
+
+# ============================================================================
+# Cron Triggers for Scheduled Workflows
+# ============================================================================
+# Cron triggers automatically invoke workflows on schedule
+
+[triggers]
+# Cache warming every 6 hours
+# Health monitoring every hour
+crons = [
+    "0 */6 * * *",   # Cache warming: At minute 0 past every 6th hour
+    "0 * * * *",     # Health monitoring: At minute 0 past every hour
+]

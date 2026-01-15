@@ -76,6 +76,40 @@ import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type 
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
 import { handleWebSocketUpgrade } from './websocket.ts';
 
+// Import Workflow classes and types
+import {
+    CompilationWorkflow,
+    BatchCompilationWorkflow,
+    CacheWarmingWorkflow,
+    HealthMonitoringWorkflow,
+    type CompilationParams,
+    type BatchCompilationParams,
+    type CacheWarmingParams,
+    type HealthMonitoringParams,
+    type WorkflowStatus,
+} from './workflows/index.ts';
+
+/**
+ * Workflow binding type - matches Cloudflare Workers Workflow type
+ */
+interface Workflow<Params = unknown> {
+    create(options?: { id?: string; params?: Params }): Promise<WorkflowInstance>;
+    get(id: string): Promise<WorkflowInstance>;
+}
+
+interface WorkflowInstance {
+    id: string;
+    pause(): Promise<void>;
+    resume(): Promise<void>;
+    terminate(): Promise<void>;
+    restart(): Promise<void>;
+    status(): Promise<{
+        status: WorkflowStatus;
+        output?: unknown;
+        error?: string;
+    }>;
+}
+
 /**
  * Environment bindings for the worker.
  */
@@ -97,6 +131,11 @@ export interface Env {
     DB?: D1Database;
     // Admin authentication key
     ADMIN_KEY?: string;
+    // Workflow bindings (optional - for durable execution)
+    COMPILATION_WORKFLOW?: Workflow<CompilationParams>;
+    BATCH_COMPILATION_WORKFLOW?: Workflow<BatchCompilationParams>;
+    CACHE_WARMING_WORKFLOW?: Workflow<CacheWarmingParams>;
+    HEALTH_MONITORING_WORKFLOW?: Workflow<HealthMonitoringParams>;
 }
 
 /**
@@ -2321,6 +2360,409 @@ async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
     }
 }
 
+// ============================================================================
+// Workflow API Handlers
+// ============================================================================
+
+/**
+ * Error message for when workflow bindings are not configured
+ */
+const WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR = `Workflow bindings are not available. \
+Workflows must be configured in wrangler.toml. See the Cloudflare Workflows documentation for setup instructions.`;
+
+/**
+ * Generate a unique workflow instance ID
+ */
+function generateWorkflowId(prefix: string): string {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+}
+
+/**
+ * Handle workflow-based async compilation
+ */
+async function handleWorkflowCompile(
+    request: Request,
+    env: Env,
+): Promise<Response> {
+    if (!env.COMPILATION_WORKFLOW) {
+        return Response.json(
+            { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        const body = await request.json() as CompileRequest;
+        const { configuration, preFetchedContent, benchmark, priority } = body;
+
+        const params: CompilationParams = {
+            requestId: generateWorkflowId('wf-compile'),
+            configuration,
+            preFetchedContent,
+            benchmark,
+            priority,
+            queuedAt: Date.now(),
+        };
+
+        // Create a new workflow instance
+        const instance = await env.COMPILATION_WORKFLOW.create({
+            id: params.requestId,
+            params,
+        });
+
+        // deno-lint-ignore no-console
+        console.log(`[WORKFLOW:API] Created compilation workflow instance: ${instance.id}`);
+
+        return Response.json(
+            {
+                success: true,
+                message: 'Compilation workflow started',
+                workflowId: instance.id,
+                workflowType: 'compilation',
+            },
+            {
+                status: 202,
+                headers: { 'Access-Control-Allow-Origin': '*' },
+            },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        // deno-lint-ignore no-console
+        console.error('[WORKFLOW:API] Failed to create compilation workflow:', message);
+
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle workflow-based batch compilation
+ */
+async function handleWorkflowBatchCompile(
+    request: Request,
+    env: Env,
+): Promise<Response> {
+    if (!env.BATCH_COMPILATION_WORKFLOW) {
+        return Response.json(
+            { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        interface BatchRequest {
+            requests: Array<{
+                id: string;
+                configuration: IConfiguration;
+                preFetchedContent?: Record<string, string>;
+                benchmark?: boolean;
+            }>;
+            priority?: Priority;
+        }
+
+        const body = await request.json() as BatchRequest;
+        const { requests, priority } = body;
+
+        if (!requests || !Array.isArray(requests) || requests.length === 0) {
+            return Response.json(
+                { success: false, error: 'Invalid batch request' },
+                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
+        }
+
+        const batchId = generateWorkflowId('wf-batch');
+        const params: BatchCompilationParams = {
+            batchId,
+            requests,
+            priority,
+            queuedAt: Date.now(),
+        };
+
+        const instance = await env.BATCH_COMPILATION_WORKFLOW.create({
+            id: batchId,
+            params,
+        });
+
+        // deno-lint-ignore no-console
+        console.log(`[WORKFLOW:API] Created batch compilation workflow: ${instance.id} (${requests.length} items)`);
+
+        return Response.json(
+            {
+                success: true,
+                message: 'Batch compilation workflow started',
+                workflowId: instance.id,
+                workflowType: 'batch-compilation',
+                batchSize: requests.length,
+            },
+            {
+                status: 202,
+                headers: { 'Access-Control-Allow-Origin': '*' },
+            },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        // deno-lint-ignore no-console
+        console.error('[WORKFLOW:API] Failed to create batch compilation workflow:', message);
+
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle manual cache warming trigger
+ */
+async function handleWorkflowCacheWarm(
+    request: Request,
+    env: Env,
+): Promise<Response> {
+    if (!env.CACHE_WARMING_WORKFLOW) {
+        return Response.json(
+            { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        const body = await request.json() as { configurations?: IConfiguration[] };
+        const configurations = body.configurations || [];
+
+        const runId = generateWorkflowId('wf-cache-warm');
+        const params: CacheWarmingParams = {
+            runId,
+            configurations,
+            scheduled: false,
+        };
+
+        const instance = await env.CACHE_WARMING_WORKFLOW.create({
+            id: runId,
+            params,
+        });
+
+        // deno-lint-ignore no-console
+        console.log(`[WORKFLOW:API] Created cache warming workflow: ${instance.id}`);
+
+        return Response.json(
+            {
+                success: true,
+                message: 'Cache warming workflow started',
+                workflowId: instance.id,
+                workflowType: 'cache-warming',
+                configurationsCount: configurations.length || 'default',
+            },
+            {
+                status: 202,
+                headers: { 'Access-Control-Allow-Origin': '*' },
+            },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        // deno-lint-ignore no-console
+        console.error('[WORKFLOW:API] Failed to create cache warming workflow:', message);
+
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle manual health monitoring trigger
+ */
+async function handleWorkflowHealthCheck(
+    request: Request,
+    env: Env,
+): Promise<Response> {
+    if (!env.HEALTH_MONITORING_WORKFLOW) {
+        return Response.json(
+            { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        const body = await request.json() as {
+            sources?: Array<{ name: string; url: string; expectedMinRules?: number }>;
+            alertOnFailure?: boolean;
+        };
+
+        const runId = generateWorkflowId('wf-health');
+        const params: HealthMonitoringParams = {
+            runId,
+            sources: body.sources || [],
+            alertOnFailure: body.alertOnFailure ?? true,
+        };
+
+        const instance = await env.HEALTH_MONITORING_WORKFLOW.create({
+            id: runId,
+            params,
+        });
+
+        // deno-lint-ignore no-console
+        console.log(`[WORKFLOW:API] Created health monitoring workflow: ${instance.id}`);
+
+        return Response.json(
+            {
+                success: true,
+                message: 'Health monitoring workflow started',
+                workflowId: instance.id,
+                workflowType: 'health-monitoring',
+                sourcesCount: body.sources?.length || 'default',
+            },
+            {
+                status: 202,
+                headers: { 'Access-Control-Allow-Origin': '*' },
+            },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        // deno-lint-ignore no-console
+        console.error('[WORKFLOW:API] Failed to create health monitoring workflow:', message);
+
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Get workflow instance status
+ */
+async function handleWorkflowStatus(
+    workflowId: string,
+    workflowType: string,
+    env: Env,
+): Promise<Response> {
+    let workflow: Workflow<unknown> | undefined;
+
+    switch (workflowType) {
+        case 'compilation':
+            workflow = env.COMPILATION_WORKFLOW;
+            break;
+        case 'batch-compilation':
+            workflow = env.BATCH_COMPILATION_WORKFLOW;
+            break;
+        case 'cache-warming':
+            workflow = env.CACHE_WARMING_WORKFLOW;
+            break;
+        case 'health-monitoring':
+            workflow = env.HEALTH_MONITORING_WORKFLOW;
+            break;
+        default:
+            return Response.json(
+                { success: false, error: `Unknown workflow type: ${workflowType}` },
+                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
+    }
+
+    if (!workflow) {
+        return Response.json(
+            { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        const instance = await workflow.get(workflowId);
+        const status = await instance.status();
+
+        return Response.json(
+            {
+                success: true,
+                workflowId,
+                workflowType,
+                status: status.status,
+                output: status.output,
+                error: status.error,
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+
+        return Response.json(
+            { success: false, error: message },
+            { status: 404, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Get workflow metrics
+ */
+async function handleWorkflowMetrics(env: Env): Promise<Response> {
+    try {
+        const [compileMetrics, batchMetrics, cacheWarmMetrics, healthMetrics] = await Promise.all([
+            env.METRICS.get('workflow:compile:metrics', 'json'),
+            env.METRICS.get('workflow:batch:metrics', 'json'),
+            env.METRICS.get('workflow:cache-warm:metrics', 'json'),
+            env.METRICS.get('workflow:health:metrics', 'json'),
+        ]);
+
+        return Response.json(
+            {
+                success: true,
+                timestamp: new Date().toISOString(),
+                workflows: {
+                    compilation: compileMetrics || { totalCompilations: 0 },
+                    batchCompilation: batchMetrics || { totalBatches: 0 },
+                    cacheWarming: cacheWarmMetrics || { totalRuns: 0 },
+                    healthMonitoring: healthMetrics || { totalChecks: 0 },
+                },
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Get latest health check results
+ */
+async function handleHealthLatest(env: Env): Promise<Response> {
+    try {
+        const latest = await env.METRICS.get('health:latest', 'json');
+
+        if (!latest) {
+            return Response.json(
+                {
+                    success: true,
+                    message: 'No health check data available. Run a health check first.',
+                    data: null,
+                },
+                { headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
+        }
+
+        return Response.json(
+            {
+                success: true,
+                data: latest,
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
 /**
  * Main fetch handler for the Cloudflare Worker.
  */
@@ -2740,6 +3182,55 @@ export default {
             return handleCompileBatchAsync(request, env);
         }
 
+        // ========================================================================
+        // Workflow API Endpoints (Durable execution via Cloudflare Workflows)
+        // ========================================================================
+
+        // Workflow: Start async compilation
+        if (pathname === '/workflow/compile' && request.method === 'POST') {
+            return handleWorkflowCompile(request, env);
+        }
+
+        // Workflow: Start batch compilation
+        if (pathname === '/workflow/batch' && request.method === 'POST') {
+            return handleWorkflowBatchCompile(request, env);
+        }
+
+        // Workflow: Trigger manual cache warming
+        if (pathname === '/workflow/cache-warm' && request.method === 'POST') {
+            return handleWorkflowCacheWarm(request, env);
+        }
+
+        // Workflow: Trigger manual health check
+        if (pathname === '/workflow/health-check' && request.method === 'POST') {
+            return handleWorkflowHealthCheck(request, env);
+        }
+
+        // Workflow: Get workflow instance status
+        // Pattern: /workflow/status/:type/:id
+        if (pathname.startsWith('/workflow/status/') && request.method === 'GET') {
+            const parts = pathname.split('/');
+            if (parts.length >= 5) {
+                const workflowType = parts[3];
+                const instanceId = parts[4];
+                return handleWorkflowStatus(workflowType, instanceId, env);
+            }
+            return Response.json(
+                { success: false, error: 'Invalid workflow status path. Use /workflow/status/:type/:id' },
+                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
+        }
+
+        // Workflow: Get workflow metrics
+        if (pathname === '/workflow/metrics' && request.method === 'GET') {
+            return handleWorkflowMetrics(env);
+        }
+
+        // Health: Get latest health check results
+        if (pathname === '/health/latest' && request.method === 'GET') {
+            return handleHealthLatest(env);
+        }
+
         // Serve web UI and static files
         if (request.method === 'GET') {
             // Try to serve from ASSETS
@@ -2784,4 +3275,75 @@ export default {
     async queue(batch: MessageBatch<QueueMessage>, env: Env): Promise<void> {
         await handleQueue(batch, env);
     },
+
+    /**
+     * Scheduled (cron) handler for workflow triggers
+     *
+     * Cron schedule from wrangler.toml:
+     * - "0 *\/6 * * *" - Cache warming every 6 hours
+     * - "0 * * * *"    - Health monitoring every hour
+     */
+    async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+        const cronPattern = event.cron;
+        const runId = `scheduled-${Date.now()}`;
+
+        // deno-lint-ignore no-console
+        console.log(`[CRON] Scheduled event triggered: ${cronPattern} (runId: ${runId})`);
+
+        try {
+            // Cache warming: every 6 hours (0 */6 * * *)
+            if (cronPattern === '0 */6 * * *') {
+                if (env.CACHE_WARMING_WORKFLOW) {
+                    const instance = await env.CACHE_WARMING_WORKFLOW.create({
+                        id: `cache-warm-${runId}`,
+                        params: {
+                            runId: `cron-${runId}`,
+                            configurations: [], // Use defaults
+                            scheduled: true,
+                        },
+                    });
+                    // deno-lint-ignore no-console
+                    console.log(`[CRON] Started cache warming workflow: ${instance.id}`);
+                } else {
+                    // deno-lint-ignore no-console
+                    console.warn('[CRON] CACHE_WARMING_WORKFLOW not available');
+                }
+            }
+
+            // Health monitoring: every hour (0 * * * *)
+            if (cronPattern === '0 * * * *') {
+                if (env.HEALTH_MONITORING_WORKFLOW) {
+                    const instance = await env.HEALTH_MONITORING_WORKFLOW.create({
+                        id: `health-check-${runId}`,
+                        params: {
+                            runId: `cron-${runId}`,
+                            sources: [], // Use defaults
+                            alertOnFailure: true,
+                        },
+                    });
+                    // deno-lint-ignore no-console
+                    console.log(`[CRON] Started health monitoring workflow: ${instance.id}`);
+                } else {
+                    // deno-lint-ignore no-console
+                    console.warn('[CRON] HEALTH_MONITORING_WORKFLOW not available');
+                }
+            }
+        } catch (error) {
+            // deno-lint-ignore no-console
+            console.error(`[CRON] Failed to start scheduled workflow (${cronPattern}):`, error);
+        }
+    },
+};
+
+// ============================================================================
+// Export Workflow classes for Cloudflare Workers runtime
+// ============================================================================
+// These exports allow Cloudflare to instantiate the workflow classes
+// as defined in wrangler.toml [[workflows]] bindings.
+
+export {
+    CompilationWorkflow,
+    BatchCompilationWorkflow,
+    CacheWarmingWorkflow,
+    HealthMonitoringWorkflow,
 };
