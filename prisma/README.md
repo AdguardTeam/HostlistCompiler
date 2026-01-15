@@ -1,10 +1,10 @@
 # Prisma Storage Backend
 
-This directory contains the Prisma ORM configuration for the optional Prisma storage backend.
+This directory contains the Prisma ORM configuration for the storage backend.
 
 ## Overview
 
-The Prisma storage adapter provides an alternative to the default Deno KV storage backend, enabling use with external databases for scenarios requiring:
+The Prisma storage adapter is the default storage backend for the adblock-compiler, providing flexible database support for scenarios requiring:
 
 - Cross-runtime compatibility (Node.js, Deno, Bun)
 - Multi-instance deployments with shared database
@@ -119,7 +119,7 @@ const storage = new PrismaStorageAdapter(logger, {
 
 await storage.open();
 
-// Use the same API as NoSqlStorage
+// Use the storage API
 await storage.cacheFilterList(
     'https://example.com/filters.txt',
     ['||ad.example.com^'],
@@ -337,54 +337,23 @@ npx prisma validate
 npx prisma format
 ```
 
-## Migration Guide
-
-### From Deno KV to Prisma
-
-1. **Export existing data** (if needed):
-
-```typescript
-import { NoSqlStorage } from './src/storage/NoSqlStorage.ts';
-
-const kvStorage = new NoSqlStorage(logger);
-await kvStorage.open();
-
-const entries = await kvStorage.list({ prefix: [] });
-// Export entries to JSON or migrate directly
-```
-
-2. **Set up Prisma** following Quick Start above
-
-3. **Import data** into Prisma storage:
-
-```typescript
-import { PrismaStorageAdapter } from './src/storage/PrismaStorageAdapter.ts';
-
-const prismaStorage = new PrismaStorageAdapter(logger, config);
-await prismaStorage.open();
-
-for (const entry of entries) {
-    await prismaStorage.set(entry.key, entry.value.data);
-}
-```
-
-### Switching Between Backends
+## Switching Between Backends
 
 Use the `IStorageAdapter` interface for backend-agnostic code:
 
 ```typescript
 import type { IStorageAdapter } from './src/storage/IStorageAdapter.ts';
-import { NoSqlStorage } from './src/storage/NoSqlStorage.ts';
 import { PrismaStorageAdapter } from './src/storage/PrismaStorageAdapter.ts';
+import { D1StorageAdapter } from './src/storage/D1StorageAdapter.ts';
 
-function createStorage(type: 'deno-kv' | 'prisma'): IStorageAdapter {
-    if (type === 'prisma') {
-        return new PrismaStorageAdapter(logger, { type: 'prisma' });
+function createStorage(type: 'prisma' | 'd1', env?: { DB: D1Database }): IStorageAdapter {
+    if (type === 'd1') {
+        return new D1StorageAdapter(env!.DB);
     }
-    return new NoSqlStorage(logger) as unknown as IStorageAdapter;
+    return new PrismaStorageAdapter(logger, { type: 'prisma' });
 }
 
-const storage = createStorage(process.env.STORAGE_TYPE || 'deno-kv');
+const storage = createStorage(process.env.STORAGE_TYPE || 'prisma');
 await storage.open();
 ```
 

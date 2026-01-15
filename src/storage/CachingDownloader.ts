@@ -1,7 +1,5 @@
-/// <reference lib="deno.unstable" />
-
 import type { IDetailedLogger, IDownloader } from '../types/index.ts';
-import { NoSqlStorage } from './NoSqlStorage.ts';
+import type { IStorageAdapter } from './IStorageAdapter.ts';
 import { ChangeDetector } from './ChangeDetector.ts';
 import { SourceHealthMonitor } from './SourceHealthMonitor.ts';
 
@@ -44,7 +42,7 @@ export interface DownloadResult {
  */
 export class CachingDownloader implements IDownloader {
     private readonly downloader: IDownloader;
-    private readonly storage: NoSqlStorage;
+    private readonly storage: IStorageAdapter;
     private readonly logger: IDetailedLogger;
     private readonly changeDetector: ChangeDetector;
     private readonly healthMonitor: SourceHealthMonitor;
@@ -52,7 +50,7 @@ export class CachingDownloader implements IDownloader {
 
     constructor(
         downloader: IDownloader,
-        storage: NoSqlStorage,
+        storage: IStorageAdapter,
         logger: IDetailedLogger,
         options?: CachingOptions,
     ) {

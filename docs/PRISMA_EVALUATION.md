@@ -1,8 +1,8 @@
-# Prisma ORM Evaluation for NoSQL Storage Classes
+# Prisma ORM Evaluation for Storage Classes
 
 ## Overview
 
-This document evaluates whether the existing NoSQL storage classes in the adblock-compiler project should migrate to or adopt Prisma ORM as an alternative storage backend.
+This document evaluates the storage backend options for the adblock-compiler project. Prisma ORM with SQLite is now the default storage backend.
 
 ## Prisma Supported Databases
 
@@ -42,12 +42,12 @@ Prisma is a next-generation ORM for Node.js and TypeScript that supports the fol
 
 ## Current Implementation Analysis
 
-### Current Architecture: Deno KV
+### Current Architecture: Prisma with SQLite
 
-The project currently uses **Deno KV** as the NoSQL storage backend:
+The project uses **Prisma ORM with SQLite** as the default storage backend:
 
 ```
-NoSqlStorage (Deno KV)
+PrismaStorageAdapter (SQLite/PostgreSQL/MySQL)
 ├── CachingDownloader
 │   ├── ChangeDetector
 │   └── SourceHealthMonitor
@@ -56,127 +56,141 @@ NoSqlStorage (Deno KV)
 
 **Key Characteristics:**
 
-- Embedded key-value store
-- Zero external dependencies
+- Flexible database support (SQLite default, PostgreSQL, MySQL, etc.)
+- Cross-runtime compatibility (Node.js, Deno, Bun)
 - Hierarchical keys: `['cache', 'filters', source]`
-- Native TTL support
+- Application-level TTL support
 - Type-safe generic operations
 
 ### Storage Classes Summary
 
-| Class                 | Purpose                  | Complexity |
-| --------------------- | ------------------------ | ---------- |
-| `NoSqlStorage`        | Core KV operations       | Low        |
-| `CachingDownloader`   | Smart download caching   | Medium     |
-| `ChangeDetector`      | Track filter changes     | Low        |
-| `SourceHealthMonitor` | Track source reliability | Low        |
-| `IncrementalCompiler` | Compilation caching      | Medium     |
+| Class                   | Purpose                  | Complexity |
+| ----------------------- | ------------------------ | ---------- |
+| `PrismaStorageAdapter`  | Core KV operations       | Low        |
+| `D1StorageAdapter`      | Cloudflare edge storage  | Low        |
+| `CachingDownloader`     | Smart download caching   | Medium     |
+| `ChangeDetector`        | Track filter changes     | Low        |
+| `SourceHealthMonitor`   | Track source reliability | Low        |
+| `IncrementalCompiler`   | Compilation caching      | Medium     |
 
-## Comparison: Deno KV vs Prisma
+## Comparison: Prisma SQLite vs Other Options
 
 ### Feature Comparison
 
-| Feature               | Deno KV           | Prisma                   |
-| --------------------- | ----------------- | ------------------------ |
-| **Schema Definition** | None (schemaless) | Prisma Schema Language   |
-| **Type Safety**       | Manual generics   | Generated types          |
-| **Queries**           | Simple KV ops     | Rich query API           |
-| **Relations**         | Manual            | First-class support      |
-| **Migrations**        | None needed       | Built-in migrations      |
-| **TTL Support**       | Native            | Application-level        |
-| **Transactions**      | Atomic operations | Full ACID                |
-| **Tooling**           | Minimal           | Prisma Studio, CLI       |
-| **Runtime**           | Deno only         | Node.js, Deno, Bun       |
-| **Infrastructure**    | Zero              | Database server required |
+| Feature               | Prisma/SQLite     | Prisma/PostgreSQL | Cloudflare D1     |
+| --------------------- | ----------------- | ----------------- | ----------------- |
+| **Schema Definition** | Prisma Schema     | Prisma Schema     | SQL               |
+| **Type Safety**       | Generated types   | Generated types   | Manual            |
+| **Queries**           | Rich query API    | Rich query API    | Raw SQL           |
+| **Relations**         | First-class       | First-class       | Manual            |
+| **Migrations**        | Built-in          | Built-in          | Manual            |
+| **TTL Support**       | Application-level | Application-level | Application-level |
+| **Transactions**      | Full ACID         | Full ACID         | Limited           |
+| **Tooling**           | Prisma Studio     | Prisma Studio     | Wrangler CLI      |
+| **Runtime**           | All               | All               | Workers only      |
+| **Infrastructure**    | None (embedded)   | Server required   | Edge              |
 
 ### Pros and Cons
 
-#### Deno KV (Current)
+#### Prisma with SQLite (Default)
 
 **Pros:**
 
 - Zero infrastructure overhead
-- Built into Deno runtime
+- Cross-runtime compatibility (Node.js, Deno, Bun)
 - Simple API for KV operations
-- Native TTL with automatic cleanup
 - Works offline/locally
-- No configuration needed
+- Type-safe with generated client
+- Built-in migrations and schema management
+- Excellent tooling (Prisma Studio, CLI)
 - Fast for simple operations
 
 **Cons:**
 
-- Deno-specific (not portable to Node.js)
-- Limited query capabilities
-- No relational features
-- Less mature ecosystem
-- No built-in tooling for data inspection
-- Manual type definitions
+- Single-instance only (no shared database)
+- TTL must be implemented in application code
+- Not suitable for multi-server deployments
 
-#### Prisma
+#### Prisma with PostgreSQL
 
 **Pros:**
 
-- Type-safe auto-generated client
-- Rich query API with filters, pagination, sorting
-- Built-in migrations and schema management
-- Cross-runtime compatibility (Node.js, Deno, Bun)
-- Excellent tooling (Prisma Studio, CLI)
-- Supports both SQL and MongoDB
-- Active community and documentation
+- Multi-instance support
+- Full ACID transactions
+- Rich query capabilities
 - Production-ready for scaled deployments
+- Same API as SQLite
 
 **Cons:**
 
-- Requires external database server
-- Additional complexity and dependencies
-- MongoDB connector has fewer features than SQL
-- Learning curve for schema definition
-- Overkill for simple caching use cases
-- TTL must be implemented in application code
+- Requires database server
+- Additional infrastructure overhead
+- More complex setup
+
+#### Cloudflare D1
+
+**Pros:**
+
+- Edge-first architecture
+- Low latency globally
+- Serverless pricing model
+- No infrastructure management
+
+**Cons:**
+
+- Cloudflare Workers only
+- Limited query capabilities
+- Different API from Prisma adapters
 
 ## Use Case Analysis
 
 ### Current Use Cases
 
-| Use Case            | Data Pattern        | Complexity | Deno KV Fit | Prisma Fit |
-| ------------------- | ------------------- | ---------- | ----------- | ---------- |
-| Filter list caching | Simple KV with TTL  | Low        | Excellent   | Overkill   |
-| Health monitoring   | Append-only metrics | Low        | Good        | Good       |
-| Change detection    | Snapshot comparison | Low        | Good        | Good       |
-| Compilation history | Time-series queries | Medium     | Good        | Better     |
+| Use Case            | Data Pattern        | Complexity | SQLite Fit | PostgreSQL Fit | D1 Fit |
+| ------------------- | ------------------- | ---------- | ---------- | -------------- | ------ |
+| Filter list caching | Simple KV with TTL  | Low        | Excellent  | Excellent      | Good   |
+| Health monitoring   | Append-only metrics | Low        | Good       | Better         | Good   |
+| Change detection    | Snapshot comparison | Low        | Good       | Good           | Good   |
+| Compilation history | Time-series queries | Medium     | Good       | Better         | Good   |
 
-### When to Consider Prisma
+### When to Use PostgreSQL
 
-Prisma would be beneficial if:
+PostgreSQL is beneficial if:
 
-1. **Cross-runtime support needed** - Project needs to run on Node.js
+1. **Multi-instance deployment** - Shared database across servers/workers
 2. **Complex queries required** - Filtering, aggregation, joins
-3. **Multi-instance deployment** - Shared database across workers
-4. **Data relationships** - Related entities need referential integrity
-5. **Audit/compliance needs** - Full transaction logs, ACID guarantees
-6. **Team familiarity** - Team already uses Prisma in other projects
+3. **Data relationships** - Related entities need referential integrity
+4. **Audit/compliance needs** - Full transaction logs, ACID guarantees
+5. **High concurrency** - Multiple writers accessing the same data
 
-### When to Keep Deno KV
+### When to Use SQLite (Default)
 
-Deno KV remains the better choice when:
+SQLite remains the best choice when:
 
-1. **Simplicity is paramount** - Current use cases are simple KV
-2. **Zero infrastructure** - No external dependencies preferred
-3. **Deno-only deployment** - No need for Node.js compatibility
-4. **Local/offline use** - Application runs standalone
-5. **Minimal maintenance** - No database to manage
+1. **Single-instance deployment** - One server or local development
+2. **Simplicity is paramount** - No external infrastructure needed
+3. **Local/offline use** - Application runs standalone
+4. **Minimal maintenance** - No database server to manage
+
+### When to Use Cloudflare D1
+
+D1 is the best choice when:
+
+1. **Edge deployment** - Running on Cloudflare Workers
+2. **Global distribution** - Need low latency worldwide
+3. **Serverless** - No infrastructure management desired
 
 ## Recommendation
 
 ### Summary
 
-**For the current project requirements, Deno KV is the appropriate choice.**
+**Prisma with SQLite is the default choice for simplicity and zero infrastructure.**
 
-The existing storage patterns (caching, health monitoring, change detection) are well-suited to a simple key-value model. Adding Prisma would introduce unnecessary complexity without significant benefits.
+The existing storage patterns (caching, health monitoring, change detection) are well-suited to the Prisma adapter pattern. SQLite provides a simple embedded database that requires no external infrastructure.
 
-### Hybrid Approach (Optional)
+### Architecture
 
-If future requirements demand more sophisticated storage, consider a **hybrid approach**:
+The project uses a flexible adapter pattern:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -191,7 +205,7 @@ If future requirements demand more sophisticated storage, consider a **hybrid ap
     ┌─────────────┼─────────────┐
     ▼             ▼             ▼
 ┌─────────┐ ┌──────────┐ ┌─────────────┐
-│ DenoKv  │ │  Prisma  │ │ InMemory    │
+│ Prisma  │ │    D1    │ │ InMemory    │
 │ Storage │ │ Storage  │ │ Storage     │
 └─────────┘ └──────────┘ └─────────────┘
 ```
@@ -200,27 +214,27 @@ This allows switching storage backends based on deployment environment without c
 
 ### Implementation Status
 
-The project now includes:
+The project includes:
 
 1. **`IStorageAdapter`** - Abstract interface for storage backends
-2. **`DenoKvStorageAdapter`** - Current implementation using Deno KV
-3. **`PrismaStorageAdapter`** - Optional Prisma-based implementation
+2. **`PrismaStorageAdapter`** - Default implementation (SQLite/PostgreSQL/MySQL)
+3. **`D1StorageAdapter`** - Cloudflare edge deployment
 4. **`prisma/schema.prisma`** - Prisma schema (for SQLite/PostgreSQL/MongoDB)
 
 ## Conclusion
 
 | Aspect                 | Recommendation                            |
 | ---------------------- | ----------------------------------------- |
-| **Current Usage**      | Keep Deno KV                              |
-| **Future Growth**      | Add storage abstraction layer             |
-| **Prisma for MongoDB** | Only if cross-runtime needed              |
-| **Prisma for SQL**     | Consider for analytics/reporting features |
+| **Default Usage**      | Prisma with SQLite                        |
+| **Multi-instance**     | Prisma with PostgreSQL                    |
+| **Edge Deployment**    | Cloudflare D1                             |
+| **MongoDB**            | Prisma with MongoDB connector             |
 
-The storage abstraction layer has been added to enable future migration if requirements change, without affecting the existing codebase.
+The storage abstraction layer enables switching backends based on deployment requirements without affecting the application code.
 
 ## References
 
 - [Prisma Supported Databases](https://www.prisma.io/docs/orm/reference/supported-databases)
 - [Prisma Database Features Matrix](https://www.prisma.io/docs/orm/reference/database-features)
-- [Deno KV Documentation](https://deno.land/manual/runtime/kv)
+- [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
 - [Prisma MongoDB Connector](https://www.prisma.io/docs/orm/overview/databases/mongodb)

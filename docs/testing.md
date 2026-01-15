@@ -37,7 +37,7 @@ deno test src/cli/ArgumentParser.test.ts
 deno test src/transformations/
 
 # Run tests with permissions
-deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv
+deno test --allow-read --allow-write --allow-net --allow-env
 ```
 
 ## Test Coverage
@@ -98,7 +98,7 @@ deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv
 
 #### Storage Module
 
-- ✅ `NoSqlStorage.test.ts` - Storage operations (existing tests)
+- ✅ `PrismaStorageAdapter.test.ts` - Storage operations (existing tests)
 
 ## Test Statistics
 
@@ -224,7 +224,7 @@ deno coverage coverage --lcov --output=coverage.lcov --include="^file:"
 Make sure to run with required permissions:
 
 ```bash
-deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv
+deno test --allow-read --allow-write --allow-net --allow-env
 ```
 
 ### Tests timeout

@@ -1,23 +1,27 @@
-/// <reference lib="deno.unstable" />
-
 /**
  * Example usage of the intelligent storage system
- * 
+ *
  * This demonstrates:
  * - Caching with TTL
  * - Health monitoring
  * - Change detection
  * - Pre-warming cache
  * - Generating reports
+ *
+ * Run with:
+ *   deno run --allow-all src/storage/example.ts
  */
 
-import { NoSqlStorage, CachingDownloader } from './index.ts';
+import { PrismaStorageAdapter, CachingDownloader } from './index.ts';
 import { FilterDownloader } from '../downloader/FilterDownloader.ts';
 import { logger } from '../utils/logger.ts';
 
 async function main() {
-    // Initialize storage
-    const storage = new NoSqlStorage(logger);
+    // Initialize storage with Prisma (SQLite by default)
+    const storage = new PrismaStorageAdapter(logger, {
+        type: 'prisma',
+        // Uses DATABASE_URL env var or defaults to file:./dev.db
+    });
     await storage.open();
 
     try {
@@ -183,7 +187,7 @@ async function main() {
         console.log('Demo complete!');
         console.log('='.repeat(60));
     } finally {
-        storage.close();
+        await storage.close();
     }
 }
 

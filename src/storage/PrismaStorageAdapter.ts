@@ -15,7 +15,13 @@
 
 import type { IDetailedLogger } from '../types/index.ts';
 import type { IStorageAdapter, StorageAdapterConfig } from './IStorageAdapter.ts';
-import type { CacheEntry, CompilationMetadata, QueryOptions, StorageEntry, StorageStats } from './NoSqlStorage.ts';
+import type { CacheEntry, CompilationMetadata, QueryOptions, StorageEntry, StorageStats } from './types.ts';
+
+/**
+ * Default SQLite database URL
+ * Creates the database in ./data/adblock.db relative to the project root
+ */
+const DEFAULT_DATABASE_URL = 'file:./data/adblock.db';
 
 /**
  * Type for Prisma Client - using any to avoid direct dependency
@@ -41,8 +47,8 @@ function deserializeKey(key: string): string[] {
 /**
  * Prisma-based storage adapter implementation
  *
- * Provides the same interface as NoSqlStorage but backed by Prisma,
- * enabling use with SQLite, PostgreSQL, or MongoDB.
+ * Default storage backend using Prisma ORM with SQLite.
+ * Supports SQLite, PostgreSQL, MySQL, and MongoDB.
  */
 export class PrismaStorageAdapter implements IStorageAdapter {
     private prisma: PrismaClientType | null = null;
@@ -79,15 +85,22 @@ export class PrismaStorageAdapter implements IStorageAdapter {
             // Dynamic import to avoid hard dependency
             // In production: import { PrismaClient } from '@prisma/client'
             const { PrismaClient } = await import('@prisma/client');
+
+            // Use config connectionString, env var, or default
+            const databaseUrl = this.config.connectionString ||
+                (typeof Deno !== 'undefined' ? Deno.env.get('DATABASE_URL') : undefined) ||
+                (typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined) ||
+                DEFAULT_DATABASE_URL;
+
             this.prisma = new PrismaClient({
-                datasources: this.config.connectionString
-                    ? {
-                        db: {
-                            url: this.config.connectionString,
-                        },
-                    }
-                    : undefined,
+                datasources: {
+                    db: {
+                        url: databaseUrl,
+                    },
+                },
             });
+
+            this.logger.debug(`Using database: ${databaseUrl}`);
 
             await this.prisma.$connect();
             this._isOpen = true;

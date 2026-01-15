@@ -1,7 +1,5 @@
-/// <reference lib="deno.unstable" />
-
 import type { IDetailedLogger } from '../types/index.ts';
-import { NoSqlStorage } from './NoSqlStorage.ts';
+import type { IStorageAdapter } from './IStorageAdapter.ts';
 
 /**
  * Snapshot of a source's content
@@ -63,10 +61,10 @@ export interface ChangeSummary {
  * Detects changes in filter list sources
  */
 export class ChangeDetector {
-    private readonly storage: NoSqlStorage;
+    private readonly storage: IStorageAdapter;
     private readonly logger: IDetailedLogger;
 
-    constructor(storage: NoSqlStorage, logger: IDetailedLogger) {
+    constructor(storage: IStorageAdapter, logger: IDetailedLogger) {
         this.storage = storage;
         this.logger = logger;
     }

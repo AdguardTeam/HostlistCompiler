@@ -2,14 +2,14 @@
 /**
  * Prisma Storage Adapter - Usage Examples
  *
- * This file demonstrates how to use the PrismaStorageAdapter as an
- * alternative to the default Deno KV storage backend.
+ * This file demonstrates how to use the PrismaStorageAdapter,
+ * the default storage backend using SQLite.
  *
  * Prerequisites:
  *   1. npm install @prisma/client
  *   2. npx prisma generate
  *   3. npx prisma db push (or npx prisma migrate dev)
- *   4. Set DATABASE_URL environment variable
+ *   4. Optionally set DATABASE_URL environment variable
  *
  * Run this example:
  *   DATABASE_URL="file:./dev.db" deno run --allow-all src/storage/prisma-example.ts
@@ -258,7 +258,7 @@ async function maintenanceExample(storage: IStorageAdapter): Promise<void> {
 // Example 7: Factory Pattern for Backend Selection
 // ============================================================================
 
-type StorageBackend = 'deno-kv' | 'prisma' | 'memory';
+type StorageBackend = 'prisma' | 'd1' | 'memory';
 
 /**
  * Factory function demonstrating how to select storage backend at runtime
@@ -276,11 +276,9 @@ async function createStorageBackend(backend: StorageBackend, logger: IDetailedLo
             });
         }
 
-        case 'deno-kv': {
-            const { NoSqlStorage } = await import('./NoSqlStorage.ts');
-            // NoSqlStorage doesn't fully implement IStorageAdapter yet
-            // but demonstrates the pattern
-            return new NoSqlStorage(logger) as unknown as IStorageAdapter;
+        case 'd1': {
+            // D1 requires Cloudflare Workers environment
+            throw new Error('D1 storage requires Cloudflare Workers environment');
         }
 
         case 'memory':

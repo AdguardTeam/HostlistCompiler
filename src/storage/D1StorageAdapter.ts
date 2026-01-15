@@ -17,7 +17,7 @@
  */
 
 import type { IStorageAdapter } from './IStorageAdapter.ts';
-import type { CacheEntry, CompilationMetadata, QueryOptions, StorageEntry, StorageStats } from './NoSqlStorage.ts';
+import type { CacheEntry, CompilationMetadata, QueryOptions, StorageEntry, StorageStats } from './types.ts';
 
 /**
  * Cloudflare D1 Database type
@@ -104,7 +104,7 @@ function generateId(): string {
 /**
  * Cloudflare D1 Storage Adapter
  *
- * Provides the same interface as NoSqlStorage but backed by Cloudflare D1,
+ * Provides the IStorageAdapter interface backed by Cloudflare D1,
  * enabling edge-first storage with global distribution.
  *
  * @example

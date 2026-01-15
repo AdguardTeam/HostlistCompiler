@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storage Admin - Adblock Compiler</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --text: #334155;
+            --text-light: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            color: var(--dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-left p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Admin Notice */
+        .admin-notice {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-notice-icon {
+            font-size: 24px;
+        }
+
+        .admin-notice-text {
+            flex: 1;
+        }
+
+        .admin-notice-text strong {
+            color: #92400e;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .admin-notice-text span {
+            color: #a16207;
+            font-size: 13px;
+        }
+
+        /* Auth Section */
+        .auth-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-section h3 {
+            font-size: 18px;
+            color: var(--dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .auth-form input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .auth-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .auth-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .auth-status.authenticated {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .auth-status.unauthenticated {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            opacity: 0.6;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* Actions Panel */
+        .actions-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .actions-panel h3 {
+            font-size: 18px;
+            color: var(--dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-secondary { background: var(--text-light); color: white; }
+
+        /* Query Panel */
+        .query-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .query-panel h3 {
+            font-size: 18px;
+            color: var(--dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .query-presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            padding: 6px 12px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Results Panel */
+        .results-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-panel h3 {
+            font-size: 18px;
+            color: var(--dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .results-meta {
+            font-size: 12px;
+            color: var(--text-light);
+            font-weight: normal;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .results-table th {
+            background: var(--light);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+
+        .results-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .results-table tr:hover {
+            background: var(--light);
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+
+        /* Log Panel */
+        .log-panel {
+            background: var(--dark);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.info { color: #60a5fa; }
+        .log-entry.success { color: #34d399; }
+        .log-entry.warning { color: #fbbf24; }
+        .log-entry.error { color: #f87171; }
+
+        .log-time {
+            color: #94a3b8;
+            margin-right: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h3 {
+            font-size: 20px;
+            color: var(--dark);
+            margin-bottom: 16px;
+        }
+
+        .modal p {
+            color: var(--text-light);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <h3 id="modalTitle">Confirm Action</h3>
+            <p id="modalMessage">Are you sure you want to perform this action?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger" id="modalConfirmBtn" onclick="confirmAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>
+                        <span>🗄️</span>
+                        Storage Admin
+                    </h1>
+                    <p>SQLite/D1 database management for Adblock Compiler</p>
+                </div>
+                <div class="header-right">
+                    <a href="/" class="btn btn-secondary">← Back to Dashboard</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Admin Notice -->
+        <div class="admin-notice">
+            <span class="admin-notice-icon">⚠️</span>
+            <div class="admin-notice-text">
+                <strong>Admin Access Required</strong>
+                <span>These operations require admin authentication. Destructive operations cannot be undone.</span>
+            </div>
+        </div>
+
+        <!-- Auth Section -->
+        <div class="auth-section">
+            <h3><span>🔐</span> Authentication</h3>
+            <div class="auth-form">
+                <input type="password" id="adminKey" placeholder="Enter admin API key" autocomplete="off">
+                <button class="btn btn-primary" onclick="authenticate()">
+                    <span>🔑</span> Authenticate
+                </button>
+                <div class="auth-status unauthenticated" id="authStatus">
+                    <span>🔒</span> Not Authenticated
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Entries</span>
+                    <span class="stat-icon">📦</span>
+                </div>
+                <div class="stat-value" id="statTotalEntries">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Expired Entries</span>
+                    <span class="stat-icon">⏰</span>
+                </div>
+                <div class="stat-value" id="statExpiredEntries">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Cache Entries</span>
+                    <span class="stat-icon">💾</span>
+                </div>
+                <div class="stat-value" id="statCacheEntries">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Database Size</span>
+                    <span class="stat-icon">📊</span>
+                </div>
+                <div class="stat-value" id="statDbSize">--</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions-panel">
+            <h3><span>⚡</span> Quick Actions</h3>
+            <div class="action-grid">
+                <button class="btn btn-info" onclick="refreshStats()" id="btnRefresh">
+                    <span>🔄</span> Refresh Stats
+                </button>
+                <button class="btn btn-warning" onclick="clearExpired()" id="btnClearExpired" disabled>
+                    <span>🧹</span> Clear Expired
+                </button>
+                <button class="btn btn-danger" onclick="confirmClearCache()" id="btnClearCache" disabled>
+                    <span>🗑️</span> Clear All Cache
+                </button>
+                <button class="btn btn-success" onclick="exportData()" id="btnExport" disabled>
+                    <span>📤</span> Export Data
+                </button>
+                <button class="btn btn-primary" onclick="vacuum()" id="btnVacuum" disabled>
+                    <span>🔧</span> Vacuum DB
+                </button>
+                <button class="btn btn-secondary" onclick="listTables()" id="btnListTables" disabled>
+                    <span>📋</span> List Tables
+                </button>
+            </div>
+        </div>
+
+        <!-- SQL Query Panel -->
+        <div class="query-panel">
+            <h3><span>💻</span> SQL Query (Read-Only)</h3>
+            <div class="query-presets">
+                <button class="preset-btn" onclick="setQuery('SELECT * FROM storage_entries LIMIT 50')">All Entries</button>
+                <button class="preset-btn" onclick="setQuery('SELECT * FROM filter_cache LIMIT 50')">Filter Cache</button>
+                <button class="preset-btn" onclick="setQuery('SELECT * FROM compilation_metadata ORDER BY timestamp DESC LIMIT 20')">Compilations</button>
+                <button class="preset-btn" onclick="setQuery('SELECT * FROM source_health ORDER BY status')">Source Health</button>
+                <button class="preset-btn" onclick="setQuery('SELECT * FROM source_snapshots WHERE isCurrent = 1')">Current Snapshots</button>
+                <button class="preset-btn" onclick="setQuery('SELECT COUNT(*) as count, substr(key, 1, instr(key, \"/\") - 1) as prefix FROM storage_entries GROUP BY prefix')">Entry Stats</button>
+            </div>
+            <textarea
+                id="sqlQuery"
+                class="query-input"
+                placeholder="Enter SQL query (SELECT only)..."
+            >SELECT * FROM storage_entries LIMIT 10</textarea>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-primary" onclick="executeQuery()" id="btnExecute" disabled style="flex: 1;">
+                    <span>▶️</span> Execute Query
+                </button>
+                <button class="btn btn-secondary" onclick="clearQuery()">
+                    <span>🗑️</span> Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Query Results -->
+        <div class="results-panel" id="resultsPanel" style="display: none;">
+            <h3>
+                <span><span>📊</span> Query Results</span>
+                <span class="results-meta" id="resultsMeta"></span>
+            </h3>
+            <div class="table-container" id="tableContainer">
+                <table class="results-table" id="resultsTable">
+                    <thead id="resultsHead"></thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="log-panel" id="logPanel">
+            <div class="log-entry info">
+                <span class="log-time">[--:--:--]</span>
+                Storage Admin initialized. Authenticate to enable admin operations.
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>
+                <a href="/">← Back to Dashboard</a> •
+                Storage Admin v1.0 •
+                <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank">GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // State
+        const State = {
+            authenticated: false,
+            adminKey: '',
+            pendingAction: null
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Try to restore admin key from session
+            const savedKey = sessionStorage.getItem('adminKey');
+            if (savedKey) {
+                document.getElementById('adminKey').value = savedKey;
+                authenticate();
+            }
+
+            // Enable query input events
+            document.getElementById('sqlQuery').addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    executeQuery();
+                }
+            });
+        });
+
+        // Logging
+        function log(message, type = 'info') {
+            const panel = document.getElementById('logPanel');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+            panel.insertBefore(entry, panel.firstChild);
+
+            // Limit log entries
+            while (panel.children.length > 100) {
+                panel.removeChild(panel.lastChild);
+            }
+        }
+
+        // Authentication
+        async function authenticate() {
+            const keyInput = document.getElementById('adminKey');
+            const key = keyInput.value.trim();
+
+            if (!key) {
+                log('Please enter an admin key', 'warning');
+                return;
+            }
+
+            log('Authenticating...');
+
+            try {
+                const response = await fetch('/admin/storage/stats', {
+                    headers: {
+                        'X-Admin-Key': key
+                    }
+                });
+
+                if (response.ok) {
+                    State.authenticated = true;
+                    State.adminKey = key;
+                    sessionStorage.setItem('adminKey', key);
+
+                    updateAuthStatus(true);
+                    enableAdminButtons();
+                    log('Authentication successful', 'success');
+
+                    // Load initial stats
+                    await refreshStats();
+                } else if (response.status === 401) {
+                    log('Invalid admin key', 'error');
+                    updateAuthStatus(false);
+                } else {
+                    log(`Authentication failed: ${response.status}`, 'error');
+                    updateAuthStatus(false);
+                }
+            } catch (error) {
+                log(`Authentication error: ${error.message}`, 'error');
+                updateAuthStatus(false);
+            }
+        }
+
+        function updateAuthStatus(authenticated) {
+            const status = document.getElementById('authStatus');
+            if (authenticated) {
+                status.className = 'auth-status authenticated';
+                status.innerHTML = '<span>🔓</span> Authenticated';
+            } else {
+                status.className = 'auth-status unauthenticated';
+                status.innerHTML = '<span>🔒</span> Not Authenticated';
+            }
+        }
+
+        function enableAdminButtons() {
+            const buttons = ['btnClearExpired', 'btnClearCache', 'btnExport', 'btnVacuum', 'btnListTables', 'btnExecute'];
+            buttons.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.disabled = false;
+            });
+        }
+
+        // API Calls
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            if (!State.authenticated) {
+                log('Not authenticated', 'error');
+                return null;
+            }
+
+            const options = {
+                method,
+                headers: {
+                    'X-Admin-Key': State.adminKey,
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(`/admin/storage${endpoint}`, options);
+
+                if (response.status === 401) {
+                    State.authenticated = false;
+                    updateAuthStatus(false);
+                    log('Session expired. Please re-authenticate.', 'error');
+                    return null;
+                }
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error || `HTTP ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                log(`API error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // Stats
+        async function refreshStats() {
+            log('Refreshing stats...');
+            const stats = await apiCall('/stats');
+
+            if (stats) {
+                document.getElementById('statTotalEntries').textContent = stats.entryCount?.toLocaleString() || '0';
+                document.getElementById('statExpiredEntries').textContent = stats.expiredCount?.toLocaleString() || '0';
+                document.getElementById('statCacheEntries').textContent = stats.cacheCount?.toLocaleString() || '0';
+                document.getElementById('statDbSize').textContent = formatSize(stats.sizeEstimate || 0);
+                log('Stats refreshed', 'success');
+            }
+        }
+
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Actions
+        async function clearExpired() {
+            log('Clearing expired entries...');
+            const result = await apiCall('/clear-expired', 'POST');
+
+            if (result) {
+                log(`Cleared ${result.count || 0} expired entries`, 'success');
+                await refreshStats();
+            }
+        }
+
+        function confirmClearCache() {
+            showModal(
+                'Clear All Cache',
+                'This will permanently delete ALL cached data including filter lists, compilation history, and health metrics. This action cannot be undone.',
+                clearAllCache
+            );
+        }
+
+        async function clearAllCache() {
+            log('Clearing all cache...');
+            const result = await apiCall('/clear-cache', 'POST');
+
+            if (result) {
+                log(`Cleared ${result.count || 0} cache entries`, 'success');
+                await refreshStats();
+            }
+        }
+
+        async function exportData() {
+            log('Exporting data...');
+
+            try {
+                const response = await fetch('/admin/storage/export', {
+                    headers: {
+                        'X-Admin-Key': State.adminKey
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Export failed: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `adblock-storage-export-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                log('Data exported successfully', 'success');
+            } catch (error) {
+                log(`Export error: ${error.message}`, 'error');
+            }
+        }
+
+        async function vacuum() {
+            log('Running VACUUM...');
+            const result = await apiCall('/vacuum', 'POST');
+
+            if (result) {
+                log(`VACUUM completed. Duration: ${result.duration}ms`, 'success');
+                await refreshStats();
+            }
+        }
+
+        async function listTables() {
+            log('Listing tables...');
+            setQuery("SELECT name, type FROM sqlite_master WHERE type='table' ORDER BY name");
+            await executeQuery();
+        }
+
+        // SQL Query
+        function setQuery(sql) {
+            document.getElementById('sqlQuery').value = sql;
+        }
+
+        function clearQuery() {
+            document.getElementById('sqlQuery').value = '';
+            document.getElementById('resultsPanel').style.display = 'none';
+        }
+
+        async function executeQuery() {
+            const sql = document.getElementById('sqlQuery').value.trim();
+
+            if (!sql) {
+                log('Please enter a SQL query', 'warning');
+                return;
+            }
+
+            // Basic security check - only allow SELECT
+            if (!sql.toLowerCase().startsWith('select')) {
+                log('Only SELECT queries are allowed for safety', 'error');
+                return;
+            }
+
+            log(`Executing: ${sql.substring(0, 50)}...`);
+
+            const result = await apiCall('/query', 'POST', { sql });
+
+            if (result) {
+                displayResults(result);
+                log(`Query returned ${result.rows?.length || 0} rows in ${result.duration || 0}ms`, 'success');
+            }
+        }
+
+        function displayResults(result) {
+            const panel = document.getElementById('resultsPanel');
+            const head = document.getElementById('resultsHead');
+            const body = document.getElementById('resultsBody');
+            const meta = document.getElementById('resultsMeta');
+
+            // Clear previous results
+            head.innerHTML = '';
+            body.innerHTML = '';
+
+            const rows = result.rows || [];
+
+            if (rows.length === 0) {
+                panel.style.display = 'block';
+                body.innerHTML = '<tr><td colspan="100" class="no-results">No results found</td></tr>';
+                meta.textContent = '0 rows';
+                return;
+            }
+
+            // Get columns from first row
+            const columns = Object.keys(rows[0]);
+
+            // Build header
+            const headerRow = document.createElement('tr');
+            columns.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col;
+                headerRow.appendChild(th);
+            });
+            head.appendChild(headerRow);
+
+            // Build rows
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    const value = row[col];
+                    td.textContent = value === null ? 'NULL' : String(value);
+                    td.title = value === null ? 'NULL' : String(value);
+                    tr.appendChild(td);
+                });
+                body.appendChild(tr);
+            });
+
+            meta.textContent = `${rows.length} rows • ${result.duration || 0}ms`;
+            panel.style.display = 'block';
+        }
+
+        // Modal
+        function showModal(title, message, action) {
+            State.pendingAction = action;
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeModal() {
+            State.pendingAction = null;
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+
+        function confirmAction() {
+            if (State.pendingAction) {
+                State.pendingAction();
+            }
+            closeModal();
+        }
+    </script>
+</body>
+</html>

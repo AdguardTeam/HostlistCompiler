@@ -49,3 +49,10 @@ examples/whitelist/filter.txt
 .env.local
 .env.*.local
 coverage.lcov
+
+# SQLite database files
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

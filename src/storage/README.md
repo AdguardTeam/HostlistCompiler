@@ -1,6 +1,6 @@
-# NoSQL Storage Module
+# Storage Module
 
-A lightweight NoSQL local storage backend built on Deno KV for the hostlist compiler. Provides persistent key-value storage with TTL support, perfect for caching filter lists and storing compilation metadata.
+A flexible storage backend built on Prisma ORM with SQLite as the default database for the hostlist compiler. Provides persistent key-value storage with TTL support, perfect for caching filter lists and storing compilation metadata.
 
 ## Features
 
@@ -10,6 +10,7 @@ A lightweight NoSQL local storage backend built on Deno KV for the hostlist comp
 - **Type-Safe**: Full TypeScript support with generic types
 - **Storage Statistics**: Track storage size and entry counts
 - **Built-in Caching**: Convenience methods for common caching scenarios
+- **Multiple Backends**: Support for SQLite, PostgreSQL, MySQL, and Cloudflare D1
 
 ## Installation
 
@@ -18,11 +19,14 @@ The storage module is already part of the hostlist compiler. No additional insta
 ## Basic Usage
 
 ```typescript
-import { NoSqlStorage } from './storage/index.ts';
+import { PrismaStorageAdapter } from './storage/index.ts';
 import { logger } from './utils/logger.ts';
 
-// Create and open storage
-const storage = new NoSqlStorage(logger);
+// Create and open storage (uses SQLite by default)
+const storage = new PrismaStorageAdapter(logger, {
+    type: 'prisma',
+    // Uses DATABASE_URL env var or defaults to file:./dev.db
+});
 await storage.open();
 
 // Store a value
@@ -138,15 +142,6 @@ console.log(`Cleared ${cleared} expired entries`);
 await storage.clearCache();
 ```
 
-## Custom Database Path
-
-By default, Deno KV stores data in a platform-specific location. You can specify a custom path:
-
-```typescript
-const storage = new NoSqlStorage(logger, './my-custom-db');
-await storage.open();
-```
-
 ## Key Structure
 
 Keys are hierarchical arrays of strings, similar to a file path:
@@ -203,7 +198,7 @@ if (!success) {
 Run the storage tests:
 
 ```bash
-deno test src/storage/NoSqlStorage.test.ts
+deno test src/storage/PrismaStorageAdapter.test.ts
 ```
 
 ## Performance Considerations
@@ -216,12 +211,15 @@ deno test src/storage/NoSqlStorage.test.ts
 ## Example: Complete Workflow
 
 ```typescript
-import { NoSqlStorage } from './storage/index.ts';
+import { PrismaStorageAdapter, CachingDownloader } from './storage/index.ts';
+import { FilterDownloader } from '../downloader/FilterDownloader.ts';
 import { logger } from './utils/logger.ts';
 
 async function example() {
     // Initialize storage
-    const storage = new NoSqlStorage(logger);
+    const storage = new PrismaStorageAdapter(logger, {
+        type: 'prisma',
+    });
     await storage.open();
 
     try {
@@ -267,7 +265,7 @@ async function example() {
 
 ### Constructor
 
-- `constructor(logger: IDetailedLogger, dbPath?: string)`
+- `constructor(logger: IDetailedLogger, config?: StorageAdapterConfig)`
 
 ### Core Methods
 
@@ -300,10 +298,10 @@ The `CachingDownloader` wraps any downloader implementation with intelligent cac
 **Basic Usage:**
 
 ```typescript
-import { CachingDownloader, NoSqlStorage } from './storage/index.ts';
+import { CachingDownloader, PrismaStorageAdapter } from './storage/index.ts';
 import { FilterDownloader } from '../downloader/FilterDownloader.ts';
 
-const storage = new NoSqlStorage(logger);
+const storage = new PrismaStorageAdapter(logger, { type: 'prisma' });
 await storage.open();
 
 const cachingDownloader = new CachingDownloader(
@@ -401,25 +399,25 @@ if (stats.sizeEstimate > 100 * 1024 * 1024) { // 100MB
 await cachingDownloader.prewarmCache(sources);
 ```
 
-## Alternative Storage Backends
+## Storage Backends
 
 The storage module supports multiple backends through the `IStorageAdapter` interface:
 
-| Backend               | Use Case                          | Documentation                                        |
-| --------------------- | --------------------------------- | ---------------------------------------------------- |
-| **Deno KV** (default) | Local/single-instance deployments | This document                                        |
-| **Prisma**            | Multi-instance, SQL databases     | [prisma/README.md](../../prisma/README.md)           |
-| **Cloudflare D1**     | Edge deployments                  | [docs/CLOUDFLARE_D1.md](../../docs/CLOUDFLARE_D1.md) |
+| Backend           | Use Case                          | Documentation                                        |
+| ----------------- | --------------------------------- | ---------------------------------------------------- |
+| **Prisma/SQLite** (default) | Local/single-instance deployments | This document                                        |
+| **Prisma/PostgreSQL**       | Multi-instance, production        | [prisma/README.md](../../prisma/README.md)           |
+| **Cloudflare D1** | Edge deployments                  | [docs/CLOUDFLARE_D1.md](../../docs/CLOUDFLARE_D1.md) |
 
 ### Choosing a Backend
 
 | Scenario                 | Recommended Backend |
 | ------------------------ | ------------------- |
-| Local development        | Deno KV             |
-| Single server deployment | Deno KV             |
-| Multi-server deployment  | Prisma (PostgreSQL) |
+| Local development        | SQLite (default)    |
+| Single server deployment | SQLite              |
+| Multi-server deployment  | PostgreSQL          |
 | Cloudflare Workers       | D1StorageAdapter    |
-| Need complex queries     | Prisma              |
+| Need complex queries     | PostgreSQL          |
 | Need SQL Server support  | Prisma              |
 | Need MongoDB             | Prisma              |
 
@@ -447,7 +445,7 @@ Prisma supports these databases (see [PRISMA_EVALUATION.md](../../docs/PRISMA_EV
 - Turso
 - Neon
 
-### Quick Start: Prisma Backend
+### Quick Start: Prisma with PostgreSQL
 
 ```bash
 # Install dependencies
@@ -470,7 +468,7 @@ const storage = new PrismaStorageAdapter(logger, {
 });
 
 await storage.open();
-// Use the same API as NoSqlStorage
+// Use the same API as shown above
 await storage.cacheFilterList(source, rules, hash);
 await storage.close();
 ```
@@ -536,19 +534,16 @@ interface IStorageAdapter {
 
 ```typescript
 import type { IStorageAdapter } from './storage/IStorageAdapter.ts';
-import { NoSqlStorage } from './storage/NoSqlStorage.ts';
 import { PrismaStorageAdapter } from './storage/PrismaStorageAdapter.ts';
 import { D1StorageAdapter } from './storage/D1StorageAdapter.ts';
 
 function createStorage(type: string, env?: { DB: D1Database }): IStorageAdapter {
     switch (type) {
-        case 'prisma':
-            return new PrismaStorageAdapter(logger, { type: 'prisma' });
         case 'd1':
             return new D1StorageAdapter(env!.DB);
-        case 'deno-kv':
+        case 'prisma':
         default:
-            return new NoSqlStorage(logger) as unknown as IStorageAdapter;
+            return new PrismaStorageAdapter(logger, { type: 'prisma' });
     }
 }
 ```

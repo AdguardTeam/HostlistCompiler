@@ -789,7 +789,7 @@ Topics covered:
 
 ### Available tasks
 
-> **Note:** Always use `deno task test` instead of `deno test` directly. The tests require specific permissions (`--allow-read`, `--allow-write`, `--allow-net`, `--allow-env`, `--unstable-kv`) that are configured in the task.
+> **Note:** Always use `deno task test` instead of `deno test` directly. The tests require specific permissions (`--allow-read`, `--allow-write`, `--allow-net`, `--allow-env`) that are configured in the task.
 
 ```bash
 # Run in development mode with watch
@@ -811,7 +811,7 @@ deno task test:watch
 deno task test:coverage
 
 # Run specific test file (with required permissions)
-deno test --allow-read --allow-write --allow-net --allow-env --unstable-kv src/cli/ArgumentParser.test.ts
+deno test --allow-read --allow-write --allow-net --allow-env src/cli/ArgumentParser.test.ts
 
 # Lint code
 deno task lint

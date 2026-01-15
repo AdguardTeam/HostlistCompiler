@@ -13,6 +13,42 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
+/**
+ * D1 Database type from Cloudflare Workers Types
+ */
+interface D1Database {
+    prepare(query: string): D1PreparedStatement;
+    dump(): Promise<ArrayBuffer>;
+    batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
+    exec(query: string): Promise<D1ExecResult>;
+}
+
+interface D1PreparedStatement {
+    bind(...values: unknown[]): D1PreparedStatement;
+    first<T = unknown>(colName?: string): Promise<T | null>;
+    run(): Promise<D1Result>;
+    all<T = unknown>(): Promise<D1Result<T>>;
+    raw<T = unknown>(): Promise<T[]>;
+}
+
+interface D1Result<T = unknown> {
+    results?: T[];
+    success: boolean;
+    error?: string;
+    meta?: {
+        duration: number;
+        changes: number;
+        last_row_id: number;
+        rows_read: number;
+        rows_written: number;
+    };
+}
+
+interface D1ExecResult {
+    count: number;
+    duration: number;
+}
+
 // NOTE: Container class for Cloudflare Containers deployment
 // This is a stub for local development. When deploying with containers enabled,
 // Cloudflare will use the Container runtime automatically.
@@ -57,6 +93,10 @@ export interface Env {
     // Turnstile configuration
     TURNSTILE_SITE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
+    // D1 Database binding (optional - for SQLite admin features)
+    DB?: D1Database;
+    // Admin authentication key
+    ADMIN_KEY?: string;
 }
 
 /**
@@ -1964,6 +2004,323 @@ async function queueBatchCompileJob(
     return requestId;
 }
 
+// ============================================================================
+// Admin Storage API Handlers
+// ============================================================================
+
+/**
+ * Verify admin authentication
+ */
+function verifyAdminAuth(request: Request, env: Env): { authorized: boolean; error?: string } {
+    const adminKey = request.headers.get('X-Admin-Key');
+
+    // If no ADMIN_KEY is configured, admin features are disabled
+    if (!env.ADMIN_KEY) {
+        return { authorized: false, error: 'Admin features not configured' };
+    }
+
+    // Verify the provided key matches
+    if (!adminKey || adminKey !== env.ADMIN_KEY) {
+        return { authorized: false, error: 'Unauthorized' };
+    }
+
+    return { authorized: true };
+}
+
+/**
+ * Handle admin storage stats endpoint
+ */
+async function handleAdminStorageStats(env: Env): Promise<Response> {
+    if (!env.DB) {
+        return Response.json(
+            { success: false, error: 'D1 database not configured' },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        // Get stats from storage tables
+        const [storageCount, filterCacheCount, compilationCount, expiredStorage, expiredCache] = await env.DB.batch([
+            env.DB.prepare(`SELECT COUNT(*) as count FROM storage_entries`),
+            env.DB.prepare(`SELECT COUNT(*) as count FROM filter_cache`),
+            env.DB.prepare(`SELECT COUNT(*) as count FROM compilation_metadata`),
+            env.DB.prepare(`SELECT COUNT(*) as count FROM storage_entries WHERE expiresAt IS NOT NULL AND expiresAt < datetime('now')`),
+            env.DB.prepare(`SELECT COUNT(*) as count FROM filter_cache WHERE expiresAt IS NOT NULL AND expiresAt < datetime('now')`),
+        ]);
+
+        const stats = {
+            storage_entries: ((storageCount.results as Array<{ count: number }>) || [])[0]?.count || 0,
+            filter_cache: ((filterCacheCount.results as Array<{ count: number }>) || [])[0]?.count || 0,
+            compilation_metadata: ((compilationCount.results as Array<{ count: number }>) || [])[0]?.count || 0,
+            expired_storage: ((expiredStorage.results as Array<{ count: number }>) || [])[0]?.count || 0,
+            expired_cache: ((expiredCache.results as Array<{ count: number }>) || [])[0]?.count || 0,
+        };
+
+        return Response.json(
+            {
+                success: true,
+                stats,
+                timestamp: new Date().toISOString(),
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle admin clear expired entries endpoint
+ */
+async function handleAdminClearExpired(env: Env): Promise<Response> {
+    if (!env.DB) {
+        return Response.json(
+            { success: false, error: 'D1 database not configured' },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        const [storageResult, cacheResult] = await env.DB.batch([
+            env.DB.prepare(`DELETE FROM storage_entries WHERE expiresAt IS NOT NULL AND expiresAt < datetime('now')`),
+            env.DB.prepare(`DELETE FROM filter_cache WHERE expiresAt IS NOT NULL AND expiresAt < datetime('now')`),
+        ]);
+
+        const deleted = (storageResult.meta?.changes || 0) + (cacheResult.meta?.changes || 0);
+
+        return Response.json(
+            {
+                success: true,
+                deleted,
+                message: `Cleared ${deleted} expired entries`,
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle admin clear cache endpoint
+ */
+async function handleAdminClearCache(env: Env): Promise<Response> {
+    if (!env.DB) {
+        return Response.json(
+            { success: false, error: 'D1 database not configured' },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        const [storageResult, cacheResult] = await env.DB.batch([
+            env.DB.prepare(`DELETE FROM storage_entries WHERE key LIKE 'cache/%'`),
+            env.DB.prepare(`DELETE FROM filter_cache`),
+        ]);
+
+        const deleted = (storageResult.meta?.changes || 0) + (cacheResult.meta?.changes || 0);
+
+        return Response.json(
+            {
+                success: true,
+                deleted,
+                message: `Cleared ${deleted} cache entries`,
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle admin export endpoint
+ */
+async function handleAdminExport(env: Env): Promise<Response> {
+    if (!env.DB) {
+        return Response.json(
+            { success: false, error: 'D1 database not configured' },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        // Export data from all tables (limited to prevent memory issues)
+        const [storageEntries, filterCache, compilationMetadata] = await env.DB.batch([
+            env.DB.prepare(`SELECT * FROM storage_entries LIMIT 1000`),
+            env.DB.prepare(`SELECT * FROM filter_cache LIMIT 100`),
+            env.DB.prepare(`SELECT * FROM compilation_metadata ORDER BY timestamp DESC LIMIT 100`),
+        ]);
+
+        const exportData = {
+            exportedAt: new Date().toISOString(),
+            storage_entries: storageEntries.results || [],
+            filter_cache: filterCache.results || [],
+            compilation_metadata: compilationMetadata.results || [],
+        };
+
+        return Response.json(exportData, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Disposition': `attachment; filename="storage-export-${Date.now()}.json"`,
+            },
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle admin vacuum endpoint
+ */
+async function handleAdminVacuum(env: Env): Promise<Response> {
+    if (!env.DB) {
+        return Response.json(
+            { success: false, error: 'D1 database not configured' },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        await env.DB.exec('VACUUM');
+
+        return Response.json(
+            {
+                success: true,
+                message: 'Database vacuum completed',
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle admin list tables endpoint
+ */
+async function handleAdminListTables(env: Env): Promise<Response> {
+    if (!env.DB) {
+        return Response.json(
+            { success: false, error: 'D1 database not configured' },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        const result = await env.DB
+            .prepare(`SELECT name, type FROM sqlite_master WHERE type IN ('table', 'index') ORDER BY type, name`)
+            .all<{ name: string; type: string }>();
+
+        return Response.json(
+            {
+                success: true,
+                tables: result.results || [],
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
+/**
+ * Handle admin SQL query endpoint (read-only)
+ */
+async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
+    if (!env.DB) {
+        return Response.json(
+            { success: false, error: 'D1 database not configured' },
+            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    try {
+        const body = await request.json() as { sql: string };
+        const { sql } = body;
+
+        if (!sql || typeof sql !== 'string') {
+            return Response.json(
+                { success: false, error: 'Missing or invalid SQL query' },
+                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
+        }
+
+        // Validate that the query is read-only (SELECT only)
+        const normalizedSql = sql.trim().toUpperCase();
+        if (!normalizedSql.startsWith('SELECT')) {
+            return Response.json(
+                { success: false, error: 'Only SELECT queries are allowed' },
+                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
+        }
+
+        // Additional safety checks - block dangerous patterns
+        const dangerousPatterns = [
+            /;\s*DELETE/i,
+            /;\s*UPDATE/i,
+            /;\s*INSERT/i,
+            /;\s*DROP/i,
+            /;\s*ALTER/i,
+            /;\s*CREATE/i,
+            /;\s*TRUNCATE/i,
+            /;\s*ATTACH/i,
+            /;\s*DETACH/i,
+        ];
+
+        for (const pattern of dangerousPatterns) {
+            if (pattern.test(sql)) {
+                return Response.json(
+                    { success: false, error: 'Query contains disallowed SQL statements' },
+                    { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                );
+            }
+        }
+
+        const result = await env.DB.prepare(sql).all();
+
+        return Response.json(
+            {
+                success: true,
+                rows: result.results || [],
+                rowCount: result.results?.length || 0,
+                meta: result.meta,
+            },
+            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            { success: false, error: message },
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+}
+
 /**
  * Main fetch handler for the Cloudflare Worker.
  */
@@ -2032,6 +2389,68 @@ export default {
                     'Cache-Control': 'no-cache',
                 },
             });
+        }
+
+        // ========================================================================
+        // Admin Storage Endpoints (require X-Admin-Key header)
+        // ========================================================================
+
+        if (pathname.startsWith('/admin/storage')) {
+            // Verify admin authentication
+            const auth = verifyAdminAuth(request, env);
+            if (!auth.authorized) {
+                return Response.json(
+                    { success: false, error: auth.error },
+                    {
+                        status: 401,
+                        headers: {
+                            'Access-Control-Allow-Origin': '*',
+                            'WWW-Authenticate': 'X-Admin-Key',
+                        },
+                    },
+                );
+            }
+
+            // Admin storage stats
+            if (pathname === '/admin/storage/stats' && request.method === 'GET') {
+                return handleAdminStorageStats(env);
+            }
+
+            // Admin clear expired entries
+            if (pathname === '/admin/storage/clear-expired' && request.method === 'POST') {
+                return handleAdminClearExpired(env);
+            }
+
+            // Admin clear cache
+            if (pathname === '/admin/storage/clear-cache' && request.method === 'POST') {
+                return handleAdminClearCache(env);
+            }
+
+            // Admin export data
+            if (pathname === '/admin/storage/export' && request.method === 'GET') {
+                return handleAdminExport(env);
+            }
+
+            // Admin vacuum database
+            if (pathname === '/admin/storage/vacuum' && request.method === 'POST') {
+                return handleAdminVacuum(env);
+            }
+
+            // Admin list tables
+            if (pathname === '/admin/storage/tables' && request.method === 'GET') {
+                return handleAdminListTables(env);
+            }
+
+            // Admin SQL query (read-only)
+            if (pathname === '/admin/storage/query' && request.method === 'POST') {
+                return handleAdminQuery(request, env);
+            }
+
+            // Unknown admin endpoint
+            return Response.json(
+                { success: false, error: 'Unknown admin endpoint' },
+                { status: 404, headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
         }
 
         // Handle queue results endpoint - fetch cached results for a completed job

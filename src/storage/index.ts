@@ -2,8 +2,8 @@
  * Storage module exports
  */
 
-// Core NoSQL storage (Deno KV backend)
-export { type CacheEntry, type CompilationMetadata, NoSqlStorage, type QueryOptions, type StorageEntry, type StorageStats } from './NoSqlStorage.ts';
+// Core storage types
+export type { CacheEntry, CompilationMetadata, QueryOptions, StorageEntry, StorageStats } from './types.ts';
 
 // Health monitoring
 export { HealthStatus, type SourceAttempt, type SourceHealthMetrics, SourceHealthMonitor } from './SourceHealthMonitor.ts';
@@ -17,7 +17,7 @@ export { CachingDownloader, type CachingOptions, type DownloadResult } from './C
 // Storage abstraction layer
 export type { IStorageAdapter, StorageAdapterConfig, StorageAdapterFactory, StorageAdapterType } from './IStorageAdapter.ts';
 
-// Prisma storage adapter (optional, requires @prisma/client)
+// Prisma storage adapter (default, uses SQLite)
 export { PrismaStorageAdapter } from './PrismaStorageAdapter.ts';
 
 // Cloudflare D1 storage adapter (for edge deployments)

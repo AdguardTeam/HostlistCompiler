@@ -19,7 +19,11 @@ datasource db {
   // - "postgresql" for production SQL
   // - "mongodb" for NoSQL
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
+
+// Default DATABASE_URL for SQLite: "file:./data/adblock.db"
+// The database will be created in the project's data/ directory
 
 // ============================================================================
 // Storage Entry - Generic key-value storage with metadata

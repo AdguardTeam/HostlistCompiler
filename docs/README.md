@@ -31,7 +31,7 @@ Welcome to the AdBlock Compiler documentation. This directory contains all the d
 
 ### Storage
 
-- [NoSQL Storage](../src/storage/README.md) - Deno KV-based storage module
+- [Storage Module](../src/storage/README.md) - Prisma-based storage with SQLite default
 - [Prisma Backend](../prisma/README.md) - SQL/NoSQL database support
 - [Cloudflare D1](CLOUDFLARE_D1.md) - Edge database integration
 - [Prisma Evaluation](PRISMA_EVALUATION.md) - Storage backend comparison

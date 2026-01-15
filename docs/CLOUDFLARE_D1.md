@@ -298,15 +298,15 @@ wrangler d1 execute adblock-storage --local --command="SELECT * FROM storage_ent
 wrangler d1 export adblock-storage --local --output=backup.sql
 ```
 
-## Migration from Deno KV
+## Migration from Prisma/SQLite
 
-### Export Data from Deno KV
+### Export Data from SQLite
 
 ```typescript
-// scripts/export-from-kv.ts
-import { NoSqlStorage } from './src/storage/NoSqlStorage.ts';
+// scripts/export-from-sqlite.ts
+import { PrismaStorageAdapter } from './src/storage/PrismaStorageAdapter.ts';
 
-const storage = new NoSqlStorage(logger);
+const storage = new PrismaStorageAdapter(logger, { type: 'prisma' });
 await storage.open();
 
 const entries = await storage.list({ prefix: [] });

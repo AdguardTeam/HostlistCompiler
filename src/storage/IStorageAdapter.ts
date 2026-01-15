@@ -2,20 +2,19 @@
  * Storage Adapter Interface Module
  *
  * Provides an abstract interface for storage backends, enabling swappable
- * implementations (Deno KV, Prisma, Cloudflare D1, In-Memory, etc.) without
+ * implementations (Prisma, Cloudflare D1, In-Memory, etc.) without
  * changing application code.
  *
  * ## Available Implementations
  *
  * | Adapter | Backend | Use Case |
  * |---------|---------|----------|
- * | `NoSqlStorage` | Deno KV | Local/single-instance (default) |
- * | `PrismaStorageAdapter` | Prisma ORM | Multi-instance, SQL/MongoDB |
+ * | `PrismaStorageAdapter` | Prisma ORM (SQLite default) | Local/multi-instance |
  * | `D1StorageAdapter` | Cloudflare D1 | Edge deployments |
  *
  * ## Supported Databases (via Prisma)
  *
- * - **SQL**: PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, CockroachDB
+ * - **SQL**: SQLite (default), PostgreSQL, MySQL, MariaDB, SQL Server, CockroachDB
  * - **NoSQL**: MongoDB
  * - **Edge**: Cloudflare D1, Turso, Supabase, PlanetScale
  *
@@ -23,19 +22,10 @@
  *
  * ```typescript
  * import type { IStorageAdapter } from './storage/IStorageAdapter.ts';
- * import { NoSqlStorage } from './storage/NoSqlStorage.ts';
  * import { PrismaStorageAdapter } from './storage/PrismaStorageAdapter.ts';
  *
- * // Factory function for runtime backend selection
- * function createStorage(type: 'deno-kv' | 'prisma'): IStorageAdapter {
- *     if (type === 'prisma') {
- *         return new PrismaStorageAdapter(logger, { type: 'prisma' });
- *     }
- *     return new NoSqlStorage(logger) as unknown as IStorageAdapter;
- * }
- *
- * // Usage - same API regardless of backend
- * const storage = createStorage(process.env.STORAGE_TYPE);
+ * // Create storage with SQLite (default)
+ * const storage = new PrismaStorageAdapter(logger, { type: 'prisma' });
  * await storage.open();
  *
  * await storage.set(['cache', 'data'], { value: 123 }, 3600000);
@@ -47,7 +37,7 @@
  * @module IStorageAdapter
  */
 
-import type { CacheEntry, CompilationMetadata, QueryOptions, StorageEntry, StorageStats } from './NoSqlStorage.ts';
+import type { CacheEntry, CompilationMetadata, QueryOptions, StorageEntry, StorageStats } from './types.ts';
 
 /**
  * Abstract storage adapter interface
@@ -428,12 +418,11 @@ export interface IStorageAdapter {
  *
  * | Type | Backend | Description |
  * |------|---------|-------------|
- * | `deno-kv` | Deno KV | Default local storage |
- * | `prisma` | Prisma ORM | SQL/MongoDB databases |
+ * | `prisma` | Prisma ORM | SQL/MongoDB databases (default, uses SQLite) |
  * | `d1` | Cloudflare D1 | Edge SQLite |
  * | `memory` | In-memory | Testing only |
  */
-export type StorageAdapterType = 'deno-kv' | 'prisma' | 'd1' | 'memory';
+export type StorageAdapterType = 'prisma' | 'd1' | 'memory';
 
 /**
  * Configuration options for storage adapters
@@ -463,8 +452,7 @@ export interface StorageAdapterConfig {
      * Database connection string or path
      *
      * Format depends on adapter type:
-     * - Deno KV: File path (e.g., `./data/storage.db`)
-     * - Prisma: Database URL (e.g., `postgresql://user:pass@localhost:5432/db`)
+     * - Prisma: Database URL (e.g., `file:./dev.db` for SQLite, `postgresql://user:pass@localhost:5432/db`)
      * - D1: Not applicable (uses Cloudflare binding)
      */
     connectionString?: string;
@@ -504,16 +492,15 @@ export interface StorageAdapterConfig {
  * ```typescript
  * const createStorage: StorageAdapterFactory = (config) => {
  *     switch (config.type) {
- *         case 'prisma':
- *             return new PrismaStorageAdapter(logger, config);
  *         case 'd1':
  *             return new D1StorageAdapter(env.DB, config);
+ *         case 'prisma':
  *         default:
- *             return new NoSqlStorage(logger);
+ *             return new PrismaStorageAdapter(logger, config);
  *     }
  * };
  *
- * const storage = createStorage({ type: 'prisma', connectionString: '...' });
+ * const storage = createStorage({ type: 'prisma', connectionString: 'file:./dev.db' });
  * ```
  */
 export type StorageAdapterFactory = (config: StorageAdapterConfig) => IStorageAdapter;

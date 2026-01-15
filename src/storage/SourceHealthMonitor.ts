@@ -1,7 +1,5 @@
-/// <reference lib="deno.unstable" />
-
 import type { IDetailedLogger } from '../types/index.ts';
-import { NoSqlStorage } from './NoSqlStorage.ts';
+import type { IStorageAdapter } from './IStorageAdapter.ts';
 
 /**
  * Health status for a source
@@ -69,12 +67,12 @@ export interface SourceHealthMetrics {
  * Monitors source health and tracks fetch attempts
  */
 export class SourceHealthMonitor {
-    private readonly storage: NoSqlStorage;
+    private readonly storage: IStorageAdapter;
     private readonly logger: IDetailedLogger;
     private readonly maxRecentAttempts: number;
 
     constructor(
-        storage: NoSqlStorage,
+        storage: IStorageAdapter,
         logger: IDetailedLogger,
         maxRecentAttempts: number = 10,
     ) {
