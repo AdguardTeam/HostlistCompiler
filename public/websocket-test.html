@@ -4,39 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket Test - Adblock Compiler</title>
+    <link rel="stylesheet" href="/shared-styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .header h1 {
-            font-size: 28px;
-            color: #2d3748;
-            margin-bottom: 8px;
-        }
-
+        /* Page-specific styles */
         .status-badge {
             display: inline-block;
             padding: 6px 12px;
@@ -47,17 +17,17 @@
         }
 
         .status-connected {
-            background: #10b981;
+            background: var(--success);
             color: white;
         }
 
         .status-disconnected {
-            background: #ef4444;
+            background: var(--danger);
             color: white;
         }
 
         .status-connecting {
-            background: #f59e0b;
+            background: var(--warning);
             color: white;
         }
 
@@ -75,15 +45,15 @@
         }
 
         .card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
         }
 
         .card h2 {
             font-size: 20px;
-            color: #2d3748;
+            color: var(--text-color);
             margin-bottom: 16px;
             display: flex;
             align-items: center;
@@ -101,60 +71,31 @@
             gap: 12px;
         }
 
-        button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-        }
-
-        button:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
         .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #ef4444;
+            background: var(--success);
             color: white;
         }
 
         .btn-secondary {
-            background: #6b7280;
+            background: var(--text-muted);
             color: white;
         }
 
         input, textarea {
             width: 100%;
             padding: 10px;
-            border: 2px solid #e5e7eb;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             font-size: 14px;
             font-family: monospace;
             transition: border-color 0.2s;
+            background: var(--input-bg);
+            color: var(--text-color);
         }
 
         input:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
         }
 
         textarea {
@@ -166,14 +107,14 @@
             display: block;
             font-size: 14px;
             font-weight: 600;
-            color: #4b5563;
+            color: var(--label-color);
             margin-bottom: 6px;
         }
 
         .events-log {
             height: 500px;
             overflow-y: auto;
-            background: #f9fafb;
+            background: var(--input-bg);
             border-radius: 8px;
             padding: 16px;
             font-family: 'Courier New', monospace;
@@ -191,6 +132,7 @@
             border-radius: 6px;
             border-left: 4px solid;
             animation: fadeIn 0.3s;
+            color: var(--text-color);
         }
 
         @keyframes fadeIn {
@@ -205,52 +147,52 @@
         }
 
         .event-welcome {
-            background: #dbeafe;
+            background: rgba(59, 130, 246, 0.15);
             border-color: #3b82f6;
         }
 
         .event-compile-started {
-            background: #dcfce7;
+            background: rgba(16, 185, 129, 0.15);
             border-color: #10b981;
         }
 
         .event-event {
-            background: #fef3c7;
+            background: rgba(245, 158, 11, 0.15);
             border-color: #f59e0b;
         }
 
         .event-compile-complete {
-            background: #d1fae5;
+            background: rgba(5, 150, 105, 0.15);
             border-color: #059669;
         }
 
         .event-error {
-            background: #fee2e2;
+            background: rgba(239, 68, 68, 0.15);
             border-color: #ef4444;
         }
 
         .event-diagnostic {
-            background: #e0e7ff;
+            background: rgba(99, 102, 241, 0.15);
             border-color: #6366f1;
         }
 
         .event-cache {
-            background: #ddd6fe;
+            background: rgba(139, 92, 246, 0.15);
             border-color: #8b5cf6;
         }
 
         .event-network {
-            background: #fce7f3;
+            background: rgba(236, 72, 153, 0.15);
             border-color: #ec4899;
         }
 
         .event-metric {
-            background: #ccfbf1;
+            background: rgba(20, 184, 166, 0.15);
             border-color: #14b8a6;
         }
 
         .event-timestamp {
-            color: #6b7280;
+            color: var(--text-muted);
             font-size: 11px;
             margin-right: 8px;
         }
@@ -263,7 +205,7 @@
         .event-data {
             margin-top: 4px;
             padding: 8px;
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--hover-bg);
             border-radius: 4px;
             overflow-x: auto;
         }
@@ -276,7 +218,7 @@
         }
 
         .stat-card {
-            background: #f9fafb;
+            background: var(--input-bg);
             padding: 16px;
             border-radius: 8px;
             text-align: center;
@@ -285,30 +227,31 @@
         .stat-value {
             font-size: 28px;
             font-weight: 700;
-            color: #667eea;
+            color: var(--primary);
             display: block;
         }
 
         .stat-label {
             font-size: 12px;
-            color: #6b7280;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-top: 4px;
         }
 
         .session-id {
-            background: #f3f4f6;
+            background: var(--input-bg);
             padding: 8px 12px;
             border-radius: 6px;
             font-family: monospace;
             font-size: 13px;
             margin-top: 8px;
             word-break: break-all;
+            color: var(--text-color);
         }
 
         .quick-config {
-            background: #f9fafb;
+            background: var(--input-bg);
             padding: 12px;
             border-radius: 8px;
             margin-top: 12px;
@@ -320,7 +263,7 @@
         }
 
         .code-block {
-            background: #1f2937;
+            background: var(--code-bg, #1f2937);
             color: #f9fafb;
             padding: 16px;
             border-radius: 8px;
@@ -349,10 +292,11 @@
 
         .log-controls select {
             padding: 8px 12px;
-            border: 2px solid #e5e7eb;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             font-size: 13px;
-            background: white;
+            background: var(--input-bg);
+            color: var(--text-color);
         }
 
         .btn-icon {
@@ -371,17 +315,17 @@
         }
 
         .auto-scroll-indicator.active {
-            background: #10b981;
+            background: var(--success);
             color: white;
         }
 
         .auto-scroll-indicator.inactive {
-            background: #ef4444;
+            background: var(--danger);
             color: white;
         }
 
         .event-count-badge {
-            background: #667eea;
+            background: var(--primary);
             color: white;
             padding: 4px 10px;
             border-radius: 12px;
@@ -393,17 +337,28 @@
         .hidden {
             display: none !important;
         }
+
+        /* Dark mode variable overrides */
+        [data-theme="dark"] {
+            --code-bg: #0d1117;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🔌 WebSocket Test - Adblock Compiler</h1>
-            <div>
-                <span id="status" class="status-badge status-disconnected">Disconnected</span>
-                <span id="connectionId" style="margin-left: 12px; color: #6b7280; font-size: 14px;"></span>
+            <div class="header-content">
+                <h1>WebSocket Test - Adblock Compiler</h1>
+                <div>
+                    <span id="status" class="status-badge status-disconnected">Disconnected</span>
+                    <span id="connectionId" style="margin-left: 12px; color: var(--text-muted); font-size: 14px;"></span>
+                </div>
             </div>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                <span class="theme-toggle-label" id="theme-label">Dark Mode</span>
+            </button>
         </div>
 
         <!-- Main Grid -->
@@ -908,5 +863,6 @@ ws.onmessage = (event) => {
             }
         }, 30000);
     </script>
+    <script src="/shared-theme.js"></script>
 </body>
 </html>

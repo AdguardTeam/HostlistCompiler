@@ -9,6 +9,9 @@ workers_dev = true
 [build]
 command = ""
 
+[browser]
+binding = "BROWSER"
+
 [observability]
 [observability.logs]
 enabled = true
@@ -49,13 +52,21 @@ image = "./Dockerfile"
 max_instances = 5
 instance_type = "basic"
 
+[[durable_objects.bindings]]
+name = "MCP_OBJECT"
+class_name = "PlaywrightMCP"
+
 [[migrations]]
 new_sqlite_classes = ["AdblockCompiler"]
 tag = "v1"
 
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PlaywrightMCP"]
+
 # Environment variables
 [vars]
-COMPILER_VERSION = "0.8.5"
+COMPILER_VERSION = "0.8.6"
 TURNSTILE_SITE_KEY = "0x4AAAAAACMKiPZdJh8I8IEM"
 # ADMIN_KEY is managed via Cloudflare secrets (wrangler secret put ADMIN_KEY)
 

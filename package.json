@@ -1,6 +1,6 @@
 {
     "name": "adblock-compiler",
-    "version": "0.8.5",
+    "version": "0.8.6",
     "description": "Compiler-as-a-Service for adblock filter lists",
     "type": "module",
     "scripts": {
@@ -12,6 +12,7 @@
         "tail:logs": "wrangler tail adblock-compiler-tail"
     },
     "devDependencies": {
+        "@cloudflare/playwright-mcp": "^0.0.5",
         "@cloudflare/workers-types": "^4.20260103.0",
         "wrangler": "^4.54.0"
     }
