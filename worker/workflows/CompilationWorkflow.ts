@@ -14,6 +14,7 @@
 
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { createTracingContext, WorkerCompiler } from '../../src/index.ts';
+import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
 import type { Env } from '../worker.ts';
 import type { CompilationParams, SourceFetchResult, TransformationResult, WorkflowCompilationResult } from './types.ts';
 import { WorkflowEvents } from './WorkflowEvents.ts';
@@ -68,7 +69,18 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
         // Initialize event emitter for real-time progress tracking
         const events = new WorkflowEvents(this.env.METRICS, requestId, 'compilation');
 
+        // Initialize analytics service for metrics tracking
+        const analytics = new AnalyticsService(this.env.ANALYTICS_ENGINE);
+
         console.log(`[WORKFLOW:COMPILE] Starting compilation workflow for "${configuration.name}" (requestId: ${requestId})`);
+
+        // Track workflow started
+        analytics.trackWorkflowStarted({
+            requestId,
+            workflowId: requestId,
+            workflowType: 'compilation',
+            itemCount: configuration.sources.length,
+        });
 
         // Emit workflow started event
         await events.emitWorkflowStarted({
@@ -303,6 +315,26 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
             result.success = true;
             result.totalDurationMs = Date.now() - startTime;
 
+            // Track workflow completed via Analytics Engine
+            analytics.trackWorkflowCompleted({
+                requestId,
+                workflowId: requestId,
+                workflowType: 'compilation',
+                durationMs: result.totalDurationMs,
+                itemCount: configuration.sources.length,
+                successCount: 1,
+            });
+
+            // Track compilation success
+            analytics.trackCompilationSuccess({
+                requestId,
+                configName: configuration.name,
+                sourceCount: configuration.sources.length,
+                ruleCount: result.ruleCount,
+                durationMs: result.totalDurationMs,
+                cacheKey: result.cacheKey,
+            });
+
             // Emit workflow completed event
             await events.emitProgress(100, 'Compilation complete');
             await events.emitWorkflowCompleted({
@@ -320,6 +352,24 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:COMPILE] Workflow failed for "${configuration.name}":`, errorMessage);
+
+            // Track workflow failed via Analytics Engine
+            analytics.trackWorkflowFailed({
+                requestId,
+                workflowId: requestId,
+                workflowType: 'compilation',
+                durationMs: Date.now() - startTime,
+                error: errorMessage,
+            });
+
+            // Track compilation error
+            analytics.trackCompilationError({
+                requestId,
+                configName: configuration.name,
+                sourceCount: configuration.sources.length,
+                durationMs: Date.now() - startTime,
+                error: errorMessage,
+            });
 
             // Emit workflow failed event
             await events.emitWorkflowFailed(errorMessage, {

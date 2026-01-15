@@ -75,6 +75,7 @@ export class AdblockCompiler {
 import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
 import { handleWebSocketUpgrade } from './websocket.ts';
+import { AnalyticsService } from '../src/services/AnalyticsService.ts';
 
 // Import Workflow classes and types
 import {
@@ -136,6 +137,8 @@ export interface Env {
     BATCH_COMPILATION_WORKFLOW?: Workflow<BatchCompilationParams>;
     CACHE_WARMING_WORKFLOW?: Workflow<CacheWarmingParams>;
     HEALTH_MONITORING_WORKFLOW?: Workflow<HealthMonitoringParams>;
+    // Analytics Engine binding (optional - for metrics tracking)
+    ANALYTICS_ENGINE?: AnalyticsEngineDataset;
 }
 
 /**
@@ -473,6 +476,16 @@ async function getMetrics(env: Env): Promise<any> {
         timestamp: new Date().toISOString(),
         endpoints: stats,
     };
+}
+
+/**
+ * Create an AnalyticsService instance for tracking metrics to Cloudflare Analytics Engine.
+ *
+ * @param env - The environment bindings
+ * @returns An AnalyticsService instance (no-op if ANALYTICS_ENGINE is not configured)
+ */
+function createAnalyticsService(env: Env): AnalyticsService {
+    return new AnalyticsService(env.ANALYTICS_ENGINE);
 }
 
 /**
@@ -940,10 +953,21 @@ async function handleCompileStream(
 async function handleCompileJson(
     request: Request,
     env: Env,
+    analytics?: AnalyticsService,
+    requestId?: string,
 ): Promise<Response> {
     const startTime = Date.now();
     const body = await request.json() as CompileRequest;
     const { configuration, preFetchedContent, benchmark } = body;
+    const configName = configuration.name || 'unnamed';
+    const sourceCount = configuration.sources?.length || 0;
+
+    // Track compilation request
+    analytics?.trackCompilationRequest({
+        requestId,
+        configName,
+        sourceCount,
+    });
 
     // Check cache if no pre-fetched content (pre-fetched = dynamic, don't cache)
     const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? getCacheKey(configuration) : null;
@@ -958,6 +982,14 @@ async function handleCompileJson(
         const pending = pendingCompilations.get(cacheKey);
         if (pending) {
             const result = await pending;
+            // Track cache hit (deduplicated)
+            analytics?.trackCacheHit({
+                requestId,
+                configName,
+                cacheKey,
+                ruleCount: result.ruleCount,
+                durationMs: Date.now() - startTime,
+            });
             return Response.json({
                 ...result,
                 deduplicated: true,
@@ -983,6 +1015,16 @@ async function handleCompileJson(
                     compiledAt: result.compiledAt || new Date().toISOString(),
                 };
 
+                // Track cache hit
+                analytics?.trackCacheHit({
+                    requestId,
+                    configName,
+                    cacheKey,
+                    ruleCount: result.ruleCount,
+                    outputSizeBytes: cached.byteLength,
+                    durationMs: Date.now() - startTime,
+                });
+
                 return Response.json({
                     ...result,
                     cached: true,
@@ -998,6 +1040,13 @@ async function handleCompileJson(
                 console.error('Cache decompression failed:', error);
             }
         }
+
+        // Track cache miss
+        analytics?.trackCacheMiss({
+            requestId,
+            configName,
+            cacheKey,
+        });
     }
 
     // Create compilation promise for deduplication
@@ -1071,6 +1120,16 @@ async function handleCompileJson(
         // Record error metrics
         await recordMetric(env, '/compile', duration, false, result.error);
 
+        // Track compilation error
+        analytics?.trackCompilationError({
+            requestId,
+            configName,
+            sourceCount,
+            durationMs: duration,
+            error: result.error,
+            cacheKey: cacheKey || undefined,
+        });
+
         return Response.json(result, {
             status: 500,
             headers: {
@@ -1081,6 +1140,18 @@ async function handleCompileJson(
 
     // Record success metrics
     await recordMetric(env, '/compile', duration, true);
+
+    // Track compilation success
+    const outputSize = result.rules ? JSON.stringify(result.rules).length : 0;
+    analytics?.trackCompilationSuccess({
+        requestId,
+        configName,
+        sourceCount,
+        ruleCount: result.ruleCount,
+        durationMs: duration,
+        outputSizeBytes: outputSize,
+        cacheKey: cacheKey || undefined,
+    });
 
     return Response.json(result, {
         headers: {
@@ -2844,8 +2915,11 @@ async function handleHealthLatest(env: Env): Promise<Response> {
  */
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
+        const requestId = generateRequestId('api');
         const url = new URL(request.url);
         const { pathname } = url;
+        const analytics = createAnalyticsService(env);
+        const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
         // Handle CORS preflight
         if (request.method === 'OPTIONS') {
@@ -3122,10 +3196,17 @@ export default {
             (pathname === '/compile' || pathname === '/compile/stream' ||
                 pathname === '/compile/batch') && request.method === 'POST'
         ) {
-            const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
             const allowed = await checkRateLimit(env, ip);
 
             if (!allowed) {
+                // Track rate limit exceeded event
+                analytics.trackRateLimitExceeded({
+                    requestId,
+                    clientIpHash: AnalyticsService.hashIp(ip),
+                    rateLimit: RATE_LIMIT_MAX_REQUESTS,
+                    windowSeconds: RATE_LIMIT_WINDOW,
+                });
+
                 return Response.json(
                     {
                         success: false,
@@ -3172,7 +3253,7 @@ export default {
             }
 
             if (pathname === '/compile') {
-                return handleCompileJson(request, env);
+                return handleCompileJson(request, env, analytics, requestId);
             }
 
             if (pathname === '/compile/stream') {

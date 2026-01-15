@@ -13,6 +13,7 @@
 
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { createTracingContext, WorkerCompiler } from '../../src/index.ts';
+import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
 import type { Env } from '../worker.ts';
 import type { BatchCompilationParams, BatchWorkflowResult, WorkflowCompilationResult } from './types.ts';
 import { WorkflowEvents } from './WorkflowEvents.ts';
@@ -67,10 +68,21 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
         // Initialize event emitter for real-time progress tracking
         const events = new WorkflowEvents(this.env.METRICS, batchId, 'batch');
 
+        // Initialize analytics service
+        const analytics = new AnalyticsService(this.env.ANALYTICS_ENGINE);
+
         console.log(
             `[WORKFLOW:BATCH] Starting batch compilation workflow (batchId: ${batchId}, ` +
                 `${requests.length} requests, priority: ${priority || 'standard'})`,
         );
+
+        // Track batch workflow started
+        analytics.trackWorkflowStarted({
+            requestId: batchId,
+            workflowId: batchId,
+            workflowType: 'batch',
+            itemCount: requests.length,
+        });
 
         // Emit workflow started event
         await events.emitWorkflowStarted({
@@ -326,6 +338,16 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
                 totalDurationMs: totalDuration,
             });
 
+            // Track workflow completed via Analytics Engine
+            analytics.trackWorkflowCompleted({
+                requestId: batchId,
+                workflowId: batchId,
+                workflowType: 'batch',
+                durationMs: totalDuration,
+                itemCount: requests.length,
+                successCount: successful,
+            });
+
             console.log(
                 `[WORKFLOW:BATCH] Batch workflow completed: ${successful}/${requests.length} successful ` +
                     `in ${totalDuration}ms (batchId: ${batchId})`,
@@ -342,6 +364,15 @@ export class BatchCompilationWorkflow extends WorkflowEntrypoint<Env, BatchCompi
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:BATCH] Batch workflow failed (batchId: ${batchId}):`, errorMessage);
+
+            // Track workflow failed via Analytics Engine
+            analytics.trackWorkflowFailed({
+                requestId: batchId,
+                workflowId: batchId,
+                workflowType: 'batch',
+                durationMs: Date.now() - startTime,
+                error: errorMessage,
+            });
 
             // Emit workflow failed event
             await events.emitWorkflowFailed(errorMessage, {
