@@ -22,10 +22,10 @@ export * from './types/index.ts';
 
 // Utils
 export { RuleUtils, StringUtils, TldUtils, Wildcard } from './utils/index.ts';
-export type { ParsedHost } from './utils/index.ts';
+export type { BenchmarkResult, CompilationMetrics, ParsedHost } from './utils/index.ts';
 
 // Error utilities
-export { CompilationError, ErrorUtils, NetworkError, SourceError, ValidationError } from './utils/index.ts';
+export { BaseError, CompilationError, ErrorUtils, NetworkError, SourceError, ValidationError } from './utils/index.ts';
 
 // Boolean expression parser
 export { evaluateBooleanExpression, getKnownPlatforms, isKnownPlatform } from './utils/index.ts';
@@ -46,6 +46,7 @@ export {
     traceSync,
 } from './diagnostics/index.ts';
 export type {
+    AnyDiagnosticEvent,
     CacheEvent,
     DiagnosticEvent,
     IDiagnosticsCollector,
@@ -117,6 +118,7 @@ export type { HeaderOptions } from './compiler/HeaderGenerator.ts';
 // Output formatters
 export {
     AdblockFormatter,
+    BaseFormatter,
     createFormatter,
     DnsmasqFormatter,
     DoHFormatter,

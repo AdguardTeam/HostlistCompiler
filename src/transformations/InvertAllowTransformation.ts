@@ -7,9 +7,16 @@ import { SyncTransformation } from './base/Transformation.ts';
  * Adds @@ prefix to non-comment, non-hosts, non-allow rules.
  */
 export class InvertAllowTransformation extends SyncTransformation {
-    public readonly type = TransformationType.InvertAllow;
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.InvertAllow;
+    /** Human-readable name of the transformation */
     public readonly name = 'InvertAllow';
 
+    /**
+     * Inverts blocking rules to allow rules.
+     * @param rules - Array of rules to invert
+     * @returns Array with inverted rules
+     */
     public executeSync(rules: string[]): string[] {
         let inverted = 0;
 

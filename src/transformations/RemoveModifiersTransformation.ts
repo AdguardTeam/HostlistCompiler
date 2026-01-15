@@ -19,9 +19,16 @@ const MODIFIERS_TO_REMOVE = [
  * Transformation that removes unsupported modifiers from adblock-style rules.
  */
 export class RemoveModifiersTransformation extends SyncTransformation {
-    public readonly type = TransformationType.RemoveModifiers;
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.RemoveModifiers;
+    /** Human-readable name of the transformation */
     public readonly name = 'RemoveModifiers';
 
+    /**
+     * Removes unsupported modifiers from rules.
+     * @param rules - Array of rules to process
+     * @returns Array with modifiers removed
+     */
     public executeSync(rules: string[]): string[] {
         const filtered: string[] = [];
         let modifiedCount = 0;

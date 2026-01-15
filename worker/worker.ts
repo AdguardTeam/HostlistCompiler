@@ -78,14 +78,14 @@ import { handleWebSocketUpgrade } from './websocket.ts';
 
 // Import Workflow classes and types
 import {
-    CompilationWorkflow,
-    BatchCompilationWorkflow,
-    CacheWarmingWorkflow,
-    HealthMonitoringWorkflow,
-    type CompilationParams,
     type BatchCompilationParams,
+    BatchCompilationWorkflow,
     type CacheWarmingParams,
+    CacheWarmingWorkflow,
+    type CompilationParams,
+    CompilationWorkflow,
     type HealthMonitoringParams,
+    HealthMonitoringWorkflow,
     type WorkflowStatus,
 } from './workflows/index.ts';
 
@@ -2776,14 +2776,10 @@ async function handleWorkflowEvents(
 
         // Find the latest overall progress from the full event log
         const progressEvents = eventLog.events.filter((e) => e.type === 'workflow:progress');
-        const latestProgress = progressEvents.length > 0
-            ? (progressEvents[progressEvents.length - 1].progress ?? 0)
-            : 0;
+        const latestProgress = progressEvents.length > 0 ? (progressEvents[progressEvents.length - 1].progress ?? 0) : 0;
 
         // Determine if workflow is complete based on the full event log
-        const isComplete = eventLog.events.some((e) =>
-            e.type === 'workflow:completed' || e.type === 'workflow:failed'
-        );
+        const isComplete = eventLog.events.some((e) => e.type === 'workflow:completed' || e.type === 'workflow:failed');
 
         return Response.json(
             {
@@ -3436,9 +3432,4 @@ export default {
 // These exports allow Cloudflare to instantiate the workflow classes
 // as defined in wrangler.toml [[workflows]] bindings.
 
-export {
-    CompilationWorkflow,
-    BatchCompilationWorkflow,
-    CacheWarmingWorkflow,
-    HealthMonitoringWorkflow,
-};
+export { BatchCompilationWorkflow, CacheWarmingWorkflow, CompilationWorkflow, HealthMonitoringWorkflow };

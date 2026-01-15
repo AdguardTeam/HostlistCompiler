@@ -102,6 +102,10 @@ export class PluginRegistry {
     private readonly downloaders = new Map<string, DownloaderPlugin>();
     private readonly logger: ILogger;
 
+    /**
+     * Creates a new PluginRegistry
+     * @param logger - Logger instance for output
+     */
     constructor(logger?: ILogger) {
         this.logger = logger ?? defaultLogger;
     }
@@ -267,10 +271,17 @@ export class PluginRegistry {
  * Creates a transformation wrapper from a plugin transformation
  */
 export class PluginTransformationWrapper extends Transformation {
+    /** The transformation type identifier */
     public readonly type: TransformationType;
+    /** Human-readable name of the transformation */
     public readonly name: string;
     private readonly plugin: TransformationPlugin;
 
+    /**
+     * Creates a new PluginTransformationWrapper
+     * @param plugin - The plugin transformation to wrap
+     * @param logger - Logger instance for output
+     */
     constructor(plugin: TransformationPlugin, logger?: ILogger) {
         super(logger);
         this.type = plugin.type as TransformationType;
@@ -278,6 +289,12 @@ export class PluginTransformationWrapper extends Transformation {
         this.plugin = plugin;
     }
 
+    /**
+     * Executes the plugin transformation
+     * @param rules - Array of rules to transform
+     * @param context - Optional transformation context
+     * @returns Transformed rules array
+     */
     async execute(
         rules: readonly string[],
         context?: ITransformationContext,

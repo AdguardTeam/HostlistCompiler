@@ -21,8 +21,11 @@ import { createNoOpContext } from '../diagnostics/index.ts';
  * Result of compilation with optional metrics and diagnostics.
  */
 export interface CompilationResult {
+    /** The compiled rules */
     rules: string[];
+    /** Optional compilation metrics */
     metrics?: CompilationMetrics;
+    /** Optional diagnostic events */
     diagnostics?: DiagnosticEvent[];
 }
 

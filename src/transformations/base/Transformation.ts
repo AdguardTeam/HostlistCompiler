@@ -7,6 +7,7 @@ import { logger as defaultLogger } from '../../utils/logger.ts';
  * All transformations are fully asynchronous to support streaming and non-blocking operations.
  */
 export abstract class Transformation {
+    /** Logger instance for output */
     protected readonly logger: ILogger;
 
     /** The transformation type identifier */
@@ -15,6 +16,10 @@ export abstract class Transformation {
     /** Human-readable name for logging */
     public abstract readonly name: string;
 
+    /**
+     * Creates a new transformation
+     * @param logger - Logger instance for output
+     */
     constructor(logger?: ILogger) {
         this.logger = logger ?? defaultLogger;
     }

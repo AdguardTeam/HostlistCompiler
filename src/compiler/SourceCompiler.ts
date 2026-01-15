@@ -29,8 +29,18 @@ export class SourceCompiler {
     private readonly eventEmitter: CompilerEventEmitter;
     private readonly diagnostics: IDiagnosticsCollector;
 
+    /**
+     * Creates a new SourceCompiler with options
+     * @param options - Compiler options
+     */
     constructor(options?: SourceCompilerOptions);
-    /** @deprecated Use options object instead */
+    /**
+     * Creates a new SourceCompiler with legacy parameters
+     * @deprecated Use options object instead
+     * @param pipeline - Optional transformation pipeline
+     * @param logger - Optional logger
+     * @param eventEmitter - Optional event emitter
+     */
     constructor(pipeline?: TransformationPipeline, logger?: ILogger, eventEmitter?: CompilerEventEmitter);
     constructor(
         pipelineOrOptions?: TransformationPipeline | SourceCompilerOptions,

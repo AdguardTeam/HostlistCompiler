@@ -107,6 +107,10 @@ export interface DiffOptions {
 export class DiffGenerator {
     private readonly options: Required<DiffOptions>;
 
+    /**
+     * Creates a new DiffGenerator
+     * @param options - Optional diff generation options
+     */
     constructor(options?: DiffOptions) {
         this.options = {
             includeFullRules: true,

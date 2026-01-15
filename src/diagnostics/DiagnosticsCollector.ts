@@ -42,6 +42,11 @@ export class DiagnosticsCollector implements IDiagnosticsCollector {
     private readonly correlationId: string;
     private readonly emitToConsole: boolean;
 
+    /**
+     * Creates a new DiagnosticsCollector
+     * @param correlationId - Optional correlation ID for grouping events
+     * @param emitToConsole - Whether to also log events to console
+     */
     constructor(correlationId?: string, emitToConsole: boolean = false) {
         this.correlationId = correlationId || generateEventId();
         this.emitToConsole = emitToConsole;
@@ -295,6 +300,10 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
 
     private constructor() {}
 
+    /**
+     * Gets the singleton instance
+     * @returns The NoOpDiagnosticsCollector instance
+     */
     public static getInstance(): NoOpDiagnosticsCollector {
         if (!NoOpDiagnosticsCollector.instance) {
             NoOpDiagnosticsCollector.instance = new NoOpDiagnosticsCollector();
@@ -302,18 +311,41 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
         return NoOpDiagnosticsCollector.instance;
     }
 
+    /**
+     * Record an operation start (no-op implementation)
+     * @param _operation - Operation name (ignored)
+     * @param _input - Optional input data (ignored)
+     * @returns A static 'noop' event ID
+     */
     public operationStart(_operation: string, _input?: Record<string, unknown>): string {
         return 'noop';
     }
 
+    /**
+     * Record an operation completion (no-op implementation)
+     * @param _eventId - Event ID from operationStart (ignored)
+     * @param _output - Optional output data (ignored)
+     */
     public operationComplete(_eventId: string, _output?: Record<string, unknown>): void {
         // No-op
     }
 
+    /**
+     * Record an operation error (no-op implementation)
+     * @param _eventId - Event ID from operationStart (ignored)
+     * @param _error - Error that occurred (ignored)
+     */
     public operationError(_eventId: string, _error: Error): void {
         // No-op
     }
 
+    /**
+     * Record a performance metric (no-op implementation)
+     * @param _metric - Metric name (ignored)
+     * @param _value - Metric value (ignored)
+     * @param _unit - Unit of measurement (ignored)
+     * @param _dimensions - Optional dimensions (ignored)
+     */
     public recordMetric(
         _metric: string,
         _value: number,
@@ -323,6 +355,12 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
         // No-op
     }
 
+    /**
+     * Record a cache event (no-op implementation)
+     * @param _operation - Cache operation type (ignored)
+     * @param _key - Cache key (ignored)
+     * @param _size - Optional size in bytes (ignored)
+     */
     public recordCacheEvent(
         _operation: 'hit' | 'miss' | 'write' | 'evict',
         _key: string,
@@ -331,6 +369,14 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
         // No-op
     }
 
+    /**
+     * Record a network event (no-op implementation)
+     * @param _method - HTTP method (ignored)
+     * @param _url - Request URL (ignored)
+     * @param _statusCode - Optional status code (ignored)
+     * @param _durationMs - Optional duration (ignored)
+     * @param _responseSize - Optional response size (ignored)
+     */
     public recordNetworkEvent(
         _method: string,
         _url: string,
@@ -341,14 +387,25 @@ export class NoOpDiagnosticsCollector implements IDiagnosticsCollector {
         // No-op
     }
 
+    /**
+     * Emit a diagnostic event (no-op implementation)
+     * @param _event - Event to emit (ignored)
+     */
     public emit(_event: DiagnosticEvent): void {
         // No-op
     }
 
+    /**
+     * Get all collected events (no-op implementation)
+     * @returns Empty array
+     */
     public getEvents(): AnyDiagnosticEvent[] {
         return [];
     }
 
+    /**
+     * Clear all collected events (no-op implementation)
+     */
     public clear(): void {
         // No-op
     }

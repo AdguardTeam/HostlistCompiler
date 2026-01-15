@@ -40,6 +40,10 @@ type EventMap = {
 export class CompilerEventEmitter {
     private readonly events: Readonly<ICompilerEvents>;
 
+    /**
+     * Creates a new CompilerEventEmitter
+     * @param events - Optional event handlers
+     */
     constructor(events?: ICompilerEvents) {
         this.events = Object.freeze(events ?? {});
     }
@@ -152,6 +156,10 @@ export class NoOpEventEmitter extends CompilerEventEmitter {
         return NoOpEventEmitter.INSTANCE;
     }
 
+    /**
+     * Check if any event handlers are registered (always returns false for no-op)
+     * @returns Always false
+     */
     public override hasListeners(): boolean {
         return false;
     }

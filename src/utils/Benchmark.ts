@@ -3,18 +3,33 @@
  * Provides timing information for various stages of the compilation process.
  */
 
+/**
+ * Result of a benchmark measurement for a single stage.
+ */
 export interface BenchmarkResult {
+    /** Name of the benchmark stage */
     name: string;
+    /** Duration of the stage in milliseconds */
     durationMs: number;
+    /** Number of items processed in this stage */
     itemCount?: number;
+    /** Throughput: items processed per second */
     itemsPerSecond?: number;
 }
 
+/**
+ * Aggregated metrics for a compilation run.
+ */
 export interface CompilationMetrics {
+    /** Total duration of the compilation in milliseconds */
     totalDurationMs: number;
+    /** Individual stage benchmark results */
     stages: BenchmarkResult[];
+    /** Number of sources processed */
     sourceCount: number;
+    /** Total input rule count before transformations */
     ruleCount: number;
+    /** Final output rule count after all transformations */
     outputRuleCount: number;
 }
 

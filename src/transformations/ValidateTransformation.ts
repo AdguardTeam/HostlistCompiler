@@ -34,12 +34,20 @@ const SUPPORTED_MODIFIERS = [
  * Removes invalid rules and their preceding comments.
  */
 export class ValidateTransformation extends SyncTransformation {
+    /** The transformation type identifier */
     public readonly type: TransformationType;
+    /** Human-readable name of the transformation */
     public readonly name: string;
 
+    /** Whether IP addresses are allowed in rules */
     protected readonly allowIp: boolean;
     private previousRuleRemoved: boolean = false;
 
+    /**
+     * Creates a new ValidateTransformation
+     * @param allowIp - Whether to allow IP address rules
+     * @param logger - Logger instance for output
+     */
     constructor(allowIp: boolean = false, logger?: ILogger) {
         super(logger);
         this.allowIp = allowIp;
@@ -47,6 +55,11 @@ export class ValidateTransformation extends SyncTransformation {
         this.name = 'Validate';
     }
 
+    /**
+     * Executes the validation transformation synchronously.
+     * @param rules - Array of rules to validate
+     * @returns Array of valid rules
+     */
     public executeSync(rules: string[]): string[] {
         const filtered = [...rules];
         this.previousRuleRemoved = false;
@@ -224,16 +237,27 @@ export class ValidateTransformation extends SyncTransformation {
  * Validation transformation that allows IP addresses.
  */
 export class ValidateAllowIpTransformation extends SyncTransformation {
-    public readonly type = TransformationType.ValidateAllowIp;
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.ValidateAllowIp;
+    /** Human-readable name of the transformation */
     public readonly name = 'ValidateAllowIp';
 
     private readonly validator: ValidateTransformation;
 
+    /**
+     * Creates a new ValidateAllowIpTransformation
+     * @param logger - Logger instance for output
+     */
     constructor(logger?: ILogger) {
         super(logger);
         this.validator = new ValidateTransformation(true, logger);
     }
 
+    /**
+     * Executes the validation transformation synchronously.
+     * @param rules - Array of rules to validate
+     * @returns Array of valid rules
+     */
     public executeSync(rules: string[]): string[] {
         return this.validator.executeSync(rules);
     }

@@ -39,10 +39,19 @@ export enum ErrorCode {
  * Provides consistent error structure with error codes.
  */
 export abstract class BaseError extends Error {
+    /** Error code for categorization */
     public readonly code: ErrorCode;
+    /** Original error that caused this error */
     public override readonly cause?: Error;
+    /** ISO timestamp when the error occurred */
     public readonly timestamp: string;
 
+    /**
+     * Creates a new BaseError
+     * @param message - Error message
+     * @param code - Error code for categorization
+     * @param cause - Original error that caused this error
+     */
     constructor(message: string, code: ErrorCode, cause?: Error) {
         super(message);
         this.code = code;
@@ -73,6 +82,12 @@ export abstract class BaseError extends Error {
  * Custom error class for compilation errors
  */
 export class CompilationError extends BaseError {
+    /**
+     * Creates a new CompilationError
+     * @param message - Error message
+     * @param code - Error code (defaults to COMPILATION_FAILED)
+     * @param cause - Original error that caused this error
+     */
     constructor(message: string, code: ErrorCode = ErrorCode.COMPILATION_FAILED, cause?: Error) {
         super(message, code, cause);
         this.name = 'CompilationError';
@@ -83,8 +98,15 @@ export class CompilationError extends BaseError {
  * Custom error class for configuration errors
  */
 export class ConfigurationError extends BaseError {
+    /** Name of the configuration that caused the error */
     public readonly configName?: string;
 
+    /**
+     * Creates a new ConfigurationError
+     * @param message - Error message
+     * @param configName - Name of the configuration
+     * @param cause - Original error that caused this error
+     */
     constructor(message: string, configName?: string, cause?: Error) {
         super(message, ErrorCode.CONFIGURATION_INVALID, cause);
         this.name = 'ConfigurationError';
@@ -96,9 +118,18 @@ export class ConfigurationError extends BaseError {
  * Custom error class for validation errors
  */
 export class ValidationError extends BaseError {
+    /** Path to the invalid field */
     public readonly path: string;
+    /** Detailed validation error messages */
     public readonly details: string[];
 
+    /**
+     * Creates a new ValidationError
+     * @param message - Error message
+     * @param path - Path to the invalid field
+     * @param details - Detailed validation error messages
+     * @param cause - Original error that caused this error
+     */
     constructor(message: string, path: string, details: string[] = [], cause?: Error) {
         super(message, ErrorCode.VALIDATION_CONSTRAINT, cause);
         this.name = 'ValidationError';
@@ -111,10 +142,20 @@ export class ValidationError extends BaseError {
  * Custom error class for network errors
  */
 export class NetworkError extends BaseError {
+    /** URL that failed */
     public readonly url: string;
+    /** HTTP status code if available */
     public readonly statusCode?: number;
+    /** Whether the request can be retried */
     public readonly retryable: boolean;
 
+    /**
+     * Creates a new NetworkError
+     * @param message - Error message
+     * @param url - URL that failed
+     * @param statusCode - HTTP status code
+     * @param retryable - Whether the request can be retried
+     */
     constructor(message: string, url: string, statusCode?: number, retryable = false) {
         const code = NetworkError.getErrorCode(statusCode);
         super(message, code);
@@ -124,6 +165,11 @@ export class NetworkError extends BaseError {
         this.retryable = retryable;
     }
 
+    /**
+     * Gets error code from status code
+     * @param statusCode - HTTP status code
+     * @returns Appropriate error code
+     */
     private static getErrorCode(statusCode?: number): ErrorCode {
         if (statusCode === 429) return ErrorCode.HTTP_RATE_LIMITED;
         if (statusCode && statusCode >= 400) return ErrorCode.HTTP_ERROR;
@@ -135,8 +181,15 @@ export class NetworkError extends BaseError {
  * Custom error class for source errors
  */
 export class SourceError extends BaseError {
+    /** Source URL or path that failed */
     public readonly source: string;
 
+    /**
+     * Creates a new SourceError
+     * @param message - Error message
+     * @param source - Source URL or path
+     * @param cause - Original error that caused this error
+     */
     constructor(message: string, source: string, cause?: Error) {
         super(message, ErrorCode.SOURCE_FETCH_FAILED, cause);
         this.name = 'SourceError';

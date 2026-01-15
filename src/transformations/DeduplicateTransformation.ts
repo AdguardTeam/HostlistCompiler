@@ -7,9 +7,16 @@ import { SyncTransformation } from './base/Transformation.ts';
  * Also removes preceding comments when a duplicate rule is removed.
  */
 export class DeduplicateTransformation extends SyncTransformation {
-    public readonly type = TransformationType.Deduplicate;
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.Deduplicate;
+    /** Human-readable name of the transformation */
     public readonly name = 'Deduplicate';
 
+    /**
+     * Executes the deduplication transformation synchronously.
+     * @param rules - Array of rules to deduplicate
+     * @returns Array with duplicates removed
+     */
     public executeSync(rules: string[]): string[] {
         if (rules.length === 0) {
             this.info('Empty rules array, nothing to deduplicate');

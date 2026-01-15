@@ -143,18 +143,33 @@ export function trim(str: string, chars: string = ' \t'): string {
  * @deprecated Use the functional exports instead.
  */
 export class StringUtils {
-    /** @deprecated Use {@link substringBetween} function instead */
-    public static substringBetween = substringBetween;
+    /**
+     * Extracts a substring between two tags.
+     * @deprecated Use {@link substringBetween} function instead
+     */
+    public static substringBetween: typeof substringBetween = substringBetween;
 
-    /** @deprecated Use {@link splitByDelimiterWithEscapeCharacter} function instead */
-    public static splitByDelimiterWithEscapeCharacter = splitByDelimiterWithEscapeCharacter;
+    /**
+     * Splits a string by delimiter, respecting escape characters.
+     * @deprecated Use {@link splitByDelimiterWithEscapeCharacter} function instead
+     */
+    public static splitByDelimiterWithEscapeCharacter: typeof splitByDelimiterWithEscapeCharacter = splitByDelimiterWithEscapeCharacter;
 
-    /** @deprecated Use {@link escapeRegExp} function instead */
-    public static escapeRegExp = escapeRegExp;
+    /**
+     * Escapes special regex characters in a string.
+     * @deprecated Use {@link escapeRegExp} function instead
+     */
+    public static escapeRegExp: typeof escapeRegExp = escapeRegExp;
 
-    /** @deprecated Use {@link isEmpty} function instead */
-    public static isEmpty = isEmpty;
+    /**
+     * Checks if a string is empty or contains only whitespace.
+     * @deprecated Use {@link isEmpty} function instead
+     */
+    public static isEmpty: typeof isEmpty = isEmpty;
 
-    /** @deprecated Use {@link trim} function instead */
-    public static trim = trim;
+    /**
+     * Trims specified characters from both ends of a string.
+     * @deprecated Use {@link trim} function instead
+     */
+    public static trim: typeof trim = trim;
 }

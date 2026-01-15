@@ -57,12 +57,19 @@ export interface ConflictDetectionResult {
  * Transformation that detects conflicting rules
  */
 export class ConflictDetectionTransformation extends SyncTransformation {
-    public readonly type = TransformationType.Validate; // Reuse Validate type
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.Validate; // Reuse Validate type
+    /** Human-readable name of the transformation */
     public readonly name = 'ConflictDetection';
 
     private conflicts: RuleConflict[] = [];
     private readonly options: ConflictDetectionOptions;
 
+    /**
+     * Creates a new ConflictDetectionTransformation
+     * @param logger - Logger instance for output
+     * @param options - Conflict detection options
+     */
     constructor(logger?: ILogger, options?: ConflictDetectionOptions) {
         super(logger);
         this.options = {
@@ -99,6 +106,11 @@ export class ConflictDetectionTransformation extends SyncTransformation {
         this.conflicts = [];
     }
 
+    /**
+     * Detects conflicting rules (blocking vs. allowing same domain)
+     * @param rules - Array of rules to analyze
+     * @returns Rules (optionally with conflicts resolved)
+     */
     public executeSync(
         rules: readonly string[],
     ): readonly string[] {

@@ -21,8 +21,11 @@ import { PlatformDownloader } from './PlatformDownloader.ts';
  * Result of compilation with optional metrics and diagnostics.
  */
 export interface WorkerCompilationResult {
+    /** The compiled filter rules */
     rules: string[];
+    /** Optional compilation metrics and timing data */
     metrics?: CompilationMetrics;
+    /** Optional diagnostic events from compilation */
     diagnostics?: DiagnosticEvent[];
 }
 
@@ -51,6 +54,10 @@ export class WorkerCompiler {
     private readonly headerGenerator: HeaderGenerator;
     private readonly tracingContext: TracingContext;
 
+    /**
+     * Creates a new WorkerCompiler
+     * @param options - Optional compiler configuration
+     */
     constructor(options?: WorkerCompilerOptions) {
         this.logger = options?.logger ?? silentLogger;
         this.eventEmitter = createEventEmitter(options?.events);

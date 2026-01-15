@@ -47,7 +47,9 @@ export interface RuleOptimizerOptions {
  * Transformation that optimizes rules
  */
 export class RuleOptimizerTransformation extends SyncTransformation {
-    public readonly type = TransformationType.Deduplicate; // Reuse type
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.Deduplicate; // Reuse type
+    /** Human-readable name of the transformation */
     public readonly name = 'RuleOptimizer';
 
     private stats: OptimizationStats = {
@@ -62,6 +64,11 @@ export class RuleOptimizerTransformation extends SyncTransformation {
 
     private readonly options: Required<RuleOptimizerOptions>;
 
+    /**
+     * Creates a new RuleOptimizerTransformation
+     * @param logger - Logger instance for output
+     * @param options - Optimization options
+     */
     constructor(logger?: ILogger, options?: RuleOptimizerOptions) {
         super(logger);
         this.options = {
@@ -81,6 +88,12 @@ export class RuleOptimizerTransformation extends SyncTransformation {
         return { ...this.stats };
     }
 
+    /**
+     * Optimizes rules for better performance and smaller file size
+     * @param rules - Array of rules to optimize
+     * @param _context - Optional transformation context
+     * @returns Optimized rules array
+     */
     public executeSync(
         rules: readonly string[],
         _context?: ITransformationContext,

@@ -9,6 +9,10 @@ import { RuleUtils, Wildcard } from '../utils/index.ts';
 export class FilterService {
     private readonly logger: ILogger;
 
+    /**
+     * Creates a new FilterService
+     * @param logger - Logger instance for output
+     */
     constructor(logger: ILogger) {
         this.logger = logger;
     }

@@ -7,9 +7,16 @@ import { SyncTransformation } from './base/Transformation.ts';
  * Also converts /etc/hosts rules to adblock-style rules.
  */
 export class CompressTransformation extends SyncTransformation {
-    public readonly type = TransformationType.Compress;
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.Compress;
+    /** Human-readable name of the transformation */
     public readonly name = 'Compress';
 
+    /**
+     * Executes the compression transformation synchronously.
+     * @param rules - Array of rules to compress
+     * @returns Array of compressed rules
+     */
     public executeSync(rules: string[]): string[] {
         const byHostname: Record<string, boolean> = {};
         const filtered: IBlocklistRule[] = [];

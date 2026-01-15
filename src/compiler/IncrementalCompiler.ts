@@ -48,22 +48,43 @@ export interface ICacheStorage {
 export class MemoryCacheStorage implements ICacheStorage {
     private cache = new Map<string, SourceCacheEntry>();
 
+    /**
+     * Gets a cached entry by key
+     * @param key - Cache key
+     * @returns Cached entry or null if not found
+     */
     async get(key: string): Promise<SourceCacheEntry | null> {
         return this.cache.get(key) ?? null;
     }
 
+    /**
+     * Sets a cached entry
+     * @param key - Cache key
+     * @param entry - Entry to cache
+     */
     async set(key: string, entry: SourceCacheEntry): Promise<void> {
         this.cache.set(key, entry);
     }
 
+    /**
+     * Deletes a cached entry
+     * @param key - Cache key to delete
+     */
     async delete(key: string): Promise<void> {
         this.cache.delete(key);
     }
 
+    /**
+     * Clears all cached entries
+     */
     async clear(): Promise<void> {
         this.cache.clear();
     }
 
+    /**
+     * Lists all cached keys
+     * @returns Array of cache keys
+     */
     async keys(): Promise<string[]> {
         return Array.from(this.cache.keys());
     }
@@ -110,6 +131,10 @@ export class IncrementalCompiler {
     private readonly maxCacheAge: number;
     private readonly forceRefresh: Set<string>;
 
+    /**
+     * Creates a new IncrementalCompiler
+     * @param options - Incremental compilation options
+     */
     constructor(options?: IncrementalCompilerOptions) {
         this.logger = options?.logger ?? defaultLogger;
         this.cache = options?.cache ?? new MemoryCacheStorage();

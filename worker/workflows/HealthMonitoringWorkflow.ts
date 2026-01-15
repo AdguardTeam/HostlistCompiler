@@ -11,13 +11,9 @@
  * - Crash recovery ensures no missed checks
  */
 
-import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
+import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import type { Env } from '../worker.ts';
-import type {
-    HealthMonitoringParams,
-    HealthMonitoringResult,
-    SourceHealthResult,
-} from './types.ts';
+import type { HealthMonitoringParams, HealthMonitoringResult, SourceHealthResult } from './types.ts';
 import { WorkflowEvents } from './WorkflowEvents.ts';
 
 /**
@@ -45,7 +41,7 @@ const DEFAULT_SOURCES = [
         expectedMinRules: 10000,
     },
     {
-        name: 'Peter Lowe\'s List',
+        name: "Peter Lowe's List",
         url: 'https://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&showintro=0',
         expectedMinRules: 2000,
     },
@@ -88,7 +84,7 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
 
         console.log(
             `[WORKFLOW:HEALTH] Starting health monitoring (runId: ${runId}, ` +
-            `sources: ${sourcesToCheck.length}, alertOnFailure: ${alertOnFailure})`,
+                `sources: ${sourcesToCheck.length}, alertOnFailure: ${alertOnFailure})`,
         );
 
         // Emit workflow started event
@@ -190,9 +186,8 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                         result.healthy = true;
                         console.log(
                             `[WORKFLOW:HEALTH] Source "${source.name}" healthy: ` +
-                            `${result.ruleCount} rules, ${result.responseTimeMs}ms`,
+                                `${result.ruleCount} rules, ${result.responseTimeMs}ms`,
                         );
-
                     } catch (error) {
                         result.responseTimeMs = Date.now() - checkStart;
 
@@ -287,7 +282,7 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                 }, async () => {
                     console.warn(
                         `[WORKFLOW:HEALTH] ALERT: Sources with consecutive failures: ` +
-                        alertAnalysis.shouldAlert.join(', '),
+                            alertAnalysis.shouldAlert.join(', '),
                     );
 
                     // In a real implementation, you would send alerts via:
@@ -298,14 +293,18 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
 
                     // For now, we log and store the alert
                     const alertKey = `health:alerts:${runId}`;
-                    await this.env.METRICS.put(alertKey, JSON.stringify({
-                        timestamp: new Date().toISOString(),
-                        runId,
-                        failedSources: alertAnalysis.shouldAlert,
-                        results: results.filter((r) => alertAnalysis.shouldAlert.includes(r.name)),
-                    }), {
-                        expirationTtl: 86400 * 7, // 7 days
-                    });
+                    await this.env.METRICS.put(
+                        alertKey,
+                        JSON.stringify({
+                            timestamp: new Date().toISOString(),
+                            runId,
+                            failedSources: alertAnalysis.shouldAlert,
+                            results: results.filter((r) => alertAnalysis.shouldAlert.includes(r.name)),
+                        }),
+                        {
+                            expirationTtl: 86400 * 7, // 7 days
+                        },
+                    );
 
                     return { sent: true };
                 });
@@ -343,18 +342,22 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                 });
 
                 // Store latest results for quick access
-                await this.env.METRICS.put('health:latest', JSON.stringify({
-                    timestamp: new Date().toISOString(),
-                    runId,
-                    results,
-                    summary: {
-                        total: sourcesToCheck.length,
-                        healthy: healthySources,
-                        unhealthy: unhealthySources,
+                await this.env.METRICS.put(
+                    'health:latest',
+                    JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        runId,
+                        results,
+                        summary: {
+                            total: sourcesToCheck.length,
+                            healthy: healthySources,
+                            unhealthy: unhealthySources,
+                        },
+                    }),
+                    {
+                        expirationTtl: 86400, // 24 hours
                     },
-                }), {
-                    expirationTtl: 86400, // 24 hours
-                });
+                );
 
                 // Update aggregate metrics
                 const metricsKey = 'workflow:health:metrics';
@@ -389,7 +392,7 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                 metrics.lastCheckAt = new Date().toISOString();
                 metrics.avgCheckDurationMs = Math.round(
                     (metrics.avgCheckDurationMs * (metrics.totalChecks - 1) + totalDuration) /
-                    metrics.totalChecks,
+                        metrics.totalChecks,
                 );
 
                 await this.env.METRICS.put(metricsKey, JSON.stringify(metrics), {
@@ -413,7 +416,7 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
 
             console.log(
                 `[WORKFLOW:HEALTH] Health monitoring completed: ${healthySources}/${sourcesToCheck.length} ` +
-                `healthy in ${totalDuration}ms (runId: ${runId})`,
+                    `healthy in ${totalDuration}ms (runId: ${runId})`,
             );
 
             return {
@@ -425,7 +428,6 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                 alertsSent,
                 totalDurationMs: totalDuration,
             };
-
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:HEALTH] Health monitoring failed (runId: ${runId}):`, errorMessage);

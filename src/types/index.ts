@@ -85,7 +85,9 @@ export interface IConfiguration extends IFilterable, ITransformable {
  * Result of configuration validation
  */
 export interface IValidationResult {
+    /** Whether the configuration is valid */
     valid: boolean;
+    /** Error message text if invalid, null if valid */
     errorsText: string | null;
 }
 
@@ -93,7 +95,9 @@ export interface IValidationResult {
  * Represents a rule modifier/option
  */
 export interface IRuleModifier {
+    /** Modifier name (e.g., 'third-party', 'domain') */
     name: string;
+    /** Modifier value, or null if no value */
     value: string | null;
 }
 
@@ -101,8 +105,11 @@ export interface IRuleModifier {
  * Token representation of a parsed adblock rule
  */
 export interface IAdblockRuleTokens {
+    /** The pattern part of the rule */
     pattern: string | null;
+    /** The options/modifiers part of the rule */
     options: string | null;
+    /** Whether this is a whitelist/exception rule */
     whitelist: boolean;
 }
 
@@ -110,7 +117,9 @@ export interface IAdblockRuleTokens {
  * Parsed /etc/hosts rule
  */
 export interface IEtcHostsRule {
+    /** Original rule text */
     ruleText: string;
+    /** List of hostnames in the rule */
     hostnames: string[];
 }
 
@@ -118,10 +127,15 @@ export interface IEtcHostsRule {
  * Parsed adblock-style rule
  */
 export interface IAdblockRule {
+    /** Original rule text */
     ruleText: string;
+    /** Pattern extracted from the rule */
     pattern: string;
+    /** Whether this is a whitelist/exception rule */
     whitelist: boolean;
+    /** Parsed options/modifiers, or null if none */
     options: IRuleModifier[] | null;
+    /** Extracted hostname, or null if not a domain rule */
     hostname: string | null;
 }
 
@@ -129,9 +143,13 @@ export interface IAdblockRule {
  * Blocklist rule for compression
  */
 export interface IBlocklistRule {
+    /** Current rule text (may be modified) */
     ruleText: string;
+    /** Whether the rule can be compressed */
     canCompress: boolean;
+    /** Extracted hostname, or null if not applicable */
     hostname: string | null;
+    /** Original unmodified rule text */
     originalRuleText: string;
 }
 
@@ -140,8 +158,20 @@ export interface IBlocklistRule {
  * Follows Interface Segregation Principle
  */
 export interface IBasicLogger {
+    /**
+     * Log an informational message
+     * @param message - The message to log
+     */
     info(message: string): void;
+    /**
+     * Log a warning message
+     * @param message - The message to log
+     */
     warn(message: string): void;
+    /**
+     * Log an error message
+     * @param message - The message to log
+     */
     error(message: string): void;
 }
 
@@ -150,7 +180,15 @@ export interface IBasicLogger {
  * Extends IBasicLogger for advanced logging needs
  */
 export interface IDetailedLogger extends IBasicLogger {
+    /**
+     * Log a debug message
+     * @param message - The message to log
+     */
     debug(message: string): void;
+    /**
+     * Log a trace message
+     * @param message - The message to log
+     */
     trace(message: string): void;
 }
 
@@ -167,6 +205,11 @@ export interface ILogger extends IDetailedLogger {
  * Allows different downloader implementations
  */
 export interface IDownloader {
+    /**
+     * Download filter rules from a source
+     * @param source - The source URL or path
+     * @returns Promise resolving to array of rules
+     */
     download(source: string): Promise<string[]>;
 }
 
@@ -175,6 +218,13 @@ export interface IDownloader {
  * @deprecated Use IDownloader instead
  */
 export interface IFilterDownloader {
+    /**
+     * Download filter rules from a source
+     * @param source - The source URL or path
+     * @param options - Download options
+     * @param additionalOptions - Additional options
+     * @returns Promise resolving to array of rules
+     */
     download(source: string, options?: object, additionalOptions?: object): Promise<string[]>;
 }
 
@@ -183,8 +233,23 @@ export interface IFilterDownloader {
  * Allows testing and different implementations
  */
 export interface IFileSystem {
+    /**
+     * Read a text file
+     * @param path - The file path
+     * @returns Promise resolving to file contents
+     */
     readTextFile(path: string): Promise<string>;
+    /**
+     * Write a text file
+     * @param path - The file path
+     * @param content - The content to write
+     */
     writeTextFile(path: string, content: string): Promise<void>;
+    /**
+     * Check if a file exists
+     * @param path - The file path
+     * @returns Promise resolving to true if file exists
+     */
     exists(path: string): Promise<boolean>;
 }
 
@@ -193,6 +258,12 @@ export interface IFileSystem {
  * Allows testing and different HTTP implementations
  */
 export interface IHttpClient {
+    /**
+     * Fetch a resource from a URL
+     * @param url - The URL to fetch
+     * @param options - Fetch options
+     * @returns Promise resolving to the Response
+     */
     fetch(url: string, options?: RequestInit): Promise<Response>;
 }
 
@@ -200,6 +271,7 @@ export interface IHttpClient {
  * Options for transformations that can be configured
  */
 export interface ITransformationOptions {
+    /** Whether to allow IP address rules */
     allowIp?: boolean;
 }
 
@@ -207,7 +279,9 @@ export interface ITransformationOptions {
  * Context passed to transformations
  */
 export interface ITransformationContext {
+    /** The configuration or source being processed */
     configuration: IConfiguration | ISource;
+    /** Logger instance for output */
     logger: ILogger;
 }
 

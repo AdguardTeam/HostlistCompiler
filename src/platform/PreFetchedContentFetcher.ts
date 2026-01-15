@@ -12,6 +12,10 @@ import type { IContentFetcher, PreFetchedContent } from './types.ts';
 export class PreFetchedContentFetcher implements IContentFetcher {
     private readonly contentMap: Map<string, string>;
 
+    /**
+     * Creates a new PreFetchedContentFetcher
+     * @param content - Pre-fetched content mapping
+     */
     constructor(content: PreFetchedContent) {
         // Normalize to Map for consistent access
         if (content instanceof Map) {

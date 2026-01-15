@@ -7,16 +7,28 @@ import { AsyncTransformation } from './base/Transformation.ts';
  * Transformation that excludes rules matching specified patterns.
  */
 export class ExcludeTransformation extends AsyncTransformation {
-    public readonly type = TransformationType.Deduplicate; // Not used directly
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.Deduplicate; // Not used directly
+    /** Human-readable name of the transformation */
     public readonly name = 'Exclude';
 
     private readonly filterService: FilterService;
 
+    /**
+     * Creates a new ExcludeTransformation
+     * @param logger - Logger instance for output
+     */
     constructor(logger?: ILogger) {
         super(logger);
         this.filterService = new FilterService(this.logger);
     }
 
+    /**
+     * Excludes rules matching specified patterns.
+     * @param rules - Array of rules to process
+     * @param context - Transformation context with exclusions
+     * @returns Array with excluded rules removed
+     */
     public async execute(rules: string[], context?: ITransformationContext): Promise<string[]> {
         const exclusions = context?.configuration?.exclusions;
         const exclusionsSources = context?.configuration?.exclusions_sources;

@@ -12,6 +12,10 @@ import type { IContentFetcher } from './types.ts';
 export class CompositeFetcher implements IContentFetcher {
     private readonly fetchers: IContentFetcher[];
 
+    /**
+     * Creates a new CompositeFetcher
+     * @param fetchers - Array of content fetchers to try in order
+     */
     constructor(fetchers: IContentFetcher[]) {
         this.fetchers = fetchers;
     }

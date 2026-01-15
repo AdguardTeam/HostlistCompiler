@@ -163,8 +163,18 @@ export class HeaderGenerator {
         return metadata;
     }
 
-    // Static methods for convenience
+    /**
+     * Static convenience method to prepare a filter list header
+     * @param config - Configuration containing header information
+     * @param options - Optional header generation options
+     * @returns Array of header lines
+     */
     static prepareHeader = (config: IConfiguration, options?: HeaderOptions): string[] => new HeaderGenerator().generateListHeader(config, options);
 
+    /**
+     * Static convenience method to prepare a source header
+     * @param source - Source to generate header for
+     * @returns Array of header lines
+     */
     static prepareSourceHeader = (source: ISource): string[] => new HeaderGenerator().generateSourceHeader(source);
 }

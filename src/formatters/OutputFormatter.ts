@@ -36,11 +36,17 @@ export interface FormatterResult {
 }
 
 /**
- * Base class for output formatters
+ * Base class for output formatters.
+ * Extend this class to create custom output formatters.
  */
-abstract class BaseFormatter {
+export abstract class BaseFormatter {
+    /** Formatter options */
     protected readonly options: FormatterOptions;
 
+    /**
+     * Creates a new formatter
+     * @param options - Formatter options
+     */
     constructor(options?: FormatterOptions) {
         this.options = {
             includeHeader: true,
@@ -112,6 +118,11 @@ abstract class BaseFormatter {
  * Formats rules to /etc/hosts format
  */
 export class HostsFormatter extends BaseFormatter {
+    /**
+     * Formats rules to hosts file format
+     * @param rules - Array of rules to format
+     * @returns Formatter result
+     */
     format(rules: string[]): FormatterResult {
         const lines: string[] = [];
         let ruleCount = 0;
@@ -154,6 +165,11 @@ export class HostsFormatter extends BaseFormatter {
  * Formats rules to dnsmasq format
  */
 export class DnsmasqFormatter extends BaseFormatter {
+    /**
+     * Formats rules to dnsmasq format
+     * @param rules - Array of rules to format
+     * @returns Formatted result
+     */
     format(rules: string[]): FormatterResult {
         const lines: string[] = [];
         let ruleCount = 0;
@@ -189,6 +205,11 @@ export class DnsmasqFormatter extends BaseFormatter {
  * Formats rules to Pi-hole format (domain list)
  */
 export class PiHoleFormatter extends BaseFormatter {
+    /**
+     * Formats rules to Pi-hole domain list format
+     * @param rules - Array of rules to format
+     * @returns Formatted result
+     */
     format(rules: string[]): FormatterResult {
         const lines: string[] = [];
         let ruleCount = 0;
@@ -224,6 +245,11 @@ export class PiHoleFormatter extends BaseFormatter {
  * Formats rules to Unbound DNS resolver format
  */
 export class UnboundFormatter extends BaseFormatter {
+    /**
+     * Formats rules to Unbound DNS resolver format
+     * @param rules - Array of rules to format
+     * @returns Formatted result
+     */
     format(rules: string[]): FormatterResult {
         const lines: string[] = [];
         let ruleCount = 0;
@@ -261,6 +287,11 @@ export class UnboundFormatter extends BaseFormatter {
  * Formats rules to JSON format
  */
 export class JsonFormatter extends BaseFormatter {
+    /**
+     * Formats rules to JSON format
+     * @param rules - Array of rules to format
+     * @returns Formatted result
+     */
     format(rules: string[]): FormatterResult {
         const hostnames: string[] = [];
         const allRules: string[] = [];
@@ -310,6 +341,11 @@ export class JsonFormatter extends BaseFormatter {
  * Formats rules to DNS-over-HTTPS blocklist format
  */
 export class DoHFormatter extends BaseFormatter {
+    /**
+     * Formats rules to DNS-over-HTTPS blocklist format
+     * @param rules - Array of rules to format
+     * @returns Formatted result
+     */
     format(rules: string[]): FormatterResult {
         const lines: string[] = [];
         let ruleCount = 0;
@@ -342,6 +378,11 @@ export class DoHFormatter extends BaseFormatter {
  * Adblock format passthrough (no conversion)
  */
 export class AdblockFormatter extends BaseFormatter {
+    /**
+     * Formats rules in adblock format (passthrough)
+     * @param rules - Array of rules to format
+     * @returns Formatted result
+     */
     format(rules: string[]): FormatterResult {
         return {
             content: rules.join('\n'),

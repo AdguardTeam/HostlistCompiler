@@ -19,6 +19,10 @@ export class HttpFetcher implements IContentFetcher {
     private readonly options: Required<Omit<IHttpFetcherOptions, 'headers'>>;
     private readonly headers: Record<string, string>;
 
+    /**
+     * Creates a new HttpFetcher
+     * @param options - HTTP fetcher options
+     */
     constructor(options?: IHttpFetcherOptions) {
         this.options = { ...DEFAULT_OPTIONS, ...options };
         this.headers = options?.headers ?? {};

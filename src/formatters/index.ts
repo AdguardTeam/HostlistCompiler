@@ -4,6 +4,7 @@
 
 export {
     AdblockFormatter,
+    BaseFormatter,
     createFormatter,
     DnsmasqFormatter,
     DoHFormatter,

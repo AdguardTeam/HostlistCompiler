@@ -7,9 +7,16 @@ import { SyncTransformation } from './base/Transformation.ts';
  * Comments are lines starting with ! or #
  */
 export class RemoveCommentsTransformation extends SyncTransformation {
-    public readonly type = TransformationType.RemoveComments;
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.RemoveComments;
+    /** Human-readable name of the transformation */
     public readonly name = 'RemoveComments';
 
+    /**
+     * Removes all comment lines from the rules.
+     * @param rules - Array of rules to process
+     * @returns Array with comments removed
+     */
     public executeSync(rules: string[]): string[] {
         const filtered = rules.filter((rule) => !RuleUtils.isComment(rule));
         this.info(`Removed ${rules.length - filtered.length} comments`);

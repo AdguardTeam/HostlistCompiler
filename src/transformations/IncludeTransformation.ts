@@ -7,16 +7,28 @@ import { AsyncTransformation } from './base/Transformation.ts';
  * Transformation that includes only rules matching specified patterns.
  */
 export class IncludeTransformation extends AsyncTransformation {
-    public readonly type = TransformationType.Deduplicate; // Not used directly
+    /** The transformation type identifier */
+    public readonly type: TransformationType = TransformationType.Deduplicate; // Not used directly
+    /** Human-readable name of the transformation */
     public readonly name = 'Include';
 
     private readonly filterService: FilterService;
 
+    /**
+     * Creates a new IncludeTransformation
+     * @param logger - Logger instance for output
+     */
     constructor(logger?: ILogger) {
         super(logger);
         this.filterService = new FilterService(this.logger);
     }
 
+    /**
+     * Includes only rules matching specified patterns.
+     * @param rules - Array of rules to process
+     * @param context - Transformation context with inclusions
+     * @returns Array with only matching rules
+     */
     public async execute(rules: string[], context?: ITransformationContext): Promise<string[]> {
         const inclusions = context?.configuration?.inclusions;
         const inclusionsSources = context?.configuration?.inclusions_sources;

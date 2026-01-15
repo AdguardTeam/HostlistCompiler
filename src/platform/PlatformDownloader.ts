@@ -161,6 +161,12 @@ export class PlatformDownloader {
     private readonly fetcher: IContentFetcher;
     private readonly visitedUrls: Set<string> = new Set();
 
+    /**
+     * Creates a new PlatformDownloader
+     * @param fetcher - Optional content fetcher
+     * @param options - Optional downloader options
+     * @param logger - Optional logger instance
+     */
     constructor(
         fetcher?: IContentFetcher,
         options?: PlatformDownloaderOptions,

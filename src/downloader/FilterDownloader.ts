@@ -85,6 +85,11 @@ export class FilterDownloader {
     private readonly logger: ILogger;
     private readonly visitedUrls: Set<string> = new Set();
 
+    /**
+     * Creates a new FilterDownloader
+     * @param options - Downloader options
+     * @param logger - Logger instance for output
+     */
     constructor(options?: DownloaderOptions, logger?: ILogger) {
         this.options = { ...DEFAULT_OPTIONS, ...options };
         this.logger = logger ?? silentLogger;

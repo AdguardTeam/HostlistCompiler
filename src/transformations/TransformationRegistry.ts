@@ -21,6 +21,10 @@ export class TransformationRegistry {
     private readonly transformations: Map<TransformationType, Transformation>;
     private readonly logger: ILogger;
 
+    /**
+     * Creates a new TransformationRegistry
+     * @param logger - Logger instance for output
+     */
     constructor(logger?: ILogger) {
         this.logger = logger || defaultLogger;
         this.transformations = new Map();
@@ -82,6 +86,12 @@ export class TransformationPipeline {
     private readonly filterService: FilterService;
     private readonly eventEmitter: CompilerEventEmitter;
 
+    /**
+     * Creates a new TransformationPipeline
+     * @param registry - Optional transformation registry
+     * @param logger - Optional logger instance
+     * @param eventEmitter - Optional event emitter
+     */
     constructor(registry?: TransformationRegistry, logger?: ILogger, eventEmitter?: CompilerEventEmitter) {
         this.logger = logger || defaultLogger;
         this.registry = registry || new TransformationRegistry(this.logger);
