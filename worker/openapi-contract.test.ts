@@ -3,6 +3,9 @@
  *
  * These tests validate that the actual API responses conform to the OpenAPI specification.
  * Run these tests against a live server to ensure contract compliance.
+ *
+ * To run these tests: deno task test:contract
+ * Or set SKIP_CONTRACT_TESTS=false to include them in regular test runs
  */
 
 import { assertEquals, assertExists } from '@std/assert';
@@ -11,8 +14,10 @@ import type { ApiInfo, BatchCompileResponse, CompileResponse, MetricsResponse, Q
 
 const BASE_URL = Deno.env.get('API_BASE_URL') || 'http://localhost:8787';
 const OPENAPI_PATH = './openapi.yaml';
+const SKIP_CONTRACT_TESTS = Deno.env.get('SKIP_CONTRACT_TESTS') !== 'false';
 
 // Load OpenAPI spec
+// deno-lint-ignore no-explicit-any
 let openApiSpec: any;
 
 async function loadOpenAPISpec() {
@@ -40,6 +45,7 @@ function validateResponseStatus(response: Response, expectedStatuses: number[]) 
 }
 
 // Helper to validate JSON schema (basic validation)
+// deno-lint-ignore no-explicit-any
 function validateBasicSchema(data: any, requiredFields: string[]) {
     for (const field of requiredFields) {
         assertExists(data[field], `Missing required field: ${field}`);
@@ -48,6 +54,7 @@ function validateBasicSchema(data: any, requiredFields: string[]) {
 
 Deno.test({
     name: 'Contract: GET /api - Returns API info',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const spec = await loadOpenAPISpec();
         const response = await apiRequest('/api');
@@ -64,6 +71,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: GET /metrics - Returns performance metrics',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const response = await apiRequest('/metrics');
 
@@ -77,6 +85,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: POST /compile - Simple compilation',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const requestBody = {
             configuration: {
@@ -119,6 +128,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: POST /compile - With benchmark',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const requestBody = {
             configuration: {
@@ -155,6 +165,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: POST /compile - Invalid configuration returns 500',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const requestBody = {
             configuration: {
@@ -179,6 +190,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: POST /compile/batch - Batch compilation',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const requestBody = {
             requests: [
@@ -239,6 +251,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: POST /compile/batch - Exceeds max limit (>10)',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const requests = Array.from({ length: 11 }, (_, i) => ({
             id: `list${i + 1}`,
@@ -264,6 +277,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: POST /compile/stream - SSE streaming',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const requestBody = {
             configuration: {
@@ -314,6 +328,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: GET /queue/stats - Queue statistics',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const response = await apiRequest('/queue/stats');
 
@@ -330,6 +345,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: POST /compile/async - Queue async job',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const requestBody = {
             configuration: {
@@ -364,6 +380,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: GET /queue/results/{requestId} - Not found',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const fakeRequestId = 'nonexistent-request-id';
         const response = await apiRequest(`/queue/results/${fakeRequestId}`);
@@ -375,6 +392,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: Response headers - CORS',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const response = await apiRequest('/api');
 
@@ -388,6 +406,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: Validate transformation types',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const spec = await loadOpenAPISpec();
         const transformationEnum = spec.components.schemas.Transformation.enum;
@@ -419,6 +438,7 @@ Deno.test({
 
 Deno.test({
     name: 'Contract: Cache behavior - Deduplication header',
+    ignore: SKIP_CONTRACT_TESTS,
     async fn() {
         const requestBody = {
             configuration: {
