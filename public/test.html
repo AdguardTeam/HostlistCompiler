@@ -29,6 +29,12 @@
             border-bottom: 2px solid var(--primary);
             padding-bottom: 10px;
         }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
         .endpoint {
             color: var(--text-muted);
             font-size: 14px;
@@ -44,8 +50,6 @@
             border-radius: 4px;
             margin-bottom: 10px;
             box-sizing: border-box;
-            background: var(--input-bg);
-            color: var(--text-color);
         }
         textarea.small {
             min-height: 100px;
@@ -127,6 +131,15 @@
         }
         .stat-card.error {
             border-left-color: var(--danger);
+        }
+        .stat-card.success {
+            border-left-color: #28a745;
+        }
+        .stat-card.warning {
+            border-left-color: #ffc107;
+        }
+        .stat-card.error {
+            border-left-color: #dc3545;
         }
         .stat-label {
             font-size: 12px;
@@ -284,6 +297,8 @@
                 </button>
             </div>
         </div>
+        <h1>🛡️ Hostlist Compiler Worker Test</h1>
+        <div class="endpoint" id="worker-endpoint">Testing current deployment</div>
 
         <!-- Tabs -->
         <div class="tabs">

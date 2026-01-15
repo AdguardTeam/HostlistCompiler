@@ -91,14 +91,6 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                 `sources: ${sourcesToCheck.length}, alertOnFailure: ${alertOnFailure})`,
         );
 
-        // Track workflow started via Analytics Engine
-        analytics.trackWorkflowStarted({
-            requestId: runId,
-            workflowId: runId,
-            workflowType: 'health-monitoring',
-            itemCount: sourcesToCheck.length,
-        });
-
         // Emit workflow started event
         await events.emitWorkflowStarted({
             sourceCount: sourcesToCheck.length,
@@ -426,16 +418,6 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                 totalDurationMs: totalDuration,
             });
 
-            // Track workflow completed via Analytics Engine
-            analytics.trackWorkflowCompleted({
-                requestId: runId,
-                workflowId: runId,
-                workflowType: 'health-monitoring',
-                durationMs: totalDuration,
-                itemCount: sourcesToCheck.length,
-                successCount: healthySources,
-            });
-
             console.log(
                 `[WORKFLOW:HEALTH] Health monitoring completed: ${healthySources}/${sourcesToCheck.length} ` +
                     `healthy in ${totalDuration}ms (runId: ${runId})`,
@@ -453,15 +435,6 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:HEALTH] Health monitoring failed (runId: ${runId}):`, errorMessage);
-
-            // Track workflow failed via Analytics Engine
-            analytics.trackWorkflowFailed({
-                requestId: runId,
-                workflowId: runId,
-                workflowType: 'health-monitoring',
-                durationMs: Date.now() - startTime,
-                error: errorMessage,
-            });
 
             // Emit workflow failed event
             await events.emitWorkflowFailed(errorMessage, {

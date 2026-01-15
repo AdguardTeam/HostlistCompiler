@@ -353,24 +353,6 @@ export class CompilationWorkflow extends WorkflowEntrypoint<Env, CompilationPara
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`[WORKFLOW:COMPILE] Workflow failed for "${configuration.name}":`, errorMessage);
 
-            // Track workflow failed via Analytics Engine
-            analytics.trackWorkflowFailed({
-                requestId,
-                workflowId: requestId,
-                workflowType: 'compilation',
-                durationMs: Date.now() - startTime,
-                error: errorMessage,
-            });
-
-            // Track compilation error
-            analytics.trackCompilationError({
-                requestId,
-                configName: configuration.name,
-                sourceCount: configuration.sources.length,
-                durationMs: Date.now() - startTime,
-                error: errorMessage,
-            });
-
             // Emit workflow failed event
             await events.emitWorkflowFailed(errorMessage, {
                 configName: configuration.name,
