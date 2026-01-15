@@ -57,7 +57,7 @@ tag = "v1"
 [vars]
 COMPILER_VERSION = "0.8.3"
 TURNSTILE_SITE_KEY = "0x4AAAAAACMKiPZdJh8I8IEM"
-ADMIN_KEY = "12345678"
+# ADMIN_KEY is managed via Cloudflare secrets (wrangler secret put ADMIN_KEY)
 
 [[d1_databases]]
 binding = "DB"
