@@ -7,6 +7,7 @@
 
 import { assertEquals, assertExists } from '@std/assert';
 import { parse } from 'https://deno.land/std@0.224.0/yaml/mod.ts';
+import type { ApiInfo, BatchCompileResponse, CompileResponse, MetricsResponse, QueueResponse, QueueStats } from './openapi-types.ts';
 
 const BASE_URL = Deno.env.get('API_BASE_URL') || 'http://localhost:8787';
 const OPENAPI_PATH = './openapi.yaml';
@@ -54,7 +55,7 @@ Deno.test({
         validateResponseStatus(response, [200]);
         assertEquals(response.headers.get('content-type')?.includes('application/json'), true);
 
-        const data = await response.json();
+        const data: ApiInfo = await response.json();
         validateBasicSchema(data, ['name', 'version', 'endpoints']);
 
         assertEquals(data.name, spec.info.title);
@@ -69,7 +70,7 @@ Deno.test({
         validateResponseStatus(response, [200]);
         assertEquals(response.headers.get('content-type')?.includes('application/json'), true);
 
-        const data = await response.json();
+        const data: MetricsResponse = await response.json();
         validateBasicSchema(data, ['window', 'timestamp', 'endpoints']);
     },
 });
@@ -107,7 +108,7 @@ Deno.test({
             assertEquals(['HIT', 'MISS'].includes(cacheHeader), true);
         }
 
-        const data = await response.json();
+        const data: CompileResponse = await response.json();
         validateBasicSchema(data, ['success', 'rules', 'ruleCount', 'compiledAt']);
 
         assertEquals(data.success, true);
@@ -142,7 +143,7 @@ Deno.test({
 
         validateResponseStatus(response, [200]);
 
-        const data = await response.json();
+        const data: CompileResponse = await response.json();
         validateBasicSchema(data, ['success', 'rules', 'metrics']);
 
         // Validate metrics structure
@@ -170,7 +171,7 @@ Deno.test({
 
         validateResponseStatus(response, [500]);
 
-        const data = await response.json();
+        const data: CompileResponse = await response.json();
         assertEquals(data.success, false);
         assertExists(data.error);
     },
@@ -220,15 +221,15 @@ Deno.test({
 
         validateResponseStatus(response, [200]);
 
-        const data = await response.json();
+        const data: BatchCompileResponse = await response.json();
         validateBasicSchema(data, ['success', 'results']);
 
         assertEquals(data.success, true);
         assertEquals(Array.isArray(data.results), true);
-        assertEquals(data.results.length, 2);
+        assertEquals(data.results?.length, 2);
 
         // Validate each result
-        data.results.forEach((result: any) => {
+        data.results?.forEach((result: CompileResponse & { id: string }) => {
             assertExists(result.id);
             assertExists(result.rules);
             assertEquals(Array.isArray(result.rules), true);
@@ -318,7 +319,7 @@ Deno.test({
 
         validateResponseStatus(response, [200]);
 
-        const data = await response.json();
+        const data: QueueStats = await response.json();
         validateBasicSchema(data, ['pending', 'completed', 'failed']);
 
         assertEquals(typeof data.pending, 'number');
@@ -354,7 +355,7 @@ Deno.test({
         validateResponseStatus(response, [202, 500]);
 
         if (response.status === 202) {
-            const data = await response.json();
+            const data: QueueResponse = await response.json();
             validateBasicSchema(data, ['success', 'requestId', 'message']);
             assertEquals(data.success, true);
         }
@@ -411,7 +412,7 @@ Deno.test({
 
         validateResponseStatus(response, [200]);
 
-        const data = await response.json();
+        const data: CompileResponse = await response.json();
         assertEquals(data.success, true);
     },
 });
