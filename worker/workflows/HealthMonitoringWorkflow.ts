@@ -11,6 +11,8 @@
  * - Crash recovery ensures no missed checks
  */
 
+/// <reference types="@cloudflare/workers-types" />
+
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
 import type { Env } from '../worker.ts';

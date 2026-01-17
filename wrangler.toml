@@ -46,23 +46,26 @@ bucket_name = "adblock-compiler-r2-storage"
 [[durable_objects.bindings]]
 class_name = "AdblockCompiler"
 name = "ADBLOCK_COMPILER"
+
+[[durable_objects.bindings]]
+name = "MCP_OBJECT"
+class_name = "PlaywrightMCP"
+
+# Containers configuration for AdblockCompiler
 [[containers]]
 class_name = "AdblockCompiler"
 image = "./Dockerfile"
 max_instances = 5
 instance_type = "basic"
 
-[[durable_objects.bindings]]
-name = "MCP_OBJECT"
-class_name = "PlaywrightMCP"
-
+# Database migrations - each must have a unique tag
 [[migrations]]
 new_sqlite_classes = ["AdblockCompiler"]
 tag = "v1"
 
 [[migrations]]
-tag = "v1"
 new_sqlite_classes = ["PlaywrightMCP"]
+tag = "v2"
 
 # Environment variables
 [vars]

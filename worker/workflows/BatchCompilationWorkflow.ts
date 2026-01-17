@@ -11,6 +11,8 @@
  * - Built-in concurrency control
  */
 
+/// <reference types="@cloudflare/workers-types" />
+
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { createTracingContext, WorkerCompiler } from '../../src/index.ts';
 import { AnalyticsService } from '../../src/services/AnalyticsService.ts';

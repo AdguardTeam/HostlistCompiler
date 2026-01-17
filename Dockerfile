@@ -44,8 +44,8 @@ COPY package.json package-lock.json ./
 # Install npm dependencies (Wrangler)
 RUN npm ci --omit=dev
 
-# Copy Deno configuration (deno.lock excluded as it's not tracked in this repo)
-COPY deno.json ./
+# Copy Deno configuration
+COPY deno.json deno.lock ./
 
 # Copy source files
 COPY src ./src
@@ -72,7 +72,7 @@ RUN apt-get update && apt-get install -y curl --no-install-recommends && \
 COPY --from=builder /app/node_modules ./node_modules
 
 # Copy all application files
-COPY --from=builder /app/deno.json ./
+COPY --from=builder /app/deno.json /app/deno.lock ./
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/worker ./worker
 COPY --from=builder /app/public ./public

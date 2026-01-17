@@ -11,6 +11,8 @@
  * - Built-in progress tracking and metrics
  */
 
+/// <reference types="@cloudflare/workers-types" />
+
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { createTracingContext, type IConfiguration, TransformationType, WorkerCompiler } from '../../src/index.ts';
 import type { Env } from '../worker.ts';

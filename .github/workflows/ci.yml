@@ -55,6 +55,16 @@ jobs:
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
+            - name: Cache Deno dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
             - name: Format check
               run: deno fmt --check
 
@@ -136,7 +146,7 @@ jobs:
             - uses: actions/checkout@v4
 
             - name: Run Trivy vulnerability scanner
-              uses: aquasecurity/trivy-action@master
+              uses: aquasecurity/trivy-action@0.33.1
               with:
                   scan-type: fs
                   scan-ref: .
@@ -230,9 +240,8 @@ jobs:
               run: wrangler deploy
 
             - name: Deploy Pages
-              uses: cloudflare/pages-action@v1
+              uses: cloudflare/wrangler-action@v3
               with:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-                  projectName: hostlist-compiler-ui
-                  directory: public
+                  command: pages deploy public --project-name=hostlist-compiler-ui
