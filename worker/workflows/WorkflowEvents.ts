@@ -15,6 +15,8 @@
  * ```
  */
 
+/// <reference types="@cloudflare/workers-types" />
+
 import type { WorkflowEventLog, WorkflowEventType, WorkflowProgressEvent } from './types.ts';
 
 /**
