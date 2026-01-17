@@ -1,9 +1,6 @@
 name: Version Bump
 
 on:
-    pull_request:
-        types: [opened]
-        branches: [master, main]
     workflow_dispatch:
         inputs:
             bump_type:
@@ -23,15 +20,12 @@ on:
 
 permissions:
     contents: write
-    pull-requests: write
+    actions: write
 
 jobs:
     bump:
         name: Bump Version
         runs-on: ubuntu-latest
-        if: |
-            github.actor != 'github-actions[bot]' &&
-            github.actor != 'dependabot[bot]'
         outputs:
             old_version: ${{ steps.bump.outputs.old }}
             new_version: ${{ steps.bump.outputs.new }}
@@ -39,7 +33,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
-                  ref: ${{ github.head_ref || github.ref }}
+                  ref: ${{ github.ref }}
                   token: ${{ secrets.GITHUB_TOKEN }}
                   fetch-depth: 0
 
@@ -48,68 +42,74 @@ jobs:
               with:
                   deno-version: '2.x'
 
-            - name: Bump version in all files
+            - name: Bump version
               id: bump
               run: |
                   set -euo pipefail
-                  # Get current version
+                  
+                  # Get current version from deno.json
                   OLD=$(deno eval "console.log(JSON.parse(Deno.readTextFileSync('deno.json')).version)")
                   echo "old=$OLD" >> "$GITHUB_OUTPUT"
 
-                  # Calculate new version based on bump type
+                  # Parse version components
                   IFS='.' read -r major minor patch <<< "$OLD"
 
-                  BUMP_TYPE="${{ inputs.bump_type || 'patch' }}"
-                  if [ "$BUMP_TYPE" = "major" ]; then
-                    NEW="$((major + 1)).0.0"
-                  elif [ "$BUMP_TYPE" = "minor" ]; then
-                    NEW="$major.$((minor + 1)).0"
-                  elif [ "$BUMP_TYPE" = "patch" ]; then
-                    NEW="$major.$minor.$((patch + 1))"
-                  else
-                    echo "Warning: Unknown bump type '$BUMP_TYPE', defaulting to patch" >&2
-                    NEW="$major.$minor.$((patch + 1))"
-                  fi
+                  # Calculate new version
+                  BUMP_TYPE="${{ inputs.bump_type }}"
+                  case "$BUMP_TYPE" in
+                    major)
+                      NEW="$((major + 1)).0.0"
+                      ;;
+                    minor)
+                      NEW="$major.$((minor + 1)).0"
+                      ;;
+                    patch)
+                      NEW="$major.$minor.$((patch + 1))"
+                      ;;
+                    *)
+                      echo "Error: Unknown bump type '$BUMP_TYPE'" >&2
+                      exit 1
+                      ;;
+                  esac
+                  
                   echo "new=$NEW" >> "$GITHUB_OUTPUT"
-
-                  echo "Bumping version: $OLD -> $NEW ($BUMP_TYPE)"
+                  echo "Bumping version: $OLD → $NEW ($BUMP_TYPE)"
 
                   # Update deno.json
                   deno eval "
-                    const c = JSON.parse(Deno.readTextFileSync('deno.json'));
-                    c.version = '${NEW}';
-                    Deno.writeTextFileSync('deno.json', JSON.stringify(c, null, 4) + '\n');
+                    const config = JSON.parse(Deno.readTextFileSync('deno.json'));
+                    config.version = '${NEW}';
+                    Deno.writeTextFileSync('deno.json', JSON.stringify(config, null, 4) + '\n');
                   "
 
-                  # Update package.json if exists
-                  [ -f package.json ] && deno eval "
-                    const p = JSON.parse(Deno.readTextFileSync('package.json'));
-                    p.version = '${NEW}';
-                    Deno.writeTextFileSync('package.json', JSON.stringify(p, null, 4) + '\n');
-                  "
+                  # Update package.json
+                  if [ -f package.json ]; then
+                    deno eval "
+                      const pkg = JSON.parse(Deno.readTextFileSync('package.json'));
+                      pkg.version = '${NEW}';
+                      Deno.writeTextFileSync('package.json', JSON.stringify(pkg, null, 4) + '\n');
+                    "
+                  fi
 
-                  # Update src/version.ts if exists
-                  # Note: sed -i is used here and behaves differently on macOS vs Linux.
-                  # This workflow runs on ubuntu-latest, so the Linux behavior is expected.
-                  [ -f src/version.ts ] && sed -i "s/VERSION = '[^']*'/VERSION = '$NEW'/" src/version.ts
+                  # Update src/version.ts
+                  if [ -f src/version.ts ]; then
+                    sed -i "s/VERSION = '[^']*'/VERSION = '$NEW'/" src/version.ts
+                  fi
 
-                  # Update wrangler.toml if exists
-                  [ -f wrangler.toml ] && sed -i "s/COMPILER_VERSION = \"[^\"]*\"/COMPILER_VERSION = \"$NEW\"/" wrangler.toml
+                  # Update wrangler.toml
+                  if [ -f wrangler.toml ]; then
+                    sed -i "s/COMPILER_VERSION = \"[^\"]*\"/COMPILER_VERSION = \"$NEW\"/" wrangler.toml
+                  fi
 
-                  # Update examples/cloudflare-worker/package.json if exists
-                  [ -f examples/cloudflare-worker/package.json ] && deno eval "
-                    const p = JSON.parse(Deno.readTextFileSync('examples/cloudflare-worker/package.json'));
-                    p.version = '${NEW}';
-                    Deno.writeTextFileSync('examples/cloudflare-worker/package.json', JSON.stringify(p, null, 2) + '\n');
-                  "
+                  echo "Version bumped successfully: $OLD → $NEW"
 
-                  # Update examples/cloudflare-worker/wrangler.toml if exists
-                  [ -f examples/cloudflare-worker/wrangler.toml ] && sed -i "s/COMPILER_VERSION = \"[^\"]*\"/COMPILER_VERSION = \"$NEW\"/" examples/cloudflare-worker/wrangler.toml
-
-                  # Update docker-compose.yml if exists
-                  [ -f docker-compose.yml ] && sed -i "s/COMPILER_VERSION=[0-9.]\+/COMPILER_VERSION=$NEW/" docker-compose.yml
-
-                  echo "Bumped version: $OLD -> $NEW"
+            - name: Verify changes
+              run: |
+                  echo "Changed files:"
+                  git diff --name-only
+                  echo ""
+                  echo "Version in deno.json:"
+                  deno eval "console.log(JSON.parse(Deno.readTextFileSync('deno.json')).version)"
 
             - name: Commit and push
               run: |
@@ -117,31 +117,23 @@ jobs:
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
                   if git diff --quiet; then
-                    echo "No changes detected; skipping version bump commit and push."
+                    echo "No changes detected"
                     exit 0
                   fi
 
-                  git add -A
+                  # Only add files that were modified and exist
+                  git add deno.json package.json 2>/dev/null || true
+                  [ -f src/version.ts ] && git add src/version.ts
+                  [ -f wrangler.toml ] && git add wrangler.toml
+                  
                   git commit -m "chore: bump version to ${{ steps.bump.outputs.new }}"
                   git push
-
-            - name: Comment on PR
-              if: github.event_name == 'pull_request'
-              uses: actions/github-script@v7
-              with:
-                  script: |
-                      github.rest.issues.createComment({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        issue_number: context.issue.number,
-                        body: 'Version bumped: `${{ steps.bump.outputs.old }}` -> `${{ steps.bump.outputs.new }}`'
-                      })
 
     trigger-release:
         name: Trigger Release
         runs-on: ubuntu-latest
         needs: bump
-        if: inputs.create_release == true && github.event_name == 'workflow_dispatch'
+        if: inputs.create_release == true
         permissions:
             actions: write
         steps:
@@ -149,7 +141,7 @@ jobs:
               uses: actions/github-script@v7
               with:
                   script: |
-                      github.rest.actions.createWorkflowDispatch({
+                      await github.rest.actions.createWorkflowDispatch({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         workflow_id: 'release.yml',
@@ -158,3 +150,5 @@ jobs:
                           version: '${{ needs.bump.outputs.new_version }}'
                         }
                       })
+                      console.log('Release workflow triggered for version ${{ needs.bump.outputs.new_version }}')
+

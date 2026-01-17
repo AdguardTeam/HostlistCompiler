@@ -19,9 +19,39 @@ permissions:
     packages: write
 
 jobs:
+    # Validate before building anything
+    validate:
+        name: Validate Release
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
+            - name: Cache Deno dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
+            - name: Run validation
+              run: |
+                  deno fmt --check
+                  deno lint
+                  deno check src/index.ts src/cli.ts
+                  deno test --allow-read --allow-write --allow-net --allow-env
+
     build-binaries:
         name: Build ${{ matrix.target }}
         runs-on: ${{ matrix.os }}
+        needs: validate
         strategy:
             fail-fast: false
             matrix:
@@ -29,11 +59,6 @@ jobs:
                     - target: x86_64-unknown-linux-gnu
                       os: ubuntu-latest
                       artifact: hostlist-compiler-linux-x64
-                    # Cross-compilation for ARM64 Linux. GitHub's ubuntu-latest runners do not
-                    # include an aarch64 cross-compilation toolchain by default. If this target
-                    # fails with linker or toolchain errors, either add a preceding setup step
-                    # to install the required aarch64 toolchain on ubuntu-latest, or temporarily
-                    # remove/disable this matrix entry when ARM64 Linux binaries are not needed.
                     - target: aarch64-unknown-linux-gnu
                       os: ubuntu-latest
                       artifact: hostlist-compiler-linux-arm64
@@ -54,6 +79,17 @@ jobs:
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
+            - name: Cache Deno dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-${{ matrix.target }}-
+                      deno-${{ runner.os }}-
+
             - name: Build binary
               run: deno compile --allow-read --allow-write --allow-net --target ${{ matrix.target }} --output ${{ matrix.artifact }} src/cli.ts
 
@@ -67,6 +103,7 @@ jobs:
     build-docker:
         name: Build Docker Image
         runs-on: ubuntu-latest
+        needs: validate
         permissions:
             contents: read
             packages: write
@@ -98,6 +135,9 @@ jobs:
               with:
                   context: .
                   push: true
+                  # Multi-platform build includes ARM64 which uses QEMU emulation and builds slower
+                  # To speed up builds, change to: platforms: linux/amd64
+                  platforms: linux/amd64,linux/arm64
                   tags: |
                       ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
                       ghcr.io/${{ github.repository }}:latest
@@ -106,9 +146,6 @@ jobs:
                       org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
-                  # Multi-platform build with QEMU emulation; linux/arm64 may build significantly slower.
-                  # If you do not need ARM64 images and want faster builds, change the line below to: platforms: linux/amd64
-                  platforms: linux/amd64,linux/arm64
 
     create-release:
         name: Create GitHub Release
@@ -138,13 +175,14 @@ jobs:
               run: |
                   set -euo pipefail
                   mkdir -p release
+                  # Copy all artifacts, preserving directory structure to avoid conflicts
                   for dir in artifacts/*/; do
                     artifact_name=$(basename "$dir")
                     if [ -f "$dir$artifact_name" ]; then
                       cp "$dir$artifact_name" "release/$artifact_name"
                     fi
                   done
-                  ls -la release/
+                  ls -lah release/
 
             - name: Generate release notes
               id: notes

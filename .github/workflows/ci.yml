@@ -15,8 +15,9 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    ci:
-        name: Lint, Test & Type Check
+    # Run quick checks in parallel
+    lint:
+        name: Lint
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -28,34 +29,95 @@ jobs:
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
-            - name: Cache dependencies
+            - name: Cache Deno dependencies
               uses: actions/cache@v4
               with:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json') }}
-                  restore-keys: deno-${{ runner.os }}-
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
 
             - name: Lint
               run: deno lint
 
+    format:
+        name: Format Check
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
             - name: Format check
               run: deno fmt --check
 
-            - name: Install dependencies
-              run: deno install
+    typecheck:
+        name: Type Check
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
 
-            - name: Type check
-              run: deno check src/index.ts worker/tail.ts
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
 
-            - name: Test with coverage
+            - name: Cache Deno dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
+            - name: Type check all entry points
+              run: |
+                  deno check src/index.ts
+                  deno check src/cli.ts
+                  deno check worker/worker.ts
+                  deno check worker/tail.ts
+
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
+            - name: Cache Deno dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
+            - name: Run tests with coverage
               run: |
                   deno test --allow-read --allow-write --allow-net --allow-env --coverage=coverage
                   deno coverage coverage --lcov --output=coverage.lcov --include="^file:"
 
             - name: Upload coverage
-              if: github.event_name == 'push'
+              if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
               uses: codecov/codecov-action@v5
               continue-on-error: true
               with:
@@ -73,7 +135,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Run Trivy scanner
+            - name: Run Trivy vulnerability scanner
               uses: aquasecurity/trivy-action@master
               with:
                   scan-type: fs
@@ -82,17 +144,18 @@ jobs:
                   output: trivy-results.sarif
                   severity: 'CRITICAL,HIGH,MEDIUM'
 
-            - name: Upload results
+            - name: Upload Trivy results to GitHub Security
               if: always()
               uses: github/codeql-action/upload-sarif@v3
               continue-on-error: true
               with:
                   sarif_file: trivy-results.sarif
 
+    # Only publish on master/main pushes, and gate on all checks
     publish:
         name: Publish to JSR
         runs-on: ubuntu-latest
-        needs: ci
+        needs: [lint, format, typecheck, test, security]
         if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
         permissions:
             contents: read
@@ -105,26 +168,35 @@ jobs:
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
-            - name: Publish
+            - name: Cache Deno dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
+            - name: Publish to JSR
               run: |
                   set -euo pipefail
-                  # Attempt to publish to JSR. Capture output so we can inspect errors.
                   if ! OUTPUT="$(deno publish --allow-slow-types 2>&1)"; then
                     echo "${OUTPUT}"
-                    # Treat "version already exists" style errors as non-fatal to preserve
-                    # existing behavior, but fail on all other errors.
                     if echo "${OUTPUT}" | grep -qiE 'version .*already (exists|published)'; then
-                      echo "Version may already exist; treating this as a non-fatal condition."
+                      echo "Version already published, skipping."
                       exit 0
                     fi
-                    echo "deno publish failed with an unexpected error."
+                    echo "Publish failed with unexpected error."
                     exit 1
                   fi
+                  echo "Successfully published to JSR"
 
-    deploy-worker:
-        name: Deploy Cloudflare Worker
+    # Deploy jobs only run on master/main and when enabled
+    deploy:
+        name: Deploy to Cloudflare
         runs-on: ubuntu-latest
-        needs: [ci, security]
+        needs: [lint, format, typecheck, test, security]
         if: |
             github.event_name == 'push' &&
             (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&
@@ -141,39 +213,23 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: '22'
+                  cache: 'npm'
 
             - name: Install Wrangler
               run: npm install -g wrangler
 
-            - name: Create Cloudflare resources
+            - name: Setup Cloudflare resources
               run: |
-                  # Create queues (ignore errors if they already exist)
-                  wrangler queues create adblock-compiler-worker-queue 2>/dev/null || true
-                  wrangler queues create adblock-compiler-worker-queue-high-priority 2>/dev/null || true
-                  wrangler queues create adblock-compiler-dlq 2>/dev/null || true
-
-                  # Create R2 bucket (ignore errors if it already exists)
-                  wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || true
-
-                  echo "Cloudflare resources ready"
+                  echo "Creating Cloudflare resources..."
+                  wrangler queues create adblock-compiler-worker-queue 2>/dev/null || echo "Queue already exists"
+                  wrangler queues create adblock-compiler-worker-queue-high-priority 2>/dev/null || echo "High priority queue already exists"
+                  wrangler queues create adblock-compiler-dlq 2>/dev/null || echo "DLQ already exists"
+                  wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || echo "R2 bucket already exists"
 
             - name: Deploy Worker
               run: wrangler deploy
 
-    deploy-pages:
-        name: Deploy Cloudflare Pages
-        runs-on: ubuntu-latest
-        needs: [ci, security]
-        if: |
-            github.event_name == 'push' &&
-            (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&
-            vars.ENABLE_CLOUDFLARE_DEPLOY == 'true'
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Deploy
+            - name: Deploy Pages
               uses: cloudflare/pages-action@v1
               with:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
