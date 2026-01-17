@@ -25,7 +25,7 @@ export interface WorkflowEvent<T = unknown> {
 export interface WorkflowStep {
     do<T>(
         name: string,
-        callback: () => Promise<T> | T
+        callback: () => Promise<T> | T,
     ): Promise<T>;
     do<T>(
         name: string,
@@ -37,7 +37,7 @@ export interface WorkflowStep {
             };
             timeout?: string;
         },
-        callback: () => Promise<T> | T
+        callback: () => Promise<T> | T,
     ): Promise<T>;
     sleep(name: string, duration: string): Promise<void>;
     sleepUntil(name: string, timestamp: Date | number): Promise<void>;
