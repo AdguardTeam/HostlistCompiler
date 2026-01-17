@@ -14,7 +14,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
-import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
 import type { Env } from '../worker.ts';
 import type { HealthMonitoringParams, HealthMonitoringResult, SourceHealthResult } from './types.ts';
 import { WorkflowEvents } from './WorkflowEvents.ts';
@@ -81,9 +80,6 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
 
         // Initialize event emitter for real-time progress tracking
         const events = new WorkflowEvents(this.env.METRICS, runId, 'health-monitoring');
-
-        // Initialize analytics service
-        const analytics = new AnalyticsService(this.env.ANALYTICS_ENGINE);
 
         // Use provided sources or defaults
         const sourcesToCheck = sources.length > 0 ? sources : DEFAULT_SOURCES;

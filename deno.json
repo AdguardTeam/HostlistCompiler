@@ -63,6 +63,7 @@
             "dist/",
             "node_modules/",
             "coverage/",
+            "public/",
             "src/storage/example.ts",
             "src/storage/prisma-example.ts",
             "examples/",

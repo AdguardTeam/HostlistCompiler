@@ -128,7 +128,7 @@
 /* =================================================================
    CSS Variables - Dark Theme
    ================================================================= */
-[data-theme="dark"] {
+[data-theme='dark'] {
     /* Background Colors */
     --bg-gradient-start: #1a1a2e;
     --bg-gradient-end: #16213e;
@@ -619,7 +619,7 @@ label,
     overflow-x: auto;
 }
 
-[data-theme="dark"] .event-data {
+[data-theme='dark'] .event-data {
     background: rgba(255, 255, 255, 0.05);
 }
 
@@ -708,8 +708,8 @@ code {
     border: 2px solid var(--warning);
 }
 
-[data-theme="dark"] .alert-warning,
-[data-theme="dark"] .notice-warning {
+[data-theme='dark'] .alert-warning,
+[data-theme='dark'] .notice-warning {
     background: rgba(245, 158, 11, 0.15);
 }
 
@@ -719,8 +719,8 @@ code {
     border: 2px solid var(--info);
 }
 
-[data-theme="dark"] .alert-info,
-[data-theme="dark"] .notice-info {
+[data-theme='dark'] .alert-info,
+[data-theme='dark'] .notice-info {
     background: rgba(59, 130, 246, 0.15);
 }
 
@@ -730,8 +730,8 @@ code {
     border: 2px solid var(--success);
 }
 
-[data-theme="dark"] .alert-success,
-[data-theme="dark"] .notice-success {
+[data-theme='dark'] .alert-success,
+[data-theme='dark'] .notice-success {
     background: rgba(16, 185, 129, 0.15);
 }
 
@@ -741,8 +741,8 @@ code {
     border: 2px solid var(--danger);
 }
 
-[data-theme="dark"] .alert-danger,
-[data-theme="dark"] .notice-danger {
+[data-theme='dark'] .alert-danger,
+[data-theme='dark'] .notice-danger {
     background: rgba(239, 68, 68, 0.15);
 }
 

@@ -3,7 +3,7 @@
  * Handles dark/light mode toggle with localStorage persistence
  */
 
-(function() {
+(function () {
     'use strict';
 
     // Theme configuration
@@ -108,10 +108,10 @@
     window.AdblockTheme = {
         toggle: toggleTheme,
         get: getStoredTheme,
-        set: function(theme) {
+        set: function (theme) {
             localStorage.setItem(STORAGE_KEY, theme);
             applyTheme(theme);
         },
-        createToggleHTML: createThemeToggleHTML
+        createToggleHTML: createThemeToggleHTML,
     };
 })();

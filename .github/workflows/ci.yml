@@ -35,6 +35,7 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
+                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
@@ -87,9 +88,15 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
+                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
+
+            - name: Install dependencies
+              run: deno install
+              env:
+                  DENO_TLS_CA_STORE: system
 
             - name: Type check all entry points
               run: |
@@ -117,14 +124,22 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
+                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
+
+            - name: Install dependencies
+              run: deno install
+              env:
+                  DENO_TLS_CA_STORE: system
 
             - name: Run tests with coverage
               run: |
                   deno test --allow-read --allow-write --allow-net --allow-env --coverage=coverage
                   deno coverage coverage --lcov --output=coverage.lcov --include="^file:"
+              env:
+                  DENO_TLS_CA_STORE: system
 
             - name: Upload coverage
               if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
@@ -184,6 +199,7 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
+                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
