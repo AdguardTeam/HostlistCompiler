@@ -15,6 +15,7 @@
 
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { createTracingContext, type IConfiguration, TransformationType, WorkerCompiler } from '../../src/index.ts';
+import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
 import type { Env } from '../worker.ts';
 import type { CacheWarmingParams, CacheWarmingResult } from './types.ts';
 import { WorkflowEvents } from './WorkflowEvents.ts';
