@@ -82,8 +82,8 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
         // Initialize event emitter for real-time progress tracking
         const events = new WorkflowEvents(this.env.METRICS, runId, 'health-monitoring');
 
-        // Initialize analytics service
-        const analytics = new AnalyticsService(this.env.ANALYTICS_ENGINE);
+        // Initialize analytics service (prefixed as unused - reserved for future use)
+        const _analytics = new AnalyticsService(this.env.ANALYTICS_ENGINE);
 
         // Use provided sources or defaults
         const sourcesToCheck = sources.length > 0 ? sources : DEFAULT_SOURCES;

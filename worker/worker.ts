@@ -222,8 +222,7 @@ const METRICS_WINDOW = WORKER_DEFAULTS.METRICS_WINDOW_SECONDS;
 /**
  * Error message for when queue bindings are not configured
  */
-const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR =
-    'Queue bindings are not available. ' +
+const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR = 'Queue bindings are not available. ' +
     'To use async compilation, you must configure Cloudflare Queues in wrangler.toml. ' +
     'See https://github.com/jaypatrick/adblock-compiler/blob/master/docs/QUEUE_SUPPORT.md for setup instructions. ' +
     'Alternatively, use the synchronous endpoints: POST /compile or POST /compile/batch';
@@ -2439,8 +2438,7 @@ async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
 /**
  * Error message for when workflow bindings are not configured
  */
-const WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR =
-    'Workflow bindings are not available. ' +
+const WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR = 'Workflow bindings are not available. ' +
     'Workflows must be configured in wrangler.toml. See the Cloudflare Workflows documentation for setup instructions.';
 
 /**
