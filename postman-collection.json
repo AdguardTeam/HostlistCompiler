@@ -1,0 +1,678 @@
+{
+    "info": {
+        "name": "Adblock Compiler API",
+        "description": "Comprehensive test collection for the Adblock Compiler OpenAPI specification",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_postman_id": "adblock-compiler-api-tests",
+        "version": "2.0.0"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8787",
+            "type": "string"
+        },
+        {
+            "key": "prodUrl",
+            "value": "https://adblock-compiler.jayson-knight.workers.dev",
+            "type": "string"
+        },
+        {
+            "key": "requestId",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Metrics",
+            "item": [
+                {
+                    "name": "Get API Info",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response is JSON', function () {",
+                                    "    pm.response.to.be.json;",
+                                    "});",
+                                    "",
+                                    "pm.test('Has required fields', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('name');",
+                                    "    pm.expect(jsonData).to.have.property('version');",
+                                    "    pm.expect(jsonData).to.have.property('endpoints');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api"]
+                        },
+                        "description": "Get API information including version and available endpoints"
+                    }
+                },
+                {
+                    "name": "Get Performance Metrics",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response contains metrics', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('window');",
+                                    "    pm.expect(jsonData).to.have.property('timestamp');",
+                                    "    pm.expect(jsonData).to.have.property('endpoints');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/metrics",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["metrics"]
+                        },
+                        "description": "Get performance metrics aggregated over the last 30 minutes"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Compilation",
+            "item": [
+                {
+                    "name": "Compile Simple Filter List",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response is successful', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "});",
+                                    "",
+                                    "pm.test('Has rules array', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('rules');",
+                                    "    pm.expect(jsonData.rules).to.be.an('array');",
+                                    "});",
+                                    "",
+                                    "pm.test('Has ruleCount', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('ruleCount');",
+                                    "    pm.expect(jsonData.ruleCount).to.be.a('number');",
+                                    "});",
+                                    "",
+                                    "pm.test('Has compiledAt timestamp', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('compiledAt');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"configuration\": {\n    \"name\": \"Test Filter List\",\n    \"sources\": [\n      {\n        \"source\": \"test-rules\"\n      }\n    ],\n    \"transformations\": [\"Deduplicate\"]\n  },\n  \"preFetchedContent\": {\n    \"test-rules\": \"||ads.example.com^\\n||tracking.example.com^\\n||ads.example.com^\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile"]
+                        },
+                        "description": "Compile a simple filter list with pre-fetched content"
+                    }
+                },
+                {
+                    "name": "Compile with Transformations",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response is successful', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "});",
+                                    "",
+                                    "pm.test('Rules are deduplicated', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    const uniqueRules = new Set(jsonData.rules.filter(r => !r.startsWith('!')));",
+                                    "    pm.expect(uniqueRules.size).to.equal(jsonData.rules.filter(r => !r.startsWith('!')).length);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"configuration\": {\n    \"name\": \"Advanced Filter List\",\n    \"description\": \"Test with multiple transformations\",\n    \"sources\": [\n      {\n        \"source\": \"rules1\",\n        \"transformations\": [\"RemoveComments\", \"Validate\"]\n      }\n    ],\n    \"transformations\": [\"Deduplicate\", \"RemoveEmptyLines\"]\n  },\n  \"preFetchedContent\": {\n    \"rules1\": \"! Comment line\\n||example.com^\\n||ads.example.com^\\n\\n||tracking.com^\"\n  },\n  \"benchmark\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile"]
+                        },
+                        "description": "Test multiple transformations with benchmarking"
+                    }
+                },
+                {
+                    "name": "Compile with Cache Check",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Check cache headers', function () {",
+                                    "    pm.expect(pm.response.headers.get('X-Cache')).to.be.oneOf(['HIT', 'MISS']);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"configuration\": {\n    \"name\": \"Cache Test List\",\n    \"sources\": [\n      {\n        \"source\": \"cache-test\"\n      }\n    ]\n  },\n  \"preFetchedContent\": {\n    \"cache-test\": \"||ads.test.com^\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile"]
+                        },
+                        "description": "Test caching behavior"
+                    }
+                },
+                {
+                    "name": "Compile Invalid Configuration",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 500', function () {",
+                                    "    pm.response.to.have.status(500);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response indicates failure', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.false;",
+                                    "    pm.expect(jsonData).to.have.property('error');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"configuration\": {\n    \"sources\": []\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile"]
+                        },
+                        "description": "Test error handling with invalid configuration"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Streaming",
+            "item": [
+                {
+                    "name": "Compile with SSE Stream",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Content-Type is event-stream', function () {",
+                                    "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/event-stream');",
+                                    "});",
+                                    "",
+                                    "pm.test('Response contains SSE events', function () {",
+                                    "    const responseText = pm.response.text();",
+                                    "    pm.expect(responseText).to.include('event:');",
+                                    "    pm.expect(responseText).to.include('data:');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"configuration\": {\n    \"name\": \"Streaming Test\",\n    \"sources\": [\n      {\n        \"source\": \"stream-test\"\n      }\n    ]\n  },\n  \"preFetchedContent\": {\n    \"stream-test\": \"||ads.stream.com^\\n||tracking.stream.com^\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile/stream",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile", "stream"]
+                        },
+                        "description": "Test Server-Sent Events streaming"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Batch Processing",
+            "item": [
+                {
+                    "name": "Batch Compile Multiple Lists",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response is successful', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "});",
+                                    "",
+                                    "pm.test('Has results array', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.results).to.be.an('array');",
+                                    "    pm.expect(jsonData.results).to.have.lengthOf(2);",
+                                    "});",
+                                    "",
+                                    "pm.test('Each result has id and rules', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    jsonData.results.forEach(result => {",
+                                    "        pm.expect(result).to.have.property('id');",
+                                    "        pm.expect(result).to.have.property('rules');",
+                                    "        pm.expect(result.rules).to.be.an('array');",
+                                    "    });",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"requests\": [\n    {\n      \"id\": \"list1\",\n      \"configuration\": {\n        \"name\": \"Batch List 1\",\n        \"sources\": [\n          {\n            \"source\": \"batch1\"\n          }\n        ]\n      },\n      \"preFetchedContent\": {\n        \"batch1\": \"||ads1.com^\"\n      }\n    },\n    {\n      \"id\": \"list2\",\n      \"configuration\": {\n        \"name\": \"Batch List 2\",\n        \"sources\": [\n          {\n            \"source\": \"batch2\"\n          }\n        ]\n      },\n      \"preFetchedContent\": {\n        \"batch2\": \"||ads2.com^\"\n      }\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile/batch",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile", "batch"]
+                        },
+                        "description": "Batch compile multiple filter lists"
+                    }
+                },
+                {
+                    "name": "Batch Compile - Max Limit Test",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200 or 400', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"requests\": [\n    {\"id\": \"1\", \"configuration\": {\"name\": \"L1\", \"sources\": [{\"source\": \"s1\"}]}, \"preFetchedContent\": {\"s1\": \"||a.com^\"}},\n    {\"id\": \"2\", \"configuration\": {\"name\": \"L2\", \"sources\": [{\"source\": \"s2\"}]}, \"preFetchedContent\": {\"s2\": \"||b.com^\"}},\n    {\"id\": \"3\", \"configuration\": {\"name\": \"L3\", \"sources\": [{\"source\": \"s3\"}]}, \"preFetchedContent\": {\"s3\": \"||c.com^\"}},\n    {\"id\": \"4\", \"configuration\": {\"name\": \"L4\", \"sources\": [{\"source\": \"s4\"}]}, \"preFetchedContent\": {\"s4\": \"||d.com^\"}},\n    {\"id\": \"5\", \"configuration\": {\"name\": \"L5\", \"sources\": [{\"source\": \"s5\"}]}, \"preFetchedContent\": {\"s5\": \"||e.com^\"}},\n    {\"id\": \"6\", \"configuration\": {\"name\": \"L6\", \"sources\": [{\"source\": \"s6\"}]}, \"preFetchedContent\": {\"s6\": \"||f.com^\"}},\n    {\"id\": \"7\", \"configuration\": {\"name\": \"L7\", \"sources\": [{\"source\": \"s7\"}]}, \"preFetchedContent\": {\"s7\": \"||g.com^\"}},\n    {\"id\": \"8\", \"configuration\": {\"name\": \"L8\", \"sources\": [{\"source\": \"s8\"}]}, \"preFetchedContent\": {\"s8\": \"||h.com^\"}},\n    {\"id\": \"9\", \"configuration\": {\"name\": \"L9\", \"sources\": [{\"source\": \"s9\"}]}, \"preFetchedContent\": {\"s9\": \"||i.com^\"}},\n    {\"id\": \"10\", \"configuration\": {\"name\": \"L10\", \"sources\": [{\"source\": \"s10\"}]}, \"preFetchedContent\": {\"s10\": \"||j.com^\"}}\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile/batch",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile", "batch"]
+                        },
+                        "description": "Test batch limit of 10 requests"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Queue",
+            "item": [
+                {
+                    "name": "Queue Async Compilation",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 202 or 500', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([202, 500]);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 202) {",
+                                    "    pm.test('Response has requestId', function () {",
+                                    "        const jsonData = pm.response.json();",
+                                    "        pm.expect(jsonData).to.have.property('requestId');",
+                                    "        pm.collectionVariables.set('requestId', jsonData.requestId);",
+                                    "    });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"configuration\": {\n    \"name\": \"Async Queue Test\",\n    \"sources\": [\n      {\n        \"source\": \"async-test\"\n      }\n    ]\n  },\n  \"preFetchedContent\": {\n    \"async-test\": \"||async.example.com^\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile/async",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile", "async"]
+                        },
+                        "description": "Queue an async compilation job"
+                    }
+                },
+                {
+                    "name": "Queue Batch Async Compilation",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 202 or 500', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([202, 500]);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"requests\": [\n    {\n      \"id\": \"async-batch-1\",\n      \"configuration\": {\n        \"name\": \"Async Batch 1\",\n        \"sources\": [{\"source\": \"ab1\"}]\n      },\n      \"preFetchedContent\": {\"ab1\": \"||async1.com^\"}\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile/batch/async",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile", "batch", "async"]
+                        },
+                        "description": "Queue a batch async compilation"
+                    }
+                },
+                {
+                    "name": "Get Queue Stats",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Has queue metrics', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('pending');",
+                                    "    pm.expect(jsonData).to.have.property('completed');",
+                                    "    pm.expect(jsonData).to.have.property('failed');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/queue/stats",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["queue", "stats"]
+                        },
+                        "description": "Get queue statistics"
+                    }
+                },
+                {
+                    "name": "Get Queue Results",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200 or 404', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/queue/results/{{requestId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["queue", "results", "{{requestId}}"]
+                        },
+                        "description": "Retrieve results from queued job"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Edge Cases",
+            "item": [
+                {
+                    "name": "Empty Configuration",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 500', function () {",
+                                    "    pm.response.to.have.status(500);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response contains error', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.false;",
+                                    "    pm.expect(jsonData).to.have.property('error');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile"]
+                        },
+                        "description": "Test with empty request body"
+                    }
+                },
+                {
+                    "name": "Missing Required Fields",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 500', function () {",
+                                    "    pm.response.to.have.status(500);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"configuration\": {\n    \"name\": \"Missing Sources\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile"]
+                        },
+                        "description": "Test with missing required sources field"
+                    }
+                },
+                {
+                    "name": "Large Batch Request (>10)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"requests\": [\n    {\"id\": \"1\", \"configuration\": {\"name\": \"L1\", \"sources\": [{\"source\": \"s1\"}]}, \"preFetchedContent\": {\"s1\": \"||a.com^\"}},\n    {\"id\": \"2\", \"configuration\": {\"name\": \"L2\", \"sources\": [{\"source\": \"s2\"}]}, \"preFetchedContent\": {\"s2\": \"||b.com^\"}},\n    {\"id\": \"3\", \"configuration\": {\"name\": \"L3\", \"sources\": [{\"source\": \"s3\"}]}, \"preFetchedContent\": {\"s3\": \"||c.com^\"}},\n    {\"id\": \"4\", \"configuration\": {\"name\": \"L4\", \"sources\": [{\"source\": \"s4\"}]}, \"preFetchedContent\": {\"s4\": \"||d.com^\"}},\n    {\"id\": \"5\", \"configuration\": {\"name\": \"L5\", \"sources\": [{\"source\": \"s5\"}]}, \"preFetchedContent\": {\"s5\": \"||e.com^\"}},\n    {\"id\": \"6\", \"configuration\": {\"name\": \"L6\", \"sources\": [{\"source\": \"s6\"}]}, \"preFetchedContent\": {\"s6\": \"||f.com^\"}},\n    {\"id\": \"7\", \"configuration\": {\"name\": \"L7\", \"sources\": [{\"source\": \"s7\"}]}, \"preFetchedContent\": {\"s7\": \"||g.com^\"}},\n    {\"id\": \"8\", \"configuration\": {\"name\": \"L8\", \"sources\": [{\"source\": \"s8\"}]}, \"preFetchedContent\": {\"s8\": \"||h.com^\"}},\n    {\"id\": \"9\", \"configuration\": {\"name\": \"L9\", \"sources\": [{\"source\": \"s9\"}]}, \"preFetchedContent\": {\"s9\": \"||i.com^\"}},\n    {\"id\": \"10\", \"configuration\": {\"name\": \"L10\", \"sources\": [{\"source\": \"s10\"}]}, \"preFetchedContent\": {\"s10\": \"||j.com^\"}},\n    {\"id\": \"11\", \"configuration\": {\"name\": \"L11\", \"sources\": [{\"source\": \"s11\"}]}, \"preFetchedContent\": {\"s11\": \"||k.com^\"}}\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/compile/batch",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["compile", "batch"]
+                        },
+                        "description": "Test batch request exceeding 10 item limit"
+                    }
+                }
+            ]
+        }
+    ]
+}

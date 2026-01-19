@@ -1,0 +1,20 @@
+{
+    "name": "Adblock Compiler - Local",
+    "values": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8787",
+            "type": "default",
+            "enabled": true
+        },
+        {
+            "key": "prodUrl",
+            "value": "https://adblock-compiler.jayson-knight.workers.dev",
+            "type": "default",
+            "enabled": true
+        }
+    ],
+    "_postman_variable_scope": "environment",
+    "_postman_exported_at": "2026-01-14T05:52:00.000Z",
+    "_postman_exported_using": "Postman/10.0.0"
+}
