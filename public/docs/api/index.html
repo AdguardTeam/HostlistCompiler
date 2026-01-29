@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adblock Compiler API Documentation</title>
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Redoc standalone bundle -->
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+    
+    <script>
+        const spec = {
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Adblock Compiler API",
+    "description": "**Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.\n\n## Features\n- 🎯 Multi-Source Compilation\n- ⚡ Performance (Gzip compression, caching, request deduplication)\n- 🔄 Circuit Breaker with retry logic\n- 📊 Visual Diff between compilations\n- 📡 Real-time progress via SSE and WebSocket\n- 🎪 Batch Processing\n- 🌍 Universal (Deno, Node.js, Cloudflare Workers, browsers)\n\n## Links\n- [GitHub Repository](https://github.com/jaypatrick/adblock-compiler)\n- [Documentation](https://github.com/jaypatrick/adblock-compiler/tree/master/docs)\n- [Web UI](https://adblock-compiler.jayson-knight.workers.dev/)\n",
+    "version": "2.0.0",
+    "license": {
+      "name": "GPL-3.0",
+      "url": "https://github.com/jaypatrick/adblock-compiler/blob/master/LICENSE"
+    },
+    "contact": {
+      "name": "Jayson Knight",
+      "url": "https://github.com/jaypatrick/adblock-compiler"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://adblock-compiler.jayson-knight.workers.dev",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:8787",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Compilation",
+      "description": "Filter list compilation endpoints"
+    },
+    {
+      "name": "Streaming",
+      "description": "Real-time event streaming endpoints"
+    },
+    {
+      "name": "Queue",
+      "description": "Async job queue management"
+    },
+    {
+      "name": "Metrics",
+      "description": "Performance metrics and statistics"
+    },
+    {
+      "name": "WebSocket",
+      "description": "Bidirectional real-time communication"
+    }
+  ],
+  "paths": {
+    "/api": {
+      "get": {
+        "tags": [
+          "Metrics"
+        ],
+        "summary": "Get API information",
+        "description": "Returns API version, available endpoints, and usage examples",
+        "operationId": "getApiInfo",
+        "responses": {
+          "200": {
+            "description": "API information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compile": {
+      "post": {
+        "tags": [
+          "Compilation"
+        ],
+        "summary": "Compile filter list (JSON)",
+        "description": "Compile filter lists and return results as JSON. Results are cached for 1 hour.\nSupports request deduplication for concurrent identical requests.\n",
+        "operationId": "compileJson",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompileRequest"
+              },
+              "examples": {
+                "simple": {
+                  "summary": "Simple compilation",
+                  "value": {
+                    "configuration": {
+                      "name": "My Filter List",
+                      "sources": [
+                        {
+                          "source": "https://example.com/filters.txt",
+                          "transformations": [
+                            "RemoveComments",
+                            "Validate"
+                          ]
+                        }
+                      ],
+                      "transformations": [
+                        "Deduplicate"
+                      ]
+                    }
+                  }
+                },
+                "withPreFetched": {
+                  "summary": "With pre-fetched content",
+                  "value": {
+                    "configuration": {
+                      "name": "Custom Rules",
+                      "sources": [
+                        {
+                          "source": "my-custom-rules"
+                        }
+                      ]
+                    },
+                    "preFetchedContent": {
+                      "my-custom-rules": "||ads.example.com^\n||tracking.example.com^"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Compilation successful",
+            "headers": {
+              "X-Cache": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "HIT",
+                    "MISS"
+                  ]
+                },
+                "description": "Cache hit/miss status"
+              },
+              "X-Request-Deduplication": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "HIT"
+                  ]
+                },
+                "description": "Present if request was deduplicated"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompileResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "500": {
+            "$ref": "#/components/responses/CompilationError"
+          }
+        }
+      }
+    },
+    "/compile/stream": {
+      "post": {
+        "tags": [
+          "Streaming"
+        ],
+        "summary": "Compile with real-time progress (SSE)",
+        "description": "Compile filter lists with real-time progress updates via Server-Sent Events.\nStreams events including source downloads, transformations, diagnostics, cache operations, network events, and metrics.\n",
+        "operationId": "compileStream",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "Server-Sent Events stream with the following event types:\n\n**Compilation Events:**\n- `log` - Log messages (info, warn, error, debug)\n- `source:start` - Source download started\n- `source:complete` - Source download completed\n- `source:error` - Source download failed\n- `transformation:start` - Transformation started\n- `transformation:complete` - Transformation completed\n- `progress` - Compilation progress update\n- `result` - Final compilation result\n- `done` - Compilation finished\n- `error` - Compilation error\n\n**Enhanced Events:**\n- `diagnostic` - Diagnostic event from tracing system\n- `cache` - Cache operation (hit/miss/write)\n- `network` - Network operation (HTTP requests)\n- `metric` - Performance metric\n"
+                },
+                "examples": {
+                  "logEvent": {
+                    "value": "event: log\ndata: {\"level\":\"info\",\"message\":\"Fetching source...\"}\n"
+                  },
+                  "sourceStart": {
+                    "value": "event: source:start\ndata: {\"source\":{\"name\":\"Source 1\",\"source\":\"https://...\"},\"sourceIndex\":0,\"totalSources\":2}\n"
+                  },
+                  "diagnostic": {
+                    "value": "event: diagnostic\ndata: {\"eventId\":\"evt-123\",\"timestamp\":\"2026-01-14T05:00:00Z\",\"category\":\"compilation\",\"severity\":\"info\",\"message\":\"Started compilation\"}\n"
+                  },
+                  "cache": {
+                    "value": "event: cache\ndata: {\"operation\":\"hit\",\"key\":\"cache:abc123\",\"size\":1024}\n"
+                  },
+                  "network": {
+                    "value": "event: network\ndata: {\"method\":\"GET\",\"url\":\"https://example.com/filters.txt\",\"statusCode\":200,\"durationMs\":234,\"responseSize\":51200}\n"
+                  },
+                  "metric": {
+                    "value": "event: metric\ndata: {\"metric\":\"download_speed\",\"value\":218.5,\"unit\":\"KB/s\"}\n"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/compile/batch": {
+      "post": {
+        "tags": [
+          "Compilation"
+        ],
+        "summary": "Batch compile multiple lists",
+        "description": "Compile multiple filter lists in parallel (max 10 per batch)",
+        "operationId": "compileBatch",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCompileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch compilation results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchCompileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid batch request"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/compile/async": {
+      "post": {
+        "tags": [
+          "Queue"
+        ],
+        "summary": "Queue async compilation job",
+        "description": "Queue a compilation job for asynchronous processing. Returns immediately with a request ID.\nUse GET /queue/results/{requestId} to retrieve results when complete.\n",
+        "operationId": "compileAsync",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Job queued successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Queue not available"
+          }
+        }
+      }
+    },
+    "/compile/batch/async": {
+      "post": {
+        "tags": [
+          "Queue"
+        ],
+        "summary": "Queue batch async compilation",
+        "description": "Queue multiple compilations for async processing",
+        "operationId": "compileBatchAsync",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCompileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Batch queued successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ws/compile": {
+      "get": {
+        "tags": [
+          "WebSocket"
+        ],
+        "summary": "WebSocket endpoint for real-time compilation",
+        "description": "Bidirectional WebSocket connection for real-time compilation with event streaming.\n\n**Client → Server Messages:**\n- `compile` - Start compilation\n- `cancel` - Cancel running compilation\n- `ping` - Heartbeat ping\n\n**Server → Client Messages:**\n- `welcome` - Connection established\n- `pong` - Heartbeat response\n- `compile:started` - Compilation started\n- `event` - Compilation event (source, transformation, progress, diagnostic, cache, network, metric)\n- `compile:complete` - Compilation finished successfully\n- `compile:error` - Compilation failed\n- `compile:cancelled` - Compilation cancelled\n- `error` - Error message\n\n**Features:**\n- Up to 3 concurrent compilations per connection\n- Automatic heartbeat (30s interval)\n- Connection timeout (5 minutes idle)\n- Session-based compilation tracking\n- Cancellation support\n",
+        "operationId": "websocketCompile",
+        "responses": {
+          "101": {
+            "description": "WebSocket connection established"
+          },
+          "426": {
+            "description": "Upgrade required (not a WebSocket request)"
+          }
+        },
+        "x-websocket-messages": {
+          "client-to-server": [
+            {
+              "$ref": "#/components/schemas/WsCompileRequest"
+            },
+            {
+              "$ref": "#/components/schemas/WsCancelRequest"
+            },
+            {
+              "$ref": "#/components/schemas/WsPingMessage"
+            }
+          ],
+          "server-to-client": [
+            {
+              "$ref": "#/components/schemas/WsWelcomeMessage"
+            },
+            {
+              "$ref": "#/components/schemas/WsPongMessage"
+            },
+            {
+              "$ref": "#/components/schemas/WsCompileStartedMessage"
+            },
+            {
+              "$ref": "#/components/schemas/WsEventMessage"
+            },
+            {
+              "$ref": "#/components/schemas/WsCompileCompleteMessage"
+            },
+            {
+              "$ref": "#/components/schemas/WsCompileErrorMessage"
+            }
+          ]
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "Metrics"
+        ],
+        "summary": "Get performance metrics",
+        "description": "Returns aggregated metrics for the last 30 minutes",
+        "operationId": "getMetrics",
+        "responses": {
+          "200": {
+            "description": "Performance metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/queue/stats": {
+      "get": {
+        "tags": [
+          "Queue"
+        ],
+        "summary": "Get queue statistics",
+        "description": "Returns queue health metrics and job statistics",
+        "operationId": "getQueueStats",
+        "responses": {
+          "200": {
+            "description": "Queue statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/queue/results/{requestId}": {
+      "get": {
+        "tags": [
+          "Queue"
+        ],
+        "summary": "Get async job results",
+        "description": "Retrieve results for a completed async compilation job",
+        "operationId": "getQueueResults",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Request ID returned from async endpoints"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/CompileResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/QueueJobStatus"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CompileRequest": {
+        "type": "object",
+        "required": [
+          "configuration"
+        ],
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/Configuration"
+          },
+          "preFetchedContent": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Map of source keys to pre-fetched content"
+          },
+          "benchmark": {
+            "type": "boolean",
+            "default": false,
+            "description": "Include detailed performance metrics"
+          },
+          "turnstileToken": {
+            "type": "string",
+            "description": "Cloudflare Turnstile token (if enabled)"
+          }
+        }
+      },
+      "Configuration": {
+        "type": "object",
+        "required": [
+          "name",
+          "sources"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the compiled list"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the list"
+          },
+          "homepage": {
+            "type": "string",
+            "format": "uri",
+            "description": "Homepage URL"
+          },
+          "license": {
+            "type": "string",
+            "description": "License identifier"
+          },
+          "version": {
+            "type": "string",
+            "description": "Version string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "minItems": 1
+          },
+          "transformations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transformation"
+            },
+            "description": "Global transformations to apply"
+          },
+          "exclusions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Rules to exclude (supports wildcards and regex)"
+          },
+          "exclusions_sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Files containing exclusion rules"
+          },
+          "inclusions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Rules to include (supports wildcards and regex)"
+          },
+          "inclusions_sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Files containing inclusion rules"
+          }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "URL or key for pre-fetched content"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the source"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "adblock",
+              "hosts"
+            ],
+            "default": "adblock",
+            "description": "Source type"
+          },
+          "transformations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transformation"
+            }
+          },
+          "exclusions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "inclusions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Transformation": {
+        "type": "string",
+        "enum": [
+          "ConvertToAscii",
+          "RemoveComments",
+          "Compress",
+          "RemoveModifiers",
+          "Validate",
+          "ValidateAllowIp",
+          "Deduplicate",
+          "InvertAllow",
+          "RemoveEmptyLines",
+          "TrimLines",
+          "InsertFinalNewLine"
+        ],
+        "description": "Available transformations (applied in this order):\n- **ConvertToAscii**: Convert internationalized domains to ASCII\n- **RemoveComments**: Remove comment lines\n- **Compress**: Convert hosts format to adblock syntax\n- **RemoveModifiers**: Strip unsupported modifiers\n- **Validate**: Remove invalid/dangerous rules\n- **ValidateAllowIp**: Like Validate but keeps IP addresses\n- **Deduplicate**: Remove duplicate rules\n- **InvertAllow**: Convert blocking rules to allowlist\n- **RemoveEmptyLines**: Remove blank lines\n- **TrimLines**: Remove leading/trailing whitespace\n- **InsertFinalNewLine**: Add final newline\n"
+      },
+      "BatchCompileRequest": {
+        "type": "object",
+        "required": [
+          "requests"
+        ],
+        "properties": {
+          "requests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BatchRequestItem"
+            },
+            "minItems": 1,
+            "maxItems": 10
+          }
+        }
+      },
+      "BatchRequestItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "configuration"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique request identifier"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/Configuration"
+          },
+          "preFetchedContent": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "benchmark": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CompileResponse": {
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Compiled filter rules"
+          },
+          "ruleCount": {
+            "type": "integer",
+            "description": "Number of rules"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/CompilationMetrics"
+          },
+          "compiledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "previousVersion": {
+            "$ref": "#/components/schemas/PreviousVersion"
+          },
+          "cached": {
+            "type": "boolean",
+            "description": "Whether result was served from cache"
+          },
+          "deduplicated": {
+            "type": "boolean",
+            "description": "Whether request was deduplicated"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if success=false"
+          }
+        }
+      },
+      "CompilationMetrics": {
+        "type": "object",
+        "properties": {
+          "totalDurationMs": {
+            "type": "integer"
+          },
+          "sourceCount": {
+            "type": "integer"
+          },
+          "ruleCount": {
+            "type": "integer"
+          },
+          "transformationMetrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "inputCount": {
+                  "type": "integer"
+                },
+                "outputCount": {
+                  "type": "integer"
+                },
+                "durationMs": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PreviousVersion": {
+        "type": "object",
+        "properties": {
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ruleCount": {
+            "type": "integer"
+          },
+          "compiledAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BatchCompileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/components/schemas/CompileResponse"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "QueueResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "high"
+            ]
+          }
+        }
+      },
+      "QueueJobStatus": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "failed",
+              "not_found",
+              "no_cache",
+              "cache_miss"
+            ]
+          },
+          "jobInfo": {
+            "type": "object",
+            "properties": {
+              "configName": {
+                "type": "string"
+              },
+              "duration": {
+                "type": "integer"
+              },
+              "timestamp": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "QueueStats": {
+        "type": "object",
+        "properties": {
+          "pending": {
+            "type": "integer"
+          },
+          "completed": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "cancelled": {
+            "type": "integer"
+          },
+          "totalProcessingTime": {
+            "type": "integer"
+          },
+          "averageProcessingTime": {
+            "type": "integer"
+          },
+          "processingRate": {
+            "type": "number",
+            "description": "Jobs per minute"
+          },
+          "queueLag": {
+            "type": "integer",
+            "description": "Average time in queue (ms)"
+          },
+          "lastUpdate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobHistoryEntry"
+            }
+          },
+          "depthHistory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": {
+                  "type": "string"
+                },
+                "pending": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "JobHistoryEntry": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "configName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "ruleCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "MetricsResponse": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endpoints": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "success": {
+                  "type": "integer"
+                },
+                "failed": {
+                  "type": "integer"
+                },
+                "avgDuration": {
+                  "type": "number"
+                },
+                "errors": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ApiInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "endpoints": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "example": {
+            "type": "object"
+          }
+        }
+      },
+      "WsCompileRequest": {
+        "type": "object",
+        "required": [
+          "type",
+          "sessionId",
+          "configuration"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "compile"
+            ]
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/Configuration"
+          },
+          "preFetchedContent": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "benchmark": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WsCancelRequest": {
+        "type": "object",
+        "required": [
+          "type",
+          "sessionId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "cancel"
+            ]
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        }
+      },
+      "WsPingMessage": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ping"
+            ]
+          }
+        }
+      },
+      "WsWelcomeMessage": {
+        "type": "object",
+        "required": [
+          "type",
+          "version",
+          "connectionId",
+          "capabilities"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "welcome"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "object",
+            "properties": {
+              "maxConcurrentCompilations": {
+                "type": "integer"
+              },
+              "supportsPauseResume": {
+                "type": "boolean"
+              },
+              "supportsStreaming": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "WsPongMessage": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "pong"
+            ]
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "WsCompileStartedMessage": {
+        "type": "object",
+        "required": [
+          "type",
+          "sessionId",
+          "configurationName"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "compile:started"
+            ]
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "configurationName": {
+            "type": "string"
+          }
+        }
+      },
+      "WsEventMessage": {
+        "type": "object",
+        "required": [
+          "type",
+          "sessionId",
+          "eventType",
+          "data"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "event"
+            ]
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "log",
+              "source:start",
+              "source:complete",
+              "source:error",
+              "transformation:start",
+              "transformation:complete",
+              "progress",
+              "result",
+              "done",
+              "error",
+              "diagnostic",
+              "cache",
+              "network",
+              "metric"
+            ]
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "WsCompileCompleteMessage": {
+        "type": "object",
+        "required": [
+          "type",
+          "sessionId",
+          "rules",
+          "ruleCount"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "compile:complete"
+            ]
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ruleCount": {
+            "type": "integer"
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "compiledAt": {
+            "type": "string"
+          }
+        }
+      },
+      "WsCompileErrorMessage": {
+        "type": "object",
+        "required": [
+          "type",
+          "sessionId",
+          "error"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "compile:error"
+            ]
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "responses": {
+      "RateLimitError": {
+        "description": "Rate limit exceeded",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Seconds until retry allowed"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "error": {
+                  "type": "string",
+                  "example": "Rate limit exceeded. Maximum 10 requests per minute."
+                }
+              }
+            }
+          }
+        }
+      },
+      "CompilationError": {
+        "description": "Compilation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Turnstile": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "turnstileToken",
+        "description": "Cloudflare Turnstile token (if enabled on the server)"
+      }
+    }
+  },
+  "security": [
+    {
+      "Turnstile": []
+    }
+  ]
+};
+        
+        Redoc.init(spec, {
+            scrollYOffset: 50,
+            theme: {
+                colors: {
+                    primary: {
+                        main: '#2563eb'
+                    }
+                },
+                typography: {
+                    fontSize: '16px',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    headings: {
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                    }
+                },
+                sidebar: {
+                    backgroundColor: '#f9fafb',
+                    textColor: '#1f2937'
+                },
+                rightPanel: {
+                    backgroundColor: '#1f2937'
+                }
+            },
+            hideDownloadButton: false,
+            disableSearch: false,
+            expandResponses: '200,201',
+            jsonSampleExpandLevel: 2,
+            hideSingleRequestSampleTab: true,
+            menuToggle: true,
+            nativeScrollbars: false,
+            pathInMiddlePanel: false,
+            requiredPropsFirst: true,
+            sortPropsAlphabetically: false,
+            expandSingleSchemaField: true
+        }, document.body);
+    </script>
+</body>
+</html>
