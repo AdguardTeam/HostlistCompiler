@@ -4,7 +4,7 @@
 
 import { assertEquals, assertExists } from '@std/assert';
 import { AsyncTransformation, SyncTransformation, Transformation } from './Transformation.ts';
-import { ITransformationContext, TransformationType } from '../../types/index.ts';
+import { ITransformationContext, SourceType, TransformationType } from '../../types/index.ts';
 import { silentLogger } from '../../utils/index.ts';
 
 /**
@@ -27,8 +27,8 @@ class TestAsyncTransformation extends AsyncTransformation {
     public readonly name = 'Test Async Transformation';
 
     public async execute(rules: readonly string[], _context?: ITransformationContext): Promise<readonly string[]> {
-        // Simulate async operation
-        await new Promise((resolve) => setTimeout(resolve, 1));
+        // Simulate async operation without setTimeout to avoid resource leaks in tests
+        await Promise.resolve();
         return rules.map((rule) => rule.toLowerCase());
     }
 }
@@ -123,7 +123,8 @@ Deno.test('SyncTransformation', async (t) => {
         const transformation = new TestSyncTransformation();
         const rules = ['||example.com^'];
         const context: ITransformationContext = {
-            source: { source: 'test', type: 0 },
+            configuration: { source: 'test', type: SourceType.Adblock },
+            logger: silentLogger,
         };
 
         const result = transformation.executeSync(rules, context);
@@ -177,7 +178,8 @@ Deno.test('AsyncTransformation', async (t) => {
         const transformation = new TestAsyncTransformation();
         const rules = ['||EXAMPLE.COM^'];
         const context: ITransformationContext = {
-            source: { source: 'test', type: 0 },
+            configuration: { source: 'test', type: SourceType.Adblock },
+            logger: silentLogger,
         };
 
         const result = await transformation.execute(rules, context);
@@ -229,12 +231,14 @@ Deno.test('Transformation - logging methods', async (t) => {
             info: () => {
                 infoLogged = true;
             },
-            debug: () => {
-                debugLogged = true;
-            },
+            warn: () => {},
             error: () => {
                 errorLogged = true;
             },
+            debug: () => {
+                debugLogged = true;
+            },
+            trace: () => {},
         };
 
         const transformation = new LoggingTransformation(customLogger);

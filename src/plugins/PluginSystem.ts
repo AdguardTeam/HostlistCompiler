@@ -218,6 +218,20 @@ export class PluginRegistry {
     }
 
     /**
+     * Gets a specific plugin by name
+     */
+    getPlugin(name: string): Plugin | undefined {
+        return this.plugins.get(name);
+    }
+
+    /**
+     * Gets all registered plugins
+     */
+    getPlugins(): Plugin[] {
+        return Array.from(this.plugins.values());
+    }
+
+    /**
      * Lists all registered plugins
      */
     listPlugins(): PluginManifest[] {

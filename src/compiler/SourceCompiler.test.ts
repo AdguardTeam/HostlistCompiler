@@ -112,12 +112,13 @@ Deno.test('SourceCompiler - compile', async (t) => {
     });
 
     await t.step('should emit events during compilation', async () => {
-        const eventEmitter = createEventEmitter();
         const events: string[] = [];
 
-        eventEmitter.on('sourceStart', () => events.push('sourceStart'));
-        eventEmitter.on('progress', () => events.push('progress'));
-        eventEmitter.on('sourceComplete', () => events.push('sourceComplete'));
+        const eventEmitter = createEventEmitter({
+            onSourceStart: () => events.push('sourceStart'),
+            onProgress: () => events.push('progress'),
+            onSourceComplete: () => events.push('sourceComplete'),
+        });
 
         const compiler = new SourceCompiler({ logger: silentLogger, eventEmitter });
         const source = createTestSource();
@@ -171,11 +172,12 @@ Deno.test('SourceCompiler - compile', async (t) => {
     });
 
     await t.step('should emit sourceError event on failure', async () => {
-        const eventEmitter = createEventEmitter();
         let errorEmitted = false;
 
-        eventEmitter.on('sourceError', () => {
-            errorEmitted = true;
+        const eventEmitter = createEventEmitter({
+            onSourceError: () => {
+                errorEmitted = true;
+            },
         });
 
         const compiler = new SourceCompiler({ logger: silentLogger, eventEmitter });
@@ -320,7 +322,7 @@ Deno.test('SourceCompiler - error handling', async (t) => {
             await compiler.compile(source);
         } catch (error) {
             assertEquals(error instanceof SourceError, true);
-            assertExists((error as SourceError).sourceName);
+            assertExists((error as SourceError).source);
         }
     });
 });

@@ -4,6 +4,7 @@
 
 import { assertEquals } from '@std/assert';
 import { RuleOptimizerTransformation } from './RuleOptimizerTransformation.ts';
+import { TransformationType } from '../types/index.ts';
 import { silentLogger } from '../utils/index.ts';
 
 Deno.test('RuleOptimizerTransformation - constructor', async (t) => {
@@ -317,7 +318,7 @@ Deno.test('RuleOptimizerTransformation - transformation properties', async (t) =
     await t.step('should have correct type property', () => {
         const optimizer = new RuleOptimizerTransformation(silentLogger);
 
-        assertEquals(optimizer.type, 'deduplicate');
+        assertEquals(optimizer.type, TransformationType.Deduplicate);
     });
 
     await t.step('should have correct name property', () => {
