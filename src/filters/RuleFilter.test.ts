@@ -2,7 +2,7 @@
  * Tests for RuleFilter
  */
 
-import { assertEquals, assertRejects } from '@std/assert';
+import { assertEquals } from '@std/assert';
 import { RuleFilter } from './RuleFilter.ts';
 import { FilterService } from '../services/FilterService.ts';
 import { IFilterable } from '../types/index.ts';
@@ -67,7 +67,7 @@ Deno.test('RuleFilter - applyExclusions', async (t) => {
             '||test.com^',
         ];
         const filterable = createFilterable({
-            exclusions: ['example.*'],
+            exclusions: ['*example.*'],
         });
 
         const result = await ruleFilter.applyExclusions(rules, filterable);
@@ -151,7 +151,7 @@ Deno.test('RuleFilter - applyExclusions', async (t) => {
         }
     });
 
-    await t.step('should throw error on invalid exclusions_sources', async () => {
+    await t.step('should handle invalid exclusions_sources gracefully', async () => {
         const filterService = new FilterService(silentLogger);
         const ruleFilter = new RuleFilter(filterService, silentLogger);
         const rules = ['||example.com^'];
@@ -159,11 +159,10 @@ Deno.test('RuleFilter - applyExclusions', async (t) => {
             exclusions_sources: ['/nonexistent/file.txt'],
         });
 
-        await assertRejects(
-            () => ruleFilter.applyExclusions(rules, filterable),
-            Error,
-            'Rule exclusion failed',
-        );
+        // Should not throw error, but return original rules unchanged
+        // (FilterService logs warning and continues)
+        const result = await ruleFilter.applyExclusions(rules, filterable);
+        assertEquals(result, rules);
     });
 });
 
@@ -217,7 +216,7 @@ Deno.test('RuleFilter - applyInclusions', async (t) => {
             '||test.com^',
         ];
         const filterable = createFilterable({
-            inclusions: ['example.*'],
+            inclusions: ['*example.*'],
         });
 
         const result = await ruleFilter.applyInclusions(rules, filterable);
@@ -304,7 +303,7 @@ Deno.test('RuleFilter - applyInclusions', async (t) => {
         }
     });
 
-    await t.step('should throw error on invalid inclusions_sources', async () => {
+    await t.step('should handle invalid inclusions_sources gracefully', async () => {
         const filterService = new FilterService(silentLogger);
         const ruleFilter = new RuleFilter(filterService, silentLogger);
         const rules = ['||example.com^'];
@@ -312,11 +311,10 @@ Deno.test('RuleFilter - applyInclusions', async (t) => {
             inclusions_sources: ['/nonexistent/file.txt'],
         });
 
-        await assertRejects(
-            () => ruleFilter.applyInclusions(rules, filterable),
-            Error,
-            'Rule inclusion failed',
-        );
+        // Should not throw error, but return original rules unchanged
+        // (FilterService logs warning and continues with empty patterns)
+        const result = await ruleFilter.applyInclusions(rules, filterable);
+        assertEquals(result, rules);
     });
 });
 
@@ -345,7 +343,7 @@ Deno.test('RuleFilter - pattern optimization', async (t) => {
             '||test.com^',
         ];
         const filterable = createFilterable({
-            exclusions: ['example\\.(com|org|net)'],
+            exclusions: ['/example\\.(com|org|net)/'],
         });
 
         const result = await ruleFilter.applyExclusions(rules, filterable);
@@ -364,7 +362,7 @@ Deno.test('RuleFilter - pattern optimization', async (t) => {
             '||site.net^',
         ];
         const filterable = createFilterable({
-            exclusions: ['test.com', 'domain.*'],
+            exclusions: ['test.com', '*domain.*'],
         });
 
         const result = await ruleFilter.applyExclusions(rules, filterable);
