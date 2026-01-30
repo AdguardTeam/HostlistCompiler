@@ -9,7 +9,9 @@ ARG DENO_VERSION=2.6.3
 FROM node:20-bookworm-slim AS node-base
 
 ARG DENO_VERSION
-ARG TARGETARCH=amd64
+# Use BuildKit's automatic TARGETARCH - do not set a default value
+# as it conflicts with BuildKit's multi-platform build detection
+ARG TARGETARCH
 
 # Install required packages
 RUN apt-get update && apt-get install -y \
