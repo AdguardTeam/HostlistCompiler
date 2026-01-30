@@ -32,12 +32,11 @@ RUN case ${TARGETARCH} in \
     esac && \
     wget --no-check-certificate https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-${DENO_ARCH}.zip -O /tmp/deno.zip && \
     unzip /tmp/deno.zip -d /tmp && \
-    chmod +x /tmp/deno && \
-    mv /tmp/deno /usr/local/bin/deno && \
-    rm /tmp/deno.zip
+    install -m 755 /tmp/deno /usr/local/bin/deno && \
+    rm /tmp/deno.zip /tmp/deno
 
 # Verify Deno installation
-RUN deno --version
+RUN /usr/local/bin/deno --version
 
 WORKDIR /app
 
