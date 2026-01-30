@@ -39,7 +39,7 @@ This guide explains how to deploy the Adblock Compiler using Docker containers.
    docker run -d \
      --name adblock-compiler \
      -p 8787:8787 \
-     -e COMPILER_VERSION=0.6.0 \
+     -e COMPILER_VERSION=0.8.8 \
      adblock-compiler:latest
    ```
 
@@ -50,14 +50,14 @@ This guide explains how to deploy the Adblock Compiler using Docker containers.
 
 The Docker image is built in multiple stages for optimal size and security:
 
-1. **Base Stage**: Node.js 20 runtime with the latest Deno (v2.6.3+)
+1. **Base Stage**: Node.js 20 runtime with Deno 2.6.7+
 2. **Builder Stage**: Installs npm dependencies (Wrangler)
 3. **Runtime Stage**: Minimal production image with only necessary files
 
 ### What's Included
 
 - ✅ Node.js 20.x runtime
-- ✅ Deno 2.6.3 (configurable via build argument)
+- ✅ Deno 2.6.7+ (configurable via build argument)
 - ✅ Wrangler (Cloudflare Worker local dev server)
 - ✅ Adblock Compiler library
 - ✅ Web UI (public/ directory)
@@ -83,19 +83,19 @@ For CLI usage:
 
 The container supports the following environment variables:
 
-| Variable           | Default      | Description                 |
-| ------------------ | ------------ | --------------------------- |
-| `COMPILER_VERSION` | `0.6.0`      | Compiler version identifier |
-| `PORT`             | `8787`       | Port for the web server     |
-| `DENO_DIR`         | `/app/.deno` | Deno cache directory        |
+|| Variable           | Default      | Description                 |
+|| ------------------ | ------------ | --------------------------- |
+|| `COMPILER_VERSION` | `0.8.8`      | Compiler version identifier |
+|| `PORT`             | `8787`       | Port for the web server     |
+|| `DENO_DIR`         | `/app/.deno` | Deno cache directory        |
 
 ### Build Arguments
 
 Customize the Docker image at build time:
 
-| Argument       | Default | Description             |
-| -------------- | ------- | ----------------------- |
-| `DENO_VERSION` | `2.6.3` | Deno version to install |
+|| Argument       | Default | Description             |
+|| -------------- | ------- | ----------------------- |
+|| `DENO_VERSION` | `2.6.7` | Deno version to install |
 
 To build with a different Deno version:
 
@@ -215,7 +215,7 @@ For production deployments:
 
 1. **Build for production:**
    ```bash
-   docker build -t adblock-compiler:0.6.0 .
+   docker build -t adblock-compiler:0.8.8 .
    ```
 
 2. **Use environment-specific configuration:**
@@ -224,12 +224,12 @@ For production deployments:
      --name adblock-compiler-prod \
      --restart always \
      -p 8787:8787 \
-     -e COMPILER_VERSION=0.6.0 \
+     -e COMPILER_VERSION=0.8.8 \
      --health-cmd="curl -f http://localhost:8787/api || exit 1" \
      --health-interval=30s \
      --health-timeout=3s \
      --health-retries=3 \
-     adblock-compiler:0.6.0
+     adblock-compiler:0.8.8
    ```
 
 3. **Use a reverse proxy (nginx/traefik):**
@@ -269,12 +269,12 @@ spec:
         spec:
             containers:
                 - name: adblock-compiler
-                  image: adblock-compiler:0.6.0
+                  image: adblock-compiler:0.8.8
                   ports:
                       - containerPort: 8787
                   env:
                       - name: COMPILER_VERSION
-                        value: '0.6.0'
+                        value: '0.8.8'
                   livenessProbe:
                       httpGet:
                           path: /api

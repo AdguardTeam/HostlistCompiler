@@ -45,6 +45,8 @@ Welcome to the AdBlock Compiler documentation. This directory contains all the d
 
 ### Reference
 
+- [OpenAPI Tooling](OPENAPI_TOOLING.md) - API specification validation and testing
+- [Postman Testing](POSTMAN_TESTING.md) - Import and test with Postman collections
 - [Migration Guide](MIGRATION.md) - Migrating from @adguard/hostlist-compiler
 - [Troubleshooting](TROUBLESHOOTING.md) - Common issues and solutions
 - [AI Assistant Guide](claude.md) - Context for AI assistants working with this codebase

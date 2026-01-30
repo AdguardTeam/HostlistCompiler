@@ -6,9 +6,9 @@ This repository contains the **Adblock Compiler** - a Deno-native, compiler-as-a
 
 ### Core Technologies
 
-- **Deno 2.0+**: Primary runtime environment (NOT Node.js)
+- **Deno 2.6.7+**: Primary runtime environment (NOT Node.js)
 - **TypeScript**: All code is written in TypeScript with strict type checking
-- **JSR (JavaScript Registry)**: Package is published to JSR at `@jk-com/adblock-compiler`
+- **JSR (JavaScript Registry)**: Package is published to JSR at `@jk-com/adblock-compiler@0.8.8`
 - **Cloudflare Workers**: Production deployment target for the worker implementation
 
 ### Supporting Technologies

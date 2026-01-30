@@ -115,16 +115,12 @@ Run the compiler with Docker for easy deployment:
 ```bash
 # Using Docker Compose (recommended)
 docker compose up -d
-
-# Or using Docker CLI
-docker build -t adblock-compiler .
-docker run -d -p 8787:8787 adblock-compiler
 ```
 
 Access the web UI at http://localhost:8787
 
-📚 **[Quick Start Guide](docs/guides/quick-start.md)** - Get started with Docker in minutes\
-📚 **[Docker Deployment Guide](docs/deployment/docker.md)** - Complete guide for container deployment, Kubernetes, and production setups
+📚 **[Quick Start Guide](docs/guides/quick-start.md)** - Get started in minutes\
+📚 **[Docker Deployment Guide](docs/deployment/docker.md)** - Complete guide with production setups and Kubernetes examples
 
 ## <a name="usage"></a> Usage
 
@@ -440,50 +436,26 @@ curl https://adblock-compiler.jayson-knight.workers.dev/api
 
 ## <a name="docker-deployment"></a> Docker Deployment
 
-Deploy the compiler and web UI using Docker containers for easy setup and management.
-
-### Quick Start
+Deploy the compiler and web UI using Docker containers:
 
 ```bash
-# Clone the repository
+# Clone and start
 git clone https://github.com/jaypatrick/adblock-compiler.git
 cd adblock-compiler
-
-# Start with Docker Compose
-docker-compose up -d
+docker compose up -d
 ```
 
 Access the web UI at http://localhost:8787
 
 ### Features
 
-- 🐳 **Multi-stage Docker build** - Optimized image size with Deno and Node.js
-- 🚀 **Cloudflare Worker runtime** - Runs Wrangler dev server in the container
-- 🌐 **Full Web UI** - Access the interactive interface and API
-- 🛠️ **CLI mode** - Run compilation tasks from the command line
-- 📊 **Health checks** - Built-in monitoring and health endpoints
-- 🔒 **Security** - Non-root user and minimal attack surface
+- 🐳 Multi-stage Docker build with Deno 2.6.7+ and Node.js 20
+- 🚀 Cloudflare Worker runtime with Wrangler dev server
+- 🌐 Full Web UI and REST API
+- 📊 Built-in health checks and monitoring
+- 🔒 Security: non-root user, minimal attack surface
 
-### Basic Usage
-
-**Web UI and API Server:**
-
-```bash
-docker-compose up -d
-# Visit http://localhost:8787
-```
-
-**CLI Mode:**
-
-```bash
-docker run --rm \
-  -v $(pwd)/config.json:/app/config.json:ro \
-  -v $(pwd)/output:/app/output \
-  adblock-compiler:latest \
-  /app/hostlist-compiler -c /app/config.json -o /app/output/filter.txt
-```
-
-📚 **[Complete Docker Guide](docs/deployment/docker.md)** - Detailed documentation for Docker deployment, production setups, Kubernetes, and troubleshooting.
+📚 **[Complete Docker Guide](docs/deployment/docker.md)** - Production setups, Kubernetes deployment, CLI mode, and troubleshooting
 
 ## <a name="transformations"></a> Transformations
 

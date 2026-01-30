@@ -1,135 +1,180 @@
-# Queue Tests
+# Cloudflare Worker Implementation
 
-This directory contains comprehensive tests for the Cloudflare Queue integration.
+This directory contains the production-ready Cloudflare Worker implementation for the Adblock Compiler.
 
-## Test Files
+## Overview
 
-### Unit Tests
+The worker provides a full-featured REST API with real-time streaming, queue-based async compilation, and comprehensive metrics.
 
-- **`queue.test.ts`** - Unit tests for queue message structures, validation, and helper functions
-  - Tests message type structures (compile, batch-compile, cache-warm)
-  - Tests request ID generation and uniqueness
-  - Tests message validation and edge cases
-  - Tests optional fields (pre-fetched content, benchmark flags)
-  - Tests type discrimination
+## Core Files
 
-### Integration Tests
+### Worker Entry Points
 
-- **`queue.integration.test.ts`** - Integration tests simulating end-to-end queue processing
-  - Tests queue message enqueuing
-  - Tests KV cache storage and retrieval
-  - Tests batch processing simulation
-  - Tests message acknowledgment and retry
-  - Tests request ID uniqueness at scale
-  - Tests mock Cloudflare environment bindings
+- **`worker.ts`** - Main Cloudflare Worker with HTTP endpoints and queue consumer
+- **`tail.ts`** - Tail worker for advanced logging and observability
+- **`html.ts`** - Fallback HTML templates for error pages and UI
 
-## Running Tests
+### Testing
 
-### Run All Queue Tests
+- **`queue.test.ts`** - Unit tests for queue message structures and validation
+- **`queue.integration.test.ts`** - Integration tests for queue processing
+- **`openapi-contract.test.ts`** - OpenAPI specification contract tests
+
+## API Endpoints
+
+The worker exposes a comprehensive REST API:
+
+### Compilation Endpoints
+
+- **POST `/compile`** - Synchronous compilation with JSON response
+- **POST `/compile/stream`** - Server-Sent Events (SSE) for real-time progress
+- **POST `/compile/batch`** - Batch compile multiple configurations
+- **POST `/compile/async`** - Queue-based async compilation
+- **POST `/compile/batch/async`** - Queue-based batch compilation
+- **GET `/ws/compile`** - WebSocket endpoint for bidirectional real-time updates
+
+### Queue & Results
+
+- **GET `/queue/stats`** - Queue depth and statistics
+- **GET `/queue/results/{id}`** - Retrieve async compilation results
+
+### Monitoring
+
+- **GET `/metrics`** - Prometheus-style metrics
+- **GET `/api`** - API documentation and health check
+
+## Development
+
+### Local Development
 
 ```bash
+# Run worker locally
+npm run dev
+
+# Deploy to Cloudflare
+npm run deploy
+
+# View logs
+npm run tail
+```
+
+### Testing
+
+```bash
+# Run all worker tests
+deno task test
+
+# Run queue tests specifically
 deno test worker/queue.test.ts worker/queue.integration.test.ts
+
+# Run OpenAPI contract tests
+deno task test:contract
+
+# Run with coverage
+deno test --coverage=coverage worker/
+deno coverage coverage --lcov
 ```
 
-### Run Unit Tests Only
+## Features
+
+### Real-time Streaming
+
+- **Server-Sent Events (SSE)** - Progress updates during compilation
+- **WebSocket** - Bidirectional real-time communication
+- Browser notifications for async job completion
+
+### Queue Integration
+
+- **Async Compilation** - Background processing for long-running jobs
+- **Batch Processing** - Handle up to 10 compilations in parallel
+- **Result Storage** - Results cached in KV for retrieval
+- **Automatic Retries** - Circuit breaker with exponential backoff
+
+### Performance
+
+- **Request Deduplication** - Avoid duplicate compilations
+- **Gzip Compression** - 70-80% reduction in cache size
+- **Smart Caching** - Pre-warmed cache for popular filter lists
+- **Rate Limiting** - Per-IP and global rate limits
+
+## Environment Bindings
+
+The worker requires the following Cloudflare bindings:
+
+### KV Namespaces
+
+- **`COMPILATION_RESULTS`** - Stores async compilation results
+- **`RATE_LIMIT`** - Rate limiting state
+
+### Queues
+
+- **`COMPILE_QUEUE`** - Queue for async compilation jobs
+
+### Configuration
+
+Set in `wrangler.toml`:
+
+```toml
+[[kv_namespaces]]
+binding = "COMPILATION_RESULTS"
+id = "your-kv-id"
+
+[[queues.producers]]
+binding = "COMPILE_QUEUE"
+queue = "compile-queue"
+
+[[queues.consumers]]
+queue = "compile-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+```
+
+## Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get the worker running in 5 minutes
+- **[TAIL_WORKER.md](TAIL_WORKER.md)** - Observability and logging setup
+- **[Queue Support](../docs/QUEUE_SUPPORT.md)** - Async compilation guide
+- **[Batch API Guide](../docs/BATCH_API_GUIDE.md)** - Visual guide to batch processing
+- **[Streaming API](../docs/STREAMING_API.md)** - Real-time updates via SSE/WebSocket
+
+## Architecture
+
+### Request Flow
+
+1. **HTTP Request** → Worker receives compilation request
+2. **Pre-fetch Sources** → Fetch filter lists on server-side (bypasses CORS)
+3. **Compile** → Process with transformations
+4. **Cache** → Store in KV if async
+5. **Response** → Return compiled rules or job ID
+
+### Queue Processing
+
+1. **Enqueue** → Client submits async compilation job
+2. **Queue Consumer** → Worker batch processes queue messages
+3. **Compilation** → Background compilation with WorkerCompiler
+4. **Storage** → Results stored in KV with TTL
+5. **Retrieval** → Client polls for results or receives notification
+
+## Production Deployment
+
+Deploy to Cloudflare:
 
 ```bash
-deno test worker/queue.test.ts
+# Deploy main worker
+npm run deploy
+
+# Deploy tail worker (optional, for observability)
+npm run tail:deploy
 ```
 
-### Run Integration Tests Only
+### Monitoring
+
+Access metrics and logs:
 
 ```bash
-deno test worker/queue.integration.test.ts
+# Real-time logs
+npm run tail
+
+# Metrics endpoint
+curl https://your-worker.workers.dev/metrics
 ```
-
-### Run with Coverage
-
-```bash
-deno test --coverage=coverage worker/queue.test.ts worker/queue.integration.test.ts
-deno coverage coverage --lcov --include="^file:"
-```
-
-## Test Coverage
-
-### Unit Tests Coverage
-
-- ✅ Message structure validation (100%)
-- ✅ Request ID generation (100%)
-- ✅ Optional fields handling (100%)
-- ✅ Edge cases (empty arrays, max size, etc.) (100%)
-- ✅ Type discrimination (100%)
-
-### Integration Tests Coverage
-
-- ✅ Queue enqueuing (100%)
-- ✅ KV cache operations (100%)
-- ✅ Message batch processing (100%)
-- ✅ Acknowledgment/retry tracking (100%)
-- ✅ Request ID uniqueness (100%)
-
-## Mock Objects
-
-The integration tests use mock implementations of Cloudflare bindings:
-
-- **`MockKVNamespace`** - Simulates Cloudflare KV storage
-- **`MockQueue`** - Simulates Cloudflare Queue
-- **`MockMessageBatch`** - Simulates queue consumer message batch
-- **`MockEnv`** - Simulates worker environment with all bindings
-
-## Test Output
-
-Example test run output:
-
-```
-running 30 tests from ./worker/queue.test.ts
-Queue Message - compile message has correct structure ... ok (2ms)
-Queue Message - batch compile message has correct structure ... ok (1ms)
-Queue Message - cache warm message has correct structure ... ok (1ms)
-...
-
-running 15 tests from ./worker/queue.integration.test.ts
-Integration - Queue message enqueuing ... ok (3ms)
-Integration - Batch message enqueuing ... ok (2ms)
-Integration - KV cache storage and retrieval ... ok (4ms)
-...
-
-test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out (234ms)
-```
-
-## Adding New Tests
-
-When adding new queue features:
-
-1. **Add unit tests** to `queue.test.ts` for:
-   - Message structure validation
-   - Helper function behavior
-   - Edge cases and error conditions
-
-2. **Add integration tests** to `queue.integration.test.ts` for:
-   - End-to-end workflows
-   - Mock environment interactions
-   - System behavior under various conditions
-
-3. **Follow naming conventions**:
-   - Descriptive test names: `Queue Message - <what it tests>`
-   - Integration tests: `Integration - <what it tests>`
-   - Clear assertions with helpful error messages
-
-## CI/CD Integration
-
-These tests run automatically in the CI pipeline:
-
-```yaml
-- name: Run tests
-  run: deno task test
-```
-
-The CI configuration is in `.github/workflows/ci.yml`.
-
-## Notes
-
-- Unit tests are fast and focused on individual components
-- Integration tests use mocks and don't require actual Cloudflare deployment
-- For production testing, deploy to Cloudflare and use `wrangler dev` or staging environment
-- Tests are co-located with the worker code for easy maintenance
