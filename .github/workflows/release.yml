@@ -43,7 +43,9 @@ jobs:
                       deno-${{ runner.os }}-
 
             - name: Install dependencies
-              run: deno install
+              run: |
+                  deno install
+                  deno cache src/index.ts src/cli.ts
               env:
                   DENO_TLS_CA_STORE: system
 
