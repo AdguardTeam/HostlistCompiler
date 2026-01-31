@@ -28,6 +28,7 @@ hostlist-compiler.exe
 # Cloudflare Workers
 .wrangler/
 worker-configuration.d.ts
+.deployment-version.json
 
 # Test coverage
 coverage/

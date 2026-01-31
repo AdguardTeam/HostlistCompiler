@@ -19,6 +19,7 @@ Welcome to the AdBlock Compiler documentation. This directory contains all the d
 
 - [Docker Deployment](deployment/docker.md) - Complete Docker guide with Kubernetes examples
 - [Cloudflare Containers](deployment/cloudflare-containers.md) - Deploy to Cloudflare edge network
+- [Deployment Versioning](DEPLOYMENT_VERSIONING.md) - Automated deployment tracking and versioning
 
 ### Cloudflare Worker
 
