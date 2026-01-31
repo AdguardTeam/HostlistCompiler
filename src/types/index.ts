@@ -402,3 +402,6 @@ export interface ICompilerEvents {
     /** Called when compilation completes */
     onCompilationComplete?: (event: ICompilationCompleteEvent) => void;
 }
+
+// Export validation types
+export * from './validation.ts';

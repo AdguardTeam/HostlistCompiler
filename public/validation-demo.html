@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation Error Display - Demo</title>
+    <style>
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #666666;
+            --text-hint: #888888;
+            --border-color: #e0e0e0;
+            --section-bg: #f8f9fa;
+            --tab-active: #667eea;
+            --alert-error-bg: #f8d7da;
+            --alert-error-text: #721c24;
+            --alert-error-border: #dc3545;
+            --log-warn-bg: #fff3cd;
+            --log-warn-text: #856404;
+            --log-warn-border: #ffc107;
+            --alert-info-bg: #d1ecf1;
+            --alert-info-text: #0c5460;
+            --alert-info-border: #0c5460;
+        }
+
+        [data-theme="dark"] {
+            --container-bg: #1e1e2e;
+            --text-color: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border-color: #3a3a4a;
+            --section-bg: #252535;
+            --alert-error-bg: #3a1a1a;
+            --alert-error-text: #fca5a5;
+            --alert-error-border: #ef4444;
+            --log-warn-bg: #3a3a1a;
+            --log-warn-text: #fde047;
+            --log-warn-border: #eab308;
+            --alert-info-bg: #1a3a4a;
+            --alert-info-text: #7dd3fc;
+            --alert-info-border: #0ea5e9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .color-legend {
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--section-bg);
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+        }
+
+        .color-legend h3 {
+            margin-bottom: 15px;
+            color: var(--tab-active);
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: var(--container-bg);
+            border-radius: 4px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .legend-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 8px 16px;
+            cursor: pointer;
+            color: white;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .demo-controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Validation Error Display</h1>
+            <p>AGTree-powered validation with color-coded AST visualization</p>
+            <button class="theme-toggle" id="theme-toggle">🌙 Toggle Dark Mode</button>
+        </header>
+
+        <div class="content">
+            <div class="color-legend">
+                <h3>📊 Error Type Color Legend</h3>
+                <div class="legend-grid">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #dc3545;"></div>
+                        <div class="legend-label">Parse / Syntax Error</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #fd7e14;"></div>
+                        <div class="legend-label">Unsupported Modifier</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e83e8c;"></div>
+                        <div class="legend-label">Invalid Hostname</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6610f2;"></div>
+                        <div class="legend-label">IP Not Allowed</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffc107;"></div>
+                        <div class="legend-label">Pattern Too Short</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff6b6b;"></div>
+                        <div class="legend-label">Public Suffix Match</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #d63384;"></div>
+                        <div class="legend-label">Invalid Characters</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #0dcaf0;"></div>
+                        <div class="legend-label">Cosmetic Not Supported</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="color-legend">
+                <h3>🌳 AST Node Type Colors</h3>
+                <div class="legend-grid">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #0d6efd;"></div>
+                        <div class="legend-label">Network Category</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #0dcaf0;"></div>
+                        <div class="legend-label">Network Rule</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6610f2;"></div>
+                        <div class="legend-label">Host Rule</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #d63384;"></div>
+                        <div class="legend-label">Cosmetic Rule</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #fd7e14;"></div>
+                        <div class="legend-label">Modifier</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6c757d;"></div>
+                        <div class="legend-label">Comment</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #dc3545;"></div>
+                        <div class="legend-label">Invalid Rule</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-controls">
+                <button class="demo-btn" onclick="loadSampleReport()">Load Sample Report</button>
+                <button class="demo-btn" onclick="loadComplexReport()">Load Complex Report</button>
+                <button class="demo-btn" onclick="clearReport()">Clear Report</button>
+            </div>
+
+            <!-- Validation report will be inserted here -->
+            <div id="validation-container"></div>
+        </div>
+    </div>
+
+    <script src="validation-ui.js"></script>
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            themeToggle.textContent = next === 'dark' ? '☀️ Toggle Light Mode' : '🌙 Toggle Dark Mode';
+        });
+
+        // Sample validation report
+        function loadSampleReport() {
+            const report = {
+                totalRules: 1000,
+                validRules: 950,
+                invalidRules: 50,
+                errorCount: 45,
+                warningCount: 5,
+                infoCount: 0,
+                errors: [
+                    {
+                        type: 'unsupported_modifier',
+                        severity: 'error',
+                        ruleText: '||example.com^$popup',
+                        message: 'Unsupported modifier: popup',
+                        details: 'Supported modifiers: important, ~important, ctag, dnstype, dnsrewrite, denyallow, badfilter, client',
+                        lineNumber: 42,
+                        sourceName: 'Custom Filter',
+                        ast: {
+                            type: 'NetworkRule',
+                            category: 'Network',
+                            exception: false,
+                            pattern: { value: '||example.com^' },
+                            modifiers: {
+                                type: 'ModifierList',
+                                children: [
+                                    { type: 'Modifier', name: { value: 'popup' }, value: null }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        type: 'pattern_too_short',
+                        severity: 'error',
+                        ruleText: '||ad^',
+                        message: 'Pattern too short',
+                        details: 'Minimum pattern length is 5 characters',
+                        lineNumber: 156,
+                        sourceName: 'Custom Filter',
+                        ast: {
+                            type: 'NetworkRule',
+                            category: 'Network',
+                            exception: false,
+                            pattern: { value: '||ad^' }
+                        }
+                    },
+                    {
+                        type: 'invalid_hostname',
+                        severity: 'error',
+                        ruleText: '||invalid..domain^',
+                        message: 'Invalid hostname: invalid..domain',
+                        details: 'The hostname format is not valid',
+                        lineNumber: 203,
+                        sourceName: 'AdGuard Filter'
+                    },
+                    {
+                        type: 'ip_not_allowed',
+                        severity: 'error',
+                        ruleText: '||192.168.1.1^',
+                        message: 'IP address not allowed: 192.168.1.1',
+                        details: 'IP addresses are not permitted in this configuration',
+                        lineNumber: 304,
+                        sourceName: 'AdGuard Filter'
+                    },
+                    {
+                        type: 'cosmetic_not_supported',
+                        severity: 'error',
+                        ruleText: 'example.com##.ad-banner',
+                        message: 'Cosmetic rules not supported',
+                        details: 'DNS blockers do not support cosmetic/element hiding rules',
+                        lineNumber: 450,
+                        sourceName: 'EasyList',
+                        ast: {
+                            type: 'ElementHidingRule',
+                            category: 'Cosmetic',
+                            exception: false,
+                            domains: { children: [{ value: 'example.com' }] },
+                            separator: { value: '##' },
+                            body: { selectorList: { value: '.ad-banner' } }
+                        }
+                    },
+                    {
+                        type: 'modifier_validation_failed',
+                        severity: 'warning',
+                        ruleText: '||ads.com^$important,dnstype=A',
+                        message: 'Modifier validation warning',
+                        details: 'Modifier combination may have unexpected behavior',
+                        lineNumber: 523,
+                        sourceName: 'AdGuard Filter',
+                        ast: {
+                            type: 'NetworkRule',
+                            category: 'Network',
+                            exception: false,
+                            pattern: { value: '||ads.com^' },
+                            modifiers: {
+                                type: 'ModifierList',
+                                children: [
+                                    { type: 'Modifier', name: { value: 'important' }, value: null },
+                                    { type: 'Modifier', name: { value: 'dnstype' }, value: { value: 'A' } }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            };
+
+            ValidationUI.showReport(report);
+        }
+
+        function loadComplexReport() {
+            const report = {
+                totalRules: 5000,
+                validRules: 4850,
+                invalidRules: 150,
+                errorCount: 145,
+                warningCount: 5,
+                infoCount: 0,
+                errors: []
+            };
+
+            // Generate multiple errors
+            const errorTypes = [
+                { type: 'parse_error', text: '|||malformed^', msg: 'Failed to parse rule' },
+                { type: 'syntax_error', text: '||bad syntax', msg: 'Invalid rule syntax' },
+                { type: 'public_suffix_match', text: '||com^', msg: 'Public suffix matching not allowed: com' },
+                { type: 'invalid_characters', text: '||site<test>.com^', msg: 'Invalid characters in pattern' }
+            ];
+
+            for (let i = 0; i < 30; i++) {
+                const errorType = errorTypes[i % errorTypes.length];
+                report.errors.push({
+                    type: errorType.type,
+                    severity: 'error',
+                    ruleText: errorType.text,
+                    message: errorType.msg,
+                    details: 'Generated sample error for demo',
+                    lineNumber: 100 + i * 10,
+                    sourceName: i % 2 === 0 ? 'Filter A' : 'Filter B'
+                });
+            }
+
+            ValidationUI.showReport(report);
+        }
+
+        function clearReport() {
+            ValidationUI.hideReport();
+        }
+
+        // Load sample on page load
+        window.addEventListener('load', () => {
+            setTimeout(loadSampleReport, 500);
+        });
+    </script>
+</body>
+</html>
