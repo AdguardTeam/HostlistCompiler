@@ -8,6 +8,16 @@ ARG DENO_VERSION=2.6.7
 # Stage 1: Node.js image for building with Wrangler
 FROM node:20-bookworm-slim AS node-base
 
+# Proxy configuration - these can be overridden at build time
+# Set them to empty to bypass proxy for Docker Hub
+ARG HTTP_PROXY=""
+ARG HTTPS_PROXY=""
+ARG NO_PROXY=""
+
+ENV HTTP_PROXY=${HTTP_PROXY} \
+    HTTPS_PROXY=${HTTPS_PROXY} \
+    NO_PROXY=${NO_PROXY}
+
 ARG DENO_VERSION
 # Use BuildKit's automatic TARGETARCH - do not set a default value
 # as it conflicts with BuildKit's multi-platform build detection
