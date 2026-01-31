@@ -204,6 +204,11 @@ jobs:
                   restore-keys: |
                       deno-${{ runner.os }}-
 
+            - name: Install dependencies
+              run: deno install
+              env:
+                  DENO_TLS_CA_STORE: system
+
             - name: Publish to JSR
               run: |
                   set -euo pipefail
