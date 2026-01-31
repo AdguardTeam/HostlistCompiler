@@ -212,7 +212,7 @@ jobs:
             - name: Publish to JSR
               run: |
                   set -euo pipefail
-                  if ! OUTPUT="$(deno publish --allow-slow-types 2>&1)"; then
+                  if ! OUTPUT="$(deno publish --allow-dirty 2>&1)"; then
                     echo "${OUTPUT}"
                     if echo "${OUTPUT}" | grep -qiE 'version .*already (exists|published)'; then
                       echo "Version already published, skipping."
