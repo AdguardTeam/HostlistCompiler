@@ -29,14 +29,11 @@
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). The package provides more functionality with improved performance and no Node.js dependencies.
 
-## 🎉 New in v0.11.2
+## 🎉 New in v0.11.3
 
-- **🔍 Code Quality** - Comprehensive codebase review and refactoring
-- **🧹 Cleanup** - Removed unused dependencies and dead code
-- **✅ Testing** - All tests passing (942 tests) with Deno test framework
-- **📦 Stability** - Enhanced type safety and error handling
-- **🚀 Performance** - Optimized transformation pipeline and caching
-- **📝 Documentation** - Updated and accurate code documentation
+- **🔧 Version Management** - Version consistency across all configuration files
+- **📦 Synchronization** - All version references now properly synchronized
+- **✅ Maintenance** - Regular version bump and maintenance update
 
 ## ✨ Features
 
