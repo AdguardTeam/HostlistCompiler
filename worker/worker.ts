@@ -76,7 +76,7 @@ import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type 
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
 import { handleWebSocketUpgrade } from './websocket.ts';
 import { AnalyticsService } from '../src/services/AnalyticsService.ts';
-import { getLatestDeployment, getDeploymentHistory, getDeploymentStats } from '../src/deployment/version.ts';
+import { getDeploymentHistory, getDeploymentStats, getLatestDeployment } from '../src/deployment/version.ts';
 
 // Import Workflow classes and types
 import {
