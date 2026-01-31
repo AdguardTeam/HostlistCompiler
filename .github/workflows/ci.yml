@@ -240,6 +240,11 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
@@ -248,6 +253,17 @@ jobs:
 
             - name: Install Wrangler
               run: npm install -g wrangler
+
+            - name: Run database migrations
+              run: |
+                  echo "Running D1 migrations..."
+                  wrangler d1 execute adblock-compiler-d1-database --file=migrations/0001_init.sql --remote || echo "Migration 0001 already applied or failed"
+                  wrangler d1 execute adblock-compiler-d1-database --file=migrations/0002_deployment_history.sql --remote || echo "Migration 0002 already applied or failed"
+
+            - name: Generate deployment version
+              id: version
+              run: |
+                  deno run --allow-read --allow-net --allow-env scripts/generate-deployment-version.ts
 
             - name: Setup Cloudflare resources
               run: |
@@ -258,7 +274,20 @@ jobs:
                   wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || echo "R2 bucket already exists"
 
             - name: Deploy Worker
-              run: wrangler deploy
+              id: deploy
+              run: |
+                  echo "Deploying version: ${{ steps.version.outputs.full_version }}"
+                  wrangler deploy
+
+            - name: Record deployment
+              if: success()
+              run: |
+                  deno run --allow-read --allow-net --allow-env scripts/record-deployment.ts --status=success
+
+            - name: Record failed deployment
+              if: failure()
+              run: |
+                  deno run --allow-read --allow-net --allow-env scripts/record-deployment.ts --status=failed || true
 
             - name: Deploy Pages
               uses: cloudflare/wrangler-action@v3

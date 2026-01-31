@@ -76,6 +76,7 @@ import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type 
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
 import { handleWebSocketUpgrade } from './websocket.ts';
 import { AnalyticsService } from '../src/services/AnalyticsService.ts';
+import { getLatestDeployment, getDeploymentHistory, getDeploymentStats } from '../src/deployment/version.ts';
 
 // Import Workflow classes and types
 import {
@@ -2994,6 +2995,132 @@ export default {
         // Handle API routes
         if (pathname === '/api' && request.method === 'GET') {
             return handleInfo(env);
+        }
+
+        // Handle version endpoint
+        if (pathname === '/api/version' && request.method === 'GET') {
+            try {
+                if (!env.DB) {
+                    return Response.json(
+                        {
+                            success: false,
+                            error: 'D1 database not available',
+                            version: env.COMPILER_VERSION || 'unknown',
+                        },
+                        { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    );
+                }
+
+                const deployment = await getLatestDeployment(env.DB);
+
+                return Response.json(
+                    {
+                        success: true,
+                        data: deployment || {
+                            version: env.COMPILER_VERSION || 'unknown',
+                            message: 'No deployment history available',
+                        },
+                    },
+                    {
+                        headers: {
+                            'Access-Control-Allow-Origin': '*',
+                            'Cache-Control': 'public, max-age=60',
+                        },
+                    },
+                );
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return Response.json(
+                    {
+                        success: false,
+                        error: message,
+                        version: env.COMPILER_VERSION || 'unknown',
+                    },
+                    { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+                );
+            }
+        }
+
+        // Handle deployment history endpoint
+        if (pathname === '/api/deployments' && request.method === 'GET') {
+            try {
+                if (!env.DB) {
+                    return Response.json(
+                        {
+                            success: false,
+                            error: 'D1 database not available',
+                        },
+                        { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    );
+                }
+
+                const limit = parseInt(url.searchParams.get('limit') || '50');
+                const version = url.searchParams.get('version') || undefined;
+                const status = url.searchParams.get('status') || undefined;
+                const branch = url.searchParams.get('branch') || undefined;
+
+                const deployments = await getDeploymentHistory(env.DB, {
+                    limit,
+                    version,
+                    status,
+                    branch,
+                });
+
+                return Response.json(
+                    {
+                        success: true,
+                        data: deployments,
+                    },
+                    {
+                        headers: {
+                            'Access-Control-Allow-Origin': '*',
+                            'Cache-Control': 'public, max-age=60',
+                        },
+                    },
+                );
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return Response.json(
+                    { success: false, error: message },
+                    { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+                );
+            }
+        }
+
+        // Handle deployment stats endpoint
+        if (pathname === '/api/deployments/stats' && request.method === 'GET') {
+            try {
+                if (!env.DB) {
+                    return Response.json(
+                        {
+                            success: false,
+                            error: 'D1 database not available',
+                        },
+                        { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    );
+                }
+
+                const stats = await getDeploymentStats(env.DB);
+
+                return Response.json(
+                    {
+                        success: true,
+                        data: stats,
+                    },
+                    {
+                        headers: {
+                            'Access-Control-Allow-Origin': '*',
+                            'Cache-Control': 'public, max-age=60',
+                        },
+                    },
+                );
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return Response.json(
+                    { success: false, error: message },
+                    { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+                );
+            }
         }
 
         // Handle Turnstile config endpoint (provides site key to frontend)
