@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-01-31
+
+### Added
+
+- **@adguard/agtree Integration** - Robust AST-based rule parsing
+  - New `AGTreeParser` wrapper module for type-safe rule parsing
+  - Type guards for all rule types (network, host, cosmetic, comments)
+  - Property extraction methods for structured rule data
+  - Modifier utilities (find, check, get value)
+  - Validation helpers
+  - Syntax detection (AdGuard, uBlock Origin, ABP)
+
+### Changed
+
+- **Refactored `RuleUtils`** to use AGTree internally
+  - `isComment()`, `isAllowRule()`, `isEtcHostsRule()` now use AST parsing
+  - `loadAdblockRuleProperties()`, `loadEtcHostsRuleProperties()` use AGTree parsing
+  - New methods: `parseToAST()`, `isValidRule()`, `isNetworkRule()`, `isCosmeticRule()`, `detectSyntax()`
+- **Updated `ValidateTransformation`** for AST-based validation
+  - Parse-once, validate-many pattern for better performance
+  - Proper handling of all rule categories
+  - Better error context with structured errors
+
+### Improved
+
+- Rule parsing moved from regex-based to full AST with location info
+- Extended syntax support from basic adblock to AdGuard, uBlock Origin, and Adblock Plus
+- Modifier validation now uses compatibility tables instead of hardcoded lists
+- Error handling upgraded from string matching to structured errors with positions
+- Rule type support expanded to include all cosmetic rules, network rules, and comments
+- Maintainability improved through upstream library updates instead of manual regex maintenance
+
 ## [0.8.8] - 2026-01-27
 
 ### Fixed
