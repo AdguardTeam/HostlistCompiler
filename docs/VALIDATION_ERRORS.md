@@ -78,7 +78,7 @@ for (const error of report.errors) {
 
 ### Web UI
 
-The web UI automatically displays validation reports when the Validate transformation is enabled.
+To display validation reports in your web UI, include the validation UI component and manually integrate it:
 
 ```html
 <!-- Include validation UI script -->

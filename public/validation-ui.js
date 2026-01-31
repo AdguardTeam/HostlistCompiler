@@ -540,7 +540,7 @@ const ValidationUI = {
 
         // Recursively render child nodes
         for (const key in node) {
-            if (node.hasOwnProperty(key) && !importantProps.includes(key) && 
+            if (Object.prototype.hasOwnProperty.call(node, key) && !importantProps.includes(key) && 
                 key !== 'type' && key !== 'category' && key !== 'raws' && key !== 'loc') {
                 
                 const value = node[key];

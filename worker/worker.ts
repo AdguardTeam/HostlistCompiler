@@ -802,6 +802,71 @@ function emitDiagnosticsToTailWorker(diagnostics: DiagnosticEvent[]): void {
 }
 
 /**
+ * Handle AST parsing requests
+ */
+async function handleASTParseRequest(
+    request: Request,
+    _env: Env,
+): Promise<Response> {
+    try {
+        const body = await request.json() as { rules?: string[]; text?: string };
+
+        // Import ASTViewerService dynamically
+        const { ASTViewerService } = await import('../src/services/ASTViewerService.ts');
+
+        let parsedRules;
+
+        if (body.rules && Array.isArray(body.rules)) {
+            // Parse array of rules
+            parsedRules = ASTViewerService.parseRules(body.rules);
+        } else if (body.text && typeof body.text === 'string') {
+            // Parse multi-line text
+            parsedRules = ASTViewerService.parseRulesFromText(body.text);
+        } else {
+            return Response.json(
+                {
+                    success: false,
+                    error: 'Request must include either "rules" array or "text" string',
+                },
+                {
+                    status: 400,
+                    headers: { 'Access-Control-Allow-Origin': '*' },
+                },
+            );
+        }
+
+        // Generate summary
+        const summary = ASTViewerService.generateSummary(parsedRules);
+
+        return Response.json(
+            {
+                success: true,
+                parsedRules,
+                summary,
+            },
+            {
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return Response.json(
+            {
+                success: false,
+                error: errorMessage,
+            },
+            {
+                status: 500,
+                headers: { 'Access-Control-Allow-Origin': '*' },
+            },
+        );
+    }
+}
+
+/**
  * Handle compile requests with streaming response.
  */
 async function handleCompileStream(
@@ -3263,6 +3328,11 @@ export default {
             if (pathname === '/compile/batch') {
                 return handleCompileBatch(request, env);
             }
+        }
+
+        // AST Parser endpoint
+        if (pathname === '/ast/parse' && request.method === 'POST') {
+            return handleASTParseRequest(request, env);
         }
 
         // WebSocket endpoint

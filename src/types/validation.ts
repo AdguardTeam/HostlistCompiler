@@ -47,7 +47,7 @@ export enum ValidationSeverity {
 /**
  * A single validation error for a rule
  */
-export interface ValidationError {
+export interface IValidationError {
     /** Type of validation error */
     type: ValidationErrorType;
     /** Severity level */
@@ -69,7 +69,7 @@ export interface ValidationError {
 /**
  * Collection of validation errors for a compilation
  */
-export interface ValidationReport {
+export interface IValidationReport {
     /** Total number of errors */
     errorCount: number;
     /** Total number of warnings */
@@ -77,7 +77,7 @@ export interface ValidationReport {
     /** Total number of info messages */
     infoCount: number;
     /** List of all validation errors */
-    errors: ValidationError[];
+    errors: IValidationError[];
     /** Total rules validated */
     totalRules: number;
     /** Valid rules count */
@@ -89,9 +89,9 @@ export interface ValidationReport {
 /**
  * Extended compilation result with validation report
  */
-export interface ValidationResult {
+export interface IValidationResult {
     /** The compiled rules */
     rules: string[];
     /** Validation report */
-    validation: ValidationReport;
+    validation: IValidationReport;
 }
