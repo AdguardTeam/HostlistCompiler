@@ -775,6 +775,205 @@
             display: none;
         }
 
+        /* AST Viewer Styles */
+        .ast-rule-card {
+            background: var(--section-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .ast-rule-card:hover {
+            border-color: var(--tab-active);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .ast-rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .ast-rule-text {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--tab-active);
+            word-break: break-all;
+            flex: 1;
+        }
+
+        .ast-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .ast-badge-network {
+            background: #667eea;
+            color: white;
+        }
+
+        .ast-badge-cosmetic {
+            background: #764ba2;
+            color: white;
+        }
+
+        .ast-badge-comment {
+            background: #6c757d;
+            color: white;
+        }
+
+        .ast-badge-invalid {
+            background: #dc3545;
+            color: white;
+        }
+
+        .ast-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .ast-info-item {
+            background: var(--container-bg);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .ast-info-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ast-info-value {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            font-family: 'Courier New', monospace;
+        }
+
+        .ast-properties {
+            background: var(--container-bg);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        .ast-properties-title {
+            font-weight: 600;
+            color: var(--tab-active);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .ast-property {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .ast-property:last-child {
+            border-bottom: none;
+        }
+
+        .ast-property-key {
+            font-weight: 600;
+            min-width: 150px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .ast-property-value {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            word-break: break-all;
+        }
+
+        .ast-json-container {
+            background: var(--code-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .ast-json-toggle {
+            cursor: pointer;
+            color: var(--tab-active);
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .ast-json-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .ast-json-toggle::before {
+            content: '▼';
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+
+        .ast-json-toggle.collapsed::before {
+            transform: rotate(-90deg);
+        }
+
+        .ast-modifier-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .ast-modifier-chip {
+            background: var(--alert-info-bg);
+            color: var(--alert-info-text);
+            border: 1px solid var(--alert-info-border);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .ast-error-message {
+            background: var(--alert-error-bg);
+            border: 2px solid var(--alert-error-border);
+            color: var(--alert-error-text);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .ast-success-indicator {
+            color: #28a745;
+            font-weight: bold;
+        }
+
         @media (min-width: 480px) {
             .theme-toggle-label {
                 display: inline;
@@ -798,6 +997,7 @@
             <div class="tabs">
                 <button class="tab active" data-tab="simple">Simple Mode</button>
                 <button class="tab" data-tab="advanced">Advanced Mode</button>
+                <button class="tab" data-tab="ast-viewer">AST Viewer</button>
                 <button class="tab" data-tab="examples">Examples</button>
                 <button class="tab" data-tab="docs">API Docs</button>
                 <button class="tab" onclick="window.location.href='test.html'; return false;">Test Page</button>
@@ -957,6 +1157,43 @@
                 <div class="button-group">
                     <button class="btn-primary" id="advanced-compile">Compile Filter List</button>
                     <button class="btn-secondary" id="advanced-clear">Clear</button>
+                </div>
+            </div>
+
+            <!-- AST Viewer -->
+            <div class="tab-content" id="ast-viewer">
+                <div class="alert alert-info">
+                    <strong>AST Viewer:</strong> Parse adblock rules and explore their Abstract Syntax Tree using @adguard/agtree. See the structure behind network rules, cosmetic rules, comments, and more.
+                </div>
+
+                <div class="form-group">
+                    <label for="ast-input">Adblock Rules (one per line)</label>
+                    <textarea id="ast-input">||example.com^$third-party
+@@||example.com/allowed^
+127.0.0.1 ad.example.com
+example.com##.ad-banner
+! This is a comment</textarea>
+                    <div class="hint">Enter one or more adblock filter rules to parse into AST. Supports network rules, cosmetic rules, host rules, and comments.</div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="ast-show-full" checked style="width: auto;">
+                        <span>Show full AST JSON</span>
+                    </label>
+                    <div class="hint">Toggle to show/hide the complete JSON AST representation</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="ast-parse">Parse Rules</button>
+                    <button class="btn-secondary" id="ast-clear">Clear</button>
+                    <button class="btn-secondary" id="ast-load-examples">Load Examples</button>
+                </div>
+
+                <!-- AST Output Section -->
+                <div id="ast-output" style="display: none; margin-top: 30px;">
+                    <h3 style="color: var(--tab-active); margin-bottom: 20px;">Parsed Rules</h3>
+                    <div id="ast-rules-container"></div>
                 </div>
             </div>
 
@@ -2579,6 +2816,283 @@ eventSource.addEventListener('result', (e) => {
         
         // Don't start auto-refresh on page load - only when queue stats are shown
         // startQueueStatsAutoRefresh(); is called in showQueueStats()
+
+        // ========================================================================
+        // AST Viewer Functionality
+        // ========================================================================
+
+        const astInput = document.getElementById('ast-input');
+        const astParseBtn = document.getElementById('ast-parse');
+        const astClearBtn = document.getElementById('ast-clear');
+        const astLoadExamplesBtn = document.getElementById('ast-load-examples');
+        const astShowFullCheckbox = document.getElementById('ast-show-full');
+        const astOutput = document.getElementById('ast-output');
+        const astRulesContainer = document.getElementById('ast-rules-container');
+
+        // Parse rules and display AST
+        astParseBtn.addEventListener('click', async () => {
+            const text = astInput.value.trim();
+            if (!text) {
+                alert('Please enter at least one rule to parse');
+                return;
+            }
+
+            astParseBtn.disabled = true;
+            astParseBtn.textContent = 'Parsing...';
+
+            try {
+                const apiUrl = window.location.hostname === 'localhost'
+                    ? '/ast/parse'
+                    : 'https://adblock-compiler.jayson-knight.workers.dev/ast/parse';
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayASTResults(result.parsedRules, result.summary);
+                    trackEvent('ast_parse_success', {
+                        rule_count: result.summary.total,
+                        successful: result.summary.successful,
+                        failed: result.summary.failed
+                    });
+                } else {
+                    alert('Failed to parse rules: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error parsing rules: ' + error.message);
+            } finally {
+                astParseBtn.disabled = false;
+                astParseBtn.textContent = 'Parse Rules';
+            }
+        });
+
+        // Clear AST input and output
+        astClearBtn.addEventListener('click', () => {
+            astInput.value = '';
+            astOutput.style.display = 'none';
+            astRulesContainer.innerHTML = '';
+        });
+
+        // Load example rules
+        astLoadExamplesBtn.addEventListener('click', () => {
+            const examples = [
+                '||example.com^$third-party',
+                '@@||example.com/allowed^',
+                '127.0.0.1 ad.example.com',
+                'example.com##.ad-banner',
+                'example.com##+js(abort-on-property-read, ads)',
+                '! This is a comment',
+                '! Title: My Filter List',
+                '! Description: Example filter list',
+                'example.com,~subdomain.example.com##.selector',
+                '||ads.example.com^$script,domain=example.com|example.org',
+                '0.0.0.0 tracking.example.com',
+                'example.com#@#.ad-banner',
+                '||example.com^$important,third-party'
+            ];
+            astInput.value = examples.join('\n');
+        });
+
+        // Display parsed AST results
+        function displayASTResults(parsedRules, summary) {
+            const showFullAST = astShowFullCheckbox.checked;
+            
+            astRulesContainer.innerHTML = '';
+
+            // Add summary card
+            const summaryCard = document.createElement('div');
+            summaryCard.className = 'ast-rule-card';
+            summaryCard.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            summaryCard.style.color = 'white';
+            summaryCard.innerHTML = `
+                <h4 style="margin: 0 0 15px 0;">Summary</h4>
+                <div class="ast-info-grid">
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold;">${summary.total}</div>
+                        <div style="opacity: 0.9;">Total Rules</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #d4edda;">${summary.successful}</div>
+                        <div style="opacity: 0.9;">Successful</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #f8d7da;">${summary.failed}</div>
+                        <div style="opacity: 0.9;">Failed</div>
+                    </div>
+                </div>
+                ${Object.keys(summary.byCategory).length > 0 ? `
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3);">
+                        <strong>By Category:</strong> ${Object.entries(summary.byCategory).map(([cat, count]) => 
+                            `${cat}: ${count}`
+                        ).join(', ')}
+                    </div>
+                ` : ''}
+            `;
+            astRulesContainer.appendChild(summaryCard);
+
+            // Add each parsed rule
+            for (const rule of parsedRules) {
+                const ruleCard = document.createElement('div');
+                ruleCard.className = 'ast-rule-card';
+
+                let badgeClass = 'ast-badge-network';
+                if (rule.category === 'Cosmetic') badgeClass = 'ast-badge-cosmetic';
+                else if (rule.category === 'Comment') badgeClass = 'ast-badge-comment';
+                else if (!rule.success || !rule.valid) badgeClass = 'ast-badge-invalid';
+
+                let html = `
+                    <div class="ast-rule-header">
+                        <div class="ast-rule-text">${escapeHtml(rule.ruleText)}</div>
+                        <span class="ast-badge ${badgeClass}">${escapeHtml(rule.category || 'Invalid')}</span>
+                    </div>
+                `;
+
+                if (!rule.success) {
+                    html += `<div class="ast-error-message">❌ ${escapeHtml(rule.error || 'Parse failed')}</div>`;
+                } else {
+                    // Info grid
+                    html += `
+                        <div class="ast-info-grid">
+                            <div class="ast-info-item">
+                                <div class="ast-info-label">Type</div>
+                                <div class="ast-info-value">${escapeHtml(rule.type)}</div>
+                            </div>
+                            <div class="ast-info-item">
+                                <div class="ast-info-label">Syntax</div>
+                                <div class="ast-info-value">${escapeHtml(rule.syntax)}</div>
+                            </div>
+                            <div class="ast-info-item">
+                                <div class="ast-info-label">Valid</div>
+                                <div class="ast-info-value">${rule.valid ? '<span class="ast-success-indicator">✓ Yes</span>' : '✗ No'}</div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Type-specific properties
+                    if (rule.properties) {
+                        if (rule.properties.network) {
+                            const net = rule.properties.network;
+                            html += `
+                                <div class="ast-properties">
+                                    <div class="ast-properties-title">Network Rule Properties</div>
+                                    <div class="ast-property">
+                                        <div class="ast-property-key">Pattern:</div>
+                                        <div class="ast-property-value">${escapeHtml(net.pattern)}</div>
+                                    </div>
+                                    <div class="ast-property">
+                                        <div class="ast-property-key">Exception:</div>
+                                        <div class="ast-property-value">${net.isException ? 'Yes (Allowlist)' : 'No (Blocking)'}</div>
+                                    </div>
+                                    ${net.modifiers.length > 0 ? `
+                                        <div class="ast-property">
+                                            <div class="ast-property-key">Modifiers:</div>
+                                            <div class="ast-property-value">
+                                                <div class="ast-modifier-list">
+                                                    ${net.modifiers.map(m => 
+                                                        `<span class="ast-modifier-chip">${m.exception ? '~' : ''}${escapeHtml(m.name)}${m.value ? '=' + escapeHtml(m.value) : ''}</span>`
+                                                    ).join('')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        } else if (rule.properties.host) {
+                            const host = rule.properties.host;
+                            html += `
+                                <div class="ast-properties">
+                                    <div class="ast-properties-title">Host Rule Properties</div>
+                                    <div class="ast-property">
+                                        <div class="ast-property-key">IP Address:</div>
+                                        <div class="ast-property-value">${escapeHtml(host.ip)}</div>
+                                    </div>
+                                    <div class="ast-property">
+                                        <div class="ast-property-key">Hostnames:</div>
+                                        <div class="ast-property-value">${host.hostnames.map(h => escapeHtml(h)).join(', ')}</div>
+                                    </div>
+                                    ${host.comment ? `
+                                        <div class="ast-property">
+                                            <div class="ast-property-key">Comment:</div>
+                                            <div class="ast-property-value">${escapeHtml(host.comment)}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        } else if (rule.properties.cosmetic) {
+                            const cos = rule.properties.cosmetic;
+                            html += `
+                                <div class="ast-properties">
+                                    <div class="ast-properties-title">Cosmetic Rule Properties</div>
+                                    <div class="ast-property">
+                                        <div class="ast-property-key">Domains:</div>
+                                        <div class="ast-property-value">${(cos.domains && cos.domains.length > 0 ? cos.domains.map((d) => escapeHtml(d)).join(', ') : 'All domains')}</div>
+                                    </div>
+                                    <div class="ast-property">
+                                        <div class="ast-property-key">Separator:</div>
+                                        <div class="ast-property-value">${escapeHtml(cos.separator)}</div>
+                                    </div>
+                                    <div class="ast-property">
+                                        <div class="ast-property-key">Exception:</div>
+                                        <div class="ast-property-value">${cos.isException ? 'Yes' : 'No'}</div>
+                                    </div>
+                                    <div class="ast-property">
+                                        <div class="ast-property-key">Body:</div>
+                                        <div class="ast-property-value">${escapeHtml(cos.body)}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else if (rule.properties.comment) {
+                            const comment = rule.properties.comment;
+                            html += `
+                                <div class="ast-properties">
+                                    <div class="ast-properties-title">Comment Properties</div>
+                                    ${comment.header ? `
+                                        <div class="ast-property">
+                                            <div class="ast-property-key">Header:</div>
+                                            <div class="ast-property-value">${escapeHtml(comment.header)}</div>
+                                        </div>
+                                        <div class="ast-property">
+                                            <div class="ast-property-key">Value:</div>
+                                            <div class="ast-property-value">${escapeHtml(comment.value || '')}</div>
+                                        </div>
+                                    ` : `
+                                        <div class="ast-property">
+                                            <div class="ast-property-key">Text:</div>
+                                            <div class="ast-property-value">${escapeHtml(comment.text)}</div>
+                                        </div>
+                                    `}
+                                </div>
+                            `;
+                        }
+                    }
+
+                    // Full AST (collapsible)
+                    if (showFullAST && rule.ast) {
+                        const astId = 'ast-' + Math.random().toString(36).substring(2, 11);
+                        html += `
+                            <div>
+                                <div class="ast-json-toggle" onclick="this.classList.toggle('collapsed'); document.getElementById('${astId}').style.display = this.classList.contains('collapsed') ? 'none' : 'block';">
+                                    Full AST JSON
+                                </div>
+                                <div id="${astId}" class="ast-json-container">
+                                    <pre style="margin: 0; color: var(--text-color);">${escapeHtml(JSON.stringify(rule.ast, null, 2))}</pre>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                ruleCard.innerHTML = html;
+                astRulesContainer.appendChild(ruleCard);
+            }
+
+            astOutput.style.display = 'block';
+        }
     </script>
 </body>
 </html>

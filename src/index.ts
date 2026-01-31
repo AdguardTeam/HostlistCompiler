@@ -89,7 +89,7 @@ export {
 } from './transformations/index.ts';
 
 // Services
-export { FilterService } from './services/index.ts';
+export { ASTViewerService, FilterService, type ParsedRuleInfo, type RuleSummary } from './services/index.ts';
 
 // Compiler
 export { compile, FilterCompiler, SourceCompiler } from './compiler/index.ts';

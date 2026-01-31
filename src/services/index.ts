@@ -11,3 +11,4 @@ export {
     type SourceFetchEventData,
     type WorkflowEventData,
 } from './AnalyticsService.ts';
+export { ASTViewerService, type ParsedRuleInfo, type RuleSummary } from './ASTViewerService.ts';
