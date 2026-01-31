@@ -29,14 +29,11 @@
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). The package provides more functionality with improved performance and no Node.js dependencies.
 
-## 🎉 New in v0.8.0
+## 🎉 New in v0.11.3
 
-- **🎯 Admin Dashboard** - Beautiful landing page with real-time metrics and navigation
-- **🔔 Notifications** - Browser notifications for async compilation jobs
-- **📊 Queue Visualization** - Live Chart.js graphs of queue depth
-- **📚 Comprehensive Guides** - Learn when to use WebSocket vs SSE vs Queue
-- **🎨 Modern UI/UX** - Polished, professional interface
-- **📂 Clean Organization** - Streamlined project structure
+- **🔧 Version Management** - Version consistency across all configuration files
+- **📦 Synchronization** - All version references now properly synchronized
+- **✅ Maintenance** - Regular version bump and maintenance update
 
 ## ✨ Features
 
