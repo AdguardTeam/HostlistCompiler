@@ -791,7 +791,7 @@
         <!-- Footer -->
         <footer class="footer">
             <p>
-                Adblock Compiler v<span id="version">0.8.0</span> •
+                Adblock Compiler v<span id="version">0.11.3</span> •
                 <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank">GitHub</a> •
                 <a href="https://jsr.io/@jk-com/adblock-compiler" target="_blank">JSR Package</a> •
                 <a href="/docs/api/index.html" target="_blank">API Documentation</a>
@@ -823,11 +823,29 @@
 
         // Initialize dashboard
         async function initDashboard() {
+            await loadVersion();
             await refreshMetrics();
             setupAutoRefresh();
             initQueueChart();
             initNotifications();
             startJobMonitoring();
+        }
+
+        // Load and display version from API
+        async function loadVersion() {
+            try {
+                const response = await fetch('/api/version');
+                const result = await response.json();
+                const versionElement = document.getElementById('version');
+                if (versionElement && result.success && result.data) {
+                    versionElement.textContent = result.data.version || 'unknown';
+                } else if (versionElement && result.version) {
+                    versionElement.textContent = result.version;
+                }
+            } catch (error) {
+                console.error('Failed to load version:', error);
+                // Keep the fallback version if API fails
+            }
         }
 
         // Initialize notification system
