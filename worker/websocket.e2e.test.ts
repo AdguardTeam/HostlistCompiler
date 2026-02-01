@@ -301,7 +301,7 @@ Deno.test({
     fn: async () => {
         const ws = new WebSocket(`${WS_URL}/ws/compile`);
 
-        await new Promise<void>((resolve, reject) => {
+        await new Promise<void>((resolve) => {
             const timeout = setTimeout(() => {
                 ws.close();
                 resolve(); // Timeout is acceptable - server may just ignore invalid messages
