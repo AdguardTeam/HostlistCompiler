@@ -83,7 +83,7 @@ deno test --allow-net --filter "compile" worker/api.e2e.test.ts
 
 ## Test Coverage
 
-### API Tests (23 tests)
+### API Tests (21 tests)
 
 **Core API (8 tests)**
 
@@ -119,12 +119,12 @@ deno test --allow-net --filter "compile" worker/api.e2e.test.ts
 - ✅ Missing configuration
 - ✅ CORS headers
 
-**Additional (4 tests)**
+**Additional (2 tests)**
 
 - ✅ GET / - web UI
 - ✅ GET /api/deployments - deployment history
 
-### WebSocket Tests (8 tests)
+### WebSocket Tests (9 tests)
 
 **Connection (2 tests)**
 
@@ -254,7 +254,7 @@ jobs:
 ```yaml
 - name: Start Wrangler
   run: |
-      npm install -g wrangler
+      npm install -g wrangler@3.78.12
       wrangler dev --port 8787 &
       sleep 10
 
