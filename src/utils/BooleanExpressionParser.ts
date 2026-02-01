@@ -132,17 +132,24 @@ function tokenize(expression: string): Token[] {
 }
 
 /**
+ * Maximum recursion depth for NOT expressions to prevent stack overflow
+ */
+const MAX_NOT_DEPTH = 100;
+
+/**
  * Recursive descent parser for boolean expressions
  */
 class BooleanParser {
     private tokens: Token[];
     private pos: number;
     private platform: string | undefined;
+    private notDepth: number;
 
     constructor(tokens: Token[], platform?: string) {
         this.tokens = tokens;
         this.pos = 0;
         this.platform = platform?.toLowerCase();
+        this.notDepth = 0;
     }
 
     private current(): Token {
@@ -198,11 +205,25 @@ class BooleanParser {
 
     /**
      * Parse: notExpr := '!' notExpr | primary
+     *
+     * Note: Enforces a recursion depth limit (MAX_NOT_DEPTH) to prevent stack overflow
+     * from malicious or malformed expressions with excessive NOT nesting.
+     * When the limit is exceeded, returns false as a safe default.
      */
     private parseNot(): boolean {
         if (this.current().type === TokenType.NOT) {
+            // Check recursion depth to prevent stack overflow
+            if (this.notDepth >= MAX_NOT_DEPTH) {
+                // Exceeded max depth - treat as false to fail gracefully
+                // This prevents "Maximum call stack size exceeded" errors
+                return false;
+            }
+
             this.advance(); // consume '!'
-            return !this.parseNot();
+            this.notDepth++;
+            const result = !this.parseNot();
+            this.notDepth--;
+            return result;
         }
         return this.parsePrimary();
     }

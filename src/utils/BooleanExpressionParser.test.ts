@@ -87,3 +87,31 @@ Deno.test('getKnownPlatforms - returns list of platforms', () => {
     assertEquals(platforms.includes('android'), true);
     assertEquals(platforms.length > 10, true);
 });
+
+Deno.test('BooleanExpressionParser - handles deeply nested NOT operators without stack overflow', () => {
+    // Create a deeply nested NOT expression that would previously cause stack overflow
+    // With 200 NOTs, this should hit the recursion limit (MAX_NOT_DEPTH = 100)
+    const deeplyNested = '!'.repeat(200) + 'true';
+
+    // Should not throw and should return false (due to depth limit)
+    const result = evaluateBooleanExpression(deeplyNested);
+    assertEquals(result, false);
+});
+
+Deno.test('BooleanExpressionParser - handles moderate NOT nesting correctly (even)', () => {
+    // Test that we can still handle reasonable nesting (under the limit)
+    const moderateNesting = '!'.repeat(50) + 'true';
+
+    // 50 NOTs on true should give us true (even number of NOTs)
+    const result = evaluateBooleanExpression(moderateNesting);
+    assertEquals(result, true);
+});
+
+Deno.test('BooleanExpressionParser - handles moderate NOT nesting correctly (odd)', () => {
+    // Test with odd number of NOTs to verify recursion depth tracking works correctly
+    const oddNesting = '!'.repeat(51) + 'true';
+
+    // 51 NOTs on true should give us false (odd number of NOTs)
+    const result = evaluateBooleanExpression(oddNesting);
+    assertEquals(result, false);
+});
