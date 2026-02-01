@@ -205,7 +205,7 @@ class BooleanParser {
 
     /**
      * Parse: notExpr := '!' notExpr | primary
-     * 
+     *
      * Note: Enforces a recursion depth limit (MAX_NOT_DEPTH) to prevent stack overflow
      * from malicious or malformed expressions with excessive NOT nesting.
      * When the limit is exceeded, returns false as a safe default.
