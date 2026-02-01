@@ -8,8 +8,8 @@
 
 generator client {
   provider = "prisma-client"
-  // For Deno support, uncomment the following:
-  // previewFeatures = ["deno"]
+  // Deno support is enabled via the runtime setting below.
+  // Note: previewFeatures = ["deno"] is no longer required in recent Prisma versions.
   output   = "./generator"
   runtime = "deno"
 }
