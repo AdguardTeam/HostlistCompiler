@@ -254,7 +254,7 @@ jobs:
 ```yaml
 - name: Start Wrangler
   run: |
-      npm install -g wrangler@3.78.12
+      npm install -g wrangler@3.96.0
       wrangler dev --port 8787 &
       sleep 10
 

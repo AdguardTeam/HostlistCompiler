@@ -74,9 +74,11 @@ Deno.test({
 
         assertEquals(response.status, 200);
         const contentType = response.headers.get('content-type');
-        if (contentType) {
-            assertStringIncludes(contentType, 'application/json');
-        }
+        assertEquals(
+            contentType?.includes('application/json'),
+            true,
+            'Content-Type should include application/json',
+        );
 
         const data = (await response.json()) as any;
 
@@ -100,15 +102,13 @@ Deno.test({
 
         const data = (await response.json()) as any;
 
+        // API contract: { success, data: DeploymentInfo | { version, message } }
         assertExists(data.success);
-        if (data.success) {
-            assertExists(data.data);
-            if (typeof data.data === 'object' && data.data.version) {
-                assertExists(data.data.version);
-            }
-        } else {
-            // In case of error, should have version field
-            assertExists(data.version);
+        assertExists(data.data);
+
+        if (data.success === true) {
+            assertExists(data.data.version);
+            // deployedAt may not exist if no deployment history available
         }
     },
 });
@@ -349,9 +349,8 @@ Deno.test({
 
                 buffer += decoder.decode(value, { stream: true });
 
-                // Process complete events (split by double newline)
+                // Process complete events (all but the last entry which may be partial)
                 const events = buffer.split('\n\n');
-                // All but the last entry are complete events; keep the last as a potential partial
                 const completeEvents = events.slice(0, -1);
                 buffer = events[events.length - 1] ?? '';
 
