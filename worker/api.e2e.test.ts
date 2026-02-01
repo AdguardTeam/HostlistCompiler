@@ -108,10 +108,7 @@ Deno.test({
 
         if (data.success === true) {
             assertExists(data.data.version);
-            // deployedAt may not exist if no deployment history
-            if (data.data.deployedAt) {
-                assertExists(data.data.deployedAt);
-            }
+            // deployedAt may not exist if no deployment history available
         }
     },
 });
