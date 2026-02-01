@@ -75,7 +75,7 @@ Deno.test({
         assertEquals(response.status, 200);
         assertEquals(response.headers.get('content-type'), 'application/json');
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
 
         assertExists(data.name);
         assertExists(data.version);
@@ -96,7 +96,7 @@ Deno.test({
 
         assertEquals(response.status, 200);
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
 
         assertExists(data.version);
         assertExists(data.compilerVersion);
@@ -113,7 +113,7 @@ Deno.test({
         assertEquals(response.status, 200);
         assertEquals(response.headers.get('content-type'), 'application/json');
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
 
         assertExists(data.window);
         assertExists(data.endpoints);
@@ -147,7 +147,7 @@ Deno.test({
 
         assertEquals(response.status, 200);
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
 
         assertEquals(data.success, true);
         assertExists(data.rules);
@@ -180,7 +180,7 @@ Deno.test({
 
         assertEquals(response.status, 200);
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
 
         assertEquals(data.success, true);
         assertEquals(data.ruleCount, 2); // Deduplication should reduce to 2 rules
@@ -219,7 +219,7 @@ Deno.test({
 
         assertEquals(response2.status, 200);
 
-        const data2 = await response2.json();
+        const data2 = (await response2.json()) as any;
         assertEquals(data2.success, true);
 
         // Note: Cache header may or may not be present depending on implementation
@@ -255,7 +255,7 @@ Deno.test({
 
         assertEquals(response.status, 200);
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
 
         assertEquals(data.success, true);
         assertExists(data.results);
@@ -370,7 +370,7 @@ Deno.test({
 
         // Queue may not be configured (500) or return stats (200)
         if (response.status === 200) {
-            const data = await response.json();
+            const data = (await response.json()) as any;
             assertExists(data);
             // Should have queue metrics if available
         } else if (response.status === 500) {
@@ -404,7 +404,7 @@ Deno.test({
 
         // Accept both 202 (queued) and 500 (queue not available)
         if (response.status === 202) {
-            const data = await response.json();
+            const data = (await response.json()) as any;
             assertExists(data.requestId);
             console.log(`   Job queued: ${data.requestId}`);
         } else if (response.status === 500) {
@@ -512,7 +512,7 @@ Deno.test({
 
         assertEquals(response.status, 200);
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
         assertEquals(data.results.length, 10, 'Not all items compiled');
 
         console.log('   Compiled 10 items successfully');
@@ -589,7 +589,7 @@ Deno.test({
         const response = await fetchWithTimeout(`${BASE_URL}/api/deployments`);
 
         if (response.status === 200) {
-            const data = await response.json();
+            const data = (await response.json()) as any;
             assertExists(data);
         } else {
             // May return 404 if not implemented

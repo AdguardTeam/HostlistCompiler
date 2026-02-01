@@ -86,6 +86,7 @@ deno test --allow-net --filter "compile" worker/api.e2e.test.ts
 ### API Tests (23 tests)
 
 **Core API (8 tests)**
+
 - ✅ GET /api - API information
 - ✅ GET /api/version - version information
 - ✅ GET /metrics - metrics data
@@ -96,47 +97,57 @@ deno test --allow-net --filter "compile" worker/api.e2e.test.ts
 - ✅ POST /compile - error handling
 
 **Streaming (1 test)**
+
 - ✅ POST /compile/stream - SSE streaming
 
 **Queue (4 tests)**
+
 - ✅ GET /queue/stats - queue statistics
 - ✅ POST /compile/async - async compilation
 - ✅ POST /compile/batch/async - async batch compilation
 - ✅ GET /queue/results/{id} - retrieve results
 
 **Performance (3 tests)**
+
 - ✅ Response time < 2s
 - ✅ Concurrent requests (5 parallel)
 - ✅ Large batch (10 items)
 
 **Error Handling (3 tests)**
+
 - ✅ Invalid JSON
 - ✅ Missing configuration
 - ✅ CORS headers
 
 **Additional (4 tests)**
+
 - ✅ GET / - web UI
 - ✅ GET /api/deployments - deployment history
 
 ### WebSocket Tests (8 tests)
 
 **Connection (2 tests)**
+
 - ✅ Connection establishment
 - ✅ Receives welcome message
 
 **Compilation (2 tests)**
+
 - ✅ Compile with streaming events
 - ✅ Multiple messages in session
 
 **Error Handling (2 tests)**
+
 - ✅ Invalid message format
 - ✅ Invalid configuration
 
 **Lifecycle (2 tests)**
+
 - ✅ Graceful disconnect
 - ✅ Reconnection capability
 
 **Event Streaming (1 test)**
+
 - ✅ Receives progress events
 
 ## Test Behavior
@@ -149,6 +160,7 @@ Tests are automatically skipped if:
 - **WebSocket not available** - WebSocket tests will be skipped if the WebSocket endpoint is not accessible
 
 You'll see warnings like:
+
 ```
 ⚠️  Server not available at http://localhost:8787
    Start the server with: deno task dev
@@ -157,6 +169,7 @@ You'll see warnings like:
 ### Queue Tests
 
 Queue-related tests accept multiple response statuses:
+
 - `200` - Queue is configured and operational
 - `500` - Queue not available (expected in local development)
 - `202` - Job successfully queued
@@ -170,6 +183,7 @@ This allows tests to pass in both local and production environments.
 - `E2E_BASE_URL` - Base URL for the server (default: `http://localhost:8787`)
 
 Example:
+
 ```bash
 E2E_BASE_URL=https://my-deployment.workers.dev deno task test:e2e
 ```
@@ -217,22 +231,22 @@ name: E2E Tests
 on: [push, pull_request]
 
 jobs:
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: v2.x
-      
-      - name: Start server
-        run: |
-          deno task dev &
-          sleep 10
-      
-      - name: Run E2E tests
-        run: deno task test:e2e
+    e2e:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: denoland/setup-deno@v1
+              with:
+                  deno-version: v2.x
+
+            - name: Start server
+              run: |
+                  deno task dev &
+                  sleep 10
+
+            - name: Run E2E tests
+              run: deno task test:e2e
 ```
 
 ### With Wrangler
@@ -240,9 +254,9 @@ jobs:
 ```yaml
 - name: Start Wrangler
   run: |
-    npm install -g wrangler
-    wrangler dev --port 8787 &
-    sleep 10
+      npm install -g wrangler
+      wrangler dev --port 8787 &
+      sleep 10
 
 - name: Run E2E tests
   run: deno task test:e2e
@@ -258,9 +272,9 @@ Deno.test({
     ignore: !serverAvailable,
     fn: async () => {
         const response = await fetchWithTimeout(`${BASE_URL}/endpoint`);
-        
+
         assertEquals(response.status, 200);
-        
+
         const data = await response.json();
         assertExists(data.field);
     },
@@ -275,20 +289,20 @@ Deno.test({
     ignore: !wsAvailable,
     fn: async () => {
         const ws = new WebSocket(`${WS_URL}/ws/compile`);
-        
+
         await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => {
                 ws.close();
                 reject(new Error('Test timeout'));
             }, 10000);
-            
+
             ws.addEventListener('message', (event) => {
                 // Test logic
                 clearTimeout(timeout);
                 ws.close();
                 resolve();
             });
-            
+
             ws.addEventListener('error', () => {
                 clearTimeout(timeout);
                 reject(new Error('WebSocket error'));
@@ -323,6 +337,7 @@ Both approaches are complementary and test the same endpoints.
 **Problem**: Tests skip because server is not responding
 
 **Solution**:
+
 ```bash
 # Verify server is running
 deno task dev
@@ -336,6 +351,7 @@ lsof -ti :8787
 **Problem**: Tests timing out
 
 **Solution**:
+
 - Increase timeout in test file
 - Check server logs for errors
 - Verify network connectivity
@@ -346,6 +362,7 @@ lsof -ti :8787
 **Problem**: WebSocket tests failing
 
 **Solution**:
+
 ```bash
 # Check if WebSocket endpoint exists
 curl -i -N \
@@ -361,6 +378,7 @@ curl -i -N \
 **Problem**: Queue tests returning unexpected errors
 
 **Solution**:
+
 - Local development: `500` is expected (queues not configured)
 - Production: Verify queue bindings in `wrangler.toml`
 - Check Cloudflare dashboard for queue configuration
@@ -375,6 +393,7 @@ curl -i -N \
 ## Support
 
 For issues or questions:
+
 1. Check the [main README](../README.md)
 2. Review test output for specific error messages
 3. Verify server is running and accessible
