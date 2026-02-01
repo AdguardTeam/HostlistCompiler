@@ -7,10 +7,11 @@
 //   MongoDB:    DATABASE_URL="mongodb://localhost:27017/adblock"
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   // For Deno support, uncomment the following:
   // previewFeatures = ["deno"]
-  // output   = "../node_modules/.prisma/client"
+  output   = "./generator"
+  runtime = "deno"
 }
 
 datasource db {
