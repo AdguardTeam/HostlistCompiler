@@ -98,11 +98,20 @@ Deno.test('BooleanExpressionParser - handles deeply nested NOT operators without
     assertEquals(result, false);
 });
 
-Deno.test('BooleanExpressionParser - handles moderate NOT nesting correctly', () => {
+Deno.test('BooleanExpressionParser - handles moderate NOT nesting correctly (even)', () => {
     // Test that we can still handle reasonable nesting (under the limit)
     const moderateNesting = '!'.repeat(50) + 'true';
     
     // 50 NOTs on true should give us true (even number of NOTs)
     const result = evaluateBooleanExpression(moderateNesting);
     assertEquals(result, true);
+});
+
+Deno.test('BooleanExpressionParser - handles moderate NOT nesting correctly (odd)', () => {
+    // Test with odd number of NOTs to verify recursion depth tracking works correctly
+    const oddNesting = '!'.repeat(51) + 'true';
+    
+    // 51 NOTs on true should give us false (odd number of NOTs)
+    const result = evaluateBooleanExpression(oddNesting);
+    assertEquals(result, false);
 });

@@ -205,12 +205,17 @@ class BooleanParser {
 
     /**
      * Parse: notExpr := '!' notExpr | primary
+     * 
+     * Note: Enforces a recursion depth limit (MAX_NOT_DEPTH) to prevent stack overflow
+     * from malicious or malformed expressions with excessive NOT nesting.
+     * When the limit is exceeded, returns false as a safe default.
      */
     private parseNot(): boolean {
         if (this.current().type === TokenType.NOT) {
             // Check recursion depth to prevent stack overflow
             if (this.notDepth >= MAX_NOT_DEPTH) {
                 // Exceeded max depth - treat as false to fail gracefully
+                // This prevents "Maximum call stack size exceeded" errors
                 return false;
             }
 
