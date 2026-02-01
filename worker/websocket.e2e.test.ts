@@ -13,7 +13,7 @@
  * - Connection lifecycle
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from '@std/assert';
+import { assertEquals, assertExists } from '@std/assert';
 
 // Configuration
 let BASE_URL = 'http://localhost:8787';
