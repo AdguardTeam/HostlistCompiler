@@ -158,6 +158,12 @@ name = "health-monitoring-workflow"
 binding = "HEALTH_MONITORING_WORKFLOW"
 class_name = "HealthMonitoringWorkflow"
 
+# Hyperdrive configuration
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "0d1fc57ab3564b3e9b0377dc94069adf"
+# localConnectionString = "<LOCAL_CONNECTION_STRING_FOR_LOCAL_DEVELOPMENT_HERE>"
+
 # ============================================================================
 # Cron Triggers for Scheduled Workflows
 # ============================================================================
