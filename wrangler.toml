@@ -161,8 +161,8 @@ class_name = "HealthMonitoringWorkflow"
 # Hyperdrive configuration
 [[hyperdrive]]
 binding = "HYPERDRIVE"
-id = "0d1fc57ab3564b3e9b0377dc94069adf"
-# localConnectionString = "<LOCAL_CONNECTION_STRING_FOR_LOCAL_DEVELOPMENT_HERE>"
+id = "3a01ab897b224229884fec31835ba7c7"
+localConnectionString = "postgres://4495d76abd0e188e93c0ca4c469e8bbc41ee4855aec0f570562559b20d4bed0c:sk_MSyCY0RzbKlR9Zm8fLeiL@db.prisma.io:5432/postgres"
 
 # ============================================================================
 # Cron Triggers for Scheduled Workflows
