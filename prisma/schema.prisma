@@ -7,10 +7,11 @@
 //   MongoDB:    DATABASE_URL="mongodb://localhost:27017/adblock"
 
 generator client {
-  provider = "prisma-client-js"
-  // For Deno support, uncomment the following:
-  // previewFeatures = ["deno"]
-  // output   = "../node_modules/.prisma/client"
+  provider = "prisma-client"
+  // Deno support is enabled via the runtime setting below.
+  // Note: previewFeatures = ["deno"] is no longer required in recent Prisma versions.
+  output   = "./generator"
+  runtime = "deno"
 }
 
 datasource db {
@@ -19,7 +20,7 @@ datasource db {
   // - "postgresql" for production SQL
   // - "mongodb" for NoSQL
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // Note: In Prisma 7, the url is configured in prisma.config.ts, not here
 }
 
 // Default DATABASE_URL for SQLite: "file:./data/adblock.db"

@@ -1,8 +1,11 @@
-import type { Config } from '@prisma/client';
-import process from 'node:process';
+import { defineConfig } from 'prisma/config';
 
-const config: Config = {
-    datasourceUrl: process.env.DATABASE_URL || 'file:./dev.db',
-};
-
-export default config;
+export default defineConfig({
+    schema: './schema.prisma',
+    migrations: {
+        path: './migrations',
+    },
+    datasource: {
+        url: process.env.DATABASE_URL ?? 'file:./dev.db',
+    },
+});
