@@ -14,10 +14,7 @@
 // Apply migration:
 //   wrangler d1 execute adblock-storage --file=migrations/0001_init.sql
 
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
-}
+
 
 datasource db {
   provider = "sqlite"
@@ -140,13 +137,13 @@ model SourceHealth {
 }
 
 // ============================================================================
-// Fetch Attempt - Individual fetch attempt record
+// Source Attempt - Individual fetch attempt record
 // ============================================================================
 //
 // Log of individual fetch attempts for detailed analytics.
 // Note: SQLite uses INTEGER for boolean (0/1).
 
-model FetchAttempt {
+model SourceAttempt {
   id        String   @id @default(cuid())
   source    String
   timestamp DateTime @default(now())
