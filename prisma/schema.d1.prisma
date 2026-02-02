@@ -140,13 +140,13 @@ model SourceHealth {
 }
 
 // ============================================================================
-// Source Attempt - Individual fetch attempt record
+// Fetch Attempt - Individual fetch attempt record
 // ============================================================================
 //
 // Log of individual fetch attempts for detailed analytics.
 // Note: SQLite uses INTEGER for boolean (0/1).
 
-model SourceAttempt {
+model FetchAttempt {
   id        String   @id @default(cuid())
   source    String
   timestamp DateTime @default(now())

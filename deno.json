@@ -14,7 +14,7 @@
         ]
     },
     "tasks": {
-        "dev": "deno run --watch --allow-read --allow-write --allow-net src/cli.ts",
+        "dev": "deno run -A --env=.envrc --watch --allow-read --allow-write --allow-net src/cli.ts",
         "compile": "deno run --allow-read --allow-write --allow-net src/cli.ts",
         "build": "deno compile --allow-read --allow-write --allow-net --output=hostlist-compiler src/cli.ts",
         "test": "deno test --allow-read --allow-write --allow-net --allow-env",
@@ -34,7 +34,12 @@
         "cache": "deno cache src/index.ts",
         "openapi:validate": "deno run --allow-read --allow-net scripts/validate-openapi.ts",
         "openapi:docs": "deno run --allow-read --allow-write --allow-net scripts/generate-docs.ts",
-        "test:contract": "SKIP_CONTRACT_TESTS=false deno test --allow-read --allow-write --allow-net --allow-env worker/openapi-contract.test.ts"
+        "test:contract": "SKIP_CONTRACT_TESTS=false deno test --allow-read --allow-write --allow-net --allow-env worker/openapi-contract.test.ts",
+        "db:generate": "deno run -A --env=.envrc npm:prisma generate",
+        "db:push": "deno run -A --env=.envrc npm:prisma db push",
+        "db:migrate": "deno run -A --env=.envrc npm:prisma migrate dev",
+        "db:studio": "deno run -A --env=.envrc npm:prisma studio"
+
     },
     "imports": {
         "@/": "./src/",
@@ -47,7 +52,10 @@
         "@std/testing": "jsr:@std/testing@^1.0.0",
         "@std/async": "jsr:@std/async@^1.0.0",
         "@cloudflare/workers-types": "npm:@cloudflare/workers-types@^4.20260103.0",
-        "cloudflare:workers": "./worker/cloudflare-workers-shim.ts"
+        "cloudflare:workers": "./worker/cloudflare-workers-shim.ts",
+        "@prisma/adapter-pg": "npm:@prisma/adapter-pg@^7.3.0",
+        "@prisma/client": "npm:@prisma/client@^7.3.0",
+        "prisma": "npm:prisma@^7.3.0"
     },
     "lint": {
         "rules": {
@@ -131,9 +139,5 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true
     },
-    "allowScripts": [
-        "npm:esbuild@0.27.0",
-        "npm:sharp@0.33.5",
-        "npm:workerd@1.20251210.0"
-    ]
+    "allowScripts": ["npm:@prisma/engines@7.3.0", "npm:core-js-pure@3.47.0", "npm:esbuild@0.27.0", "npm:fsevents@2.3.3", "npm:prisma@7.3.0", "npm:sharp@0.33.5", "npm:workerd@1.20251210.0", "npm:workerd@1.20260107.1"]
 }

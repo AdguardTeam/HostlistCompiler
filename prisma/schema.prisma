@@ -20,7 +20,7 @@ datasource db {
   // - "postgresql" for production SQL
   // - "mongodb" for NoSQL
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // Note: In Prisma 7, the url is configured in prisma.config.ts, not here
 }
 
 // Default DATABASE_URL for SQLite: "file:./data/adblock.db"
