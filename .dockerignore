@@ -1,0 +1,60 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment files (secrets should be passed via docker-compose or -e flag)
+.env.local
+.env.*.local
+.envrc
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Deno
+.deno/
+
+# Build artifacts
+dist/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+coverage.lcov
+
+# Wrangler
+.wrangler/
+worker-configuration.d.ts
+.deployment-version.json
+
+# Documentation
+*.md
+!README.md
+
+# CI/CD
+.github/
+
+# Examples
+examples/
+
+# Output
+output/
+
+# Logs
+*.log

@@ -7,11 +7,16 @@ services:
             target: runtime
         container_name: adblock-compiler
         ports:
-            - '8787:8787'
+            - '${PORT:-8787}:8787'
+        env_file:
+            # Load environment variables in layered order
+            - .env                    # Base configuration
+            - .env.${ENV:-development}  # Environment-specific (development by default)
+            # .env.local is excluded from Docker builds (in .dockerignore)
+            # Pass secrets via docker-compose.override.yml or -e flags
         environment:
-            - COMPILER_VERSION=0.8.7
+            # Override/add any environment-specific variables here
             - DENO_DIR=/app/.deno
-            - PORT=8787
         volumes:
             # Persist Deno cache
             - deno-cache:/app/.deno
