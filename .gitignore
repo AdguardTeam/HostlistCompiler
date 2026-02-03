@@ -50,7 +50,7 @@ examples/whitelist/filter.txt
 # Environment files
 .envrc
 .env
-.env.local
+.env.*
 .env.*.local
 coverage.lcov
 
