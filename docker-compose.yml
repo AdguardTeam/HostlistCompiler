@@ -10,10 +10,10 @@ services:
             - '${PORT:-8787}:8787'
         env_file:
             # Load environment variables in layered order
-            - .env                    # Base configuration
-            - .env.${ENV:-development}  # Environment-specific (development by default)
-            # .env.local is excluded from Docker builds (in .dockerignore)
-            # Pass secrets via docker-compose.override.yml or -e flags
+            - .env # Base configuration
+            - .env.${ENV:-development} # Environment-specific (development by default)
+        # .env.local is excluded from Docker builds (in .dockerignore)
+        # Pass secrets via docker-compose.override.yml or -e flags
         environment:
             # Override/add any environment-specific variables here
             - DENO_DIR=/app/.deno

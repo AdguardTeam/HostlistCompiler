@@ -10,10 +10,10 @@ services:
             - ./worker:/app/worker
             - ./public:/app/public
         environment:
-            # Add development secrets here (or use .env.local with env_file)
-            # Uncomment and fill in your actual values:
-            # - ADMIN_KEY=your_admin_key_here
-            # - TURNSTILE_SECRET_KEY=your_turnstile_secret_here
-            # - DIRECT_DATABASE_URL=your_database_url_here
-            # - PRISMA_DATABASE_URL=your_prisma_url_here
-            # - OPTIMIZE_API_KEY=your_optimize_key_here
+# Add development secrets here (or use .env.local with env_file)
+# Uncomment and fill in your actual values:
+# - ADMIN_KEY=your_admin_key_here
+# - TURNSTILE_SECRET_KEY=your_turnstile_secret_here
+# - DIRECT_DATABASE_URL=your_database_url_here
+# - PRISMA_DATABASE_URL=your_prisma_url_here
+# - OPTIMIZE_API_KEY=your_optimize_key_here
