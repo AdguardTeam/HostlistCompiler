@@ -93,10 +93,16 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
+                      node_modules
                   key: deno-${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-${{ matrix.target }}-
                       deno-${{ runner.os }}-
+
+            - name: Install dependencies
+              run: deno install
+              env:
+                  DENO_TLS_CA_STORE: system
 
             - name: Build binary
               run: deno compile --allow-read --allow-write --allow-net --target ${{ matrix.target }} --output ${{ matrix.artifact }} src/cli.ts
