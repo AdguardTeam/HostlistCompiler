@@ -161,7 +161,7 @@ class_name = "HealthMonitoringWorkflow"
 # Hyperdrive configuration
 [[hyperdrive]]
 binding = "HYPERDRIVE"
-id = "3a01ab897b224229884fec31835ba7c7"
+id = "126a652809674e4abc722e9777ee4140"
 localConnectionString = "postgres://4495d76abd0e188e93c0ca4c469e8bbc41ee4855aec0f570562559b20d4bed0c:sk_MSyCY0RzbKlR9Zm8fLeiL@db.prisma.io:5432/postgres"
 
 # ============================================================================
