@@ -61,6 +61,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up
 ### docker-compose.yml (Base)
 
 The base configuration that works for all environments:
+
 - Defines service structure
 - Loads `.env` and `.env.${ENV}` files
 - Sets up volumes and networks
@@ -69,6 +70,7 @@ The base configuration that works for all environments:
 ### docker-compose.override.yml (Development)
 
 Automatically merged in development, adds:
+
 - Source code volume mounts for live reloading
 - Development-specific settings
 - Template for local secrets
@@ -76,6 +78,7 @@ Automatically merged in development, adds:
 ### docker-compose.prod.yml (Production)
 
 Production-specific configuration:
+
 - Uses `.env.production`
 - Expects secrets from environment variables
 - Resource limits and constraints
@@ -86,6 +89,7 @@ Production-specific configuration:
 ### Development
 
 Option 1 - Use `.env.local` (recommended):
+
 ```bash
 # Create .env.local with your secrets
 cp .env.example .env.local
@@ -96,12 +100,13 @@ cp .env.example .env.local
 ```
 
 Option 2 - Add to `docker-compose.override.yml`:
+
 ```yaml
 services:
-  adblock-compiler:
-    environment:
-      - ADMIN_KEY=your_dev_key
-      - TURNSTILE_SECRET_KEY=your_dev_secret
+    adblock-compiler:
+        environment:
+            - ADMIN_KEY=your_dev_key
+            - TURNSTILE_SECRET_KEY=your_dev_secret
 ```
 
 ### Production
@@ -124,21 +129,25 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
 ## Available Environment Variables
 
 ### From `.env` (all environments)
+
 - `COMPILER_VERSION` - Compiler version
 - `PORT` - Server port (default: 8787)
 - `DENO_DIR` - Deno cache directory
 
 ### From `.env.development`
+
 - `DATABASE_URL` - Local SQLite database
 - `TURNSTILE_SITE_KEY` - Test Turnstile key
 - `TURNSTILE_SECRET_KEY` - Test Turnstile secret
 
 ### From `.env.production`
+
 - `DATABASE_URL` - Production database (placeholder)
 - `TURNSTILE_SITE_KEY` - Production site key (placeholder)
 - `TURNSTILE_SECRET_KEY` - Production secret (placeholder)
 
 ### Required Secrets (production)
+
 - `ADMIN_KEY` - Admin API key
 - `TURNSTILE_SECRET_KEY` - Real Turnstile secret
 - `DIRECT_DATABASE_URL` - Postgres connection
@@ -161,6 +170,7 @@ docker buildx build --platform linux/amd64,linux/arm64 .
 ### Multi-stage Build
 
 The Dockerfile uses multi-stage builds:
+
 1. **node-base** - Base image with Deno and Node.js
 2. **builder** - Installs dependencies and prepares files
 3. **runtime** - Minimal production image
@@ -168,32 +178,36 @@ The Dockerfile uses multi-stage builds:
 ## Volume Mounts
 
 ### Development (docker-compose.override.yml)
+
 ```yaml
 volumes:
-  - ./src:/app/src          # Source code
-  - ./worker:/app/worker    # Worker code
-  - ./public:/app/public    # Static files
+    - ./src:/app/src # Source code
+    - ./worker:/app/worker # Worker code
+    - ./public:/app/public # Static files
 ```
 
 ### Production
+
 ```yaml
 volumes:
-  - deno-cache:/app/.deno   # Only Deno cache
+    - deno-cache:/app/.deno # Only Deno cache
 ```
 
 ## Health Checks
 
 The service includes a health check:
+
 ```yaml
 healthcheck:
-  test: ['CMD', 'curl', '-f', 'http://localhost:8787/api']
-  interval: 30s
-  timeout: 3s
-  retries: 3
-  start_period: 5s
+    test: ['CMD', 'curl', '-f', 'http://localhost:8787/api']
+    interval: 30s
+    timeout: 3s
+    retries: 3
+    start_period: 5s
 ```
 
 Check health status:
+
 ```bash
 docker compose ps
 docker inspect adblock-compiler --format='{{.State.Health.Status}}'
@@ -202,27 +216,32 @@ docker inspect adblock-compiler --format='{{.State.Health.Status}}'
 ## Troubleshooting
 
 ### View logs
+
 ```bash
 docker compose logs -f adblock-compiler
 ```
 
 ### Rebuild after changes
+
 ```bash
 docker compose build --no-cache
 docker compose up -d
 ```
 
 ### Check environment variables
+
 ```bash
 docker compose exec adblock-compiler env | grep -E 'COMPILER_VERSION|PORT|DATABASE_URL'
 ```
 
 ### Access container shell
+
 ```bash
 docker compose exec adblock-compiler sh
 ```
 
 ### Remove all containers and volumes
+
 ```bash
 docker compose down -v
 ```
