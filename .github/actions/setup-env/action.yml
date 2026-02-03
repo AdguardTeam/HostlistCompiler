@@ -1,0 +1,68 @@
+name: 'Setup Environment Variables'
+description: 'Load environment variables based on branch using the layered .env system'
+
+inputs:
+  branch:
+    description: 'Git branch name to determine environment'
+    required: false
+    default: ${{ github.ref_name }}
+
+outputs:
+  environment:
+    description: 'Detected environment (development, production, or local)'
+    value: ${{ steps.detect.outputs.environment }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Detect environment from branch
+      id: detect
+      shell: bash
+      run: |
+        BRANCH="${{ inputs.branch }}"
+        
+        # Map branch to environment (same logic as .envrc)
+        case "$BRANCH" in
+          main|master)
+            ENV="production"
+            ;;
+          develop|dev)
+            ENV="development"
+            ;;
+          *)
+            if [[ -f ".env.$BRANCH" ]]; then
+              ENV="$BRANCH"
+            else
+              ENV="local"
+            fi
+            ;;
+        esac
+        
+        echo "environment=$ENV" >> $GITHUB_OUTPUT
+        echo "Detected environment: $ENV (branch: $BRANCH)"
+
+    - name: Load base .env file
+      if: hashFiles('.env') != ''
+      shell: bash
+      run: |
+        if [ -f .env ]; then
+          echo "Loading .env..."
+          cat .env >> $GITHUB_ENV
+        fi
+
+    - name: Load environment-specific .env file
+      if: hashFiles(format('.env.{0}', steps.detect.outputs.environment)) != ''
+      shell: bash
+      run: |
+        ENV_FILE=".env.${{ steps.detect.outputs.environment }}"
+        if [ -f "$ENV_FILE" ]; then
+          echo "Loading $ENV_FILE..."
+          cat "$ENV_FILE" >> $GITHUB_ENV
+        fi
+
+    - name: Verify environment loaded
+      shell: bash
+      run: |
+        echo "✅ Environment loaded: ${{ steps.detect.outputs.environment }}"
+        echo "COMPILER_VERSION: $COMPILER_VERSION"
+        echo "PORT: $PORT"
