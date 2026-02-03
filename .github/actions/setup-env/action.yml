@@ -47,7 +47,8 @@ runs:
       run: |
         if [ -f .env ]; then
           echo "Loading .env..."
-          cat .env >> $GITHUB_ENV
+          # Filter out comments and empty lines, then add to GITHUB_ENV
+          grep -v '^#' .env | grep -v '^[[:space:]]*$' >> $GITHUB_ENV || true
         fi
 
     - name: Load environment-specific .env file
@@ -57,7 +58,8 @@ runs:
         ENV_FILE=".env.${{ steps.detect.outputs.environment }}"
         if [ -f "$ENV_FILE" ]; then
           echo "Loading $ENV_FILE..."
-          cat "$ENV_FILE" >> $GITHUB_ENV
+          # Filter out comments and empty lines, then add to GITHUB_ENV
+          grep -v '^#' "$ENV_FILE" | grep -v '^[[:space:]]*$' >> $GITHUB_ENV || true
         fi
 
     - name: Verify environment loaded
