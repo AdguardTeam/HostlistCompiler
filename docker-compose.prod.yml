@@ -1,0 +1,31 @@
+# Docker Compose configuration for production
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+    adblock-compiler:
+        # Override environment to use production configuration
+        env_file:
+            - .env
+            - .env.production
+        environment:
+            # Production secrets - set these via environment variables or secrets management
+            # DO NOT hardcode secrets in this file
+            - ADMIN_KEY=${ADMIN_KEY}
+            - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
+            - DIRECT_DATABASE_URL=${DIRECT_DATABASE_URL}
+            - PRISMA_DATABASE_URL=${PRISMA_DATABASE_URL}
+            - OPTIMIZE_API_KEY=${OPTIMIZE_API_KEY}
+            - WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE=${WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE}
+        # Remove development volume mounts
+        volumes:
+            - deno-cache:/app/.deno
+        restart: always
+        # Production resource limits
+        deploy:
+            resources:
+                limits:
+                    cpus: '2'
+                    memory: 2G
+                reservations:
+                    cpus: '1'
+                    memory: 1G
