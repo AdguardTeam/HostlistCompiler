@@ -113,6 +113,9 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Load environment variables
+              uses: ./.github/actions/setup-env
+
             - name: Setup Deno
               uses: denoland/setup-deno@v2
               with:
@@ -239,6 +242,9 @@ jobs:
             CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         steps:
             - uses: actions/checkout@v4
+
+            - name: Load environment variables
+              uses: ./.github/actions/setup-env
 
             - name: Setup Deno
               uses: denoland/setup-deno@v2

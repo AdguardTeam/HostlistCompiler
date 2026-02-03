@@ -14,7 +14,7 @@
         ]
     },
     "tasks": {
-        "dev": "deno run -A --env=.envrc --watch --allow-read --allow-write --allow-net src/cli.ts",
+        "dev": "deno run -A --watch --allow-read --allow-write --allow-net src/cli.ts",
         "compile": "deno run --allow-read --allow-write --allow-net src/cli.ts",
         "build": "deno compile --allow-read --allow-write --allow-net --output=hostlist-compiler src/cli.ts",
         "test": "deno test --allow-read --allow-write --allow-net --allow-env",
