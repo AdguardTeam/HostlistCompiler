@@ -56,6 +56,7 @@
   - [API](#api)
 - [OpenAPI Specification](#openapi-specification)
 - [Docker Deployment](#docker-deployment)
+- [Cloudflare Pages Deployment](docs/deployment/cloudflare-pages.md)
 - [Transformations](#transformations)
   - [RemoveComments](#remove-comments)
   - [Compress](#compress)
@@ -924,6 +925,8 @@ npm run deploy
 ```
 
 **Deployment**: A `wrangler.toml` configuration file is provided in the repository root for easy deployment via Cloudflare's Git integration or using `wrangler deploy`.
+
+⚠️ **Important**: This project uses `wrangler deploy` for Cloudflare Workers, **NOT** `deno deploy`. While this is a Deno-based project, it deploys to Cloudflare Workers runtime. See the [Cloudflare Pages Deployment Guide](docs/deployment/cloudflare-pages.md) for Pages-specific configuration.
 
 The production worker (`worker/worker.ts`) includes:
 
