@@ -13,10 +13,11 @@
     },
     "devDependencies": {
         "@cloudflare/playwright-mcp": "^0.0.5",
-        "@cloudflare/workers-types": "^4.20260103.0",
-        "wrangler": "^4.54.0"
+        "@cloudflare/workers-types": "^4.20260131.0",
+        "wrangler": "^4.61.1"
     },
     "dependencies": {
-        "@adguard/agtree": "^3.4.3"
+        "@adguard/agtree": "^3.4.3",
+        "@electric-sql/pglite": "^0.3.15"
     }
 }
