@@ -56,7 +56,7 @@
   - [API](#api)
 - [OpenAPI Specification](#openapi-specification)
 - [Docker Deployment](#docker-deployment)
-- [Cloudflare Deployment](#cloudflare-workers)
+- [Cloudflare Pages Deployment](docs/deployment/cloudflare-pages.md)
 - [Transformations](#transformations)
   - [RemoveComments](#remove-comments)
   - [Compress](#compress)
