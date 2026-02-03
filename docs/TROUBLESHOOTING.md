@@ -460,6 +460,38 @@ Clear cache and recompile:
 
 ## Deployment Issues
 
+### `deno: not found` error during deployment
+
+**Error:**
+
+```
+Executing user deploy command: deno deploy
+/bin/sh: 1: deno: not found
+Failed: error occurred while running deploy command
+```
+
+**Cause:**
+This error occurs when Cloudflare Pages is configured with `deno deploy` as the deploy command. This project uses Cloudflare Workers (not Deno Deploy) and should use `wrangler deploy` instead.
+
+**Solution:**
+Update your Cloudflare Pages dashboard configuration:
+
+1. Go to your Pages project settings
+2. Navigate to "Builds & deployments"
+3. Under "Build configuration":
+   - Set **Build command** to: `npm install`
+   - Set **Deploy command** to: (leave empty)
+   - Set **Build output directory** to: `public`
+   - Set **Root directory** to: (leave empty)
+4. Save changes and redeploy
+
+For detailed instructions, see the [Cloudflare Pages Deployment Guide](deployment/cloudflare-pages.md).
+
+**Why this happens:**
+- This is a Deno-based project, but it deploys to **Cloudflare Workers**, not Deno Deploy
+- The build environment has Node.js/pnpm but not Deno installed
+- Wrangler handles the deployment automatically
+
 ### Cloudflare Worker deployment fails
 
 **Error:**
