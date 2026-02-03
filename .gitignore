@@ -48,7 +48,6 @@ examples/whitelist/filter.txt
 .claude/settings.local.json
 
 # Environment files
-.envrc
 .env.local
 .env.*.local
 coverage.lcov
