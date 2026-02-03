@@ -47,8 +47,29 @@ runs:
       run: |
         if [ -f .env ]; then
           echo "Loading .env..."
-          # Filter out comments and empty lines, then add to GITHUB_ENV
-          grep -v '^#' .env | grep -v '^[[:space:]]*$' >> $GITHUB_ENV || true
+          # Parse dotenv format: filter comments/blanks, strip quotes, handle heredoc syntax
+          while IFS= read -r line || [ -n "$line" ]; do
+            # Skip comments and empty lines
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+            
+            # Extract key=value, stripping leading/trailing whitespace
+            line="${line#"${line%%[![:space:]]*}"}"
+            line="${line%"${line##*[![:space:]]}"}"
+            
+            # Skip if not a valid assignment
+            [[ ! "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]] && continue
+            
+            key="${line%%=*}"
+            value="${line#*=}"
+            
+            # Strip surrounding quotes (both single and double)
+            if [[ "$value" =~ ^\"(.*)\"$ ]] || [[ "$value" =~ ^\'(.*)\'$ ]]; then
+              value="${BASH_REMATCH[1]}"
+            fi
+            
+            # Write to GITHUB_ENV
+            echo "$key=$value" >> $GITHUB_ENV
+          done < .env
         fi
 
     - name: Load environment-specific .env file
@@ -58,8 +79,29 @@ runs:
         ENV_FILE=".env.${{ steps.detect.outputs.environment }}"
         if [ -f "$ENV_FILE" ]; then
           echo "Loading $ENV_FILE..."
-          # Filter out comments and empty lines, then add to GITHUB_ENV
-          grep -v '^#' "$ENV_FILE" | grep -v '^[[:space:]]*$' >> $GITHUB_ENV || true
+          # Parse dotenv format: filter comments/blanks, strip quotes, handle heredoc syntax
+          while IFS= read -r line || [ -n "$line" ]; do
+            # Skip comments and empty lines
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+            
+            # Extract key=value, stripping leading/trailing whitespace
+            line="${line#"${line%%[![:space:]]*}"}"
+            line="${line%"${line##*[![:space:]]}"}"
+            
+            # Skip if not a valid assignment
+            [[ ! "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]] && continue
+            
+            key="${line%%=*}"
+            value="${line#*=}"
+            
+            # Strip surrounding quotes (both single and double)
+            if [[ "$value" =~ ^\"(.*)\"$ ]] || [[ "$value" =~ ^\'(.*)\'$ ]]; then
+              value="${BASH_REMATCH[1]}"
+            fi
+            
+            # Write to GITHUB_ENV
+            echo "$key=$value" >> $GITHUB_ENV
+          done < "$ENV_FILE"
         fi
 
     - name: Verify environment loaded

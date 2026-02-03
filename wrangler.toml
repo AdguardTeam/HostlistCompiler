@@ -189,7 +189,11 @@ class_name = "HealthMonitoringWorkflow"
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "126a652809674e4abc722e9777ee4140"
-localConnectionString = "WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE"
+# NOTE: Wrangler does NOT interpolate environment variables here.
+# Set this to a real local connection string for development, e.g.:
+#   postgres://username:password@127.0.0.1:5432/database
+# Update the values above to match your local database configuration before running `wrangler dev`.
+localConnectionString = "postgres://username:password@127.0.0.1:5432/database"
 
 # ============================================================================
 # Cron Triggers for Scheduled Workflows

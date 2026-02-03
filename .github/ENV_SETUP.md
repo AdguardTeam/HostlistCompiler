@@ -13,12 +13,12 @@ The `.github/actions/setup-env` composite action mimics the behavior of `.envrc`
 
 ## Branch to Environment Mapping
 
-| Branch Pattern | Environment | Loaded File |
-|----------------|-------------|-------------|
-| `main`, `master` | `production` | `.env.production` |
-| `dev`, `develop` | `development` | `.env.development` |
-| Other branches | `local` | `.env.local` (if exists) |
-| Custom branch with file | Custom | `.env.$BRANCH_NAME` |
+| Branch Pattern              | Environment   | Loaded Files                        |
+|-----------------------------|---------------|-------------------------------------|
+| `main`, `master`           | `production`  | `.env`, `.env.production`           |
+| `dev`, `develop`           | `development` | `.env`, `.env.development`          |
+| Other branches (with file) | Custom        | `.env`, `.env.$BRANCH_NAME`         |
+| Other branches (no file)   | Default       | `.env`                              |
 
 ## Usage in Workflows
 
