@@ -49,10 +49,16 @@ examples/whitelist/filter.txt
 
 # Environment files
 .envrc
-.env
-.env.*
+.env.local
 .env.*.local
 coverage.lcov
+
+# Allow base env files to be committed
+!.env
+!.env.development
+!.env.production
+!.env.example
+!.env.README.md
 
 # SQLite database files
 data/

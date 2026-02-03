@@ -67,11 +67,12 @@ instance_type = "basic"
 new_sqlite_classes = ["AdblockCompiler"]
 tag = "v1"
 
-# Environment variables
+# Environment variables (base - overridden by env.* sections)
 [vars]
 COMPILER_VERSION = "0.11.4"
-TURNSTILE_SITE_KEY = "0x4AAAAAACMKiPZdJh8I8IEM"
-# ADMIN_KEY is managed via Cloudflare secrets (wrangler secret put ADMIN_KEY)
+# TURNSTILE_SITE_KEY, ADMIN_KEY, etc. are loaded from .env files via .envrc
+# For local dev: managed by .env.development and .env.local
+# For production: managed via Cloudflare secrets (wrangler secret put ADMIN_KEY)
 
 [[d1_databases]]
 binding = "DB"
@@ -114,15 +115,33 @@ max_batch_timeout = 2
 dead_letter_queue = "adblock-compiler-dlq"
 
 # Development settings
+# Environment variables are loaded from .env via .envrc
 [dev]
 port = 8787
 local_protocol = "http"
 enable_containers = false  # Containers not supported on Windows - use WSL or deploy to test
 
-# Production settings (optional)
+# Development environment (dev/develop branches)
+[env.development]
+vars = { ENVIRONMENT = "development" }
+# KV namespaces for development
+[[env.development.kv_namespaces]]
+binding = "COMPILATION_CACHE"
+id = "7772628dc4ae46fbb145a811d2de351e"
+
+[[env.development.kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "5dc36da36d9142cc9ced6c56328898ee"
+
+[[env.development.kv_namespaces]]
+binding = "METRICS"
+id = "025c3f10527c46c0be559f299bdba994"
+
+# Production environment (main/master branches)
 [env.production]
 vars = { ENVIRONMENT = "production" }
 tail_consumers = [{ service = "adblock-compiler-tail" }]
+# Production secrets MUST be set via: wrangler secret put <KEY_NAME> --env production
 
 # Analytics Engine - uncomment after enabling in Cloudflare dashboard
 [[analytics_engine_datasets]]
@@ -170,7 +189,7 @@ class_name = "HealthMonitoringWorkflow"
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "126a652809674e4abc722e9777ee4140"
-# localConnectionString = "use_local_instance"
+localConnectionString = "WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE"
 
 # ============================================================================
 # Cron Triggers for Scheduled Workflows
