@@ -451,6 +451,7 @@ Access the web UI at http://localhost:8787
 - 🚀 Cloudflare Worker runtime with Wrangler dev server
 - 🌐 Full Web UI and REST API
 - 📊 Built-in health checks and monitoring
+- 🔧 direnv integration for environment management
 - 🔒 Security: non-root user, minimal attack surface
 
 📚 **[Complete Docker Guide](docs/deployment/docker.md)** - Production setups, Kubernetes deployment, CLI mode, and troubleshooting
