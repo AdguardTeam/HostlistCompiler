@@ -208,7 +208,7 @@ jobs:
                   cat << 'EOF' > release-notes.md
                   ## What's Changed
 
-                  See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md) for detailed changes.
+                  See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
 
                   ## Installation
 

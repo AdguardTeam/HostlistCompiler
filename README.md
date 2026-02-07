@@ -5,7 +5,7 @@
 [![JSR](https://jsr.io/badges/@jk-com/adblock-compiler)](https://jsr.io/@jk-com/adblock-compiler)
 [![JSR Score](https://jsr.io/badges/@jk-com/adblock-compiler/score)](https://jsr.io/@jk-com/adblock-compiler)
 [![CI/CD Pipeline](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml)
-[![Codecov](https://codecov.io/gh/jaypatrick/adblock-compiler/branch/master/graph/badge.svg)](https://codecov.io/gh/jaypatrick/adblock-compiler)
+[![Codecov](https://codecov.io/gh/jaypatrick/adblock-compiler/branch/main/graph/badge.svg)](https://codecov.io/gh/jaypatrick/adblock-compiler)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
 <!-- Platform & Service Badges -->

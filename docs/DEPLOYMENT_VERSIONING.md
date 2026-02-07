@@ -43,7 +43,7 @@ Every deployment is assigned a unique version identifier that includes:
 ### Deployment Flow
 
 ```
-1. CI/CD Trigger (push to master)
+1. CI/CD Trigger (push to main)
    ↓
 2. Run Database Migrations
    ↓
@@ -86,7 +86,7 @@ CREATE TABLE deployment_history (
     build_number INTEGER NOT NULL,       -- Build number (42)
     full_version TEXT NOT NULL,          -- Full version (0.11.3+build.42)
     git_commit TEXT NOT NULL,            -- Git commit SHA
-    git_branch TEXT NOT NULL,            -- Git branch (master)
+    git_branch TEXT NOT NULL,            -- Git branch (main)
     deployed_at TEXT NOT NULL,           -- ISO timestamp
     deployed_by TEXT NOT NULL,           -- Actor (github-actions[user])
     status TEXT NOT NULL,                -- success|failed|rollback
@@ -122,7 +122,7 @@ Returns the current deployed version.
     "buildNumber": 42,
     "fullVersion": "0.11.3+build.42",
     "gitCommit": "abc123def456",
-    "gitBranch": "master",
+    "gitBranch": "main",
     "deployedAt": "2026-01-31T07:00:00.000Z",
     "deployedBy": "github-actions[user]",
     "status": "success"
@@ -155,7 +155,7 @@ curl "https://your-worker.dev/api/deployments?limit=10&version=0.11.3"
       "buildNumber": 42,
       "fullVersion": "0.11.3+build.42",
       "gitCommit": "abc123def456",
-      "gitBranch": "master",
+      "gitBranch": "main",
       "deployedAt": "2026-01-31T07:00:00.000Z",
       "deployedBy": "github-actions[user]",
       "status": "success",

@@ -5,7 +5,7 @@
  * adblock filter rules. This wrapper handles the complexity of the AGTree API
  * and provides type-safe access to parsed rule data.
  *
- * @see https://github.com/AdguardTeam/tsurlfilter/tree/master/packages/agtree
+ * @see https://github.com/AdguardTeam/tsurlfilter/tree/main/packages/agtree
  */
 
 import {

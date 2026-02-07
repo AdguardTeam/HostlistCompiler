@@ -281,7 +281,7 @@ AGTree supports parsing all major adblock rule types:
 
 ## References
 
-- [AGTree GitHub](https://github.com/AdguardTeam/tsurlfilter/tree/master/packages/agtree)
-- [AGTree Parser Documentation](https://github.com/AdguardTeam/tsurlfilter/tree/master/packages/agtree/src/parser)
+- [AGTree GitHub](https://github.com/AdguardTeam/tsurlfilter/tree/main/packages/agtree)
+- [AGTree Parser Documentation](https://github.com/AdguardTeam/tsurlfilter/tree/main/packages/agtree/src/parser)
 - [AdGuard Filter Syntax](https://adguard.com/kb/general/ad-filtering/create-own-filters/)
 - [uBlock Origin Syntax](https://github.com/gorhill/uBlock/wiki/Static-filter-syntax)

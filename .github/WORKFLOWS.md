@@ -12,7 +12,7 @@ The repository uses three main workflows:
 
 ## CI Workflow
 
-**Trigger**: Push to master/main, Pull Requests, Manual dispatch
+**Trigger**: Push to main, Pull Requests, Manual dispatch
 
 ### Jobs
 
@@ -26,8 +26,8 @@ The repository uses three main workflows:
 
 #### Sequential Jobs (run after quality checks pass)
 
-6. **Publish** - Publish to JSR (master/main only, after all checks pass)
-7. **Deploy** - Deploy to Cloudflare (master/main only, when enabled, after all checks pass)
+6. **Publish** - Publish to JSR (main only, after all checks pass)
+7. **Deploy** - Deploy to Cloudflare (main only, when enabled, after all checks pass)
 
 ### Key Improvements
 
@@ -169,7 +169,7 @@ This ensures:
 
 1. Make your changes on a feature branch
 2. Create a PR and wait for CI to pass
-3. Merge to master/main
+3. Merge to main
 4. Run "Version Bump" workflow with desired bump type
 5. Optionally check "Create a release after bumping" to automatically trigger release
 6. Or manually create a tag `v<version>` to trigger release
