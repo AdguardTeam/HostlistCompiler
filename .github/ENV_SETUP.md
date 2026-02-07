@@ -15,7 +15,7 @@ The `.github/actions/setup-env` composite action mimics the behavior of `.envrc`
 
 | Branch Pattern              | Environment   | Loaded Files                        |
 |-----------------------------|---------------|-------------------------------------|
-| `main`, `master`           | `production`  | `.env`, `.env.production`           |
+| `main`                     | `production`  | `.env`, `.env.production`           |
 | `dev`, `develop`           | `development` | `.env`, `.env.development`          |
 | Other branches (with file) | Custom        | `.env`, `.env.$BRANCH_NAME`         |
 | Other branches (no file)   | Default       | `.env`                              |
@@ -71,7 +71,7 @@ After loading, the following variables are available:
 - `TURNSTILE_SITE_KEY` - Test Turnstile site key (always passes)
 - `TURNSTILE_SECRET_KEY` - Test Turnstile secret key
 
-### From `.env.production` (main/master branches)
+### From `.env.production` (main branch)
 - `DATABASE_URL` - Production database URL (placeholder)
 - `TURNSTILE_SITE_KEY` - Production site key (placeholder)
 - `TURNSTILE_SECRET_KEY` - Production secret key (placeholder)

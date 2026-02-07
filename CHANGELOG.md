@@ -293,4 +293,4 @@ This release focuses on **showcasing the power and versatility** of Adblock Comp
 
 [1.0.27]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.26...v1.0.27
 [#69]: https://github.com/AdguardTeam/FiltersCompiler/issues/69
-[@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/master/CHANGELOG.md
+[@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/main/CHANGELOG.md

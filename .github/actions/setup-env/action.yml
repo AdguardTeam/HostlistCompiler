@@ -23,7 +23,7 @@ runs:
         
         # Map branch to environment (same logic as .envrc)
         case "$BRANCH" in
-          main|master)
+          main)
             ENV="production"
             ;;
           develop|dev)

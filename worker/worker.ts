@@ -225,7 +225,7 @@ const METRICS_WINDOW = WORKER_DEFAULTS.METRICS_WINDOW_SECONDS;
  */
 const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR = 'Queue bindings are not available. ' +
     'To use async compilation, you must configure Cloudflare Queues in wrangler.toml. ' +
-    'See https://github.com/jaypatrick/adblock-compiler/blob/master/docs/QUEUE_SUPPORT.md for setup instructions. ' +
+    'See https://github.com/jaypatrick/adblock-compiler/blob/main/docs/QUEUE_SUPPORT.md for setup instructions. ' +
     'Alternatively, use the synchronous endpoints: POST /compile or POST /compile/batch';
 
 /**

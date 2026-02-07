@@ -137,7 +137,7 @@ id = "5dc36da36d9142cc9ced6c56328898ee"
 binding = "METRICS"
 id = "025c3f10527c46c0be559f299bdba994"
 
-# Production environment (main/master branches)
+# Production environment (main branch)
 [env.production]
 vars = { ENVIRONMENT = "production" }
 tail_consumers = [{ service = "adblock-compiler-tail" }]
