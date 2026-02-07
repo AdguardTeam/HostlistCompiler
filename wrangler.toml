@@ -69,7 +69,7 @@ tag = "v1"
 
 # Environment variables (base - overridden by env.* sections)
 [vars]
-COMPILER_VERSION = "0.11.4"
+COMPILER_VERSION = "0.11.5"
 # TURNSTILE_SITE_KEY, ADMIN_KEY, etc. are loaded from .env files via .envrc
 # For local dev: managed by .env.development and .env.local
 # For production: managed via Cloudflare secrets (wrangler secret put ADMIN_KEY)
