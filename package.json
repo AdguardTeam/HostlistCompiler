@@ -13,8 +13,8 @@
     },
     "devDependencies": {
         "@cloudflare/playwright-mcp": "^0.0.5",
-        "@cloudflare/workers-types": "^4.20260131.0",
-        "wrangler": "^4.61.1"
+        "@cloudflare/workers-types": "^4.20260207.0",
+        "wrangler": "^4.63.0"
     },
     "dependencies": {
         "@adguard/agtree": "^3.4.3",
