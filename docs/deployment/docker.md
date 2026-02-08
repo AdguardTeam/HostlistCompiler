@@ -62,6 +62,7 @@ The Docker image is built in multiple stages for optimal size and security:
 - ✅ Adblock Compiler library
 - ✅ Web UI (public/ directory)
 - ✅ Cloudflare Worker API (worker/)
+- ✅ direnv for environment variable management
 - ✅ Health checks (requires curl, installed in runtime stage)
 - ✅ Non-root user for security
 
