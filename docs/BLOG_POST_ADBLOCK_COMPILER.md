@@ -133,7 +133,7 @@ Three ways to compile filter lists:
 **Synchronous**:
 ```bash
 # Simple command-line compilation
-hostlist-compiler -c config.json -o output.txt
+adblock-compiler -c config.json -o output.txt
 ```
 
 **Streaming**:
@@ -232,7 +232,7 @@ docker compose up -d
 **Build from source**:
 ```bash
 deno task build
-# Creates standalone `hostlist-compiler` executable
+# Creates standalone `adblock-compiler` executable
 ```
 
 ### Quick Example
@@ -240,7 +240,7 @@ deno task build
 Convert and compress a blocklist:
 
 ```bash
-hostlist-compiler \
+adblock-compiler \
   -i hosts.txt \
   -i adblock.txt \
   -o compiled-blocklist.txt
@@ -249,7 +249,7 @@ hostlist-compiler \
 Or use a configuration file for complex scenarios:
 
 ```bash
-hostlist-compiler -c config.json -o output.txt
+adblock-compiler -c config.json -o output.txt
 ```
 
 ### TypeScript API
@@ -350,7 +350,7 @@ Convert between /etc/hosts, adblock, Dnsmasq, Pi-hole, and other formats.
 ### Local CLI
 
 ```bash
-hostlist-compiler -c config.json -o output.txt
+adblock-compiler -c config.json -o output.txt
 ```
 
 ### Cloudflare Workers
@@ -514,7 +514,7 @@ Here's a complete example: creating a master blocklist from multiple sources:
 Compile and deploy:
 
 ```bash
-hostlist-compiler -c blocklist-config.json -o blocklist.txt
+adblock-compiler -c blocklist-config.json -o blocklist.txt
 
 # Or use CI/CD automation
 deno run --allow-read --allow-write --allow-net --allow-env \

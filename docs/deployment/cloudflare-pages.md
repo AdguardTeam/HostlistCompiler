@@ -51,7 +51,7 @@ For deploying the static UI to Cloudflare Pages:
 
 ```bash
 # Deploy public directory to Pages
-wrangler pages deploy public --project-name=hostlist-compiler-ui
+wrangler pages deploy public --project-name=adblock-compiler-ui
 ```
 
 ## Cloudflare Pages Dashboard Configuration
