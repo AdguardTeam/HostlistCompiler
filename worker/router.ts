@@ -136,56 +136,49 @@ const routes: Route[] = [
     {
         method: 'GET',
         pattern: /^\/queue\/results\/(?<requestId>[^/]+)$/,
-        handler: async (_req, env, params) =>
-            handleQueueResults(params.pathParams.requestId, env),
+        handler: async (_req, env, params) => handleQueueResults(params.pathParams.requestId, env),
     },
 
     // Compilation endpoints
     {
         method: 'POST',
         pattern: '/compile',
-        handler: async (req, env, params) =>
-            handleCompileJson(req, env, undefined, params.requestId),
+        handler: async (req, env, params) => handleCompileJson(req, env, undefined, params.requestId),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/stream',
-        handler: async (req, env) =>
-            handleCompileStream(req, env),
+        handler: async (req, env) => handleCompileStream(req, env),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/batch',
-        handler: async (req, env) =>
-            handleCompileBatch(req, env),
+        handler: async (req, env) => handleCompileBatch(req, env),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/async',
-        handler: async (req, env) =>
-            handleCompileAsync(req, env),
+        handler: async (req, env) => handleCompileAsync(req, env),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/batch/async',
-        handler: async (req, env) =>
-            handleCompileBatchAsync(req, env),
+        handler: async (req, env) => handleCompileBatchAsync(req, env),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/ast/parse',
-        handler: async (req, env) =>
-            handleASTParseRequest(req, env),
+        handler: async (req, env) => handleASTParseRequest(req, env),
         rateLimit: true,
     },
 
