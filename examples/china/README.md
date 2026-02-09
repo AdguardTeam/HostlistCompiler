@@ -6,7 +6,7 @@ include only lines that match a specific regular expression.
 Check [configuration.json](configuration.json) for more details.
 
 ```
-npm i -g @adguard/hostlist-compiler
+deno install --allow-read --allow-write --allow-net -n adblock-compiler jsr:@jk-com/adblock-compiler/cli
 
-hostlist-compiler -c configuration.json -o filter.txt
+adblock-compiler -c configuration.json -o filter.txt
 ```

@@ -1,8 +1,8 @@
 {
-    "$id": "https://adguarad.com/hostlist-compiler.configuration.schema.json",
+    "$id": "https://jsr.io/@jk-com/adblock-compiler/configuration.schema.json",
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Hostlist compiler configuration",
-    "description": "Configuration for the hostlist compiler",
+    "title": "Adblock compiler configuration",
+    "description": "Configuration for the adblock compiler",
     "type": "object",
     "properties": {
         "name": {

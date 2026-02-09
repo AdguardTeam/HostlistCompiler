@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.11.4",
+    "version": "0.11.7",
     "exports": "./src/index.ts",
     "publish": {
         "include": [
@@ -16,7 +16,7 @@
     "tasks": {
         "dev": "deno run -A --watch --allow-read --allow-write --allow-net src/cli.ts",
         "compile": "deno run --allow-read --allow-write --allow-net src/cli.ts",
-        "build": "deno compile --allow-read --allow-write --allow-net --output=hostlist-compiler src/cli.ts",
+        "build": "deno compile --allow-read --allow-write --allow-net --output=artifacts/adblock-compiler src/cli.ts",
         "test": "deno test --allow-read --allow-write --allow-net --allow-env",
         "test:watch": "deno test --allow-read --allow-write --allow-net --allow-env --watch",
         "test:coverage": "deno test --allow-read --allow-write --allow-net --allow-env --coverage=coverage",
@@ -38,11 +38,19 @@
         "db:generate": "deno run -A --env=.envrc npm:prisma generate",
         "db:push": "deno run -A --env=.envrc npm:prisma db push",
         "db:migrate": "deno run -A --env=.envrc npm:prisma migrate dev",
-        "db:studio": "deno run -A --env=.envrc npm:prisma studio"
+        "db:studio": "deno run -A --env=.envrc npm:prisma studio",
+        "wrangler": "deno run -A npm:wrangler",
+        "wrangler:dev": "deno run -A npm:wrangler dev",
+        "wrangler:deploy": "deno run -A npm:wrangler deploy",
+        "wrangler:tail": "deno run -A npm:wrangler tail",
+        "wrangler:tail:deploy": "deno run -A npm:wrangler deploy --config wrangler.tail.toml",
+        "wrangler:tail:dev": "deno run -A npm:wrangler dev --config wrangler.tail.toml",
+        "wrangler:tail:logs": "deno run -A npm:wrangler tail adblock-compiler-tail"
     },
     "imports": {
         "@/": "./src/",
-        "@adguard/agtree": "npm:@adguard/agtree@^3.4.3",
+        "@adguard/agtree": "npm:@adguard/agtree@^4.0.0",
+        "wrangler": "npm:wrangler@^4.63.0",
         "@luca/cases": "jsr:@luca/cases@^1.0.0",
         "@std/path": "jsr:@std/path@^1.1.4",
         "@std/fs": "jsr:@std/fs@^1.0.22",

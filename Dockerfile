@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     ca-certificates \
     dnsutils \
+    direnv \
     --no-install-recommends && \
     update-ca-certificates && \
     apt-get clean && \
@@ -81,8 +82,8 @@ COPY tsconfig.json ./
 # Stage 3: Production runtime
 FROM node-base AS runtime
 
-# Install curl for healthchecks
-RUN apt-get update && apt-get install -y curl --no-install-recommends && \
+# Install curl and direnv for healthchecks and environment management
+RUN apt-get update && apt-get install -y curl direnv --no-install-recommends && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy node_modules from builder (for Wrangler)

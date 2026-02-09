@@ -91,7 +91,7 @@ deno run --allow-read --allow-write --allow-net jsr:@jk-com/adblock-compiler -c 
 Or install globally:
 
 ```bash
-deno install --allow-read --allow-write --allow-net -n hostlist-compiler jsr:@jk-com/adblock-compiler/cli
+deno install --allow-read --allow-write --allow-net -n adblock-compiler jsr:@jk-com/adblock-compiler/cli
 ```
 
 ### Build from source
@@ -104,7 +104,7 @@ cd adblock-compiler
 deno task build
 ```
 
-This creates a standalone `hostlist-compiler` executable.
+This creates a standalone `adblock-compiler` executable.
 
 ### Using Docker
 
@@ -127,7 +127,7 @@ Access the web UI at http://localhost:8787
 Convert and compress a `/etc/hosts`-syntax blocklist to [AdGuard syntax](https://adguard-dns.io/kb/general/dns-filtering-syntax/).
 
 ```bash
-hostlist-compiler -i hosts.txt -i hosts2.txt -o output.txt
+adblock-compiler -i hosts.txt -i hosts2.txt -o output.txt
 ```
 
 **Build a configurable blocklist from multiple sources**
@@ -135,13 +135,13 @@ hostlist-compiler -i hosts.txt -i hosts2.txt -o output.txt
 Prepare the list configuration (read more about that [below](#configuration)) and run the compiler:
 
 ```bash
-hostlist-compiler -c configuration.json -o output.txt
+adblock-compiler -c configuration.json -o output.txt
 ```
 
 **All command line options**
 
 ```
-Usage: hostlist-compiler [options]
+Usage: adblock-compiler [options]
 
 Options:
   --config, -c      Path to the compiler configuration file             [string]
@@ -154,9 +154,9 @@ Options:
   -h, --help        Show help                                          [boolean]
 
 Examples:
-  hostlist-compiler -c config.json -o       compile a blocklist and write the
+  adblock-compiler -c config.json -o       compile a blocklist and write the
   output.txt                                output to output.txt
-  hostlist-compiler -i                      compile a blocklist from the URL and
+  adblock-compiler -i                      compile a blocklist from the URL and
   https://example.org/hosts.txt -o          write the output to output.txt
   output.txt
 ```
@@ -296,7 +296,7 @@ The last rule now `||example.com^` will correctly match the rule from the exclus
 Command-line arguments.
 
 ```
-Usage: hostlist-compiler [options]
+Usage: adblock-compiler [options]
 
 Options:
   --version      Show version number                                   [boolean]
@@ -307,7 +307,7 @@ Options:
   -h, --help     Show help                                             [boolean]
 
 Examples:
-  hostlist-compiler -c config.json -o       compile a blocklist and write the
+  adblock-compiler -c config.json -o       compile a blocklist and write the
   output.txt                                output to output.txt
 ```
 
@@ -451,6 +451,7 @@ Access the web UI at http://localhost:8787
 - 🚀 Cloudflare Worker runtime with Wrangler dev server
 - 🌐 Full Web UI and REST API
 - 📊 Built-in health checks and monitoring
+- 🔧 direnv integration for environment management
 - 🔒 Security: non-root user, minimal attack surface
 
 📚 **[Complete Docker Guide](docs/deployment/docker.md)** - Production setups, Kubernetes deployment, CLI mode, and troubleshooting
@@ -840,7 +841,7 @@ deno publish
 
 ## <a name="platform-support"></a> Platform Support
 
-The hostlist-compiler includes a **platform abstraction layer** that enables running in any JavaScript runtime, including:
+The adblock-compiler includes a **platform abstraction layer** that enables running in any JavaScript runtime, including:
 
 - **Deno** (default)
 - **Node.js** (via npm compatibility)

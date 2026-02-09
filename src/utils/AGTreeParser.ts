@@ -406,7 +406,13 @@ export class AGTreeParser {
             if (typeof rule.body === 'object' && 'value' in rule.body) {
                 body = rule.body.value;
             } else if (typeof rule.body === 'object' && 'selectorList' in rule.body) {
-                body = rule.body.selectorList.value;
+                // In v4.0.0, selectorList no longer has .value property
+                // Generate the full rule and extract the body part after the separator
+                const fullRule = rule.raws?.text ?? RuleGenerator.generate(rule);
+                const separatorIndex = fullRule.indexOf(rule.separator.value);
+                if (separatorIndex !== -1) {
+                    body = fullRule.substring(separatorIndex + rule.separator.value.length);
+                }
             }
         }
 

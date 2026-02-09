@@ -62,6 +62,7 @@ The Docker image is built in multiple stages for optimal size and security:
 - ✅ Adblock Compiler library
 - ✅ Web UI (public/ directory)
 - ✅ Cloudflare Worker API (worker/)
+- ✅ direnv for environment variable management
 - ✅ Health checks (requires curl, installed in runtime stage)
 - ✅ Non-root user for security
 
@@ -153,11 +154,11 @@ deno task build
 
 # Then run it in a container with mounted volumes
 docker run --rm \
-  -v $(pwd)/hostlist-compiler:/usr/local/bin/hostlist-compiler:ro \
+  -v $(pwd)/adblock-compiler:/usr/local/bin/adblock-compiler:ro \
   -v $(pwd)/config.json:/app/config.json:ro \
   -v $(pwd)/output:/app/output \
   adblock-compiler:latest \
-  hostlist-compiler -c /app/config.json -o /app/output/filter.txt
+  adblock-compiler -c /app/config.json -o /app/output/filter.txt
 ```
 
 **Option 2: Use the Web UI or API**

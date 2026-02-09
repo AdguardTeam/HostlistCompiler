@@ -14,10 +14,8 @@
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/testing@^1.0.17": "1.0.17",
     "jsr:@std/yaml@*": "1.0.10",
-    "npm:@adguard/agtree@^3.4.3": "3.4.3",
     "npm:@cloudflare/playwright-mcp@^0.0.5": "0.0.5_@cloudflare+workers-types@4.20260207.0",
     "npm:@cloudflare/workers-types@^4.20260207.0": "4.20260207.0",
-    "npm:@electric-sql/pglite@~0.3.15": "0.3.15",
     "npm:@prisma/adapter-pg@^7.3.0": "7.3.0",
     "npm:@prisma/client@^7.3.0": "7.3.0_prisma@7.3.0",
     "npm:prisma@^7.3.0": "7.3.0",
@@ -2055,7 +2053,7 @@
       "jsr:@std/fs@^1.0.22",
       "jsr:@std/path@^1.1.4",
       "jsr:@std/testing@^1.0.17",
-      "npm:@adguard/agtree@^3.4.3",
+      "npm:@adguard/agtree@4",
       "npm:@cloudflare/workers-types@^4.20260207.0",
       "npm:@prisma/adapter-pg@^7.3.0",
       "npm:@prisma/client@^7.3.0",
@@ -2063,10 +2061,9 @@
     ],
     "packageJson": {
       "dependencies": [
-        "npm:@adguard/agtree@^3.4.3",
+        "npm:@adguard/agtree@4",
         "npm:@cloudflare/playwright-mcp@^0.0.5",
         "npm:@cloudflare/workers-types@^4.20260207.0",
-        "npm:@electric-sql/pglite@~0.3.15",
         "npm:wrangler@^4.63.0"
       ]
     }
