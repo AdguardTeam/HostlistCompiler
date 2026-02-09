@@ -30,6 +30,21 @@ export interface CompilationResult {
 }
 
 /**
+ * Injectable dependencies for the FilterCompiler.
+ * Enables full testability and customization.
+ */
+export interface FilterCompilerDependencies {
+    /** Configuration validator */
+    validator?: ConfigurationValidator;
+    /** Transformation pipeline */
+    pipeline?: TransformationPipeline;
+    /** Source compiler */
+    sourceCompiler?: SourceCompiler;
+    /** Header generator */
+    headerGenerator?: HeaderGenerator;
+}
+
+/**
  * Options for configuring the FilterCompiler.
  */
 export interface FilterCompilerOptions {
@@ -39,6 +54,8 @@ export interface FilterCompilerOptions {
     events?: ICompilerEvents;
     /** Tracing context for diagnostics */
     tracingContext?: TracingContext;
+    /** Injectable dependencies (for testing/customization) */
+    dependencies?: FilterCompilerDependencies;
 }
 
 /**
@@ -75,6 +92,8 @@ export class FilterCompiler {
      */
     constructor(optionsOrLogger?: FilterCompilerOptions | ILogger) {
         // Support both modern options object and legacy logger parameter
+        let deps: FilterCompilerDependencies | undefined;
+
         if (optionsOrLogger && 'info' in optionsOrLogger) {
             // Legacy: ILogger passed directly
             this.logger = optionsOrLogger;
@@ -86,12 +105,14 @@ export class FilterCompiler {
             this.logger = options?.logger ?? defaultLogger;
             this.eventEmitter = createEventEmitter(options?.events);
             this.tracingContext = options?.tracingContext ?? createNoOpContext();
+            deps = options?.dependencies;
         }
 
-        this.validator = new ConfigurationValidator();
-        this.pipeline = new TransformationPipeline(undefined, this.logger, this.eventEmitter);
-        this.sourceCompiler = new SourceCompiler(this.pipeline, this.logger, this.eventEmitter);
-        this.headerGenerator = new HeaderGenerator();
+        // Use injected dependencies or create defaults
+        this.validator = deps?.validator ?? new ConfigurationValidator();
+        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        this.sourceCompiler = deps?.sourceCompiler ?? new SourceCompiler(this.pipeline, this.logger, this.eventEmitter);
+        this.headerGenerator = deps?.headerGenerator ?? new HeaderGenerator();
     }
 
     /**
