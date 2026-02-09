@@ -203,5 +203,6 @@ export async function parseJsonBody<T>(request: Request): Promise<{ data?: T; er
  */
 export async function cloneAndParseBody<T>(request: Request): Promise<{ data?: T; error?: string }> {
     const cloned = request.clone();
-    return parseJsonBody<T>(cloned);
+    // Type assertion needed due to Cloudflare Workers types
+    return parseJsonBody<T>(cloned as Request);
 }

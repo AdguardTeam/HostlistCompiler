@@ -11,7 +11,7 @@
  * 3. Eventually replace worker.ts with this pattern
  */
 
-import type { Env } from './worker.ts';
+import type { Env } from './types.ts';
 import { JsonResponse } from './utils/response.ts';
 import { checkRateLimit, verifyTurnstileToken, verifyAdminAuth } from './middleware/index.ts';
 import {
@@ -83,18 +83,6 @@ function generateRequestId(prefix: string): string {
 }
 
 /**
- * Extract path parameters from URL using regex
- */
-function extractPathParams(
-    pathname: string,
-    pattern: RegExp,
-): Record<string, string> {
-    const match = pathname.match(pattern);
-    if (!match?.groups) return {};
-    return match.groups;
-}
-
-/**
  * CORS preflight handler
  */
 function handleCors(): Response {
@@ -162,7 +150,7 @@ const routes: Route[] = [
         method: 'GET',
         pattern: /^\/queue\/results\/(?<requestId>[^/]+)$/,
         handler: async (_req, env, params) =>
-            handleQueueResults(env, params.pathParams.requestId),
+            handleQueueResults(params.pathParams.requestId, env),
     },
 
     // Compilation endpoints
@@ -170,47 +158,47 @@ const routes: Route[] = [
         method: 'POST',
         pattern: '/compile',
         handler: async (req, env, params) =>
-            handleCompileJson(req, env, params.requestId),
+            handleCompileJson(req, env, undefined, params.requestId),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/stream',
-        handler: async (req, env, params) =>
-            handleCompileStream(req, env, params.requestId),
+        handler: async (req, env) =>
+            handleCompileStream(req, env),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/batch',
-        handler: async (req, env, params) =>
-            handleCompileBatch(req, env, params.requestId),
+        handler: async (req, env) =>
+            handleCompileBatch(req, env),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/async',
-        handler: async (req, env, params) =>
-            handleCompileAsync(req, env, params.requestId),
+        handler: async (req, env) =>
+            handleCompileAsync(req, env),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/batch/async',
-        handler: async (req, env, params) =>
-            handleCompileBatchAsync(req, env, params.requestId),
+        handler: async (req, env) =>
+            handleCompileBatchAsync(req, env),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/ast/parse',
-        handler: async (req, env, params) =>
-            handleASTParseRequest(req, env, params.requestId),
+        handler: async (req, env) =>
+            handleASTParseRequest(req, env),
         rateLimit: true,
     },
 
