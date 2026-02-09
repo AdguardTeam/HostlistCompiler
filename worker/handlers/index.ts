@@ -3,25 +3,10 @@
  */
 
 // Admin handlers
-export {
-    handleAdminClearCache,
-    handleAdminClearExpired,
-    handleAdminExport,
-    handleAdminListTables,
-    handleAdminQuery,
-    handleAdminStorageStats,
-    handleAdminVacuum,
-} from './admin.ts';
+export { handleAdminClearCache, handleAdminClearExpired, handleAdminExport, handleAdminListTables, handleAdminQuery, handleAdminStorageStats, handleAdminVacuum } from './admin.ts';
 
 // Compile handlers
-export {
-    handleASTParseRequest,
-    handleCompileAsync,
-    handleCompileBatch,
-    handleCompileBatchAsync,
-    handleCompileJson,
-    handleCompileStream,
-} from './compile.ts';
+export { handleASTParseRequest, handleCompileAsync, handleCompileBatch, handleCompileBatchAsync, handleCompileJson, handleCompileStream } from './compile.ts';
 
 // Metrics handlers
 export { handleMetrics, recordMetric } from './metrics.ts';

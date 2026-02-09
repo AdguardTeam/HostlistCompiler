@@ -270,9 +270,7 @@ export class TransformationPipeline {
         // Escape special regex characters and join with OR
         let combinedPlainRegex: RegExp | null = null;
         if (plainPatterns.length > 0) {
-            const escaped = plainPatterns.map((p) =>
-                p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-            );
+            const escaped = plainPatterns.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
             // Use non-capturing group for performance
             combinedPlainRegex = new RegExp(`(?:${escaped.join('|')})`);
         }

@@ -6,25 +6,10 @@
 import { WORKER_DEFAULTS } from '../../src/config/defaults.ts';
 import { createTracingContext, type ICompilerEvents, WorkerCompiler } from '../../src/index.ts';
 import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
-import { JsonResponse, generateRequestId } from '../utils/index.ts';
+import { generateRequestId, JsonResponse } from '../utils/index.ts';
 import { recordMetric } from './metrics.ts';
-import {
-    compress,
-    decompress,
-    emitDiagnosticsToTailWorker,
-    getCacheKey,
-    QUEUE_BINDINGS_NOT_AVAILABLE_ERROR,
-    updateQueueStats,
-} from './queue.ts';
-import type {
-    BatchRequest,
-    CompilationResult,
-    CompileQueueMessage,
-    CompileRequest,
-    Env,
-    PreviousVersion,
-    Priority,
-} from '../types.ts';
+import { compress, decompress, emitDiagnosticsToTailWorker, getCacheKey, QUEUE_BINDINGS_NOT_AVAILABLE_ERROR, updateQueueStats } from './queue.ts';
+import type { BatchRequest, CompilationResult, CompileQueueMessage, CompileRequest, Env, PreviousVersion, Priority } from '../types.ts';
 
 // ============================================================================
 // Configuration
@@ -113,9 +98,7 @@ export async function handleCompileJson(
     });
 
     // Check cache if no pre-fetched content
-    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-        ? await getCacheKey(configuration)
-        : null;
+    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? await getCacheKey(configuration) : null;
 
     let previousCachedVersion: PreviousVersion | undefined;
 
@@ -290,9 +273,7 @@ export async function handleCompileStream(
     const body = await request.json() as CompileRequest;
     const { configuration, preFetchedContent, benchmark } = body;
 
-    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-        ? await getCacheKey(configuration)
-        : null;
+    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? await getCacheKey(configuration) : null;
 
     let previousCachedVersion: PreviousVersion | undefined;
 
@@ -459,9 +440,7 @@ export async function handleCompileBatch(
                 try {
                     const { configuration, preFetchedContent, benchmark } = req;
 
-                    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-                        ? await getCacheKey(configuration)
-                        : null;
+                    const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? await getCacheKey(configuration) : null;
 
                     if (cacheKey) {
                         const pending = pendingCompilations.get(cacheKey);
@@ -688,9 +667,7 @@ async function queueCompileJob(
         priority,
     };
 
-    const queue = priority === 'high'
-        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY
-        : env.ADBLOCK_COMPILER_QUEUE;
+    const queue = priority === 'high' ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY : env.ADBLOCK_COMPILER_QUEUE;
 
     await queue.send(message);
     await updateQueueStats(env, 'enqueued');
@@ -720,9 +697,7 @@ async function queueBatchCompileJob(
         priority,
     };
 
-    const queue = priority === 'high'
-        ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY
-        : env.ADBLOCK_COMPILER_QUEUE;
+    const queue = priority === 'high' ? env.ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY : env.ADBLOCK_COMPILER_QUEUE;
 
     await queue.send(message);
     await updateQueueStats(env, 'enqueued', undefined, requests.length);
