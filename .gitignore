@@ -22,8 +22,8 @@ yarn.lock
 
 # Build output
 dist/
-hostlist-compiler
-hostlist-compiler.exe
+adblock-compiler
+adblock-compiler.exe
 
 # Cloudflare Workers
 .wrangler/

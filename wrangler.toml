@@ -8,7 +8,7 @@ workers_dev = true
 # Build configuration
 # For Cloudflare Workers deployment, no build command is needed.
 # Wrangler handles TypeScript compilation automatically.
-# If deploying the static UI to Cloudflare Pages, use: wrangler pages deploy public --project-name=hostlist-compiler-ui
+# If deploying the static UI to Cloudflare Pages, use: wrangler pages deploy public --project-name=adblock-compiler-ui
 [build]
 # Leave command empty for Workers - wrangler handles TS compilation
 command = ""

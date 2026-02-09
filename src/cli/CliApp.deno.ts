@@ -167,7 +167,7 @@ export class CliApp {
      */
     private showHelp(): void {
         console.log(`
-Usage: hostlist-compiler [options]
+Usage: adblock-compiler [options]
 
 Options:
   -c, --config <file>      Path to the compiler configuration file
@@ -182,13 +182,13 @@ Options:
   -h, --help               Show help
 
 Examples:
-  hostlist-compiler -c config.json -o output.txt
+  adblock-compiler -c config.json -o output.txt
       compile a blocklist and write the output to output.txt
 
-  hostlist-compiler -i https://example.org/hosts.txt -o output.txt
+  adblock-compiler -i https://example.org/hosts.txt -o output.txt
       compile a blocklist from the URL and write the output to output.txt
 
-  hostlist-compiler -c config.json -o output.txt --benchmark
+  adblock-compiler -c config.json -o output.txt --benchmark
       compile and show performance metrics
 `);
     }
@@ -299,7 +299,7 @@ Examples:
                 this.logger.setLevel(LOG_LEVEL_TRACE);
             }
 
-            this.logger.info(`Starting @adguard/hostlist-compiler v${VERSION}`);
+            this.logger.info(`Starting @jk-com/adblock-compiler v${VERSION}`);
 
             // Validate required arguments
             if (!this.args.input && !this.args.config) {

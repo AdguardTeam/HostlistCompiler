@@ -92,7 +92,7 @@ export class ArgumentParser {
      */
     public showHelp(): void {
         console.log(`
-Usage: hostlist-compiler [options]
+Usage: adblock-compiler [options]
 
 Options:
   -c, --config <file>      Path to the compiler configuration file
@@ -109,16 +109,16 @@ Options:
   -h, --help               Show help
 
 Examples:
-  hostlist-compiler -c config.json -o output.txt
+  adblock-compiler -c config.json -o output.txt
       compile a blocklist and write the output to output.txt
 
-  hostlist-compiler -i https://example.org/hosts.txt -o output.txt
+  adblock-compiler -i https://example.org/hosts.txt -o output.txt
       compile a blocklist from the URL and write the output to output.txt
 
-  hostlist-compiler -c config.json -o output.txt --benchmark
+  adblock-compiler -c config.json -o output.txt --benchmark
       compile and show performance metrics
 
-  hostlist-compiler -c config.json -o output.txt --use-queue --priority high
+  adblock-compiler -c config.json -o output.txt --use-queue --priority high
       queue a compilation job with high priority (async processing)
 `);
     }
@@ -128,6 +128,6 @@ Examples:
      * @param version - Version string to display
      */
     public showVersion(version: string): void {
-        console.log(`hostlist-compiler ${version}`);
+        console.log(`adblock-compiler ${version}`);
     }
 }

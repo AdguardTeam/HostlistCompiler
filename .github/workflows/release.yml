@@ -66,19 +66,19 @@ jobs:
                 include:
                     - target: x86_64-unknown-linux-gnu
                       os: ubuntu-latest
-                      artifact: hostlist-compiler-linux-x64
+                      artifact: adblock-compiler-linux-x64
                     - target: aarch64-unknown-linux-gnu
                       os: ubuntu-latest
-                      artifact: hostlist-compiler-linux-arm64
+                      artifact: adblock-compiler-linux-arm64
                     - target: x86_64-apple-darwin
                       os: macos-15-intel
-                      artifact: hostlist-compiler-macos-x64
+                      artifact: adblock-compiler-macos-x64
                     - target: aarch64-apple-darwin
                       os: macos-14
-                      artifact: hostlist-compiler-macos-arm64
+                      artifact: adblock-compiler-macos-arm64
                     - target: x86_64-pc-windows-msvc
                       os: windows-latest
-                      artifact: hostlist-compiler-windows-x64.exe
+                      artifact: adblock-compiler-windows-x64.exe
         steps:
             - uses: actions/checkout@v4
 
@@ -196,7 +196,7 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                   path: artifacts
-                  pattern: hostlist-compiler-*
+                  pattern: adblock-compiler-*
 
             - name: Prepare release assets
               run: |
@@ -237,11 +237,11 @@ jobs:
 
                   | Platform | Architecture | Download |
                   |----------|--------------|----------|
-                  | Linux | x64 | `hostlist-compiler-linux-x64` |
-                  | Linux | ARM64 | `hostlist-compiler-linux-arm64` |
-                  | macOS | x64 (Intel) | `hostlist-compiler-macos-x64` |
-                  | macOS | ARM64 (Apple Silicon) | `hostlist-compiler-macos-arm64` |
-                  | Windows | x64 | `hostlist-compiler-windows-x64.exe` |
+                  | Linux | x64 | `adblock-compiler-linux-x64` |
+                  | Linux | ARM64 | `adblock-compiler-linux-arm64` |
+                  | macOS | x64 (Intel) | `adblock-compiler-macos-x64` |
+                  | macOS | ARM64 (Apple Silicon) | `adblock-compiler-macos-arm64` |
+                  | Windows | x64 | `adblock-compiler-windows-x64.exe` |
 
                   ## Checksums
                   ```
