@@ -5,17 +5,8 @@
 
 import { WORKER_DEFAULTS } from '../../src/config/defaults.ts';
 import { createTracingContext, type DiagnosticEvent, WorkerCompiler } from '../../src/index.ts';
-import { JsonResponse, generateRequestId } from '../utils/index.ts';
-import type {
-    BatchCompileQueueMessage,
-    CacheWarmQueueMessage,
-    CompilationResult,
-    CompileQueueMessage,
-    Env,
-    JobInfo,
-    QueueMessage,
-    QueueStats,
-} from '../types.ts';
+import { generateRequestId, JsonResponse } from '../utils/index.ts';
+import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompilationResult, CompileQueueMessage, Env, JobInfo, QueueMessage, QueueStats } from '../types.ts';
 
 // ============================================================================
 // Constants
@@ -277,9 +268,7 @@ export async function processCompileMessage(
     console.log(`[QUEUE:COMPILE] Starting compilation for "${configuration.name}" (requestId: ${message.requestId})`);
 
     try {
-        const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0)
-            ? await getCacheKey(configuration)
-            : null;
+        const cacheKey = (!preFetchedContent || Object.keys(preFetchedContent).length === 0) ? await getCacheKey(configuration) : null;
 
         // deno-lint-ignore no-console
         console.log(`[QUEUE:COMPILE] Cache key: ${cacheKey ? cacheKey.substring(0, 20) + '...' : 'none (pre-fetched content)'}`);
@@ -409,9 +398,7 @@ export async function processInChunks<T>(
                 successful++;
             } else {
                 failed++;
-                const errorMessage = result.reason instanceof Error
-                    ? result.reason.message
-                    : String(result.reason);
+                const errorMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
 
                 failures.push({ item: itemId, error: errorMessage });
                 // deno-lint-ignore no-console

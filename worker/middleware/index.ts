@@ -5,13 +5,7 @@
 
 import { WORKER_DEFAULTS } from '../../src/config/defaults.ts';
 import { ErrorUtils } from '../../src/utils/index.ts';
-import type {
-    AdminAuthResult,
-    Env,
-    RateLimitData,
-    TurnstileResult,
-    TurnstileVerifyResponse,
-} from '../types.ts';
+import type { AdminAuthResult, Env, RateLimitData, TurnstileResult, TurnstileVerifyResponse } from '../types.ts';
 
 // ============================================================================
 // Configuration Constants

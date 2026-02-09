@@ -3,14 +3,7 @@
  * Uses Cloudflare's Queue binding for async message processing.
  */
 
-import type {
-    IQueueProvider,
-    AnyQueueMessage,
-    SendResult,
-    ReceiveResult,
-    ReceivedMessage,
-    QueueProviderOptions,
-} from './IQueueProvider.ts';
+import type { AnyQueueMessage, IQueueProvider, QueueProviderOptions, ReceivedMessage, ReceiveResult, SendResult } from './IQueueProvider.ts';
 
 /**
  * Cloudflare Queue binding type
@@ -46,8 +39,7 @@ export class CloudflareQueueProvider implements IQueueProvider {
 
     private queue: CloudflareQueue | null = null;
     private options: Required<QueueProviderOptions>;
-    private pendingMessages: Map<string, CloudflareMessageBatch<unknown>['messages'][0]> =
-        new Map();
+    private pendingMessages: Map<string, CloudflareMessageBatch<unknown>['messages'][0]> = new Map();
 
     constructor(options?: QueueProviderOptions) {
         this.options = {

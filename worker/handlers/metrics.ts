@@ -5,12 +5,7 @@
 
 import { WORKER_DEFAULTS } from '../../src/config/defaults.ts';
 import { JsonResponse } from '../utils/index.ts';
-import type {
-    AggregatedMetrics,
-    EndpointMetrics,
-    EndpointMetricsDisplay,
-    Env,
-} from '../types.ts';
+import type { AggregatedMetrics, EndpointMetrics, EndpointMetricsDisplay, Env } from '../types.ts';
 
 // ============================================================================
 // Configuration

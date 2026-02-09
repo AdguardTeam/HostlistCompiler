@@ -1,10 +1,10 @@
 /**
  * Thin orchestrator router for the Cloudflare Worker.
- * 
+ *
  * This module demonstrates the modular routing pattern that the worker.ts
  * should migrate towards. It imports handlers from dedicated modules
  * and orchestrates routing with minimal logic.
- * 
+ *
  * Migration path:
  * 1. Use this router for new endpoints
  * 2. Gradually move existing endpoints from worker.ts
@@ -13,31 +13,18 @@
 
 import type { Env } from './worker.ts';
 import { JsonResponse } from './utils/response.ts';
-import { checkRateLimit, verifyTurnstileToken, verifyAdminAuth } from './middleware/index.ts';
+import { checkRateLimit, verifyAdminAuth, verifyTurnstileToken } from './middleware/index.ts';
+import { handleASTParseRequest, handleCompileAsync, handleCompileBatch, handleCompileBatchAsync, handleCompileJson, handleCompileStream } from './handlers/compile.ts';
+import { handleMetrics, recordMetric } from './handlers/metrics.ts';
+import { handleQueueResults, handleQueueStats } from './handlers/queue.ts';
 import {
-    handleCompileJson,
-    handleCompileStream,
-    handleCompileBatch,
-    handleCompileAsync,
-    handleCompileBatchAsync,
-    handleASTParseRequest,
-} from './handlers/compile.ts';
-import {
-    handleMetrics,
-    recordMetric,
-} from './handlers/metrics.ts';
-import {
-    handleQueueStats,
-    handleQueueResults,
-} from './handlers/queue.ts';
-import {
-    handleAdminStorageStats,
-    handleAdminClearExpired,
     handleAdminClearCache,
+    handleAdminClearExpired,
     handleAdminExport,
-    handleAdminVacuum,
     handleAdminListTables,
     handleAdminQuery,
+    handleAdminStorageStats,
+    handleAdminVacuum,
 } from './handlers/admin.ts';
 
 // Re-export Env type for external use
@@ -161,56 +148,49 @@ const routes: Route[] = [
     {
         method: 'GET',
         pattern: /^\/queue\/results\/(?<requestId>[^/]+)$/,
-        handler: async (_req, env, params) =>
-            handleQueueResults(env, params.pathParams.requestId),
+        handler: async (_req, env, params) => handleQueueResults(env, params.pathParams.requestId),
     },
 
     // Compilation endpoints
     {
         method: 'POST',
         pattern: '/compile',
-        handler: async (req, env, params) =>
-            handleCompileJson(req, env, params.requestId),
+        handler: async (req, env, params) => handleCompileJson(req, env, params.requestId),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/stream',
-        handler: async (req, env, params) =>
-            handleCompileStream(req, env, params.requestId),
+        handler: async (req, env, params) => handleCompileStream(req, env, params.requestId),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/batch',
-        handler: async (req, env, params) =>
-            handleCompileBatch(req, env, params.requestId),
+        handler: async (req, env, params) => handleCompileBatch(req, env, params.requestId),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/async',
-        handler: async (req, env, params) =>
-            handleCompileAsync(req, env, params.requestId),
+        handler: async (req, env, params) => handleCompileAsync(req, env, params.requestId),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/compile/batch/async',
-        handler: async (req, env, params) =>
-            handleCompileBatchAsync(req, env, params.requestId),
+        handler: async (req, env, params) => handleCompileBatchAsync(req, env, params.requestId),
         rateLimit: true,
         turnstile: true,
     },
     {
         method: 'POST',
         pattern: '/ast/parse',
-        handler: async (req, env, params) =>
-            handleASTParseRequest(req, env, params.requestId),
+        handler: async (req, env, params) => handleASTParseRequest(req, env, params.requestId),
         rateLimit: true,
     },
 
@@ -288,7 +268,7 @@ function findRoute(
 
 /**
  * Main router function - thin orchestrator pattern
- * 
+ *
  * This is the pattern that worker.ts should migrate towards.
  * Routes are defined declaratively with middleware flags.
  */
@@ -377,7 +357,7 @@ export async function handleRequest(
 
 /**
  * Create a worker export using the thin orchestrator
- * 
+ *
  * Example usage in wrangler.toml:
  * ```toml
  * main = "worker/router.ts"
