@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.11.5",
+    "version": "0.11.6",
     "exports": "./src/index.ts",
     "publish": {
         "include": [
@@ -42,7 +42,7 @@
     },
     "imports": {
         "@/": "./src/",
-        "@adguard/agtree": "npm:@adguard/agtree@^3.4.3",
+        "@adguard/agtree": "npm:@adguard/agtree@^4.0.0",
         "@luca/cases": "jsr:@luca/cases@^1.0.0",
         "@std/path": "jsr:@std/path@^1.1.4",
         "@std/fs": "jsr:@std/fs@^1.0.22",

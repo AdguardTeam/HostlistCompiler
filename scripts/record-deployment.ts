@@ -173,7 +173,7 @@ async function queryD1(
         throw new Error(`D1 API error: ${response.status} ${response.statusText}\n${errorText}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as D1QueryResult;
     return data;
 }
 
