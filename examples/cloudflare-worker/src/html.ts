@@ -7,12 +7,12 @@ export const HTML_CONTENT = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hostlist Compiler</title>
-    <meta http-equiv="refresh" content="0;url=https://hostlist-compiler.pages.dev">
+    <title>Adblock Compiler</title>
+    <meta http-equiv="refresh" content="0;url=https://adblock-compiler.pages.dev">
 </head>
 <body>
-    <h1>Redirecting to Hostlist Compiler...</h1>
-    <p>If you are not redirected, <a href="https://hostlist-compiler.pages.dev">click here</a>.</p>
+    <h1>Redirecting to Adblock Compiler...</h1>
+    <p>If you are not redirected, <a href="https://adblock-compiler.pages.dev">click here</a>.</p>
     <p>For local development, use: npm run dev</p>
 </body>
 </html>`;

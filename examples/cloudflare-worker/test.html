@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hostlist Compiler Worker Test</title>
+    <title>Adblock Compiler Worker Test</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -107,8 +107,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>🛡️ Hostlist Compiler Worker Test</h1>
-        <div class="endpoint">https://hostlist-compiler-worker.jayson-knight.workers.dev</div>
+        <h1>🛡️ Adblock Compiler Worker Test</h1>
+        <div class="endpoint">https://adblock-compiler.jayson-knight.workers.dev</div>
         
         <h3>Request Configuration</h3>
         <textarea id="config">{
@@ -142,7 +142,7 @@
     </div>
 
     <script>
-        const WORKER_URL = 'https://hostlist-compiler-worker.jayson-knight.workers.dev';
+        const WORKER_URL = 'https://adblock-compiler.jayson-knight.workers.dev';
         
         function addLog(message, type = 'info') {
             const log = document.getElementById('log');
