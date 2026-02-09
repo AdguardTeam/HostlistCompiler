@@ -14,16 +14,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 // Import shared types
-import type {
-    BatchCompileQueueMessage,
-    CacheWarmQueueMessage,
-    CompileQueueMessage,
-    CompileRequest,
-    Env,
-    Priority,
-    QueueMessage,
-    Workflow,
-} from './types.ts';
+import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, Priority, QueueMessage, Workflow } from './types.ts';
 
 // NOTE: Container class for Cloudflare Containers deployment
 // This is a stub for local development. When deploying with containers enabled,
