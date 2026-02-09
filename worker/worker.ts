@@ -13,41 +13,17 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-/**
- * D1 Database type from Cloudflare Workers Types
- */
-interface D1Database {
-    prepare(query: string): D1PreparedStatement;
-    dump(): Promise<ArrayBuffer>;
-    batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
-    exec(query: string): Promise<D1ExecResult>;
-}
-
-interface D1PreparedStatement {
-    bind(...values: unknown[]): D1PreparedStatement;
-    first<T = unknown>(colName?: string): Promise<T | null>;
-    run(): Promise<D1Result>;
-    all<T = unknown>(): Promise<D1Result<T>>;
-    raw<T = unknown>(): Promise<T[]>;
-}
-
-interface D1Result<T = unknown> {
-    results?: T[];
-    success: boolean;
-    error?: string;
-    meta?: {
-        duration: number;
-        changes: number;
-        last_row_id: number;
-        rows_read: number;
-        rows_written: number;
-    };
-}
-
-interface D1ExecResult {
-    count: number;
-    duration: number;
-}
+// Import shared types
+import type {
+    BatchCompileQueueMessage,
+    CacheWarmQueueMessage,
+    CompileQueueMessage,
+    CompileRequest,
+    Env,
+    Priority,
+    QueueMessage,
+    Workflow,
+} from './types.ts';
 
 // NOTE: Container class for Cloudflare Containers deployment
 // This is a stub for local development. When deploying with containers enabled,
@@ -88,121 +64,10 @@ import {
     CompilationWorkflow,
     type HealthMonitoringParams,
     HealthMonitoringWorkflow,
-    type WorkflowStatus,
 } from './workflows/index.ts';
 
-/**
- * Workflow binding type - matches Cloudflare Workers Workflow type
- */
-interface Workflow<Params = unknown> {
-    create(options?: { id?: string; params?: Params }): Promise<WorkflowInstance>;
-    get(id: string): Promise<WorkflowInstance>;
-}
-
-interface WorkflowInstance {
-    id: string;
-    pause(): Promise<void>;
-    resume(): Promise<void>;
-    terminate(): Promise<void>;
-    restart(): Promise<void>;
-    status(): Promise<{
-        status: WorkflowStatus;
-        output?: unknown;
-        error?: string;
-    }>;
-}
-
-/**
- * Environment bindings for the worker.
- */
-export interface Env {
-    COMPILER_VERSION: string;
-    // KV namespaces
-    COMPILATION_CACHE: KVNamespace;
-    RATE_LIMIT: KVNamespace;
-    METRICS: KVNamespace;
-    // Static assets
-    ASSETS?: Fetcher;
-    // Queue bindings (optional - queues must be created in Cloudflare dashboard first)
-    ADBLOCK_COMPILER_QUEUE?: Queue<QueueMessage>;
-    ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY?: Queue<QueueMessage>;
-    // Turnstile configuration
-    TURNSTILE_SITE_KEY?: string;
-    TURNSTILE_SECRET_KEY?: string;
-    // D1 Database binding (optional - for SQLite admin features)
-    DB?: D1Database;
-    // Admin authentication key
-    ADMIN_KEY?: string;
-    // Workflow bindings (optional - for durable execution)
-    COMPILATION_WORKFLOW?: Workflow<CompilationParams>;
-    BATCH_COMPILATION_WORKFLOW?: Workflow<BatchCompilationParams>;
-    CACHE_WARMING_WORKFLOW?: Workflow<CacheWarmingParams>;
-    HEALTH_MONITORING_WORKFLOW?: Workflow<HealthMonitoringParams>;
-    // Analytics Engine binding (optional - for metrics tracking)
-    ANALYTICS_ENGINE?: AnalyticsEngineDataset;
-}
-
-/**
- * Priority levels for queue messages
- */
-type Priority = 'standard' | 'high';
-
-/**
- * Compile request body structure.
- */
-interface CompileRequest {
-    configuration: IConfiguration;
-    preFetchedContent?: Record<string, string>;
-    benchmark?: boolean;
-    priority?: Priority;
-    turnstileToken?: string;
-}
-
-/**
- * Queue message types for different operations
- */
-type QueueMessageType = 'compile' | 'batch-compile' | 'cache-warm';
-
-/**
- * Base queue message structure
- */
-interface QueueMessage {
-    type: QueueMessageType;
-    requestId?: string;
-    timestamp: number;
-    priority?: Priority;
-}
-
-/**
- * Queue message for single compilation
- */
-interface CompileQueueMessage extends QueueMessage {
-    type: 'compile';
-    configuration: IConfiguration;
-    preFetchedContent?: Record<string, string>;
-    benchmark?: boolean;
-}
-
-/**
- * Queue message for batch compilation
- */
-interface BatchCompileQueueMessage extends QueueMessage {
-    type: 'batch-compile';
-    requests: Array<{
-        id: string;
-        configuration: IConfiguration;
-        preFetchedContent?: Record<string, string>;
-        benchmark?: boolean;
-    }>;
-}
-
-/**
- * Queue message for cache warming
- */
-interface CacheWarmQueueMessage extends QueueMessage {
-    type: 'cache-warm';
-    configurations: IConfiguration[];
-}
+// Re-export Env for compatibility with existing imports
+export type { Env };
 
 /**
  * Rate limiting configuration (from centralized defaults)
