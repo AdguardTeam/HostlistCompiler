@@ -394,26 +394,98 @@ export class AdblockFormatter extends BaseFormatter {
 }
 
 /**
- * Factory function to create formatters
+ * Constructor type for formatters
+ */
+export type FormatterConstructor = new (options?: FormatterOptions) => BaseFormatter;
+
+/**
+ * Extensible formatter factory with registration pattern.
+ * Allows registering custom formatters for new output formats.
+ */
+export class FormatterFactory {
+    private static readonly formatters = new Map<OutputFormat | string, FormatterConstructor>();
+    private static readonly defaultFormat: OutputFormat = OutputFormat.Adblock;
+
+    /**
+     * Register a formatter for a given output format.
+     * Can override built-in formatters or add new ones.
+     * @param format - Output format identifier
+     * @param formatterClass - Formatter constructor
+     */
+    static register(format: OutputFormat | string, formatterClass: FormatterConstructor): void {
+        FormatterFactory.formatters.set(format, formatterClass);
+    }
+
+    /**
+     * Unregister a formatter
+     * @param format - Output format to unregister
+     * @returns true if the format was registered and removed
+     */
+    static unregister(format: OutputFormat | string): boolean {
+        return FormatterFactory.formatters.delete(format);
+    }
+
+    /**
+     * Check if a format is registered
+     * @param format - Output format to check
+     */
+    static has(format: OutputFormat | string): boolean {
+        return FormatterFactory.formatters.has(format);
+    }
+
+    /**
+     * Get all registered format names
+     */
+    static getRegisteredFormats(): (OutputFormat | string)[] {
+        return Array.from(FormatterFactory.formatters.keys());
+    }
+
+    /**
+     * Create a formatter instance for the given format
+     * @param format - Output format
+     * @param options - Formatter options
+     * @returns Formatter instance
+     * @throws Error if format is not registered
+     */
+    static create(format: OutputFormat | string, options?: FormatterOptions): BaseFormatter {
+        const FormatterClass = FormatterFactory.formatters.get(format);
+
+        if (!FormatterClass) {
+            // Fall back to default formatter if unknown format
+            const DefaultClass = FormatterFactory.formatters.get(FormatterFactory.defaultFormat);
+            if (DefaultClass) {
+                return new DefaultClass(options);
+            }
+            throw new Error(`Unknown format: ${format} and no default formatter registered`);
+        }
+
+        return new FormatterClass(options);
+    }
+
+    /**
+     * Initialize factory with built-in formatters.
+     * Called automatically on module load.
+     */
+    static initialize(): void {
+        FormatterFactory.register(OutputFormat.Hosts, HostsFormatter);
+        FormatterFactory.register(OutputFormat.Dnsmasq, DnsmasqFormatter);
+        FormatterFactory.register(OutputFormat.PiHole, PiHoleFormatter);
+        FormatterFactory.register(OutputFormat.Unbound, UnboundFormatter);
+        FormatterFactory.register(OutputFormat.JSON, JsonFormatter);
+        FormatterFactory.register(OutputFormat.DoH, DoHFormatter);
+        FormatterFactory.register(OutputFormat.Adblock, AdblockFormatter);
+    }
+}
+
+// Initialize built-in formatters on module load
+FormatterFactory.initialize();
+
+/**
+ * Factory function to create formatters (backward compatible wrapper)
+ * @deprecated Use FormatterFactory.create() instead
  */
 export function createFormatter(format: OutputFormat, options?: FormatterOptions): BaseFormatter {
-    switch (format) {
-        case OutputFormat.Hosts:
-            return new HostsFormatter(options);
-        case OutputFormat.Dnsmasq:
-            return new DnsmasqFormatter(options);
-        case OutputFormat.PiHole:
-            return new PiHoleFormatter(options);
-        case OutputFormat.Unbound:
-            return new UnboundFormatter(options);
-        case OutputFormat.JSON:
-            return new JsonFormatter(options);
-        case OutputFormat.DoH:
-            return new DoHFormatter(options);
-        case OutputFormat.Adblock:
-        default:
-            return new AdblockFormatter(options);
-    }
+    return FormatterFactory.create(format, options);
 }
 
 /**
@@ -421,9 +493,9 @@ export function createFormatter(format: OutputFormat, options?: FormatterOptions
  */
 export function formatOutput(
     rules: string[],
-    format: OutputFormat,
+    format: OutputFormat | string,
     options?: FormatterOptions,
 ): FormatterResult {
-    const formatter = createFormatter(format, options);
+    const formatter = FormatterFactory.create(format, options);
     return formatter.format(rules);
 }

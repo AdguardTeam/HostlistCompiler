@@ -30,6 +30,21 @@ export interface WorkerCompilationResult {
 }
 
 /**
+ * Injectable dependencies for the WorkerCompiler.
+ * Enables full testability and customization.
+ */
+export interface WorkerCompilerDependencies {
+    /** Configuration validator */
+    validator?: ConfigurationValidator;
+    /** Transformation pipeline */
+    pipeline?: TransformationPipeline;
+    /** Header generator */
+    headerGenerator?: HeaderGenerator;
+    /** Content fetcher (overrides default fetcher chain) */
+    fetcher?: IContentFetcher;
+}
+
+/**
  * Options for the WorkerCompiler.
  */
 export interface WorkerCompilerOptions extends IPlatformCompilerOptions {
@@ -39,6 +54,8 @@ export interface WorkerCompilerOptions extends IPlatformCompilerOptions {
     events?: ICompilerEvents;
     /** Tracing context for diagnostics */
     tracingContext?: TracingContext;
+    /** Injectable dependencies (for testing/customization) */
+    dependencies?: WorkerCompilerDependencies;
 }
 
 /**
@@ -62,12 +79,16 @@ export class WorkerCompiler {
         this.logger = options?.logger ?? silentLogger;
         this.eventEmitter = createEventEmitter(options?.events);
         this.tracingContext = options?.tracingContext ?? createNoOpContext();
-        this.validator = new ConfigurationValidator();
-        this.pipeline = new TransformationPipeline(undefined, this.logger, this.eventEmitter);
-        this.headerGenerator = new HeaderGenerator();
 
-        // Build the fetcher chain
-        this.fetcher = this.buildFetcher(options);
+        const deps = options?.dependencies;
+
+        // Use injected dependencies or create defaults
+        this.validator = deps?.validator ?? new ConfigurationValidator();
+        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        this.headerGenerator = deps?.headerGenerator ?? new HeaderGenerator();
+
+        // Fetcher: use injected, then custom from options, then build default chain
+        this.fetcher = deps?.fetcher ?? this.buildFetcher(options);
     }
 
     /**

@@ -5,6 +5,10 @@ import { SyncTransformation } from './base/Transformation.ts';
 /**
  * Transformation that removes duplicate rules while preserving order.
  * Also removes preceding comments when a duplicate rule is removed.
+ *
+ * Uses a two-pass approach for clarity and performance:
+ * 1. First pass: Build a Set of all actual rules (non-comments)
+ * 2. Second pass: Filter rules, skipping duplicates and their preceding comments
  */
 export class DeduplicateTransformation extends SyncTransformation {
     /** The transformation type identifier */
@@ -17,46 +21,62 @@ export class DeduplicateTransformation extends SyncTransformation {
      * @param rules - Array of rules to deduplicate
      * @returns Array with duplicates removed
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         if (rules.length === 0) {
             this.info('Empty rules array, nothing to deduplicate');
             return rules;
         }
 
-        const result: string[] = [];
-        const seenRules = new Set<string>();
+        // Pass 1: Build a map of rule -> first occurrence index
+        // This allows O(1) duplicate detection
+        const firstOccurrence = new Map<string, number>();
 
-        for (let i = 0; i < rules.length; i += 1) {
-            const ruleText = rules[i];
-            const isCommentOrEmpty = RuleUtils.isComment(ruleText) || StringUtils.isEmpty(ruleText);
-
-            if (isCommentOrEmpty) {
-                // Check if the next non-comment rule is a duplicate
-                let nextRuleIdx = i + 1;
-                while (
-                    nextRuleIdx < rules.length &&
-                    (RuleUtils.isComment(rules[nextRuleIdx]) || StringUtils.isEmpty(rules[nextRuleIdx]))
-                ) {
-                    nextRuleIdx += 1;
+        for (let i = 0; i < rules.length; i++) {
+            const rule = rules[i];
+            // Skip comments and empty lines
+            if (!RuleUtils.isComment(rule) && !StringUtils.isEmpty(rule)) {
+                if (!firstOccurrence.has(rule)) {
+                    firstOccurrence.set(rule, i);
                 }
-
-                // If next rule exists and is a duplicate, skip this comment
-                if (nextRuleIdx < rules.length && seenRules.has(rules[nextRuleIdx])) {
-                    this.debug(`Removing a comment preceding duplicate: ${ruleText}`);
-                    continue;
-                }
-
-                // Otherwise, keep the comment
-                result.push(ruleText);
-            } else if (seenRules.has(ruleText)) {
-                // Skip duplicate
-                this.debug(`Removing duplicate: ${ruleText}`);
-            } else {
-                // First occurrence - keep it
-                seenRules.add(ruleText);
-                result.push(ruleText);
             }
         }
+
+        // Pass 2: Build result, skipping duplicates and comments preceding duplicates
+        const result: string[] = [];
+        // Pending comments are accumulated and flushed when we see a non-comment rule
+        let pendingComments: string[] = [];
+
+        for (let i = 0; i < rules.length; i++) {
+            const rule = rules[i];
+            const isCommentOrEmpty = RuleUtils.isComment(rule) || StringUtils.isEmpty(rule);
+
+            if (isCommentOrEmpty) {
+                // Buffer comments until we know if they precede a duplicate
+                pendingComments.push(rule);
+                continue;
+            }
+
+            // This is an actual rule
+            const isFirstOccurrence = firstOccurrence.get(rule) === i;
+
+            if (isFirstOccurrence) {
+                // Keep buffered comments and this rule
+                result.push(...pendingComments);
+                result.push(rule);
+            } else {
+                // Duplicate - skip buffered comments too
+                this.debug(`Removing duplicate: ${rule}`);
+                if (pendingComments.length > 0) {
+                    this.debug(`Skipping ${pendingComments.length} comments preceding duplicate`);
+                }
+            }
+
+            // Clear pending comments
+            pendingComments = [];
+        }
+
+        // Add any trailing comments
+        result.push(...pendingComments);
 
         this.info(`Deduplication removed ${rules.length - result.length} rules`);
         return result;

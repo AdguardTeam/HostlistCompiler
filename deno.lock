@@ -14,6 +14,7 @@
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/testing@^1.0.17": "1.0.17",
     "jsr:@std/yaml@*": "1.0.10",
+    "npm:@adguard/agtree@4": "4.0.0",
     "npm:@cloudflare/playwright-mcp@^0.0.5": "0.0.5_@cloudflare+workers-types@4.20260207.0",
     "npm:@cloudflare/workers-types@^4.20260207.0": "4.20260207.0",
     "npm:@prisma/adapter-pg@^7.3.0": "7.3.0",
@@ -78,17 +79,17 @@
     }
   },
   "npm": {
-    "@adguard/agtree@3.4.3": {
-      "integrity": "sha512-T838KvYtWu3K6whQ46YLaIXYA7PbszX9QRp4dvNfF8iWdp98tcKHxXWslBwUN1DkcBOqqj4rrkarLmcwT2iAbg==",
+    "@adguard/agtree@4.0.0": {
+      "integrity": "sha512-K0C26AidT3G6O6zBWDDhIRkbYxpSS5gV8UMVlWX5eqJ0c/vd/eGtIOg0nKxpD0Qi7xphiHzAPjVYbGkfx0qwtA==",
       "dependencies": [
         "@adguard/css-tokenizer",
         "camelcase-keys",
         "clone-deep",
+        "glob-to-regexp",
         "is-ip",
         "json5",
         "sprintf-js",
         "tldts",
-        "xregexp",
         "zod@3.24.4"
       ]
     },
@@ -1179,6 +1180,9 @@
       ],
       "bin": true
     },
+    "glob-to-regexp@0.4.1": {
+      "integrity": "sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw=="
+    },
     "gopd@1.2.0": {
       "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg=="
     },
@@ -1892,12 +1896,6 @@
     "ws@8.18.0": {
       "integrity": "sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw=="
     },
-    "xregexp@5.1.2": {
-      "integrity": "sha512-6hGgEMCGhqCTFEJbqmWrNIPqfpdirdGWkqshu7fFZddmTSfgv5Sn9D2SaKloR79s5VUiUlpwzg3CM3G6D3VIlw==",
-      "dependencies": [
-        "@babel/runtime-corejs3"
-      ]
-    },
     "xtend@4.0.2": {
       "integrity": "sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ=="
     },
@@ -2057,7 +2055,8 @@
       "npm:@cloudflare/workers-types@^4.20260207.0",
       "npm:@prisma/adapter-pg@^7.3.0",
       "npm:@prisma/client@^7.3.0",
-      "npm:prisma@^7.3.0"
+      "npm:prisma@^7.3.0",
+      "npm:wrangler@^4.63.0"
     ],
     "packageJson": {
       "dependencies": [

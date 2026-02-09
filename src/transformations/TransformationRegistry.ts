@@ -225,6 +225,7 @@ export class TransformationPipeline {
     /**
      * Common pattern matching logic for exclusions and inclusions.
      * Partitions patterns by type for optimized matching.
+     * Uses combined regex for better performance with many patterns.
      * @param rules - Rules to filter
      * @param patterns - Pattern strings
      * @param patternSources - URLs/paths to pattern files
@@ -254,7 +255,6 @@ export class TransformationPipeline {
         this.logger.info(`Filtering the list of rules using ${wildcards.length} ${modeLabel} rules`);
 
         // Partition patterns by type for optimized matching
-        // Plain string patterns can use fast includes() check
         const plainPatterns: string[] = [];
         const regexWildcards: Wildcard[] = [];
 
@@ -266,16 +266,25 @@ export class TransformationPipeline {
             }
         }
 
+        // Build combined regex for plain patterns (more efficient for many patterns)
+        // Escape special regex characters and join with OR
+        let combinedPlainRegex: RegExp | null = null;
+        if (plainPatterns.length > 0) {
+            const escaped = plainPatterns.map((p) =>
+                p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            );
+            // Use non-capturing group for performance
+            combinedPlainRegex = new RegExp(`(?:${escaped.join('|')})`);
+        }
+
         // Create the appropriate filter predicate based on mode
         const matchesPattern = (rule: string): boolean => {
-            // Fast path: check plain string patterns first
-            for (const pattern of plainPatterns) {
-                if (rule.includes(pattern)) {
-                    return true;
-                }
+            // Fast path: check combined regex for plain patterns
+            if (combinedPlainRegex && combinedPlainRegex.test(rule)) {
+                return true;
             }
 
-            // Slow path: regex/wildcard patterns
+            // Slow path: individual regex/wildcard patterns
             for (const w of regexWildcards) {
                 if (w.test(rule)) {
                     return true;
