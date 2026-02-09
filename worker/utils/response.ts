@@ -32,13 +32,13 @@ export const JsonResponse = {
      * @param data - Response data (will be merged with { success: true })
      * @param options - Response options
      */
-    success<T extends Record<string, unknown>>(
-        data: T,
+    success(
+        data: unknown,
         options: ResponseOptions = {},
     ): Response {
         const headers = buildHeaders(options);
         return Response.json(
-            { success: true, ...data },
+            { success: true, ...(data as Record<string, unknown>) },
             { status: options.status ?? 200, headers },
         );
     },
@@ -128,7 +128,7 @@ export const JsonResponse = {
     /**
      * Create a 202 Accepted response (for async operations)
      */
-    accepted<T extends Record<string, unknown>>(data: T, options: Omit<ResponseOptions, 'status'> = {}): Response {
+    accepted(data: unknown, options: Omit<ResponseOptions, 'status'> = {}): Response {
         return this.success(data, { ...options, status: 202 });
     },
 
@@ -137,14 +137,14 @@ export const JsonResponse = {
      * @param data - Response data
      * @param maxAge - Cache max-age in seconds
      */
-    cached<T extends Record<string, unknown>>(data: T, maxAge: number): Response {
+    cached(data: unknown, maxAge: number): Response {
         return this.success(data, { cache: 'public', maxAge });
     },
 
     /**
      * Create a no-cache success response
      */
-    noCache<T extends Record<string, unknown>>(data: T): Response {
+    noCache(data: unknown): Response {
         return this.success(data, { cache: 'no-cache' });
     },
 };
