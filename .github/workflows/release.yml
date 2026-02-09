@@ -187,6 +187,7 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                   path: artifacts
+                  pattern: hostlist-compiler-*
 
             - name: Prepare release assets
               run: |
