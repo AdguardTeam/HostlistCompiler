@@ -17,7 +17,7 @@
         "wrangler": "^4.63.0"
     },
     "dependencies": {
-        "@adguard/agtree": "^3.4.3",
+        "@adguard/agtree": "^4.0.0",
         "@electric-sql/pglite": "^0.3.15"
     }
 }
