@@ -200,7 +200,7 @@ deno coverage coverage --lcov --output=coverage.lcov --include="^file:"
 deno bench --allow-read --allow-write --allow-net --allow-env
 
 # Build CLI binary
-deno compile --allow-read --allow-write --allow-net --output=hostlist-compiler src/cli.ts
+deno compile --allow-read --allow-write --allow-net --output=adblock-compiler src/cli.ts
 
 # Build Docker image
 docker build -t adblock-compiler .
