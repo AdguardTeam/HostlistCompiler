@@ -120,7 +120,7 @@ jobs:
           git checkout -b "$BRANCH_NAME"
           git add .
           git commit -m "Fix for Issue #$ISSUE_NUMBER"
-          git push origin "$BRANCH_NAME" --force
+          git push origin "$BRANCH_NAME"
 
           # Create PR
           # Escape title to handle special chars
