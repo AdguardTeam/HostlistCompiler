@@ -1,0 +1,167 @@
+# ======================================================================================
+# Workflow: Suggest Review Fixes
+# ======================================================================================
+# Usage:
+#   - Triggers when a Pull Request Review is submitted.
+#   - Reads the review comments and uses the Oz Agent to suggest fixes.
+#
+# Setup:
+#   - Ensure WARP_API_KEY is set in Repository Secrets.
+#
+# Expected Output:
+#   - Inline replies to review comments with code suggestions where applicable.
+#
+# When to use:
+#   - Use this to automatically address simple review comments.
+# ======================================================================================
+name: Suggest Review Fixes
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  suggest_review_fixes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch review comments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const reviewId = context.payload.review.id;
+            const prNumber = context.payload.pull_request.number;
+
+            core.info(`Fetching comments for review ${reviewId} on PR #${prNumber}`);
+
+            const { data: comments } = await github.rest.pulls.listCommentsForReview({
+              owner, repo,
+              pull_number: prNumber,
+              review_id: reviewId
+            });
+
+            core.info(`Found ${comments.length} comments.`);
+            fs.writeFileSync( 'review_comments.json', JSON.stringify(comments, ['id', 'path', 'line', 'start_line', 'body', 'diff_hunk'], 2));
+
+      - name: Construct Prompt
+        id: prompt
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prompt = `You have review comments in review_comments.json. Your task is to generate responses.json containing code suggestions.
+
+            IMPORTANT CONSTRAINTS:
+            - Do NOT run any git commands (no commits, branches, or pushes)
+            - Do NOT modify any source files directly
+            - ONLY create the responses.json file
+
+            FOR EACH COMMENT:
+            1. Read the comment body and diff_hunk
+            2. Decide if it's a simple fix. Simple fixes include:
+               - Typo corrections
+               - Variable/function renames
+               - Adding/removing a single line
+               - Simple style changes (formatting, spacing)
+               - Reverting a small change (when diff_hunk shows the original)
+
+            3. NOT simple (skip these):
+               - Involves updating lines beyond this diff hunk to appropriately address (e.g. "use consts instead of magic numbers in this PR")
+               - Needs architectural decisions
+               - Involves multiple files
+               - Comment is a question or discussion (not a change request)
+               - Comment is praise or approval (e.g., "LGTM", "nice!")
+
+            HOW SUGGESTIONS WORK:
+            The suggestion block will COMPLETELY REPLACE the lines shown in the diff_hunk.
+            - Your suggestion ENTIRELY OVERWRITES the diff_hunk content
+            - Include ALL lines you want to keep from the diff_hunk, with your changes applied
+            - Any lines from the diff_hunk not in your suggestion will be DELETED
+            - You cannot add lines outside the diff_hunk scope
+            - PRESERVE EXACT INDENTATION: match the original whitespace (spaces/tabs) exactly
+            - Do not change formatting, line breaks, or whitespace unless that's the requested fix
+
+            OUTPUT FORMAT:
+            Create responses.json as a valid JSON object. Each key is a comment ID, each value is a string containing:
+            - A brief explanation (1 sentence max)
+            - A newline
+            - A suggestion block
+
+            The suggestion block format:
+            \`\`\`suggestion
+            <complete replacement for the diff_hunk lines>
+            \`\`\`
+
+            VALID JSON EXAMPLE:
+            {
+              "12345678": "Fixed the typo.\\n\`\`\`suggestion\\nprintln!(\\"Hello, world!\\\");\\n\`\`\`"
+            }
+
+            If no comments are simple enough, output: {}
+            `;
+            core.setOutput('prompt', prompt);
+
+      - name: Run Oz Agent
+        uses: warpdotdev/oz-agent-action@v1
+        with:
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          profile: ${{ vars.WARP_AGENT_PROFILE }}
+          prompt: ${{ steps.prompt.outputs.prompt }}
+
+      - name: Validate responses.json
+        run: |
+          if [ -f responses.json ]; then
+            python3 -c "import json; json.load(open('responses.json'))" || {
+              echo "Invalid JSON in responses.json, replacing with empty object"
+              echo "{}" > responses.json
+            }
+          fi
+
+      - name: Reply to comments
+        uses: actions/github-script@v7
+        if: always() # Run even if the agent fails, to try and post what was drafted
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('responses.json')) {
+              core.info('No responses.json found.');
+              return;
+            }
+
+            let responses;
+            try {
+              responses = JSON.parse(fs.readFileSync('responses.json', 'utf8'));
+            } catch (e) {
+              core.error(`Failed to parse responses.json: ${e.message}`);
+              core.info(`File contents: ${fs.readFileSync('responses.json', 'utf8').substring(0, 500)}`);
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            for (const [commentId, reply] of Object.entries(responses)) {
+              if (typeof reply !== 'string') {
+                core.info(`Skipping comment ${commentId}: reply is not a string. Value: ${JSON.stringify(response)}`);
+                continue;
+              }
+              if (!reply || !reply.includes('```suggestion')) continue;
+              
+              core.info(`Replying to comment ${commentId}`);
+              try {
+                await github.rest.pulls.createReplyForReviewComment({
+                  owner, repo,
+                  pull_number: prNumber,
+                  comment_id: Number(commentId),
+                  body: reply
+                });
+              } catch (error) {
+                core.error(`Failed to reply to comment ${commentId}:`, error);
+              }
+            }

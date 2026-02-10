@@ -1,0 +1,139 @@
+# ======================================================================================
+# Workflow: Daily Issue Summary
+# ======================================================================================
+# Usage:
+#   - Runs automatically on a schedule (every day at 9:00 UTC).
+#   - Fetches issues created in the last 24 hours.
+#
+# Setup:
+#   - Ensure WARP_API_KEY is set in Repository Secrets.
+#   - Ensure SLACK_WEBHOOK_URL is set in Repository Secrets to receive the report.
+#
+# Expected Output:
+#   - A Slack message containing a categorized summary of new issues (Bugs, Features, etc.).
+#
+# When to use:
+#   - Use this to keep your team aligned on incoming issues without manually checking GitHub.
+# ======================================================================================
+name: Daily Issue Summary
+
+on:
+  schedule:
+    # Run at 9:00 AM UTC every day
+    - cron: '0 9 * * *'
+  workflow_dispatch: # Allow manual triggering for testing
+
+jobs:
+  summarize_issues:
+    name: Summarize Issues
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Fetch Issues
+        id: fetch_issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Calculate timestamp for 24 hours ago
+          SINCE=$(date -d '24 hours ago' '+%Y-%m-%dT%H:%M:%SZ')
+          echo "Fetching issues created since $SINCE"
+
+          # Fetch issues with specific fields
+          ISSUES_JSON=$(gh issue list \
+            --search "created:>=$SINCE" \
+            --json number,title,body,author,url \
+            --limit 100)
+
+          # Check if issues is empty or array is empty
+          COUNT=$(echo "$ISSUES_JSON" | jq '. | length')
+
+          if [ "$COUNT" -eq "0" ]; then
+            echo "No new issues found."
+            echo "has_issues=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Found $COUNT issues."
+            echo "has_issues=true" >> "$GITHUB_OUTPUT"
+            # Save to file to avoid environment variable size limits
+            echo "$ISSUES_JSON" > issues.json
+          fi
+
+      - name: Construct Prompt
+        if: steps.fetch_issues.outputs.has_issues == 'true'
+        id: prompt
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issues = JSON.parse(fs.readFileSync('issues.json', 'utf8'));
+
+            let issueText = '';
+            for (const issue of issues) {
+              issueText += `Issue #${issue.number}: ${issue.title} (by @${issue.author.login})\n`;
+              issueText += `URL: ${issue.url}\n`;
+              // Truncate body to avoid hitting token limits if many issues
+              const bodySnippet = issue.body ? issue.body.slice(0, 200).replace(/\n/g, ' ') + '...' : 'No description';
+              issueText += `Summary: ${bodySnippet}\n\n`;
+            }
+
+            const prompt = `You are an expert product manager and the Oz Agent.
+            Your task is to summarize the GitHub issues opened in this repository within the last 24 hours for a daily Slack update.
+
+            **Issues List**:
+            ${issueText}
+
+            **Instructions**:
+            1.  **Summarize**: Provide a high-level summary of the new issues.
+            2.  **Categorize**: Group them by type if apparent (e.g., Bug, Feature, Documentation).
+            3.  **Format**: output valid Slack mrkdwn format.
+                -   Use bolding for headers.
+                -   Include links to the issues using <URL|Text> syntax.
+            4.  **Tone**: Professional and concise.
+
+            **Output Example**:
+            *Daily Issue Summary*
+            We had 3 new issues opened in the last 24 hours.
+
+            *Bugs*
+            • <https://github.com/...|#123 Fix crash on startup>: Reported by @user1. Seems related to config parsing.
+
+            *Features*
+            • <https://github.com/...|#124 Add dark mode>: Requested by @user2.
+            `;
+
+            core.setOutput('prompt', prompt);
+
+      - name: Run Oz Agent
+        if: steps.fetch_issues.outputs.has_issues == 'true'
+        uses: warpdotdev/oz-agent-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        id: agent
+        with:
+          prompt: ${{ steps.prompt.outputs.prompt }}
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          profile: ${{ vars.WARP_AGENT_PROFILE || '' }}
+
+      - name: Post to Slack
+        if: steps.fetch_issues.outputs.has_issues == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          AGENT_OUTPUT: ${{ steps.agent.outputs.agent_output }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "::error::SLACK_WEBHOOK_URL secret is not set."
+            exit 1
+          fi
+
+          # Format the JSON payload for Slack
+          # We need to escape the output to ensure valid JSON
+          # jq is reliable for creating safe JSON strings
+          PAYLOAD=$(jq -n --arg text "$AGENT_OUTPUT" '{text: $text}')
+
+          echo "Posting to Slack..."
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"

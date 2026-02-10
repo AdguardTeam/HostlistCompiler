@@ -1,0 +1,257 @@
+# ======================================================================================
+# Workflow: Respond to Comment
+# ======================================================================================
+# Usage:
+#   - Comment on a PR or Issue with "@oz-agent".
+#   - You can ask questions or request code changes (e.g., "@oz-agent fix this typo").
+#
+# Setup:
+#   - Ensure WARP_API_KEY is set in Repository Secrets.
+#
+# Expected Output:
+#   - The Agent replies to your comment with an answer or confirmation.
+#   - If code changes were requested, the Agent commits them directly to the PR branch.
+#
+# When to use:
+#   - Use this for interactive coding assistance during code review or issue triage.
+# ======================================================================================
+name: Respond to Comment
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  respond:
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.comment.body,'@oz-agent') &&
+      (
+        github.event_name == 'pull_request_review_comment' ||
+        (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+      ) &&
+      github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout Action
+        uses: actions/checkout@v4
+
+      - name: Acknowledge Comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COMMENT_ID="${{ github.event.comment.id }}"
+          REACTION="eyes"
+
+          if [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/${{ github.repository }}/pulls/comments/$COMMENT_ID/reactions \
+              -f content="$REACTION"
+          else
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/${{ github.repository }}/issues/comments/$COMMENT_ID/reactions \
+              -f content="$REACTION"
+          fi
+
+      - name: Checkout PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER="${{ github.event.issue.number }}"
+          if [ -z "$PR_NUMBER" ]; then
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          fi
+
+          echo "Checking out PR #$PR_NUMBER"
+          gh pr checkout "$PR_NUMBER"
+
+      - name: Construct Prompt
+        id: prompt
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            let prNumber;
+            if (context.eventName === 'issue_comment') {
+              prNumber = context.payload.issue.number;
+            } else {
+              prNumber = context.payload.pull_request.number;
+            }
+
+            // Fetch PR details to provide full context
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
+
+            // Get the list of files changed in the PR
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
+
+            const fileList = files.map(f => f.filename).join(', ');
+
+            const commentBody = context.payload.comment.body;
+            const author = context.payload.comment.user.login;
+
+            let prompt = `You are an expert software engineer and the Oz Agent.
+            You are responding to a specific request on a Pull Request. Your goal is to implement the requested changes directly in the codebase.
+
+            **Context**:
+            - **PR Title**: ${pr.title}
+            - **PR Description**: ${pr.body || 'No description provided.'}
+            - **Changed Files**: ${fileList}
+            - **User Request**: "${commentBody}" (from user @${author})
+            `;
+
+            if (context.eventName === 'pull_request_review_comment') {
+              const path = context.payload.comment.path;
+              const line = context.payload.comment.line;
+              const diffHunk = context.payload.comment.diff_hunk;
+              prompt += `
+            - **Location**: File '${path}' at line ${line}.
+            - **Diff Context**:
+            \`\`\`diff
+            ${diffHunk}
+            \`\`\`
+            `;
+              prompt += `
+            **Instructions**:
+            1. Read the file at '${path}' to understand the full context around the line.
+            `;
+            } else {
+                prompt += `
+            **Instructions**:
+            1. Focus your analysis on the changed files (${fileList}) unless the request explicitly mentions other files.
+            `;
+            }
+
+            prompt += `2. If the user is asking for code changes, implement them.
+            3. If the user is asking a question, answer it based on your analysis of the code.
+            4. Ensure your changes (if any) are correct and follow the existing style.
+            5. Do not output the code diff in your final message; only explain what you changed or answer the question.
+            6. Format your response in Markdown.
+            7. Your output will be posted as a reply to the user.
+            8. Do not attempt to stage or commit changes. This happens automatically after you complete your response.
+            `;
+
+            core.setOutput('prompt', prompt);
+
+      - name: Run Oz Agent
+        uses: warpdotdev/oz-agent-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        id: agent
+        with:
+          prompt: ${{ steps.prompt.outputs.prompt }}
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          profile: ${{ vars.WARP_AGENT_PROFILE || '' }}
+          output_format: json
+
+      - name: Commit and Push Changes
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "Oz Agent"
+          git config user.email "agent@warp.dev"
+
+          if [[ -n $(git status --porcelain) ]]; then
+            git add .
+            git commit -m "Oz Agent: Address comment"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Reply to Comment
+        if: success()
+        uses: actions/github-script@v7
+        env:
+          AGENT_OUTPUT: ${{ steps.agent.outputs.agent_output }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const raw = process.env.AGENT_OUTPUT || '';
+
+            // Walk JSONL lines and capture the last agent text message, if any.
+            let lastText = '';
+            for (const line of raw.split('\n')) {
+              const trimmed = line.trim();
+              if (!trimmed) continue;
+              try {
+                const obj = JSON.parse(trimmed);
+                if (obj.type === 'agent' && typeof obj.text === 'string') {
+                  lastText = obj.text;
+                }
+              } catch (e) {
+                // Ignore non-JSON lines
+              }
+            }
+
+            const content = (lastText || raw || '').trim();
+            if (!content) {
+              core.info('No agent output to reply with.');
+              return;
+            }
+
+            const body = `@${context.payload.comment.user.login}: ${content}`;
+            const { owner, repo } = context.repo;
+
+            if (context.eventName === 'pull_request_review_comment') {
+              await github.rest.pulls.createReplyForReviewComment({
+                owner,
+                repo,
+                pull_number: context.payload.pull_request.number,
+                comment_id: context.payload.comment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: context.payload.issue.number,
+                body,
+              });
+            }
+
+      - name: Report Agent Error
+        if: failure() && steps.agent.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const body = `@${context.payload.comment.user.login}: ⚠️ I encountered an error while processing your request. Please check the [workflow run logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for more details.`;
+            const { owner, repo } = context.repo;
+
+            if (context.eventName === 'pull_request_review_comment') {
+              await github.rest.pulls.createReplyForReviewComment({
+                owner,
+                repo,
+                pull_number: context.payload.pull_request.number,
+                comment_id: context.payload.comment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: context.payload.issue.number,
+                body,
+              });
+            }

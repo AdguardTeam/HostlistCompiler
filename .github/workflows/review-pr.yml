@@ -1,0 +1,401 @@
+# ======================================================================================
+# Workflow: Auto PR Review
+# ======================================================================================
+# Usage:
+#   - Runs automatically when a Pull Request is opened or marked ready for review.
+#   - Analyzes the diff of the PR.
+#
+# Setup:
+#   - Ensure WARP_API_KEY is set in Repository Secrets.
+#   - The Agent needs read access to contents and write access to pull-requests.
+#
+# Expected Output:
+#   - Inline comments on the PR diff highlighting potential bugs, security issues, or style improvements.
+#   - A general summary comment if applicable.
+#
+# When to use:
+#   - Use this to get immediate feedback on code changes before human review.
+# ======================================================================================
+name: Auto PR Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  review_pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Checkout PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr checkout ${{ github.event.pull_request.number }}
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          # Diff only the changes introduced in this PR, relative to the PR's base commit
+          # Add line numbers to each line: OLD_LINE NEW_LINE for context, OLD_LINE for deletions, NEW_LINE for additions
+          git diff ${{ github.event.pull_request.base.sha }}...HEAD | awk '
+            /^diff --git/ { print; next }
+            /^index / { print; next }
+            /^---/ { print; next }
+            /^\+\+\+/ { print; next }
+            /^@@/ {
+              # Parse hunk header: @@ -old_start,old_count +new_start,new_count @@
+              split($2, old_parts, ",")
+              split($3, new_parts, ",")
+              old_line = -old_parts[1]
+              new_line = substr(new_parts[1], 2)
+              print
+              next
+            }
+            /^-/ { printf "[OLD:%d]%s\n", old_line++, $0; next }
+            /^\+/ { printf "[NEW:%d]%s\n", new_line++, $0; next }
+            { printf "[OLD:%d,NEW:%d]%s\n", old_line++, new_line++, $0 }
+          ' > pr_diff.txt
+
+      - name: Construct Review Prompt
+        id: prompt
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            // Fetch PR details
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
+
+            // Read the diff
+            const diffContent = fs.readFileSync('pr_diff.txt', 'utf8');
+
+            const prompt = `You are an expert software engineer and code reviewer.
+            Your task is to provide a comprehensive code review focused on the changes introduced in Pull Request #${prNumber}.
+
+            ## System Context
+
+            - Working directory is PR branch.
+            - You have access to the full source code, but you should primarily analyze and comment on the diff below
+            - **Restrict feedback to code modified in this PR and its immediate context**. Do not comment on untouched files or lines (GitHub will reject these comments). If you must mention issues in untouched code, add them to the summary instead
+
+            ## PR Context
+
+            - **Title**: ${pr.title}
+            - **Description**: ${pr.body || 'No description provided.'}
+
+            ## Code Changes (Diff)
+
+            Each line in the diff is annotated with line numbers:
+            - \`[OLD:n]\` prefix = deleted line at line n in old file (use side: "LEFT")
+            - \`[NEW:n]\` prefix = added line at line n in new file (use side: "RIGHT")  
+            - \`[OLD:n,NEW:m]\` prefix = unchanged context line (use side: "RIGHT" with line m)
+
+            \`\`\`
+            ${diffContent}
+            \`\`\`
+
+            ## Review Instructions
+
+            ### 1. Severity Labels (Required)
+
+            Every comment body MUST begin with one of:
+            - \`🚨 [CRITICAL]\` — Bugs, security issues, crashes, data loss
+            - \`⚠️ [IMPORTANT]\` — Error handling gaps, edge cases, logic issues
+            - \`💡 [SUGGESTION]\` — Improvements, better patterns, optimizations
+            - \`🧹 [NIT]\` — Style, naming, cleanup (ONLY if providing a suggestion block)
+
+            ### 2. What to Look For
+
+            - **Bugs**: Logic errors, potential crashes, unhandled edge cases
+            - **Security**: Vulnerabilities, injection risks, auth issues
+            - **Error handling**: Swallowed errors, missing validation
+            - **Performance**: Significant issues only (not micro-optimizations)
+            - **Style/Nits**: Only comment if you can provide a concrete fix via suggestion block
+
+            ### 3. Comment Format
+
+            - **Be concise**: Use bullets, fragments, markdown—not full sentences. Prioritize readability and scannability. Complex issues can be more verbose if absolutely necessary.
+            - **Be direct**: No compliments or hedging in comments (save praise for summary)
+            - **Be definitive**: Say "This will fail when X" not "This might fail"
+            - **Be actionable**: Provide a recommendation, not just options
+
+            ### 4. Suggestion Blocks
+
+            When proposing code changes, use suggestion blocks:
+
+            \`\`\`suggestion
+            <replacement code here>
+            \`\`\`
+
+            **Suggestion rules:**
+            - Match the **exact indentation** of the original file
+            - Include **only the replacement code**, no extra context lines
+            - For multi-line suggestions, set \`start_line\` to first line, \`line\` to last line
+
+            ### 5. JSON Output Schema
+
+            \`\`\`json
+            {
+              "summary": "## Overview\\nThis PR adds user authentication... (high-level description)\\n\\n## Concerns\\n- Error handling in db layer needs attention\\n- (any issues in untouched code)\\n\\n## Verdict\\nFound: 1 critical, 2 important, 3 suggestions\\n\\n**Request changes** — critical bug in error handling must be addressed",
+              "comments": [
+                {
+                  "path": "path/to/file",
+                  "line": 42,
+                  "side": "RIGHT",
+                  "start_line": 40,
+                  "body": "[SEVERITY] Brief description\\n\\n\\\`\\\`\\\`suggestion\\ncode fix\\n\\\`\\\`\\\`"
+                }
+              ]
+            }
+            \`\`\`
+
+            - \`line\`: Line number in new file (RIGHT) or old file (LEFT) 
+            - \`start_line\`: (optional) First line of range; \`line\` should be last line
+            - \`side\`: "RIGHT" for additions/context, "LEFT" for deletions
+            - \`path\`: Relative path from repository root
+
+            **Comment span rules:**
+            - Keep spans **≤10 lines** (i.e., \`line - start_line <= 10\`)—smaller spans are easier to review
+            - Prefer single-line comments; use multi-line only when necessary
+
+            ### 6. Summary Requirements
+
+            The \`summary\` field must include:
+            - High-level code summary, overview, architectural concerns, final recommendation
+            - Issue counts: "Found: X critical, Y important, Z suggestions"
+            - Any concerns about untouched code that couldn't be commented inline
+            - Final recommendation: "Approve", "Approve with nits", or "Request changes"
+
+            ### 7. Final Step
+
+            - Create \`review.json\` with your drafted content
+            - Validate JSON with \`jq\`. If this fails, update the \`review.json\` file with the correct JSON. Do not attempt to use \`rm\` 
+            - Ensure line numbers are correct and match the diff
+
+            ---
+
+            ## Examples
+
+            ### Example 1: Critical Bug
+
+            **Diff snippet:**
+            \`\`\`
+            [NEW:45]     results, err := db.Query(userQuery)
+            [NEW:46]     if err != nil {
+            [NEW:47]         return nil
+            [NEW:48]     }
+            \`\`\`
+
+            **Comment:**
+            \`\`\`json
+            {
+              "path": "api/handlers/users.go",
+              "line": 47,
+              "side": "RIGHT",
+              "body": "🚨 [CRITICAL] Error returned to caller is lost—will mask DB failures and return nil slice indistinguishable from empty result\\n\\n\\\`\\\`\\\`suggestion\\n        return nil, err\\n\\\`\\\`\\\`"
+            }
+            \`\`\`
+
+            ### Example 2: Nit with Suggestion
+
+            **Diff snippet:**
+            \`\`\`
+            [NEW:28] use std::collections::{HashMap, BTreeMap, HashSet};
+            [NEW:29] use std::sync::Arc;
+            [NEW:30] use crate::models::User;
+            [NEW:31] use crate::utils::validate;
+            \`\`\`
+
+            **Comment:**
+            \`\`\`json
+            {
+              "path": "src/service.rs",
+              "line": 28,
+              "side": "RIGHT",
+              "body": "🧹 [NIT] \\\`BTreeMap\\\` unused in this module\\n\\n\\\`\\\`\\\`suggestion\\nuse std::collections::{HashMap, HashSet};\\n\\\`\\\`\\\`"
+            }
+            \`\`\`
+
+            ---
+
+            ## Quality Checklist
+
+            Before submitting, verify:
+            - [ ] Every comment has a severity label
+            - [ ] Nits include suggestion blocks (or are omitted)
+            - [ ] No comments on untouched lines
+            - [ ] Suggestions match original indentation
+            - [ ] Comment spans are ≤10 lines (\`line - start_line <= 10\`)
+            - [ ] Summary includes issue counts and recommendation
+            - [ ] JSON is valid, use \`jq\` to validate
+
+            **Goal**: Provide actionable, high-signal feedback to help the author improve the code. Be direct and specific.
+            `;
+
+            core.setOutput('prompt', prompt);
+
+      - name: Run Oz Agent Review
+        uses: warpdotdev/oz-agent-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          prompt: ${{ steps.prompt.outputs.prompt }}
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          profile: ${{ vars.WARP_AGENT_PROFILE || '' }}
+
+      - name: Post Review
+        uses: actions/github-script@v7
+        if: always() # Run even if the agent fails, to try and post what was drafted
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            try {
+              if (!fs.existsSync('review.json')) {
+                console.log('No review.json found. Skipping review posting.');
+                return;
+              }
+
+              const reviewContent = fs.readFileSync('review.json', 'utf8');
+
+              let review;
+              try {
+                review = JSON.parse(reviewContent);
+              } catch (parseError) {
+                core.warning(
+                  `Failed to parse review.json (likely due to unescaped control characters). Attempting to sanitize. Original error: ${parseError.message}`
+                );
+                const sanitized = reviewContent.replace(/[\\u0000-\\u001F]+/g, ' ');
+                try {
+                  review = JSON.parse(sanitized);
+                } catch (sanitizedError) {
+                  core.setFailed(
+                    `Failed to parse review.json even after sanitizing control characters: ${sanitizedError.message}`
+                  );
+                  return;
+                }
+              }
+
+              const decodeNewlines = (text) => {
+                if (typeof text !== 'string') return text;
+                // Convert escaped "\n" sequences into real newlines so comments render correctly.
+                return text
+                  .replace(/\r\n/g, '\n')
+                  .replace(/\\n/g, '\n');
+              };
+
+              // Ensure we have an array of comments
+              const rawComments = Array.isArray(review.comments) ? review.comments : [];
+
+              // Fetch valid file paths from the PR to avoid "path is invalid" errors
+              const prFiles = await github.paginate(
+                github.rest.pulls.listFiles,
+                { owner, repo, pull_number: prNumber }
+              );
+              const validPaths = new Set(prFiles.map(f => f.filename));
+
+              const comments = [];
+
+              for (const c of rawComments) {
+                if (!c || typeof c !== 'object') continue;
+                if (typeof c.body !== 'string' || !c.body.trim()) continue;
+                if (typeof c.path !== 'string' || !c.path.trim()) continue;
+
+                // Normalize path: strip leading a/ or b/ and ./
+                const normalizedPath = c.path.trim()
+                  .replace(/^([ab]\/)*/, '')
+                  .replace(/^\.\//, '');
+
+                if (!validPaths.has(normalizedPath)) {
+                  console.log(`Skipping comment with invalid path: ${c.path} -> ${normalizedPath}`);
+                  continue;
+                }
+
+                const line = Number(c.line);
+                if (!Number.isInteger(line) || line <= 0) {
+                  console.log('Skipping comment with invalid line:', c);
+                  continue;
+                }
+
+                let side = (c.side || 'RIGHT').toString().toUpperCase();
+                if (side !== 'LEFT' && side !== 'RIGHT') {
+                  console.log(`Invalid side '${c.side}', defaulting to RIGHT`);
+                  side = 'RIGHT';
+                }
+
+                // Optional multi-line range support via start_line.
+                let startLine;
+                if (c.start_line !== undefined && c.start_line !== null) {
+                  startLine = Number(c.start_line);
+                  if (!Number.isInteger(startLine) || startLine <= 0 || startLine === line) {
+                    console.log('Ignoring invalid start_line on comment:', c);
+                    startLine = undefined;
+                  } else if (startLine > line) {
+                    console.log('Ignoring start_line greater than line on comment:', c);
+                    startLine = undefined;
+                  }
+                }
+
+                const commentPayload = {
+                  path: normalizedPath,
+                  line,
+                  side,
+                  body: decodeNewlines(c.body),
+                };
+
+                if (startLine && startLine < line) {
+                  commentPayload.start_line = startLine;
+                  // Use the same side for the start of the range by default.
+                  commentPayload.start_side = side;
+                }
+
+                comments.push(commentPayload);
+              }
+
+              const summary =
+                typeof review.summary === 'string' ? decodeNewlines(review.summary).trim() : '';
+
+              const hasSummary = summary.length > 0;
+
+              if (!hasSummary && comments.length === 0) {
+                console.log('No valid summary or inline comments found. Skipping review posting.');
+                return;
+              }
+
+              const payload = {
+                owner,
+                repo,
+                pull_number: prNumber,
+                event: 'COMMENT',
+              };
+
+              if (hasSummary) {
+                payload.body = summary;
+              } else {
+                payload.body = 'Automated review by Oz Agent';
+              }
+
+              if (comments.length > 0) {
+                payload.comments = comments;
+              }
+
+              await github.rest.pulls.createReview(payload);
+
+              console.log('Review posted successfully.');
+
+            } catch (error) {
+              console.error('Failed to post review:', error);
+              core.setFailed(`Failed to post review: ${error.message}`);
+            }

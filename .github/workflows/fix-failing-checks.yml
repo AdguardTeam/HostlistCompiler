@@ -1,0 +1,207 @@
+# ======================================================================================
+# Workflow: Fix Failing Checks
+# ======================================================================================
+# Usage:
+#   - Triggers automatically when a specified workflow (e.g., "Continuous Integration") fails.
+#   - Analyzes failure logs to determine the cause.
+#
+# Setup:
+#   - Ensure WARP_API_KEY is set in Repository Secrets.
+#   - Update the `workflow_run.workflows` list to match your CI workflow names.
+#
+# Expected Output:
+#   - A new Pull Request containing the fix for the build or test failure.
+#   - Comments on the original PR (if applicable) with a link to the fix.
+#
+# When to use:
+#   - Use this to reduce downtime caused by broken builds or flaky tests.
+# ======================================================================================
+name: Fix Failing Checks
+
+on:
+  workflow_run:
+    # Add specific workflows here
+    workflows: []
+    types:
+      - completed
+
+jobs:
+  fix_failure:
+    name: Fix Failure
+    runs-on: ubuntu-latest
+    if:
+      ${{ github.event.workflow_run.conclusion == 'failure' }} &&
+      !startsWith(github.event.workflow_run.head_branch, 'oz-agent-fix/')
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      checks: read
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+
+      - name: Get Failure Logs
+        id: logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID=${{ github.event.workflow_run.id }}
+          echo "Fetching logs for run $RUN_ID"
+          # Fetch logs for failed steps. 
+          # Note: --log-failed returns the log of the failed steps.
+          LOGS=$(gh run view $RUN_ID --log-failed)
+
+          if [ -z "$LOGS" ]; then
+            echo "No logs found or failed to retrieve logs."
+            LOGS="No logs available."
+          fi
+
+          # Write to a file to handle potential special characters and size
+          echo "$LOGS" > failure_logs.txt
+
+      - name: Construct Prompt
+        id: prompt
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let logs = '';
+            try {
+              logs = fs.readFileSync('failure_logs.txt', 'utf8');
+            } catch (e) {
+              logs = 'Could not read log file.';
+            }
+
+            const workflowName = '${{ github.event.workflow_run.name }}';
+            const repoName = context.repo.repo;
+            const branchName = '${{ github.event.workflow_run.head_branch }}';
+            const runId = '${{ github.event.workflow_run.id }}';
+            const summaryFile = `output_summary_${runId}.md`;
+
+            const prompt = `You are an expert software engineer and the Oz Agent.
+            You are tasked with fixing a CI failure in the repository '${repoName}' on branch '${branchName}'.
+
+            **Context**:
+            - **Workflow**: ${workflowName}
+            - **Status**: FAILED
+
+            **Log Files Available**:
+            - The full failure logs are stored in \`failure_logs.txt\` in the workspace.
+            - Use tools like \`grep\`, \`rg\`, or your editor to search within this file for the root-cause error messages.
+
+            **Failure Logs (truncated preview)**:
+            \`\`\`
+            ${logs.slice(0, 4000)}
+            \`\`\`
+            (Preview truncated to the first 4000 characters if longer)
+
+            **Instructions**:
+            1.  **Analyze**: Start by reading and searching \`failure_logs.txt\` to identify the specific error (e.g., test failure, lint error, build error).
+            2.  **Locate**: Find the files and lines of code responsible for the error.
+            3.  **Fix**: Modify the code to resolve the issue.
+                -   If it's a test failure, fix the code logic or update the test if the test is incorrect.
+                -   If it's a lint error, fix the style.
+            4.  **Verify**: Ensure your changes are minimal and targeted.
+            5.  **Output**: Do not output the diff and do NOT commit any changes to GitHub - you are running in a GitHub Action, which will handle committing your changes later. Instead, write a concise summary of your changes to a markdown file named \`${summaryFile}\`. The format of the file should be as follows:
+
+            <summary-example>
+            ## Tests Addressed
+            I fixed the following failing workflow steps:
+            - Test 1
+            - Test 2
+
+            ## Problem Summary
+            To fix the failures, I changed:
+            1. Fixed issue x in file y...
+            </summary-example>
+
+            **Constraints**:
+            -   Do NOT modify the workflow files (.github/workflows/) unless the error is specifically about the workflow configuration.
+            -   Focus on the source code.
+            `;
+
+            core.setOutput('prompt', prompt);
+
+      - name: Run Oz Agent
+        uses: warpdotdev/oz-agent-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        id: agent
+        with:
+          prompt: ${{ steps.prompt.outputs.prompt }}
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          profile: ${{ vars.WARP_AGENT_PROFILE || '' }}
+
+      - name: Create Fix PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          AGENT_OUTPUT: ${{ steps.agent.outputs.agent_output }}
+        run: |
+          # Remove temporary files that should not be committed
+          rm -f failure_logs.txt
+
+          # Check for changes
+          if [[ -z $(git status --porcelain) ]]; then
+            echo "No changes made by Oz Agent."
+            exit 0
+          fi
+
+          echo "Changes detected. Preparing PR."
+
+          # Get summary from file 
+          SUMMARY_FILE="output_summary_$RUN_ID.md"
+          if [ -f "$SUMMARY_FILE" ]; then
+            SUMMARY_CONTENT=$(cat "$SUMMARY_FILE")
+            # Clean up summary file so its not committed
+            rm -f "$SUMMARY_FILE"
+          else 
+            echo "Warning: Summary file $SUMMARY_FILE not found."
+          fi
+
+          FIX_BRANCH="oz-agent-fix/run-$RUN_ID"
+          git config user.name "Oz Agent"
+          git config user.email "agent@warp.dev"
+
+          git checkout -b "$FIX_BRANCH"
+          git add .
+          git commit -m "Fix failing checks for run $RUN_ID"
+          git push origin "$FIX_BRANCH" --force
+
+          # Find associated PR
+          PR_JSON=$(gh pr list --head "$ORIGINAL_BRANCH" --json number,title,url --limit 1)
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number')
+
+          BODY="This PR attempts to fix the CI failures in run [$RUN_ID](${{ github.event.workflow_run.html_url }}).
+
+          $SUMMARY_CONTENT
+
+          ## Full Output
+          <details>
+          <summary>Click to expand full agent output</summary>
+          </details>
+          "
+
+          if [ "$PR_NUMBER" == "null" ] || [ -z "$PR_NUMBER" ]; then
+             echo "No associated PR found. Creating PR against main."
+             NEW_PR_URL=$(gh pr create --title "Fix CI Failure for run $RUN_ID" --body "$BODY" --base main --head "$FIX_BRANCH")
+             echo "Created PR: $NEW_PR_URL"
+          else
+             echo "Found original PR #$PR_NUMBER. Creating fix PR targeting the original branch."
+             
+             # Title and Body for the new PR
+             TITLE="Fix CI Failure for PR #$PR_NUMBER"
+             
+             # Create PR targeting the ORIGINAL_BRANCH
+             NEW_PR_URL=$(gh pr create --title "$TITLE" --body "$BODY" --base "$ORIGINAL_BRANCH" --head "$FIX_BRANCH")
+             echo "Created Fix PR: $NEW_PR_URL"
+             
+             # Comment on the original PR
+             gh pr comment "$PR_NUMBER" --body "I detected a CI failure. I have created a fix PR: $NEW_PR_URL"
+          fi
