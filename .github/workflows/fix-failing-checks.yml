@@ -21,7 +21,7 @@ name: Fix Failing Checks
 on:
   workflow_run:
     # Add specific workflows here
-    workflows: []
+    workflows: ["CI", "Tests"]
     types:
       - completed
 
