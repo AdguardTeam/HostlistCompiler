@@ -148,7 +148,7 @@ jobs:
 
             for (const [commentId, reply] of Object.entries(responses)) {
               if (typeof reply !== 'string') {
-                core.info(`Skipping comment ${commentId}: reply is not a string. Value: ${JSON.stringify(response)}`);
+                core.info(`Skipping comment ${commentId}: reply is not a string. Value: ${JSON.stringify(reply)}`);
                 continue;
               }
               if (!reply || !reply.includes('```suggestion')) continue;
