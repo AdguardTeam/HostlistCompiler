@@ -100,6 +100,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
           AGENT_OUTPUT: ${{ steps.agent.outputs.agent_output }}
         run: |
           # Remove temporary files that should not be committed
@@ -123,8 +124,8 @@ jobs:
           git push origin "$BRANCH_NAME"
 
           # Create PR
-          # Escape title to handle special chars
-          TITLE="Fix Issue #$ISSUE_NUMBER: ${{ github.event.issue.title }}"
+          # Use environment variable to safely handle issue title
+          TITLE="Fix Issue #$ISSUE_NUMBER: $ISSUE_TITLE"
           BODY="This PR attempts to fix Issue #$ISSUE_NUMBER.
 
           **Agent Summary**:
