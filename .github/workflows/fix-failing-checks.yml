@@ -172,7 +172,7 @@ jobs:
           git checkout -b "$FIX_BRANCH"
           git add .
           git commit -m "Fix failing checks for run $RUN_ID"
-          git push origin "$FIX_BRANCH" --force
+          git push origin "$FIX_BRANCH"
 
           # Find associated PR
           PR_JSON=$(gh pr list --head "$ORIGINAL_BRANCH" --json number,title,url --limit 1)
