@@ -119,7 +119,7 @@ jobs:
           if [ -f responses.json ]; then
             python3 -c "import json; json.load(open('responses.json'))" || {
               echo "Invalid JSON in responses.json, replacing with empty object"
-              echo "{}" > responses.json
+            python3 -c "import json; json.load(open('responses.json'))" 2>/dev/null || {
             }
           fi
 
