@@ -16,17 +16,23 @@ This document provides ready-to-use GitHub issue templates for the bugs and feat
 Currently, the worker endpoints do not enforce request body size limits, which could allow DoS attacks via large payloads.
 
 **Impact**:
+
 - Memory exhaustion
 - Worker crashes
 - Service unavailability
 
 **Affected Files**:
+
 - `worker/handlers/compile.ts`
 - `worker/middleware/index.ts`
 
 **Proposed Solution**:
+
 ```typescript
-async function validateRequestSize(request: Request, maxBytes: number = 1024 * 1024): Promise<void> {
+async function validateRequestSize(
+    request: Request,
+    maxBytes: number = 1024 * 1024,
+): Promise<void> {
     const contentLength = request.headers.get('content-length');
     if (contentLength && parseInt(contentLength) > maxBytes) {
         throw new Error(`Request body exceeds ${maxBytes} bytes`);
@@ -36,6 +42,7 @@ async function validateRequestSize(request: Request, maxBytes: number = 1024 * 1
 ```
 
 **Acceptance Criteria**:
+
 - [ ] Request body size limited to 1MB by default
 - [ ] Configurable via environment variable
 - [ ] Returns 413 Payload Too Large when exceeded
@@ -53,14 +60,17 @@ async function validateRequestSize(request: Request, maxBytes: number = 1024 * 1
 Worker endpoints accept POST requests without CSRF token validation, making them vulnerable to CSRF attacks.
 
 **Impact**:
+
 - Unauthorized actions via cross-site requests
 - Security vulnerability
 
 **Affected Files**:
+
 - `worker/handlers/compile.ts`
 - `worker/middleware/index.ts`
 
 **Proposed Solution**:
+
 ```typescript
 function validateCsrfToken(request: Request): boolean {
     const token = request.headers.get('X-CSRF-Token');
@@ -70,6 +80,7 @@ function validateCsrfToken(request: Request): boolean {
 ```
 
 **Acceptance Criteria**:
+
 - [ ] CSRF token validation middleware created
 - [ ] Applied to all POST/PUT/DELETE endpoints
 - [ ] Token generation endpoint added
@@ -88,25 +99,30 @@ function validateCsrfToken(request: Request): boolean {
 The FilterDownloader fetches arbitrary URLs without validation, allowing potential SSRF attacks to access internal networks.
 
 **Impact**:
+
 - Access to internal network resources
 - Potential data exposure
 - Security vulnerability
 
 **Affected Files**:
+
 - `src/downloader/FilterDownloader.ts`
 - `src/platform/HttpFetcher.ts`
 
 **Proposed Solution**:
+
 ```typescript
 function isSafeUrl(url: string): boolean {
     const parsed = new URL(url);
 
     // Block private IPs
-    if (parsed.hostname === 'localhost' ||
+    if (
+        parsed.hostname === 'localhost' ||
         parsed.hostname.startsWith('127.') ||
         parsed.hostname.startsWith('192.168.') ||
         parsed.hostname.startsWith('10.') ||
-        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(parsed.hostname)) {
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(parsed.hostname)
+    ) {
         return false;
     }
 
@@ -120,6 +136,7 @@ function isSafeUrl(url: string): boolean {
 ```
 
 **Acceptance Criteria**:
+
 - [ ] URL validation function created
 - [ ] Blocks localhost, private IPs, link-local addresses
 - [ ] Only allows HTTP/HTTPS protocols
@@ -142,15 +159,18 @@ Current logging outputs human-readable text which is difficult to parse in produ
 
 **Why**:
 Production log aggregation systems (CloudWatch, Datadog, Splunk) require structured logs for:
+
 - Filtering and searching
 - Alerting on specific conditions
 - Analytics and dashboards
 
 **Affected Files**:
+
 - `src/utils/logger.ts`
 - `src/types/index.ts`
 
 **Proposed Implementation**:
+
 ```typescript
 interface StructuredLog {
     timestamp: string;
@@ -176,6 +196,7 @@ class StructuredLogger extends Logger {
 ```
 
 **Acceptance Criteria**:
+
 - [ ] StructuredLogger class created
 - [ ] JSON output format implemented
 - [ ] Backward compatible with existing Logger
@@ -195,17 +216,20 @@ class StructuredLogger extends Logger {
 Current manual validation is error-prone and lacks type safety. Zod provides runtime validation with TypeScript integration.
 
 **Why**:
+
 - Type-safe validation
 - Better error messages
 - Reduced boilerplate
 - Maintained by community
 
 **Affected Files**:
+
 - `src/configuration/ConfigurationValidator.ts`
 - `worker/handlers/compile.ts`
 - `deno.json` (add dependency)
 
 **Proposed Implementation**:
+
 ```typescript
 import { z } from 'https://deno.land/x/zod/mod.ts';
 
@@ -226,6 +250,7 @@ const ConfigurationSchema = z.object({
 ```
 
 **Acceptance Criteria**:
+
 - [ ] Zod dependency added to deno.json
 - [ ] ConfigurationSchema created
 - [ ] ConfigurationValidator refactored to use Zod
@@ -246,6 +271,7 @@ const ConfigurationSchema = z.object({
 Errors are currently only logged locally. Need centralized error reporting to tracking services like Sentry or Datadog.
 
 **Why**:
+
 - Aggregate errors across all instances
 - Alert on error rate increases
 - Track error trends
@@ -253,10 +279,12 @@ Errors are currently only logged locally. Need centralized error reporting to tr
 - Monitor production health
 
 **Affected Files**:
+
 - Create `src/utils/ErrorReporter.ts`
 - Update all try/catch blocks
 
 **Proposed Implementation**:
+
 ```typescript
 interface ErrorReporter {
     report(error: Error, context?: Record<string, unknown>): void;
@@ -278,6 +306,7 @@ class ConsoleErrorReporter implements ErrorReporter {
 ```
 
 **Acceptance Criteria**:
+
 - [ ] ErrorReporter interface created
 - [ ] SentryErrorReporter implementation
 - [ ] ConsoleErrorReporter implementation
@@ -298,16 +327,19 @@ class ConsoleErrorReporter implements ErrorReporter {
 When filter list sources are consistently failing, we continue retrying them, wasting resources. Circuit breaker prevents cascading failures.
 
 **Why**:
+
 - Prevent resource waste on failing sources
 - Fail fast for known-bad sources
 - Automatic recovery attempt after timeout
 - Improve overall system resilience
 
 **Affected Files**:
+
 - Create `src/utils/CircuitBreaker.ts`
 - `src/downloader/FilterDownloader.ts`
 
 **Proposed Implementation**:
+
 ```typescript
 class CircuitBreaker {
     private failureCount = 0;
@@ -316,7 +348,7 @@ class CircuitBreaker {
 
     constructor(
         private threshold: number = 5,
-        private timeout: number = 60000
+        private timeout: number = 60000,
     ) {}
 
     async execute<T>(fn: () => Promise<T>): Promise<T> {
@@ -341,6 +373,7 @@ class CircuitBreaker {
 ```
 
 **Acceptance Criteria**:
+
 - [ ] CircuitBreaker class created
 - [ ] States: CLOSED, OPEN, HALF_OPEN
 - [ ] Configurable failure threshold and timeout
@@ -361,20 +394,23 @@ class CircuitBreaker {
 Current tracing system is custom and not compatible with standard observability platforms. OpenTelemetry is industry standard.
 
 **Why**:
+
 - Compatible with all major platforms (Datadog, Honeycomb, Jaeger)
 - Distributed tracing across services
 - Standard instrumentation
 - Rich ecosystem of integrations
 
 **Affected Files**:
+
 - Create `src/diagnostics/OpenTelemetryExporter.ts`
 - `src/compiler/SourceCompiler.ts`
 - `worker/worker.ts`
 - `deno.json` (add dependency)
 
 **Proposed Implementation**:
+
 ```typescript
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
 
 const tracer = trace.getTracer('adblock-compiler', VERSION);
 
@@ -400,6 +436,7 @@ async function compileWithTracing(config: IConfiguration): Promise<string> {
 ```
 
 **Acceptance Criteria**:
+
 - [ ] OpenTelemetry dependencies added
 - [ ] Tracer configuration
 - [ ] Spans added to compilation operations
@@ -422,17 +459,19 @@ async function compileWithTracing(config: IConfiguration): Promise<string> {
 Currently log level is global. Need ability to set different log levels for different modules during debugging.
 
 **Example**:
+
 ```typescript
 const logger = new Logger({
     defaultLevel: LogLevel.Info,
     moduleOverrides: {
-        'compiler': LogLevel.Debug,
-        'downloader': LogLevel.Trace,
-    }
+        compiler: LogLevel.Debug,
+        downloader: LogLevel.Trace,
+    },
 });
 ```
 
 **Acceptance Criteria**:
+
 - [ ] LoggerConfig interface with moduleOverrides
 - [ ] Logger respects module-specific levels
 - [ ] Configuration via environment variables
@@ -453,6 +492,7 @@ FilterService.downloadSource() catches errors and returns empty string, making i
 **Location**: `src/services/FilterService.ts:44`
 
 **Current Code**:
+
 ```typescript
 try {
     const content = await this.downloader.download(source);
@@ -466,16 +506,19 @@ try {
 **Proposed Solutions**:
 
 Option 1: Let error propagate
+
 ```typescript
 throw ErrorUtils.wrap(error, `Failed to download source: ${source}`);
 ```
 
 Option 2: Return Result type
+
 ```typescript
 return { success: false, error: ErrorUtils.getMessage(error) };
 ```
 
 **Acceptance Criteria**:
+
 - [ ] Choose and implement solution
 - [ ] Update callers to handle errors
 - [ ] Tests added for error cases
@@ -488,12 +531,14 @@ return { success: false, error: ErrorUtils.getMessage(error) };
 **Total Items**: 22 (12 bugs + 10 features shown as examples)
 
 **By Priority**:
+
 - Critical: 12 items
 - High: 7 items
 - Medium: 10 items
 - Low: 5 items
 
 **By Category**:
+
 - Security: 5 items
 - Observability: 8 items
 - Validation: 4 items
