@@ -31,6 +31,7 @@ async function validateRequestSize(request: Request, maxBytes: number = 1024 * 1
     if (contentLength && parseInt(contentLength) > maxBytes) {
         throw new Error(`Request body exceeds ${maxBytes} bytes`);
     }
+    // Also enforce during body read for requests without Content-Length
 }
 ```
 
