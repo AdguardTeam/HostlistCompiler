@@ -465,7 +465,7 @@ const logger = new Logger({
     defaultLevel: LogLevel.Info,
     moduleOverrides: {
         compiler: LogLevel.Debug,
-        downloader: LogLevel.Trace,
+        downloader: LogLevel.Trace
     },
 });
 ```
