@@ -4,11 +4,17 @@ This directory contains the GitHub Actions workflows for the adblock-compiler pr
 
 ## Workflows Overview
 
-| Workflow           | Trigger           | Purpose                                                  |
-| ------------------ | ----------------- | -------------------------------------------------------- |
-| `ci.yml`           | Push, PR          | Main CI/CD pipeline with tests, security, and deployment |
-| `version-bump.yml` | PR opened, Manual | Automatic version bumping                                |
-| `release.yml`      | Tag push, Manual  | Create GitHub releases with binaries                     |
+| Workflow                    | Trigger                       | Purpose                                                  |
+| --------------------------- | ----------------------------- | -------------------------------------------------------- |
+| `ci.yml`                    | Push, PR                      | Main CI/CD pipeline with tests, security, and deployment |
+| `version-bump.yml`          | PR opened, Manual             | Automatic version bumping                                |
+| `release.yml`               | Tag push, Manual              | Create GitHub releases with binaries                     |
+| `auto-fix-issue.yml`        | Issue labeled `oz-agent`      | AI agent auto-fixes issues and creates PRs               |
+| `daily-issue-summary.yml`   | Schedule (9:00 UTC), Manual   | AI-generated daily issue summary to Slack                |
+| `fix-failing-checks.yml`    | CI/Tests workflow failure     | AI agent auto-fixes failing CI checks                    |
+| `respond-to-comment.yml`    | PR comment with `@oz-agent`   | AI agent responds to questions or makes code changes     |
+| `review-pr.yml`             | PR opened/ready for review    | AI-powered automated code review                         |
+| `suggest-review-fixes.yml`  | PR review submitted           | AI agent suggests fixes for review comments              |
 
 ## CI/CD Pipeline (`ci.yml`)
 
@@ -161,21 +167,175 @@ git push origin v0.8.0
 2. Select bump type (patch/minor/major)
 3. Check "Create a release after bumping"
 
+## AI Agent Workflows
+
+The following workflows leverage the [Warp Oz Agent](https://warp.dev) to automate development tasks using AI.
+
+### Auto Fix Issue (`auto-fix-issue.yml`)
+
+Automatically analyzes and fixes GitHub issues when triggered.
+
+#### Trigger
+
+- Apply the label `oz-agent` to any GitHub Issue
+
+#### What it does
+
+1. Reads issue title, description, and all previous comments
+2. Analyzes the issue to understand the problem
+3. Implements code changes to resolve the issue
+4. Creates a PR (branch: `fix/issue-NUMBER`) linked to the issue
+5. Comments on the issue with a link to the fix PR
+
+#### Best uses
+
+- Bug fixes with clear reproduction steps
+- Small feature requests
+- Chore tasks (dependency updates, file reorganization)
+
+### Daily Issue Summary (`daily-issue-summary.yml`)
+
+Generates a daily summary of new issues and posts to Slack.
+
+#### Trigger
+
+- Runs automatically at 9:00 AM UTC daily
+- Can be manually triggered via workflow dispatch
+
+#### What it does
+
+1. Fetches all issues created in the last 24 hours
+2. Uses AI to categorize issues (Bug, Feature, Documentation, etc.)
+3. Formats a summary in Slack mrkdwn format
+4. Posts to Slack via webhook
+
+#### Requirements
+
+- `SLACK_WEBHOOK_URL` secret must be configured
+
+### Fix Failing Checks (`fix-failing-checks.yml`)
+
+Automatically attempts to fix CI failures.
+
+#### Trigger
+
+- When the `CI` or `Tests` workflows complete with failure status
+- Does not run for branches already created by this workflow (`oz-agent-fix/*`)
+
+#### What it does
+
+1. Fetches failure logs from the failed workflow run
+2. Analyzes logs to identify the root cause (test failure, lint error, build error)
+3. Locates and fixes the problematic code
+4. Creates a fix PR targeting either:
+   - The original PR branch (if failure was on a PR)
+   - The main branch (if failure was on a direct push)
+5. Comments on the original PR with a link to the fix
+
+#### Constraints
+
+- Does not modify workflow files unless the error is specifically about workflow configuration
+- Creates minimal, targeted fixes focused on the source code
+
+### Respond to Comment (`respond-to-comment.yml`)
+
+Provides interactive AI assistance during code review.
+
+#### Trigger
+
+- Comment on a Pull Request containing `@oz-agent`
+- Works for both general PR comments and inline review comments
+
+#### Security
+
+- Only responds to comments from repository OWNER, MEMBER, or COLLABORATOR
+- Ignores comments from bots
+
+#### What it does
+
+1. Acknowledges the comment with an 👀 reaction
+2. Checks out the PR branch
+3. Analyzes the request in context of the PR changes
+4. If code changes are requested: implements them and commits to the PR branch
+5. Replies to the comment with an answer or confirmation
+
+#### Example uses
+
+- `@oz-agent fix this typo`
+- `@oz-agent why is this function needed?`
+- `@oz-agent add error handling here`
+
+### Auto PR Review (`review-pr.yml`)
+
+Provides automated AI-powered code review for pull requests.
+
+#### Trigger
+
+- When a PR is opened
+- When a PR is marked as ready for review
+
+#### What it does
+
+1. Generates a diff with line numbers for precise commenting
+2. Analyzes code changes for:
+   - **Critical**: Bugs, security issues, crashes, data loss
+   - **Important**: Error handling gaps, edge cases, logic issues
+   - **Suggestions**: Improvements, better patterns, optimizations
+   - **Nits**: Style issues (only with concrete suggestions)
+3. Posts inline comments on specific lines with severity labels
+4. Provides a summary with issue counts and recommendation (Approve/Request changes)
+
+#### Review output
+
+- Inline comments with suggestion blocks for easy application
+- Summary comment with:
+  - High-level overview of changes
+  - Issue count by severity
+  - Final recommendation
+
+### Suggest Review Fixes (`suggest-review-fixes.yml`)
+
+Automatically suggests code fixes for review comments.
+
+#### Trigger
+
+- When a PR review is submitted
+
+#### What it does
+
+1. Reads all comments from the submitted review
+2. Identifies "simple" fixes that can be automated:
+   - Typo corrections
+   - Variable/function renames
+   - Adding/removing single lines
+   - Simple style changes
+3. Skips complex changes requiring architectural decisions
+4. Replies to applicable comments with `suggestion` blocks
+
+#### Limitations
+
+- Does not handle changes spanning multiple files
+- Does not handle changes outside the diff hunk scope
+- Skips questions, discussions, and approval comments
+
 ## Required Secrets & Variables
 
 ### Secrets
 
-| Secret                  | Required       | Purpose                       |
-| ----------------------- | -------------- | ----------------------------- |
-| `CODECOV_TOKEN`         | Optional       | Upload code coverage reports  |
-| `CLOUDFLARE_API_TOKEN`  | For deployment | Cloudflare API access         |
-| `CLOUDFLARE_ACCOUNT_ID` | For deployment | Cloudflare account identifier |
+| Secret                  | Required              | Purpose                               |
+| ----------------------- | --------------------- | ------------------------------------- |
+| `CODECOV_TOKEN`         | Optional              | Upload code coverage reports          |
+| `CLOUDFLARE_API_TOKEN`  | For deployment        | Cloudflare API access                 |
+| `CLOUDFLARE_ACCOUNT_ID` | For deployment        | Cloudflare account identifier         |
+| `WARP_API_KEY`          | For AI agent workflows| Warp Oz Agent API authentication      |
+| `SLACK_WEBHOOK_URL`     | For issue summary     | Slack webhook for daily summaries     |
 
 ### Repository Variables
 
 | Variable                   | Default | Purpose                                |
 | -------------------------- | ------- | -------------------------------------- |
 | `ENABLE_CLOUDFLARE_DEPLOY` | `false` | Set to `true` to enable CF deployments |
+| `WARP_AGENT_PROFILE`       | (empty) | Optional Oz Agent profile name         |
 
 ## Local Development
 
