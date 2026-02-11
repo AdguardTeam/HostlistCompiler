@@ -140,7 +140,10 @@ interface LoggerConfig {
 **Recommendation**:
 
 ```typescript
-async function validateRequestSize(request: Request, maxBytes: number = 1024 * 1024): Promise<void> {
+async function validateRequestSize(
+    request: Request,
+    maxBytes: number = 1024 * 1024,
+): Promise<void> {
     const contentLength = request.headers.get('content-length');
     if (contentLength && parseInt(contentLength) > maxBytes) {
         throw new Error(`Request body exceeds ${maxBytes} bytes`);
@@ -356,7 +359,10 @@ class CircuitBreaker {
 
     async execute<T>(fn: () => Promise<T>): Promise<T> {
         if (this.state === 'OPEN') {
-            if (this.lastFailureTime && Date.now() - this.lastFailureTime.getTime() > this.timeout) {
+            if (
+                this.lastFailureTime &&
+                Date.now() - this.lastFailureTime.getTime() > this.timeout
+            ) {
                 this.state = 'HALF_OPEN';
             } else {
                 throw new Error('Circuit breaker is OPEN');
@@ -658,7 +664,10 @@ function addSecurityHeaders(response: Response): Response {
     headers.set('X-Frame-Options', 'DENY');
     headers.set('X-XSS-Protection', '1; mode=block');
     headers.set('Content-Security-Policy', "default-src 'self'");
-    headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    headers.set(
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains',
+    );
 
     return new Response(response.body, {
         status: response.status,
@@ -805,7 +814,9 @@ function validateEnvironment(): void {
     const missing = required.filter((key) => !Deno.env.get(key));
 
     if (missing.length > 0) {
-        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+        throw new Error(
+            `Missing required environment variables: ${missing.join(', ')}`,
+        );
     }
 }
 
