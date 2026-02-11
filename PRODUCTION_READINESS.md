@@ -140,10 +140,7 @@ interface LoggerConfig {
 **Recommendation**:
 
 ```typescript
-async function validateRequestSize(
-    request: Request,
-    maxBytes: number = 1024 * 1024,
-): Promise<void> {
+async function validateRequestSize
     const contentLength = request.headers.get('content-length');
     if (contentLength && parseInt(contentLength) > maxBytes) {
         throw new Error(`Request body exceeds ${maxBytes} bytes`);
@@ -159,7 +156,7 @@ async function validateRequestSize(
 **Current Code**:
 
 ```typescript
-const { configuration } = body as { configuration: IConfiguration };
+const { configuration }
 ```
 
 **Issue**: Type assertion without runtime validation - invalid data could pass through
@@ -174,7 +171,7 @@ const { configuration } = body as { configuration: IConfiguration };
 **Implementation**:
 
 ```typescript
-import { z } from 'https://deno.land/x/zod/mod.ts';
+import { z } from "https://deno.land/x/zod/mod.ts";
 
 const SourceSchema = z.object({
     source: z.string().url(),
@@ -259,7 +256,7 @@ try {
     return content;
 } catch (error) {
     this.logger.error(`Failed to download source: ${source}`, error);
-    return ''; // Silent failure
+    return ""; // Silent failure
 }
 ```
 
@@ -289,7 +286,7 @@ try {
     await this.prisma.compilation.create({ data });
 } catch (error) {
     throw new StorageError(
-        'Failed to create compilation record',
+        "Failed to create compilation record",
         ErrorCode.STORAGE_WRITE_FAILED,
         error,
     );
@@ -349,7 +346,7 @@ class ConsoleErrorReporter implements ErrorReporter {
 ```typescript
 class CircuitBreaker {
     private failureCount = 0;
-    private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+    private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
     private lastFailureTime?: Date;
 
     constructor(
@@ -481,7 +478,7 @@ const context = createTracingContext({
 **Implementation**:
 
 ```typescript
-import { SpanStatusCode, trace } from '@opentelemetry/api';
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 
 const tracer = trace.getTracer('adblock-compiler', VERSION);
 

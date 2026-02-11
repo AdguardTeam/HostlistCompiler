@@ -231,7 +231,7 @@ Current manual validation is error-prone and lacks type safety. Zod provides run
 **Proposed Implementation**:
 
 ```typescript
-import { z } from 'https://deno.land/x/zod/mod.ts';
+import { z } from "https://deno.land/x/zod/mod.ts";
 
 const SourceSchema = z.object({
     source: z.string().url(),
@@ -343,7 +343,7 @@ When filter list sources are consistently failing, we continue retrying them, wa
 ```typescript
 class CircuitBreaker {
     private failureCount = 0;
-    private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+    private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
     private lastFailureTime?: Date;
 
     constructor(
@@ -410,7 +410,7 @@ Current tracing system is custom and not compatible with standard observability 
 **Proposed Implementation**:
 
 ```typescript
-import { SpanStatusCode, trace } from '@opentelemetry/api';
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 
 const tracer = trace.getTracer('adblock-compiler', VERSION);
 
@@ -464,8 +464,8 @@ Currently log level is global. Need ability to set different log levels for diff
 const logger = new Logger({
     defaultLevel: LogLevel.Info,
     moduleOverrides: {
-        compiler: LogLevel.Debug,
-        downloader: LogLevel.Trace
+        "compiler": LogLevel.Debug,
+        "downloader": LogLevel.Trace,
     },
 });
 ```
