@@ -321,7 +321,7 @@ class CircuitBreaker {
 
     async execute<T>(fn: () => Promise<T>): Promise<T> {
         if (this.state === 'OPEN') {
-            if (Date.now() - this.lastFailureTime!.getTime() > this.timeout) {
+            if (this.lastFailureTime && Date.now() - this.lastFailureTime.getTime() > this.timeout) {
                 this.state = 'HALF_OPEN';
             } else {
                 throw new Error('Circuit breaker is OPEN');
