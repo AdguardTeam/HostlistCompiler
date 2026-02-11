@@ -65,7 +65,7 @@ Worker endpoints accept POST requests without CSRF token validation, making them
 function validateCsrfToken(request: Request): boolean {
     const token = request.headers.get('X-CSRF-Token');
     const cookie = getCookie(request, 'csrf-token');
-    return token && cookie && token === cookie;
+    return Boolean(token && cookie && token === cookie);
 }
 ```
 
