@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-console
-import { parse } from '@std/flags';
+import { parseArgs } from '@std/cli/parse-args';
 
 /**
  * Parsed CLI arguments
@@ -28,7 +28,7 @@ export class ArgumentParser {
      * @returns Parsed arguments object
      */
     public parse(argv: string[]): ParsedArguments {
-        const parsed = parse(argv, {
+        const parsed = parseArgs(argv, {
             string: ['config', 'input-type', 'output', 'priority'],
             boolean: ['verbose', 'benchmark', 'use-queue', 'help', 'version'],
             collect: ['input'],

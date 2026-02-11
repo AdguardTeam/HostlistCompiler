@@ -1,14 +1,12 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@luca/cases@1": "1.0.0",
-    "jsr:@std/assert@0.224": "0.224.0",
     "jsr:@std/assert@^1.0.17": "1.0.18",
     "jsr:@std/assert@^1.0.18": "1.0.18",
     "jsr:@std/async@^1.1.0": "1.1.1",
     "jsr:@std/async@^1.1.1": "1.1.1",
+    "jsr:@std/cli@^1.0.17": "1.0.27",
     "jsr:@std/data-structures@^1.0.10": "1.0.10",
-    "jsr:@std/flags@0.224": "0.224.0",
     "jsr:@std/fs@^1.0.22": "1.0.22",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/path@^1.1.4": "1.1.4",
@@ -23,12 +21,6 @@
     "npm:wrangler@^4.63.0": "4.63.0_@cloudflare+workers-types@4.20260207.0_unenv@2.0.0-rc.24_workerd@1.20260205.0"
   },
   "jsr": {
-    "@luca/cases@1.0.0": {
-      "integrity": "b5f9471f1830595e63a2b7d62821ac822a19e16899e6584799be63f17a1fbc30"
-    },
-    "@std/assert@0.224.0": {
-      "integrity": "8643233ec7aec38a940a8264a6e3eed9bfa44e7a71cc6b3c8874213ff401967f"
-    },
     "@std/assert@1.0.18": {
       "integrity": "270245e9c2c13b446286de475131dc688ca9abcd94fc5db41d43a219b34d1c78",
       "dependencies": [
@@ -38,14 +30,11 @@
     "@std/async@1.1.1": {
       "integrity": "8a79beb3378cc229ce65ba2c746cfd03e4855ddd891d1eb6b9e32128e0d5339c"
     },
+    "@std/cli@1.0.27": {
+      "integrity": "eba97edd0891871a7410e835dd94b3c260c709cca5983df2689c25a71fbe04de"
+    },
     "@std/data-structures@1.0.10": {
       "integrity": "f574f86b0e07c69b9edc555fcc814b57d29258bad39fd5a34ba8a80ecf033cfe"
-    },
-    "@std/flags@0.224.0": {
-      "integrity": "d40eaf58c356b2e1313c6d4e62dc28b614aad2ddae6f5ff72a969e0b1f5ad689",
-      "dependencies": [
-        "jsr:@std/assert@0.224"
-      ]
     },
     "@std/fs@1.0.22": {
       "integrity": "de0f277a58a867147a8a01bc1b181d0dfa80bfddba8c9cf2bacd6747bcec9308",
@@ -2044,10 +2033,9 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@luca/cases@1",
       "jsr:@std/assert@^1.0.18",
       "jsr:@std/async@^1.1.1",
-      "jsr:@std/flags@0.224",
+      "jsr:@std/cli@^1.0.17",
       "jsr:@std/fs@^1.0.22",
       "jsr:@std/path@^1.1.4",
       "jsr:@std/testing@^1.0.17",

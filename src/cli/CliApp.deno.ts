@@ -1,7 +1,7 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-net
 // deno-lint-ignore-file no-console
 
-import { parse } from '@std/flags';
+import { parseArgs } from '@std/cli/parse-args';
 import {
     ICompilationCompleteEvent,
     ICompilerEvents,
@@ -194,10 +194,10 @@ Examples:
     }
 
     /**
-     * Parses command-line arguments using Deno's std/flags.
+     * Parses command-line arguments using Deno's std/cli.
      */
     private parseArgs(argv: string[]): ICliArgs {
-        const parsed = parse(argv, {
+        const parsed = parseArgs(argv, {
             string: ['config', 'input-type', 'output'],
             boolean: ['verbose', 'benchmark', 'help', 'version'],
             collect: ['input'],

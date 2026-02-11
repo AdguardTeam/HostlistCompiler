@@ -24,8 +24,7 @@
  *   GITHUB_REPOSITORY - GitHub repository (from GitHub Actions)
  */
 
-// @deno-types="@std/flags"
-import { parse } from '@std/flags';
+import { parseArgs } from '@std/cli/parse-args';
 import { generateDeploymentId } from '../src/deployment/version.ts';
 
 interface D1QueryResult {
@@ -239,7 +238,7 @@ async function main() {
     console.log('Recording deployment...');
 
     // Parse command line arguments
-    const args = parse(Deno.args, {
+    const args = parseArgs(Deno.args, {
         string: ['status'],
         default: {
             status: 'success',

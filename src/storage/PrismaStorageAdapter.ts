@@ -13,7 +13,6 @@
  *   npx prisma db push (or npx prisma migrate dev)
  */
 
-import process from 'node:process';
 import type { IDetailedLogger } from '../types/index.ts';
 import type { IStorageAdapter, StorageAdapterConfig } from './IStorageAdapter.ts';
 import type { CacheEntry, CompilationMetadata, QueryOptions, StorageEntry, StorageStats } from './types.ts';
@@ -89,8 +88,7 @@ export class PrismaStorageAdapter implements IStorageAdapter {
 
             // Use config connectionString, env var, or default
             const databaseUrl = this.config.connectionString ||
-                (typeof Deno !== 'undefined' ? Deno.env.get('DATABASE_URL') : undefined) ||
-                process.env?.DATABASE_URL ||
+                Deno.env.get('DATABASE_URL') ||
                 DEFAULT_DATABASE_URL;
 
             this.prisma = new PrismaClient({
