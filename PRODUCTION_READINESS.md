@@ -12,6 +12,7 @@ The adblock-compiler codebase demonstrates strong engineering fundamentals with 
 **Overall Readiness**: 🟡 **Good Foundation, Needs Enhancement**
 
 **Critical Areas**:
+
 - ✅ **Excellent**: Error hierarchy, diagnostics infrastructure, transformation testing
 - 🟡 **Good**: Logging implementation, configuration validation, test coverage
 - 🔴 **Needs Work**: Observability export, input validation library, security headers
@@ -23,6 +24,7 @@ The adblock-compiler codebase demonstrates strong engineering fundamentals with 
 ### Current State
 
 **Strengths**:
+
 - ✅ Custom Logger class (`src/utils/logger.ts`) with hierarchical logging
 - ✅ Log levels: Trace, Debug, Info, Warn, Error
 - ✅ Child logger support with nested prefixes
@@ -33,8 +35,10 @@ The adblock-compiler codebase demonstrates strong engineering fundamentals with 
 **Issues**:
 
 #### 🐛 BUG-001: Direct console.log/console.error usage bypasses logger
+
 **Severity**: Medium
 **Location**: Multiple files
+
 - `src/diagnostics/DiagnosticsCollector.ts:90-92, 128-130` (intentional warnings)
 - `src/utils/EventEmitter.ts` (console.error for handler exceptions)
 - `src/queue/CloudflareQueueProvider.ts` (console.error for queue errors)
@@ -43,6 +47,7 @@ The adblock-compiler codebase demonstrates strong engineering fundamentals with 
 **Impact**: Inconsistent logging, difficult to filter/route logs in production
 
 **Recommendation**:
+
 ```typescript
 // Replace:
 console.error('Queue error:', error);
@@ -52,10 +57,12 @@ this.logger.error('Queue error', { error });
 ```
 
 #### 🚀 FEATURE-001: Add structured JSON logging
+
 **Priority**: High
 **Justification**: Production log aggregation systems (CloudWatch, Datadog, etc.) require structured logs
 
 **Implementation**:
+
 ```typescript
 interface StructuredLog {
     timestamp: string;
@@ -81,15 +88,18 @@ class StructuredLogger extends Logger {
 ```
 
 **Files to modify**:
+
 - `src/utils/logger.ts` - Add StructuredLogger class
 - `src/types/index.ts` - Add StructuredLog interface
 - Configuration option to enable JSON output
 
 #### 🚀 FEATURE-002: Per-module log level configuration
+
 **Priority**: Medium
 **Justification**: Enable verbose logging for specific modules during debugging without flooding logs
 
 **Implementation**:
+
 ```typescript
 interface LoggerConfig {
     defaultLevel: LogLevel;
@@ -98,6 +108,7 @@ interface LoggerConfig {
 ```
 
 #### 🚀 FEATURE-003: Log file output with rotation
+
 **Priority**: Low
 **Justification**: Worker environments use stdout, but CLI could benefit from file logging
 
@@ -110,6 +121,7 @@ interface LoggerConfig {
 ### Current State
 
 **Strengths**:
+
 - ✅ Pure TypeScript validation in `ConfigurationValidator.ts`
 - ✅ Detailed path-based error messages
 - ✅ Source URL, type, and transformation validation
@@ -119,12 +131,14 @@ interface LoggerConfig {
 **Issues**:
 
 #### 🐛 BUG-002: No request body size limits
+
 **Severity**: High
 **Location**: `worker/handlers/compile.ts`, `worker/middleware/index.ts`
 
 **Impact**: Large payloads could cause memory exhaustion or DoS
 
 **Recommendation**:
+
 ```typescript
 async function validateRequestSize(request: Request, maxBytes: number = 1024 * 1024): Promise<void> {
     const contentLength = request.headers.get('content-length');
@@ -135,10 +149,12 @@ async function validateRequestSize(request: Request, maxBytes: number = 1024 * 1
 ```
 
 #### 🐛 BUG-003: Weak type validation in compile handler
+
 **Severity**: Medium
 **Location**: `worker/handlers/compile.ts:85-95`
 
 **Current Code**:
+
 ```typescript
 const { configuration } = body as { configuration: IConfiguration };
 ```
@@ -148,10 +164,12 @@ const { configuration } = body as { configuration: IConfiguration };
 **Recommendation**: Use validation before type assertion
 
 #### 🚀 FEATURE-004: Add Zod schema validation
+
 **Priority**: High
 **Justification**: Type-safe runtime validation with zero dependencies for Deno
 
 **Implementation**:
+
 ```typescript
 import { z } from 'https://deno.land/x/zod/mod.ts';
 
@@ -175,15 +193,18 @@ const config = ConfigurationSchema.parse(body.configuration);
 ```
 
 **Files to modify**:
+
 - `src/configuration/ConfigurationValidator.ts` - Replace with Zod
 - `worker/handlers/compile.ts` - Add request body schema
 - `deno.json` - Add Zod dependency
 
 #### 🚀 FEATURE-005: Add URL allowlist/blocklist
+
 **Priority**: Medium
 **Justification**: Prevent SSRF attacks by restricting source URLs to known domains
 
 **Implementation**:
+
 ```typescript
 interface UrlValidationConfig {
     allowedDomains?: string[]; // e.g., ['raw.githubusercontent.com']
@@ -199,6 +220,7 @@ interface UrlValidationConfig {
 ### Current State
 
 **Strengths**:
+
 - ✅ Comprehensive error hierarchy (`src/utils/ErrorUtils.ts`)
 - ✅ 8 custom error types with metadata
 - ✅ 18 error codes for categorization
@@ -208,6 +230,7 @@ interface UrlValidationConfig {
 - ✅ 96 try/catch blocks across codebase
 
 **Error Types**:
+
 1. `BaseError` - Abstract base with code, timestamp, cause
 2. `CompilationError` - Compilation failures
 3. `ConfigurationError` - Invalid configs
@@ -221,10 +244,12 @@ interface UrlValidationConfig {
 **Issues**:
 
 #### 🐛 BUG-004: Silent error swallowing in FilterService
+
 **Severity**: Medium
 **Location**: `src/services/FilterService.ts:44`
 
 **Current Code**:
+
 ```typescript
 try {
     const content = await this.downloader.download(source);
@@ -238,6 +263,7 @@ try {
 **Issue**: Returns empty string on error, caller can't distinguish success from failure
 
 **Recommendation**:
+
 ```typescript
 // Option 1: Let error propagate
 throw ErrorUtils.wrap(error, `Failed to download source: ${source}`);
@@ -247,12 +273,14 @@ return { success: false, error: ErrorUtils.getMessage(error) };
 ```
 
 #### 🐛 BUG-005: Database errors not wrapped with custom types
+
 **Severity**: Low
 **Location**: `src/storage/PrismaAdapter.ts`, `src/storage/D1Adapter.ts`
 
 **Current Code**: Direct throw of Prisma/D1 errors
 
 **Recommendation**: Wrap with `StorageError` for consistent error handling:
+
 ```typescript
 try {
     await this.prisma.compilation.create({ data });
@@ -260,16 +288,18 @@ try {
     throw new StorageError(
         'Failed to create compilation record',
         ErrorCode.STORAGE_WRITE_FAILED,
-        error
+        error,
     );
 }
 ```
 
 #### 🚀 FEATURE-006: Centralized error reporting service
+
 **Priority**: High
 **Justification**: Production systems need error aggregation (Sentry, Datadog, etc.)
 
 **Implementation**:
+
 ```typescript
 interface ErrorReporter {
     report(error: Error, context?: Record<string, unknown>): void;
@@ -291,23 +321,28 @@ class ConsoleErrorReporter implements ErrorReporter {
 ```
 
 **Files to create**:
+
 - `src/utils/ErrorReporter.ts` - Interface and implementations
 - Update all catch blocks to use reporter
 
 #### 🚀 FEATURE-007: Add error code documentation
+
 **Priority**: Medium
 **Justification**: Developers and operators need to understand error codes
 
 **Implementation**: Create `docs/ERROR_CODES.md` with:
+
 - Error code → meaning mapping
 - Recommended actions for each code
 - Example scenarios
 
 #### 🚀 FEATURE-008: Add circuit breaker pattern
+
 **Priority**: High
 **Justification**: Prevent cascading failures when sources are consistently failing
 
 **Implementation**:
+
 ```typescript
 class CircuitBreaker {
     private failureCount = 0;
@@ -316,7 +351,7 @@ class CircuitBreaker {
 
     constructor(
         private threshold: number = 5,
-        private timeout: number = 60000 // 1 minute
+        private timeout: number = 60000, // 1 minute
     ) {}
 
     async execute<T>(fn: () => Promise<T>): Promise<T> {
@@ -355,6 +390,7 @@ class CircuitBreaker {
 ```
 
 **Files to create**:
+
 - `src/utils/CircuitBreaker.ts`
 - `src/utils/CircuitBreaker.test.ts`
 - Integrate into `src/downloader/FilterDownloader.ts`
@@ -366,6 +402,7 @@ class CircuitBreaker {
 ### Current State
 
 **Strengths**:
+
 - ✅ Comprehensive diagnostics system (`src/diagnostics/`)
 - ✅ 6 event types: Diagnostic, OperationStart, OperationComplete, OperationError, PerformanceMetric, Cache, Network
 - ✅ Event categories: Compilation, Download, Transformation, Cache, Validation, Network, Performance, Error
@@ -378,12 +415,14 @@ class CircuitBreaker {
 **Issues**:
 
 #### 🐛 BUG-006: Diagnostics events stored only in memory
+
 **Severity**: High
 **Location**: `src/diagnostics/DiagnosticsCollector.ts`
 
 **Issue**: Events collected in `private events: DiagnosticEvent[] = []` but never exported
 
 **Recommendation**: Add event export mechanism:
+
 ```typescript
 interface DiagnosticsExporter {
     export(events: DiagnosticEvent[]): Promise<void>;
@@ -391,7 +430,7 @@ interface DiagnosticsExporter {
 
 class ConsoleDiagnosticsExporter implements DiagnosticsExporter {
     async export(events: DiagnosticEvent[]): Promise<void> {
-        events.forEach(event => console.log(JSON.stringify(event)));
+        events.forEach((event) => console.log(JSON.stringify(event)));
     }
 }
 
@@ -411,10 +450,12 @@ class CloudflareAnalyticsExporter implements DiagnosticsExporter {
 ```
 
 #### 🐛 BUG-007: No distributed trace ID propagation
+
 **Severity**: Medium
 **Location**: Worker handlers don't propagate trace IDs across async operations
 
 **Recommendation**: Add trace context to all async operations:
+
 ```typescript
 // Extract from request header
 const traceId = request.headers.get('X-Trace-Id') || crypto.randomUUID();
@@ -427,12 +468,14 @@ const context = createTracingContext({
 ```
 
 #### 🚀 FEATURE-009: Add OpenTelemetry integration
+
 **Priority**: High
 **Justification**: Industry-standard distributed tracing compatible with all major platforms
 
 **Implementation**:
+
 ```typescript
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
 
 const tracer = trace.getTracer('adblock-compiler', VERSION);
 
@@ -458,15 +501,18 @@ async function compileWithTracing(config: IConfiguration): Promise<string> {
 ```
 
 **Files to modify**:
+
 - Add `@opentelemetry/api` dependency
 - Create `src/diagnostics/OpenTelemetryExporter.ts`
 - Update `src/compiler/SourceCompiler.ts` with spans
 
 #### 🚀 FEATURE-010: Add performance sampling
+
 **Priority**: Medium
 **Justification**: Tracing all operations at high volume impacts performance
 
 **Implementation**:
+
 ```typescript
 class SamplingDiagnosticsCollector extends DiagnosticsCollector {
     constructor(
@@ -485,6 +531,7 @@ class SamplingDiagnosticsCollector extends DiagnosticsCollector {
 ```
 
 #### 🚀 FEATURE-011: Add request duration histogram
+
 **Priority**: Medium
 **Justification**: Understand performance distribution (p50, p95, p99)
 
@@ -497,6 +544,7 @@ class SamplingDiagnosticsCollector extends DiagnosticsCollector {
 ### Current State
 
 **Strengths**:
+
 - ✅ 63 test files across `src/` and `worker/`
 - ✅ Unit tests for utilities, transformations, compilers
 - ✅ Integration tests for worker handlers
@@ -507,21 +555,25 @@ class SamplingDiagnosticsCollector extends DiagnosticsCollector {
 **Issues**:
 
 #### 🐛 BUG-008: No public coverage reports
+
 **Severity**: Low
 **Location**: Coverage generated locally but not published
 
 **Recommendation**:
+
 1. Add Codecov integration to CI workflow
 2. Generate coverage badge for README
 3. Track coverage trends over time
 
 #### 🐛 BUG-009: E2E tests require running server
+
 **Severity**: Low
 **Location**: `worker/api.e2e.test.ts`, `worker/websocket.e2e.test.ts`
 
 **Issue**: Tests marked as `ignore: true` by default, require manual server start
 
 **Recommendation**: Add test server lifecycle management:
+
 ```typescript
 let server: Deno.HttpServer;
 
@@ -542,18 +594,21 @@ Deno.test({
 ```
 
 #### 🚀 FEATURE-012: Add mutation testing
+
 **Priority**: Low
 **Justification**: Verify test effectiveness by introducing mutations
 
 **Implementation**: Use Stryker or similar tool to mutate code and verify tests catch changes
 
 #### 🚀 FEATURE-013: Add performance benchmarks
+
 **Priority**: Medium
 **Justification**: Track performance regressions over time
 
 **Current**: Only 4 bench files exist (utils, transformations)
 
 **Recommendation**: Add benchmarks for:
+
 - Compilation of various list sizes
 - Transformation pipeline performance
 - Cache hit/miss scenarios
@@ -566,6 +621,7 @@ Deno.test({
 ### Current State
 
 **Strengths**:
+
 - ✅ Rate limiting middleware
 - ✅ Admin authentication with API keys
 - ✅ Turnstile CAPTCHA verification
@@ -574,10 +630,12 @@ Deno.test({
 **Issues**:
 
 #### 🐛 BUG-010: No CSRF protection
+
 **Severity**: High
 **Location**: Worker endpoints accept POST without CSRF tokens
 
 **Recommendation**: Add CSRF token validation for state-changing operations:
+
 ```typescript
 function validateCsrfToken(request: Request): boolean {
     const token = request.headers.get('X-CSRF-Token');
@@ -587,10 +645,12 @@ function validateCsrfToken(request: Request): boolean {
 ```
 
 #### 🐛 BUG-011: Missing security headers
+
 **Severity**: Medium
 **Location**: Worker responses don't include security headers
 
 **Recommendation**: Add middleware for security headers:
+
 ```typescript
 function addSecurityHeaders(response: Response): Response {
     const headers = new Headers(response.headers);
@@ -608,20 +668,24 @@ function addSecurityHeaders(response: Response): Response {
 ```
 
 #### 🐛 BUG-012: No SSRF protection for source URLs
+
 **Severity**: High
 **Location**: `src/downloader/FilterDownloader.ts` fetches arbitrary URLs
 
 **Recommendation**: Validate URLs before fetching:
+
 ```typescript
 function isSafeUrl(url: string): boolean {
     const parsed = new URL(url);
 
     // Block private IPs
-    if (parsed.hostname === 'localhost' ||
+    if (
+        parsed.hostname === 'localhost' ||
         parsed.hostname.startsWith('127.') ||
         parsed.hostname.startsWith('192.168.') ||
         parsed.hostname.startsWith('10.') ||
-        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(parsed.hostname)) {
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(parsed.hostname)
+    ) {
         return false;
     }
 
@@ -635,10 +699,12 @@ function isSafeUrl(url: string): boolean {
 ```
 
 #### 🚀 FEATURE-014: Add rate limiting per endpoint
+
 **Priority**: High
 **Justification**: Different endpoints have different resource costs
 
 **Implementation**:
+
 ```typescript
 const RATE_LIMITS: Record<string, { window: number; max: number }> = {
     '/compile': { window: 60, max: 10 },
@@ -648,6 +714,7 @@ const RATE_LIMITS: Record<string, { window: number; max: number }> = {
 ```
 
 #### 🚀 FEATURE-015: Add request signing for admin endpoints
+
 **Priority**: Medium
 **Justification**: API key authentication alone is vulnerable to replay attacks
 
@@ -660,12 +727,14 @@ const RATE_LIMITS: Record<string, { window: number; max: number }> = {
 ### Issues:
 
 #### 🚀 FEATURE-016: Add health check endpoint enhancements
+
 **Priority**: High
 **Justification**: Current health check only returns OK, doesn't check dependencies
 
 **Current**: `worker/handlers/health.ts` returns simple `{ status: 'ok' }`
 
 **Recommendation**:
+
 ```typescript
 interface HealthCheckResult {
     status: 'healthy' | 'degraded' | 'unhealthy';
@@ -680,10 +749,12 @@ interface HealthCheckResult {
 ```
 
 #### 🚀 FEATURE-017: Add metrics export endpoint
+
 **Priority**: High
 **Justification**: Prometheus/Datadog need metrics in standard format
 
 **Implementation**:
+
 ```typescript
 // GET /metrics
 function exportMetrics(): string {
@@ -703,10 +774,12 @@ compilation_total{status="error"} 5
 ```
 
 #### 🚀 FEATURE-018: Add dashboard for diagnostics
+
 **Priority**: Low
 **Justification**: Real-time visibility into system health
 
 **Implementation**: Web UI showing:
+
 - Active compilations
 - Error rates
 - Cache hit ratios
@@ -720,14 +793,16 @@ compilation_total{status="error"} 5
 ### Issues:
 
 #### 🚀 FEATURE-019: Add configuration validation on startup
+
 **Priority**: Medium
 **Justification**: Fail fast if environment variables are missing/invalid
 
 **Implementation**:
+
 ```typescript
 function validateEnvironment(): void {
     const required = ['DATABASE_URL', 'ADMIN_API_KEY'];
-    const missing = required.filter(key => !Deno.env.get(key));
+    const missing = required.filter((key) => !Deno.env.get(key));
 
     if (missing.length > 0) {
         throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
@@ -739,10 +814,12 @@ validateEnvironment();
 ```
 
 #### 🚀 FEATURE-020: Add graceful shutdown
+
 **Priority**: Medium
 **Justification**: Allow in-flight requests to complete before shutdown
 
 **Implementation**:
+
 ```typescript
 let isShuttingDown = false;
 
@@ -769,10 +846,12 @@ if (isShuttingDown) {
 ### Issues:
 
 #### 🚀 FEATURE-021: Add runbook for common operations
+
 **Priority**: High
 **Justification**: Operators need clear procedures for incidents
 
 **Create**: `docs/RUNBOOK.md` with:
+
 - How to investigate compilation failures
 - How to handle rate limit issues
 - How to restart services
@@ -780,6 +859,7 @@ if (isShuttingDown) {
 - How to review diagnostic events
 
 #### 🚀 FEATURE-022: Add API documentation
+
 **Priority**: Medium
 **Justification**: External users need clear API reference
 
@@ -842,6 +922,7 @@ if (isShuttingDown) {
 ## Implementation Roadmap
 
 ### Phase 1: Core Observability (2-3 weeks)
+
 - Structured JSON logging (FEATURE-001)
 - Centralized error reporting (FEATURE-006)
 - OpenTelemetry integration (FEATURE-009)
@@ -850,6 +931,7 @@ if (isShuttingDown) {
 - Metrics export (FEATURE-017)
 
 ### Phase 2: Security Hardening (1-2 weeks)
+
 - Request size limits (BUG-002)
 - CSRF protection (BUG-010)
 - SSRF protection (BUG-012)
@@ -857,24 +939,28 @@ if (isShuttingDown) {
 - Per-endpoint rate limiting (FEATURE-014)
 
 ### Phase 3: Input Validation (1 week)
+
 - Zod schema validation (FEATURE-004)
 - Type validation in handlers (BUG-003)
 - URL allowlist/blocklist (FEATURE-005)
 - Startup config validation (FEATURE-019)
 
 ### Phase 4: Resilience (1-2 weeks)
+
 - Circuit breaker pattern (FEATURE-008)
 - Distributed trace ID propagation (BUG-007)
 - Graceful shutdown (FEATURE-020)
 - Silent error handling fixes (BUG-004, BUG-005)
 
 ### Phase 5: Developer Experience (1 week)
+
 - Eliminate direct console usage (BUG-001)
 - Error code documentation (FEATURE-007)
 - Operational runbook (FEATURE-021)
 - API documentation (FEATURE-022)
 
 ### Phase 6: Performance & Quality (ongoing)
+
 - Performance sampling (FEATURE-010)
 - Request duration metrics (FEATURE-011)
 - Performance benchmarks (FEATURE-013)
