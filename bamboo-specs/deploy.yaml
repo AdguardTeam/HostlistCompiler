@@ -36,10 +36,3 @@ npmjs:
             npm publish hostlist-compiler.tgz --access public
   requirements:
     - adg-docker: true
-  notifications:
-    - events:
-        - deployment-started-and-finished
-      recipients:
-        - webhook:
-            name: Deploy webhook
-            url: http://prod.jirahub.service.eu.consul/v1/webhook/bamboo
