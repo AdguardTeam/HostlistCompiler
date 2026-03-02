@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.26.0] - 2026-03-02
+
+### Added- migrate Tailwind CSS v3 to v4
+
+
 ## [0.25.3] - 2026-02-27
 
 ### Added### Performance
