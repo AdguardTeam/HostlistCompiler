@@ -2,10 +2,6 @@
 
 ## Files Created
 
-### React PoC
-
-- [x] `poc/react/index.html` - Complete single-file React app (780 lines)
-
 ### Vue PoC
 
 - [x] `poc/vue/index.html` - Complete single-file Vue app (1,400+ lines)
@@ -29,25 +25,15 @@
 - [x] `poc/angular/src/app/services/compiler.service.ts` - API service
 - [x] `poc/angular/ANGULAR_SIGNALS.md` - Angular Signals guide
 
-### Svelte PoC
-
-- [x] `poc/svelte/package.json` - Dependencies (Svelte 5, Vite)
-- [x] `poc/svelte/vite.config.js` - Vite + Svelte plugin config
-- [x] `poc/svelte/index.html` - HTML entry point
-- [x] `poc/svelte/src/main.js` - Application bootstrap
-- [x] `poc/svelte/src/App.svelte` - Complete single-file Svelte 5 app
-- [x] `poc/svelte/README.md` - Svelte PoC documentation
-
 ### Documentation
 
-- [x] `poc/README.md` - Main overview (363 lines)
-- [x] `poc/SUMMARY.md` - Implementation summary (245 lines)
-- [x] `poc/angular/README.md` - Angular setup guide (265 lines)
-- [x] `poc/react/REACT_ROUTER.md` - Why React Router is worth using
+- [x] `poc/README.md` - Main overview
+- [x] `poc/SUMMARY.md` - Implementation summary
+- [x] `poc/angular/README.md` - Angular setup guide
 
 ## Features Implemented
 
-### All Three Frameworks
+### Both Frameworks
 
 - [x] Component-based architecture
 - [x] Client-side routing (Home ↔ Compiler)
@@ -71,14 +57,7 @@
 - [x] signal(), computed(), effect() demonstrations
 - [x] New @if/@for/@switch template syntax
 - [x] Conversion of all components to new syntax
-
-### Svelte-Specific Features
-
-- [x] Runes Demo page (`#/runes`)
-- [x] $state() for mutable reactive state
-- [x] $derived() for computed values
-- [x] $effect() for side effects
-- [x] Hash-based client-side routing
+- [x] Zoneless change detection (`provideZonelessChangeDetection()`)
 
 ### Compiler Form Features
 
@@ -117,7 +96,7 @@
 - [x] Architecture patterns explained
 - [x] Clean, readable code
 - [x] Proper error handling
-- [x] Type safety (Angular, React, Vue)
+- [x] Type safety (Angular, Vue)
 - [x] Following framework best practices
 
 ## API Integration
@@ -150,16 +129,13 @@
 
 ## Testing Instructions
 
-- [x] React: Open in browser or serve with http-server
 - [x] Vue: Open in browser or serve with http-server
 - [x] Angular: npm install && npm start
-- [x] Svelte: npm install && npm run dev
 
 ## Status
 
 ✅ **ALL REQUIREMENTS MET**
 
-Total Files: 23
-Total Lines: 4,200+
-Documentation: 1,000+ lines
+Total Files: 18
+Documentation: 800+ lines
 Ready for evaluation: YES
