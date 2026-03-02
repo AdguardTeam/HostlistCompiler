@@ -1,13 +1,29 @@
 /**
  * Tailwind CSS Input File
- * This file imports Tailwind's base, components, and utilities
+ * Tailwind v4 — CSS-first configuration
  */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /**
- * Custom CSS can be added here for additional styling
- * or overrides that complement Tailwind
+ * Custom theme — replaces tailwind.config.js
+ * Defines custom colors used across the project.
  */
+@theme {
+    --color-primary: #667eea;
+    --color-primary-dark: #5568d3;
+    --color-primary-light: #8096ff;
+    --color-secondary: #764ba2;
+    --color-secondary-dark: #5c3a80;
+}
+
+/**
+ * Dark mode variant — matches the data-theme attribute used in shared-styles.css
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/**
+ * Source detection — tell Tailwind where to scan for utility classes.
+ * v4 auto-detects by default, but we explicitly set the public/ root.
+ */
+@source "../public";

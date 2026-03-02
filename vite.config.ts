@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 /**
  * Vite configuration for the Adblock Compiler frontend UI.
@@ -25,7 +26,7 @@ import react from '@vitejs/plugin-react';
  *   npm run ui:dev      (Vite on :5173 → proxies /api, /sse, /ws to :8787)
  */
 export default defineConfig({
-    plugins: [vue(), vueJsx(), react()],
+    plugins: [tailwindcss(), vue(), vueJsx(), react()],
     // Use public/ as the project root so HTML files resolve assets correctly.
     root: 'public',
 

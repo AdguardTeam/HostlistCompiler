@@ -6,7 +6,7 @@
     <title>Tailwind CSS Test - Adblock Compiler</title>
     <link rel="stylesheet" href="/tailwind.css">
 </head>
-<body class="bg-gradient-to-r from-primary to-secondary min-h-screen">
+<body class="bg-linear-to-r from-primary to-secondary min-h-screen">
     <div class="container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-lg p-8">
             <h1 class="text-4xl font-bold text-gray-800 mb-4">
@@ -25,17 +25,17 @@
                     <h3 class="text-xl font-semibold mb-2">Secondary Color</h3>
                     <p class="text-sm">Using custom secondary color from config</p>
                 </div>
-                <div class="bg-gradient-to-br from-primary to-secondary text-white p-4 rounded-lg">
+                <div class="bg-linear-to-br from-primary to-secondary text-white p-4 rounded-lg">
                     <h3 class="text-xl font-semibold mb-2">Gradient</h3>
                     <p class="text-sm">Combining both custom colors</p>
                 </div>
             </div>
             
             <div class="space-y-4">
-                <button class="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded transition">
+                <button class="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-sm transition">
                     Primary Button
                 </button>
-                <button class="bg-secondary hover:bg-secondary-dark text-white font-semibold py-2 px-4 rounded transition ml-2">
+                <button class="bg-secondary hover:bg-secondary-dark text-white font-semibold py-2 px-4 rounded-sm transition ml-2">
                     Secondary Button
                 </button>
             </div>
