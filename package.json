@@ -20,19 +20,19 @@
     },
     "devDependencies": {
         "@cloudflare/playwright-mcp": "^0.0.5",
-        "@cloudflare/workers-types": "^4.20260207.0",
-        "@types/node": "^22.19.11",
+        "@cloudflare/workers-types": "^4.20260301.1",
+        "@types/node": "^25.3.3",
         "@vitejs/plugin-react": "^5.1.4",
         "@vitejs/plugin-vue": "^6.0.4",
         "@vitejs/plugin-vue-jsx": "^5.1.4",
-        "autoprefixer": "^10.4.24",
+        "autoprefixer": "^10.4.27",
         "chart.js": "^4.5.1",
         "postcss": "^8.5.6",
-        "tailwindcss": "^3.4.19",
+        "tailwindcss": "^4.2.1",
         "vite": "^7.3.1",
-        "wrangler": "^4.63.0"
+        "wrangler": "^4.69.0"
     },
     "dependencies": {
-        "@adguard/agtree": "^4.0.0"
+        "@adguard/agtree": "^4.0.1"
     }
 }
