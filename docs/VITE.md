@@ -35,9 +35,8 @@ on pages that do not import Vue or React components.
 public/                     ← Vite root (source files)
 ├── js/
 │   ├── theme.ts            ← Dark/light mode toggle (ES module)
-│   └── chart-setup.ts      ← Chart.js npm import + global registration
+│   └── chart.ts            ← Chart.js npm import + global registration
 ├── shared-styles.css       ← Design-system CSS variables
-├── shared-theme.js         ← Legacy IIFE (kept for backwards compatibility)
 ├── validation-ui.js        ← Validation UI component (ES module)
 ├── index.html              ← Admin dashboard
 ├── compiler.html           ← Main compiler UI

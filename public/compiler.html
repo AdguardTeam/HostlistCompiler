@@ -16,8 +16,8 @@
     <link rel="stylesheet" href="/tailwind.css">
     <!-- Shared styles -->
     <link rel="stylesheet" href="/shared-styles.css">
-    <!-- Chart.js lazy-loader (fetches chart bundle on first chart render) -->
-    <script type="module" src="/js/chart-loader.ts"></script>
+    <!-- Chart.js setup (registers components and exposes window.Chart / window.loadChart) -->
+    <script type="module" src="/js/chart.ts"></script>
     <style>
         /* CSS Variables for theming */
         :root {
