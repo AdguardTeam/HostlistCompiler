@@ -4,12 +4,12 @@
  * exposes `window.Chart` and `window.loadChart` so both module and non-module
  * inline scripts can use Chart.js without duplicating setup logic.
  *
- * Import this module in place of the old chart-loader / chart-setup pair:
+ * Usage:
  *   <script type="module" src="/js/chart.ts"></script>
  *
- * Inline scripts that previously called `await window.loadChart()` continue
- * to work unchanged — the function now returns a resolved Promise because
- * Chart.js is already initialised by the time the script tag executes.
+ * Inline scripts that call `await window.loadChart()` continue to work
+ * unchanged — the function now returns a resolved Promise because Chart.js
+ * is already initialised by the time the script tag executes.
  */
 
 import {
