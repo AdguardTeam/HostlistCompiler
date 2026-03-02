@@ -10,12 +10,14 @@
     <link rel="preconnect" href="https://challenges.cloudflare.com">
     <!-- Cloudflare Web Analytics -->
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8771568d1cde4005bb60c5767d0969c4"}'></script>
-    <!-- Chart.js (bundled via Vite) -->
-    <script type="module" src="/js/chart-setup.ts"></script>
     <!-- Cloudflare Turnstile -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="/tailwind.css">
+    <!-- Shared styles -->
+    <link rel="stylesheet" href="/shared-styles.css">
+    <!-- Chart.js lazy-loader (fetches chart bundle on first chart render) -->
+    <script type="module" src="/js/chart-loader.ts"></script>
     <style>
         /* CSS Variables for theming */
         :root {
@@ -2268,7 +2270,7 @@ eventSource.addEventListener('result', (e) => {
                 updateQueueHealth(stats);
                 
                 // Update queue depth chart
-                updateQueueDepthChart(stats.depthHistory || []);
+                await updateQueueDepthChart(stats.depthHistory || []);
                 
                 // Update job history table
                 updateJobHistory(stats.history || []);
@@ -2300,17 +2302,13 @@ eventSource.addEventListener('result', (e) => {
             indicator.innerHTML = `<span class="health-indicator ${healthClass}"></span>${healthText}`;
         }
 
-        function updateQueueDepthChart(depthHistory) {
+        async function updateQueueDepthChart(depthHistory) {
             const canvas = document.getElementById('queue-depth-chart');
             if (!canvas) return;
             
             const ctx = canvas.getContext('2d');
             
-            // Check if Chart.js is available
-            if (typeof Chart === 'undefined') {
-                console.warn('Chart.js not loaded, skipping chart update');
-                return;
-            }
+            await window.loadChart();
             
             if (queueDepthChart) {
                 queueDepthChart.destroy();
