@@ -32,6 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.28.0] - 2026-03-02
+
+### Added- apply styling to /api endpoint with HTML documentation page
+
+
 ## [0.27.0] - 2026-03-02
 
 ### Added
