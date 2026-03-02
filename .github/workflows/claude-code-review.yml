@@ -10,8 +10,13 @@ on:
     #   - "src/**/*.js"
     #   - "src/**/*.jsx"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   claude-review:
+    if: secrets.CLAUDE_CODE_OAUTH_TOKEN != ''
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
@@ -20,9 +25,9 @@ jobs:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write
+      pull-requests: write
+      issues: write
       id-token: write
 
     steps:
