@@ -264,6 +264,7 @@
             right: 20px;
             z-index: 1000;
             max-width: 400px;
+            width: calc(100% - 40px);
         }
 
         .notification {
@@ -509,6 +510,23 @@
 
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .notification-container {
+                right: 12px;
+                left: 12px;
+                width: auto;
+                max-width: none;
             }
         }
     </style>

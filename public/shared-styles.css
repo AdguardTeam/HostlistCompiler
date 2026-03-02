@@ -897,6 +897,10 @@ code {
         font-size: 22px;
     }
 
+    .header-right {
+        flex-wrap: wrap;
+    }
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -907,6 +911,40 @@ code {
 
     .card {
         padding: 16px;
+    }
+
+    .modal {
+        padding: 20px;
+        max-width: 95%;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-left h1,
+    .header h1 {
+        font-size: 18px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        padding: 12px;
+    }
+
+    .btn,
+    button {
+        min-height: 44px;
     }
 }
 

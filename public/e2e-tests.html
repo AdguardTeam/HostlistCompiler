@@ -334,7 +334,22 @@
             --danger-bg: rgba(245, 101, 101, 0.15);
             --code-bg: #0d1117;
         }
-    </style>
+
+        @media (max-width: 768px) {
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
 </head>
 <body>
     <div class="container">
