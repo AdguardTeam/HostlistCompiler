@@ -13,8 +13,8 @@ Each remote source URL gets its own circuit breaker that transitions through thr
 ```mermaid
 stateDiagram-v2
     [*] --> CLOSED
-    CLOSED --> OPEN : failure threshold reached
     CLOSED --> CLOSED : success
+    CLOSED --> OPEN : threshold reached (failure)
     OPEN --> HALF_OPEN : timeout elapsed
     HALF_OPEN --> CLOSED : success
     HALF_OPEN --> OPEN : failure

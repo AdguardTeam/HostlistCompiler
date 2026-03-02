@@ -12,18 +12,18 @@ At its core, Adblock Compiler does one thing exceptionally well: **it transforms
 
 ```mermaid
 flowchart TD
-    SOURCES["Multiple Filter Sources\n(URLs, files, inline rules — multiple formats supported)"]
-    PIPELINE["Adblock Compiler Pipeline"]
-    S1["1. Parse and normalize rules"]
-    S2["2. Apply transformations (11 different types)"]
-    S3["3. Remove duplicates and invalid rules"]
-    S4["4. Validate for compatibility"]
-    S5["5. Compress and optimize"]
-    OUTPUT["Output in Multiple Formats\n(Adblock, Hosts, Dnsmasq, Pi-hole, Unbound, DoH, JSON)"]
-
-    SOURCES --> PIPELINE
-    PIPELINE --> S1 --> S2 --> S3 --> S4 --> S5
-    S5 --> OUTPUT
+    SRC["Multiple Filter Sources\n(URLs, files, inline rules - multiple formats supported)"]
+    subgraph PIPE["Adblock Compiler Pipeline"]
+        direction TB
+        P1["1. Parse and normalize rules"]
+        P2["2. Apply transformations (11 different types)"]
+        P3["3. Remove duplicates and invalid rules"]
+        P4["4. Validate for compatibility"]
+        P5["5. Compress and optimize"]
+        P1 --> P2 --> P3 --> P4 --> P5
+    end
+    SRC --> P1
+    P5 --> OUT["Output in Multiple Formats\n(Adblock, Hosts, Dnsmasq, Pi-hole, Unbound, DoH, JSON)"]
 ```
 
 ## Why Adblock Compiler?
@@ -101,11 +101,11 @@ Transform and clean your filter lists with a comprehensive suite:
 Adblock Compiler runs everywhere:
 
 ```mermaid
-flowchart TB
+flowchart TD
     PAL["Platform Abstraction Layer"]
     PAL --> D["✓ Deno (native)"]
     PAL --> N["✓ Node.js (npm compatibility)"]
-    PAL --> CW["✓ Cloudflare Workers"]
+    PAL --> CF["✓ Cloudflare Workers"]
     PAL --> DD["✓ Deno Deploy"]
     PAL --> VE["✓ Vercel Edge Functions"]
     PAL --> AL["✓ AWS Lambda@Edge"]
