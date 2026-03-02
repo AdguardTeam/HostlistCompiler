@@ -2308,7 +2308,13 @@ eventSource.addEventListener('result', (e) => {
             
             const ctx = canvas.getContext('2d');
             
-            await window.loadChart();
+            try {
+                await window.loadChart();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                console.warn('Failed to load chart library, skipping queue depth chart:', message);
+                return;
+            }
             
             if (queueDepthChart) {
                 queueDepthChart.destroy();

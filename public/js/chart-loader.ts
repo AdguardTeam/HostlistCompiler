@@ -16,3 +16,5 @@ declare global {
 }
 
 window.loadChart = () => import('./chart-setup.ts').then(() => undefined);
+
+export {};

@@ -1212,7 +1212,13 @@
             const ctx = document.getElementById('queueChart');
             if (!ctx) return;
 
-            await window.loadChart();
+            try {
+                await window.loadChart();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                console.warn('Failed to load chart library, skipping queue chart initialization:', message);
+                return;
+            }
             const colors = getChartColors();
 
             DashboardState.queueChart = new Chart(ctx, {
