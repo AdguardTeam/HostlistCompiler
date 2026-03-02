@@ -330,7 +330,7 @@
                 <div class="alpha-banner">⚗️ Alpha — Experimental Code</div>
                 <h2>Frontend Framework Proofs of Concept</h2>
                 <p>
-                    Explore how the Adblock Compiler frontend can be implemented in four popular
+                    Explore how the Adblock Compiler frontend can be implemented in two popular
                     JavaScript frameworks. Each PoC demonstrates routing, state management, theme
                     toggling, and API integration. These implementations are <strong>incubator-stage
                     experiments</strong> — not yet part of the production UI.
@@ -338,31 +338,6 @@
             </div>
 
             <div class="cards-grid">
-                <!-- React -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon">⚛️</span>
-                        <span class="card-title">React</span>
-                        <span class="card-badge badge-cdn">CDN</span>
-                    </div>
-                    <p class="card-description">
-                        React 18 with React Router v6. Demonstrates functional components, Hooks,
-                        Context API for theme management, and a simulated Server Components pattern.
-                    </p>
-                    <ul class="tech-list">
-                        <li>React 18</li>
-                        <li>React Router v6</li>
-                        <li>Babel Standalone</li>
-                        <li>Hooks</li>
-                    </ul>
-                    <div class="run-instructions">
-                        <p>How to run</p>
-                        <code>cd poc/react
-python3 -m http.server 8000</code>
-                    </div>
-                    <a href="/poc/react/index.html" class="card-link">Open React PoC →</a>
-                </div>
-
                 <!-- Vue -->
                 <div class="card">
                     <div class="card-header">
@@ -396,11 +371,11 @@ python3 -m http.server 8001</code>
                         <span class="card-badge badge-build">Build Required</span>
                     </div>
                     <p class="card-description">
-                        Angular 17+ with standalone components, TypeScript, Reactive Forms, and RxJS.
+                        Angular 21 with standalone components, TypeScript, Reactive Forms, and RxJS.
                         Requires a local dev server — cannot be opened directly as a file.
                     </p>
                     <ul class="tech-list">
-                        <li>Angular 17+</li>
+                        <li>Angular 21</li>
                         <li>TypeScript</li>
                         <li>RxJS</li>
                         <li>Reactive Forms</li>
@@ -411,31 +386,6 @@ python3 -m http.server 8001</code>
 npm install &amp;&amp; npm start</code>
                     </div>
                     <a href="http://localhost:4200" class="card-link" target="_blank" rel="noopener">Open Angular PoC ↗</a>
-                </div>
-
-                <!-- Svelte -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon">🔥</span>
-                        <span class="card-title">Svelte 5</span>
-                        <span class="card-badge badge-build">Build Required</span>
-                    </div>
-                    <p class="card-description">
-                        Svelte 5 with runes ($state, $derived, $effect) — the compiler-first framework
-                        with no virtual DOM, minimal runtime, and explicit reactive primitives.
-                    </p>
-                    <ul class="tech-list">
-                        <li>Svelte 5</li>
-                        <li>Vite 6</li>
-                        <li>Runes</li>
-                        <li>Hash Router</li>
-                    </ul>
-                    <div class="run-instructions">
-                        <p>How to run</p>
-                        <code>cd poc/svelte
-npm install &amp;&amp; npm run dev</code>
-                    </div>
-                    <a href="http://localhost:4201" class="card-link" target="_blank" rel="noopener">Open Svelte PoC ↗</a>
                 </div>
             </div>
 

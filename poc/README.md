@@ -1,6 +1,6 @@
 # Frontend Framework Migration - Proof of Concept
 
-This directory contains proof-of-concept implementations of the Adblock Compiler frontend in four popular JavaScript frameworks: **React**, **Vue 3**, **Angular 19+**, and **Svelte 5**.
+This directory contains proof-of-concept implementations of the Adblock Compiler frontend in two popular JavaScript frameworks: **Vue 3** and **Angular 21**.
 
 ## 📋 Overview
 
@@ -17,63 +17,7 @@ Each PoC demonstrates how the existing vanilla HTML/CSS/JS frontend would be imp
 
 ## 🎯 PoC Implementations
 
-### 1. React PoC ([react/index.html](./react/index.html))
-
-**Technology Stack:**
-
-- React 18 (via CDN)
-- React Router v6 (via CDN)
-- Babel Standalone (for JSX transformation)
-
-**Key Patterns:**
-
-- Functional components with Hooks
-- `useState` for local state
-- `useEffect` for side effects
-- Context API for theme management
-- Controlled components for forms
-- Custom hooks for reusable logic
-- React Server Components (simulated) — server/client component split
-
-**Routing:**
-
-React Router v6 is used for client-side navigation. It provides instant page transitions without full browser reloads, keeps the browser URL in sync with the rendered view, and enables deep linking, bookmarking, and proper browser history support. See [react/REACT_ROUTER.md](./react/REACT_ROUTER.md) for a detailed explanation of why React Router is the right choice for this project.
-
-**Server Components:**
-
-The `/server-components` route demonstrates the React Server Components architecture pattern: how the component tree splits into server-rendered (data-fetching, zero client JS) and client-rendered (interactive, hooks) parts, and why this benefits the Adblock Compiler. See [react/REACT_SERVER_COMPONENTS.md](./react/REACT_SERVER_COMPONENTS.md) for the full rationale.
-
-**Benchmark:**
-
-The `/benchmark` route measures compilation API performance across multiple runs. It uses `performance.now()` for accurate wall-clock timing, shows a live progress bar and per-run results table, and computes summary statistics (min, max, avg) when all runs complete. Demonstrates `useState` with functional updates for safe async state accumulation.
-
-**How to Run:**
-
-```bash
-cd poc/react
-# Open index.html in a web browser
-# OR serve with a local server:
-python3 -m http.server 8000
-# Then visit: http://localhost:8000
-```
-
-**Advantages:**
-
-- 🚀 Huge ecosystem and community
-- 📚 Abundant learning resources
-- 🔧 Flexible and unopinionated
-- ⚡ Great performance with Virtual DOM
-- 🧩 Rich component library ecosystem
-
-**Considerations:**
-
-- Requires build tooling for production (Vite, webpack)
-- More decisions to make (state management, routing)
-- JSX learning curve
-
----
-
-### 2. Vue 3 PoC ([vue/index.html](./vue/index.html))
+### 1. Vue 3 PoC ([vue/index.html](./vue/index.html))
 
 **Technology Stack:**
 
@@ -152,11 +96,11 @@ python3 -m http.server 8001
 
 ---
 
-### 3. Angular PoC ([angular/](./angular/))
+### 2. Angular PoC ([angular/](./angular/))
 
 **Technology Stack:**
 
-- Angular 19+ (Standalone Components)
+- Angular 21 (Standalone Components)
 - TypeScript
 - RxJS
 - Reactive Forms
@@ -211,103 +155,33 @@ npm start
 
 ---
 
-### 4. Svelte 5 PoC ([svelte/](./svelte/))
-
-**Technology Stack:**
-
-- Svelte 5 (via Vite)
-- @sveltejs/vite-plugin-svelte
-- Hash-based routing (no external router)
-- Runes reactivity system
-
-**Key Patterns:**
-
-- **`$state()`** — Mutable reactive state that replaces `let` reactive variables
-- **`$derived()`** — Computed values that replace `$:` reactive declarations
-- **`$effect()`** — Side effects that replace `onMount` / reactive statements
-- No virtual DOM — Svelte compiles components to vanilla JavaScript
-- Hash-based client-side routing without external dependencies
-- CSS custom properties for theming with `localStorage` persistence
-
-**Modern Reactivity with Runes:**
-
-Svelte 5 introduces **runes** — explicit reactive primitives that make reactivity transparent:
-
-| Svelte 4 | Svelte 5 Runes |
-| -------- | -------------- |
-| `let count = 0` (magic reactive) | `let count = $state(0)` (explicit) |
-| `$: doubled = count * 2` | `let doubled = $derived(count * 2)` |
-| `$: { sideEffect() }` | `$effect(() => { sideEffect() })` |
-
-See [svelte/README.md](./svelte/README.md) for the full setup guide.
-
-**Benchmark:**
-
-The `#/benchmark` route measures compilation API performance across multiple runs using `performance.now()` for accurate timing, a live progress bar, a per-run results table, and `$derived()` computed summary statistics (min, max, avg). Demonstrates how `$state` and `$derived` keep the UI reactive with minimal code.
-
-**How to Run:**
-
-```bash
-cd poc/svelte
-npm install
-npm run dev
-# Visit: http://localhost:4201
-```
-
-**Advantages:**
-
-- 🚀 No virtual DOM — compiled to vanilla JS
-- 📦 Tiny runtime (~5 KB vs React's ~40 KB)
-- ⚡ Fine-grained reactivity, only affected nodes update
-- 🧹 Less boilerplate than React or Angular
-- 🔒 Runes make reactive dependencies explicit and visible
-
-**Considerations:**
-
-- Requires Node.js and build tools
-- Smaller ecosystem than React
-- Svelte 5 runes are a breaking change from Svelte 4
-- Less enterprise adoption than Angular
-
----
-
 ## 🔍 Feature Comparison
 
-| Feature               | React                     | Vue                  | Angular              | Svelte               |
-| --------------------- | ------------------------- | -------------------- | -------------------- | -------------------- |
-| **Learning Curve**    | Medium                    | Easy                 | Steep                | Easy                 |
-| **Bundle Size**       | Small-Medium              | Small                | Large                | Tiny (~5 KB)         |
-| **Performance**       | Excellent                 | Excellent            | Very Good            | Excellent            |
-| **TypeScript**        | Optional                  | Optional             | Required             | Optional             |
-| **State Management**  | External (Redux, Zustand) | **Pinia** (Official) | Services + RxJS + Signals | **Runes** (Built-in) |
-| **Form Handling**     | Manual / Libraries        | v-model + validation | Reactive Forms       | bind: directive      |
-| **Routing**           | React Router              | Vue Router           | Angular Router       | Hash / SvelteKit     |
-| **Build Setup**       | Vite / CRA                | Vite / Vue CLI       | Angular CLI          | Vite + plugin        |
-| **Testing**           | Jest + Testing Library    | Vitest / Jest        | Jasmine + Karma      | Vitest               |
-| **Mobile**            | React Native              | Native options       | Ionic / NativeScript | Native options       |
-| **Community**         | Very Large                | Large                | Large                | Growing              |
-| **Corporate Backing** | Meta                      | Independent          | Google               | Independent          |
+| Feature               | Vue                  | Angular              |
+| --------------------- | -------------------- | -------------------- |
+| **Learning Curve**    | Easy                 | Steep                |
+| **Bundle Size**       | Small                | Large                |
+| **Performance**       | Excellent            | Very Good            |
+| **TypeScript**        | Optional             | Required             |
+| **State Management**  | **Pinia** (Official) | Services + RxJS + Signals |
+| **Form Handling**     | v-model + validation | Reactive Forms       |
+| **Routing**           | Vue Router           | Angular Router       |
+| **Build Setup**       | Vite / Vue CLI       | Angular CLI          |
+| **Testing**           | Vitest / Jest        | Jasmine + Karma      |
+| **Mobile**            | Native options       | Ionic / NativeScript |
+| **Community**         | Large                | Large                |
+| **Corporate Backing** | Independent          | Google               |
 
 ## 🎨 Visual Comparison
 
-All three PoCs implement the same design using the existing color scheme:
+Both PoCs implement the same design using the existing color scheme:
 
 - **Primary Gradient**: `#667eea` → `#764ba2`
-- **Dark Mode**: Supported in all implementations
+- **Dark Mode**: Supported in both implementations
 - **Responsive Design**: Mobile-friendly layouts
 - **Consistent UX**: Same user experience across frameworks
 
 ## 📊 Code Structure Comparison
-
-### React
-
-```
-- Functional components
-- JSX templates
-- Hooks for state/effects
-- Context for global state
-- Props for data flow
-```
 
 ### Vue
 
@@ -331,14 +205,6 @@ All three PoCs implement the same design using the existing color scheme:
 
 ## 🚀 Migration Path Recommendations
 
-### Choose **React** if:
-
-- ✅ You want maximum flexibility
-- ✅ Large ecosystem is important
-- ✅ Team has React experience
-- ✅ You need React Native for mobile
-- ✅ You prefer functional programming
-
 ### Choose **Vue** if:
 
 - ✅ You want an easy learning curve
@@ -354,14 +220,6 @@ All three PoCs implement the same design using the existing color scheme:
 - ✅ You want a complete solution
 - ✅ Team consistency is critical
 - ✅ You're building a large-scale app
-
-### Choose **Svelte** if:
-
-- ✅ You want the smallest possible bundle size
-- ✅ No virtual DOM overhead is important
-- ✅ You prefer explicit reactive primitives (runes)
-- ✅ You value minimal boilerplate
-- ✅ You want a gentle learning curve
 
 ## 📈 Existing App Analysis
 
@@ -388,7 +246,7 @@ All three PoCs implement the same design using the existing color scheme:
 
 ## 🔧 API Integration
 
-All PoCs use the same API contract:
+Both PoCs use the same API contract:
 
 **Endpoint:** `POST /api/compile`
 
@@ -443,7 +301,7 @@ All PoCs use the same API contract:
 
 ## 📝 Implementation Notes
 
-### React & Vue (CDN Versions)
+### Vue (CDN Version)
 
 - Single HTML file, no build step required
 - Suitable for PoC and small projects
@@ -459,19 +317,19 @@ All PoCs use the same API contract:
 
 1. **Build Process**: All frameworks need bundling for production
 2. **Code Splitting**: Lazy load routes and components
-3. **SEO**: Consider SSR (Next.js, Nuxt, Angular Universal)
+3. **SEO**: Consider SSR (Nuxt, Angular Universal)
 4. **PWA**: Add service workers for offline support
 5. **Testing**: Set up unit and E2E tests
 6. **CI/CD**: Automate builds and deployments
 
 ## 🧪 Testing the PoCs
 
-### React & Vue (CDN)
+### Vue (CDN)
 
 1. Open the HTML file directly in a browser
 2. Or serve with a local HTTP server:
    ```bash
-   python3 -m http.server 8000
+   python3 -m http.server 8001
    npx http-server
    ```
 
@@ -481,22 +339,7 @@ All PoCs use the same API contract:
 2. Run dev server: `npm start`
 3. Build for production: `npm run build`
 
-### Svelte
-
-1. Install dependencies: `npm install`
-2. Run dev server: `npm run dev`
-3. Build for production: `npm run build`
-
 ## 🎓 Learning Resources
-
-### React
-
-- [Official React Docs](https://react.dev/)
-- [React Router](https://reactrouter.com/)
-- [React Hooks](https://react.dev/reference/react)
-- [Why React Router? (PoC documentation)](./react/REACT_ROUTER.md)
-- [React Server Components (PoC documentation)](./react/REACT_SERVER_COMPONENTS.md)
-- [Next.js App Router](https://nextjs.org/docs/app/building-your-application/rendering/server-components)
 
 ### Vue
 
@@ -509,13 +352,6 @@ All PoCs use the same API contract:
 - [Official Angular Docs](https://angular.io/docs)
 - [Standalone Components](https://angular.io/guide/standalone-components)
 - [Reactive Forms](https://angular.io/guide/reactive-forms)
-
-### Svelte
-
-- [Official Svelte Docs](https://svelte.dev/)
-- [Svelte 5 Runes](https://svelte.dev/docs/svelte/what-are-runes)
-- [SvelteKit (full-stack)](https://kit.svelte.dev/)
-- [Why Svelte? (Rich Harris)](https://www.youtube.com/watch?v=AdNJ3fydeao)
 
 ## 📞 Next Steps
 
