@@ -94,6 +94,45 @@ python3 -m http.server 8001
 - Less corporate backing
 - Composition API is newer (learning curve)
 
+#### 1a. Nuxt 3 PoC ([vue/nuxt/](./vue/nuxt/))
+
+Nuxt 3 is a **meta-framework built on top of Vue 3** — it uses the same `.vue` single-file components, Composition API, and Pinia, and adds a production-ready layer on top. Because Nuxt is Vue (not a separate framework), the Nuxt PoC lives alongside the CDN version inside `poc/vue/` rather than as a peer to Angular.
+
+**What Nuxt adds over the CDN Vue PoC:**
+
+| Feature | Vue CDN PoC | Nuxt 3 PoC |
+| --- | --- | --- |
+| **Rendering** | Client-only (CSR) | **Server + Client (SSR)** |
+| **SEO** | ❌ Crawlers see empty HTML | ✅ Crawlers see full HTML |
+| **Routing** | Manual `routes[]` array | **File-based** (`pages/` directory) |
+| **Data fetching** | `fetch()` — client only | **`useFetch()` / `useAsyncData()`** — SSR |
+| **Pinia state** | Client-init only | **SSR-hydrated** via `@pinia/nuxt` |
+| **Head / SEO tags** | Static `<title>` only | **`useHead()` / `useSeoMeta()`** — SSR |
+| **API routes** | External backend | **`server/api/`** — Nitro built-in |
+| **TypeScript** | JSDoc annotations | **Strict TypeScript throughout** |
+| **Build step** | None (CDN) | `npm run build` |
+
+**Key SSR patterns demonstrated:**
+
+- `useAsyncData()` — data fetched on the server, embedded in the HTML payload, zero loading flash
+- `useState()` — SSR-safe shared state that survives the server→client handoff without mismatch
+- `useHead()` — server-rendered `<title>` and `<meta>` tags for SEO on every page
+- `@pinia/nuxt` — Pinia store state serialised into the HTML and hydrated on the client
+- `$fetch()` — isomorphic fetch utility (Node http on server, browser Fetch on client)
+- `server/api/compile.post.ts` — Nitro server route that proxies to the Worker API, eliminating CORS
+- File-based routing — `[[preset]]` for optional params, `[...slug]` for catch-all 404
+
+**How to Run:**
+
+```bash
+cd poc/vue/nuxt
+npm install
+npm run dev
+# → http://localhost:3000
+```
+
+See [vue/nuxt/NUXT_SSR.md](./vue/nuxt/NUXT_SSR.md) for a full explanation of SSR concepts and patterns used.
+
 ---
 
 ### 2. Angular PoC ([angular/](./angular/))
@@ -157,20 +196,22 @@ npm start
 
 ## 🔍 Feature Comparison
 
-| Feature               | Vue                  | Angular              |
-| --------------------- | -------------------- | -------------------- |
-| **Learning Curve**    | Easy                 | Steep                |
-| **Bundle Size**       | Small                | Large                |
-| **Performance**       | Excellent            | Very Good            |
-| **TypeScript**        | Optional             | Required             |
-| **State Management**  | **Pinia** (Official) | Services + RxJS + Signals |
-| **Form Handling**     | v-model + validation | Reactive Forms       |
-| **Routing**           | Vue Router           | Angular Router       |
-| **Build Setup**       | Vite / Vue CLI       | Angular CLI          |
-| **Testing**           | Vitest / Jest        | Jasmine + Karma      |
-| **Mobile**            | Native options       | Ionic / NativeScript |
-| **Community**         | Large                | Large                |
-| **Corporate Backing** | Independent          | Google               |
+| Feature               | Vue CDN              | Vue + Nuxt 3         | Angular              |
+| --------------------- | -------------------- | -------------------- | -------------------- |
+| **Learning Curve**    | Easy                 | Easy (same Vue API)  | Steep                |
+| **Bundle Size**       | Small (CDN)          | Small (tree-shaken)  | Large                |
+| **Performance**       | Excellent            | Excellent + SSR      | Very Good            |
+| **TypeScript**        | Optional (JSDoc)     | Yes (strict)         | Required             |
+| **State Management**  | **Pinia** (Official) | **Pinia** + SSR hydration | Services + RxJS + Signals |
+| **Form Handling**     | v-model + validation | v-model + validation | Reactive Forms       |
+| **Routing**           | Vue Router (manual)  | File-based (auto)    | Angular Router       |
+| **Build Setup**       | None (CDN)           | Nuxt / Nitro         | Angular CLI          |
+| **SSR**               | ❌                   | ✅ (built-in)        | Optional (Angular Universal) |
+| **SEO**               | ❌ (CSR only)        | ✅ (`useHead()`)     | Optional             |
+| **API Routes**        | External backend     | `server/api/` (built-in) | External backend |
+| **Testing**           | Vitest / Jest        | Vitest / Jest        | Jasmine + Karma      |
+| **Community**         | Large                | Large                | Large                |
+| **Corporate Backing** | Independent          | Independent          | Google               |
 
 ## 🎨 Visual Comparison
 
@@ -183,14 +224,24 @@ Both PoCs implement the same design using the existing color scheme:
 
 ## 📊 Code Structure Comparison
 
-### Vue
+### Vue CDN
 
 ```
-- Single-file components (or templates)
+- Single HTML file (no build step)
 - Template syntax (HTML-like)
 - Composition API for logic
 - Reactive data binding
 - Props & emits for communication
+```
+
+### Vue + Nuxt 3
+
+```
+- .vue single-file components (same as Vue CDN)
+- File-based routing (pages/ directory)
+- Server-side rendering (Nitro engine)
+- Auto-imported composables and Vue APIs
+- server/api/ for backend API routes
 ```
 
 ### Angular
@@ -205,13 +256,18 @@ Both PoCs implement the same design using the existing color scheme:
 
 ## 🚀 Migration Path Recommendations
 
-### Choose **Vue** if:
+### Choose **Vue CDN** if:
 
-- ✅ You want an easy learning curve
-- ✅ Progressive enhancement is important
-- ✅ You like template-based syntax
-- ✅ You want official libraries (router, state)
-- ✅ You value excellent documentation
+- ✅ You want zero setup and no build step
+- ✅ Prototyping or embedding in an existing HTML page
+- ✅ No SSR / SEO requirements
+
+### Choose **Vue + Nuxt 3** if:
+
+- ✅ You want Vue's easy learning curve with production-grade SSR
+- ✅ SEO or social-preview meta tags are needed
+- ✅ You want a full-stack setup (frontend + API routes) in one repo
+- ✅ Progressive enhancement or Cloudflare Pages deployment is desired
 
 ### Choose **Angular** if:
 
@@ -305,7 +361,13 @@ Both PoCs use the same API contract:
 
 - Single HTML file, no build step required
 - Suitable for PoC and small projects
-- For production, use Vite or other build tools
+- For production, use Nuxt 3 (see below) or Vite
+
+### Vue + Nuxt 3
+
+- Full Nuxt 3 project with SSR, file-based routing, and TypeScript
+- Requires Node.js and npm
+- Extends the CDN version with everything needed for production
 
 ### Angular
 
@@ -317,14 +379,14 @@ Both PoCs use the same API contract:
 
 1. **Build Process**: All frameworks need bundling for production
 2. **Code Splitting**: Lazy load routes and components
-3. **SEO**: Consider SSR (Nuxt, Angular Universal)
+3. **SEO**: Use Nuxt 3 (Vue) or Angular Universal for SSR
 4. **PWA**: Add service workers for offline support
 5. **Testing**: Set up unit and E2E tests
 6. **CI/CD**: Automate builds and deployments
 
 ## 🧪 Testing the PoCs
 
-### Vue (CDN)
+### Vue CDN
 
 1. Open the HTML file directly in a browser
 2. Or serve with a local HTTP server:
@@ -332,6 +394,13 @@ Both PoCs use the same API contract:
    python3 -m http.server 8001
    npx http-server
    ```
+
+### Vue + Nuxt 3
+
+1. Install dependencies: `cd poc/vue/nuxt && npm install`
+2. Run dev server: `npm run dev`
+3. Visit: `http://localhost:3000`
+4. Build for production: `npm run build`
 
 ### Angular
 
@@ -341,11 +410,14 @@ Both PoCs use the same API contract:
 
 ## 🎓 Learning Resources
 
-### Vue
+### Vue / Nuxt
 
 - [Official Vue Docs](https://vuejs.org/)
 - [Vue Router](https://router.vuejs.org/)
 - [Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
+- [Nuxt 3 Docs](https://nuxt.com/docs)
+- [Pinia Docs](https://pinia.vuejs.org/)
+- [NUXT_SSR.md](./vue/nuxt/NUXT_SSR.md) — SSR concepts guide
 
 ### Angular
 

@@ -6,7 +6,7 @@ This document summarizes the proof-of-concept implementations created for evalua
 
 ## 📁 Files Created
 
-### 1. Vue 3 PoC (CDN-based, no build step)
+### 1. Vue 3 CDN PoC (no build step)
 
 - **File**: `poc/vue/index.html` (1,400+ lines)
 - **Technology**: Vue 3 + Vue Router 4 + Pinia 2 + Composition API
@@ -25,11 +25,46 @@ This document summarizes the proof-of-concept implementations created for evalua
 - ✅ Reactive state management
 - ✅ Component-based architecture
 - ✅ Dark/light theme with watchers
-- ✅ Type safety via JSDoc type annotations with `@ts-check` (compatible with VS Code TypeScript checking)
+- ✅ Type safety via JSDoc type annotations with `@ts-check`
 
 **Documentation:**
 
 - `poc/vue/VUE_PINIA.md` - Comprehensive Pinia state management guide
+
+### 1a. Vue + Nuxt 3 PoC (SSR, full project)
+
+Nuxt 3 is a **meta-framework built on top of Vue 3** — not a separate framework. It uses the same `.vue` single-file components, Composition API, and Pinia. For this reason the Nuxt PoC lives as `poc/vue/nuxt/` alongside the CDN version, rather than as a peer to Angular.
+
+**Files Created:**
+
+- `poc/vue/nuxt/package.json` — Nuxt 3, @pinia/nuxt, TypeScript dependencies
+- `poc/vue/nuxt/nuxt.config.ts` — SSR enabled, @pinia/nuxt module, global CSS
+- `poc/vue/nuxt/app.vue` — Root shell (`<AppNav>` + `<NuxtPage>`)
+- `poc/vue/nuxt/assets/css/main.css` — Shared CSS variables and component styles
+- `poc/vue/nuxt/components/AppNav.vue` — Navigation with `<NuxtLink>`
+- `poc/vue/nuxt/composables/useTheme.ts` — SSR-safe theme via `useState()`
+- `poc/vue/nuxt/stores/compiler.ts` — Typed Pinia store (same shape as CDN version)
+- `poc/vue/nuxt/pages/index.vue` — Dashboard with `useAsyncData()` + preset cards
+- `poc/vue/nuxt/pages/compiler/[[preset]].vue` — Compiler form (optional route param)
+- `poc/vue/nuxt/pages/store.vue` — Live Pinia state inspector
+- `poc/vue/nuxt/pages/ssr.vue` — SSR features showcase + Nuxt vs Vue CDN comparison table
+- `poc/vue/nuxt/pages/benchmark.vue` — `performance.now()` benchmark runner
+- `poc/vue/nuxt/pages/[...slug].vue` — 404 catch-all
+- `poc/vue/nuxt/server/api/compile.post.ts` — Nitro API route (proxy + mock fallback)
+- `poc/vue/nuxt/NUXT_SSR.md` — Comprehensive SSR concepts guide
+- `poc/vue/nuxt/README.md` — Setup, structure, and feature list
+
+**Key SSR Features Demonstrated:**
+
+- ✅ **`useAsyncData()`** — data fetched on the server, embedded in HTML, zero loading flash
+- ✅ **`useState()`** — SSR-safe shared state (theme); survives server→client handoff
+- ✅ **`useHead()`** — server-rendered `<title>` / `<meta>` tags for SEO on every page
+- ✅ **`@pinia/nuxt`** — Pinia store state serialised into HTML and hydrated on client
+- ✅ **`$fetch()`** — isomorphic fetch (Node http on server, browser Fetch on client)
+- ✅ **File-based routing** — `pages/` directory, `[[preset]]`, `[...slug]` catch-all
+- ✅ **Auto-imports** — Vue and Nuxt composables need no `import` statements
+- ✅ **`server/api/compile.post.ts`** — Nitro server route; avoids CORS, proxies to Worker API
+- ✅ **TypeScript strict mode** throughout
 
 ### 2. Angular 21 PoC (Full TypeScript project)
 
@@ -144,26 +179,36 @@ Both PoCs implement:
 
 ## 📊 Comparison Summary
 
-| Aspect               | Vue          | Angular         |
-| -------------------- | ------------ | --------------- |
-| **Files**            | 1 HTML       | 15 files        |
-| **Lines of Code**    | ~1,400       | ~2,000          |
-| **Setup Time**       | 0 min        | 5 min           |
-| **Build Required**   | No (CDN)     | Yes (npm)       |
-| **Learning Curve**   | Easy         | Steep           |
-| **Type Safety**      | No (can add) | Yes (required)  |
-| **Form Handling**    | v-model      | Reactive Forms  |
-| **State Management** | **Pinia**    | Services + RxJS + **Signals** |
+| Aspect               | Vue CDN      | Vue + Nuxt 3        | Angular         |
+| -------------------- | ------------ | ------------------- | --------------- |
+| **Files**            | 1 HTML       | 16 files            | 15 files        |
+| **Lines of Code**    | ~1,400       | ~900 (split across files) | ~2,000   |
+| **Setup Time**       | 0 min        | 5 min (npm install) | 5 min           |
+| **Build Required**   | No (CDN)     | Yes (npm)           | Yes (npm)       |
+| **Learning Curve**   | Easy         | Easy (same Vue API) | Steep           |
+| **Type Safety**      | JSDoc        | Strict TypeScript   | Yes (required)  |
+| **SSR**              | ❌           | ✅ (built-in)       | Optional        |
+| **SEO**              | ❌           | ✅ (`useHead()`)    | Optional        |
+| **State Management** | **Pinia**    | **Pinia** + SSR hydration | Services + RxJS + **Signals** |
 
 ## 🚀 How to Test
 
-### Vue PoC
+### Vue CDN PoC
 
 ```bash
 cd poc/vue
 # Open index.html in browser or:
 python3 -m http.server 8001
 # Visit: http://localhost:8001
+```
+
+### Vue + Nuxt PoC
+
+```bash
+cd poc/vue/nuxt
+npm install
+npm run dev
+# Visit: http://localhost:3000
 ```
 
 ### Angular PoC
@@ -177,7 +222,7 @@ npm start
 
 ## ✨ Code Quality
 
-Both PoCs include:
+All PoCs include:
 
 - ✅ **Comprehensive comments** explaining patterns
 - ✅ **Architecture documentation** in code
@@ -189,12 +234,18 @@ Both PoCs include:
 
 ## 🎯 Decision Criteria
 
-### Choose Vue if:
+### Choose Vue CDN if:
 
-- Easy learning curve is priority
-- Want progressive framework
-- Like template-based syntax
-- Value official router/state management
+- No build step desired
+- Embedding in an existing HTML page
+- Prototyping quickly
+
+### Choose Vue + Nuxt 3 if:
+
+- Easy Vue learning curve is priority
+- SSR or SEO is required
+- Want a full-stack setup (frontend + API in one repo)
+- Cloudflare Pages deployment is planned
 
 ### Choose Angular if:
 
@@ -203,30 +254,21 @@ Both PoCs include:
 - Want complete out-of-box solution
 - Need strong opinionated structure
 
-## 📈 Next Steps
-
-1. **Test each PoC** - Evaluate developer experience
-2. **Gather feedback** - Team preferences and concerns
-3. **Consider requirements** - Project size, timeline, skills
-4. **Make decision** - Select framework for migration
-5. **Plan migration** - Incremental approach recommended
-6. **Set up tooling** - Build process, linting, testing
-7. **Start development** - Begin with one feature/page
-
 ## 📝 Notes
 
-- **Vue**: CDN version is for PoC only. Production should use Vite or similar build tools.
+- **Vue CDN**: For PoC only. Production should use Nuxt 3 or Vite.
+- **Vue + Nuxt**: Production-ready SSR setup. Lives in `poc/vue/nuxt/` because Nuxt is Vue — not a separate framework.
 - **Angular**: Production-ready setup included, no changes needed.
-- **API Mock**: Both PoCs include fallback mock data since API might not be running.
-- **Chart.js**: Not included in PoCs but can be integrated into any framework.
-- **WebSocket**: Not demonstrated but both frameworks support it.
+- **API Mock**: All PoCs include fallback mock data since the API might not be running.
 
 ## 🔗 Resources
 
-- [Vue PoC](./vue/index.html)
+- [Vue CDN PoC](./vue/index.html)
+- [Vue + Nuxt PoC](./vue/nuxt/)
 - [Angular PoC](./angular/)
 - [Main README](./README.md)
 - [Angular README](./angular/README.md)
+- [Nuxt SSR Guide](./vue/nuxt/NUXT_SSR.md)
 
 ---
 

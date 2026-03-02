@@ -7,6 +7,25 @@
 - [x] `poc/vue/index.html` - Complete single-file Vue app (1,400+ lines)
 - [x] `poc/vue/VUE_PINIA.md` - Pinia state management guide
 
+### Vue + Nuxt PoC
+
+- [x] `poc/vue/nuxt/package.json` - Nuxt 3, @pinia/nuxt, TypeScript dependencies
+- [x] `poc/vue/nuxt/nuxt.config.ts` - SSR, modules, global CSS, head config
+- [x] `poc/vue/nuxt/app.vue` - Root component (`<AppNav>` + `<NuxtPage>`)
+- [x] `poc/vue/nuxt/assets/css/main.css` - Shared CSS variables + component styles
+- [x] `poc/vue/nuxt/components/AppNav.vue` - Navigation with `<NuxtLink>`
+- [x] `poc/vue/nuxt/composables/useTheme.ts` - SSR-safe theme via `useState()`
+- [x] `poc/vue/nuxt/stores/compiler.ts` - Typed Pinia store with SSR hydration
+- [x] `poc/vue/nuxt/pages/index.vue` - Dashboard with `useAsyncData()` + presets
+- [x] `poc/vue/nuxt/pages/compiler/[[preset]].vue` - Compiler form (optional preset param)
+- [x] `poc/vue/nuxt/pages/store.vue` - Live Pinia state inspector
+- [x] `poc/vue/nuxt/pages/ssr.vue` - SSR features showcase + comparison table
+- [x] `poc/vue/nuxt/pages/benchmark.vue` - `performance.now()` benchmark runner
+- [x] `poc/vue/nuxt/pages/[...slug].vue` - 404 catch-all
+- [x] `poc/vue/nuxt/server/api/compile.post.ts` - Nitro API route (proxy + mock fallback)
+- [x] `poc/vue/nuxt/NUXT_SSR.md` - Comprehensive SSR concepts guide
+- [x] `poc/vue/nuxt/README.md` - Setup, structure, SSR feature list
+
 ### Angular PoC
 
 - [x] `poc/angular/package.json` - Dependencies
@@ -27,13 +46,15 @@
 
 ### Documentation
 
-- [x] `poc/README.md` - Main overview
+- [x] `poc/README.md` - Main overview (Vue, Vue+Nuxt, Angular)
 - [x] `poc/SUMMARY.md` - Implementation summary
 - [x] `poc/angular/README.md` - Angular setup guide
+- [x] `poc/vue/nuxt/README.md` - Nuxt setup and SSR feature list
+- [x] `poc/vue/nuxt/NUXT_SSR.md` - SSR concepts guide
 
 ## Features Implemented
 
-### Both Frameworks
+### All Implementations
 
 - [x] Component-based architecture
 - [x] Client-side routing (Home ↔ Compiler)
@@ -44,12 +65,26 @@
 - [x] Compiler form page
 - [x] Benchmark page (`/benchmark` route) with `performance.now()` timing, progress bar, results table, and summary statistics (min/max/avg)
 
-### Vue-Specific Features
+### Vue CDN-Specific Features
 
 - [x] Pinia state management store
 - [x] StoreInspectorPage component
 - [x] Store route (`/store`)
 - [x] CompilerPage using Pinia store
+
+### Vue + Nuxt-Specific Features
+
+- [x] Server-Side Rendering (SSR) enabled by default
+- [x] `useAsyncData()` for SSR-hydrated data (zero loading flash)
+- [x] `useState()` for SSR-safe shared state (theme, avoids hydration mismatch)
+- [x] `useHead()` for server-rendered `<title>` and `<meta>` tags on every page
+- [x] `@pinia/nuxt` for automatic Pinia state SSR hydration
+- [x] `$fetch()` isomorphic fetch utility
+- [x] File-based routing (`pages/` directory, `[[preset]]` optional param, `[...slug]` catch-all)
+- [x] Auto-imports for Vue and Nuxt composables
+- [x] `server/api/compile.post.ts` — Nitro API route (proxy + mock fallback)
+- [x] `/ssr` route — SSR features showcase with comparison table
+- [x] TypeScript strict mode throughout
 
 ### Angular-Specific Features
 
@@ -119,18 +154,20 @@
 ## Documentation Quality
 
 - [x] Main README with overview
-- [x] Comparison table
+- [x] Comparison table (Vue CDN / Vue+Nuxt / Angular)
 - [x] How to run instructions
 - [x] Framework recommendations
 - [x] Angular-specific documentation
+- [x] Nuxt-specific documentation (`NUXT_SSR.md`)
 - [x] Implementation summary
 - [x] Code examples
 - [x] Learning resources
 
 ## Testing Instructions
 
-- [x] Vue: Open in browser or serve with http-server
-- [x] Angular: npm install && npm start
+- [x] Vue CDN: Open in browser or serve with http-server
+- [x] Vue + Nuxt: `cd poc/vue/nuxt && npm install && npm run dev`
+- [x] Angular: `cd poc/angular && npm install && npm start`
 
 ## Status
 
