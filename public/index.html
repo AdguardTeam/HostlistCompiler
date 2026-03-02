@@ -9,12 +9,12 @@
     <link rel="preconnect" href="https://static.cloudflareinsights.com">
     <!-- Cloudflare Web Analytics -->
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8771568d1cde4005bb60c5767d0969c4"}'></script>
-    <!-- Chart.js (bundled via Vite) -->
-    <script type="module" src="/js/chart-setup.ts"></script>
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="/tailwind.css">
     <!-- Shared styles -->
     <link rel="stylesheet" href="/shared-styles.css">
+    <!-- Chart.js lazy-loader (fetches chart bundle on first chart render) -->
+    <script type="module" src="/js/chart-loader.ts"></script>
     <style>
         /* Page-specific styles */
         .header-content {
@@ -901,7 +901,7 @@
             await loadVersion();
             await refreshMetrics();
             setupAutoRefresh();
-            initQueueChart();
+            await initQueueChart();
             initNotifications();
             startJobMonitoring();
         }
@@ -1208,10 +1208,17 @@
         }
 
         // Initialize queue chart
-        function initQueueChart() {
+        async function initQueueChart() {
             const ctx = document.getElementById('queueChart');
             if (!ctx) return;
 
+            try {
+                await window.loadChart();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                console.warn('Failed to load chart library, skipping queue chart initialization:', message);
+                return;
+            }
             const colors = getChartColors();
 
             DashboardState.queueChart = new Chart(ctx, {
