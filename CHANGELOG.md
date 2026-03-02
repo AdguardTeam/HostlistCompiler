@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.27.0] - 2026-03-02
+
+### Added- add comprehensive mobile responsive improvements across all UI pages
+
+### Fixed
+
+- add missing closing style tags in test.html and e2e-tests.html
+- add retry logic to deno install steps to prevent transient worker build failures
+
+
 ## [0.26.0] - 2026-03-02
 
 ### Added- migrate Tailwind CSS v3 to v4
