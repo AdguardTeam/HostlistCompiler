@@ -793,8 +793,8 @@ graph TD
         AE["Analytics Engine"]
     end
 
-    CLIENTS["Clients\n(Browser, CI/CD, CLI)"] -->|HTTP/SSE/WS| CW
-    CW -->|HTTP fetch sources| FLS["Filter List Sources\n(EasyList, etc.)"]
+    CLIENTS["Clients\n(Browser, CI/CD, CLI)"] -->|HTTP/SSE/WS| HAPI
+    HAPI -->|HTTP fetch sources| FLS["Filter List Sources\n(EasyList, etc.)"]
 ```
 
 ---
