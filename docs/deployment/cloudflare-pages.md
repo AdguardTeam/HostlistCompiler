@@ -125,9 +125,13 @@ flowchart TB
         BINDINGS["KV, R2, D1 bindings"]
     end
 
-    PAGES --> STATIC
+    PAGES --> I
+    PAGES --> C
+    PAGES --> T
     PAGES -->|calls| WORKERS
-    WORKERS --> WORKER_INNER
+    WORKERS --> API
+    WORKERS --> SVC
+    WORKERS --> BINDINGS
 ```
 
 ## Verification

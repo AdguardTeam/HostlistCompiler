@@ -195,10 +195,10 @@ The project uses a flexible adapter pattern:
 ```mermaid
 classDiagram
     class IStorageAdapter {
-        +set~T~(key, value, ttl?) void
-        +get~T~(key) StorageEntry~T~
-        +delete(key) void
-        +list~T~(options) StorageEntry~T~[]
+        +set~T~(key: string[], value: T, ttl?: number) Promise~boolean~
+        +get~T~(key: string[]) Promise~StorageEntry~T~ | null~
+        +delete(key: string[]) Promise~boolean~
+        +list~T~(options) Promise~Array~{ key: string[]; value: StorageEntry~T~ }~~
     }
     IStorageAdapter <|-- PrismaStorageAdapter
     IStorageAdapter <|-- D1StorageAdapter

@@ -117,13 +117,13 @@ on:
 ```mermaid
 flowchart LR
     subgraph SEQ["CI Job (sequential) — 5-7 min"]
-        L[Lint\n1 min] --> F[Format\n1 min] --> TC[Type Check\n1 min] --> T[Test\n2-4 min]
+        L[Lint<br/>1 min] --> F[Format<br/>1 min] --> TC[Type Check<br/>1 min] --> T[Test<br/>2-4 min]
     end
-    SEC[Security\n2 min]
-    SEQ --> PUB[Publish\n1 min]
+    SEC[Security<br/>2 min]
+    T --> PUB[Publish<br/>1 min]
     SEC --> PUB
-    PUB --> DW[Deploy Worker\n1 min]
-    DW --> DP[Deploy Pages\n1 min]
+    PUB --> DW[Deploy Worker<br/>1 min]
+    DW --> DP[Deploy Pages<br/>1 min]
 ```
 
 **After** (~4-6 minutes total, 40-50% improvement):
@@ -131,14 +131,18 @@ flowchart LR
 ```mermaid
 flowchart LR
     subgraph PAR["Parallel Phase — 2-4 min"]
-        L[Lint\n1 min]
-        F[Format\n1 min]
-        TC[Type Check\n1 min]
-        T[Test\n2-4 min]
-        SEC[Security\n2 min]
+        L[Lint<br/>1 min]
+        F[Format<br/>1 min]
+        TC[Type Check<br/>1 min]
+        T[Test<br/>2-4 min]
+        SEC[Security<br/>2 min]
     end
-    PAR --> PUB[Publish\n1 min]
-    PUB --> DEP[Deploy\n1 min]
+    L --> PUB[Publish<br/>1 min]
+    F --> PUB
+    TC --> PUB
+    T --> PUB
+    SEC --> PUB
+    PUB --> DEP[Deploy<br/>1 min]
 ```
 
 ### Release Workflow
@@ -147,14 +151,14 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    BB[Build Binaries\n10 min] --> BD[Build Docker\n5 min] --> CR[Create Release\n❌ fails here]
+    BB[Build Binaries<br/>10 min] --> BD[Build Docker<br/>5 min] --> CR[Create Release<br/>❌ fails here]
 ```
 
 **After** (on failure, ~3 minutes wasted — 80% improvement):
 
 ```mermaid
 flowchart LR
-    V[Validate\n❌ fails here\n3 min]
+    V[Validate<br/>❌ fails here<br/>3 min]
 ```
 
 ## Caching Strategy
