@@ -659,7 +659,7 @@ Static HTML/JS/CSS frontend served from Cloudflare Workers or Pages.
 | `websocket-test.html` | WebSocket compilation testing |
 | `e2e-tests.html` | End-to-end test runner |
 | `js/theme.ts` | Dark/light theme toggle (ESM module) |
-| `js/chart-setup.ts` | Chart.js configuration for metrics visualization |
+| `js/chart.ts` | Chart.js configuration for metrics visualization |
 
 ---
 
