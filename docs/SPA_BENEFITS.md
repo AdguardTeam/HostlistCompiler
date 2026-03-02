@@ -9,7 +9,7 @@ The Adblock Compiler is currently a **multi-page application** (MPA) where each
 every navigation. Converting to a **Single Page Application** (SPA) would meaningfully
 improve the user experience, developer experience, and long-term maintainability.
 
-Four complete proof-of-concept implementations demonstrate how this migration would
+Two complete proof-of-concept implementations demonstrate how this migration would
 look in practice — see [`poc/`](../poc/).
 
 ---
@@ -56,7 +56,7 @@ JavaScript heap:
 
 ```
 compiler result → still in memory when navigating to "Test" page
-theme selection → applied once, persisted in the React/Vue/Angular/Svelte state
+theme selection → applied once, persisted in the Vue/Angular state
 API health data → fetched once at app startup, reused everywhere
 ```
 
@@ -80,8 +80,7 @@ Modern SPA frameworks paired with Vite automatically split the app bundle by rou
 Code for the "Admin Storage" page is never downloaded unless the user navigates there.
 This improves Time to Interactive (TTI) for all users.
 
-The existing Vite configuration already supports this via `@vitejs/plugin-vue` and
-`@vitejs/plugin-react` — no additional tooling changes are required.
+The existing Vite configuration already supports this via `@vitejs/plugin-vue` — no additional tooling changes are required.
 
 ### 5. Better Loading UX
 
@@ -111,17 +110,15 @@ straightforward once the app is already an SPA.
 
 ## What the PoCs Demonstrate
 
-Four PoC implementations in [`poc/`](../poc/) prove that the migration is
+Two PoC implementations in [`poc/`](../poc/) prove that the migration is
 practical with the existing project infrastructure:
 
 | PoC | Framework | Approach | Routing | State |
 |---|---|---|---|---|
-| [React](../poc/react/index.html) | React 18 | CDN (no build) | React Router v6 | Hooks + Context |
 | [Vue 3](../poc/vue/index.html) | Vue 3 | CDN (no build) | Vue Router 4 | Pinia |
-| [Angular](../poc/angular/) | Angular 19 | Full build (npm) | Angular Router | Signals + RxJS |
-| [Svelte 5](../poc/svelte/) | Svelte 5 | Vite build (npm) | Custom hash router | Runes |
+| [Angular](../poc/angular/) | Angular 21 | Full build (npm) | Angular Router | Signals + RxJS |
 
-All four PoCs implement the same set of features:
+Both PoCs implement the same set of features:
 
 - ✅ Component-based architecture
 - ✅ Client-side routing (Home ↔ Compiler ↔ Benchmark)
@@ -135,25 +132,25 @@ All four PoCs implement the same set of features:
 
 ## Why the Infrastructure Is Already Ready
 
-The Vite build system already ships `@vitejs/plugin-vue` and `@vitejs/plugin-react`:
+The Vite build system already ships `@vitejs/plugin-vue`:
 
 ```ts
 // vite.config.ts (excerpt)
 import vue from '@vitejs/plugin-vue';
-import react from '@vitejs/plugin-react';
+import vueJsx from '@vitejs/plugin-vue-jsx';
 
 export default defineConfig({
-    plugins: [vue(), vueJsx(), react()],
+    plugins: [vue(), vueJsx()],
     // ...
 });
 ```
 
-This means `.vue` Single-File Components and React `.tsx` files can already be
+This means `.vue` Single-File Components can already be
 imported and bundled without any additional tooling changes. Adding a new SPA
 entry point requires only:
 
 1. A new `*.html` entry in `vite.config.ts` `rollupOptions.input`
-2. A `main.ts` that mounts the Vue/React root
+2. A `main.ts` that mounts the Vue root
 3. Route components for each current page
 
 ---
@@ -186,18 +183,15 @@ removed and the SPA entry can become the single `index.html`.
 
 For this project, **Vue 3** is the recommended choice:
 
-| Criterion | Vue 3 | React | Angular | Svelte 5 |
-|---|---|---|---|---|
-| Learning curve | Low | Medium | High | Low |
-| Bundle size | Small | Small-Medium | Large | Tiny |
-| TypeScript | Optional (excellent) | Optional | Required | Optional |
-| Official router | ✅ Vue Router 4 | ✅ React Router v6¹ | ✅ Angular Router | ⚠️ SvelteKit needed |
-| State management | ✅ Pinia (official) | ⚠️ Redux/Zustand needed | ✅ Signals + RxJS | ✅ Runes (built-in) |
-| Vite integration | ✅ First-class | ✅ First-class | Partial | ✅ First-class |
-| Cloudflare Workers | ✅ | ✅ | ✅ | ✅ |
-
-> ¹ React Router is the standard React routing library (community-maintained, not part of the React core team) and is
-> widely used in production. Vue Router, Angular Router, and React Router are all excellent routing solutions.
+| Criterion | Vue 3 | Angular |
+|---|---|---|
+| Learning curve | Low | High |
+| Bundle size | Small | Large |
+| TypeScript | Optional (excellent) | Required |
+| Official router | ✅ Vue Router 4 | ✅ Angular Router |
+| State management | ✅ Pinia (official) | ✅ Signals + RxJS |
+| Vite integration | ✅ First-class | Partial |
+| Cloudflare Workers | ✅ | ✅ |
 
 Vue 3 balances a low learning curve, excellent TypeScript support, first-class Vite
 integration, and an official router and state management library. The project's
@@ -210,8 +204,5 @@ existing Vite setup already has `@vitejs/plugin-vue` installed and active.
 - [`poc/README.md`](../poc/README.md) — Framework comparison guide
 - [`poc/SUMMARY.md`](../poc/SUMMARY.md) — Implementation summary
 - [`docs/VITE.md`](VITE.md) — Vite integration guide
-- [`poc/react/REACT_ROUTER.md`](../poc/react/REACT_ROUTER.md) — Why React Router
-- [`poc/react/REACT_SERVER_COMPONENTS.md`](../poc/react/REACT_SERVER_COMPONENTS.md) — RSC pattern
 - [`poc/vue/VUE_PINIA.md`](../poc/vue/VUE_PINIA.md) — Pinia state management guide
 - [`poc/angular/ANGULAR_SIGNALS.md`](../poc/angular/ANGULAR_SIGNALS.md) — Angular Signals guide
-- [`poc/svelte/README.md`](../poc/svelte/README.md) — Svelte 5 PoC guide

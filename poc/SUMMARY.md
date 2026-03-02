@@ -73,8 +73,8 @@ This document summarizes the proof-of-concept implementations created for evalua
 
 #### Documentation
 
-- `poc/angular/README.md` (250 lines) - Detailed setup and architecture guide
-- `poc/angular/ANGULAR_SIGNALS.md` (400+ lines) - Comprehensive Angular Signals guide
+- `poc/angular/README.md` - Detailed setup and architecture guide
+- `poc/angular/ANGULAR_SIGNALS.md` - Comprehensive Angular Signals guide
 
 ## 🎨 Design Consistency
 

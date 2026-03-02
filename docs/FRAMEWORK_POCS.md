@@ -6,28 +6,25 @@
 ## Overview
 
 The `poc/` directory contains proof-of-concept implementations of the Adblock
-Compiler frontend in four popular JavaScript frameworks. Each PoC explores how
+Compiler frontend in two popular JavaScript frameworks. Each PoC explores how
 the existing vanilla HTML/CSS/JS UI could be rewritten using a modern framework,
 and serves as an evaluation baseline before any production migration decision is
 made.
 
 | PoC | Technology | Run method |
 |-----|-----------|------------|
-| [React](../poc/react/index.html) | React 18 · React Router v6 · Babel Standalone | Open in browser (CDN) |
 | [Vue 3](../poc/vue/index.html) | Vue 3 · Vue Router 4 · Pinia · Composition API | Open in browser (CDN) |
-| [Angular](../poc/angular/) | Angular 19 · TypeScript · RxJS · Signals | `npm install && npm start` |
-| [Svelte 5](../poc/svelte/) | Svelte 5 · Vite · Runes | `npm install && npm run dev` |
+| [Angular](../poc/angular/) | Angular 21 · TypeScript · RxJS · Signals | `npm install && npm start` |
 
 A side-by-side overview is available at [`/poc/index.html`](../poc/index.html).
 
 ## What Each PoC Demonstrates
 
-All four implementations cover the same feature set:
+Both implementations cover the same feature set:
 
 - **Client-side routing** — full SPA navigation without page reloads
 - **Component architecture** — decomposed, reusable UI building blocks
-- **State management** — local and global reactive state (Hooks/Context, Pinia,
-  Signals, Runes)
+- **State management** — local and global reactive state (Pinia, Signals)
 - **Theme toggle** — dark/light mode with `localStorage` persistence
 - **API integration** — `POST /api/compile` with loading and error states
 - **Benchmark page** — measures compilation API performance with `performance.now()`
@@ -45,14 +42,12 @@ After building, the PoC files are served as static assets alongside the main UI:
 
 ```
 /poc/index.html          ← Framework comparison hub
-/poc/react/index.html    ← React PoC
 /poc/vue/index.html      ← Vue 3 PoC
 /poc/angular/            ← Angular PoC (requires local dev server)
-/poc/svelte/             ← Svelte PoC (requires local dev server)
 ```
 
-The Angular and Svelte PoCs require their own local dev servers because they
-depend on Node.js build tools and cannot be opened directly as static files.
+The Angular PoC requires a local dev server because it depends on Node.js build
+tools and cannot be opened directly as a static file.
 
 ## Alpha Designation
 
