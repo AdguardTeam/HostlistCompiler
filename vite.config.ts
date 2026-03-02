@@ -50,6 +50,7 @@ export default defineConfig({
                 'validation-demo': resolve(__dirname, 'public/validation-demo.html'),
                 'websocket-test': resolve(__dirname, 'public/websocket-test.html'),
                 'tailwind-test': resolve(__dirname, 'public/tailwind-test.html'),
+                api: resolve(__dirname, 'public/api.html'),
             },
         },
     },

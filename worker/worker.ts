@@ -1446,8 +1446,19 @@ async function handleCompileBatchAsync(
 
 /**
  * Handle GET requests - return API info and example.
+ * When the caller is a browser (Accept: text/html), redirect to the styled documentation page.
+ * @param request - The incoming HTTP request used for content negotiation.
+ * @param env - The worker environment bindings.
  */
-function handleInfo(env: Env): Response {
+function handleInfo(request: Request, env: Env): Response {
+    const accept = request.headers.get('Accept') ?? '';
+    const searchParams = new URL(request.url).searchParams;
+    const wantsHtml = accept.includes('text/html') && searchParams.get('format') !== 'json';
+
+    if (wantsHtml) {
+        return Response.redirect(new URL('/api.html', request.url).toString(), 302);
+    }
+
     const info = {
         name: 'Hostlist Compiler Worker',
         version: env.COMPILER_VERSION || VERSION,
@@ -2870,7 +2881,7 @@ export default {
 
         // Handle API routes
         if (pathname === '/api' && request.method === 'GET') {
-            return handleInfo(env);
+            return handleInfo(request, env);
         }
 
         // Handle version endpoint
