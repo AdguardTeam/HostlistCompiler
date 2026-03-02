@@ -119,8 +119,9 @@ flowchart LR
     subgraph SEQ["CI Job (sequential) — 5-7 min"]
         L[Lint\n1 min] --> F[Format\n1 min] --> TC[Type Check\n1 min] --> T[Test\n2-4 min]
     end
-    SEQ --> SEC[Security\n2 min]
-    SEC --> PUB[Publish\n1 min]
+    SEC[Security\n2 min]
+    SEQ --> PUB[Publish\n1 min]
+    SEC --> PUB
     PUB --> DW[Deploy Worker\n1 min]
     DW --> DP[Deploy Pages\n1 min]
 ```

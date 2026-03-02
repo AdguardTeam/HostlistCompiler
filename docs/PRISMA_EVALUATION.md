@@ -200,9 +200,8 @@ classDiagram
         +delete(key) void
         +list~T~(options) StorageEntry~T~[]
     }
-    IStorageAdapter <|-- PrismaStorage
-    IStorageAdapter <|-- D1Storage
-    IStorageAdapter <|-- InMemoryStorage
+    IStorageAdapter <|-- PrismaStorageAdapter
+    IStorageAdapter <|-- D1StorageAdapter
 ```
 
 This allows switching storage backends based on deployment environment without changing application code.
