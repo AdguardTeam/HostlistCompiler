@@ -92,10 +92,18 @@ function handleCors(): Response {
  * API info handler
  */
 async function handleInfo(
-    _request: Request,
+    request: Request,
     env: Env,
     _params: RouteParams,
 ): Promise<Response> {
+    const accept = request.headers.get('Accept') ?? '';
+    const searchParams = new URL(request.url).searchParams;
+    const wantsHtml = accept.includes('text/html') && searchParams.get('format') !== 'json';
+
+    if (wantsHtml) {
+        return Response.redirect(new URL('/api.html', request.url).toString(), 302);
+    }
+
     return JsonResponse.success({
         name: 'adblock-compiler-worker',
         version: env.COMPILER_VERSION || VERSION,
