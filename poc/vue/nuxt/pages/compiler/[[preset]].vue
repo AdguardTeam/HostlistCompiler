@@ -44,7 +44,7 @@ const applyPreset = (presetId: string | null | undefined) => {
 };
 
 onMounted(() => {
-    if (route.params.preset) applyPreset(String(route.params.preset));
+    applyPreset(activePreset.value);
 });
 
 watch(() => route.params.preset, (newPreset) => {
@@ -54,6 +54,7 @@ watch(() => route.params.preset, (newPreset) => {
 const handleCompile = async () => {
     const validUrls = store.urls.filter((url) => url.trim() !== '');
     if (validUrls.length === 0) {
+        store.resetCompilation();
         store.setError('Please enter at least one URL');
         return;
     }

@@ -86,7 +86,11 @@ The client hydrates without a second request — no loading spinner on first pai
 ```typescript
 // pages/index.vue
 const { data: stats } = await useAsyncData('dashboard-stats', () =>
-    $fetch('/api/stats')
+    Promise.resolve([
+        { label: 'Filter lists', value: 3 },
+        { label: 'Transformations', value: 8 },
+        { label: 'Output size (KB)', value: 42 },
+    ])
 );
 ```
 

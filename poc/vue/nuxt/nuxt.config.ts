@@ -28,5 +28,11 @@ export default defineNuxtConfig({
         strict: true,
     },
 
+    // Runtime config — values can be overridden via environment variables.
+    // ADBLOCK_COMPILER_BASE_URL is read server-side only (not exposed to the client).
+    runtimeConfig: {
+        adblockCompilerBaseUrl: process.env.ADBLOCK_COMPILER_BASE_URL ?? 'http://localhost:8787',
+    },
+
     devtools: { enabled: false },
 });

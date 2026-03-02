@@ -14,9 +14,9 @@ export interface CompilationResult {
     benchmark: BenchmarkResult;
 }
 
-// Nuxt Pattern: Pinia store auto-imported via @pinia/nuxt module.
-// In Nuxt 3 + SSR, Pinia state is serialised in the server-rendered HTML
-// payload and hydrated on the client — no extra configuration needed.
+// Pinia store used by the Nuxt app.
+// Note: stores under poc/vue/nuxt/stores/ are not auto-imported;
+// import useCompilerStore explicitly where it is used.
 export const useCompilerStore = defineStore('compiler', {
     state: () => ({
         urls: [''] as string[],

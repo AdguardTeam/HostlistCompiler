@@ -13,10 +13,6 @@ const { data: ssrTime, pending } = await useAsyncData('ssr-time', () =>
 // Nuxt Pattern: useFetch() is shorthand for useAsyncData + $fetch combined.
 // Use it when fetching from an API endpoint.
 // const { data, error } = await useFetch('/api/health');
-
-// Nuxt Pattern: useRuntimeConfig() exposes public runtime config values.
-// Server-only secrets stay in runtimeConfig.private; public values in runtimeConfig.public.
-const config = useRuntimeConfig();
 </script>
 
 <template>

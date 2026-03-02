@@ -42,7 +42,11 @@ HTML payload (`<script id="__NUXT_DATA__">`). On the client Nuxt hydrates from t
 ```typescript
 // pages/index.vue
 const { data: stats } = await useAsyncData('dashboard-stats', () =>
-    $fetch('/api/stats')
+    Promise.resolve([
+        { label: 'Filter lists', value: 3 },
+        { label: 'Transformations', value: 8 },
+        { label: 'Output size (KB)', value: 42 },
+    ])
 );
 ```
 

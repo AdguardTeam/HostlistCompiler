@@ -7,7 +7,7 @@ const { theme, toggleTheme } = useTheme();
     <nav class="nav">
         <ul class="nav-links">
             <li>
-                <a href="/poc/index.html" class="nav-link">← PoC Overview</a>
+                <NuxtLink to="/" class="nav-link">← PoC Overview</NuxtLink>
             </li>
             <li>
                 <NuxtLink to="/" class="nav-link">🏠 Home</NuxtLink>
