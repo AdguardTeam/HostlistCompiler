@@ -10,29 +10,20 @@ Combining filter lists from multiple sources shouldn't be complex. Whether you'r
 
 At its core, Adblock Compiler does one thing exceptionally well: **it transforms, optimizes, and combines adblock filter lists from multiple sources into production-ready blocklists.**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  Multiple Filter Sources                    │
-│  (URLs, files, inline rules - multiple formats supported)   │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Adblock Compiler Pipeline                       │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ 1. Parse and normalize rules                        │   │
-│  │ 2. Apply transformations (11 different types)       │   │
-│  │ 3. Remove duplicates and invalid rules              │   │
-│  │ 4. Validate for compatibility                       │   │
-│  │ 5. Compress and optimize                            │   │
-│  └─────────────────────────────────────────────────────┘   │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Output in Multiple Formats                      │
-│  (Adblock, Hosts, Dnsmasq, Pi-hole, Unbound, DoH, JSON)    │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    SRC["Multiple Filter Sources\n(URLs, files, inline rules - multiple formats supported)"]
+    subgraph PIPE["Adblock Compiler Pipeline"]
+        direction TB
+        P1["1. Parse and normalize rules"]
+        P2["2. Apply transformations (11 different types)"]
+        P3["3. Remove duplicates and invalid rules"]
+        P4["4. Validate for compatibility"]
+        P5["5. Compress and optimize"]
+        P1 --> P2 --> P3 --> P4 --> P5
+    end
+    SRC --> P1
+    P5 --> OUT["Output in Multiple Formats\n(Adblock, Hosts, Dnsmasq, Pi-hole, Unbound, DoH, JSON)"]
 ```
 
 ## Why Adblock Compiler?
@@ -109,19 +100,17 @@ Transform and clean your filter lists with a comprehensive suite:
 
 Adblock Compiler runs everywhere:
 
-```
-┌──────────────────────────────────────────────────────┐
-│           Platform Abstraction Layer                 │
-├──────────────────────────────────────────────────────┤
-│ ✓ Deno (native)                                      │
-│ ✓ Node.js (npm compatibility)                        │
-│ ✓ Cloudflare Workers                                 │
-│ ✓ Deno Deploy                                        │
-│ ✓ Vercel Edge Functions                              │
-│ ✓ AWS Lambda@Edge                                    │
-│ ✓ Web Workers (browser background tasks)             │
-│ ✓ Browsers (with server-side proxy for CORS)         │
-└──────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    PAL["Platform Abstraction Layer"]
+    PAL --> D["✓ Deno (native)"]
+    PAL --> N["✓ Node.js (npm compatibility)"]
+    PAL --> CF["✓ Cloudflare Workers"]
+    PAL --> DD["✓ Deno Deploy"]
+    PAL --> VE["✓ Vercel Edge Functions"]
+    PAL --> AL["✓ AWS Lambda@Edge"]
+    PAL --> WW["✓ Web Workers (browser background tasks)"]
+    PAL --> BR["✓ Browsers (with server-side proxy for CORS)"]
 ```
 
 The platform abstraction layer means you write code once and deploy anywhere. A production-ready Cloudflare Worker implementation is included in the repository.

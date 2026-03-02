@@ -10,15 +10,14 @@ Each remote source URL gets its own circuit breaker that transitions through thr
 2. **OPEN** — Failure threshold reached. All requests are immediately rejected. When using the `CircuitBreaker` directly this surfaces as a `CircuitBreakerOpenError`; when using `FilterDownloader`, the open breaker is exposed as a `NetworkError`. After a timeout period the breaker moves to HALF_OPEN.
 3. **HALF_OPEN** — Recovery probe. The next request is allowed through. If it succeeds the breaker returns to CLOSED; if it fails the breaker reopens.
 
-```
-  success        threshold reached        timeout elapsed
- ┌───────┐      ┌──────────────┐        ┌───────────────┐
- │       ▼      │              ▼        │               ▼
- │    CLOSED ──failure──▶ OPEN ──wait──▶ HALF_OPEN
- │       ▲                  ▲               │
- │       │                  └──failure──────┘
- │       └─────────success──────────────────┘
- └───────┘
+```mermaid
+stateDiagram-v2
+    [*] --> CLOSED
+    CLOSED --> CLOSED : success
+    CLOSED --> OPEN : threshold reached (failure)
+    OPEN --> HALF_OPEN : timeout elapsed
+    HALF_OPEN --> CLOSED : success
+    HALF_OPEN --> OPEN : failure
 ```
 
 ## Default Configuration

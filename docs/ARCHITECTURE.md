@@ -50,47 +50,42 @@ The **adblock-compiler** is a *compiler-as-a-service* for adblock filter lists. 
 
 ## System Context Diagram
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                        External World                            │
-│                                                                  │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────────┐    │
-│  │ Filter List  │  │  Web Browser │  │  API Consumers       │    │
-│  │ Sources      │  │  (Web UI)    │  │  (CI/CD, scripts)    │    │
-│  │ (URLs/Files) │  │              │  │                      │    │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘    │
-│         │                 │                     │                │
-└─────────┼─────────────────┼─────────────────────┼────────────────┘
-          │                 │                     │
-          ▼                 ▼                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    adblock-compiler System                       │
-│                                                                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────────┐  │
-│  │   CLI App    │  │   Web UI     │  │  Cloudflare Worker    │  │
-│  │  (Deno)      │  │  (Static)    │  │  (Edge API)           │  │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬────────────┘  │
-│         │                 │                     │               │
-│         └─────────────────┼─────────────────────┘               │
-│                           ▼                                     │
-│              ┌─────────────────────────┐                        │
-│              │     Core Library        │                        │
-│              │  (FilterCompiler /      │                        │
-│              │   WorkerCompiler)       │                        │
-│              └─────────────────────────┘                        │
-│                                                                 │
-│  ┌─────────┐ ┌──────────┐ ┌───────┐ ┌─────────┐ ┌───────────┐ │
-│  │Download │ │Transform │ │Validate│ │ Storage │ │Diagnostics│ │
-│  │& Fetch  │ │Pipeline  │ │& Schema│ │ & Cache │ │& Tracing  │ │
-│  └─────────┘ └──────────┘ └───────┘ └─────────┘ └───────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-          │                                        │
-          ▼                                        ▼
-┌──────────────────┐                    ┌─────────────────────┐
-│ Cloudflare KV    │                    │ Cloudflare D1       │
-│ (Cache, Rate     │                    │ (SQLite, Metadata)  │
-│  Limit, Metrics) │                    │                     │
-└──────────────────┘                    └─────────────────────┘
+```mermaid
+graph TD
+    subgraph EW["External World"]
+        FLS["Filter List Sources\n(URLs/Files)"]
+        WB["Web Browser\n(Web UI)"]
+        AC["API Consumers\n(CI/CD, scripts)"]
+    end
+
+    subgraph ACS["adblock-compiler System"]
+        CLI["CLI App\n(Deno)"]
+        WUI["Web UI\n(Static)"]
+        CFW["Cloudflare Worker\n(Edge API)"]
+        CORE["Core Library\n(FilterCompiler / WorkerCompiler)"]
+        DL["Download & Fetch"]
+        TP["Transform Pipeline"]
+        VS["Validate & Schema"]
+        ST["Storage & Cache"]
+        DG["Diagnostics & Tracing"]
+    end
+
+    KV["Cloudflare KV\n(Cache, Rate Limit, Metrics)"]
+    D1["Cloudflare D1\n(SQLite, Metadata)"]
+
+    FLS --> CLI
+    WB --> WUI
+    AC --> CFW
+    CLI --> CORE
+    WUI --> CORE
+    CFW --> CORE
+    CORE --> DL
+    CORE --> TP
+    CORE --> VS
+    CORE --> ST
+    CORE --> DG
+    ST --> KV
+    ST --> D1
 ```
 
 ---
@@ -99,17 +94,15 @@ The **adblock-compiler** is a *compiler-as-a-service* for adblock filter lists. 
 
 Every compilation—CLI, library, or API—follows this pipeline:
 
-```
-┌────────────┐    ┌────────────┐    ┌──────────────┐    ┌──────────────┐
-│  1. Config  │───▶│ 2. Validate│───▶│  3. Download │───▶│ 4. Per-Source │
-│  Loading    │    │  (Zod)     │    │  Sources     │    │ Transforms   │
-└────────────┘    └────────────┘    └──────────────┘    └──────┬───────┘
-                                                               │
-                                                               ▼
-┌────────────┐    ┌────────────┐    ┌──────────────┐    ┌──────────────┐
-│  8. Output  │◀──│ 7. Checksum│◀──│ 6. Global    │◀──│  5. Merge    │
-│  (Rules)    │    │  & Header  │    │ Transforms   │    │  All Sources │
-└────────────┘    └────────────┘    └──────────────┘    └──────────────┘
+```mermaid
+flowchart LR
+    A["1. Config\nLoading"] --> B["2. Validate\n(Zod)"]
+    B --> C["3. Download\nSources"]
+    C --> D["4. Per-Source\nTransforms"]
+    D --> E["5. Merge\nAll Sources"]
+    E --> F["6. Global\nTransforms"]
+    F --> G["7. Checksum\n& Header"]
+    G --> H["8. Output\n(Rules)"]
 ```
 
 ### Step-by-Step
@@ -300,23 +293,13 @@ worker/                         # ☁️ Cloudflare Worker
 
 The orchestration layer that drives the entire compilation process.
 
-```
-                    ┌──────────────────────┐
-                    │   FilterCompiler     │  ← Main entry point
-                    │                      │     (has FS access)
-                    └──────────┬───────────┘
-                               │ uses
-             ┌─────────────────┼──────────────────┐
-             ▼                 ▼                  ▼
-   ┌──────────────┐  ┌────────────────┐  ┌────────────────┐
-   │SourceCompiler│  │HeaderGenerator │  │ Transformation │
-   │              │  │                │  │ Pipeline       │
-   └──────┬───────┘  └────────────────┘  └────────────────┘
-          │ uses
-          ▼
-   ┌──────────────┐
-   │FilterDownloader│
-   └──────────────┘
+```mermaid
+flowchart TD
+    FC["FilterCompiler\n← Main entry point (has FS access)"]
+    FC -->|uses| SC["SourceCompiler"]
+    FC -->|uses| HG["HeaderGenerator"]
+    FC -->|uses| TP["TransformationPipeline"]
+    SC -->|uses| FD["FilterDownloader"]
 ```
 
 | Class | Responsibility |
@@ -330,21 +313,12 @@ The orchestration layer that drives the entire compilation process.
 
 Enables the compiler to run in environments **without file system access** (browsers, Cloudflare Workers, Deno Deploy).
 
-```
-                     ┌───────────────────┐
-                     │  WorkerCompiler   │ ← No FS access
-                     └────────┬──────────┘
-                              │ uses
-                              ▼
-                     ┌───────────────────┐
-                     │ CompositeFetcher  │ ← Chain of Responsibility
-                     └────────┬──────────┘
-                    ┌─────────┴──────────┐
-                    ▼                    ▼
-          ┌──────────────────┐  ┌─────────────────────┐
-          │PreFetchedContent │  │    HttpFetcher       │
-          │Fetcher           │  │ (Fetch API)          │
-          └──────────────────┘  └─────────────────────┘
+```mermaid
+flowchart TD
+    WC["WorkerCompiler\n← No FS access"]
+    WC -->|uses| CF["CompositeFetcher\n← Chain of Responsibility"]
+    CF --> PFCF["PreFetchedContentFetcher"]
+    CF --> HF["HttpFetcher\n(Fetch API)"]
 ```
 
 | Class | Responsibility |
@@ -360,22 +334,13 @@ Enables the compiler to run in environments **without file system access** (brow
 
 The transformation pipeline uses the **Strategy** and **Registry** patterns.
 
-```
-              ┌─────────────────────┐
-              │TransformationPipeline│ ← Applies ordered transforms
-              └──────────┬──────────┘
-                         │ delegates to
-              ┌──────────┴──────────┐
-              │TransformationRegistry│ ← Maps type → instance
-              └──────────┬──────────┘
-                         │ contains
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
-   ┌────────────┐ ┌────────────┐ ┌────────────┐
-   │SyncTransform│ │SyncTransform│ │AsyncTransform│
-   │ation       │ │ation       │ │ation        │
-   └────────────┘ └────────────┘ └─────────────┘
-   (Deduplicate)  (Compress)     (future async)
+```mermaid
+flowchart TD
+    TP["TransformationPipeline\n← Applies ordered transforms"]
+    TP -->|delegates to| TR["TransformationRegistry\n← Maps type → instance"]
+    TR -->|contains| ST1["SyncTransformation\n(Deduplicate)"]
+    TR -->|contains| ST2["SyncTransformation\n(Compress)"]
+    TR -->|contains| AT["AsyncTransformation\n(future async)"]
 ```
 
 **Base Classes:**
@@ -410,23 +375,12 @@ The transformation pipeline uses the **Strategy** and **Registry** patterns.
 
 Handles fetching filter list content with preprocessor directive support.
 
-```
-┌──────────────────┐
-│ FilterDownloader  │ ← Static download() method
-└────────┬─────────┘
-         │ uses
-    ┌────┴─────────────────────┐
-    ▼                          ▼
-┌──────────────┐     ┌────────────────────┐
-│ContentFetcher│     │PreprocessorEvaluator│
-│(FS + HTTP)   │     │(!#if, !#include)   │
-└──────────────┘     └────────┬───────────┘
-                              │ uses
-                              ▼
-                     ┌────────────────────┐
-                     │ConditionalEvaluator│
-                     │(boolean expr)      │
-                     └────────────────────┘
+```mermaid
+flowchart TD
+    FD["FilterDownloader\n← Static download() method"]
+    FD -->|uses| CF["ContentFetcher\n(FS + HTTP)"]
+    FD -->|uses| PE["PreprocessorEvaluator\n(!#if, !#include)"]
+    PE -->|uses| CE["ConditionalEvaluator\n(boolean expr)"]
 ```
 
 | Class | Responsibility |
@@ -460,29 +414,15 @@ Handles fetching filter list content with preprocessor directive support.
 
 Pluggable persistence layer with multiple backends.
 
-```
-              ┌──────────────────┐
-              │  IStorageAdapter │ ← Abstract interface
-              └────────┬─────────┘
-            ┌──────────┼──────────┐
-            ▼          ▼          ▼
-  ┌──────────────┐ ┌────────┐ ┌───────────┐
-  │PrismaStorage │ │  D1    │ │ (Memory)  │
-  │Adapter       │ │Storage │ │  Future   │
-  │(SQLite,      │ │Adapter │ │           │
-  │ PostgreSQL,  │ │(Edge)  │ │           │
-  │ MySQL, etc.) │ │        │ │           │
-  └──────────────┘ └────────┘ └───────────┘
-         ▲
-         │ used by
-  ┌──────┴──────────┐   ┌──────────────────┐
-  │CachingDownloader│   │SourceHealthMonitor│
-  └──────┬──────────┘   └──────────────────┘
-         │ uses
-         ▼
-  ┌──────────────┐
-  │ChangeDetector│
-  └──────────────┘
+```mermaid
+flowchart TD
+    ISA["IStorageAdapter\n← Abstract interface"]
+    ISA --> PSA["PrismaStorageAdapter\n(SQLite, PostgreSQL, MySQL, etc.)"]
+    ISA --> D1A["D1StorageAdapter\n(Edge)"]
+    ISA --> MEM["(Memory) — Future"]
+    CD["CachingDownloader"] -->|uses| ISA
+    SHM["SourceHealthMonitor"] -->|uses| ISA
+    CD -->|uses| CHD["ChangeDetector"]
 ```
 
 | Component | Description |
@@ -508,38 +448,27 @@ Higher-level business services.
 
 Asynchronous job processing abstraction.
 
-```
-┌──────────────────┐
-│  IQueueProvider  │ ← Abstract interface
-└────────┬─────────┘
-         ▼
-┌──────────────────────┐
-│CloudflareQueueProvider│ ← Cloudflare Workers Queue binding
-└──────────────────────┘
-
-Message Types:
-  ├── CompileMessage        (single compilation)
-  ├── BatchCompileMessage   (batch compilation)
-  ├── CacheWarmMessage      (cache warming)
-  └── HealthCheckMessage    (source health checks)
+```mermaid
+flowchart TD
+    IQP["IQueueProvider\n← Abstract interface"]
+    IQP --> CQP["CloudflareQueueProvider\n← Cloudflare Workers Queue binding"]
+    CQP --> CM["CompileMessage\n(single compilation)"]
+    CQP --> BCM["BatchCompileMessage\n(batch compilation)"]
+    CQP --> CWM["CacheWarmMessage\n(cache warming)"]
+    CQP --> HCM["HealthCheckMessage\n(source health checks)"]
 ```
 
 ### Diagnostics & Tracing (`src/diagnostics/`)
 
 End-to-end observability through the compilation pipeline.
 
-```
-┌──────────────────┐       ┌─────────────────┐
-│  TracingContext   │──────▶│DiagnosticsCollector│
-│  (correlation ID,│       │(event aggregation) │
-│   parent spans)  │       └────────┬────────┘
-└──────────────────┘                │ can export to
-                                    ▼
-                          ┌──────────────────────┐
-                          │OpenTelemetryExporter  │
-                          │(Datadog, Honeycomb,   │
-                          │ Jaeger, etc.)         │
-                          └──────────────────────┘
+```mermaid
+flowchart LR
+    TC["TracingContext\n(correlation ID, parent spans)"]
+    DC["DiagnosticsCollector\n(event aggregation)"]
+    OTE["OpenTelemetryExporter\n(Datadog, Honeycomb, Jaeger, etc.)"]
+    TC --> DC
+    DC -->|can export to| OTE
 ```
 
 | Component | Description |
@@ -570,18 +499,12 @@ End-to-end observability through the compilation pipeline.
 
 Extensibility system for custom transformations and downloaders.
 
-```
-┌──────────────┐
-│PluginRegistry│ ← Global singleton
-└──────┬───────┘
-       │ registers
-       ▼
-┌──────────────┐     ┌──────────────────┐
-│ Plugin       │────▶│TransformationPlugin│
-│ {manifest,   │     └──────────────────┘
-│  transforms, │     ┌──────────────────┐
-│  downloaders}│────▶│DownloaderPlugin  │
-└──────────────┘     └──────────────────┘
+```mermaid
+flowchart TD
+    PR["PluginRegistry\n← Global singleton"]
+    PR -->|registers| P["Plugin\n{manifest, transforms, downloaders}"]
+    P --> TPLG["TransformationPlugin"]
+    P --> DPLG["DownloaderPlugin"]
 ```
 
 | Component | Description |
@@ -635,27 +558,17 @@ Command-line interface for local compilation.
 
 The edge deployment target that exposes the compiler as an HTTP/WebSocket API.
 
-```
-                            Incoming Request
-                                  │
-                                  ▼
-                         ┌────────────────┐
-                         │   worker.ts    │ ← Entry point (fetch, queue, scheduled)
-                         └────────┬───────┘
-                                  │
-                    ┌─────────────┼─────────────┐
-                    ▼             ▼              ▼
-            ┌────────────┐ ┌──────────┐  ┌────────────┐
-            │  router.ts │ │websocket │  │queue handler│
-            │ (HTTP API) │ │.ts (WS)  │  │(async jobs) │
-            └─────┬──────┘ └──────────┘  └────────────┘
-                  │
-      ┌───────────┼───────────┬───────────┐
-      ▼           ▼           ▼           ▼
-┌──────────┐ ┌──────────┐ ┌────────┐ ┌────────┐
-│handlers/ │ │handlers/ │ │handlers│ │handlers│
-│compile.ts│ │metrics.ts│ │/queue  │ │/admin  │
-└──────────┘ └──────────┘ └────────┘ └────────┘
+```mermaid
+flowchart TD
+    REQ["Incoming Request"]
+    REQ --> W["worker.ts\n← Entry point (fetch, queue, scheduled)"]
+    W --> R["router.ts\n(HTTP API)"]
+    W --> WS["websocket.ts (WS)"]
+    W --> QH["queue handler\n(async jobs)"]
+    R --> HC["handlers/compile.ts"]
+    R --> HM["handlers/metrics.ts"]
+    R --> HQ["handlers/queue"]
+    R --> HA["handlers/admin"]
 ```
 
 ### API Endpoints
@@ -689,8 +602,14 @@ The edge deployment target that exposes the compiler as an HTTP/WebSocket API.
 
 ### Middleware Stack
 
-```
-Request → Rate Limit → Turnstile → Body Size → Auth → Handler → Response
+```mermaid
+flowchart LR
+    REQ["Request"] --> RL["Rate Limit"]
+    RL --> TS["Turnstile"]
+    TS --> BS["Body Size"]
+    BS --> AUTH["Auth"]
+    AUTH --> H["Handler"]
+    H --> RESP["Response"]
 ```
 
 | Middleware | Description |
@@ -748,14 +667,15 @@ Static HTML/JS/CSS frontend served from Cloudflare Workers or Pages.
 
 ### Error Handling
 
-```
-BaseError (abstract)
-├── CompilationError    — Compilation pipeline failures
-├── NetworkError        — HTTP/connection failures
-├── SourceError         — Source download/parse failures
-├── ValidationError     — Configuration/rule validation failures
-├── ConfigurationError  — Invalid configuration
-└── FileSystemError     — File system operation failures
+```mermaid
+flowchart TD
+    BE["BaseError (abstract)"]
+    BE --> CE["CompilationError\n— Compilation pipeline failures"]
+    BE --> NE["NetworkError\n— HTTP/connection failures"]
+    BE --> SE["SourceError\n— Source download/parse failures"]
+    BE --> VE["ValidationError\n— Configuration/rule validation failures"]
+    BE --> CFE["ConfigurationError\n— Invalid configuration"]
+    BE --> FSE["FileSystemError\n— File system operation failures"]
 ```
 
 Each error carries: `code` (ErrorCode enum), `cause` (original error), `timestamp` (ISO string).
@@ -764,15 +684,16 @@ Each error carries: `code` (ErrorCode enum), `cause` (original error), `timestam
 
 The `ICompilerEvents` interface provides lifecycle hooks:
 
-```
-Compilation Start
-  ├── onSourceStart      (per source)
-  ├── onSourceComplete   (per source, with rule count & duration)
-  ├── onSourceError      (per source, with error)
-  ├── onTransformationStart   (per transformation)
-  ├── onTransformationComplete (per transformation, with counts)
-  ├── onProgress         (phase, current/total, message)
-  └── onCompilationComplete   (total rules, duration, counts)
+```mermaid
+flowchart TD
+    CS["Compilation Start"]
+    CS --> OSS["onSourceStart\n(per source)"]
+    CS --> OSC["onSourceComplete\n(per source, with rule count & duration)"]
+    CS --> OSE["onSourceError\n(per source, with error)"]
+    CS --> OTS["onTransformationStart\n(per transformation)"]
+    CS --> OTC["onTransformationComplete\n(per transformation, with counts)"]
+    CS --> OP["onProgress\n(phase, current/total, message)"]
+    CS --> OCC["onCompilationComplete\n(total rules, duration, counts)"]
 ```
 
 ### Logging
@@ -801,109 +722,79 @@ Both implement `ILogger` (extends `IDetailedLogger`): `info()`, `warn()`, `error
 
 ### CLI Compilation Flow
 
-```
-┌────────┐    ┌──────────────┐    ┌────────────────┐    ┌──────────┐
-│ config │───▶│Configuration │───▶│ FilterCompiler  │───▶│ output   │
-│ .json  │    │ Loader       │    │                 │    │ .txt     │
-└────────┘    └──────────────┘    │  ┌────────────┐ │    └──────────┘
-                                  │  │SourceComp. │ │
-                  ┌───────────┐   │  │ (per src)  │ │
-                  │ Filter    │──▶│  └────────────┘ │
-                  │ Sources   │   │  ┌────────────┐ │
-                  │ (HTTP/FS) │   │  │ Transform  │ │
-                  └───────────┘   │  │ Pipeline   │ │
-                                  │  └────────────┘ │
-                                  └────────────────┘
+```mermaid
+flowchart LR
+    CFG["config.json"] --> CL["ConfigurationLoader"]
+    FS["Filter Sources\n(HTTP/FS)"] --> FC
+    CL --> FC["FilterCompiler"]
+    FC --> SC["SourceCompiler\n(per src)"]
+    FC --> TP["TransformationPipeline"]
+    FC --> OUT["output.txt"]
 ```
 
 ### Worker API Flow (SSE Streaming)
 
-```
-Client                          Worker                         Sources
-  │                               │                              │
-  │  POST /api/compile/stream     │                              │
-  │──────────────────────────────▶│                              │
-  │                               │  Pre-fetch content           │
-  │                               │─────────────────────────────▶│
-  │                               │◀─────────────────────────────│
-  │                               │                              │
-  │  SSE: event: log              │  WorkerCompiler.compile()    │
-  │◀──────────────────────────────│                              │
-  │  SSE: event: source-start     │                              │
-  │◀──────────────────────────────│                              │
-  │  SSE: event: source-complete  │                              │
-  │◀──────────────────────────────│                              │
-  │  SSE: event: progress         │                              │
-  │◀──────────────────────────────│                              │
-  │  SSE: event: complete         │  Cache result in KV          │
-  │◀──────────────────────────────│                              │
-  │                               │                              │
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Worker
+    participant Sources
+
+    Client->>Worker: POST /api/compile/stream
+    Worker->>Sources: Pre-fetch content
+    Sources-->>Worker: content
+    Note over Worker: WorkerCompiler.compile()
+    Worker-->>Client: SSE: event: log
+    Worker-->>Client: SSE: event: source-start
+    Worker-->>Client: SSE: event: source-complete
+    Worker-->>Client: SSE: event: progress
+    Note over Worker: Cache result in KV
+    Worker-->>Client: SSE: event: complete
 ```
 
 ### Async Queue Flow
 
-```
-Client                Worker              Queue            Consumer
-  │                     │                   │                  │
-  │ POST /compile/async │                   │                  │
-  │────────────────────▶│                   │                  │
-  │                     │  enqueue message  │                  │
-  │                     │─────────────────▶│                  │
-  │  202 {requestId}    │                   │                  │
-  │◀────────────────────│                   │  dequeue         │
-  │                     │                   │─────────────────▶│
-  │                     │                   │                  │ compile
-  │                     │                   │                  │────┐
-  │                     │                   │                  │◀───┘
-  │                     │                   │  store result    │
-  │                     │                   │◀─────────────────│
-  │                     │                   │                  │
-  │ GET /queue/results/:id                  │                  │
-  │────────────────────▶│  fetch result     │                  │
-  │                     │─────────────────▶│                  │
-  │  200 {rules}        │                   │                  │
-  │◀────────────────────│                   │                  │
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Worker
+    participant Queue
+    participant Consumer
+
+    Client->>Worker: POST /compile/async
+    Worker->>Queue: enqueue message
+    Worker-->>Client: 202 {requestId}
+    Queue->>Consumer: dequeue
+    Consumer->>Consumer: compile
+    Consumer->>Queue: store result
+    Client->>Worker: GET /queue/results/:id
+    Worker->>Queue: fetch result
+    Worker-->>Client: 200 {rules}
 ```
 
 ---
 
 ## Deployment Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Cloudflare Edge Network                   │
-│                                                             │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │              Cloudflare Worker (worker.ts)             │  │
-│  │                                                       │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌────────────────────┐  │  │
-│  │  │ HTTP API │  │WebSocket │  │  Queue Consumer    │  │  │
-│  │  │ Router   │  │ Handler  │  │  (async compile)   │  │  │
-│  │  └──────────┘  └──────────┘  └────────────────────┘  │  │
-│  │                                                       │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌────────────────────┐  │  │
-│  │  │ Durable  │  │  Tail    │  │  Static Assets     │  │  │
-│  │  │Workflows │  │  Worker  │  │  (Pages/ASSETS)    │  │  │
-│  │  └──────────┘  └──────────┘  └────────────────────┘  │  │
-│  └───────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌───────────┐  ┌───────────┐  ┌────────┐  ┌──────────┐   │
-│  │ KV Store  │  │ D1 (SQL)  │  │ Queues │  │Analytics │   │
-│  │ - Cache   │  │ - Storage │  │ - Std  │  │ Engine   │   │
-│  │ - Rates   │  │ - Deploy  │  │ - High │  │          │   │
-│  │ - Metrics │  │ - History │  │        │  │          │   │
-│  └───────────┘  └───────────┘  └────────┘  └──────────┘   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-         ▲                              ▲
-         │ HTTP/SSE/WS                  │ HTTP (fetch sources)
-         │                              │
-    ┌────┴─────┐               ┌────────┴────────┐
-    │  Clients │               │ Filter List     │
-    │ (Browser,│               │ Sources         │
-    │  CI/CD,  │               │ (EasyList, etc.)│
-    │  CLI)    │               └─────────────────┘
-    └──────────┘
+```mermaid
+graph TD
+    subgraph CFN["Cloudflare Edge Network"]
+        subgraph CW["Cloudflare Worker (worker.ts)"]
+            HAPI["HTTP API Router"]
+            WSH["WebSocket Handler"]
+            QC["Queue Consumer\n(async compile)"]
+            DWF["Durable Workflows"]
+            TW["Tail Worker"]
+            SA["Static Assets\n(Pages/ASSETS)"]
+        end
+        KV["KV Store\n- Cache\n- Rates\n- Metrics"]
+        D1["D1 (SQL)\n- Storage\n- Deploy\n- History"]
+        QQ["Queues\n- Std\n- High"]
+        AE["Analytics Engine"]
+    end
+
+    CLIENTS["Clients\n(Browser, CI/CD, CLI)"] -->|HTTP/SSE/WS| HAPI
+    HAPI -->|HTTP fetch sources| FLS["Filter List Sources\n(EasyList, etc.)"]
 ```
 
 ---
