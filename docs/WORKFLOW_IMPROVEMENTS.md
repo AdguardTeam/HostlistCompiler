@@ -112,53 +112,53 @@ on:
 
 ### CI Workflow
 
-```
-Before:
-┌─────────────────────────────────────────┐
-│ CI Job (sequential)          5-7 min    │
-│  ├─ Lint                     1 min      │
-│  ├─ Format                   1 min      │
-│  ├─ Type Check               1 min      │
-│  └─ Test                     2-4 min    │
-├─────────────────────────────────────────┤
-│ Security (parallel)          2 min      │
-│ Publish (sequential)         1 min      │
-│ Deploy Worker (sequential)   1 min      │
-│ Deploy Pages (sequential)    1 min      │
-└─────────────────────────────────────────┘
-Total: ~8-10 minutes
+**Before** (~8-10 minutes total):
 
-After:
-┌─────────────────────────────────────────┐
-│ Parallel Phase               2-4 min    │
-│  ├─ Lint                     1 min      │
-│  ├─ Format                   1 min      │
-│  ├─ Type Check               1 min      │
-│  ├─ Test                     2-4 min    │ (longest)
-│  └─ Security                 2 min      │
-├─────────────────────────────────────────┤
-│ Publish (sequential)         1 min      │
-│ Deploy (sequential)          1 min      │
-└─────────────────────────────────────────┘
-Total: ~4-6 minutes (40-50% improvement)
+```mermaid
+flowchart LR
+    subgraph SEQ["CI Job (sequential) — 5-7 min"]
+        L[Lint<br/>1 min] --> F[Format<br/>1 min] --> TC[Type Check<br/>1 min] --> T[Test<br/>2-4 min]
+    end
+    SEC[Security<br/>2 min]
+    T --> PUB[Publish<br/>1 min]
+    SEC --> PUB
+    PUB --> DW[Deploy Worker<br/>1 min]
+    DW --> DP[Deploy Pages<br/>1 min]
+```
+
+**After** (~4-6 minutes total, 40-50% improvement):
+
+```mermaid
+flowchart LR
+    subgraph PAR["Parallel Phase — 2-4 min"]
+        L[Lint<br/>1 min]
+        F[Format<br/>1 min]
+        TC[Type Check<br/>1 min]
+        T[Test<br/>2-4 min]
+        SEC[Security<br/>2 min]
+    end
+    L --> PUB[Publish<br/>1 min]
+    F --> PUB
+    TC --> PUB
+    T --> PUB
+    SEC --> PUB
+    PUB --> DEP[Deploy<br/>1 min]
 ```
 
 ### Release Workflow
 
-```
-Before (on failure):
-┌─────────────────────────────────────────┐
-│ Build Binaries               10 min     │
-│ Build Docker                 5 min      │
-│ Create Release (fails here)  -          │
-└─────────────────────────────────────────┘
-Total wasted: ~15 minutes
+**Before** (on failure, ~15 minutes wasted):
 
-After (on failure):
-┌─────────────────────────────────────────┐
-│ Validate (fails here)        3 min      │
-└─────────────────────────────────────────┘
-Total wasted: ~3 minutes (80% improvement on failures)
+```mermaid
+flowchart LR
+    BB[Build Binaries<br/>10 min] --> BD[Build Docker<br/>5 min] --> CR[Create Release<br/>❌ fails here]
+```
+
+**After** (on failure, ~3 minutes wasted — 80% improvement):
+
+```mermaid
+flowchart LR
+    V[Validate<br/>❌ fails here<br/>3 min]
 ```
 
 ## Caching Strategy

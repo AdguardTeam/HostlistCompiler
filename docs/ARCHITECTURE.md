@@ -53,16 +53,16 @@ The **adblock-compiler** is a *compiler-as-a-service* for adblock filter lists. 
 ```mermaid
 graph TD
     subgraph EW["External World"]
-        FLS["Filter List Sources\n(URLs/Files)"]
-        WB["Web Browser\n(Web UI)"]
-        AC["API Consumers\n(CI/CD, scripts)"]
+        FLS["Filter List Sources<br/>(URLs/Files)"]
+        WB["Web Browser<br/>(Web UI)"]
+        AC["API Consumers<br/>(CI/CD, scripts)"]
     end
 
     subgraph ACS["adblock-compiler System"]
-        CLI["CLI App\n(Deno)"]
-        WUI["Web UI\n(Static)"]
-        CFW["Cloudflare Worker\n(Edge API)"]
-        CORE["Core Library\n(FilterCompiler / WorkerCompiler)"]
+        CLI["CLI App<br/>(Deno)"]
+        WUI["Web UI<br/>(Static)"]
+        CFW["Cloudflare Worker<br/>(Edge API)"]
+        CORE["Core Library<br/>(FilterCompiler / WorkerCompiler)"]
         DL["Download & Fetch"]
         TP["Transform Pipeline"]
         VS["Validate & Schema"]
@@ -70,8 +70,8 @@ graph TD
         DG["Diagnostics & Tracing"]
     end
 
-    KV["Cloudflare KV\n(Cache, Rate Limit, Metrics)"]
-    D1["Cloudflare D1\n(SQLite, Metadata)"]
+    KV["Cloudflare KV<br/>(Cache, Rate Limit, Metrics)"]
+    D1["Cloudflare D1<br/>(SQLite, Metadata)"]
 
     FLS --> CLI
     WB --> WUI
@@ -96,13 +96,13 @@ Every compilation—CLI, library, or API—follows this pipeline:
 
 ```mermaid
 flowchart LR
-    A["1. Config\nLoading"] --> B["2. Validate\n(Zod)"]
-    B --> C["3. Download\nSources"]
-    C --> D["4. Per-Source\nTransforms"]
-    D --> E["5. Merge\nAll Sources"]
-    E --> F["6. Global\nTransforms"]
-    F --> G["7. Checksum\n& Header"]
-    G --> H["8. Output\n(Rules)"]
+    A["1. Config<br/>Loading"] --> B["2. Validate<br/>(Zod)"]
+    B --> C["3. Download<br/>Sources"]
+    C --> D["4. Per-Source<br/>Transforms"]
+    D --> E["5. Merge<br/>All Sources"]
+    E --> F["6. Global<br/>Transforms"]
+    F --> G["7. Checksum<br/>& Header"]
+    G --> H["8. Output<br/>(Rules)"]
 ```
 
 ### Step-by-Step

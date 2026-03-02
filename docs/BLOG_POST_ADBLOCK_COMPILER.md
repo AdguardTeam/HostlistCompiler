@@ -12,7 +12,7 @@ At its core, Adblock Compiler does one thing exceptionally well: **it transforms
 
 ```mermaid
 flowchart TD
-    SRC["Multiple Filter Sources\n(URLs, files, inline rules - multiple formats supported)"]
+    SRC["Multiple Filter Sources<br/>(URLs, files, inline rules - multiple formats supported)"]
     subgraph PIPE["Adblock Compiler Pipeline"]
         direction TB
         P1["1. Parse and normalize rules"]
@@ -23,7 +23,7 @@ flowchart TD
         P1 --> P2 --> P3 --> P4 --> P5
     end
     SRC --> P1
-    P5 --> OUT["Output in Multiple Formats\n(Adblock, Hosts, Dnsmasq, Pi-hole, Unbound, DoH, JSON)"]
+    P5 --> OUT["Output in Multiple Formats<br/>(Adblock, Hosts, Dnsmasq, Pi-hole, Unbound, DoH, JSON)"]
 ```
 
 ## Why Adblock Compiler?

@@ -110,26 +110,28 @@ Ensure the build command is set to `npm install` (not `npm run build` or other c
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────┐
-│  Cloudflare Pages                       │
-│  ┌───────────────────────────────────┐  │
-│  │  Static Files (public/)           │  │
-│  │  - index.html (Admin Dashboard)   │  │
-│  │  - compiler.html (Compiler UI)    │  │
-│  │  - test.html (API Tester)         │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
-              ↓ (calls)
-┌─────────────────────────────────────────┐
-│  Cloudflare Workers                     │
-│  ┌───────────────────────────────────┐  │
-│  │  Worker (worker/worker.ts)        │  │
-│  │  - API endpoints                  │  │
-│  │  - Compiler service               │  │
-│  │  - KV, R2, D1 bindings            │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    PAGES["Cloudflare Pages"]
+    subgraph STATIC["Static Files (public/)"]
+        I["index.html (Admin Dashboard)"]
+        C["compiler.html (Compiler UI)"]
+        T["test.html (API Tester)"]
+    end
+    WORKERS["Cloudflare Workers"]
+    subgraph WORKER_INNER["Worker (worker/worker.ts)"]
+        API["API endpoints"]
+        SVC["Compiler service"]
+        BINDINGS["KV, R2, D1 bindings"]
+    end
+
+    PAGES --> I
+    PAGES --> C
+    PAGES --> T
+    PAGES -->|calls| WORKERS
+    WORKERS --> API
+    WORKERS --> SVC
+    WORKERS --> BINDINGS
 ```
 
 ## Verification

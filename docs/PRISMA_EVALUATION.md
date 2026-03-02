@@ -192,22 +192,16 @@ The existing storage patterns (caching, health monitoring, change detection) are
 
 The project uses a flexible adapter pattern:
 
-```
-┌─────────────────────────────────────────────────────┐
-│                  IStorageAdapter                     │
-├─────────────────────────────────────────────────────┤
-│  + set<T>(key, value, ttl?)                         │
-│  + get<T>(key): StorageEntry<T>                     │
-│  + delete(key)                                       │
-│  + list<T>(options): StorageEntry<T>[]              │
-└─────────────────┬───────────────────────────────────┘
-                  │
-    ┌─────────────┼─────────────┐
-    ▼             ▼             ▼
-┌─────────┐ ┌──────────┐ ┌─────────────┐
-│ Prisma  │ │    D1    │ │ InMemory    │
-│ Storage │ │ Storage  │ │ Storage     │
-└─────────┘ └──────────┘ └─────────────┘
+```mermaid
+classDiagram
+    class IStorageAdapter {
+        +set~T~(key: string[], value: T, ttl?: number) Promise~boolean~
+        +get~T~(key: string[]) Promise~StorageEntry~T~ | null~
+        +delete(key: string[]) Promise~boolean~
+        +list~T~(options) Promise~Array~{ key: string[]; value: StorageEntry~T~ }~~
+    }
+    IStorageAdapter <|-- PrismaStorageAdapter
+    IStorageAdapter <|-- D1StorageAdapter
 ```
 
 This allows switching storage backends based on deployment environment without changing application code.
