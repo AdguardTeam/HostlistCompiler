@@ -18,5 +18,8 @@
         "typescript": "^5.8.0",
         "vue-tsc": "^2.2.0"
     },
+    "overrides": {
+        "serialize-javascript": "^7.0.3"
+    },
     "private": true
 }
