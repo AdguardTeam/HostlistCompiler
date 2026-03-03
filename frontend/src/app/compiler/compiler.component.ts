@@ -56,6 +56,7 @@ import { SseService, SseConnection } from '../services/sse.service';
 import { TurnstileComponent } from '../turnstile/turnstile.component';
 import { TurnstileService } from '../services/turnstile.service';
 import { FilterParserService } from '../services/filter-parser.service';
+import { TURNSTILE_SITE_KEY } from '../tokens';
 
 /** Named preset configurations */
 interface Preset {
@@ -475,8 +476,8 @@ export class CompilerComponent {
     private readonly turnstileService = inject(TurnstileService);
     readonly filterParser            = inject(FilterParserService);
 
-    /** Item 1: Turnstile site key (configure via environment in production) */
-    readonly turnstileSiteKey = '';
+    /** Item 1: Turnstile site key — injected via TURNSTILE_SITE_KEY token */
+    readonly turnstileSiteKey = inject(TURNSTILE_SITE_KEY);
     /** Whether SSE streaming mode is on */
     readonly streamingMode = signal(false);
     /** Active SSE connection (null when not streaming) */

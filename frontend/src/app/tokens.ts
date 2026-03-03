@@ -19,3 +19,14 @@ export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
     providedIn: 'root',
     factory: () => '/api',
 });
+
+/**
+ * Cloudflare Turnstile public site key.
+ * Empty string disables the widget. In production, provide a real key via
+ * `{ provide: TURNSTILE_SITE_KEY, useValue: '0x...' }` in app.config.ts,
+ * or fetch it from `/api/turnstile-config` at runtime.
+ */
+export const TURNSTILE_SITE_KEY = new InjectionToken<string>('TURNSTILE_SITE_KEY', {
+    providedIn: 'root',
+    factory: () => '',
+});
