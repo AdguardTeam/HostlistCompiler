@@ -1332,6 +1332,7 @@ npm --prefix frontend start  # Angular on :4200 → proxies /api to :8787
 ```
 
 **Pages:**
+
 - Dashboard — live metrics from `/api/metrics` and `/api/health`
 - Compiler — filter list compilation with JSON and SSE streaming modes, drag-and-drop
 - Performance — real-time compilation latency and throughput

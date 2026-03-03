@@ -36,6 +36,7 @@ Thumbs.db
 
 # Test coverage
 coverage/
+cov_profile/
 coverage.lcov
 cov_profile/
 
