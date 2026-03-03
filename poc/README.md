@@ -1,453 +1,270 @@
-# Frontend Framework Migration - Proof of Concept
+# Frontend Framework Migration — Proof of Concept
 
-This directory contains proof-of-concept implementations of the Adblock Compiler frontend in two popular JavaScript frameworks: **Vue 3** and **Angular 21**.
+This directory contains two proof-of-concept implementations for migrating the Adblock Compiler frontend away from its current vanilla HTML/CSS/JS stack. The goal is to choose a modern framework for the production migration.
 
-## 📋 Overview
+## PoC Implementations
 
-Each PoC demonstrates how the existing vanilla HTML/CSS/JS frontend would be implemented in a modern framework, showcasing:
+| PoC | Stack | Directory |
+|---|---|---|
+| **Vue CDN** | Vue 3 + Pinia (no build step) | `vue/index.html` |
+| **Nuxt 3** | Vue 3 + Pinia + SSR (full project) | `vue/nuxt/` |
+| **Angular 21** | Angular + Material 3 + SSR + full signal API | `angular/` |
 
-- ✅ Component-based architecture
-- ✅ Client-side routing (SPA)
-- ✅ State management (forms, theme, API data)
-- ✅ Theme toggle (dark/light mode)
-- ✅ API integration pattern
-- ✅ Loading and error states
-- ✅ Form validation
-- ✅ Benchmarking — measure compilation API performance across multiple runs
+---
 
-## 🎯 PoC Implementations
+## How to Run
 
-### 1. Vue 3 PoC ([vue/index.html](./vue/index.html))
-
-**Technology Stack:**
-
-- Vue 3 (via CDN)
-- Vue Router 4 (via CDN)
-- Pinia 2 (via CDN) - Official state management
-- Composition API
-
-**Key Patterns:**
-
-- **Pinia** for centralized state management (replaces Vuex)
-- Store with state, getters, and actions
-- Reactive store accessible from any component
-- Vue Router for declarative routing, named routes, and route metadata
-- Route parameters with `useRoute()` for bookmarkable application states
-- Programmatic navigation with `useRouter().push()`
-- Navigation guards with `router.beforeEach()` for cross-cutting concerns
-- Composition API with `setup()`
-- `ref()` and `reactive()` for reactive state
-- `computed()` for derived state
-- `watch()` for side effects
-- Template-based declarative rendering
-- Two-way data binding with `v-model`
-- Composables for reusable logic
-
-**State Management:**
-
-The Vue PoC demonstrates **Pinia**, the official state management library for Vue 3. Pinia provides a centralized store where application state lives, making it easy to share data between components without prop drilling. See [vue/VUE_PINIA.md](./vue/VUE_PINIA.md) for a detailed explanation of why Pinia is the modern choice for Vue 3 state management.
-
-**Why Vue Router Is Worth Using:**
-
-Vue Router is not just a convenience layer — it enables architectural patterns that would be
-painful to implement by hand:
-
-| Benefit | What it Gives You |
-| --- | --- |
-| **Declarative links** | `<router-link>` auto-applies active classes; no DOM querying needed |
-| **Programmatic navigation** | `router.push('/compiler/dns')` from any component or service |
-| **Route parameters** | `/compiler/:preset` makes URLs shareable and bookmarkable |
-| **Navigation guards** | `router.beforeEach()` centralises auth, analytics, and title updates |
-| **Route metadata** | Attach arbitrary data (`meta.title`, `meta.requiresAuth`) to routes |
-| **Lazy loading** | `component: () => import('./Page.vue')` splits routes into separate chunks |
-| **Nested routes** | Multi-level `<router-view>` outlets for complex layouts |
-| **Named routes** | Stable names decouple navigation code from URL structure |
-
-The Vue PoC demonstrates the first five of these benefits in a single CDN-based HTML file.
-
-**Benchmark:**
-
-The `/benchmark` route measures compilation API performance across multiple runs. It uses `performance.now()` for accurate wall-clock timing, shows a live progress bar and per-run results table, and exposes computed summary statistics (min, max, avg) via `computed()`. Demonstrates `ref()`, `reactive()`, `computed()`, and sequential `async/await` in a Composition API `setup()`.
-
-**How to Run:**
-
+### Vue CDN
 ```bash
 cd poc/vue
-# Open index.html in a web browser
-# OR serve with a local server:
-python3 -m http.server 8001
-# Then visit: http://localhost:8001
+python3 -m http.server 8001   # or: npx http-server
+# Visit: http://localhost:8001
 ```
 
-**Advantages:**
-
-- 🎨 Progressive framework (start simple, scale up)
-- 📖 Excellent documentation
-- 🔄 Two-way data binding
-- 🎯 Intuitive template syntax
-- ⚡ Great performance with reactivity system
-- 🛠️ Official router and state management
-
-**Considerations:**
-
-- Smaller ecosystem than React
-- Less corporate backing
-- Composition API is newer (learning curve)
-
-#### 1a. Nuxt 3 PoC ([vue/nuxt/](./vue/nuxt/))
-
-Nuxt 3 is a **meta-framework built on top of Vue 3** — it uses the same `.vue` single-file components, Composition API, and Pinia, and adds a production-ready layer on top. Because Nuxt is Vue (not a separate framework), the Nuxt PoC lives alongside the CDN version inside `poc/vue/` rather than as a peer to Angular.
-
-**What Nuxt adds over the CDN Vue PoC:**
-
-| Feature | Vue CDN PoC | Nuxt 3 PoC |
-| --- | --- | --- |
-| **Rendering** | Client-only (CSR) | **Server + Client (SSR)** |
-| **SEO** | ❌ Crawlers see empty HTML | ✅ Crawlers see full HTML |
-| **Routing** | Manual `routes[]` array | **File-based** (`pages/` directory) |
-| **Data fetching** | `fetch()` — client only | **`useFetch()` / `useAsyncData()`** — SSR |
-| **Pinia state** | Client-init only | **SSR-hydrated** via `@pinia/nuxt` |
-| **Head / SEO tags** | Static `<title>` only | **`useHead()` / `useSeoMeta()`** — SSR |
-| **API routes** | External backend | **`server/api/`** — Nitro built-in |
-| **TypeScript** | JSDoc annotations | **Strict TypeScript throughout** |
-| **Build step** | None (CDN) | `npm run build` |
-
-**Key SSR patterns demonstrated:**
-
-- `useAsyncData()` — data fetched on the server, embedded in the HTML payload, zero loading flash
-- `useState()` — SSR-safe shared state that survives the server→client handoff without mismatch
-- `useHead()` — server-rendered `<title>` and `<meta>` tags for SEO on every page
-- `@pinia/nuxt` — Pinia store state serialised into the HTML and hydrated on the client
-- `$fetch()` — isomorphic fetch utility (Node http on server, browser Fetch on client)
-- `server/api/compile.post.ts` — Nitro server route that proxies to the Worker API, eliminating CORS
-- File-based routing — `[[preset]]` for optional params, `[...slug]` for catch-all 404
-
-**How to Run:**
-
+### Nuxt 3
 ```bash
 cd poc/vue/nuxt
 npm install
-npm run dev
-# → http://localhost:3000
+npm run dev    # → http://localhost:3000
 ```
 
-See [vue/nuxt/NUXT_SSR.md](./vue/nuxt/NUXT_SSR.md) for a full explanation of SSR concepts and patterns used.
-
----
-
-### 2. Angular PoC ([angular/](./angular/))
-
-**Technology Stack:**
-
-- Angular 21 (Standalone Components)
-- TypeScript
-- RxJS
-- Reactive Forms
-- **Signals** - Modern reactive state management
-
-**Key Patterns:**
-
-- Standalone components (no NgModules)
-- **Angular Signals** - `signal()`, `computed()`, `effect()`
-- **New `@if` / `@for` / `@switch` template syntax** (replaces `*ngIf/*ngFor/*ngSwitch`)
-- **Functional DI with `inject()`** - No constructor needed
-- Dependency Injection
-- Reactive Forms with FormBuilder
-- RxJS Observables for async operations
-- Services for business logic
-- Component-scoped styles
-
-**Modern Reactivity:**
-
-The Angular PoC demonstrates **Angular Signals**, a revolutionary reactive primitive that enables fine-grained reactivity and better performance than traditional Zone.js change detection. Signals provide explicit dependencies, simpler mental models, and seamless interop with RxJS. See [angular/ANGULAR_SIGNALS.md](./angular/ANGULAR_SIGNALS.md) for a comprehensive guide.
-
-**Benchmark:**
-
-The `/benchmark` route measures compilation API performance across multiple runs. It uses `performance.now()` for accurate wall-clock timing and showcases Angular Signals throughout: `signal()` for mutable state (run count, running flag, accumulated results), `computed()` for derived progress percentage and summary statistics, and `inject()` for functional dependency injection. Results update reactively after each run.
-
-**How to Run:**
-
+### Angular 21
 ```bash
 cd poc/angular
 npm install
-npm start
-# Visit: http://localhost:4200
+npm start      # CSR dev server → http://localhost:4200
 ```
-
-**Advantages:**
-
-- 🏢 Enterprise-ready framework
-- 📘 Full TypeScript integration
-- 🧰 Complete solution (router, forms, HTTP, testing)
-- 🔒 Strong typing and interfaces
-- 🎓 Opinionated architecture (consistency)
-- 💼 Popular in enterprise environments
-- ⚡ Modern signals for fine-grained reactivity
-- 🚀 New template syntax for better performance
-
-**Considerations:**
-
-- Steeper learning curve
-- More boilerplate code
-- Larger bundle size
-- Requires Node.js and build tools
 
 ---
 
-## 🔍 Feature Comparison
+## Detailed Feature Comparison
 
-| Feature               | Vue CDN              | Vue + Nuxt 3         | Angular              |
-| --------------------- | -------------------- | -------------------- | -------------------- |
-| **Learning Curve**    | Easy                 | Easy (same Vue API)  | Steep                |
-| **Bundle Size**       | Small (CDN)          | Small (tree-shaken)  | Large                |
-| **Performance**       | Excellent            | Excellent + SSR      | Very Good            |
-| **TypeScript**        | Optional (JSDoc)     | Yes (strict)         | Required             |
-| **State Management**  | **Pinia** (Official) | **Pinia** + SSR hydration | Services + RxJS + Signals |
-| **Form Handling**     | v-model + validation | v-model + validation | Reactive Forms       |
-| **Routing**           | Vue Router (manual)  | File-based (auto)    | Angular Router       |
-| **Build Setup**       | None (CDN)           | Nuxt / Nitro         | Angular CLI          |
-| **SSR**               | ❌                   | ✅ (built-in)        | Optional (Angular Universal) |
-| **SEO**               | ❌ (CSR only)        | ✅ (`useHead()`)     | Optional             |
-| **API Routes**        | External backend     | `server/api/` (built-in) | External backend |
-| **Testing**           | Vitest / Jest        | Vitest / Jest        | Jasmine + Karma      |
-| **Community**         | Large                | Large                | Large                |
-| **Corporate Backing** | Independent          | Independent          | Google               |
+### Core Framework Capabilities
 
-## 🎨 Visual Comparison
+| Feature | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **Rendering** | Client-only (CSR) | Server + Client (SSR) | Server + Client (SSR) |
+| **Prerendering (SSG)** | ❌ | ✅ `nuxt generate` | ✅ `RenderMode.Prerender` per route |
+| **Mixed SSR/SSG per route** | ❌ | ✅ `routeRules` | ✅ `ServerRoute[]` per-path |
+| **File-based routing** | ❌ Manual `routes[]` | ✅ `pages/` directory | ❌ Manual `routes.ts` |
+| **Build step required** | ❌ None (CDN) | ✅ `npm run build` | ✅ `ng build` |
+| **TypeScript** | Optional (JSDoc) | ✅ Strict | ✅ Required |
+| **Bundle strategy** | CDN global script | Tree-shaken chunks | Tree-shaken chunks |
+| **Language** | JavaScript + JSDoc | TypeScript | TypeScript |
 
-Both PoCs implement the same design using the existing color scheme:
+### Reactivity & State
 
-- **Primary Gradient**: `#667eea` → `#764ba2`
-- **Dark Mode**: Supported in both implementations
-- **Responsive Design**: Mobile-friendly layouts
-- **Consistent UX**: Same user experience across frameworks
+| Feature | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **Reactive primitive** | `ref()` / `reactive()` | `ref()` / `reactive()` | `signal()` |
+| **Derived state** | `computed()` | `computed()` | `computed()` |
+| **Side effects** | `watch()` / `watchEffect()` | `watch()` / `watchEffect()` | `effect()` |
+| **Linked/derived writable state** | `ref()` + `watch()` | `ref()` + `watch()` | ✅ `linkedSignal()` |
+| **State management** | Pinia (official) | Pinia + SSR hydration | Services + RxJS + signals |
+| **SSR state hydration** | ❌ | ✅ `@pinia/nuxt` auto-hydrates stores | ✅ Express transfer state |
+| **Two-way component binding** | `v-model` / `defineModel()` | `defineModel()` | ✅ `model()` signal |
+| **Change detection** | Fine-grained (Proxy) | Fine-grained (Proxy) | Zoneless signals (no Zone.js) |
 
-## 📊 Code Structure Comparison
+### Component API
 
-### Vue CDN
+| Feature | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **Component inputs** | `defineProps()` | `defineProps()` | `input()` / `input.required()` |
+| **Component outputs** | `defineEmits()` | `defineEmits()` | `output()` |
+| **Two-way model** | `defineModel()` (v3.4+) | `defineModel()` | `model()` |
+| **Template queries** | `useTemplateRef()` (v3.5+) | `useTemplateRef()` | `viewChild()` / `viewChildren()` |
+| **Dependency injection** | `provide()` / `inject()` | `provide()` / `inject()` | `inject()` functional DI |
+| **Lifecycle hooks** | `onMounted`, `onUnmounted`, etc. | Same as Vue | `ngOnInit`, `afterRenderEffect()`, etc. |
+| **Post-render DOM effects** | `onMounted()` / `nextTick()` | Same as Vue | ✅ `afterRenderEffect()` (v20+) |
 
-```
-- Single HTML file (no build step)
-- Template syntax (HTML-like)
-- Composition API for logic
-- Reactive data binding
-- Props & emits for communication
-```
+### Data Fetching & HTTP
 
-### Vue + Nuxt 3
+| Feature | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **HTTP client** | Fetch API (manual) | `$fetch()` (isomorphic) | `HttpClient` (RxJS) |
+| **Signal-native async** | ❌ Manual loading/error | ✅ `useAsyncData()` / `useFetch()` | ✅ `resource()` / `rxResource()` |
+| **SSR data fetching** | ❌ Client-only | ✅ Fetched on server, embedded in HTML | ✅ `TransferState` |
+| **Observable streams** | ❌ | ❌ (uses Promises) | ✅ RxJS full operator suite |
+| **Auto-unsubscribe** | N/A (Promises) | N/A | ✅ `takeUntilDestroyed()` / `toSignal()` |
+| **Retry / debounce / switchMap** | Manual | Manual | ✅ RxJS operators |
+| **Server API routes** | ❌ External backend | ✅ `server/api/` (Nitro built-in) | ❌ External backend |
 
-```
-- .vue single-file components (same as Vue CDN)
-- File-based routing (pages/ directory)
-- Server-side rendering (Nitro engine)
-- Auto-imported composables and Vue APIs
-- server/api/ for backend API routes
-```
+### Performance & Rendering
 
-### Angular
+| Feature | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **Lazy route loading** | ✅ `() => import()` | ✅ Automatic (file-based) | ✅ `loadComponent()` |
+| **Deferred rendering** | ❌ | ❌ | ✅ `@defer` with triggers |
+| **Incremental hydration** | ❌ | ✅ (Nuxt 3.12+ `LazyHydration`) | ✅ `@defer` with SSR |
+| **View Transitions API** | Manual | `app.vue` transitions | ✅ `withViewTransitions()` |
+| **SEO / meta tags** | ❌ Static `<title>` | ✅ `useHead()` / `useSeoMeta()` — SSR | ✅ Route `title` property |
+| **Initial paint** | Blank until JS | ✅ Full HTML from server | ✅ Full HTML from server |
+| **CDN font requests** | 2 (Google Fonts) | Configurable | ✅ 0 (npm: `@fontsource` + `material-symbols`) |
 
-```
-- Class-based components
-- Inline or external templates
-- Decorators (@Component, @Injectable)
-- Services for shared logic
-- Input/Output for communication
-```
+### Forms
 
-## 🚀 Migration Path Recommendations
+| Feature | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **Form binding** | `v-model` | `v-model` | `ReactiveFormsModule` |
+| **Dynamic controls** | Manual array | Manual array | ✅ `FormArray` / `FormBuilder` |
+| **Built-in validation** | HTML5 + manual | HTML5 + manual | ✅ `Validators.*` |
+| **Form groups** | Manual object | Manual object | ✅ `FormGroup` |
+| **Control error states** | Manual | Manual | ✅ `.hasError()` / `<mat-error>` |
+
+### Testing
+
+| Feature | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **Recommended test runner** | Vitest | Vitest | Web Test Runner / Jest (Karma deprecated) |
+| **Component testing** | `@vue/test-utils` | `@vue/test-utils` + `@nuxt/test-utils` | `TestBed` |
+| **Zoneless testing** | N/A | N/A | ✅ `provideZonelessChangeDetection()` in TestBed |
+| **Signal input in tests** | `setProps()` | `setProps()` | ✅ `fixture.componentRef.setInput()` |
+| **Spec files in PoC** | ❌ | ❌ | ✅ `stat-card.component.spec.ts` |
+
+### Developer Experience
+
+| Feature | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **Learning curve** | 🟢 Easy | 🟢 Easy (same Vue API) | 🔴 Steep |
+| **Boilerplate** | Minimal | Minimal | Moderate |
+| **Error messages** | Good | Good | Excellent (strict templates) |
+| **DevTools** | Vue DevTools | Vue DevTools + Nuxt DevTools | Angular DevTools |
+| **CLI** | None needed | Nuxt CLI | `@angular/cli` |
+| **Hot module reload** | ✅ (via CDN) | ✅ Nuxt HMR | ✅ `ng serve` |
+| **Strict type-checking** | JSDoc only | ✅ `vue-tsc` | ✅ `ngc` with `strictTemplates` |
+| **IDE support** | VSCode + Volar | VSCode + Volar | VSCode + Angular Language Service |
+
+### Corporate & Ecosystem
+
+| Factor | Vue CDN / Nuxt 3 | Angular 21 |
+|---|---|---|
+| **Primary sponsor** | Independent (Evan You) | Google |
+| **Enterprise adoption** | Growing | Very high |
+| **Job market** | Large | Very large |
+| **Release cadence** | ~6 months | Every 6 months (predictable) |
+| **LTS support** | 18 months per major | 18 months per major |
+| **Breaking changes** | Rare | Rare (strict semver) |
+| **UI component library** | Vuetify / PrimeVue (separate) | ✅ Angular Material (official) |
+
+---
+
+## Angular 21 Modern APIs — Complete List
+
+All APIs below are demonstrated live in `poc/angular/`:
+
+| API | Version Introduced | Where in PoC | What It Replaces |
+|---|---|---|---|
+| `signal()` | v16 | All components | Class field + `markForCheck()` |
+| `computed()` | v16 | All components | Getter + `markForCheck()` |
+| `effect()` | v17 | `signals.component.ts` | `ngOnInit` + subscribe |
+| `@if` / `@for` / `@switch` | v17 | All templates | `*ngIf`, `*ngFor`, `*ngSwitch` |
+| `@defer` (on viewport, on idle) | v17 | `home`, `benchmark` | None (new capability) |
+| `viewChild()` | v17.3 | `app`, `home`, `benchmark` | `@ViewChild` decorator |
+| `input()` / `input.required()` | v19 | `stat-card.component.ts` | `@Input()` decorator |
+| `output()` | v19 | `stat-card.component.ts` | `@Output() + EventEmitter` |
+| `model()` | v19 | `stat-card.component.ts` | `@Input()` + `@Output()Change` |
+| `linkedSignal()` | v19 | `compiler`, `benchmark` | `effect()` writing a signal |
+| `resource()` / `rxResource()` | v19 | `compiler.component.ts` | Observable + manual subscribe |
+| `provideAppInitializer()` | v19 | `app.config.ts` | `APP_INITIALIZER` token |
+| `toSignal()` | v16 | `compiler.component.ts` | `AsyncPipe` / manual subscribe |
+| `afterRenderEffect()` | v20 | `benchmark.component.ts` | `ngAfterViewInit` + DOM access |
+| `RenderMode.Prerender` | v17 | `app.routes.server.ts` | `prerender: true` (all routes) |
+| `provideZonelessChangeDetection()` | v18 | `app.config.ts` | Zone.js |
+| `ThemeService` + `provideAppInitializer()` | v19 | `theme.service.ts` | Inline `ngOnInit` theme init |
+| `@fontsource` / `material-symbols` (npm) | — | `styles.css` | Google Fonts CDN links |
+| Karma removed | v20 | `package.json` | Karma test runner (deprecated) |
+| `@angular/platform-browser-dynamic` removed | v15+ | `package.json` | Legacy NgModule bootstrap |
+
+---
+
+## Migration Path Recommendations
 
 ### Choose **Vue CDN** if:
+- ✅ Zero build step required
+- ✅ Embedding into an existing HTML page
+- ✅ Prototyping with no SSR or SEO requirements
+- ❌ Not suitable for production migration of the Adblock Compiler
 
-- ✅ You want zero setup and no build step
-- ✅ Prototyping or embedding in an existing HTML page
-- ✅ No SSR / SEO requirements
+### Choose **Nuxt 3** if:
+- ✅ Vue's easy, gentle learning curve is the team's priority
+- ✅ SSR and SEO meta tags are required
+- ✅ Full-stack setup (frontend + API routes in one repo) is desired
+- ✅ File-based routing is preferred over manual route config
+- ✅ Cloudflare Pages / Vercel / Netlify deployment is planned
+- ✅ Pinia state management is a priority
+- ✅ Team has existing Vue.js experience
 
-### Choose **Vue + Nuxt 3** if:
+### Choose **Angular 21** if:
+- ✅ Building a large-scale, long-lived enterprise application
+- ✅ Team consistency and enforced structure are priorities
+- ✅ Strongly opinionated, "batteries included" framework is preferred
+- ✅ Angular Material's official component library is desired
+- ✅ Google's backing and Angular LTS cadence are important
+- ✅ TypeScript is a firm requirement
+- ✅ Showcasing the latest reactive patterns (signals, resource, defer) matters
+- ✅ Existing team has Angular experience
 
-- ✅ You want Vue's easy learning curve with production-grade SSR
-- ✅ SEO or social-preview meta tags are needed
-- ✅ You want a full-stack setup (frontend + API routes) in one repo
-- ✅ Progressive enhancement or Cloudflare Pages deployment is desired
+---
 
-### Choose **Angular** if:
-
-- ✅ You need an enterprise framework
-- ✅ TypeScript is a requirement
-- ✅ You want a complete solution
-- ✅ Team consistency is critical
-- ✅ You're building a large-scale app
-
-## 📈 Existing App Analysis
+## Existing App Analysis
 
 ### Current Stack
+- Multi-page application (`compiler.html`, `index.html`, `admin-storage.html`, `test.html`)
+- Vanilla JavaScript with manual DOM manipulation
+- CSS Custom Properties for theming
+- Chart.js for visualization
+- No build step — direct HTML/CSS/JS
 
-- **Multi-page application** (compiler.html, index.html, admin-storage.html, test.html)
-- **Vanilla JavaScript** with manual DOM manipulation
-- **CSS Custom Properties** for theming
-- **Chart.js** for visualization
-- **No build step** - direct HTML/CSS/JS
+### Migration Benefits (All Frameworks)
+1. **SPA** — No page reloads, faster navigation
+2. **Component reusability** — DRY principle, maintainable code
+3. **State management** — Predictable data flow
+4. **Developer experience** — HMR, debugging tools, linting
+5. **Testing** — Unit + integration tests
+6. **Type safety** — Fewer runtime errors
+7. **Performance** — Code splitting, lazy loading, SSR
 
-### Migration Benefits
+---
 
-**All Frameworks Provide:**
-
-1. **Single Page Application** - No page reloads, faster navigation
-2. **Component Reusability** - DRY principle, maintainable code
-3. **State Management** - Predictable data flow
-4. **Developer Experience** - Hot reload, debugging tools
-5. **Testing** - Unit tests, integration tests
-6. **Type Safety** (with TypeScript) - Fewer runtime errors
-7. **Modern Tooling** - Linting, formatting, bundling
-8. **Performance** - Code splitting, lazy loading
-
-## 🔧 API Integration
-
-Both PoCs use the same API contract:
+## API Contract (Both PoCs)
 
 **Endpoint:** `POST /api/compile`
 
 **Request:**
-
 ```json
 {
     "configuration": {
         "name": "Filter List Name",
-        "sources": [
-            { "source": "https://example.com/filters.txt" }
-        ],
-        "transformations": [
-            "RemoveComments",
-            "Deduplicate",
-            "TrimLines",
-            "RemoveEmptyLines"
-        ]
+        "sources": [{ "source": "https://example.com/filters.txt" }],
+        "transformations": ["RemoveComments", "Deduplicate", "TrimLines"]
     },
     "benchmark": true
 }
 ```
 
 **Response:**
-
 ```json
 {
-  "success": true,
-  "ruleCount": 1234,
-  "sources": 1,
-  "transformations": [...],
-  "benchmark": {
-    "duration": "123ms",
-    "rulesPerSecond": 10000
-  }
+    "success": true,
+    "ruleCount": 1234,
+    "sources": 1,
+    "transformations": ["RemoveComments", "Deduplicate"],
+    "benchmark": { "duration": "123ms", "rulesPerSecond": 10000 }
 }
 ```
 
 **Available Transformations:**
-
-- RemoveComments
-- Compress
-- RemoveModifiers
-- Validate
-- ValidateAllowIp
-- Deduplicate
-- InvertAllow
-- RemoveEmptyLines
-- TrimLines
-- InsertFinalNewLine
-- ConvertToAscii
-
-## 📝 Implementation Notes
-
-### Vue (CDN Version)
-
-- Single HTML file, no build step required
-- Suitable for PoC and small projects
-- For production, use Nuxt 3 (see below) or Vite
-
-### Vue + Nuxt 3
-
-- Full Nuxt 3 project with SSR, file-based routing, and TypeScript
-- Requires Node.js and npm
-- Extends the CDN version with everything needed for production
-
-### Angular
-
-- Requires Node.js and npm
-- Uses Angular CLI for development
-- Production-ready setup out of the box
-
-### Production Considerations
-
-1. **Build Process**: All frameworks need bundling for production
-2. **Code Splitting**: Lazy load routes and components
-3. **SEO**: Use Nuxt 3 (Vue) or Angular Universal for SSR
-4. **PWA**: Add service workers for offline support
-5. **Testing**: Set up unit and E2E tests
-6. **CI/CD**: Automate builds and deployments
-
-## 🧪 Testing the PoCs
-
-### Vue CDN
-
-1. Open the HTML file directly in a browser
-2. Or serve with a local HTTP server:
-   ```bash
-   python3 -m http.server 8001
-   npx http-server
-   ```
-
-### Vue + Nuxt 3
-
-1. Install dependencies: `cd poc/vue/nuxt && npm install`
-2. Run dev server: `npm run dev`
-3. Visit: `http://localhost:3000`
-4. Build for production: `npm run build`
-
-### Angular
-
-1. Install dependencies: `npm install`
-2. Run dev server: `npm start`
-3. Build for production: `npm run build`
-
-## 🎓 Learning Resources
-
-### Vue / Nuxt
-
-- [Official Vue Docs](https://vuejs.org/)
-- [Vue Router](https://router.vuejs.org/)
-- [Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
-- [Nuxt 3 Docs](https://nuxt.com/docs)
-- [Pinia Docs](https://pinia.vuejs.org/)
-- [NUXT_SSR.md](./vue/nuxt/NUXT_SSR.md) — SSR concepts guide
-
-### Angular
-
-- [Official Angular Docs](https://angular.io/docs)
-- [Standalone Components](https://angular.io/guide/standalone-components)
-- [Reactive Forms](https://angular.io/guide/reactive-forms)
-
-## 📞 Next Steps
-
-1. **Review each PoC** - Test functionality and developer experience
-2. **Read the SPA Benefits Analysis** - See [docs/SPA_BENEFITS.md](../docs/SPA_BENEFITS.md) for a full analysis
-3. **Gather team feedback** - Which framework feels most intuitive?
-4. **Consider requirements** - Project size, timeline, team skills
-5. **Prototype further** - Implement more complex features
-6. **Make decision** - Choose framework and plan migration
-7. **Set up tooling** - Configure build process, linting, testing
-8. **Migrate incrementally** - Start with one page/feature
-
-## 🤝 Contributing
-
-These PoCs are starting points. Feel free to extend them with:
-
-- Additional pages (admin-storage, test)
-- Chart.js integration
-- WebSocket support
-- Authentication
-- Error boundaries
-- Loading skeletons
-- Animations
+`RemoveComments`, `Compress`, `RemoveModifiers`, `Validate`, `ValidateAllowIp`,
+`Deduplicate`, `InvertAllow`, `RemoveEmptyLines`, `TrimLines`, `InsertFinalNewLine`, `ConvertToAscii`
 
 ---
 
-**Questions or Feedback?** Open an issue or discussion in the repository!
+## Further Reading
+
+- [Angular PoC README](./angular/README.md) — full Angular 21 feature guide
+- [ANGULAR_SIGNALS.md](./angular/ANGULAR_SIGNALS.md) — deep-dive signals reference
+- [Nuxt PoC README](./vue/nuxt/README.md) — Nuxt 3 setup and SSR patterns
+- [NUXT_SSR.md](./vue/nuxt/NUXT_SSR.md) — SSR concepts guide
+- [VUE_PINIA.md](./vue/VUE_PINIA.md) — Pinia state management guide
+- [docs/SPA_BENEFITS.md](../docs/SPA_BENEFITS.md) — full SPA migration analysis
+

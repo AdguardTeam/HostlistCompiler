@@ -521,12 +521,226 @@ export class CompilerComponent {
 
 ## 🚀 Next Steps
 
-1. **Explore the Signals Component** - Visit `/signals` route in the Angular PoC
-2. **Experiment with Actions** - Try the interactive demos
-3. **Read Official Docs** - Deep dive into Angular Signals
-4. **Migrate Gradually** - Start using signals in new components
-5. **Combine with RxJS** - Learn the interop patterns
+1. **Explore the Signals Component** — Visit `/signals` route in the Angular PoC
+2. **Experiment with Actions** — Try the interactive demos
+3. **Read Official Docs** — Deep dive into Angular Signals
+4. **Migrate Gradually** — Start using signals in new components
+5. **Combine with RxJS** — Learn the interop patterns
+
+---
+
+## ⚡ Angular 19–21 Signal Additions
+
+### `linkedSignal()` — Derived Writable Signal (stable v19+)
+
+`linkedSignal()` is a **WritableSignal** whose initial value is computed from a source expression and **automatically resets** when the source changes.
+
+Unlike `computed()`:
+- It is **writable** — the user can override it manually
+- It **resets** to the computed default when the source changes
+
+```typescript
+import { linkedSignal, signal } from '@angular/core';
+
+selectedPreset = signal('DNS Blocking');
+
+// URLs reset when preset changes, but user can manually edit them
+urls = linkedSignal(() => defaultUrlsForPreset(this.selectedPreset()));
+
+// Usage:
+this.urls();               // read current value
+this.urls.set(['https://…']); // manual override — persists until next preset change
+this.selectedPreset.set('Privacy'); // triggers reset back to preset defaults
+```
+
+**When to use `linkedSignal()` vs `computed()`:**
+
+| | `computed()` | `linkedSignal()` |
+|---|---|---|
+| Writable? | ❌ read-only | ✅ writable |
+| Resets on source change? | N/A (always computed) | ✅ yes |
+| Best for | Pure derived values | Form defaults, UI presets |
+
+---
+
+### `resource()` / `rxResource()` — Signal-Native Async Data (stable v19+)
+
+A **resource** encapsulates async data loading with built-in loading, error, and value state as signals.
+
+#### `resource()` — Promise-based loader
+
+```typescript
+import { resource, signal } from '@angular/core';
+
+searchQuery = signal('');
+
+searchResults = resource({
+    request: () => this.searchQuery(),   // undefined/null → stays Idle
+    loader: async ({ request, abortSignal }) => {
+        const res = await fetch(`/api/search?q=${request}`, { signal: abortSignal });
+        return res.json() as Promise<SearchResult[]>;
+    },
+});
+
+// Template:
+// searchResults.isLoading()   → boolean signal
+// searchResults.value()       → SearchResult[] | undefined
+// searchResults.error()       → unknown
+// searchResults.status()      → ResourceStatus (Idle/Loading/Resolved/Error/Local)
+// searchResults.reload()      → re-trigger the loader
+```
+
+#### `rxResource()` — Observable-based loader
+
+```typescript
+import { rxResource } from '@angular/core/rxjs-interop';
+
+compileResource = rxResource({
+    request: () => this.pendingRequest(),
+    loader: ({ request }) => this.compilerService.compile(request.urls, request.transforms),
+    // loader returns Observable<T> — automatically unsubscribed on destroy or re-request
+});
+```
+
+**Why resource() is better than manual subscribe:**
+
+| Pattern | Loading signal | Error signal | Auto-cancel on re-request | Auto-unsubscribe |
+|---|---|---|---|---|
+| Manual subscribe | Manual | Manual | Manual | `takeUntilDestroyed` |
+| `resource()` | ✅ built-in | ✅ built-in | ✅ | ✅ |
+| `rxResource()` | ✅ built-in | ✅ built-in | ✅ | ✅ |
+
+---
+
+### `afterRenderEffect()` — Post-Render DOM Effects (stable v21)
+
+Runs a side-effect callback after Angular commits the render to the DOM. Unlike `effect()` in a constructor, this is **guaranteed to run after layout is flushed**, making it safe to read `offsetHeight`, `scrollWidth`, focus an element, or integrate third-party libraries.
+
+```typescript
+import { afterRenderEffect, viewChild, ElementRef, signal } from '@angular/core';
+
+tableRef   = viewChild<ElementRef>('myTable');
+tableHeight = signal(0);
+
+constructor() {
+    afterRenderEffect(() => {
+        const el = this.tableRef()?.nativeElement;
+        if (el) {
+            // Safe to read DOM layout here — render is committed
+            this.tableHeight.set(el.offsetHeight);
+        }
+    });
+}
+```
+
+**`effect()` vs `afterRenderEffect()`:**
+
+| | `effect()` | `afterRenderEffect()` |
+|---|---|---|
+| Timing | Before DOM flush | After DOM flush (post-render) |
+| DOM access | ⚠️ Unsafe (layout not guaranteed) | ✅ Safe |
+| Use for | Logging, localStorage, signal → external API | DOM measurements, chart init, third-party libs |
+
+---
+
+### `input()` / `output()` / `model()` — Signal Component API (stable v19+)
+
+See the [StatCardComponent](./src/app/stat-card/stat-card.component.ts) for a full example.
+
+#### `input()` / `input.required()`
+
+```typescript
+// Replaces @Input() decorator
+readonly title = input.required<string>();  // required — compile error if parent omits it
+readonly color = input<string>('#333');     // optional with default
+```
+
+#### `output()`
+
+```typescript
+// Replaces @Output() + EventEmitter
+readonly cardClicked = output<string>();
+// Fire: this.cardClicked.emit('hello');
+// Parent: (cardClicked)="onClicked($event)"
+```
+
+#### `model()`
+
+```typescript
+// Replaces @Input() + @Output()nameChange pair
+readonly highlighted = model<boolean>(false);
+// Parent: [(highlighted)]="isHighlighted"
+// Update: this.highlighted.update(v => !v);  → parent's signal also updates
+```
+
+---
+
+### `viewChild()` / `viewChildren()` — Signal Queries (stable v17.3+)
+
+```typescript
+import { viewChild, viewChildren, ElementRef } from '@angular/core';
+import { MatSidenav } from '@angular/material/sidenav';
+
+// Single query — replaces @ViewChild
+readonly sidenav   = viewChild<MatSidenav>('sidenav');        // Signal<MatSidenav | undefined>
+readonly tableRef  = viewChild<ElementRef>('benchmarkTable'); // Signal<ElementRef | undefined>
+
+// Multiple queries — replaces @ViewChildren
+readonly listItems = viewChildren<ElementRef>('listItem');    // Signal<readonly ElementRef[]>
+```
+
+---
+
+### `provideAppInitializer()` — App Bootstrap Hook (stable v19+)
+
+```typescript
+import { provideAppInitializer, inject } from '@angular/core';
+
+// In app.config.ts providers array:
+provideAppInitializer(() => {
+    inject(ThemeService).loadPreferences();  // sync — runs before first render
+})
+
+provideAppInitializer(async () => {
+    await inject(AuthService).checkSession(); // async — first render waits for resolution
+})
+```
+
+Replaces:
+```typescript
+// OLD verbose pattern:
+{
+    provide: APP_INITIALIZER,
+    useFactory: (theme: ThemeService) => () => theme.loadPreferences(),
+    deps: [ThemeService],
+    multi: true,
+}
+```
+
+---
+
+## 🗺️ Angular Signal API Quick Reference
+
+| API | Stability | Import | Replaces |
+|---|---|---|---|
+| `signal()` | Stable v16+ | `@angular/core` | Class field + `markForCheck()` |
+| `computed()` | Stable v16+ | `@angular/core` | Getter + `markForCheck()` |
+| `effect()` | Stable v17+ | `@angular/core` | `ngOnInit` + `subscribe` |
+| `input()` / `input.required()` | Stable v19+ | `@angular/core` | `@Input()` decorator |
+| `output()` | Stable v19+ | `@angular/core` | `@Output() + EventEmitter` |
+| `model()` | Stable v19+ | `@angular/core` | `@Input()` + `@Output()Change` |
+| `viewChild()` | Stable v17.3+ | `@angular/core` | `@ViewChild` decorator |
+| `viewChildren()` | Stable v17.3+ | `@angular/core` | `@ViewChildren` decorator |
+| `linkedSignal()` | Stable v19+ | `@angular/core` | `effect()` writing a signal |
+| `resource()` | Stable v19+ | `@angular/core` | Observable + manual subscribe |
+| `rxResource()` | Stable v19+ | `@angular/core/rxjs-interop` | Observable + takeUntilDestroyed |
+| `afterRenderEffect()` | Stable v21 | `@angular/core` | `ngAfterViewInit` + DOM access |
+| `provideAppInitializer()` | Stable v19+ | `@angular/core` | `APP_INITIALIZER` token |
+| `toSignal()` | Stable v16+ | `@angular/core/rxjs-interop` | `AsyncPipe` or manual subscribe |
+| `toObservable()` | Stable v16+ | `@angular/core/rxjs-interop` | Custom signal → observable bridge |
+| `takeUntilDestroyed()` | Stable v16+ | `@angular/core/rxjs-interop` | `Subject<void>` + `ngOnDestroy` |
 
 ---
 
 **Angular Signals represent the future of Angular reactivity.** They provide a simpler, more performant way to manage state while maintaining full backward compatibility with existing RxJS code.
+
