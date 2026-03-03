@@ -32,8 +32,8 @@
 
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -43,7 +43,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { StatCardComponent } from '../stat-card/stat-card.component';
-import { API_BASE_URL } from '../tokens';
+import { MetricsService, MetricsResponse, HealthResponse } from '../services/metrics.service';
 
 /** Navigation card for the dashboard grid */
 interface NavCard {
@@ -53,20 +53,6 @@ interface NavCard {
     readonly description: string;
     readonly tag: string;
     readonly tagColor: 'primary' | 'accent' | 'warn';
-}
-
-/** Metrics response from /api/metrics */
-interface MetricsResponse {
-    readonly totalRequests: number;
-    readonly averageDuration: number;
-    readonly cacheHitRate: number;
-    readonly successRate: number;
-}
-
-/** Health response from /api/health */
-interface HealthResponse {
-    readonly status: 'healthy' | 'degraded' | 'unhealthy';
-    readonly version: string;
 }
 
 /**
@@ -245,15 +231,15 @@ export class HomeComponent {
 
     readonly highlightedCard = signal(false);
 
-    private readonly http = inject(HttpClient);
-    private readonly apiBaseUrl = inject(API_BASE_URL);
+    private readonly metricsService = inject(MetricsService);
+    private readonly liveAnnouncer = inject(LiveAnnouncer);
     private readonly router = inject(Router);
     private readonly refreshTrigger = signal(0);
 
     /** Live metrics from /api/metrics */
     readonly metricsResource = rxResource<MetricsResponse, number>({
         params: () => this.refreshTrigger(),
-        stream: () => this.http.get<MetricsResponse>(`${this.apiBaseUrl}/metrics`).pipe(
+        stream: () => this.metricsService.getMetrics().pipe(
             catchError(() => of({
                 totalRequests: 0,
                 averageDuration: 0,
@@ -266,8 +252,11 @@ export class HomeComponent {
     /** Live health from /api/health */
     readonly healthResource = rxResource<HealthResponse, number>({
         params: () => this.refreshTrigger(),
-        stream: () => this.http.get<HealthResponse>(`${this.apiBaseUrl}/health`).pipe(
-            catchError(() => of({ status: 'unhealthy' as const, version: 'unknown' })),
+        stream: () => this.metricsService.getHealth().pipe(
+            catchError(() => {
+                this.liveAnnouncer.announce('Unable to reach API', 'assertive');
+                return of({ status: 'unhealthy' as const, version: 'unknown' });
+            }),
         ),
     });
 

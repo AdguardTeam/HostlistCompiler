@@ -33,6 +33,7 @@
  */
 
 import { Component, computed, DestroyRef, effect, inject, linkedSignal, signal } from '@angular/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { toSignal, rxResource } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -457,6 +458,7 @@ export class CompilerComponent {
     private readonly fb              = inject(FormBuilder);
     private readonly compilerService = inject(CompilerService);
     private readonly sseService      = inject(SseService);
+    private readonly liveAnnouncer   = inject(LiveAnnouncer);
     private readonly route           = inject(ActivatedRoute);
     private readonly router          = inject(Router);
     private readonly destroyRef      = inject(DestroyRef);
@@ -490,13 +492,24 @@ export class CompilerComponent {
         this.initializeForm();
 
         // effect() reads queryParams() (a Signal) and syncs the form when ?url= changes.
-        // effect() is appropriate here because we are updating a FormArray (external to the
-        // signal graph) rather than writing another signal — the recommended usage pattern.
-        // Note: effect() must be created in an injection context (constructor or field init).
         effect(() => {
             const urlParam = this.queryParams()?.get('url');
             if (urlParam) {
                 this.urlsArray.at(0).setValue(urlParam);
+            }
+        });
+
+        // Announce compilation state changes for screen readers
+        effect(() => {
+            const status = this.compileResource.status();
+            if (status === 'resolved') {
+                const r = this.compileResource.value();
+                this.liveAnnouncer.announce(
+                    `Compilation complete. ${r?.ruleCount ?? 0} rules compiled.`,
+                    'polite',
+                );
+            } else if (status === 'error') {
+                this.liveAnnouncer.announce('Compilation failed. Check error details.', 'assertive');
             }
         });
 
@@ -577,6 +590,8 @@ export class CompilerComponent {
             },
             benchmark: true,
         };
+
+        this.liveAnnouncer.announce('Compilation started', 'polite');
 
         if (this.streamingMode()) {
             // SSE streaming mode — close previous connection and open new one

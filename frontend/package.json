@@ -11,6 +11,7 @@
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
+        "lint": "ng lint",
         "preview": "wrangler dev",
         "deploy": "wrangler deploy"
     },
@@ -34,10 +35,18 @@
     "devDependencies": {
         "@analogjs/vitest-angular": "^1.0.0",
         "@angular-devkit/build-angular": "^21.0.0",
+        "@angular-eslint/builder": "^19.0.0",
+        "@angular-eslint/eslint-plugin": "^19.0.0",
+        "@angular-eslint/eslint-plugin-template": "^19.0.0",
+        "@angular-eslint/schematics": "^19.0.0",
+        "@angular-eslint/template-parser": "^19.0.0",
         "@angular/cli": "^21.0.0",
         "@angular/compiler-cli": "^21.0.0",
         "@cloudflare/workers-types": "^4.0.0",
+        "@typescript-eslint/eslint-plugin": "^8.0.0",
+        "@typescript-eslint/parser": "^8.0.0",
         "@vitest/coverage-v8": "^4.0.0",
+        "eslint": "^9.0.0",
         "typescript": "~5.9.0",
         "vitest": "^4.0.0"
     }

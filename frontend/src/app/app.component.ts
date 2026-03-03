@@ -16,7 +16,7 @@
  */
 
 import { Component, inject, signal, viewChild, effect } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ChildrenOutletContexts, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
@@ -27,6 +27,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { ThemeService } from './services/theme.service';
+import { routeAnimation } from './route-animations';
 
 /** Navigation item interface */
 interface NavItem {
@@ -54,6 +55,7 @@ interface NavItem {
         MatButtonModule,
         MatTooltipModule,
     ],
+    animations: [routeAnimation],
     template: `
     <mat-sidenav-container class="app-container">
       <!-- Sidenav -->
@@ -106,7 +108,9 @@ interface NavItem {
         </mat-toolbar>
 
         <main class="app-main" role="main" aria-label="Main content">
-          <router-outlet />
+          <div class="route-container" [@routeAnimation]="getRouteAnimationData()">
+            <router-outlet />
+          </div>
         </main>
       </mat-sidenav-content>
     </mat-sidenav-container>
@@ -119,6 +123,7 @@ interface NavItem {
     .toolbar-title { margin-left: 8px; font-size: 1.1rem; font-weight: 500; }
     .toolbar-spacer { flex: 1 1 auto; }
     .app-main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .route-container { position: relative; }
     :host ::ng-deep .mat-mdc-list-item.active-nav-item {
       background-color: var(--mat-sys-primary-container);
       color: var(--mat-sys-on-primary-container);
@@ -163,6 +168,8 @@ export class AppComponent {
      */
     readonly themeService = inject(ThemeService);
 
+    private readonly contexts = inject(ChildrenOutletContexts);
+
     constructor() {
         // Auto-close sidenav when switching to mobile layout
         effect(() => {
@@ -176,5 +183,9 @@ export class AppComponent {
 
     toggleSidenav(): void {
         this.sidenavOpen.update(open => !open);
+    }
+
+    getRouteAnimationData(): string {
+        return this.contexts.getContext('primary')?.route?.snapshot?.url.toString() ?? '';
     }
 }

@@ -6,6 +6,7 @@ Thank you for your interest in contributing to the Adblock Compiler project! Thi
 
 1. **Prerequisites**
    - [Deno](https://deno.land/) 2.x or higher
+   - [Node.js](https://nodejs.org/) 22.x or higher (for Angular frontend)
    - Git
 
 2. **Clone and Setup**
@@ -13,11 +14,13 @@ Thank you for your interest in contributing to the Adblock Compiler project! Thi
    git clone https://github.com/jaypatrick/adblock-compiler.git
    cd adblock-compiler
    deno cache src/index.ts
+   npm --prefix frontend ci    # Install Angular frontend dependencies
    ```
 
 3. **Run Tests**
    ```bash
-   deno task test
+   deno task test                       # Backend tests (Deno)
+   npm --prefix frontend run test       # Frontend tests (Vitest)
    ```
 
 ## Commit Message Guidelines
@@ -103,10 +106,16 @@ update code                # Too vague, missing type
 
 3. **Test Your Changes**
    ```bash
+   # Backend
    deno task test           # Run tests
    deno task fmt            # Format code
    deno task lint           # Lint code
    deno task check          # Type check
+
+   # Frontend (Angular)
+   npm --prefix frontend run test       # Vitest unit tests
+   npm --prefix frontend run lint       # ESLint
+   npm --prefix frontend run build      # Production build
    ```
 
 4. **Commit with Conventional Format**
@@ -170,10 +179,58 @@ src/
 └── utils/            # Utility functions
 
 worker/               # Cloudflare Worker implementation
-public/               # Static web UI files
+frontend/             # Angular 21 frontend (Material Design 3, SSR, Zoneless)
+├── src/app/
+│   ├── home/         # Dashboard with rxResource-based live stats
+│   ├── compiler/     # Compiler form (SSE streaming, linkedSignal presets)
+│   ├── performance/  # Metrics & endpoint breakdown
+│   ├── validation/   # Filter rule validation
+│   ├── api-docs/     # API reference
+│   ├── admin/        # Storage admin (auth-gated)
+│   ├── services/     # MetricsService, SseService, CompilerService, etc.
+│   ├── interceptors/ # HTTP error interceptor (401/429/5xx)
+│   └── guards/       # Admin route guard
 docs/                 # Documentation
 examples/             # Example implementations
 ```
+
+## Angular Frontend Development
+
+The frontend is an Angular 21 app in `frontend/` using:
+- **Zoneless change detection** (`provideZonelessChangeDetection()`)
+- **Material Design 3** with M3 theme tokens
+- **SSR** on Cloudflare Workers via `@angular/ssr`
+- **Vitest** for unit testing (not Jest)
+- **Signal-first architecture**: `rxResource`, `linkedSignal`, `toSignal`, `viewChild()`
+
+### Running Locally
+
+```bash
+npm --prefix frontend start              # Angular dev server (http://localhost:4200)
+wrangler dev                              # Worker API (http://localhost:8787)
+```
+
+The Angular dev server proxies `/api` requests to the Worker.
+
+### SSE Integration Pattern
+
+The compiler supports real-time Server-Sent Events (SSE) streaming. The `SseService` (`frontend/src/app/services/sse.service.ts`) wraps the native `EventSource` API and exposes each connection as a signal-based `SseConnection` object:
+
+```typescript
+// SseService.connect() returns an SseConnection with:
+//   .events()   — Signal<SseEvent[]> — accumulated events
+//   .status()   — Signal<'connecting' | 'open' | 'error' | 'closed'>
+//   .isActive() — Signal<boolean>
+//   .close()    — Closes the EventSource
+
+const conn = this.sseService.connect('/compile/stream', request);
+this.sseConnection.set(conn);
+
+// In the template, consume signals directly:
+// conn.events(), conn.status(), conn.isActive()
+```
+
+This pattern avoids manual Observable subscriptions—the component template reads signals reactively, and the connection auto-cleans via `DestroyRef.onDestroy()`.
 
 ## Questions or Help?
 
