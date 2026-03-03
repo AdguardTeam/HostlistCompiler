@@ -13,7 +13,7 @@
    - [Cloudflare R2 (current object storage)](#cloudflare-r2-current-object-storage)
    - [Cloudflare Hyperdrive](#cloudflare-hyperdrive)
    - [Neon — Serverless PostgreSQL](#neon--serverless-postgresql)
-   - [PlanetScale — Serverless MySQL](#planetscale--serverless-mysql)
+   - [PlanetScale — Native PostgreSQL](#planetscale--native-postgresql)
    - [Prisma ORM](#prisma-orm)
 4. [Head-to-Head Comparison](#head-to-head-comparison)
 5. [Proposed Database Design](#proposed-database-design)
@@ -201,34 +201,44 @@ PostgreSQL database (Neon / Supabase / self-hosted)
 
 ---
 
-### PlanetScale — Serverless MySQL
+### PlanetScale — Native PostgreSQL
 
-[PlanetScale](https://planetscale.com) is a serverless database platform based on Vitess — the same sharding layer used by YouTube, Slack, and GitHub.
+> ⚠️ **Important**: PlanetScale launched native PostgreSQL support in 2025 (GA). The original evaluation described PlanetScale as MySQL/Vitess — that is **no longer accurate**. This section reflects the current PostgreSQL product.
+
+[PlanetScale](https://planetscale.com) is a managed, horizontally-scalable database platform that now offers **native PostgreSQL** (versions 17 and 18) in addition to its existing MySQL/Vitess offering. The PostgreSQL product is built on a new architecture ("Neki") purpose-built for PostgreSQL — not a port of Vitess. PlanetScale has an **official partnership with Cloudflare**, with a co-authored blog post and dedicated integration guides for Hyperdrive + Workers.
 
 **Pros**
 
-- ✅ **Branching** — same git-style branching model as Neon (safe schema migrations via deploy requests)
-- ✅ **Zero-downtime schema migrations** — deploy schema changes without locking tables
-- ✅ **High write throughput** — Vitess sharding handles very high concurrent writes
-- ✅ **Direct connections in Workers** — `@planetscale/database` HTTP driver works in Cloudflare Workers without Hyperdrive
-- ✅ **Prisma support** — `@prisma/adapter-planetscale` available
-- ✅ **MySQL compatibility** — familiar SQL syntax
+- ✅ **True native PostgreSQL (v17 & v18)** — not an emulation layer; standard PostgreSQL wire protocol
+- ✅ **Full PostgreSQL feature set** — foreign keys enforced at DB level, JSONB, arrays, window functions, CTEs, stored procedures, triggers, materialized views, full-text search, partitioning
+- ✅ **PostgreSQL extensions** — supports commonly used extensions (`uuid-ossp`, `pg_trgm`, etc.)
+- ✅ **Row-level security** — PostgreSQL native RLS via roles and policies
+- ✅ **Branching** — git-style database branching; safe schema migrations via deploy requests (same model as Neon)
+- ✅ **Zero-downtime schema migrations** — online schema changes without table locks
+- ✅ **Official Cloudflare Workers integration** — Cloudflare partnership announcement; dedicated tutorial for PlanetScale Postgres + Hyperdrive + Workers; listed on Cloudflare Workers third-party integrations page
+- ✅ **Hyperdrive compatible** — standard PostgreSQL wire protocol; works directly with the existing `HYPERDRIVE` binding
+- ✅ **Standard Prisma support** — works with standard `@prisma/adapter-pg` or `@prisma/adapter-neon`; no workarounds needed
+- ✅ **Standard drivers** — libpq, node-postgres (`pg`), psycopg, Deno postgres — all work without modification
+- ✅ **Import from existing PostgreSQL** — supports live import from PostgreSQL v13+
+- ✅ **High performance** — NVMe SSD storage, primary + replica clusters across AZs, automatic failover
+- ✅ **High write throughput** — "Neki" architecture designed for horizontal PostgreSQL scaling
 
 **Cons**
 
-- ❌ **MySQL, not PostgreSQL** — no JSONB (only JSON), no arrays, no advanced extensions (`pg_vector`, PostGIS), different window function syntax
-- ❌ **No foreign key constraints** — Vitess does not enforce FK constraints at the database level (must be enforced in application code or Prisma)
-- ❌ **No free tier (as of 2024)** — PlanetScale eliminated its free tier; plans start at $39/month
-- ❌ **Prisma workarounds needed** — `relationMode = "prisma"` required to emulate FK behavior
-- ❌ MySQL feature parity: some PostgreSQL-specific features (CTEs, window functions, RLS) differ
+- ❌ **No free tier** — PostgreSQL plans start at ~$39/month; no permanent free tier (Neon offers 512 MB free)
+- ❌ **Newer PostgreSQL product** — GA since mid-2025; Neon has a longer track record as a serverless PostgreSQL provider
+- ❌ **No auto-suspend** — unlike Neon, PlanetScale Postgres clusters do not auto-pause when idle; charges accrue even at zero traffic
+- ❌ **"Neki" sharding still rolling out** — horizontal sharding features are in progress; single-node/HA clusters available now
+- ❌ **Higher cost for small projects** — the entry pricing is significantly higher than Neon for low-traffic or development use
 
 **Pricing (2025)**
 
-| Tier | Storage | Reads | Writes | Cost |
-|------|---------|-------|--------|------|
-| Scaler Pro | 10 GB | 100B rows/month | 50M rows/month | $39/month |
+| Tier | Description | Cost |
+|------|-------------|------|
+| Metal (HA) | Primary + 2 replicas, NVMe SSD, 10 GB+ storage | ~$39–$50/month |
+| Single-node | Non-HA development option (availability varies) | Lower, varies |
 
-**Best for:** Applications with very high write concurrency (social feeds, event streams) that are already on MySQL. For new PostgreSQL-targeted projects, Neon is generally preferred.
+**Best for:** Production applications requiring high-availability, high write throughput, zero-downtime migrations, and horizontal scalability, with a preference for Cloudflare's official PlanetScale integration. For projects with a free/low-cost tier requirement, Neon is still preferred.
 
 ---
 
@@ -245,7 +255,7 @@ PostgreSQL database (Neon / Supabase / self-hosted)
 - ✅ **Prisma Studio** — GUI data browser
 - ✅ **Driver adapters** — `@prisma/adapter-neon`, `@prisma/adapter-d1`, `@prisma/adapter-pg` for edge runtimes
 - ✅ **Deno support** — via `runtime = "deno"` in generator config
-- ✅ **Works with all vendors** — PostgreSQL (Neon, Supabase), MySQL (PlanetScale), SQLite (D1, local)
+- ✅ **Works with all vendors** — PostgreSQL (Neon, PlanetScale, Supabase), SQLite (D1, local)
 
 **Cons**
 
@@ -262,22 +272,24 @@ PostgreSQL database (Neon / Supabase / self-hosted)
 
 | Criterion | Cloudflare D1 | Cloudflare R2 | Neon | PlanetScale | Prisma |
 |-----------|:---:|:---:|:---:|:---:|:---:|
-| **Database type** | SQLite | Object store | PostgreSQL | MySQL (Vitess) | ORM (any DB) |
-| **True PostgreSQL** | ❌ | ❌ | ✅ | ❌ | via adapter |
-| **Foreign keys** | ✅ | N/A | ✅ | ❌ (app-level) | ✅ |
-| **JSONB columns** | ❌ | ❌ | ✅ | ❌ (JSON only) | ✅ |
-| **Extensions** | ❌ | N/A | ✅ (pg_vector, etc.) | ❌ | ✅ |
-| **Row-level security** | ❌ | ❌ | ✅ | ❌ | via DB |
+| **Database type** | SQLite | Object store | PostgreSQL | PostgreSQL | ORM (any DB) |
+| **True PostgreSQL** | ❌ | ❌ | ✅ | ✅ (v17/v18) | via adapter |
+| **Foreign keys** | ✅ | N/A | ✅ | ✅ | ✅ |
+| **JSONB columns** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Extensions** | ❌ | N/A | ✅ (pg_vector, etc.) | ✅ (pg_trgm, uuid-ossp, etc.) | ✅ |
+| **Row-level security** | ❌ | ❌ | ✅ | ✅ | via DB |
 | **Branching** | ❌ | ❌ | ✅ | ✅ | N/A |
-| **Serverless / auto-scale** | ✅ | ✅ | ✅ | ✅ | N/A |
-| **Works in CF Workers** | ✅ (native) | ✅ (native) | ✅ (ws driver or Hyperdrive) | ✅ (HTTP driver) | ✅ (adapter) |
-| **Hyperdrive compatible** | ❌ | ❌ | ✅ | ✅ (MySQL) | N/A |
-| **Free tier** | ✅ (generous) | ✅ (generous) | ✅ (512 MB) | ❌ ($39/mo min) | N/A |
+| **Serverless / auto-scale** | ✅ | ✅ | ✅ (auto-suspend) | ✅ (HA clusters) | N/A |
+| **Auto-suspend (zero-cost idle)** | ✅ | ✅ | ✅ | ❌ | N/A |
+| **Works in CF Workers** | ✅ (native) | ✅ (native) | ✅ (ws driver or Hyperdrive) | ✅ (Hyperdrive / pg driver) | ✅ (adapter) |
+| **Official CF integration** | ✅ (native) | ✅ (native) | via Hyperdrive | ✅ (official partnership) | N/A |
+| **Hyperdrive compatible** | ❌ | ❌ | ✅ | ✅ | N/A |
+| **Free tier** | ✅ (generous) | ✅ (generous) | ✅ (512 MB) | ❌ (~$39/mo min) | N/A |
 | **Max storage** | 10 GB/DB | Unlimited | Plan-dependent | Plan-dependent | N/A |
-| **Connection pooling** | Built-in | N/A | Neon pooler / Hyperdrive | Built-in | N/A |
+| **Connection pooling** | Built-in | N/A | Neon pooler / Hyperdrive | Built-in / Hyperdrive | N/A |
 | **Migration tooling** | Manual SQL / Prisma | N/A | Prisma / raw SQL | Prisma / deploy requests | Built-in CLI |
-| **Latency (from Worker)** | ~0–5 ms (edge) | ~5–50 ms | ~20–120 ms + Hyperdrive | ~20–100 ms | N/A |
-| **Best use** | Hot-path edge KV | Blob storage | Primary relational DB | High-write MySQL app | ORM layer |
+| **Latency (from Worker)** | ~0–5 ms (edge) | ~5–50 ms | ~20–120 ms + Hyperdrive | ~20–100 ms + Hyperdrive | N/A |
+| **Best use** | Hot-path edge KV | Blob storage | Serverless primary DB (free tier) | High-perf primary DB (production) | ORM layer |
 
 ---
 
@@ -444,11 +456,22 @@ source_change_events
 
 ### Summary Recommendation
 
-> **Use Neon (PostgreSQL) + Cloudflare Hyperdrive + Prisma ORM, while keeping D1 for hot-path edge caching and R2 for blob storage.**
+> **Use Neon (PostgreSQL) + Cloudflare Hyperdrive + Prisma ORM as the default path, while keeping D1 for hot-path edge caching and R2 for blob storage. PlanetScale PostgreSQL is a strong production alternative with an official Cloudflare partnership — preferred if higher write throughput or HA from day one is required.**
+
+Both Neon and PlanetScale now offer native PostgreSQL with Hyperdrive compatibility. The choice between them is primarily cost vs. performance:
+
+| Decision factor | Choose Neon | Choose PlanetScale |
+|----------------|------------|-------------------|
+| **Starting cost** | Free tier available (512 MB) | ~$39/month minimum |
+| **Zero idle cost** | ✅ Auto-suspend | ❌ Charges even at idle |
+| **Official CF partnership** | Via Hyperdrive docs | ✅ Official blog + dedicated tutorial |
+| **Established track record** | ✅ Mature serverless PostgreSQL | PostgreSQL product GA mid-2025 |
+| **Production HA** | Single-region primary | Multi-AZ primary + replicas |
+| **Write throughput** | Serverless | High-performance NVMe |
 
 | Concern | Technology | Rationale |
 |---------|-----------|-----------|
-| **Primary relational DB** | Neon (PostgreSQL) | True PostgreSQL, serverless, branching, free tier, Hyperdrive compatible |
+| **Primary relational DB** | Neon (default) or PlanetScale | Neon: free tier, auto-suspend, mature serverless PostgreSQL; PlanetScale: official CF partnership, higher perf, HA from day one |
 | **Edge acceleration** | Cloudflare Hyperdrive | Reduces Worker → Neon latency by 2–10×, connection pooling |
 | **ORM** | Prisma | Already integrated, type-safe, Deno + Workers compatible via adapters |
 | **Edge hot-path cache** | Cloudflare D1 | Sub-5ms lookups for filter cache hits; keep as L1 cache layer |
@@ -493,9 +516,11 @@ source_change_events
 
 ## Cloudflare Hyperdrive Integration
 
-Hyperdrive is already configured in `wrangler.toml`. The next steps are:
+Hyperdrive is already configured in `wrangler.toml`. The steps below show both Neon and PlanetScale options — choose whichever vendor you select.
 
-### 1. Create a Neon Database
+### 1. Create Your PostgreSQL Database
+
+**Option A — Neon (free tier, auto-suspend)**
 
 ```bash
 # Install Neon CLI
@@ -509,12 +534,23 @@ neonctl connection-string --project-id <PROJECT_ID>
 # Output: postgres://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
 ```
 
-### 2. Update Hyperdrive with Neon Connection
+**Option B — PlanetScale (official Cloudflare partnership)**
+
+Create a PostgreSQL database from the [PlanetScale dashboard](https://app.planetscale.com), then copy the connection string from the **"Connect"** panel (select "Postgres" and "node-postgres").
+
+```
+postgres://user:password@aws.connect.psdb.cloud/adblock?sslmode=require
+```
+
+PlanetScale has a dedicated Cloudflare Workers integration tutorial at:
+`https://planetscale.com/docs/postgres/tutorials/planetscale-postgres-cloudflare-workers`
+
+### 2. Update Hyperdrive with Your Database Connection
 
 ```bash
-# Create Hyperdrive config pointing to Neon
+# Create Hyperdrive config — works for both Neon and PlanetScale (standard PostgreSQL protocol)
 wrangler hyperdrive create adblock-hyperdrive \
-  --connection-string="postgres://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require"
+  --connection-string="postgres://user:password@<HOST>/<DATABASE>?sslmode=require"
 
 # Note the returned ID and update wrangler.toml
 ```
@@ -528,10 +564,17 @@ id = "<NEW_HYPERDRIVE_ID>"
 localConnectionString = "postgres://username:password@127.0.0.1:5432/adblock_dev"
 ```
 
-### 3. Install Prisma with Neon Adapter
+### 3. Install Prisma with PostgreSQL Adapter
+
+Both Neon and PlanetScale use standard PostgreSQL wire protocol, so either adapter works with Hyperdrive:
 
 ```bash
+# For Neon (uses @neondatabase/serverless WebSocket driver)
 npm install @prisma/client @prisma/adapter-neon @neondatabase/serverless
+npm install -D prisma
+
+# For PlanetScale Postgres or any standard PostgreSQL via Hyperdrive (uses node-postgres)
+npm install @prisma/client @prisma/adapter-pg pg
 npm install -D prisma
 ```
 
@@ -556,14 +599,14 @@ datasource db {
 ### 5. Use Hyperdrive in the Worker
 
 ```typescript
-// worker/worker.ts
+// worker/worker.ts — Option A: Neon adapter (WebSocket driver)
 import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { neon } from '@neondatabase/serverless';
 
 export interface Env {
     HYPERDRIVE: Hyperdrive;
-    DB: D1Database;          // keep for edge caching
+    DB: D1Database;           // keep for edge caching
     FILTER_STORAGE: R2Bucket; // keep for blob storage
 }
 
@@ -582,6 +625,19 @@ export default {
         // ... use env.FILTER_STORAGE for blob reads
     },
 };
+```
+
+```typescript
+// worker/worker.ts — Option B: node-postgres adapter (PlanetScale or any PostgreSQL via Hyperdrive)
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+
+function createPrisma(env: Env): PrismaClient {
+    const pool = new Pool({ connectionString: env.HYPERDRIVE.connectionString });
+    const adapter = new PrismaPg(pool);
+    return new PrismaClient({ adapter });
+}
 ```
 
 ### 6. Configure Hyperdrive Caching
@@ -612,9 +668,10 @@ wrangler hyperdrive update <HYPERDRIVE_ID> \
 
 ### Phase 1 — Set Up Infrastructure (Week 1)
 
-- [ ] Create Neon project and database
-- [ ] Configure development and production branches in Neon
-- [ ] Update Hyperdrive config with Neon connection string
+- [ ] Select primary vendor: Neon (free tier / serverless) or PlanetScale (official CF partnership / HA)
+- [ ] Create database project and production branch
+- [ ] Configure development and production branches
+- [ ] Update Hyperdrive config with connection string: `wrangler hyperdrive update <ID> --connection-string="..."`
 - [ ] Set `DATABASE_URL` secret in Cloudflare: `wrangler secret put DATABASE_URL`
 - [ ] Update `wrangler.toml` with the correct Hyperdrive ID
 
@@ -838,8 +895,12 @@ CREATE INDEX idx_source_change_detected_at ON source_change_events(detected_at D
 - [Neon + Cloudflare Workers](https://neon.tech/docs/guides/cloudflare-workers)
 - [Cloudflare Hyperdrive](https://developers.cloudflare.com/hyperdrive/)
 - [Hyperdrive + Neon Guide](https://developers.cloudflare.com/hyperdrive/examples/neon/)
-- [PlanetScale Documentation](https://planetscale.com/docs)
-- [PlanetScale + Cloudflare Workers](https://planetscale.com/docs/tutorials/connect-cloudflare-workers)
+- [PlanetScale PostgreSQL Documentation](https://planetscale.com/docs/postgres)
+- [PlanetScale Postgres Compatibility](https://planetscale.com/docs/postgres/postgres-compatibility)
+- [PlanetScale Postgres Architecture](https://planetscale.com/docs/postgres/postgres-architecture)
+- [PlanetScale Postgres + Cloudflare Workers Tutorial](https://planetscale.com/docs/postgres/tutorials/planetscale-postgres-cloudflare-workers)
+- [Cloudflare + PlanetScale Partnership Blog Post](https://blog.cloudflare.com/planetscale-postgres-workers/)
+- [Cloudflare Workers — PlanetScale Integration](https://developers.cloudflare.com/workers/databases/third-party-integrations/planetscale/)
 - [Prisma Driver Adapters](https://www.prisma.io/docs/orm/overview/databases/database-drivers)
 - [Prisma Neon Adapter](https://www.prisma.io/docs/orm/overview/databases/neon)
 - [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
