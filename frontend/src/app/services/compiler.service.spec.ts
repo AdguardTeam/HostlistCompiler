@@ -95,4 +95,44 @@ describe('CompilerService', () => {
         ]);
         req.flush({});
     });
+
+    it('should POST to /api/compile/async with correct payload', () => {
+        const urls = ['https://easylist.to/easylist/easylist.txt'];
+        const transformations = ['RemoveComments'];
+        const mockResponse = {
+            message: 'Queued',
+            note: 'Will process async',
+            requestId: 'abc-123',
+            priority: 'standard',
+        };
+
+        service.compileAsync(urls, transformations).subscribe(result => {
+            expect(result).toEqual(mockResponse);
+        });
+
+        const req = httpTesting.expectOne('/api/compile/async');
+        expect(req.request.method).toBe('POST');
+        req.flush(mockResponse);
+    });
+
+    it('should POST to /api/compile/batch with correct payload', () => {
+        const mockResponse = { results: [{ id: 'item-1', success: true, ruleCount: 100 }] };
+        const items = [{
+            id: 'item-1',
+            configuration: {
+                name: 'Test',
+                sources: [{ source: 'https://example.com/list.txt' }],
+                transformations: ['RemoveComments'],
+            },
+        }];
+
+        service.compileBatch(items).subscribe(result => {
+            expect(result).toEqual(mockResponse);
+        });
+
+        const req = httpTesting.expectOne('/api/compile/batch');
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({ requests: items });
+        req.flush(mockResponse);
+    });
 });

@@ -75,13 +75,13 @@ describe('CompilerComponent', () => {
         expect(component.presetUrls()).toEqual(['']);
     });
 
-    it('should default streaming mode to false', () => {
-        expect(component.streamingMode()).toBe(false);
+    it('should default compilation mode to json', () => {
+        expect(component.compilationMode()).toBe('json');
     });
 
-    it('should toggle streaming mode', () => {
-        component.streamingMode.set(true);
-        expect(component.streamingMode()).toBe(true);
+    it('should set compilation mode', () => {
+        component.compilationMode.set('async');
+        expect(component.compilationMode()).toBe('async');
     });
 
     it('should have drag over state default to false', () => {

@@ -32,6 +32,38 @@ export interface CompileResponse {
     };
 }
 
+export interface AsyncCompileResponse {
+    message: string;
+    note: string;
+    requestId: string;
+    priority: string;
+}
+
+export interface BatchCompileItem {
+    id: string;
+    configuration: {
+        name: string;
+        sources: Array<{ source: string }>;
+        transformations: string[];
+    };
+    benchmark?: boolean;
+}
+
+export interface BatchCompileRequest {
+    requests: BatchCompileItem[];
+}
+
+export interface BatchCompileResult {
+    id: string;
+    success: boolean;
+    ruleCount?: number;
+    error?: string;
+}
+
+export interface BatchCompileResponse {
+    results: BatchCompileResult[];
+}
+
 /**
  * CompilerService
  * Angular 21 Pattern: Injectable service using inject() for HttpClient DI
@@ -91,5 +123,22 @@ export class CompilerService {
             'InsertFinalNewLine',
             'ConvertToAscii',
         ];
+    }
+
+    compileAsync(urls: string[], transformations: string[]): Observable<AsyncCompileResponse> {
+        const payload: CompileRequest = {
+            configuration: {
+                name: 'Angular PoC Compilation',
+                sources: urls.map((url) => ({ source: url })),
+                transformations,
+            },
+            benchmark: true,
+        };
+        return this.http.post<AsyncCompileResponse>(`${this.apiUrl}/async`, payload);
+    }
+
+    compileBatch(items: BatchCompileItem[]): Observable<BatchCompileResponse> {
+        const payload: BatchCompileRequest = { requests: items };
+        return this.http.post<BatchCompileResponse>(`${this.apiUrl}/batch`, payload);
     }
 }
