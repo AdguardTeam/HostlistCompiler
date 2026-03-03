@@ -60,10 +60,10 @@ FROM node:22-bookworm-slim AS frontend-builder
 WORKDIR /app/frontend
 
 # Copy frontend package files
-COPY frontend/package.json frontend/package-lock.json frontend/.npmrc ./
+COPY frontend/package.json frontend/package-lock.json ./
 
-# Install frontend dependencies
-RUN npm ci
+# Install frontend dependencies (legacy-peer-deps avoids copying .npmrc into the image layer)
+RUN npm ci --legacy-peer-deps
 
 # Copy frontend source
 COPY frontend/ ./
