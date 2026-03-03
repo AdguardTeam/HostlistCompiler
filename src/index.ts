@@ -169,7 +169,7 @@ export { optimizeRules, RuleOptimizerTransformation } from './transformations/Ru
 export type { OptimizationStats, RuleOptimizerOptions } from './transformations/RuleOptimizerTransformation.ts';
 
 // Plugin system
-export { createSimplePlugin, globalRegistry, loadPlugin, PluginRegistry, PluginTransformationWrapper } from './plugins/index.ts';
+export { createSimplePlugin, globalRegistry, PluginRegistry, PluginTransformationWrapper } from './plugins/index.ts';
 export type { DownloaderPlugin, Plugin, PluginContext, PluginLoadOptions, PluginManifest, TransformationPlugin } from './plugins/index.ts';
 
 // Default export for backward compatibility
