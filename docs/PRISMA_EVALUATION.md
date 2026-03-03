@@ -232,3 +232,4 @@ The storage abstraction layer enables switching backends based on deployment req
 - [Prisma Database Features Matrix](https://www.prisma.io/docs/orm/reference/database-features)
 - [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
 - [Prisma MongoDB Connector](https://www.prisma.io/docs/orm/overview/databases/mongodb)
+- [Database Evaluation](DATABASE_EVALUATION.md) - Comprehensive PlanetScale vs Neon vs Cloudflare vs Prisma comparison with proposed PostgreSQL schema and Hyperdrive integration

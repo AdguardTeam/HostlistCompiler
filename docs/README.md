@@ -45,6 +45,7 @@ Welcome to the AdBlock Compiler documentation. This directory contains all the d
 - [Prisma Backend](../prisma/README.md) - SQL/NoSQL database support
 - [Cloudflare D1](CLOUDFLARE_D1.md) - Edge database integration
 - [Prisma Evaluation](PRISMA_EVALUATION.md) - Storage backend comparison
+- [**Database Evaluation**](DATABASE_EVALUATION.md) - PlanetScale vs Neon vs Cloudflare vs Prisma: vendor comparison, proposed PostgreSQL schema, Hyperdrive integration, and migration plan
 
 ### Reliability
 
