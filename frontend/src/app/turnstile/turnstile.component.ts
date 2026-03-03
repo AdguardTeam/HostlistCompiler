@@ -6,7 +6,7 @@
  * has committed the render.
  *
  * Usage:
- *   <app-turnstile siteKey="0x..." (tokenChange)="onToken($event)" />
+ *   <app-turnstile [siteKey]="siteKey" (tokenChange)="onToken($event)" />
  *
  * Angular 21 patterns: input(), output(), viewChild(), afterRenderEffect(),
  *   inject(), standalone component
@@ -32,7 +32,7 @@ import { TurnstileService } from '../services/turnstile.service';
 })
 export class TurnstileComponent {
     /** Cloudflare Turnstile site key */
-    readonly siteKey = input<string>('');
+    readonly siteKey = input.required<string>();
     /** Theme for the widget */
     readonly theme = input<'light' | 'dark' | 'auto'>('auto');
 
