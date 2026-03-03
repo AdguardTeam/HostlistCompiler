@@ -197,6 +197,7 @@ examples/             # Example implementations
 ## Angular Frontend Development
 
 The frontend is an Angular 21 app in `frontend/` using:
+
 - **Zoneless change detection** (`provideZonelessChangeDetection()`)
 - **Material Design 3** with M3 theme tokens
 - **SSR** on Cloudflare Workers via `@angular/ssr`

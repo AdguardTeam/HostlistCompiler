@@ -36,6 +36,7 @@ worker-configuration.d.ts
 
 # Test coverage
 coverage/
+cov_profile/
 
 # Output directory (keep directory but ignore contents)
 output/*
