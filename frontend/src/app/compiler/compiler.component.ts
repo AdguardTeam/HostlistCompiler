@@ -32,7 +32,7 @@
  *   Declarative subscription teardown; still used for the query-param side-effect.
  */
 
-import { Component, effect, inject, linkedSignal, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, linkedSignal, signal } from '@angular/core';
 import { toSignal, rxResource } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -49,6 +49,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { JsonPipe } from '@angular/common';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { SseService, SseConnection } from '../services/sse.service';
 
 /** Named preset configurations */
 interface Preset {
@@ -77,6 +79,7 @@ interface Preset {
         MatChipsModule,
         MatDividerModule,
         MatSelectModule,
+        MatSlideToggleModule,
     ],
     template: `
     <div class="page-content">
@@ -147,6 +150,18 @@ interface Preset {
                     <button mat-stroked-button type="button" (click)="addUrl()">
                         <mat-icon>add</mat-icon> Add URL
                     </button>
+                    <div class="drop-zone"
+                        [class.drag-over]="dragOver()"
+                        (dragover)="onDragOver($event)"
+                        (dragleave)="onDragLeave()"
+                        (drop)="onDrop($event)">
+                        <mat-icon>upload_file</mat-icon>
+                        <span class="mat-body-2">Drop a .txt file with URLs (one per line)</span>
+                        <input type="file" accept=".txt,.json" (change)="onFileSelected($event)" hidden #fileInput />
+                        <button mat-stroked-button type="button" (click)="fileInput.click()">
+                            <mat-icon>folder_open</mat-icon> Browse
+                        </button>
+                    </div>
                 </mat-card-content>
             </mat-card>
 
@@ -166,17 +181,24 @@ interface Preset {
             </mat-card>
 
             <!-- Submit -->
-            <button
-                mat-raised-button color="primary" type="submit"
-                [disabled]="compileResource.isLoading() || compilerForm.invalid"
-            >
-                @if (compileResource.isLoading()) {
-                    <mat-progress-spinner diameter="20" mode="indeterminate" color="accent" />
-                    Compiling…
-                } @else {
-                    <mat-icon>play_arrow</mat-icon> Compile
-                }
-            </button>
+            <div class="submit-row">
+                <mat-slide-toggle
+                    [checked]="streamingMode()"
+                    (change)="streamingMode.set($event.checked)">
+                    SSE Streaming
+                </mat-slide-toggle>
+                <button
+                    mat-raised-button color="primary" type="submit"
+                    [disabled]="isCompiling() || compilerForm.invalid"
+                >
+                    @if (isCompiling()) {
+                        <mat-progress-spinner diameter="20" mode="indeterminate" color="accent" />
+                        Compiling…
+                    } @else {
+                        <span><mat-icon>play_arrow</mat-icon> {{ streamingMode() ? 'Stream' : 'Compile' }}</span>
+                    }
+                </button>
+            </div>
         </form>
 
         <!-- resource() status display -->
@@ -241,6 +263,46 @@ interface Preset {
             </mat-card>
         }
 
+        <!-- SSE Streaming Output -->
+        @if (sseConnection(); as conn) {
+            <mat-card appearance="outlined" class="stream-card mt-2"
+                [class.stream-active]="conn.isActive()"
+                [class.stream-error]="conn.status() === 'error'">
+                <mat-card-header>
+                    <mat-icon mat-card-avatar
+                        [style.color]="conn.status() === 'open' ? 'var(--mat-sys-primary)' : conn.status() === 'error' ? 'var(--mat-sys-error)' : 'var(--mat-sys-on-surface-variant)'">
+                        {{ conn.status() === 'open' ? 'stream' : conn.status() === 'error' ? 'error' : 'check_circle' }}
+                    </mat-icon>
+                    <mat-card-title>Streaming Compilation</mat-card-title>
+                    <mat-card-subtitle>
+                        Status: {{ conn.status() }} — {{ conn.events().length }} events
+                    </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="stream-log">
+                        @for (event of conn.events(); track $index) {
+                            <div class="stream-event" [class]="'event-' + event.type">
+                                <mat-chip-set>
+                                    <mat-chip [highlighted]="event.type === 'result'"
+                                        [color]="event.type === 'error' ? 'warn' : 'primary'">
+                                        {{ event.type }}
+                                    </mat-chip>
+                                </mat-chip-set>
+                                <pre class="event-data">{{ event.data | json }}</pre>
+                            </div>
+                        }
+                    </div>
+                </mat-card-content>
+                @if (conn.isActive()) {
+                    <mat-card-actions>
+                        <button mat-button color="warn" (click)="conn.close()">
+                            <mat-icon>stop</mat-icon> Abort
+                        </button>
+                    </mat-card-actions>
+                }
+            </mat-card>
+        }
+
         <!-- Pattern info card -->
         <mat-card appearance="outlined" class="info-card mt-2">
             <mat-card-header>
@@ -290,6 +352,15 @@ interface Preset {
     .pattern-item { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; }
     .pattern-item code { font-weight: 700; font-size: 0.95em; }
     .pattern-item span { color: var(--mat-sys-on-surface-variant); font-size: 0.875rem; }
+    .drop-zone { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px; margin-top: 16px; border: 2px dashed var(--mat-sys-outline-variant); border-radius: 12px; text-align: center; transition: border-color 0.2s, background-color 0.2s; }
+    .drop-zone.drag-over { border-color: var(--mat-sys-primary); background-color: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent); }
+    .submit-row { display: flex; align-items: center; gap: 16px; }
+    .stream-card { border-color: var(--mat-sys-outline); }
+    .stream-card.stream-active { border-color: var(--mat-sys-primary); }
+    .stream-card.stream-error { border-color: var(--mat-sys-error); }
+    .stream-log { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .stream-event { display: flex; align-items: flex-start; gap: 8px; }
+    .event-data { background: var(--mat-sys-surface-variant); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto; margin: 0; flex: 1; }
   `],
 })
 export class CompilerComponent {
@@ -385,8 +456,21 @@ export class CompilerComponent {
 
     private readonly fb              = inject(FormBuilder);
     private readonly compilerService = inject(CompilerService);
+    private readonly sseService      = inject(SseService);
     private readonly route           = inject(ActivatedRoute);
     private readonly router          = inject(Router);
+    private readonly destroyRef      = inject(DestroyRef);
+
+    /** Whether SSE streaming mode is on */
+    readonly streamingMode = signal(false);
+    /** Active SSE connection (null when not streaming) */
+    readonly sseConnection = signal<SseConnection | null>(null);
+    /** Drag-over state for the drop zone */
+    readonly dragOver = signal(false);
+    /** Combined loading state for both JSON and SSE modes */
+    readonly isCompiling = computed(() =>
+        this.compileResource.isLoading() || (this.sseConnection()?.isActive() ?? false),
+    );
 
     /**
      * toSignal() — from @angular/core/rxjs-interop
@@ -415,6 +499,9 @@ export class CompilerComponent {
                 this.urlsArray.at(0).setValue(urlParam);
             }
         });
+
+        // Clean up SSE connection when component is destroyed
+        this.destroyRef.onDestroy(() => this.sseConnection()?.close());
     }
 
     private initializeForm(): void {
@@ -482,15 +569,23 @@ export class CompilerComponent {
 
         if (!urls.length) return;
 
-        // Set the request signal → rxResource() starts loading automatically.
-        this.pendingRequest.set({
+        const request: CompileRequest = {
             configuration: {
                 name: 'Angular PoC Compilation',
                 sources: urls.map(source => ({ source })),
                 transformations: selectedTransformations,
             },
             benchmark: true,
-        });
+        };
+
+        if (this.streamingMode()) {
+            // SSE streaming mode — close previous connection and open new one
+            this.sseConnection()?.close();
+            this.sseConnection.set(this.sseService.connect('/compile/stream', request));
+        } else {
+            // JSON mode — trigger rxResource
+            this.pendingRequest.set(request);
+        }
 
         if (urls[0]) {
             this.router.navigate([], {
@@ -499,6 +594,51 @@ export class CompilerComponent {
                 queryParamsHandling: 'merge',
             });
         }
+    }
+
+    /** Drag-and-drop handlers for file upload */
+    onDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.dragOver.set(true);
+    }
+
+    onDragLeave(): void {
+        this.dragOver.set(false);
+    }
+
+    onDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.dragOver.set(false);
+        const file = event.dataTransfer?.files[0];
+        if (file) this.loadUrlsFromFile(file);
+    }
+
+    onFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (file) this.loadUrlsFromFile(file);
+        input.value = ''; // reset for re-selecting same file
+    }
+
+    private loadUrlsFromFile(file: File): void {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const content = reader.result as string;
+            const urls = content
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0 && /^https?:\/\//.test(line));
+
+            if (!urls.length) return;
+
+            while (this.urlsArray.length) this.urlsArray.removeAt(0);
+            urls.forEach(url =>
+                this.urlsArray.push(
+                    this.fb.control(url, [Validators.required, Validators.pattern(this.URL_PATTERN)]),
+                ),
+            );
+        };
+        reader.readAsText(file);
     }
 }
 
