@@ -1,8 +1,21 @@
 /* Angular Material Custom Theme - Angular 21 + Material 3 */
 
-/* Import Material symbols font */
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+/*
+ * Fonts loaded from npm packages (build-pipeline integrated, no CDN requests):
+ *   @fontsource/roboto   — Roboto font family (300, 400, 500 weights)
+ *   material-symbols     — Material Symbols variable font (replaces Material Icons)
+ *
+ * Why npm packages over Google Fonts CDN?
+ *   1. Works in SSR / offline environments (no external network request)
+ *   2. Bundled and hashed by the Angular build pipeline (cache-busting)
+ *   3. GDPR-friendly (no third-party cookie / IP logging from Google Fonts)
+ *   4. Material Symbols is the modern icon font (variable axes: opsz, wght, FILL, GRAD)
+ *      and supersedes the legacy Material Icons font.
+ */
+@import '@fontsource/roboto/300.css';
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import 'material-symbols/outlined.css';
 
 /* Base styles */
 html, body {
@@ -11,7 +24,7 @@ html, body {
     font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-/* Dark theme class applied to body */
+/* Dark theme class applied to body by ThemeService */
 body.dark-theme {
     background-color: #121212;
     color: #ffffff;
