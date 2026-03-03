@@ -10,7 +10,7 @@ workers_dev = true
 # Wrangler calls this command automatically on `wrangler deploy`.
 # Falls back to Vite build during migration if Angular build is not available.
 [build]
-command = "npm --prefix frontend run build"
+command = "npm --prefix frontend install && npm --prefix frontend run build"
 
 [browser]
 binding = "BROWSER"
