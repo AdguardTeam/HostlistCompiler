@@ -1,6 +1,12 @@
 name: Claude Code
 
 on:
+  # push trigger with path filter prevents GitHub 'workflow file issue'
+  # errors when this file is modified in a push to main
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/claude.yml'
   issue_comment:
     types: [created]
   pull_request_review_comment:
