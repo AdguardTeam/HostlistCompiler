@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { StorageService, StorageStats } from './storage.service';
 import { AuthService } from './auth.service';
-import { API_BASE_URL } from '../tokens';
+import { ADMIN_BASE_URL } from '../tokens';
 
 describe('StorageService', () => {
     let service: StorageService;
@@ -17,7 +17,7 @@ describe('StorageService', () => {
                 provideZonelessChangeDetection(),
                 provideHttpClient(),
                 provideHttpClientTesting(),
-                { provide: API_BASE_URL, useValue: '/api' },
+                { provide: ADMIN_BASE_URL, useValue: '/admin/storage' },
             ],
         });
         service = TestBed.inject(StorageService);

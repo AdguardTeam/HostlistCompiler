@@ -15,7 +15,6 @@ import { GlobalErrorHandler } from './global-error-handler';
 
 @Component({
     selector: 'app-error-boundary',
-    standalone: true,
     imports: [MatCardModule, MatButtonModule, MatIconModule],
     template: `
         @if (errorHandler.hasError()) {

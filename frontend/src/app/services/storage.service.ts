@@ -8,7 +8,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_BASE_URL } from '../tokens';
+import { ADMIN_BASE_URL } from '../tokens';
 import { AuthService } from './auth.service';
 
 export interface StorageStats {
@@ -38,7 +38,7 @@ export interface QueryResult {
 })
 export class StorageService {
     private readonly http = inject(HttpClient);
-    private readonly apiBaseUrl = inject(API_BASE_URL);
+    private readonly adminBaseUrl = inject(ADMIN_BASE_URL);
     private readonly auth = inject(AuthService);
 
     private get headers(): HttpHeaders {
@@ -47,21 +47,21 @@ export class StorageService {
 
     getStats(): Observable<StorageStats> {
         return this.http.get<StorageStats>(
-            `${this.apiBaseUrl.replace('/api', '')}/admin/storage/stats`,
+            `${this.adminBaseUrl}/stats`,
             { headers: this.headers },
         );
     }
 
     getTables(): Observable<TableInfo[]> {
         return this.http.get<TableInfo[]>(
-            `${this.apiBaseUrl.replace('/api', '')}/admin/storage/tables`,
+            `${this.adminBaseUrl}/tables`,
             { headers: this.headers },
         );
     }
 
     query(sql: string): Observable<QueryResult> {
         return this.http.post<QueryResult>(
-            `${this.apiBaseUrl.replace('/api', '')}/admin/storage/query`,
+            `${this.adminBaseUrl}/query`,
             { sql },
             { headers: this.headers },
         );
@@ -69,7 +69,7 @@ export class StorageService {
 
     clearCache(): Observable<{ success: boolean }> {
         return this.http.post<{ success: boolean }>(
-            `${this.apiBaseUrl.replace('/api', '')}/admin/storage/clear-cache`,
+            `${this.adminBaseUrl}/clear-cache`,
             {},
             { headers: this.headers },
         );
@@ -77,7 +77,7 @@ export class StorageService {
 
     clearExpired(): Observable<{ success: boolean; removed: number }> {
         return this.http.post<{ success: boolean; removed: number }>(
-            `${this.apiBaseUrl.replace('/api', '')}/admin/storage/clear-expired`,
+            `${this.adminBaseUrl}/clear-expired`,
             {},
             { headers: this.headers },
         );
@@ -85,7 +85,7 @@ export class StorageService {
 
     vacuum(): Observable<{ success: boolean }> {
         return this.http.post<{ success: boolean }>(
-            `${this.apiBaseUrl.replace('/api', '')}/admin/storage/vacuum`,
+            `${this.adminBaseUrl}/vacuum`,
             {},
             { headers: this.headers },
         );
@@ -93,7 +93,7 @@ export class StorageService {
 
     exportData(): Observable<Blob> {
         return this.http.get(
-            `${this.apiBaseUrl.replace('/api', '')}/admin/storage/export`,
+            `${this.adminBaseUrl}/export`,
             { headers: this.headers, responseType: 'blob' },
         );
     }

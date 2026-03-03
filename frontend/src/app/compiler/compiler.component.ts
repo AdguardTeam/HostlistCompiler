@@ -35,7 +35,7 @@
 import { Component, computed, DestroyRef, effect, inject, linkedSignal, signal } from '@angular/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { toSignal, rxResource } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal, rxResource } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CompileRequest, CompileResponse, CompilerService } from '../services/compiler.service';
@@ -71,7 +71,6 @@ interface Preset {
  */
 @Component({
     selector: 'app-compiler',
-    standalone: true,
     imports: [
         ReactiveFormsModule,
         JsonPipe,
@@ -170,6 +169,12 @@ interface Preset {
                             <mat-icon>folder_open</mat-icon> Browse
                         </button>
                     </div>
+                    @if (fileError()) {
+                        <p style="color: var(--mat-sys-error); margin-top: 8px;">
+                            <mat-icon style="vertical-align: middle; font-size: 18px;">warning</mat-icon>
+                            {{ fileError() }}
+                        </p>
+                    }
                 </mat-card-content>
             </mat-card>
 
@@ -453,7 +458,7 @@ export class CompilerComponent {
      */
     readonly compileResource = rxResource<CompileResponse, CompileRequest | undefined>({
         params: () => this.pendingRequest(),
-        stream: ({ params }) => {
+        loader: ({ params }) => {
             if (!params) return of(undefined as unknown as CompileResponse);
             return this.compilerService.compile(
                 params.configuration.sources.map((s: { source: string }) => s.source),
@@ -484,6 +489,8 @@ export class CompilerComponent {
     readonly sseConnection = signal<SseConnection | null>(null);
     /** Drag-over state for the drop zone */
     readonly dragOver = signal(false);
+    /** File upload validation error */
+    readonly fileError = signal<string | null>(null);
     /** Combined loading state for both JSON and SSE modes */
     readonly isCompiling = computed(() =>
         this.compileResource.isLoading() || (this.sseConnection()?.isActive() ?? false),
@@ -524,13 +531,12 @@ export class CompilerComponent {
         });
 
         // Item 8: Bridge form changes to signals
-        effect(() => {
-            // Runs once to set up the subscription
-            if (this.compilerForm) {
-                this.compilerForm.valueChanges.subscribe(v => this.formValue.set(v));
-                this.compilerForm.statusChanges.subscribe(s => this.formValid.set(s === 'VALID'));
-            }
-        });
+        this.compilerForm.valueChanges
+            .pipe(takeUntilDestroyed())
+            .subscribe(v => this.formValue.set(v));
+        this.compilerForm.statusChanges
+            .pipe(takeUntilDestroyed())
+            .subscribe(s => this.formValid.set(s === 'VALID'));
 
         // Announce compilation state changes for screen readers
         effect(() => {
@@ -668,12 +674,24 @@ export class CompilerComponent {
         input.value = ''; // reset for re-selecting same file
     }
 
+    private static readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static readonly MAX_URLS = 50;
+
     /**
      * Item 4: Load and parse file via Web Worker.
      * The FilterParserService offloads parsing to a background thread
      * to keep the UI responsive for large filter lists.
+     *
+     * Validates file size (≤ 5 MB) and URL count (≤ 50) before processing.
      */
     private loadUrlsFromFile(file: File): void {
+        this.fileError.set(null);
+
+        if (file.size > CompilerComponent.MAX_FILE_SIZE) {
+            this.fileError.set(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 5 MB.`);
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = () => {
             const content = reader.result as string;
@@ -687,7 +705,15 @@ export class CompilerComponent {
                 .map(line => line.trim())
                 .filter(line => line.length > 0 && /^https?:\/\//.test(line));
 
-            if (!urls.length) return;
+            if (!urls.length) {
+                this.fileError.set('No valid URLs found in file.');
+                return;
+            }
+
+            if (urls.length > CompilerComponent.MAX_URLS) {
+                this.fileError.set(`File contains ${urls.length} URLs. Maximum is ${CompilerComponent.MAX_URLS}.`);
+                return;
+            }
 
             while (this.urlsArray.length) this.urlsArray.removeAt(0);
             urls.forEach(url =>

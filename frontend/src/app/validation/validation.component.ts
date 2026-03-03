@@ -4,7 +4,7 @@
  * Angular 21 patterns: rxResource for async validation, signal-based form state.
  */
 
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
@@ -21,7 +21,6 @@ import { ValidationService, ValidationResult, ValidationError } from '../service
 
 @Component({
     selector: 'app-validation',
-    standalone: true,
     imports: [
         FormsModule,
         MatCardModule,
@@ -52,7 +51,8 @@ import { ValidationService, ValidationResult, ValidationError } from '../service
                 <mat-form-field appearance="outline" class="rules-field">
                     <mat-label>Filter rules</mat-label>
                     <textarea matInput
-                        [(ngModel)]="rulesText"
+                        [ngModel]="rulesText()"
+                        (ngModelChange)="rulesText.set($event)"
                         rows="10"
                         placeholder="||example.com^&#10;@@||trusted.com^&#10;/ads/*"
                     ></textarea>
@@ -157,27 +157,33 @@ import { ValidationService, ValidationResult, ValidationError } from '../service
 export class ValidationComponent {
     private readonly validationService = inject(ValidationService);
 
-    rulesText = '';
+    readonly rulesText = signal('');
     strictMode = false;
 
     private readonly pendingRules = signal<string[] | undefined>(undefined);
 
-    readonly ruleCount = signal(0);
+    /** Computed rule count derived from rulesText signal — no manual bookkeeping */
+    readonly ruleCount = computed(() => {
+        const text = this.rulesText();
+        if (!text.trim()) return 0;
+        return text.split('\n')
+            .map(l => l.trim())
+            .filter(l => l.length > 0 && !l.startsWith('!')).length;
+    });
 
     readonly validationResource = rxResource<ValidationResult, string[] | undefined>({
         params: () => this.pendingRules(),
-        stream: ({ params }) => {
+        loader: ({ params }) => {
             if (!params) return of(undefined as unknown as ValidationResult);
             return this.validationService.validate(params, this.strictMode);
         },
     });
 
     validate(): void {
-        const rules = this.rulesText
+        const rules = this.rulesText()
             .split('\n')
             .map(l => l.trim())
             .filter(l => l.length > 0 && !l.startsWith('!'));
-        this.ruleCount.set(rules.length);
         if (rules.length) {
             this.pendingRules.set(rules);
         }

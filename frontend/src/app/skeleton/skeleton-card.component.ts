@@ -12,7 +12,6 @@ import { MatCardModule } from '@angular/material/card';
 
 @Component({
     selector: 'app-skeleton-card',
-    standalone: true,
     imports: [MatCardModule],
     template: `
         <mat-card appearance="outlined" class="skeleton-card">

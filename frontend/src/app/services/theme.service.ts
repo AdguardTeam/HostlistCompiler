@@ -18,7 +18,7 @@
  *   light theme flash on page load (FOUC).
  */
 
-import { Injectable, DOCUMENT, inject, signal, computed } from '@angular/core';
+import { Injectable, DOCUMENT, inject, signal } from '@angular/core';
 
 /**
  * ThemeService
@@ -32,7 +32,7 @@ export class ThemeService {
     private readonly _isDark = signal<boolean>(false);
 
     /** Read-only signal — consumed by AppComponent and any other interested component */
-    readonly isDark = computed(() => this._isDark());
+    readonly isDark = this._isDark.asReadonly();
 
     /** Injected DOCUMENT token — SSR-safe alternative to direct `document` access */
     private readonly doc = inject(DOCUMENT);

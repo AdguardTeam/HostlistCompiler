@@ -6,7 +6,7 @@
  */
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, delay } from 'rxjs/operators';
 import { API_BASE_URL } from '../tokens';
@@ -59,11 +59,7 @@ export class CompilerService {
             benchmark: true,
         };
 
-        const headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-        });
-
-        return this.http.post<CompileResponse>(this.apiUrl, payload, { headers }).pipe(
+        return this.http.post<CompileResponse>(this.apiUrl, payload).pipe(
             catchError((error) => {
                 console.log('API call failed (expected in PoC), returning mock data:', error);
                 return of({

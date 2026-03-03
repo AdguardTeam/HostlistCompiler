@@ -5,11 +5,7 @@
     "projects": {
         "adblock-compiler-poc": {
             "projectType": "application",
-            "schematics": {
-                "@schematics/angular:component": {
-                    "standalone": true
-                }
-            },
+            "schematics": {},
             "root": "",
             "sourceRoot": "src",
             "prefix": "app",

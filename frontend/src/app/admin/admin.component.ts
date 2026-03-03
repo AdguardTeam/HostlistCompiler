@@ -5,8 +5,8 @@
  * and a read-only SQL query console.
  */
 
-import { Component, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
@@ -26,7 +26,6 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
 
 @Component({
     selector: 'app-admin',
-    standalone: true,
     imports: [
         FormsModule,
         JsonPipe,
@@ -169,6 +168,12 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                         ></textarea>
                         <mat-hint>Shift+Enter to execute</mat-hint>
                     </mat-form-field>
+                    @if (sqlWarning()) {
+                        <p style="color: var(--mat-sys-error); margin-bottom: 8px;">
+                            <mat-icon style="vertical-align: middle; font-size: 18px;">block</mat-icon>
+                            {{ sqlWarning() }}
+                        </p>
+                    }
                     <button mat-raised-button color="primary" (click)="runQuery()"
                         [disabled]="queryResource.isLoading() || !sqlInput.trim()">
                         @if (queryResource.isLoading()) {
@@ -220,6 +225,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
 export class AdminComponent {
     readonly auth = inject(AuthService);
     private readonly storage = inject(StorageService);
+    private readonly destroyRef = inject(DestroyRef);
 
     keyInput = '';
     sqlInput = '';
@@ -230,14 +236,14 @@ export class AdminComponent {
 
     readonly statsResource = rxResource<StorageStats, number>({
         params: () => this.auth.isAuthenticated() ? this.authTrigger() : undefined as unknown as number,
-        stream: () => this.storage.getStats().pipe(
+        loader: () => this.storage.getStats().pipe(
             catchError(() => of({ kvKeys: 0, r2Objects: 0, d1Tables: 0, cacheEntries: 0 } as StorageStats)),
         ),
     });
 
     readonly queryResource = rxResource<QueryResult, string | undefined>({
         params: () => this.queryTrigger(),
-        stream: ({ params }) => {
+        loader: ({ params }) => {
             if (!params) return of(undefined as unknown as QueryResult);
             return this.storage.query(params);
         },
@@ -251,14 +257,27 @@ export class AdminComponent {
         }
     }
 
+    /** Destructive SQL keywords that should not be executed from the admin console */
+    private static readonly DESTRUCTIVE_SQL = /^\s*(DROP|DELETE|TRUNCATE|ALTER|INSERT|UPDATE)\b/i;
+
+    /** Inline warning when destructive SQL is detected */
+    readonly sqlWarning = signal<string | null>(null);
+
     runQuery(): void {
-        if (this.sqlInput.trim()) {
-            this.queryTrigger.set(this.sqlInput.trim());
+        const sql = this.sqlInput.trim();
+        if (!sql) return;
+
+        if (AdminComponent.DESTRUCTIVE_SQL.test(sql)) {
+            this.sqlWarning.set('Destructive SQL is blocked. Only SELECT / read-only queries are allowed.');
+            return;
         }
+
+        this.sqlWarning.set(null);
+        this.queryTrigger.set(sql);
     }
 
     clearCache(): void {
-        this.storage.clearCache().subscribe({
+        this.storage.clearCache().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.actionResult.set('Cache cleared successfully');
                 this.authTrigger.update(v => v + 1);
@@ -268,7 +287,7 @@ export class AdminComponent {
     }
 
     clearExpired(): void {
-        this.storage.clearExpired().subscribe({
+        this.storage.clearExpired().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (r) => {
                 this.actionResult.set(`Removed ${r.removed} expired entries`);
                 this.authTrigger.update(v => v + 1);
@@ -278,14 +297,14 @@ export class AdminComponent {
     }
 
     vacuum(): void {
-        this.storage.vacuum().subscribe({
+        this.storage.vacuum().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => this.actionResult.set('Database vacuumed successfully'),
             error: (e) => this.actionResult.set(`Error: ${e.message}`),
         });
     }
 
     exportData(): void {
-        this.storage.exportData().subscribe({
+        this.storage.exportData().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (blob) => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');

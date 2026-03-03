@@ -37,6 +37,8 @@ export interface SseConnection {
     latestByType: (type: string) => SseEvent | undefined;
     /** Whether the connection is active */
     readonly isActive: ReturnType<typeof computed<boolean>>;
+    /** Number of retry attempts so far (0 = first try) */
+    readonly retryCount: ReturnType<typeof signal<number>>;
     /** Close the connection and clean up */
     close: () => void;
 }
@@ -63,9 +65,12 @@ export class SseService {
      * @param body   - Request body to POST as JSON
      * @returns SseConnection with reactive signals
      */
+    private static readonly MAX_RETRIES = 3;
+
     connect<T = unknown>(path: string, body: unknown): SseConnection {
         const events = signal<SseEvent<T>[]>([]);
         const status = signal<SseStatus>('idle');
+        const retryCount = signal(0);
         let abortController: AbortController | null = new AbortController();
 
         const isActive = computed(() => {
@@ -87,24 +92,39 @@ export class SseService {
             status.set('closed');
         };
 
-        // Start the streaming fetch
-        status.set('connecting');
-        this.streamFetch<T>(
-            `${this.apiBaseUrl}${path}`,
-            body,
-            abortController.signal,
-            (event) => {
-                events.update(prev => [...prev, event]);
-            },
-            () => status.set('open'),
-            () => status.set('closed'),
-            (error) => {
-                console.error('[SseService] Stream error:', error);
-                status.set('error');
-            },
-        );
+        const url = `${this.apiBaseUrl}${path}`;
 
-        return { events, status, latestByType, isActive, close };
+        const attempt = (retry: number) => {
+            if (!abortController) return; // connection was closed
+            retryCount.set(retry);
+            status.set('connecting');
+
+            this.streamFetch<T>(
+                url,
+                body,
+                abortController.signal,
+                (event) => {
+                    events.update(prev => [...prev, event]);
+                },
+                () => status.set('open'),
+                () => status.set('closed'),
+                (error) => {
+                    console.error('[SseService] Stream error:', error);
+
+                    if (retry < SseService.MAX_RETRIES && abortController) {
+                        const delay = Math.min(1000 * Math.pow(2, retry), 8000);
+                        status.set('connecting');
+                        setTimeout(() => attempt(retry + 1), delay);
+                    } else {
+                        status.set('error');
+                    }
+                },
+            );
+        };
+
+        attempt(0);
+
+        return { events, status, latestByType, isActive, retryCount, close };
     }
 
     /**

@@ -17,7 +17,6 @@ import { TurnstileService } from '../services/turnstile.service';
 
 @Component({
     selector: 'app-turnstile',
-    standalone: true,
     template: `
         <div #turnstileContainer class="turnstile-container"></div>
     `,
