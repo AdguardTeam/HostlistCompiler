@@ -39,7 +39,7 @@ import { takeUntilDestroyed, toSignal, rxResource } from '@angular/core/rxjs-int
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CompileRequest, CompileResponse, CompilerService } from '../services/compiler.service';
-import { of } from 'rxjs';
+import { EMPTY } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -457,14 +457,11 @@ export class CompilerComponent {
      *   or when the request signal changes.
      */
     readonly compileResource = rxResource<CompileResponse, CompileRequest | undefined>({
-        params: () => this.pendingRequest(),
-        stream: ({ params }) => {
-            if (!params) return of(undefined as unknown as CompileResponse);
-            return this.compilerService.compile(
-                params.configuration.sources.map((s: { source: string }) => s.source),
-                params.configuration.transformations,
-            );
-        },
+        params: (): CompileRequest | undefined => this.pendingRequest(),
+        stream: ({ params }) => params ? this.compilerService.compile(
+            params.configuration.sources.map((s) => s.source),
+            params.configuration.transformations,
+        ) : EMPTY,
     });
 
     readonly availableTransformations: readonly string[];
