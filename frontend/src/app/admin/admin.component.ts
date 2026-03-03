@@ -236,14 +236,14 @@ export class AdminComponent {
 
     readonly statsResource = rxResource<StorageStats, number>({
         params: () => this.auth.isAuthenticated() ? this.authTrigger() : undefined as unknown as number,
-        loader: () => this.storage.getStats().pipe(
+        stream: () => this.storage.getStats().pipe(
             catchError(() => of({ kvKeys: 0, r2Objects: 0, d1Tables: 0, cacheEntries: 0 } as StorageStats)),
         ),
     });
 
     readonly queryResource = rxResource<QueryResult, string | undefined>({
         params: () => this.queryTrigger(),
-        loader: ({ params }) => {
+        stream: ({ params }) => {
             if (!params) return of(undefined as unknown as QueryResult);
             return this.storage.query(params);
         },
