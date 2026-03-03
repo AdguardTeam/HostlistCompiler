@@ -474,6 +474,11 @@ jobs:
               run: |
                   deno run --allow-read --allow-net --allow-env scripts/record-deployment.ts --status=failed || true
 
+            - name: Create Pages project if not exists
+              if: env.CLOUDFLARE_API_TOKEN != ''
+              continue-on-error: true
+              run: npx wrangler pages project create adblock-compiler-ui --production-branch=main
+
             - name: Deploy Pages
               if: env.CLOUDFLARE_API_TOKEN != ''
               uses: cloudflare/wrangler-action@v3
