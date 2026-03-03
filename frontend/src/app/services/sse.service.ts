@@ -16,6 +16,7 @@
 
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { API_BASE_URL } from '../tokens';
+import { LogService } from './log.service';
 
 /** Possible SSE connection states */
 export type SseStatus = 'idle' | 'connecting' | 'open' | 'error' | 'closed';
@@ -56,6 +57,7 @@ export interface SseConnection {
 })
 export class SseService {
     private readonly apiBaseUrl = inject(API_BASE_URL);
+    private readonly logger = inject(LogService);
 
     /**
      * Opens a streaming POST connection to the given endpoint.
@@ -109,7 +111,9 @@ export class SseService {
                 () => status.set('open'),
                 () => status.set('closed'),
                 (error) => {
-                    console.error('[SseService] Stream error:', error);
+                    this.logger.error('[SseService] Stream error', 'sse', {
+                        error: error instanceof Error ? error.message : String(error),
+                    });
 
                     if (retry < SseService.MAX_RETRIES && abortController) {
                         const delay = Math.min(1000 * Math.pow(2, retry), 8000);
