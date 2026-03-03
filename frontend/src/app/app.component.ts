@@ -28,6 +28,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { ThemeService } from './services/theme.service';
 import { routeAnimation } from './route-animations';
+import { ErrorBoundaryComponent } from './error/error-boundary.component';
 
 /** Navigation item interface */
 interface NavItem {
@@ -54,6 +55,7 @@ interface NavItem {
         MatIconModule,
         MatButtonModule,
         MatTooltipModule,
+        ErrorBoundaryComponent,
     ],
     animations: [routeAnimation],
     template: `
@@ -114,6 +116,7 @@ interface NavItem {
         </main>
       </mat-sidenav-content>
     </mat-sidenav-container>
+    <app-error-boundary />
   `,
     styles: [`
     .app-container { height: 100vh; }

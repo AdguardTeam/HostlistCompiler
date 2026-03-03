@@ -43,6 +43,17 @@ coverage.lcov
 worker-configuration.d.ts
 .deployment-version.json
 
+# Angular frontend build cache (rebuilt in Docker)
+frontend/.angular/
+frontend/dist/
+frontend/node_modules/
+frontend/.wrangler/
+frontend/e2e/
+
+# Playwright
+test-results/
+playwright-report/
+
 # Documentation
 *.md
 !README.md

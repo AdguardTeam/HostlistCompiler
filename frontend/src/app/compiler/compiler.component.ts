@@ -34,6 +34,7 @@
 
 import { Component, computed, DestroyRef, effect, inject, linkedSignal, signal } from '@angular/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { toSignal, rxResource } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -52,6 +53,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { JsonPipe } from '@angular/common';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { SseService, SseConnection } from '../services/sse.service';
+import { TurnstileComponent } from '../turnstile/turnstile.component';
+import { TurnstileService } from '../services/turnstile.service';
+import { FilterParserService } from '../services/filter-parser.service';
 
 /** Named preset configurations */
 interface Preset {
@@ -81,6 +85,8 @@ interface Preset {
         MatDividerModule,
         MatSelectModule,
         MatSlideToggleModule,
+        ScrollingModule,
+        TurnstileComponent,
     ],
     template: `
     <div class="page-content">
@@ -181,6 +187,9 @@ interface Preset {
                 </mat-card-content>
             </mat-card>
 
+            <!-- Item 1: Turnstile bot protection -->
+            <app-turnstile [siteKey]="turnstileSiteKey" />
+
             <!-- Submit -->
             <div class="submit-row">
                 <mat-slide-toggle
@@ -280,7 +289,8 @@ interface Preset {
                     </mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
-                    <div class="stream-log">
+                    <!-- Item 6: CDK Virtual Scrolling for SSE stream log -->
+                    <cdk-virtual-scroll-viewport itemSize="60" class="stream-log">
                         @for (event of conn.events(); track $index) {
                             <div class="stream-event" [class]="'event-' + event.type">
                                 <mat-chip-set>
@@ -292,7 +302,7 @@ interface Preset {
                                 <pre class="event-data">{{ event.data | json }}</pre>
                             </div>
                         }
-                    </div>
+                    </cdk-virtual-scroll-viewport>
                 </mat-card-content>
                 @if (conn.isActive()) {
                     <mat-card-actions>
@@ -462,7 +472,11 @@ export class CompilerComponent {
     private readonly route           = inject(ActivatedRoute);
     private readonly router          = inject(Router);
     private readonly destroyRef      = inject(DestroyRef);
+    private readonly turnstileService = inject(TurnstileService);
+    readonly filterParser            = inject(FilterParserService);
 
+    /** Item 1: Turnstile site key (configure via environment in production) */
+    readonly turnstileSiteKey = '';
     /** Whether SSE streaming mode is on */
     readonly streamingMode = signal(false);
     /** Active SSE connection (null when not streaming) */
@@ -487,6 +501,15 @@ export class CompilerComponent {
      */
     private readonly queryParams = toSignal(inject(ActivatedRoute).queryParamMap, { initialValue: null });
 
+    /**
+     * Item 8: Signal-based form wrappers.
+     * Angular 21 does not yet have stable signal form controls, but we can bridge
+     * Reactive Forms into the signal graph via toSignal(). This provides a
+     * signal-native view of form state for use in computed() and effect().
+     */
+    readonly formValue = signal<Record<string, unknown>>({});
+    readonly formValid = signal(false);
+
     constructor() {
         this.availableTransformations = this.compilerService.getAvailableTransformations();
         this.initializeForm();
@@ -496,6 +519,15 @@ export class CompilerComponent {
             const urlParam = this.queryParams()?.get('url');
             if (urlParam) {
                 this.urlsArray.at(0).setValue(urlParam);
+            }
+        });
+
+        // Item 8: Bridge form changes to signals
+        effect(() => {
+            // Runs once to set up the subscription
+            if (this.compilerForm) {
+                this.compilerForm.valueChanges.subscribe(v => this.formValue.set(v));
+                this.compilerForm.statusChanges.subscribe(s => this.formValid.set(s === 'VALID'));
             }
         });
 
@@ -635,10 +667,20 @@ export class CompilerComponent {
         input.value = ''; // reset for re-selecting same file
     }
 
+    /**
+     * Item 4: Load and parse file via Web Worker.
+     * The FilterParserService offloads parsing to a background thread
+     * to keep the UI responsive for large filter lists.
+     */
     private loadUrlsFromFile(file: File): void {
         const reader = new FileReader();
         reader.onload = () => {
             const content = reader.result as string;
+
+            // Parse in Web Worker for large files
+            this.filterParser.parse(content);
+
+            // Also extract URLs directly for the form
             const urls = content
                 .split('\n')
                 .map(line => line.trim())

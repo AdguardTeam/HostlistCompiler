@@ -32,7 +32,6 @@
 
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { rxResource } from '@angular/core/rxjs-interop';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,10 +39,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { StatCardComponent } from '../stat-card/stat-card.component';
-import { MetricsService, MetricsResponse, HealthResponse } from '../services/metrics.service';
+import { SkeletonCardComponent } from '../skeleton/skeleton-card.component';
+import { MetricsStore } from '../store/metrics.store';
 
 /** Navigation card for the dashboard grid */
 interface NavCard {
@@ -70,6 +68,7 @@ interface NavCard {
         MatChipsModule,
         MatProgressSpinnerModule,
         StatCardComponent,
+        SkeletonCardComponent,
     ],
     template: `
     <div class="page-content">
@@ -78,38 +77,50 @@ interface NavCard {
             Manage, compile, and monitor adblock filter lists.
         </p>
 
-        <!-- Live Stats Grid -->
-        <div class="stats-grid">
-            @for (stat of liveStats(); track stat.label) {
-                <app-stat-card
-                    [label]="stat.label"
-                    [value]="stat.value"
-                    [icon]="stat.icon"
-                    [color]="stat.color"
-                    [(highlighted)]="highlightedCard"
-                    (cardClicked)="onStatCardClicked($event)"
-                />
-            }
-        </div>
+        <!-- Live Stats Grid (Item 13: skeleton loading states) -->
+        @if (store.isLoading() && !store.metrics()) {
+            <div class="stats-grid">
+                @for (i of [0,1,2,3]; track i) {
+                    <app-skeleton-card [lines]="2" [lineWidths]="['60%', '40%']" />
+                }
+            </div>
+        } @else {
+            <div class="stats-grid">
+                @for (stat of liveStats(); track stat.label) {
+                    <app-stat-card
+                        [label]="stat.label"
+                        [value]="stat.value"
+                        [icon]="stat.icon"
+                        [color]="stat.color"
+                        [(highlighted)]="highlightedCard"
+                        (cardClicked)="onStatCardClicked($event)"
+                    />
+                }
+            </div>
+        }
 
-        <!-- Navigation Grid -->
+        <!-- Navigation Grid (Item 5: @defer with prefetch on hover) -->
         <h2 class="mat-headline-6 section-title">Tools</h2>
         <div class="nav-grid">
             @for (card of navCards; track card.path) {
-                <mat-card appearance="outlined" class="nav-card" (click)="navigateTo(card.path)">
-                    <mat-card-header>
-                        <mat-icon mat-card-avatar [style.color]="'var(--mat-sys-primary)'">{{ card.icon }}</mat-icon>
-                        <mat-card-title>{{ card.title }}</mat-card-title>
-                    </mat-card-header>
-                    <mat-card-content>
-                        <p class="mat-body-2 nav-description">{{ card.description }}</p>
-                    </mat-card-content>
-                    <mat-card-actions>
-                        <mat-chip-set>
-                            <mat-chip [color]="card.tagColor" highlighted>{{ card.tag }}</mat-chip>
-                        </mat-chip-set>
-                    </mat-card-actions>
-                </mat-card>
+                @defer (on viewport; prefetch on hover) {
+                    <mat-card appearance="outlined" class="nav-card" (click)="navigateTo(card.path)">
+                        <mat-card-header>
+                            <mat-icon mat-card-avatar [style.color]="'var(--mat-sys-primary)'">{{ card.icon }}</mat-icon>
+                            <mat-card-title>{{ card.title }}</mat-card-title>
+                        </mat-card-header>
+                        <mat-card-content>
+                            <p class="mat-body-2 nav-description">{{ card.description }}</p>
+                        </mat-card-content>
+                        <mat-card-actions>
+                            <mat-chip-set>
+                                <mat-chip [color]="card.tagColor" highlighted>{{ card.tag }}</mat-chip>
+                            </mat-chip-set>
+                        </mat-card-actions>
+                    </mat-card>
+                } @placeholder {
+                    <app-skeleton-card [showAvatar]="true" [lines]="2" [lineWidths]="['80%', '60%']" />
+                }
             }
         </div>
 
@@ -123,9 +134,9 @@ interface NavCard {
                         [style.color]="healthColor()">{{ healthIcon() }}</mat-icon>
                     <mat-card-title>System Status</mat-card-title>
                     <mat-card-subtitle>
-                        @if (healthResource.isLoading()) {
+                        @if (store.isHealthRevalidating() && !store.health()) {
                             Checking…
-                        } @else if (healthResource.value(); as h) {
+                        } @else if (store.health(); as h) {
                             {{ h.status === 'healthy' ? 'All systems operational' : 'Degraded performance' }} — v{{ h.version }}
                         } @else {
                             Unable to reach API
@@ -231,38 +242,14 @@ export class HomeComponent {
 
     readonly highlightedCard = signal(false);
 
-    private readonly metricsService = inject(MetricsService);
+    /** Item 9: MetricsStore — shared singleton store with SWR caching */
+    readonly store = inject(MetricsStore);
     private readonly liveAnnouncer = inject(LiveAnnouncer);
     private readonly router = inject(Router);
-    private readonly refreshTrigger = signal(0);
 
-    /** Live metrics from /api/metrics */
-    readonly metricsResource = rxResource<MetricsResponse, number>({
-        params: () => this.refreshTrigger(),
-        stream: () => this.metricsService.getMetrics().pipe(
-            catchError(() => of({
-                totalRequests: 0,
-                averageDuration: 0,
-                cacheHitRate: 0,
-                successRate: 0,
-            } as MetricsResponse)),
-        ),
-    });
-
-    /** Live health from /api/health */
-    readonly healthResource = rxResource<HealthResponse, number>({
-        params: () => this.refreshTrigger(),
-        stream: () => this.metricsService.getHealth().pipe(
-            catchError(() => {
-                this.liveAnnouncer.announce('Unable to reach API', 'assertive');
-                return of({ status: 'unhealthy' as const, version: 'unknown' });
-            }),
-        ),
-    });
-
-    /** Derive stat cards from live metrics */
+    /** Derive stat cards from store metrics */
     readonly liveStats = computed(() => {
-        const m = this.metricsResource.value();
+        const m = this.store.metrics();
         return [
             { label: 'Total Requests',      value: m ? m.totalRequests.toLocaleString() : '--',  icon: 'api',       color: 'var(--mat-sys-primary)'   },
             { label: 'Avg Response Time',   value: m ? `${Math.round(m.averageDuration)}ms` : '--ms', icon: 'timer', color: 'var(--mat-sys-tertiary)' },
@@ -272,13 +259,13 @@ export class HomeComponent {
     });
 
     readonly healthColor = computed(() => {
-        const h = this.healthResource.value();
+        const h = this.store.health();
         if (!h) return 'var(--mat-sys-on-surface-variant)';
         return h.status === 'healthy' ? 'var(--mat-sys-primary)' : 'var(--mat-sys-error)';
     });
 
     readonly healthIcon = computed(() => {
-        const h = this.healthResource.value();
+        const h = this.store.health();
         if (!h) return 'help_outline';
         return h.status === 'healthy' ? 'check_circle' : 'warning';
     });

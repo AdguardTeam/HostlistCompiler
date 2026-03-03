@@ -6,10 +6,7 @@
  */
 
 import { Component, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { httpResource } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -126,15 +123,14 @@ interface Endpoint {
   `],
 })
 export class ApiDocsComponent {
-    private readonly http = inject(HttpClient);
     private readonly apiBaseUrl = inject(API_BASE_URL);
 
-    readonly versionResource = rxResource<VersionInfo, number>({
-        params: () => 0,
-        stream: () => this.http.get<VersionInfo>(`${this.apiBaseUrl}/version`).pipe(
-            catchError(() => of({ name: 'adblock-compiler', version: 'unknown' })),
-        ),
-    });
+    /**
+     * Item 7: httpResource() — Angular 21 signal-native HTTP primitive.
+     * Replaces rxResource + HttpClient. Automatically manages loading/error/value
+     * as signals. No manual catchError/subscribe needed.
+     */
+    readonly versionResource = httpResource<VersionInfo>(() => `${this.apiBaseUrl}/version`);
 
     readonly endpointGroups: { title: string; icon: string; endpoints: Endpoint[] }[] = [
         {

@@ -53,7 +53,37 @@ export default {
         // Returns a fully-formed Response (with HTML + headers) for Angular routes,
         // or null if the engine cannot handle the request (e.g. unrecognised path).
         const response = await angularApp.handle(request);
-        return response ?? new Response('Not found', { status: 404 });
+        if (!response) return new Response('Not found', { status: 404 });
+
+        // Item 2: Add Content-Security-Policy headers to HTML responses
+        const contentType = response.headers.get('Content-Type') ?? '';
+        if (contentType.includes('text/html')) {
+            const csp = [
+                "default-src 'self'",
+                "script-src 'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+                "style-src 'self' 'unsafe-inline'",
+                "img-src 'self' data:",
+                "font-src 'self'",
+                "connect-src 'self'",
+                "frame-src https://challenges.cloudflare.com",
+                "object-src 'none'",
+                "base-uri 'self'",
+            ].join('; ');
+
+            const headers = new Headers(response.headers);
+            headers.set('Content-Security-Policy', csp);
+            headers.set('X-Content-Type-Options', 'nosniff');
+            headers.set('X-Frame-Options', 'DENY');
+            headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+            return new Response(response.body, {
+                status: response.status,
+                statusText: response.statusText,
+                headers,
+            });
+        }
+
+        return response;
     },
 };
 

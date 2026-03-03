@@ -1,14 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideZonelessChangeDetection } from '@angular/core';
+import { ErrorHandler, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { AppComponent } from './app.component';
 import { ThemeService } from './services/theme.service';
+import { GlobalErrorHandler } from './error/global-error-handler';
+import { API_BASE_URL } from './tokens';
 
 describe('AppComponent', () => {
     let fixture: ComponentFixture<AppComponent>;
     let component: AppComponent;
     let themeService: ThemeService;
+    let httpTesting: HttpTestingController;
 
     beforeEach(async () => {
         localStorage.clear();
@@ -17,16 +22,34 @@ describe('AppComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 provideRouter([]),
+                provideHttpClient(),
+                provideHttpClientTesting(),
+                { provide: ErrorHandler, useClass: GlobalErrorHandler },
+                { provide: API_BASE_URL, useValue: '/api' },
             ],
         }).compileComponents();
 
         fixture = TestBed.createComponent(AppComponent);
         component = fixture.componentInstance;
         themeService = TestBed.inject(ThemeService);
+        httpTesting = TestBed.inject(HttpTestingController);
+
+        // Flush initial MetricsStore requests
+        httpTesting.match('/api/metrics').forEach(req => req.flush({
+            totalRequests: 0, averageDuration: 0, cacheHitRate: 0, successRate: 0,
+        }));
+        httpTesting.match('/api/health').forEach(req => req.flush({
+            status: 'healthy', version: '0.0.0',
+        }));
+
         await fixture.whenStable();
     });
 
-    afterEach(() => localStorage.clear());
+    afterEach(() => {
+        httpTesting.match(() => true).forEach(req => req.flush({}));
+        httpTesting.verify();
+        localStorage.clear();
+    });
 
     it('should create', () => {
         expect(component).toBeTruthy();

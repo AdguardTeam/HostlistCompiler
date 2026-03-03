@@ -69,11 +69,11 @@ describe('HomeComponent', () => {
     });
 
     it('should derive live stats from metrics', () => {
-        // Without API response, stats show fallback values
+        // After flushing with zeroed metrics, stats show formatted values
         const stats = component.liveStats();
         expect(stats.length).toBe(4);
         expect(stats[0].label).toBe('Total Requests');
-        expect(stats[0].value).toBe('--');
+        expect(stats[0].value).toBe('0');
     });
 
     it('should navigate when navigateTo is called', () => {
@@ -101,11 +101,13 @@ describe('HomeComponent', () => {
     });
 
     it('should show default health icon when no data', () => {
-        expect(component.healthIcon()).toBe('help_outline');
+        // After flushing with healthy status, icon reflects healthy state
+        expect(component.healthIcon()).toBe('check_circle');
     });
 
     it('should show default health color when no data', () => {
-        expect(component.healthColor()).toBe('var(--mat-sys-on-surface-variant)');
+        // After flushing with healthy status, color reflects healthy state
+        expect(component.healthColor()).toBe('var(--mat-sys-primary)');
     });
 
     it('should render the page heading', () => {

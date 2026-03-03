@@ -244,7 +244,7 @@ jobs:
               run: npm --prefix frontend ci
 
             - name: Lint Angular frontend
-              run: npx --prefix frontend ng lint
+              run: npm --prefix frontend run lint
 
     frontend-build:
         name: Frontend Build
@@ -298,7 +298,7 @@ jobs:
               run: npm --prefix frontend ci
 
             - name: Run frontend tests
-              run: npm --prefix frontend run test -- --run
+              run: npm --prefix frontend test
 
     validate-cloudflare-schema:
         name: Validate Cloudflare Schema

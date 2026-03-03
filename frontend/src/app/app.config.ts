@@ -20,7 +20,7 @@
  *     provideAppInitializer(() => { inject(ThemeService).loadPreferences(); })
  */
 
-import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withViewTransitions, withPreloading, PreloadAllModules } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { errorInterceptor } from './interceptors/error.interceptor';
@@ -28,6 +28,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { routes } from './app.routes';
 import { ThemeService } from './services/theme.service';
+import { GlobalErrorHandler } from './error/global-error-handler';
 import { API_BASE_URL } from './tokens';
 
 export const appConfig: ApplicationConfig = {
@@ -58,6 +59,9 @@ export const appConfig: ApplicationConfig = {
 
         // API base URL — browser uses relative '/api', SSR overrides in app.config.server.ts.
         { provide: API_BASE_URL, useValue: '/api' },
+
+        // Item 14: Custom error handler with signal-based state
+        { provide: ErrorHandler, useClass: GlobalErrorHandler },
 
         // provideAppInitializer() — runs before the first render.
         // ThemeService reads localStorage and applies the saved theme class to <body>

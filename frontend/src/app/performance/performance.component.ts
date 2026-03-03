@@ -6,10 +6,9 @@
  * afterRenderEffect() for DOM measurements.
  */
 
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { HttpClient } from '@angular/common/http';
+import { httpResource } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,20 +16,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
-import { of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { SkeletonCardComponent } from '../skeleton/skeleton-card.component';
+import { SparklineComponent } from '../sparkline/sparkline.component';
+import { MetricsStore } from '../store/metrics.store';
 import { API_BASE_URL } from '../tokens';
-
-/** Metrics response shape from /api/metrics */
-interface MetricsResponse {
-    readonly totalRequests: number;
-    readonly averageDuration: number;
-    readonly p95Duration: number;
-    readonly p99Duration: number;
-    readonly successRate: number;
-    readonly cacheHitRate: number;
-    readonly endpoints: EndpointMetric[];
-}
 
 interface EndpointMetric {
     readonly endpoint: string;
@@ -60,6 +49,8 @@ interface HealthResponse {
         MatChipsModule,
         MatDividerModule,
         MatTableModule,
+        SkeletonCardComponent,
+        SparklineComponent,
     ],
     template: `
     <div class="page-content">
@@ -99,21 +90,21 @@ interface HealthResponse {
             }
         </mat-card>
 
-        <!-- Key Metrics -->
-        @if (metricsResource.isLoading()) {
-            <mat-card appearance="outlined" class="mb-2">
-                <mat-card-content class="loading-content">
-                    <mat-spinner diameter="32"></mat-spinner>
-                    <span class="mat-body-2">Loading metrics…</span>
-                </mat-card-content>
-            </mat-card>
-        } @else if (metricsResource.value(); as m) {
+        <!-- Key Metrics (Item 13: skeleton loading + Item 3: sparklines) -->
+        @if (store.isMetricsRevalidating() && !store.metrics()) {
+            <div class="metrics-grid">
+                @for (i of [0,1,2,3,4,5]; track i) {
+                    <app-skeleton-card [lines]="2" [lineWidths]="['50%', '80%']" />
+                }
+            </div>
+        } @else if (store.metrics(); as m) {
             <div class="metrics-grid">
                 <mat-card appearance="outlined">
-                    <mat-card-content class="metric-card">
+                <mat-card-content class="metric-card">
                         <mat-icon class="metric-icon" style="color: var(--mat-sys-primary)">api</mat-icon>
                         <div class="metric-value">{{ m.totalRequests | number }}</div>
                         <div class="metric-label mat-caption">Total Requests</div>
+                        <app-sparkline [data]="requestsHistory()" color="var(--mat-sys-primary, #1976d2)" [width]="100" [height]="24" label="Requests trend" />
                     </mat-card-content>
                 </mat-card>
                 <mat-card appearance="outlined">
@@ -154,14 +145,14 @@ interface HealthResponse {
             </div>
 
             <!-- Endpoint Breakdown -->
-            @if (m.endpoints.length > 0) {
+            @if ((m.endpoints ?? []).length > 0) {
                 <mat-card appearance="outlined" class="mb-2 mt-2">
                     <mat-card-header>
                         <mat-icon mat-card-avatar>table_chart</mat-icon>
                         <mat-card-title>Endpoint Breakdown</mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
-                        <table mat-table [dataSource]="m.endpoints" class="endpoint-table">
+                        <table mat-table [dataSource]="m.endpoints ?? []" class="endpoint-table">
                             <ng-container matColumnDef="endpoint">
                                 <th mat-header-cell *matHeaderCellDef>Endpoint</th>
                                 <td mat-cell *matCellDef="let row">{{ row.endpoint }}</td>
@@ -184,7 +175,7 @@ interface HealthResponse {
                     </mat-card-content>
                 </mat-card>
             }
-        } @else if (metricsResource.status() === 'error') {
+        } @else {
             <mat-card appearance="outlined" class="error-card mb-2">
                 <mat-card-content>
                     <div class="error-content">
@@ -202,7 +193,7 @@ interface HealthResponse {
 
         <!-- Refresh button -->
         <div class="actions mt-2">
-            <button mat-stroked-button (click)="refreshMetrics()" [disabled]="metricsResource.isLoading()">
+            <button mat-stroked-button (click)="refreshMetrics()" [disabled]="store.isLoading()">
                 <mat-icon>refresh</mat-icon> Refresh Metrics
             </button>
         </div>
@@ -237,37 +228,26 @@ interface HealthResponse {
 export class PerformanceComponent {
     readonly endpointColumns = ['endpoint', 'requests', 'avgDuration', 'errorRate'];
 
-    private readonly http = inject(HttpClient);
+    /** Item 9: Shared MetricsStore with SWR caching */
+    readonly store = inject(MetricsStore);
     private readonly apiBaseUrl = inject(API_BASE_URL);
 
-    /** Signal to trigger refresh — when updated, rxResource re-fetches */
-    private readonly refreshTrigger = signal(0);
+    /**
+     * Item 7: httpResource() — Angular 21 signal-native HTTP primitive.
+     * Replaces rxResource + HttpClient for the health endpoint.
+     * Automatically manages loading/error/value as signals.
+     */
+    readonly healthResource = httpResource<HealthResponse>(() => `${this.apiBaseUrl}/health`);
 
-    readonly metricsResource = rxResource<MetricsResponse, number>({
-        params: () => this.refreshTrigger(),
-        stream: () => this.http.get<MetricsResponse>(`${this.apiBaseUrl}/metrics`).pipe(
-            catchError(() => of({
-                totalRequests: 0,
-                averageDuration: 0,
-                p95Duration: 0,
-                p99Duration: 0,
-                successRate: 0,
-                cacheHitRate: 0,
-                endpoints: [],
-            } as MetricsResponse)),
-        ),
-    });
-
-    readonly healthResource = rxResource<HealthResponse, number>({
-        params: () => this.refreshTrigger(),
-        stream: () => this.http.get<HealthResponse>(`${this.apiBaseUrl}/health`).pipe(
-            catchError(() => of({
-                status: 'unhealthy' as const,
-                uptime: 0,
-                version: 'unknown',
-                timestamp: new Date().toISOString(),
-            })),
-        ),
+    /** Item 3: Sparkline data — simulated history for demo purposes */
+    readonly requestsHistory = computed(() => {
+        const m = this.store.metrics();
+        if (!m) return [];
+        // Generate pseudo-historical data from current value for sparkline demo
+        const base = m.totalRequests;
+        return Array.from({ length: 12 }, (_, i) =>
+            Math.max(0, base - Math.floor(Math.random() * base * 0.3) + i * Math.floor(base * 0.02)),
+        );
     });
 
     readonly healthStatusColor = computed(() => {
@@ -291,7 +271,7 @@ export class PerformanceComponent {
     });
 
     refreshMetrics(): void {
-        this.refreshTrigger.update(v => v + 1);
+        this.store.refresh();
     }
 
     formatUptime(seconds: number): string {

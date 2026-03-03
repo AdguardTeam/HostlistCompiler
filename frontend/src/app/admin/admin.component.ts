@@ -7,6 +7,7 @@
 
 import { Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -19,6 +20,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { JsonPipe } from '@angular/common';
+import { SkeletonCardComponent } from '../skeleton/skeleton-card.component';
 import { AuthService } from '../services/auth.service';
 import { StorageService, StorageStats, QueryResult } from '../services/storage.service';
 
@@ -36,6 +38,8 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
         MatChipsModule,
         MatProgressSpinnerModule,
         MatDividerModule,
+        ScrollingModule,
+        SkeletonCardComponent,
     ],
     template: `
     <div class="page-content">
@@ -92,7 +96,12 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                 </mat-card-header>
                 <mat-card-content>
                     @if (statsResource.isLoading()) {
-                        <mat-progress-spinner diameter="24" mode="indeterminate" />
+                        <!-- Item 13: skeleton loading state -->
+                        <div class="stats-grid">
+                            @for (i of [0,1,2,3]; track i) {
+                                <app-skeleton-card [lines]="1" [lineWidths]="['60%']" />
+                            }
+                        </div>
                     } @else if (statsResource.value(); as stats) {
                         <div class="stats-grid">
                             <div class="stat-item">
@@ -177,7 +186,10 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                                 <mat-chip>{{ result.duration }}</mat-chip>
                             }
                         </mat-chip-set>
-                        <pre class="query-results">{{ result | json }}</pre>
+                        <!-- Item 6: CDK Virtual Scroll for large query results -->
+                        <cdk-virtual-scroll-viewport itemSize="20" class="query-results-viewport">
+                            <pre class="query-results">{{ result | json }}</pre>
+                        </cdk-virtual-scroll-viewport>
                     }
                 </mat-card-content>
             </mat-card>
@@ -198,9 +210,10 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
     .actions-row { display: flex; gap: 12px; flex-wrap: wrap; }
     .action-result { color: var(--mat-sys-primary); }
     .query-field { width: 100%; }
+    .query-results-viewport { height: 400px; }
     .query-results {
         background: var(--mat-sys-surface-variant); padding: 16px; border-radius: 8px;
-        font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto; max-height: 400px; overflow-y: auto;
+        font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto;
     }
   `],
 })

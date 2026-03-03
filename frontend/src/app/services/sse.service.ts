@@ -178,7 +178,7 @@ export class SseService {
      */
     private parseSseBlock<T>(block: string): SseEvent<T> | null {
         let eventType = 'message';
-        let dataLines: string[] = [];
+        const dataLines: string[] = [];
 
         for (const line of block.split('\n')) {
             if (line.startsWith('event:')) {

@@ -40,38 +40,67 @@ npm run deploy         # Deploy to Cloudflare Workers (after npm run build)
 ```
 src/
 ├── app/
-│   ├── app.component.ts        # Root shell — viewChild(), ThemeService
-│   ├── app.config.ts           # Browser providers — provideAppInitializer()
-│   ├── app.config.server.ts    # SSR providers — mergeApplicationConfig()
-│   ├── app.routes.ts           # Lazy-loaded routes with titles
-│   ├── app.routes.server.ts    # Per-route SSR mode (Prerender / Server)
+│   ├── app.component.ts            # Root shell — viewChild(), ThemeService, ErrorBoundary
+│   ├── app.config.ts               # Browser providers — provideAppInitializer(), GlobalErrorHandler, ServiceWorker
+│   ├── app.config.server.ts        # SSR providers — mergeApplicationConfig()
+│   ├── app.routes.ts               # Lazy-loaded routes with titles
+│   ├── app.routes.server.ts        # Per-route SSR mode (Prerender / Server)
 │   │
-│   ├── benchmark/
-│   │   └── benchmark.component.ts  # linkedSignal(), afterRenderEffect(), @defer
 │   ├── compiler/
-│   │   └── compiler.component.ts   # rxResource(), linkedSignal(), toSignal()
+│   │   └── compiler.component.ts   # rxResource(), linkedSignal(), Turnstile, CDK Virtual Scroll, signal form wrappers
 │   ├── home/
-│   │   └── home.component.ts       # StatCardComponent, @defer on viewport
-│   ├── signals/
-│   │   └── signals.component.ts    # signal(), computed(), effect() showcase
+│   │   └── home.component.ts       # MetricsStore, @defer prefetch on hover, skeleton loading
+│   ├── performance/
+│   │   └── performance.component.ts  # httpResource(), MetricsStore, sparkline charts
+│   ├── admin/
+│   │   └── admin.component.ts      # CDK Virtual Scrolling, skeleton loading
+│   ├── api-docs/
+│   │   └── api-docs.component.ts   # httpResource() for version endpoint
+│   ├── validation/
+│   │   └── validation.component.ts # Rule validation with color-coded output
+│   │
+│   ├── error/
+│   │   ├── global-error-handler.ts  # Custom ErrorHandler with signal-based state
+│   │   └── error-boundary.component.ts  # Dismissible error overlay
+│   ├── skeleton/
+│   │   ├── skeleton-card.component.ts   # Shimmer card placeholder
+│   │   └── skeleton-table.component.ts  # Shimmer table placeholder
+│   ├── sparkline/
+│   │   └── sparkline.component.ts  # Canvas 2D mini chart (zero deps)
+│   ├── turnstile/
+│   │   └── turnstile.component.ts  # Cloudflare Turnstile CAPTCHA widget
+│   ├── store/
+│   │   └── metrics.store.ts        # Shared singleton signal store with SWR
 │   │
 │   ├── services/
 │   │   ├── compiler.service.ts     # Injectable with inject(), Observable HTTP
-│   │   └── theme.service.ts        # ThemeService — signal state, SSR-safe
+│   │   ├── theme.service.ts        # ThemeService — signal state, SSR-safe
+│   │   ├── turnstile.service.ts    # Cloudflare Turnstile token management
+│   │   ├── filter-parser.service.ts  # Web Worker bridge for filter parsing
+│   │   └── swr-cache.service.ts    # Generic stale-while-revalidate signal cache
+│   │
+│   ├── workers/
+│   │   └── filter-parser.worker.ts # Off-thread filter list parsing
 │   │
 │   └── stat-card/
 │       ├── stat-card.component.ts  # input(), output(), model() signal APIs
 │       └── stat-card.component.spec.ts  # Zoneless unit test with Vitest
 │
-├── index.html      # No CDN font links (fonts loaded from npm)
-├── main.ts         # bootstrapApplication()
-├── main.server.ts  # Server bootstrap
-├── test-setup.ts   # Vitest global setup — imports @angular/compiler
-└── styles.css      # @fontsource/roboto + material-symbols imports
-server.ts           # Cloudflare Workers fetch handler (AngularAppEngine)
-wrangler.toml       # Cloudflare Workers deployment config
-vitest.config.ts    # Vitest + @analogjs/vitest-angular configuration
-tsconfig.spec.json  # TypeScript config for spec files (vitest/globals types)
+├── e2e/                 # Playwright E2E tests
+│   ├── playwright.config.ts
+│   ├── home.spec.ts
+│   ├── compiler.spec.ts
+│   └── navigation.spec.ts
+├── index.html           # Turnstile script, fonts loaded from npm
+├── main.ts              # bootstrapApplication()
+├── main.server.ts       # Server bootstrap
+├── test-setup.ts        # Vitest global setup — imports @angular/compiler
+└── styles.css           # @fontsource/roboto + material-symbols imports
+server.ts                # Cloudflare Workers fetch handler + CSP security headers
+ngsw-config.json         # Angular Service Worker / PWA config
+wrangler.toml            # Cloudflare Workers deployment config
+vitest.config.ts         # Vitest + @analogjs/vitest-angular configuration
+tsconfig.spec.json       # TypeScript config for spec files (vitest/globals types)
 ```
 
 ---
@@ -392,6 +421,96 @@ npm run test:coverage  # coverage report via V8
 ```
 
 → **See:** `stat-card/stat-card.component.spec.ts`, `vitest.config.ts`, `src/test-setup.ts`
+
+---
+
+## Enhancement Items
+
+The following 14 enhancements bring the PoC to production-grade quality across security, performance, architecture, and developer experience.
+
+### E1. Cloudflare Turnstile (Bot Protection)
+
+Integrates Cloudflare's privacy-preserving CAPTCHA alternative. The `TurnstileService` manages the widget lifecycle and token signals; `TurnstileComponent` renders the challenge. Wired into the Compiler page to gate form submission.
+
+→ **See:** `services/turnstile.service.ts`, `turnstile/turnstile.component.ts`, `compiler/compiler.component.ts`
+
+### E2. Content Security Policy (CSP) Headers
+
+`server.ts` now injects `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` headers on all HTML responses. CSP is configured for self-hosted scripts/styles plus Cloudflare Turnstile origins.
+
+→ **See:** `server.ts`
+
+### E3. Sparkline Charts (Zero-Dependency)
+
+`SparklineComponent` renders mini line/area charts using the Canvas 2D API — no chart library required. Accepts `data`, `color`, `filled`, `width`, and `height` inputs. Integrated into the Performance dashboard for latency trends.
+
+→ **See:** `sparkline/sparkline.component.ts`, `performance/performance.component.ts`
+
+### E4. Web Worker (Off-Thread Parsing)
+
+`filter-parser.worker.ts` parses large filter lists on a background thread. `FilterParserService` wraps `Worker` with signal-based `result`, `isParsing`, `progress`, and `error` state. Wired into the Compiler to handle file drag-and-drop.
+
+→ **See:** `workers/filter-parser.worker.ts`, `services/filter-parser.service.ts`
+
+### E5. `@defer` with `prefetch on hover`
+
+Home page navigation cards use `@defer (on viewport; prefetch on hover)` so the chunk for each card's full component is prefetched when the user hovers, making navigation feel instant. Skeleton placeholders show during load.
+
+→ **See:** `home/home.component.ts`
+
+### E6. CDK Virtual Scrolling
+
+The Compiler's SSE stream log and the Admin's SQL results table use `<cdk-virtual-scroll-viewport>` from `@angular/cdk/scrolling` to efficiently render thousands of rows with fixed-height recycling.
+
+→ **See:** `compiler/compiler.component.ts`, `admin/admin.component.ts`
+
+### E7. `httpResource()` Migration
+
+`PerformanceComponent` and `ApiDocsComponent` use Angular 21's `httpResource()` (from `@angular/common/http`) for declarative, signal-native HTTP fetching — replacing the manual `rxResource` + `HttpClient` pattern.
+
+→ **See:** `performance/performance.component.ts`, `api-docs/api-docs.component.ts`
+
+### E8. Signal-Based Form Wrappers
+
+Reactive Forms in `CompilerComponent` are bridged to signals using `effect()` + `subscription` for `valueChanges` and `statusChanges`. This provides `formValue()` and `formValid()` signals for template consumption.
+
+→ **See:** `compiler/compiler.component.ts`
+
+### E9. MetricsStore (Shared Singleton Signal Store)
+
+`MetricsStore` is a shared injectable providing `metrics()`, `health()`, `isLoading()`, and `isStale()` signals. Home and Performance components consume the same store instance, avoiding duplicate HTTP calls.
+
+→ **See:** `store/metrics.store.ts`, `home/home.component.ts`, `performance/performance.component.ts`
+
+### E10. PWA / Service Worker
+
+`@angular/service-worker` is registered in `app.config.ts`. `ngsw-config.json` defines prefetch and lazy caching groups for app shell assets and API responses with a 1-hour max-age.
+
+→ **See:** `ngsw-config.json`, `app.config.ts`
+
+### E11. E2E Playwright Tests
+
+End-to-end tests in `e2e/` cover home page rendering, compiler form interaction, and navigation flows. Configuration in `playwright.config.ts` targets the dev server at `localhost:4200`.
+
+→ **See:** `e2e/playwright.config.ts`, `e2e/home.spec.ts`, `e2e/compiler.spec.ts`, `e2e/navigation.spec.ts`
+
+### E12. SWR Cache (Stale-While-Revalidate)
+
+`SwrCacheService` provides a generic, signal-based SWR cache. `get()` returns stale data immediately while revalidating in the background. Integrated into `MetricsStore` for seamless cache-then-refresh behavior.
+
+→ **See:** `services/swr-cache.service.ts`, `store/metrics.store.ts`
+
+### E13. Skeleton Loading States
+
+`SkeletonCardComponent` and `SkeletonTableComponent` render animated shimmer placeholders with configurable line counts, widths, rows, and columns. Used in Home, Performance, and Admin as loading fallbacks.
+
+→ **See:** `skeleton/skeleton-card.component.ts`, `skeleton/skeleton-table.component.ts`
+
+### E14. Error Boundaries
+
+`GlobalErrorHandler` extends Angular's `ErrorHandler`, storing the last error and history in signals. `ErrorBoundaryComponent` reads these signals and renders a dismissible error toast with "Reload Page" action. Registered globally in `app.config.ts`.
+
+→ **See:** `error/global-error-handler.ts`, `error/error-boundary.component.ts`, `app.config.ts`
 
 ---
 

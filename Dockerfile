@@ -1,6 +1,7 @@
 # Multi-stage build for adblock-compiler with Cloudflare Worker support
 # This Dockerfile creates a container that can run both the compiler CLI and the web UI
-# Version: 0.8.8
+# Includes Angular 21 frontend build for the SSR dashboard
+# Version: 0.8.9
 
 # Build argument for Deno version
 ARG DENO_VERSION=2.6.7
@@ -53,7 +54,24 @@ RUN /usr/local/bin/deno --version
 
 WORKDIR /app
 
-# Stage 2: Dependencies and build
+# Stage 2: Angular frontend build
+FROM node:22-bookworm-slim AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Copy frontend package files
+COPY frontend/package.json frontend/package-lock.json frontend/.npmrc ./
+
+# Install frontend dependencies
+RUN npm ci
+
+# Copy frontend source
+COPY frontend/ ./
+
+# Build Angular production bundle (SSR + browser assets)
+RUN npm run build
+
+# Stage 3: Backend dependencies and build
 FROM node-base AS builder
 
 # Copy package files for npm dependencies
@@ -74,12 +92,15 @@ COPY public ./public
 COPY wrangler.toml ./
 COPY tsconfig.json ./
 
+# Copy built frontend from frontend-builder stage
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+
 # Note: Skipping CLI build due to JSR (JavaScript Registry) access issues during Docker build
 # JSR may not be accessible in some Docker build environments due to network restrictions or SSL issues
 # The container will run the Wrangler dev server instead
 # For CLI usage, build the executable outside Docker and mount it as a volume
 
-# Stage 3: Production runtime
+# Stage 4: Production runtime
 FROM node-base AS runtime
 
 # Install curl and direnv for healthchecks and environment management
@@ -97,6 +118,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/wrangler.toml ./
 COPY --from=builder /app/tsconfig.json ./
 COPY --from=builder /app/package.json ./
+
+# Copy built Angular frontend (SSR server + browser assets)
+COPY --from=builder /app/frontend/dist ./frontend/dist
 
 # Note: CLI executable not included in this image due to JSR access limitations during build
 # Use Wrangler dev server for the web UI and API
