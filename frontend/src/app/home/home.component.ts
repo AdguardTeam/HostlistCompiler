@@ -217,6 +217,30 @@ export class HomeComponent {
             tag: 'Monitoring',
             tagColor: 'accent',
         },
+        {
+            path: '/validation',
+            icon: 'check_circle',
+            title: 'Rule Validation',
+            description: 'Validate adblock filter rules using the AGTree parser with color-coded error reporting.',
+            tag: 'Tools',
+            tagColor: 'primary',
+        },
+        {
+            path: '/api-docs',
+            icon: 'description',
+            title: 'API Documentation',
+            description: 'HTTP API reference with endpoint details, request examples, and authentication info.',
+            tag: 'Reference',
+            tagColor: 'accent',
+        },
+        {
+            path: '/admin',
+            icon: 'admin_panel_settings',
+            title: 'Storage Admin',
+            description: 'Manage KV, R2, and D1 storage. Requires admin authentication.',
+            tag: 'Admin',
+            tagColor: 'warn',
+        },
     ];
 
     readonly highlightedCard = signal(false);

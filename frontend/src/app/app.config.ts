@@ -22,7 +22,8 @@
 
 import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withViewTransitions, withPreloading, PreloadAllModules } from '@angular/router';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { errorInterceptor } from './interceptors/error.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { routes } from './app.routes';
@@ -43,8 +44,8 @@ export const appConfig: ApplicationConfig = {
             withPreloading(PreloadAllModules),
         ),
 
-        // HttpClient with fetch for SSR compatibility.
-        provideHttpClient(withFetch()),
+        // HttpClient with fetch for SSR compatibility + error interceptor.
+        provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
 
         // Client hydration with HTTP transfer cache — prevents double-fetching
         // API data that was already retrieved during SSR.

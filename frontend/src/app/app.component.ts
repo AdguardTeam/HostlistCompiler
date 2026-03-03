@@ -15,7 +15,7 @@
  *   rather than managing its own copy — single source of truth.
  */
 
-import { Component, inject, signal, viewChild } from '@angular/core';
+import { Component, inject, signal, viewChild, effect } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -23,6 +23,9 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { ThemeService } from './services/theme.service';
 
 /** Navigation item interface */
@@ -56,9 +59,10 @@ interface NavItem {
       <!-- Sidenav -->
       <mat-sidenav
         #sidenav
-        mode="side"
+        [mode]="isMobile() ? 'over' : 'side'"
         [opened]="sidenavOpen()"
         class="app-sidenav"
+        (closedStart)="sidenavOpen.set(false)"
       >
         <mat-toolbar color="primary" class="sidenav-header">
           <span>Adblock Compiler</span>
@@ -101,7 +105,7 @@ interface NavItem {
           </button>
         </mat-toolbar>
 
-        <main class="app-main">
+        <main class="app-main" role="main" aria-label="Main content">
           <router-outlet />
         </main>
       </mat-sidenav-content>
@@ -123,9 +127,12 @@ interface NavItem {
 })
 export class AppComponent {
     readonly navItems: NavItem[] = [
-        { path: '/',            label: 'Home',        icon: 'home'        },
-        { path: '/compiler',    label: 'Compiler',    icon: 'settings'    },
-        { path: '/performance', label: 'Performance', icon: 'monitoring'  },
+        { path: '/',            label: 'Home',        icon: 'home'              },
+        { path: '/compiler',    label: 'Compiler',    icon: 'build'             },
+        { path: '/performance', label: 'Performance', icon: 'monitoring'        },
+        { path: '/validation',  label: 'Validation',  icon: 'check_circle'      },
+        { path: '/api-docs',    label: 'API Docs',    icon: 'description'       },
+        { path: '/admin',       label: 'Admin',       icon: 'admin_panel_settings' },
     ];
 
     /**
@@ -139,11 +146,33 @@ export class AppComponent {
     readonly sidenavOpen = signal(true);
 
     /**
+     * BreakpointObserver — toggles sidenav mode between side (desktop) and over (mobile).
+     * Converted to a signal via toSignal() for template consumption.
+     */
+    private readonly breakpointObserver = inject(BreakpointObserver);
+    readonly isMobile = toSignal(
+        this.breakpointObserver.observe([Breakpoints.Handset, Breakpoints.TabletPortrait])
+            .pipe(map(result => result.matches)),
+        { initialValue: false },
+    );
+
+    /**
      * ThemeService injected via inject() (functional DI).
      * Theme is initialised by provideAppInitializer() in app.config.ts,
      * so isDark() is correct from the very first render.
      */
     readonly themeService = inject(ThemeService);
+
+    constructor() {
+        // Auto-close sidenav when switching to mobile layout
+        effect(() => {
+            if (this.isMobile()) {
+                this.sidenavOpen.set(false);
+            } else {
+                this.sidenavOpen.set(true);
+            }
+        });
+    }
 
     toggleSidenav(): void {
         this.sidenavOpen.update(open => !open);

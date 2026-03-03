@@ -37,7 +37,7 @@
 - **🌐 Vite Frontend** - Modern build pipeline with HMR, Vue plugin support, and Tailwind CSS ([docs](docs/VITE.md))
 - **🎨 Tailwind CSS** - Utility-first CSS framework integrated across all frontend pages ([docs](docs/TAILWIND_CSS.md))
 - **🧩 AGTree Integration** - AST-based adblock rule parsing with @adguard/agtree replacing regex-based parsing ([docs](docs/AGTREE_INTEGRATION.md))
-- **📐 Framework PoCs** - Vue 3 and Angular 21 proof-of-concept implementations demonstrating SPA benefits ([docs](poc/README.md))
+- **🎯 Angular 21 Frontend** - Production Angular SPA with SSR, Material Design 3, signals, and Cloudflare Workers deployment
 
 ## ✨ Features
 
@@ -1304,58 +1304,46 @@ deno task check
 deno task cache
 ```
 
-### Frontend Development (Tailwind CSS)
+### Angular Frontend Development
 
-The frontend uses Tailwind CSS for styling. After making changes to HTML files:
+The primary frontend is an Angular 21 SPA in `frontend/`. It uses:
 
-```bash
-# Build CSS for development
-npm run build:css
-
-# Build CSS and watch for changes (useful during development)
-npm run build:css:watch
-
-# Build minified CSS for production
-npm run build:css:prod
-```
-
-For more details, see [Tailwind CSS Integration Guide](docs/TAILWIND_CSS.md).
-
-### Frontend Development (Vite)
-
-The frontend UI is built with Vite. Run the following to work on the UI:
+- **Angular 21** with zoneless change detection, signals, `rxResource`, `linkedSignal`
+- **Angular Material 3** for UI components and theming
+- **SSR** via `@angular/ssr` on Cloudflare Workers
+- **Vitest** for unit testing
 
 ```bash
-# Start Vite dev server with HMR (proxies API calls to Wrangler on :8787)
-npm run ui:dev
+# Development server (http://localhost:4200)
+npm --prefix frontend start
 
-# Production build → dist/
-npm run ui:build
+# Production build
+npm --prefix frontend run build
 
-# Preview the production build locally
-npm run ui:preview
+# Run tests
+npm --prefix frontend run test
 ```
 
-For full-stack local development, run both in parallel:
+For full-stack local development:
 
 ```bash
 wrangler dev        # Worker on :8787
-npm run ui:dev      # Vite on :5173 → proxies /api, /compile, /ws to :8787
+npm --prefix frontend start  # Angular on :4200 → proxies /api to :8787
 ```
 
-For more details, see [Vite Integration Guide](docs/VITE.md).
+**Pages:**
+- Dashboard — live metrics from `/api/metrics` and `/api/health`
+- Compiler — filter list compilation with JSON and SSE streaming modes, drag-and-drop
+- Performance — real-time compilation latency and throughput
+- Validation — AGTree-powered filter rule validation
+- API Docs — HTTP endpoint reference
+- Admin — KV/R2/D1 storage management (requires admin key)
 
-### Framework PoCs
+### Legacy Frontend (Tailwind CSS / Vite)
 
-The `poc/` directory contains proof-of-concept implementations of the Adblock Compiler frontend in two popular JavaScript frameworks, answering the question: **would this app benefit from being an SPA?**
+The `public/` directory contains the original vanilla HTML frontend. It will be removed once the Angular migration is complete.
 
-- **[Vue 3 PoC](poc/vue/index.html)** - Vue 3 Composition API with Vue Router 4, Pinia state management, and composables
-- **[Angular PoC](poc/angular/)** - Angular 21 standalone components, RxJS, reactive forms, and Angular Signals
-
-Each PoC demonstrates component-based architecture, client-side routing, theme management, API integration, form validation, and performance benchmarking using the project's existing design system.
-
-📚 **[Framework PoC Documentation](poc/README.md)** - Comparison guide with migration recommendations
-📄 **[SPA Benefits Analysis](docs/SPA_BENEFITS.md)** - Detailed analysis of SPA benefits for this application
+📄 **[SPA Benefits Analysis](docs/SPA_BENEFITS.md)** - Analysis of SPA benefits for this application
 
 ### Project structure
 
@@ -1378,9 +1366,12 @@ worker/            # Cloudflare Worker implementation (production-ready)
 ├── worker.ts      # Main worker with API endpoints
 └── html.ts        # Fallback HTML templates
 
-public/            # Static web UI files
-├── index.html     # Interactive web interface
-└── test.html      # API testing interface
+frontend/          # Angular 21 SPA (replaces public/)
+├── src/app/       # Components, services, guards, interceptors
+├── src/index.html # Root HTML with Cloudflare analytics
+└── angular.json   # Build configuration (SSR + browser)
+
+public/            # Legacy static web UI (to be removed)
 
 examples/
 └── cloudflare-worker/  # Legacy deployment reference

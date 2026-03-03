@@ -39,6 +39,25 @@ export const routes: Routes = [
         data: { description: 'Real-time compilation performance metrics' },
     },
     {
+        path: 'validation',
+        loadComponent: () => import('./validation/validation.component').then((m) => m.ValidationComponent),
+        title: 'Validation - Adblock Compiler',
+        data: { description: 'Validate adblock filter rules' },
+    },
+    {
+        path: 'api-docs',
+        loadComponent: () => import('./api-docs/api-docs.component').then((m) => m.ApiDocsComponent),
+        title: 'API Reference - Adblock Compiler',
+        data: { description: 'HTTP API endpoint documentation' },
+    },
+    {
+        path: 'admin',
+        loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent),
+        title: 'Admin - Adblock Compiler',
+        data: { description: 'Storage administration' },
+        canActivate: [() => import('./guards/admin.guard').then((m) => m.adminGuard)],
+    },
+    {
         path: '**',
         redirectTo: '',
     },
