@@ -9,7 +9,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FormsModule } from '@angular/forms';
-import { of } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -227,26 +227,23 @@ export class AdminComponent {
     private readonly storage = inject(StorageService);
     private readonly destroyRef = inject(DestroyRef);
 
-    keyInput = '';
-    sqlInput = '';
+    keyInput: string = '';
+    sqlInput: string = '';
     readonly actionResult = signal('');
 
     private readonly authTrigger = signal(0);
     private readonly queryTrigger = signal<string | undefined>(undefined);
 
-    readonly statsResource = rxResource<StorageStats, number>({
-        params: () => this.auth.isAuthenticated() ? this.authTrigger() : undefined as unknown as number,
+    readonly statsResource = rxResource<StorageStats, number | undefined>({
+        params: (): number | undefined => this.auth.isAuthenticated() ? this.authTrigger() : undefined,
         stream: () => this.storage.getStats().pipe(
             catchError(() => of({ kvKeys: 0, r2Objects: 0, d1Tables: 0, cacheEntries: 0 } as StorageStats)),
         ),
     });
 
     readonly queryResource = rxResource<QueryResult, string | undefined>({
-        params: () => this.queryTrigger(),
-        stream: ({ params }) => {
-            if (!params) return of(undefined as unknown as QueryResult);
-            return this.storage.query(params);
-        },
+        params: (): string | undefined => this.queryTrigger(),
+        stream: ({ params }) => params ? this.storage.query(params) : EMPTY,
     });
 
     authenticate(): void {

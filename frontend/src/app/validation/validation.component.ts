@@ -7,7 +7,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { of } from 'rxjs';
+import { EMPTY } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -173,10 +173,7 @@ export class ValidationComponent {
 
     readonly validationResource = rxResource<ValidationResult, string[] | undefined>({
         params: () => this.pendingRules(),
-        stream: ({ params }) => {
-            if (!params) return of(undefined as unknown as ValidationResult);
-            return this.validationService.validate(params, this.strictMode);
-        },
+        stream: ({ params }) => params ? this.validationService.validate(params, this.strictMode) : EMPTY,
     });
 
     validate(): void {
