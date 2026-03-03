@@ -1,7 +1,11 @@
 /**
- * StatCardComponent — Zoneless Unit Tests
+ * StatCardComponent — Zoneless Unit Tests (Vitest + @analogjs/vitest-angular)
  *
- * Angular 21 testing patterns demonstrated:
+ * Test runner: Vitest with `@analogjs/vitest-angular`
+ *   Replaces Karma + Jasmine. The Angular compiler pipeline runs inside Vite,
+ *   enabling fast HMR-style test re-runs. `globals: true` in `vitest.config.ts`
+ *   exposes `describe`, `it`, `expect`, and `beforeEach` without imports, so
+ *   the spec body is identical to what Jasmine would accept.
  *
  * provideZonelessChangeDetection() in TestBed
  *   The test module mirrors the app's zoneless setup. Angular drives change
@@ -17,14 +21,10 @@
  *   await fixture.whenStable() flushes the scheduler so the template is
  *   updated before assertions run.
  *
- * Karma → Web Test Runner migration note
- *   This spec uses standard Jasmine + @angular/core/testing APIs and is
- *   compatible with both:
- *     - Web Test Runner (@web/test-runner) — Angular's recommended replacement for Karma
- *     - Jest (jest-preset-angular)
- *   To complete the migration, add one of these builders to angular.json:
- *     "test": { "builder": "@angular/build:web-test-runner", "options": {...} }
- *   See README.md for the full migration path.
+ * Running tests:
+ *   npm test               → vitest run (single pass, CI mode)
+ *   npm run test:watch     → vitest     (watch mode, re-runs on save)
+ *   npm run test:coverage  → vitest run --coverage (v8 coverage report)
  */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';

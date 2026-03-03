@@ -10,8 +10,9 @@ A proof-of-concept Angular 21 application that is a **complete showcase of every
 cd poc/angular
 npm install
 npm start              # CSR dev server  → http://localhost:4200
-npm run serve:ssr      # SSR dev server  → http://localhost:4000 (after npm run build)
 npm run build          # Production SSR + prerender build
+npm run preview        # Cloudflare Workers local dev (wrangler dev) → http://localhost:8787
+npm run deploy         # Deploy to Cloudflare Workers (after npm run build)
 ```
 
 ---
@@ -22,9 +23,13 @@ npm run build          # Production SSR + prerender build
 |---|---|---|
 | **Angular** | ^21.0.0 | Application framework |
 | **Angular Material** | ^21.0.0 | Material Design 3 component library |
-| **@angular/ssr** | ^21.0.0 | Server-Side Rendering (Express adapter) |
+| **@angular/ssr** | ^21.0.0 | Server-Side Rendering (edge-fetch adapter) |
 | **RxJS** | ~7.8.2 | Async streams (HTTP, route params) |
 | **TypeScript** | ~5.8.0 | Type safety throughout |
+| **Cloudflare Workers** | — | Edge deployment platform |
+| **Wrangler** | — | Cloudflare Workers CLI (deploy + local dev) |
+| **Vitest** | ^3.0.0 | Fast unit test runner (replaces Karma) |
+| **@analogjs/vitest-angular** | ^1.0.0 | Angular compiler plugin for Vitest |
 | **@fontsource/roboto** | ^5.x | Roboto font — npm package, no CDN |
 | **material-symbols** | ^0.31.0 | Material Symbols icon font — npm package, no CDN |
 
@@ -56,13 +61,17 @@ src/
 │   │
 │   └── stat-card/
 │       ├── stat-card.component.ts  # input(), output(), model() signal APIs
-│       └── stat-card.component.spec.ts  # Zoneless unit test with setInput()
+│       └── stat-card.component.spec.ts  # Zoneless unit test with Vitest
 │
 ├── index.html      # No CDN font links (fonts loaded from npm)
 ├── main.ts         # bootstrapApplication()
 ├── main.server.ts  # Server bootstrap
+├── test-setup.ts   # Vitest global setup — imports @angular/compiler
 └── styles.css      # @fontsource/roboto + material-symbols imports
-server.ts           # Express SSR server
+server.ts           # Cloudflare Workers fetch handler (AngularAppEngine)
+wrangler.toml       # Cloudflare Workers deployment config
+vitest.config.ts    # Vitest + @analogjs/vitest-angular configuration
+tsconfig.spec.json  # TypeScript config for spec files (vitest/globals types)
 ```
 
 ---
@@ -361,7 +370,7 @@ No Google Fonts CDN requests — fonts are bundled by the Angular build pipeline
 
 ---
 
-### 16. Zoneless Unit Testing
+### 16. Zoneless Unit Testing with Vitest
 
 ```typescript
 // stat-card.component.spec.ts
@@ -374,11 +383,53 @@ fixture.componentRef.setInput('label', 'Filter Lists');  // signal input setter
 await fixture.whenStable();                              // flush microtask scheduler
 ```
 
-→ **See:** `stat-card/stat-card.component.spec.ts`
+Test runner: **Vitest** + **`@analogjs/vitest-angular`** — replaces Karma + Jasmine.
+
+```bash
+npm test               # vitest run (single pass)
+npm run test:watch     # vitest (watch mode)
+npm run test:coverage  # coverage report via V8
+```
+
+→ **See:** `stat-card/stat-card.component.spec.ts`, `vitest.config.ts`, `src/test-setup.ts`
 
 ---
 
-## Angular 21 vs Previous Versions
+## Cloudflare Workers Deployment
+
+The SSR server (`server.ts`) uses Angular 21's `AngularAppEngine` with the standard fetch API — no Express, no Node.js HTTP server. This architectural shift delivers several key benefits:
+
+- **Edge compatibility** — runs in any [WinterCG](https://wintercg.org/)-compliant runtime (Cloudflare Workers, Deno Deploy, Fastly Compute) with no code changes
+- **Faster cold starts** — no Express middleware chain, no Node.js HTTP server initialisation; the Worker isolate boots in milliseconds
+- **Zero-overhead static assets** — JS, CSS, and fonts are served by Cloudflare's CDN via the `ASSETS` binding before the Worker is invoked, so Angular's SSR handler only processes HTML requests
+- **Global distribution** — Workers deploy to 300+ edge locations automatically, reducing time-to-first-byte worldwide
+
+```typescript
+// server.ts (edge-compatible)
+const angularApp = new AngularAppEngine();
+
+export default {
+    async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+        const response = await angularApp.handle(request);
+        return response ?? new Response('Not found', { status: 404 });
+    },
+} satisfies ExportedHandler<Env>;
+```
+
+Static assets are served directly from Cloudflare's CDN via the `ASSETS` binding in `wrangler.toml` — the Worker only processes HTML (SSR) requests.
+
+```bash
+# Build then preview locally (mirrors production behaviour)
+npm run build
+npm run preview        # wrangler dev → http://localhost:8787
+
+# Deploy to Cloudflare Workers
+npm run deploy         # wrangler deploy
+```
+
+→ **See:** `server.ts`, `wrangler.toml`
+
+---
 
 | Feature | Before (v16) | Angular 21 |
 |---|---|---|
@@ -395,27 +446,10 @@ await fixture.whenStable();                              // flush microtask sche
 | Change detection | Zone.js | `provideZonelessChangeDetection()` |
 | SSR per-route mode | All-or-nothing | `RenderMode.Prerender / Server / Client` |
 | Fonts | Google Fonts CDN | `@fontsource` / `material-symbols` npm packages |
-| Test runner | Karma (deprecated) | Web Test Runner / Jest (migration path) |
+| Test runner | Karma (deprecated) | Vitest + `@analogjs/vitest-angular` |
+| SSR server | Express.js (Node) | Cloudflare Workers (`AngularAppEngine` fetch handler) |
 | DI | Constructor params | `inject()` functional DI |
 | NgModules | Required | Standalone components (no modules) |
-
----
-
-## Karma → Web Test Runner Migration
-
-The legacy Karma runner is deprecated in Angular 20+. Karma devDependencies have been removed from `package.json`. To complete the migration:
-
-```bash
-# Option A: Angular's experimental Web Test Runner
-ng add @angular/build@next   # adds @angular/build:web-test-runner builder
-
-# Option B: Jest
-npm install --save-dev jest @types/jest jest-preset-angular
-```
-
-Then update the `"test"` target in `angular.json` to use the new builder.
-
-The existing `stat-card.component.spec.ts` is compatible with both runners.
 
 ---
 
@@ -430,4 +464,8 @@ The existing `stat-card.component.spec.ts` is compatible with both runners.
 - [provideAppInitializer()](https://angular.dev/api/core/provideAppInitializer)
 - [SSR with Angular](https://angular.dev/guide/ssr)
 - [Angular Material 3](https://material.angular.io/)
+- [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
+- [Vitest Docs](https://vitest.dev/)
+- [AnalogJS vitest-angular](https://analogjs.org/docs/testing)
 - [ANGULAR_SIGNALS.md](./ANGULAR_SIGNALS.md) — deep-dive signals guide
