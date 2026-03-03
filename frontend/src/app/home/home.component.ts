@@ -59,7 +59,6 @@ interface NavCard {
  */
 @Component({
     selector: 'app-home',
-    standalone: true,
     imports: [
         MatCardModule,
         MatButtonModule,

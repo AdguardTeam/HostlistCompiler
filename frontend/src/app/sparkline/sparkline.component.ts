@@ -13,7 +13,6 @@ import { Component, afterRenderEffect, computed, input, viewChild, ElementRef } 
 
 @Component({
     selector: 'app-sparkline',
-    standalone: true,
     template: `
         <canvas #canvas
             [width]="width()"

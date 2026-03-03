@@ -1,10 +1,24 @@
+import { TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection, PLATFORM_ID } from '@angular/core';
 import { GlobalErrorHandler } from './global-error-handler';
+import { LogService } from '../services/log.service';
+import { LOG_ENDPOINT } from '../tokens';
 
 describe('GlobalErrorHandler', () => {
     let handler: GlobalErrorHandler;
+    let log: LogService;
 
     beforeEach(() => {
-        handler = new GlobalErrorHandler();
+        TestBed.configureTestingModule({
+            providers: [
+                provideZonelessChangeDetection(),
+                GlobalErrorHandler,
+                { provide: PLATFORM_ID, useValue: 'browser' },
+                { provide: LOG_ENDPOINT, useValue: '/api/log' },
+            ],
+        });
+        handler = TestBed.inject(GlobalErrorHandler);
+        log = TestBed.inject(LogService);
     });
 
     it('should be created', () => {
@@ -13,6 +27,7 @@ describe('GlobalErrorHandler', () => {
 
     it('should handle Error objects', () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
         handler.handleError(new Error('test error'));
 
         expect(handler.lastError()).toBeTruthy();
@@ -23,6 +38,7 @@ describe('GlobalErrorHandler', () => {
 
     it('should handle string errors', () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
         handler.handleError('string error');
 
         expect(handler.lastError()?.message).toBe('string error');
@@ -31,6 +47,7 @@ describe('GlobalErrorHandler', () => {
 
     it('should handle unknown error types', () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
         handler.handleError({ code: 500 });
 
         expect(handler.lastError()?.message).toBe('An unexpected error occurred');
@@ -39,6 +56,7 @@ describe('GlobalErrorHandler', () => {
 
     it('should maintain error history (max 10)', () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
         for (let i = 0; i < 15; i++) {
             handler.handleError(new Error(`error ${i}`));
         }
@@ -50,6 +68,7 @@ describe('GlobalErrorHandler', () => {
 
     it('should clear current error', () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
         handler.handleError(new Error('test'));
         handler.clearError();
 
@@ -60,6 +79,7 @@ describe('GlobalErrorHandler', () => {
 
     it('should clear all history', () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
         handler.handleError(new Error('test'));
         handler.clearHistory();
 
@@ -70,6 +90,7 @@ describe('GlobalErrorHandler', () => {
 
     it('should set timestamp on errors', () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
         const before = new Date();
         handler.handleError(new Error('test'));
         const after = new Date();
@@ -77,6 +98,34 @@ describe('GlobalErrorHandler', () => {
         const ts = handler.lastError()!.timestamp;
         expect(ts.getTime()).toBeGreaterThanOrEqual(before.getTime());
         expect(ts.getTime()).toBeLessThanOrEqual(after.getTime());
+        consoleSpy.mockRestore();
+    });
+
+    it('should report errors to backend via LogService', () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const reportSpy = vi.spyOn(log, 'reportError');
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
+
+        handler.handleError(new Error('crash'));
+
+        expect(reportSpy).toHaveBeenCalledWith(
+            expect.objectContaining({ message: 'crash' }),
+        );
+        consoleSpy.mockRestore();
+    });
+
+    it('should log errors via LogService.error()', () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const errorSpy = vi.spyOn(log, 'error');
+        navigator.sendBeacon = vi.fn().mockReturnValue(true);
+
+        handler.handleError(new Error('boom'));
+
+        expect(errorSpy).toHaveBeenCalledWith(
+            'boom',
+            'unhandled-error',
+            expect.objectContaining({ timestamp: expect.any(String) }),
+        );
         consoleSpy.mockRestore();
     });
 });

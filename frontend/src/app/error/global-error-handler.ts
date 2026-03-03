@@ -3,13 +3,14 @@
  *
  * Replaces Angular's default ErrorHandler to:
  * 1. Store the last error in a signal (consumed by ErrorBoundaryComponent)
- * 2. Log errors to the console with structured context
- * 3. Optionally report errors to an API endpoint
+ * 2. Log errors via LogService with structured context
+ * 3. Report errors to the Cloudflare Worker via LogService.reportError()
  *
  * Angular 21 patterns: ErrorHandler override, signal(), inject()
  */
 
-import { ErrorHandler, Injectable, signal, computed } from '@angular/core';
+import { ErrorHandler, Injectable, signal, computed, inject } from '@angular/core';
+import { LogService } from '../services/log.service';
 
 export interface AppError {
     readonly message: string;
@@ -20,6 +21,8 @@ export interface AppError {
 
 @Injectable()
 export class GlobalErrorHandler extends ErrorHandler {
+    private readonly log = inject(LogService);
+
     /** The most recent unhandled error */
     readonly lastError = signal<AppError | null>(null);
 
@@ -40,14 +43,19 @@ export class GlobalErrorHandler extends ErrorHandler {
             return updated.slice(0, 10);
         });
 
-        // Log to console with structured data
-        console.error('[GlobalErrorHandler]', {
-            message: appError.message,
-            timestamp: appError.timestamp.toISOString(),
+        // Log via LogService (structured console + buffer)
+        this.log.error(appError.message, 'unhandled-error', {
+            stack: appError.stack,
             context: appError.context,
+            timestamp: appError.timestamp.toISOString(),
         });
 
-        // Don't call super.handleError(error) to prevent duplicate console output
+        // Report to Cloudflare Worker backend
+        this.log.reportError({
+            message: appError.message,
+            stack: appError.stack,
+            context: appError.context,
+        });
     }
 
     /** Clear the current error (e.g. user clicks "Dismiss") */

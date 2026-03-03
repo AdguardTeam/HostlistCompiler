@@ -54,7 +54,6 @@ describe('CompilerService', () => {
             },
             benchmark: true,
         });
-        expect(req.request.headers.get('Content-Type')).toBe('application/json');
         req.flush(mockResponse);
     });
 

@@ -10,7 +10,6 @@ import { Component, computed, input } from '@angular/core';
 
 @Component({
     selector: 'app-skeleton-table',
-    standalone: true,
     template: `
         <div class="skeleton-table">
             <!-- Header row -->
