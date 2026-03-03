@@ -30,7 +30,6 @@ interface Endpoint {
 
 @Component({
     selector: 'app-api-docs',
-    standalone: true,
     imports: [
         JsonPipe,
         MatCardModule,

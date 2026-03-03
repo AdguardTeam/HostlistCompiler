@@ -31,7 +31,7 @@ describe('ValidationComponent', () => {
     });
 
     it('should start with empty rules text', () => {
-        expect(component.rulesText).toBe('');
+        expect(component.rulesText()).toBe('');
     });
 
     it('should default strict mode to false', () => {
@@ -43,31 +43,28 @@ describe('ValidationComponent', () => {
     });
 
     it('should parse rules from text and update count', () => {
-        component.rulesText = '||example.com^\n@@||trusted.com^\n';
-        component.validate();
+        component.rulesText.set('||example.com^\n@@||trusted.com^\n');
         expect(component.ruleCount()).toBe(2);
     });
 
     it('should ignore comment lines (starting with !)', () => {
-        component.rulesText = '! This is a comment\n||example.com^\n! Another comment';
-        component.validate();
+        component.rulesText.set('! This is a comment\n||example.com^\n! Another comment');
         expect(component.ruleCount()).toBe(1);
     });
 
     it('should ignore blank lines', () => {
-        component.rulesText = '||example.com^\n\n\n@@||trusted.com^';
-        component.validate();
+        component.rulesText.set('||example.com^\n\n\n@@||trusted.com^');
         expect(component.ruleCount()).toBe(2);
     });
 
     it('should not trigger validation with empty text', () => {
-        component.rulesText = '';
+        component.rulesText.set('');
         component.validate();
         expect(component.ruleCount()).toBe(0);
     });
 
     it('should not trigger validation with only comments', () => {
-        component.rulesText = '! only comments\n! nothing else';
+        component.rulesText.set('! only comments\n! nothing else');
         component.validate();
         expect(component.ruleCount()).toBe(0);
     });

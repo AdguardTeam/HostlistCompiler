@@ -38,7 +38,6 @@ interface HealthResponse {
 
 @Component({
     selector: 'app-performance',
-    standalone: true,
     imports: [
         DecimalPipe,
         TitleCasePipe,

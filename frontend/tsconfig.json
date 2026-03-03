@@ -12,12 +12,12 @@
         "esModuleInterop": true,
         "sourceMap": true,
         "declaration": false,
-        "experimentalDecorators": true,
         "moduleResolution": "bundler",
         "importHelpers": true,
         "target": "ES2022",
         "module": "ES2022",
         "useDefineForClassFields": false,
+        "experimentalDecorators": true,
         "lib": [
             "ES2022",
             "dom"

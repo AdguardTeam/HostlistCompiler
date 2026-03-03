@@ -50,7 +50,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
  */
 @Component({
     selector: 'app-stat-card',
-    standalone: true,
     imports: [
         MatCardModule,
         MatIconModule,
