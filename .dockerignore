@@ -38,6 +38,10 @@ Thumbs.db
 coverage/
 cov_profile/
 coverage.lcov
+cov_profile/
+
+# npm credentials — never bake into image layers
+frontend/.npmrc
 
 # Wrangler
 .wrangler/
