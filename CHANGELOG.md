@@ -35,6 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.29.2] - 2026-03-03
+
+### Added### Fixed
+
+- correct deno fmt indentation in src/plugins/index.ts
+- address PR review feedback on PluginLoader and loadPlugin stubs
+- move loadPlugin to PluginLoader.deno.ts to fix JSR deployment error
+
+
 ## [0.29.1] - 2026-03-03
 
 ### Added### Fixed
