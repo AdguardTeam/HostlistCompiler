@@ -29,15 +29,14 @@
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). The package provides more functionality with improved performance and no Node.js dependencies.
 
-## 🎉 New in v0.16.x
+## 🎉 New in v0.30.x
 
-- **🔄 Circuit Breaker** - Fault-tolerant source downloads with automatic recovery ([docs](docs/CIRCUIT_BREAKER.md))
-- **✅ Zod Validation** - Runtime schema validation for configuration objects and API request bodies ([docs](docs/ZOD_VALIDATION.md))
-- **🚨 Error Reporting** - Centralized error tracking with Sentry, Cloudflare Analytics Engine, and console backends
-- **🌐 Vite Frontend** - Modern build pipeline with HMR, Vue plugin support, and Tailwind CSS ([docs](docs/VITE.md))
-- **🎨 Tailwind CSS** - Utility-first CSS framework integrated across all frontend pages ([docs](docs/TAILWIND_CSS.md))
-- **🧩 AGTree Integration** - AST-based adblock rule parsing with @adguard/agtree replacing regex-based parsing ([docs](docs/AGTREE_INTEGRATION.md))
-- **🎯 Angular 21 Frontend** - Production Angular SPA with SSR, Material Design 3, signals, and Cloudflare Workers deployment
+- **🎯 Angular 21 SPA** — Production Angular frontend with zoneless change detection, Angular Material 3, SSR, and Cloudflare Workers deployment ([docs](frontend/README.md))
+- **⚗️ Framework PoCs** — Alpha React, Vue 3, Angular, and Svelte client implementations served at `/poc/` ([docs](docs/FRAMEWORK_POCS.md))
+- **🎨 Tailwind CSS v4** — Migrated from Tailwind v3 to v4 across all legacy UI pages ([docs](docs/TAILWIND_CSS.md))
+- **📱 Mobile Responsive** — Comprehensive responsive layout improvements across all UI pages
+- **📖 Styled API Docs** — HTML documentation page served at the `/api` endpoint
+- **🔧 IBasicLogger Injection** — Structured error logging injected into `CompilerEventEmitter`, `AnalyticsService`, and `CloudflareQueueProvider`
 
 ## ✨ Features
 
@@ -51,6 +50,7 @@
 - **🌐 Admin Dashboard** - Monitor metrics, queue depth, and system health
 - **📖 OpenAPI 3.0 Specification** - Full API documentation with contract tests
 - **🌍 Universal** - Works in Deno, Node.js, Cloudflare Workers, browsers
+- **🖥️ Angular 21 SPA** - Production frontend with zoneless change detection, Material Design 3, and SSR
 - **🎨 11 Transformations** - Deduplicate, compress, validate, and more
 - **📝 Structured Logging** - Production-ready JSON logs for observability (CloudWatch, Datadog, Splunk)
 - **🚨 Error Reporting** - Centralized error tracking with Sentry and Cloudflare Analytics Engine
@@ -80,9 +80,9 @@
   - [ConvertToAscii](#convert-to-ascii)
 - [Extensibility](#extensibility)
 - [Development](#development)
-  - [Frontend Development (Tailwind CSS)](#frontend-development-tailwind-css)
-  - [Frontend Development (Vite)](#frontend-development-vite)
-  - [Framework PoCs](#framework-pocs)
+  - [Angular Frontend](#angular-frontend-development)
+  - [Legacy Frontend (Tailwind CSS / Vite)](#legacy-frontend-tailwind-css--vite)
+  - [Framework PoCs](docs/FRAMEWORK_POCS.md)
 - [Platform Support](#platform-support)
   - [Edge Runtimes (Generic)](#edge-runtimes)
   - [Cloudflare Workers](#cloudflare-workers)
