@@ -15,6 +15,6 @@ export type { DownloaderPlugin, Plugin, PluginContext, PluginLoadOptions, Plugin
 export function loadPlugin(..._args: unknown[]): never {
     throw new Error(
         'loadPlugin() has been removed from the public API. ' +
-        'In Deno environments, import { loadPlugin } from "./plugins/PluginLoader.deno.ts" instead.',
+            'In Deno environments, import { loadPlugin } from "./plugins/PluginLoader.deno.ts" instead.',
     );
 }
