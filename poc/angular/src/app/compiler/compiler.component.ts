@@ -32,8 +32,8 @@
  *   Declarative subscription teardown; still used for the query-param side-effect.
  */
 
-import { Component, DestroyRef, computed, inject, linkedSignal, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal, rxResource } from '@angular/core/rxjs-interop';
+import { Component, effect, inject, linkedSignal, signal } from '@angular/core';
+import { toSignal, rxResource } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CompileRequest, CompileResponse, CompilerService } from '../services/compiler.service';
@@ -47,7 +47,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule as MatFF } from '@angular/material/form-field';
 import { JsonPipe } from '@angular/common';
 import { ResourceStatus } from '@angular/core';
 
@@ -69,7 +68,6 @@ interface Preset {
         ReactiveFormsModule,
         JsonPipe,
         MatFormFieldModule,
-        MatFF,
         MatInputModule,
         MatButtonModule,
         MatIconModule,
@@ -332,9 +330,10 @@ export class CompilerComponent {
      * selectedPreset changes. However, it remains a WritableSignal — the user
      * can manually override URLs without triggering a preset reset.
      *
-     * This replaces the pattern of:
-     *   effect(() => { if (this.selectedPreset()) this.urls.set(defaults); })
-     * which was error-prone (effects shouldn't write signals) and verbose.
+     * This is the single source of truth for the URL form controls. applyPreset()
+     * calls selectedPreset.set(), which causes presetUrls to reset automatically,
+     * and then reads presetUrls() to sync the FormArray — keeping both in step
+     * without any duplicated preset-lookup logic.
      */
     readonly presetUrls = linkedSignal(() => {
         const preset = this.presets.find(p => p.label === this.selectedPreset());
@@ -364,21 +363,20 @@ export class CompilerComponent {
      *
      * NEW:
      *   rxResource() manages loading/error/value as built-in signals.
-     *   The loader re-runs whenever request() returns a new non-undefined value.
+     *   The loader ONLY runs when request() returns a non-null/undefined value
+     *   (rxResource contract). When pendingRequest is undefined the resource stays
+     *   Idle — no HTTP call is made. The request type is therefore non-optional
+     *   inside the loader, so no `!request` guard is needed.
      *   The returned Observable is automatically unsubscribed when it completes
      *   or when the request signal changes.
      */
-    readonly compileResource = rxResource<CompileResponse, CompileRequest | undefined>({
+    readonly compileResource = rxResource<CompileResponse, CompileRequest>({
         request: () => this.pendingRequest(),
-        loader: ({ request }) => {
-            if (!request) {
-                return this.compilerService.compile([], []);
-            }
-            return this.compilerService.compile(
+        loader: ({ request }) =>
+            this.compilerService.compile(
                 request.configuration.sources.map(s => s.source),
                 request.configuration.transformations,
-            );
-        },
+            ),
     });
 
     readonly availableTransformations: readonly string[];
@@ -389,7 +387,6 @@ export class CompilerComponent {
     private readonly compilerService = inject(CompilerService);
     private readonly route           = inject(ActivatedRoute);
     private readonly router          = inject(Router);
-    private readonly destroyRef      = inject(DestroyRef);
 
     /**
      * toSignal() — from @angular/core/rxjs-interop
@@ -397,6 +394,10 @@ export class CompilerComponent {
      * Converts the queryParamMap Observable to a Signal. Angular automatically
      * unsubscribes when the component is destroyed — no takeUntilDestroyed() needed.
      * The signal value is immediately available (initialValue: null guards first read).
+     *
+     * This is then consumed by an effect() in the constructor to sync the first URL
+     * input when ?url= is present in the route — demonstrating that toSignal() bridges
+     * the Observable world into the signal graph cleanly.
      */
     private readonly queryParams = toSignal(inject(ActivatedRoute).queryParamMap, { initialValue: null });
 
@@ -404,19 +405,16 @@ export class CompilerComponent {
         this.availableTransformations = this.compilerService.getAvailableTransformations();
         this.initializeForm();
 
-        // Sync the first URL input when ?url= query param changes.
-        // Using takeUntilDestroyed() here because we need the FormArray side-effect,
-        // which cannot be done cleanly inside a computed() or effect().
-        this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
-            const urlParam = params.get('url');
+        // effect() reads queryParams() (a Signal) and syncs the form when ?url= changes.
+        // effect() is appropriate here because we are updating a FormArray (external to the
+        // signal graph) rather than writing another signal — the recommended usage pattern.
+        // Note: effect() must be created in an injection context (constructor or field init).
+        effect(() => {
+            const urlParam = this.queryParams()?.get('url');
             if (urlParam) {
                 this.urlsArray.at(0).setValue(urlParam);
             }
         });
-
-        // When presetUrls resets (via linkedSignal), sync the form's URL controls.
-        // effect() is acceptable here because we're updating a FormArray (not a signal).
-        // Note: effect() must be created in an injection context (constructor or field init).
     }
 
     private initializeForm(): void {
@@ -439,14 +437,16 @@ export class CompilerComponent {
     }
 
     applyPreset(label: string): void {
-        this.selectedPreset.set(label);                    // linkedSignal auto-resets presetUrls
+        this.selectedPreset.set(label); // triggers linkedSignal — presetUrls auto-resets to preset defaults
         const preset = this.presets.find(p => p.label === label);
         if (!preset) return;
 
-        // Sync FormArray with the new preset URLs (linkedSignal drives the model,
-        // but the ReactiveForm still needs explicit sync).
+        // Sync FormArray from presetUrls (the linkedSignal), which is now the single
+        // source of truth for URL defaults. After selectedPreset.set(), presetUrls()
+        // already reflects the new preset's URLs — no need to look up preset.urls again.
+        const urls = this.presetUrls();
         while (this.urlsArray.length) this.urlsArray.removeAt(0);
-        preset.urls.forEach(url =>
+        urls.forEach(url =>
             this.urlsArray.push(this.fb.control(url, [Validators.required, Validators.pattern(this.URL_PATTERN)])),
         );
 

@@ -7,7 +7,7 @@
         "start": "ng serve",
         "build": "ng build",
         "watch": "ng build --watch --configuration development",
-        "test": "ng test",
+        "test": "echo \"Karma removed (deprecated in Angular 20+). Migrate to Web Test Runner: ng add @angular/build@next, or Jest: npm i -D jest jest-preset-angular. See README.md.\" && exit 1",
         "serve:ssr": "node dist/adblock-compiler-poc/server/server.mjs"
     },
     "private": true,
