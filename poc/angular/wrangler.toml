@@ -1,0 +1,34 @@
+# Wrangler configuration for deploying the Angular 21 PoC to Cloudflare Workers
+#
+# Build output layout (produced by `npm run build` / `ng build`):
+#   dist/adblock-compiler-poc/
+#   ├── browser/          ← Static assets (JS bundles, CSS, fonts, pre-rendered HTML)
+#   └── server/
+#       └── server.mjs    ← Workers entry point (compiled from server.ts)
+#
+# Deployment:
+#   npm run build          # compile Angular + server
+#   npm run deploy         # wrangler deploy  (uploads Worker + assets)
+#
+# Local dev (mirrors production):
+#   npm run preview        # wrangler dev
+
+name = "adblock-compiler-angular-poc"
+
+# Compiled server entry point output by `ng build` when ssr.entry = "server.ts"
+main = "dist/adblock-compiler-poc/server/server.mjs"
+
+# Minimum date for Cloudflare Workers compatibility guarantees.
+# Bump this to enable newer platform APIs as they stabilise.
+compatibility_date = "2025-01-01"
+
+# nodejs_compat exposes Node.js built-in shims (Buffer, crypto, etc.) that
+# Angular's SSR runtime depends on when running on the Workers platform.
+compatibility_flags = ["nodejs_compat"]
+
+# Static assets binding — Cloudflare serves these directly from its CDN edge
+# before the Worker fetch handler is invoked, so Angular's SSR handler only
+# receives HTML document requests (not JS/CSS/font fetches).
+[assets]
+directory = "dist/adblock-compiler-poc/browser"
+binding = "ASSETS"

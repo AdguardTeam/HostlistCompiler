@@ -1,277 +1,184 @@
-# Framework Migration PoC - Implementation Summary
+# Framework Migration PoC — Implementation Summary
 
-## ✅ Completed Deliverables
+## Overview
 
-This document summarizes the proof-of-concept implementations created for evaluating Vue and Angular as frontend migration options.
-
-## 📁 Files Created
-
-### 1. Vue 3 CDN PoC (no build step)
-
-- **File**: `poc/vue/index.html` (1,400+ lines)
-- **Technology**: Vue 3 + Vue Router 4 + Pinia 2 + Composition API
-- **Approach**: Single HTML file with Vue templates
-
-**Key Features Demonstrated:**
-
-- ✅ **Pinia** for centralized state management (official library)
-- ✅ Store with state, getters, and actions
-- ✅ StoreInspectorPage for live state inspection
-- ✅ Composition API (setup, ref, reactive, computed)
-- ✅ Composable functions (useTheme)
-- ✅ Vue Router for declarative routing
-- ✅ Template directives (v-for, v-if, v-model, @click)
-- ✅ Two-way data binding
-- ✅ Reactive state management
-- ✅ Component-based architecture
-- ✅ Dark/light theme with watchers
-- ✅ Type safety via JSDoc type annotations with `@ts-check`
-
-**Documentation:**
-
-- `poc/vue/VUE_PINIA.md` - Comprehensive Pinia state management guide
-
-### 1a. Vue + Nuxt 3 PoC (SSR, full project)
-
-Nuxt 3 is a **meta-framework built on top of Vue 3** — not a separate framework. It uses the same `.vue` single-file components, Composition API, and Pinia. For this reason the Nuxt PoC lives as `poc/vue/nuxt/` alongside the CDN version, rather than as a peer to Angular.
-
-**Files Created:**
-
-- `poc/vue/nuxt/package.json` — Nuxt 3, @pinia/nuxt, TypeScript dependencies
-- `poc/vue/nuxt/nuxt.config.ts` — SSR enabled, @pinia/nuxt module, global CSS
-- `poc/vue/nuxt/app.vue` — Root shell (`<AppNav>` + `<NuxtPage>`)
-- `poc/vue/nuxt/assets/css/main.css` — Shared CSS variables and component styles
-- `poc/vue/nuxt/components/AppNav.vue` — Navigation with `<NuxtLink>`
-- `poc/vue/nuxt/composables/useTheme.ts` — SSR-safe theme via `useState()`
-- `poc/vue/nuxt/stores/compiler.ts` — Typed Pinia store (same shape as CDN version)
-- `poc/vue/nuxt/pages/index.vue` — Dashboard with `useAsyncData()` + preset cards
-- `poc/vue/nuxt/pages/compiler/[[preset]].vue` — Compiler form (optional route param)
-- `poc/vue/nuxt/pages/store.vue` — Live Pinia state inspector
-- `poc/vue/nuxt/pages/ssr.vue` — SSR features showcase + Nuxt vs Vue CDN comparison table
-- `poc/vue/nuxt/pages/benchmark.vue` — `performance.now()` benchmark runner
-- `poc/vue/nuxt/pages/[...slug].vue` — 404 catch-all
-- `poc/vue/nuxt/server/api/compile.post.ts` — Nitro API route (proxy + mock fallback)
-- `poc/vue/nuxt/NUXT_SSR.md` — Comprehensive SSR concepts guide
-- `poc/vue/nuxt/README.md` — Setup, structure, and feature list
-
-**Key SSR Features Demonstrated:**
-
-- ✅ **`useAsyncData()`** — data fetched on the server, embedded in HTML, zero loading flash
-- ✅ **`useState()`** — SSR-safe shared state (theme); survives server→client handoff
-- ✅ **`useHead()`** — server-rendered `<title>` / `<meta>` tags for SEO on every page
-- ✅ **`@pinia/nuxt`** — Pinia store state serialised into HTML and hydrated on client
-- ✅ **`$fetch()`** — isomorphic fetch (Node http on server, browser Fetch on client)
-- ✅ **File-based routing** — `pages/` directory, `[[preset]]`, `[...slug]` catch-all
-- ✅ **Auto-imports** — Vue and Nuxt composables need no `import` statements
-- ✅ **`server/api/compile.post.ts`** — Nitro server route; avoids CORS, proxies to Worker API
-- ✅ **TypeScript strict mode** throughout
-
-### 2. Angular 21 PoC (Full TypeScript project)
-
-**Files Created:**
-
-#### Configuration Files
-
-- `poc/angular/package.json` - Dependencies (Angular 21, RxJS, etc.)
-- `poc/angular/angular.json` - Angular CLI workspace configuration
-- `poc/angular/tsconfig.json` - TypeScript compiler options
-- `poc/angular/tsconfig.app.json` - App-specific TypeScript config
-
-#### Source Files
-
-- `poc/angular/src/main.ts` - Application bootstrap
-- `poc/angular/src/index.html` - HTML entry point
-- `poc/angular/src/styles.css` - Global styles with CSS variables
-
-#### Application Components
-
-- `poc/angular/src/app/app.component.ts` (140+ lines) - Root component with navigation
-- `poc/angular/src/app/app.routes.ts` - Router configuration
-- `poc/angular/src/app/home/home.component.ts` (115+ lines) - Home/Dashboard component
-- `poc/angular/src/app/compiler/compiler.component.ts` (430+ lines) - Compiler form component
-- `poc/angular/src/app/signals/signals.component.ts` (500+ lines) - Signals demonstration
-- `poc/angular/src/app/services/compiler.service.ts` (126 lines) - API service
-
-**Key Features Demonstrated:**
-
-- ✅ Standalone components (no NgModules)
-- ✅ **Angular Signals** - signal(), computed(), effect()
-- ✅ **New @if/@for/@switch template syntax** (replaces *ngIf/*ngFor)
-- ✅ **Functional DI with inject()**
-- ✅ **Zoneless change detection** via `provideZonelessChangeDetection()`
-- ✅ Dependency Injection
-- ✅ Reactive Forms (FormBuilder, FormArray, FormGroup)
-- ✅ RxJS Observables for async operations
-- ✅ TypeScript interfaces for type safety
-- ✅ Services for business logic
-- ✅ Component-scoped styles
-
-#### Documentation
-
-- `poc/angular/README.md` - Detailed setup and architecture guide
-- `poc/angular/ANGULAR_SIGNALS.md` - Comprehensive Angular Signals guide
-
-## 🎨 Design Consistency
-
-Both PoCs implement:
-
-- **Same color scheme**: Primary gradient (#667eea → #764ba2)
-- **Dark/light theme toggle** with localStorage persistence
-- **Same layout**: Navigation, main content area, forms
-- **Same features**: Home dashboard, compiler form, routing
-- **Same API contract**: POST /api/compile
-
-## 🔧 Features Implemented in Both PoCs
-
-### Navigation & Routing
-
-- ✅ Client-side routing (Home ↔ Compiler)
-- ✅ Active link highlighting
-- ✅ No page reloads on navigation
-
-### Home/Dashboard Page
-
-- ✅ Statistics cards (4 metrics)
-- ✅ Grid layout (responsive)
-- ✅ Hover effects
-
-### Compiler Page
-
-- ✅ **URL Input List**:
-  - Add/remove dynamic URL fields
-  - Minimum 1 URL required
-  - URL validation
-
-- ✅ **Transformation Checkboxes** (11 options):
-  - RemoveComments
-  - Compress
-  - RemoveModifiers
-  - Validate
-  - ValidateAllowIp
-  - Deduplicate
-  - InvertAllow
-  - RemoveEmptyLines
-  - TrimLines
-  - InsertFinalNewLine
-  - ConvertToAscii
-
-- ✅ **Compile Button**:
-  - Disabled during loading
-  - Shows "Compiling..." state
-
-- ✅ **API Integration**:
-  - POST request to /api/compile
-  - Proper request payload format
-  - Mock data fallback for demo
-
-- ✅ **State Management**:
-  - Loading state (spinner)
-  - Error state (error message)
-  - Success state (results display)
-  - Form validation
-
-### Theme Management
-
-- ✅ Dark/light mode toggle
-- ✅ CSS custom properties
-- ✅ localStorage persistence
-- ✅ Smooth transitions
-
-## 📊 Comparison Summary
-
-| Aspect               | Vue CDN      | Vue + Nuxt 3        | Angular         |
-| -------------------- | ------------ | ------------------- | --------------- |
-| **Files**            | 1 HTML       | 16 files            | 15 files        |
-| **Lines of Code**    | ~1,400       | ~900 (split across files) | ~2,000   |
-| **Setup Time**       | 0 min        | 5 min (npm install) | 5 min           |
-| **Build Required**   | No (CDN)     | Yes (npm)           | Yes (npm)       |
-| **Learning Curve**   | Easy         | Easy (same Vue API) | Steep           |
-| **Type Safety**      | JSDoc        | Strict TypeScript   | Yes (required)  |
-| **SSR**              | ❌           | ✅ (built-in)       | Optional        |
-| **SEO**              | ❌           | ✅ (`useHead()`)    | Optional        |
-| **State Management** | **Pinia**    | **Pinia** + SSR hydration | Services + RxJS + **Signals** |
-
-## 🚀 How to Test
-
-### Vue CDN PoC
-
-```bash
-cd poc/vue
-# Open index.html in browser or:
-python3 -m http.server 8001
-# Visit: http://localhost:8001
-```
-
-### Vue + Nuxt PoC
-
-```bash
-cd poc/vue/nuxt
-npm install
-npm run dev
-# Visit: http://localhost:3000
-```
-
-### Angular PoC
-
-```bash
-cd poc/angular
-npm install
-npm start
-# Visit: http://localhost:4200
-```
-
-## ✨ Code Quality
-
-All PoCs include:
-
-- ✅ **Comprehensive comments** explaining patterns
-- ✅ **Architecture documentation** in code
-- ✅ **Clean, readable code** following conventions
-- ✅ **Proper error handling**
-- ✅ **Loading states** for async operations
-- ✅ **Responsive design** (mobile-friendly)
-- ✅ **Accessibility considerations** (semantic HTML)
-
-## 🎯 Decision Criteria
-
-### Choose Vue CDN if:
-
-- No build step desired
-- Embedding in an existing HTML page
-- Prototyping quickly
-
-### Choose Vue + Nuxt 3 if:
-
-- Easy Vue learning curve is priority
-- SSR or SEO is required
-- Want a full-stack setup (frontend + API in one repo)
-- Cloudflare Pages deployment is planned
-
-### Choose Angular if:
-
-- Building enterprise-scale app
-- TypeScript is requirement
-- Want complete out-of-box solution
-- Need strong opinionated structure
-
-## 📝 Notes
-
-- **Vue CDN**: For PoC only. Production should use Nuxt 3 or Vite.
-- **Vue + Nuxt**: Production-ready SSR setup. Lives in `poc/vue/nuxt/` because Nuxt is Vue — not a separate framework.
-- **Angular**: Production-ready setup included, no changes needed.
-- **API Mock**: All PoCs include fallback mock data since the API might not be running.
-
-## 🔗 Resources
-
-- [Vue CDN PoC](./vue/index.html)
-- [Vue + Nuxt PoC](./vue/nuxt/)
-- [Angular PoC](./angular/)
-- [Main README](./README.md)
-- [Angular README](./angular/README.md)
-- [Nuxt SSR Guide](./vue/nuxt/NUXT_SSR.md)
+Two production-viable framework stacks have been implemented as proof of concepts for the Adblock Compiler frontend migration. This document summarises what was built, the key patterns demonstrated, and how to make the final framework decision.
 
 ---
 
-**All deliverables completed successfully! ✅**
+## PoC 1: Vue 3 CDN (no build step)
 
-The PoCs provide a solid foundation for evaluating which framework best fits the project's needs.
+**File:** `poc/vue/index.html` (~1,400 lines)
+
+A single-file Vue 3 application loaded via CDN — no build step, no Node.js required.
+
+### Patterns Demonstrated
+
+| Pattern | API Used |
+|---|---|
+| Reactive state | `ref()`, `reactive()` |
+| Derived state | `computed()` |
+| Side effects | `watch()`, `watchEffect()` |
+| Component composition | Composition API + `setup()` |
+| Routing | Vue Router 4 |
+| State management | Pinia (official Vue store) |
+| Two-way binding | `v-model` |
+| Reusable logic | Composables (`useTheme()`) |
+| Type safety | JSDoc `@ts-check` annotations |
+
+### Verdict
+
+✅ Great for prototyping and embedding  
+❌ Not recommended for production migration (no SSR, no build optimisation)
+
+---
+
+## PoC 2: Nuxt 3 (SSR, full project)
+
+**Directory:** `poc/vue/nuxt/`
+
+A full Nuxt 3 project with SSR, file-based routing, Pinia, and Nitro API routes.
+
+### Key SSR Patterns
+
+| Pattern | API | Benefit |
+|---|---|---|
+| Server data fetch | `useAsyncData()` | Zero loading flash — data in HTML |
+| SSR-safe state | `useState()` | No hydration mismatch |
+| SEO meta tags | `useHead()` / `useSeoMeta()` | Crawlable on every page |
+| Pinia SSR hydration | `@pinia/nuxt` | Store state serialised into HTML |
+| Isomorphic fetch | `$fetch()` | Same code on server and client |
+| File-based routing | `pages/` directory | Auto-routes, optional params |
+| Built-in API routes | `server/api/*.ts` (Nitro) | No CORS, no external backend |
+
+### Routes Implemented
+
+| Route | File | Demonstrates |
+|---|---|---|
+| `/` | `pages/index.vue` | `useAsyncData()`, `useHead()`, preset cards |
+| `/compiler/:preset?` | `pages/compiler/[[preset]].vue` | Optional route param, Pinia form state |
+| `/store` | `pages/store.vue` | Live Pinia state inspector |
+| `/ssr` | `pages/ssr.vue` | SSR features showcase, comparison table |
+| `/benchmark` | `pages/benchmark.vue` | `performance.now()` benchmark |
+| `/*` | `pages/[...slug].vue` | 404 catch-all |
+
+### Verdict
+
+✅ Best choice if the team wants Vue's easy learning curve with production SSR  
+✅ Full-stack in one repo (frontend + API routes)  
+✅ Strong Cloudflare Pages / Vercel deployment story
+
+---
+
+## PoC 3: Angular 21 (Full Modern API Showcase)
+
+**Directory:** `poc/angular/`
+
+A complete Angular 21 application demonstrating **every major modern Angular API** released in v17–v21. Uses Angular Material 3, zoneless change detection, and multi-mode SSR.
+
+### Angular 21 APIs Demonstrated
+
+| API | Stability | Component | What It Replaces |
+|---|---|---|---|
+| `signal()` / `computed()` / `effect()` | v16 | All | Class fields + Zone.js |
+| `@if` / `@for` / `@switch` | v17 | All templates | `*ngIf`, `*ngFor`, `*ngSwitch` |
+| `@defer (on viewport)` | v17 | `home` | None — new capability |
+| `@defer (on idle)` | v17 | `benchmark` | None — new capability |
+| `viewChild()` | v17.3 | `app`, `home`, `benchmark` | `@ViewChild` |
+| `input()` / `input.required()` | v19 | `stat-card` | `@Input()` |
+| `output()` | v19 | `stat-card` | `@Output() + EventEmitter` |
+| `model()` | v19 | `stat-card` | `@Input()` + `@Output()Change` pair |
+| `linkedSignal()` | v19 | `compiler`, `benchmark` | `effect()` writing signals |
+| `rxResource()` | v19 | `compiler` | Observable + manual subscribe |
+| `provideAppInitializer()` | v19 | `app.config.ts` | `APP_INITIALIZER` token |
+| `toSignal()` | v16 | `compiler` | `AsyncPipe` / manual subscribe |
+| `takeUntilDestroyed()` | v16 | `compiler` | `Subject<void>` + `ngOnDestroy` |
+| `afterRenderEffect()` | v20 | `benchmark` | `ngAfterViewInit` + DOM access |
+| `provideZonelessChangeDetection()` | v18 | `app.config.ts` | Zone.js |
+| `RenderMode.Prerender` | v17 | `app.routes.server.ts` | All-routes SSR |
+| Fonts from npm | — | `styles.css` | Google Fonts CDN |
+| Karma removed | v20 | `package.json` | Legacy test runner |
+
+### Pages Implemented
+
+| Route | Component | Key Patterns |
+|---|---|---|
+| `/` | `HomeComponent` | `StatCardComponent` (signal API), `@defer (on viewport)`, `viewChild()` |
+| `/compiler` | `CompilerComponent` | `rxResource()`, `linkedSignal()`, `toSignal()`, presets |
+| `/signals` | `SignalsComponent` | `signal()`, `computed()`, `effect()` interactive demo |
+| `/benchmark` | `BenchmarkComponent` | `linkedSignal()`, `afterRenderEffect()`, `viewChild()`, `@defer (on idle)` |
+
+### Material Design 3 Components Used
+
+`MatToolbar`, `MatSidenav`, `MatCard`, `MatButton`, `MatIcon`, `MatFormField`, `MatInput`, `MatSelect`, `MatCheckbox`, `MatChips`, `MatTable`, `MatProgressBar`, `MatProgressSpinner`, `MatDivider`, `MatList`, `MatRipple`, `MatTooltip`, `MatBadge`
+
+### Verdict
+
+✅ Best choice for enterprise-scale, long-lived application  
+✅ Complete "batteries included" solution  
+✅ Most comprehensive modern Angular showcase  
+⚠️ Steeper learning curve than Vue/Nuxt
+
+---
+
+## Side-by-Side Summary
+
+| Aspect | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| **Lines of Code** | ~1,400 (1 file) | ~900 (16 files) | ~3,000 (20+ files) |
+| **Build Required** | No | Yes | Yes |
+| **Setup Time** | 0 min | 5 min | 5 min |
+| **Learning Curve** | Easy | Easy | Steep |
+| **Type Safety** | JSDoc | Strict TS | Required TS |
+| **SSR** | ❌ | ✅ Built-in | ✅ @angular/ssr |
+| **SSG/Prerender** | ❌ | ✅ `nuxt generate` | ✅ per-route `RenderMode` |
+| **File-based routing** | ❌ | ✅ | ❌ |
+| **Built-in API routes** | ❌ | ✅ Nitro | ❌ |
+| **State management** | Pinia | Pinia + SSR hydration | Services + signals |
+| **Signal-native HTTP** | ❌ | ✅ `useAsyncData()` | ✅ `rxResource()` |
+| **Linked/derived writable state** | Manual `watch()` | Manual `watch()` | ✅ `linkedSignal()` |
+| **Deferred rendering** | ❌ | ✅ `LazyHydration` (3.12+) | ✅ `@defer` |
+| **Official UI library** | ❌ (external) | ❌ (external) | ✅ Angular Material 3 |
+| **Zoneless** | N/A | N/A | ✅ `provideZonelessChangeDetection()` |
+| **Corporate backing** | Independent | Independent | Google |
+
+---
+
+## Decision Criteria
+
+### Framework Fit Matrix
+
+| Priority | Vue CDN | Nuxt 3 | Angular 21 |
+|---|---|---|---|
+| Low learning curve | 🟢 Best | 🟢 Best | 🔴 Steepest |
+| SSR out of the box | ❌ | 🟢 Best | 🟡 Needs config |
+| File-based routing | ❌ | 🟢 Best | ❌ |
+| Full-stack in one repo | ❌ | 🟢 Best | ❌ |
+| Enterprise structure | ❌ | 🟡 | 🟢 Best |
+| Latest reactive APIs | 🟡 | 🟡 | 🟢 Most complete |
+| Official UI components | ❌ | ❌ | 🟢 Best |
+| Google/LTS backing | ❌ | ❌ | 🟢 Best |
+| Cloudflare Pages | 🟢 | 🟢 Best | 🟡 |
+
+---
+
+## How to Evaluate
+
+1. **Run both PoCs** — `cd poc/angular && npm install && npm start` / `cd poc/vue/nuxt && npm install && npm run dev`
+2. **Assess team skills** — Vue knowledge vs Angular knowledge
+3. **Consider timeline** — Angular has more initial boilerplate
+4. **Consider SEO/SSR needs** — both Nuxt and Angular support SSR; Nuxt's is more zero-config
+5. **Consider scale** — Angular's enforced structure is a long-term advantage for large teams
+
+---
+
+## Resources
+
+- [Angular PoC README](./angular/README.md) — all Angular 21 features explained
+- [ANGULAR_SIGNALS.md](./angular/ANGULAR_SIGNALS.md) — signals deep-dive reference
+- [Nuxt PoC README](./vue/nuxt/README.md) — Nuxt 3 setup and SSR guide
+- [NUXT_SSR.md](./vue/nuxt/NUXT_SSR.md) — SSR concepts
+- [poc/README.md](./README.md) — full comparison tables
+
+
+## 📁 Files Created

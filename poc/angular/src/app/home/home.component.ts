@@ -1,22 +1,46 @@
 /**
  * Angular PoC - Home/Dashboard Component
  *
- * Angular 21 + Material Pattern: Dashboard with Material cards and buttons
- * Uses inject() for functional dependency injection
+ * Angular 21 patterns demonstrated:
+ *
+ * StatCardComponent (input / output / model signal APIs)
+ *   The stats grid uses the new <app-stat-card> component, binding inputs with
+ *   the signal input() API and two-way [(highlighted)] with model().
+ *
+ * @defer — stable v17+
+ *   Defers loading and rendering of a child component until a trigger fires.
+ *   With SSR + RenderMode.Prerender on this route, @defer enables incremental
+ *   hydration: the placeholder HTML is sent in the initial payload and the
+ *   heavy component is hydrated progressively as it enters the viewport.
+ *
+ *   Triggers:
+ *     on viewport  — defers until the block enters the viewport (IntersectionObserver)
+ *     on idle      — defers until requestIdleCallback fires
+ *     on interaction — defers on first click / focus
+ *     on timer(n)  — defers after n milliseconds
+ *     when (expr)  — defers until a signal/boolean becomes truthy
+ *
+ *   Sub-blocks:
+ *     @placeholder  — shown while the dependency chunk is being fetched
+ *     @loading      — shown while the async loader is running (minimum 300ms avoids flicker)
+ *     @error        — shown if the loader throws
+ *
+ * viewChild() — stable v17.3+
+ *   Typed signal query for a template element or directive reference.
+ *   Used here to get the action-card element for programmatic focus management.
  */
 
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { StatCardComponent } from '../stat-card/stat-card.component';
 
-/**
- * Interface for stat cards
- */
+/** Interface for stat cards data */
 interface StatCard {
     readonly label: string;
     readonly value: string;
@@ -26,8 +50,7 @@ interface StatCard {
 
 /**
  * HomeComponent
- * Pattern: Standalone component with Angular Material cards
- * Uses inject() for functional DI (Angular 21 pattern)
+ * Dashboard page with @defer, signal inputs via StatCardComponent, and viewChild().
  */
 @Component({
     selector: 'app-home',
@@ -36,54 +59,52 @@ interface StatCard {
         RouterLink,
         MatCardModule,
         MatButtonModule,
-        MatGridListModule,
         MatIconModule,
         MatDividerModule,
         MatChipsModule,
+        MatProgressSpinnerModule,
+        StatCardComponent,
     ],
     template: `
     <div class="page-content">
         <h1 class="mat-headline-4">Adblock Compiler Dashboard</h1>
         <p class="mat-body-1 subtitle">
-            Welcome to the Adblock Compiler Angular 21 PoC. Compile and transform filter lists with ease.
+            Welcome to the Angular 21 PoC. Compile and transform adblock filter lists.
         </p>
 
-        <!-- Stats Grid using Material Cards -->
+        <!-- Stats Grid using StatCardComponent (signal input / output / model APIs) -->
         <div class="stats-grid">
             @for (stat of stats; track stat.label) {
-                <mat-card class="stat-card" appearance="outlined">
-                    <mat-card-content>
-                        <mat-icon [style.color]="stat.color" class="stat-icon">{{ stat.icon }}</mat-icon>
-                        <div class="stat-value">{{ stat.value }}</div>
-                        <div class="stat-label">{{ stat.label }}</div>
-                    </mat-card-content>
-                </mat-card>
+                <!--
+                    input()   → label, value, icon, color are signal inputs
+                    model()   → [(highlighted)] is a two-way writable signal binding
+                    output()  → (cardClicked) fires when the card is clicked
+                -->
+                <app-stat-card
+                    [label]="stat.label"
+                    [value]="stat.value"
+                    [icon]="stat.icon"
+                    [color]="stat.color"
+                    [(highlighted)]="highlightedCard"
+                    (cardClicked)="onStatCardClicked($event)"
+                />
             }
         </div>
 
         <mat-divider class="mb-3 mt-3"></mat-divider>
 
-        <!-- Navigation Actions using Material Buttons -->
-        <mat-card appearance="outlined" class="action-card">
+        <!-- Action card — viewChild() target -->
+        <mat-card #actionCard appearance="outlined" class="action-card">
             <mat-card-header>
                 <mat-card-title>Get Started</mat-card-title>
-                <mat-card-subtitle>Choose how to navigate to the Compiler</mat-card-subtitle>
+                <mat-card-subtitle>Navigate to the Compiler to compile filter lists</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
                 <div class="action-buttons mt-2">
-                    <!--
-                        ANGULAR ROUTER PATTERN 1: Programmatic Navigation
-                        Router.navigate() called from component code
-                    -->
                     <button mat-raised-button color="primary" (click)="goToCompiler()">
                         <mat-icon>settings</mat-icon>
                         Start Compiling
                     </button>
-
-                    <!--
-                        ANGULAR ROUTER PATTERN 2: Declarative Navigation
-                        routerLink directive for template-driven navigation
-                    -->
                     <a mat-stroked-button color="primary" routerLink="/compiler">
                         <mat-icon>link</mat-icon>
                         Open Compiler
@@ -93,36 +114,68 @@ interface StatCard {
             <mat-card-actions>
                 <mat-chip-set>
                     <mat-chip highlighted color="primary">Angular 21</mat-chip>
-                    <mat-chip>Material Design</mat-chip>
+                    <mat-chip>Material Design 3</mat-chip>
                     <mat-chip>SSR</mat-chip>
                     <mat-chip>Signals</mat-chip>
+                    <mat-chip>&#64;defer</mat-chip>
                 </mat-chip-set>
             </mat-card-actions>
         </mat-card>
 
-        <!-- Info Card -->
-        <mat-card appearance="outlined" class="info-card mt-2">
-            <mat-card-header>
-                <mat-icon mat-card-avatar>info</mat-icon>
-                <mat-card-title>Angular 21 Features</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <p class="mat-body-1">
-                    This page demonstrates standalone components,
-                    the new <code>&#64;for</code> control flow syntax (replaces <code>*ngFor</code>),
-                    Angular Material 3 components, and functional dependency injection with <code>inject()</code>.
-                </p>
-            </mat-card-content>
-        </mat-card>
+        <!--
+            @defer with 'on viewport' trigger
+            The SignalsShowcaseCard is heavy (imports the Signals component template inline).
+            With @defer, the JS chunk is only fetched + rendered when it scrolls into view.
+            @placeholder shows a spinner immediately; @loading is shown while hydrating.
+
+            This block pairs with SSR's incremental hydration: the server renders the
+            @placeholder HTML; the client hydrates lazily when triggered.
+        -->
+        @defer (on viewport) {
+            <mat-card appearance="outlined" class="info-card mt-2">
+                <mat-card-header>
+                    <mat-icon mat-card-avatar>info</mat-icon>
+                    <mat-card-title>Angular 21 Feature Highlights</mat-card-title>
+                    <mat-card-subtitle>All demonstrated in this PoC</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="feature-grid">
+                        @for (feature of angularFeatures; track feature.name) {
+                            <div class="feature-item">
+                                <mat-icon [style.color]="feature.color">{{ feature.icon }}</mat-icon>
+                                <div>
+                                    <strong>{{ feature.name }}</strong>
+                                    <p class="mat-caption">{{ feature.description }}</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        } @placeholder (minimum 200ms) {
+            <!-- Shown immediately while the chunk is loading -->
+            <mat-card appearance="outlined" class="info-card mt-2">
+                <mat-card-content class="placeholder-content">
+                    <mat-spinner diameter="32"></mat-spinner>
+                    <span class="mat-body-2">Loading feature highlights…</span>
+                </mat-card-content>
+            </mat-card>
+        } @loading (minimum 300ms; after 100ms) {
+            <!-- Shown while the deferred block's async loader runs -->
+            <mat-card appearance="outlined" class="info-card mt-2">
+                <mat-card-content class="placeholder-content">
+                    <mat-spinner diameter="32" color="accent"></mat-spinner>
+                    <span class="mat-body-2">Rendering…</span>
+                </mat-card-content>
+            </mat-card>
+        }
     </div>
     `,
     styles: [`
-    .page-content {
-        padding: 0;
-    }
+    .page-content { padding: 0; }
 
     .subtitle {
-        color: var(--mat-sys-on-surface-variant, #666);
+        color: var(--mat-sys-on-surface-variant);
         margin-bottom: 24px;
     }
 
@@ -133,64 +186,79 @@ interface StatCard {
         margin-bottom: 24px;
     }
 
-    .stat-card {
-        text-align: center;
+    .action-card { margin-bottom: 16px; }
+
+    .action-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .info-card { background-color: var(--mat-sys-surface-variant); }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        margin-top: 8px;
     }
 
-    .stat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        margin-bottom: 8px;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1.2;
-        margin-bottom: 4px;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--mat-sys-on-surface-variant, #666);
-    }
-
-    .action-card {
-        margin-bottom: 16px;
-    }
-
-    .action-buttons {
+    .feature-item {
         display: flex;
         gap: 12px;
-        flex-wrap: wrap;
+        align-items: flex-start;
     }
 
-    .info-card {
-        background-color: var(--mat-sys-surface-variant, #f5f5f5);
+    .feature-item mat-icon { flex-shrink: 0; margin-top: 2px; }
+
+    .feature-item p { margin: 2px 0 0; color: var(--mat-sys-on-surface-variant); }
+
+    .placeholder-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 24px;
     }
   `],
 })
 export class HomeComponent {
-    /** Component state: stat cards data */
     readonly stats: StatCard[] = [
-        { label: 'Filter Lists Compiled', value: '1,234', icon: 'filter_list', color: '#1976d2' },
-        { label: 'Total Rules Processed', value: '456K', icon: 'rule', color: '#388e3c' },
-        { label: 'Active Transformations', value: '12', icon: 'transform', color: '#f57c00' },
-        { label: 'Cache Hit Rate', value: '89%', icon: 'speed', color: '#7b1fa2' },
+        { label: 'Filter Lists Compiled', value: '1,234', icon: 'filter_list', color: 'var(--mat-sys-primary)'        },
+        { label: 'Total Rules Processed',  value: '456K',  icon: 'rule',        color: 'var(--mat-sys-tertiary)'      },
+        { label: 'Active Transformations', value: '12',    icon: 'transform',   color: 'var(--mat-sys-secondary)'     },
+        { label: 'Cache Hit Rate',         value: '89%',   icon: 'speed',       color: 'var(--mat-sys-error-container)'},
+    ];
+
+    readonly angularFeatures = [
+        { name: 'signal() / computed() / effect()',  icon: 'bolt',       color: 'var(--mat-sys-primary)',   description: 'Fine-grained reactive state without Zone.js'            },
+        { name: 'input() / output() / model()',      icon: 'input',      color: 'var(--mat-sys-secondary)', description: 'Signal-based component API replacing @Input/@Output'    },
+        { name: 'viewChild() / contentChild()',      icon: 'search',     color: 'var(--mat-sys-tertiary)',  description: 'Signal queries replacing @ViewChild/@ContentChild'      },
+        { name: '@defer deferrable views',           icon: 'hourglass_empty', color: 'var(--mat-sys-primary)', description: 'Lazy-render blocks with viewport / idle / when triggers' },
+        { name: 'resource() / rxResource()',         icon: 'cloud_download', color: 'var(--mat-sys-secondary)', description: 'Signal-native async data with built-in loading/error state' },
+        { name: 'linkedSignal()',                    icon: 'link',       color: 'var(--mat-sys-tertiary)',  description: 'Derived writable signal that resets when source changes' },
+        { name: 'afterRenderEffect()',               icon: 'brush',      color: 'var(--mat-sys-primary)',   description: 'Post-render DOM effects replacing constructor effect()'  },
+        { name: 'provideAppInitializer()',           icon: 'start',      color: 'var(--mat-sys-secondary)', description: 'Cleaner app init replacing APP_INITIALIZER token'        },
     ];
 
     /**
-     * Inject Router using functional DI (Angular 21 pattern)
-     * inject() replaces constructor DI for cleaner, more composable code
+     * model() two-way binding demo:
+     * highlightedCard syncs with StatCardComponent.highlighted via [(highlighted)].
+     * When any card is clicked, model() updates both this signal and the child signal.
      */
-    private readonly router = inject(Router);
+    readonly highlightedCard = signal(false);
 
     /**
-     * Navigate to the Compiler page programmatically.
-     * ANGULAR ROUTER PATTERN: Router.navigate() for imperative navigation
+     * viewChild() — typed signal reference to the action card DOM element.
+     * Unlike @ViewChild, this resolves as a signal — no AfterViewInit needed.
      */
+    readonly actionCardRef = viewChild<ElementRef>('actionCard');
+
+    private readonly router = inject(Router);
+
     goToCompiler(): void {
         this.router.navigate(['/compiler']);
     }
+
+    onStatCardClicked(label: string): void {
+        console.log(`[Home] Stat card clicked: ${label}`);
+        // Scroll to action card using the viewChild() signal reference
+        this.actionCardRef()?.nativeElement?.scrollIntoView({ behavior: 'smooth' });
+    }
 }
+

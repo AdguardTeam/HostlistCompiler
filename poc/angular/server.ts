@@ -1,65 +1,77 @@
 /**
- * Angular PoC - Express SSR Server
+ * Cloudflare Workers SSR handler for Angular 21
  *
- * Angular 21 SSR Pattern: Express server for server-side rendering
- * Uses @angular/ssr to render Angular components on the server
+ * Architecture overview:
+ *   - `AngularAppEngine` (from `@angular/ssr`) is the edge-compatible SSR engine.
+ *     It speaks the standard fetch `Request`/`Response` API, making it portable
+ *     across Cloudflare Workers, Deno Deploy, and any other WinterCG-compliant runtime.
+ *   - Static assets (JS, CSS, fonts) are served by Cloudflare's `ASSETS` binding,
+ *     configured in `wrangler.toml`. The Workers runtime intercepts asset requests
+ *     before this handler is invoked, so `angularApp.handle()` only sees document
+ *     (HTML) requests.
+ *   - For routes that Angular cannot handle (e.g. unknown paths not covered by the
+ *     Angular router), `handle()` returns `null` and we fall through to a 404.
+ *
+ * SSR render modes (defined in `src/app/app.routes.server.ts`):
+ *   - `RenderMode.Prerender` — Home page is pre-rendered at `ng build` time and
+ *     served as a static HTML file from the ASSETS binding.
+ *   - `RenderMode.Server`    — All other routes are server-rendered per request
+ *     inside the Worker.
+ *
+ * Local development:
+ *   npx wrangler dev          (uses wrangler.toml — mirrors production)
+ *
+ * Deployment:
+ *   npx wrangler deploy       (after `npm run build`)
  */
 
-import { APP_BASE_HREF } from '@angular/common';
-import { CommonEngine } from '@angular/ssr/node';
-import express from 'express';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, resolve } from 'node:path';
-import bootstrap from './src/main.server';
+import { AngularAppEngine } from '@angular/ssr';
+// Side-effect import: loading main.server registers the Angular application with
+// AngularAppEngine's global app registry. Without this import the engine has no
+// application to render, even though the symbol itself is not referenced directly.
+import './src/main.server';
 
-// The Express app is exported so that it can be used by serverless Functions.
-export function app(): express.Express {
-    const server = express();
-    const serverDistFolder = dirname(fileURLToPath(import.meta.url));
-    const browserDistFolder = resolve(serverDistFolder, '../browser');
-    const indexHtml = join(serverDistFolder, 'index.server.html');
+// Instantiate the Angular SSR engine once at module scope so it is reused
+// across requests within the same Worker isolate — avoids re-initialising the
+// Angular application on every request.
+const angularApp = new AngularAppEngine();
 
-    const commonEngine = new CommonEngine();
+/**
+ * Cloudflare Workers fetch handler.
+ *
+ * Cloudflare calls this `fetch` export for every incoming HTTP request that is
+ * not matched by a static asset in the ASSETS binding.
+ *
+ * @param request  - The incoming `Request` object (standard fetch API).
+ * @param env      - Cloudflare Workers environment bindings (see `Env` below).
+ * @param ctx      - Execution context — used for `ctx.waitUntil()` / `ctx.passThroughOnException()`.
+ * @returns A `Response` — either SSR-rendered HTML from Angular or a 404.
+ */
+export default {
+    async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+        // Delegate the request to AngularAppEngine.
+        // Returns a fully-formed Response (with HTML + headers) for Angular routes,
+        // or null if the engine cannot handle the request (e.g. unrecognised path).
+        const response = await angularApp.handle(request);
+        return response ?? new Response('Not found', { status: 404 });
+    },
+} satisfies ExportedHandler<Env>;
 
-    server.set('view engine', 'html');
-    server.set('views', browserDistFolder);
-
-    // Serve static files from /browser
-    server.get(
-        '**',
-        express.static(browserDistFolder, {
-            maxAge: '1y',
-            index: 'index.html',
-        }),
-    );
-
-    // All regular routes use the Angular engine
-    server.get('**', (req, res, next) => {
-        const { protocol, originalUrl, baseUrl, headers } = req;
-
-        commonEngine
-            .render({
-                bootstrap,
-                documentFilePath: indexHtml,
-                url: `${protocol}://${headers.host}${originalUrl}`,
-                publicPath: browserDistFolder,
-                providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
-            })
-            .then((html) => res.send(html))
-            .catch((err) => next(err));
-    });
-
-    return server;
+/**
+ * Cloudflare Workers environment bindings.
+ *
+ * Add KV namespaces, D1 databases, R2 buckets, or secret variables here as
+ * the PoC grows. These are declared in `wrangler.toml` and injected by the
+ * runtime into the `env` parameter of `fetch()`.
+ *
+ * Example:
+ *   interface Env {
+ *     MY_KV: KVNamespace;
+ *     API_SECRET: string;
+ *   }
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Env {
+    // No bindings configured yet. Add KV namespaces, D1 databases, R2 buckets,
+    // or secret variables here as the PoC grows (see JSDoc above for examples).
 }
-
-function run(): void {
-    const port = process.env['PORT'] || 4000;
-
-    // Start up the Node server
-    const server = app();
-    server.listen(port, () => {
-        console.log(`Node Express server listening on http://localhost:${port}`);
-    });
-}
-
-run();
