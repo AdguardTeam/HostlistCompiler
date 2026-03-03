@@ -57,7 +57,6 @@ jobs:
           fetch-depth: 1
 
       - name: Run Claude Code
-        if: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         id: claude
         uses: anthropics/claude-code-action@v1
         with:

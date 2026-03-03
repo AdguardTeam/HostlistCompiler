@@ -269,6 +269,10 @@ jobs:
 
                   # Create a new branch for the version bump
                   BRANCH_NAME="auto-version-bump-${{ steps.bump.outputs.new }}"
+
+                  # Delete existing remote branch if it exists (from a previous failed run)
+                  git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
+
                   git checkout -b "$BRANCH_NAME"
 
                   # Only add files that were modified and exist
