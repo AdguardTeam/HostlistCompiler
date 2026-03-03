@@ -40,6 +40,8 @@ Move the Angular app from `poc/angular/` to a top-level `frontend/` directory. T
 - Add a root-level deno task (`ui:build:ng`) that runs `npm --prefix frontend run build`
 - Preserve the existing Vite build path as a fallback during migration; both can coexist temporarily
 - Wire Angular's `server.ts` SSR entry into the main Worker or as a separate Cloudflare Workers route (decision: keep SSR as a separate Worker initially for isolation, merge later if desired)
+- **Remove PoC demo pages:** Delete `SignalsComponent` and repurpose `BenchmarkComponent` as a real performance metrics page showing actual compilation timing data from `/api/metrics`. Remove the `/signals` route from `app.routes.ts` and update the sidenav navigation.
+- **Environment-aware API base URL:** Create an `API_BASE_URL` `InjectionToken` provided differently in `app.config.ts` (browser, relative `/api`) vs. `app.config.server.ts` (SSR, absolute Worker URL). This prevents broken SSR fetches against a relative origin that doesn't exist server-side.
 
 ### Phase 2: Core Pages — Dashboard & Compiler
 
@@ -78,6 +80,12 @@ Create Angular services that wrap all backend endpoints:
 
 All services should use `inject(HttpClient)` with `withFetch()` for SSR compatibility. For SSE, use the native `EventSource` API wrapped in an Angular service that produces signals.
 
+**Centralized error handling:** Register a functional HTTP interceptor via `withInterceptors([...])` in `provideHttpClient()` that handles 401s, 429s (rate limiting from KV-based rate limiter), and 5xx errors globally. This replaces per-service `catchError` blocks (like the current mock fallback in `CompilerService`).
+
+**Transfer State for SSR hydration:** Enable `provideClientHydration(withHttpTransferCacheOptions(...))` so the browser doesn't re-fetch API data already retrieved during SSR. Critical for the dashboard which calls `/api/metrics` and `/api/health` on initial load — avoids a double-fetch waterfall.
+
+**Web Worker for heavy client-side work:** Migrate the existing `compiler-worker.js` pattern using Angular's native Web Worker support (`ng generate web-worker`). Offload large filter list parsing and diff computation to keep the main thread responsive.
+
 ### Phase 5: Accessibility (ARIA) & UX Polish
 
 - Audit all components with Angular Material's built-in a11y (mat-label, aria-label, etc.)
@@ -86,6 +94,8 @@ All services should use `inject(HttpClient)` with `withFetch()` for SSR compatib
 - Add Angular Animations (`@angular/animations`) for route transitions (already using `withViewTransitions()`), card interactions, and loading states
 - Ensure color contrast meets WCAG AA using Material Design 3 theme tokens
 - Add `live` ARIA announcements for async operations (compilation progress, errors)
+- **Responsive sidenav:** Use `@angular/cdk/layout` `BreakpointObserver` to toggle sidenav between `mode="side"` (desktop) and `mode="over"` (mobile/tablet). The PoC currently hardcodes `mode="side"` which breaks on small screens.
+- **Content Security Policy:** Define a CSP header in the Worker response that allows Cloudflare Turnstile (`challenges.cloudflare.com`) and Analytics (`static.cloudflareinsights.com`). Load these external scripts in `index.html` outside Angular's control, or via a dynamic script loader service.
 
 ### Phase 6: CI/CD Pipeline
 
@@ -96,6 +106,7 @@ Extend `ci.yml` to include Angular frontend:
 - Add a `frontend-lint` job: `ng lint` (add `@angular-eslint` if not already present)
 - Update the deploy workflow to build Angular before `wrangler deploy`
 - Cache `frontend/node_modules` with `actions/cache` keyed on `frontend/package-lock.json`
+- **Route preloading:** Add `withPreloading(PreloadAllModules)` or a custom strategy to `provideRouter()` that preloads the compiler route after dashboard renders — it's the most likely navigation path and avoids a loading delay on first navigate.
 
 ### Phase 7: Documentation & Cleanup
 
@@ -114,3 +125,5 @@ Extend `ci.yml` to include Angular frontend:
 **Node vs. Deno for Angular:** Angular CLI requires Node for building. The built SSR output runs on Cloudflare Workers (WinterCG-compatible). Deno remains the runtime for the backend compiler core. Accept this split — fighting it adds complexity with no benefit.
 
 **SSR architecture:** Keep Angular SSR as a separate Worker initially for isolation during migration; unify with the main Worker later if desired.
+
+**Signal-based forms:** Monitor the Angular signal-based forms RFC. If it stabilizes during the migration timeline, adopt it to align with the signal-first architecture. Otherwise, continue with `ReactiveFormsModule` — it's fully supported and well-tested.
