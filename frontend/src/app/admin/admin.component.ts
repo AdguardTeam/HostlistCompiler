@@ -254,8 +254,13 @@ export class AdminComponent {
         }
     }
 
-    /** Destructive SQL keywords that should not be executed from the admin console */
-    private static readonly DESTRUCTIVE_SQL = /^\s*(DROP|DELETE|TRUNCATE|ALTER|INSERT|UPDATE)\b/i;
+    /**
+     * Destructive SQL keywords that should not be executed from the admin console.
+     * Matches keywords anywhere in the query (not just at the start) to catch CTEs and
+     * multi-statement inputs. Note: keywords inside string literals are also blocked as a
+     * deliberate conservative trade-off — backend enforces read-only access as the true guard.
+     */
+    private static readonly DESTRUCTIVE_SQL = /\b(DROP|DELETE|TRUNCATE|ALTER|INSERT|UPDATE)\b/i;
 
     /** Inline warning when destructive SQL is detected */
     readonly sqlWarning = signal<string | null>(null);

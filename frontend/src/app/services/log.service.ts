@@ -7,7 +7,8 @@
  *     frontend logs with Cloudflare Worker request traces
  *   - `reportError()` sends error payloads to the Cloudflare Worker via
  *     `navigator.sendBeacon()` — reliable even during page unload
- *   - SSR-safe (no-ops when not in browser)
+ *   - Designed primarily for browser environments; in SSR/non-browser contexts it avoids browser-only APIs
+ *     but may still log to the console and buffer entries
  *
  * The Cloudflare Worker at LOG_ENDPOINT can ingest these payloads into
  * Workers Analytics Engine, Logpush, or a D1 table for post-mortem analysis.
@@ -103,7 +104,7 @@ export class LogService {
 
     /** Get recent log entries (for diagnostic UI or export) */
     getRecentLogs(): readonly LogEntry[] {
-        return this.buffer;
+        return this.buffer.slice();
     }
 
     /** Flush all buffered error-level logs to the backend */
@@ -148,7 +149,8 @@ export class LogService {
         try {
             // sendBeacon is fire-and-forget — survives page unload
             if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-                navigator.sendBeacon(this.logEndpoint, payload);
+                const blob = new Blob([payload], { type: 'application/json' });
+                navigator.sendBeacon(this.logEndpoint, blob);
             } else {
                 // Fallback to fetch (no await — fire and forget)
                 fetch(this.logEndpoint, {

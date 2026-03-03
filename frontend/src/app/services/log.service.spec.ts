@@ -113,15 +113,16 @@ describe('LogService', () => {
 
         expect(navigator.sendBeacon).toHaveBeenCalledWith(
             '/api/log',
-            expect.stringContaining('"message":"crash"'),
+            expect.any(Blob),
         );
     });
 
-    it('should include session ID in reported errors', () => {
+    it('should include session ID in reported errors', async () => {
         navigator.sendBeacon = vi.fn().mockReturnValue(true);
         service.reportError({ message: 'test' });
 
-        const payload = JSON.parse((navigator.sendBeacon as ReturnType<typeof vi.fn>).mock.calls[0][1] as string);
+        const blob: Blob = (navigator.sendBeacon as ReturnType<typeof vi.fn>).mock.calls[0][1];
+        const payload = JSON.parse(await blob.text());
         expect(payload.sessionId).toBe(service.sessionId);
     });
 });
