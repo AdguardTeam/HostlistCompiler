@@ -1,0 +1,94 @@
+{
+  "scriptId": "581",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/worker/handlers/admin.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 6988,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "handleAdminStorageStats",
+      "ranges": [
+        {
+          "startOffset": 414,
+          "endOffset": 1700,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleAdminClearExpired",
+      "ranges": [
+        {
+          "startOffset": 1949,
+          "endOffset": 2659,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleAdminClearCache",
+      "ranges": [
+        {
+          "startOffset": 2726,
+          "endOffset": 3337,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleAdminExport",
+      "ranges": [
+        {
+          "startOffset": 3580,
+          "endOffset": 4512,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleAdminVacuum",
+      "ranges": [
+        {
+          "startOffset": 4758,
+          "endOffset": 5088,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleAdminListTables",
+      "ranges": [
+        {
+          "startOffset": 5149,
+          "endOffset": 5582,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleAdminQuery",
+      "ranges": [
+        {
+          "startOffset": 5690,
+          "endOffset": 6987,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

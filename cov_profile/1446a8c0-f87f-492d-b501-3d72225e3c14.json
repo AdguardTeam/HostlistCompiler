@@ -1,0 +1,358 @@
+{
+  "scriptId": "579",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/utils/string.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 22437,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "findNextUnescapedCharacter",
+      "ranges": [
+        {
+          "startOffset": 1029,
+          "endOffset": 1436,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findNextUnescapedCharacterBackwards",
+      "ranges": [
+        {
+          "startOffset": 1871,
+          "endOffset": 2292,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findLastUnescapedCharacter",
+      "ranges": [
+        {
+          "startOffset": 2638,
+          "endOffset": 3024,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findNextUnescapedCharacterThatNotFollowedBy",
+      "ranges": [
+        {
+          "startOffset": 3535,
+          "endOffset": 4027,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findLastUnescapedCharacterThatNotFollowedBy",
+      "ranges": [
+        {
+          "startOffset": 4504,
+          "endOffset": 4990,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findUnescapedNonStringNonRegexChar",
+      "ranges": [
+        {
+          "startOffset": 5383,
+          "endOffset": 6148,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findLastUnescapedNonStringNonRegexChar",
+      "ranges": [
+        {
+          "startOffset": 6701,
+          "endOffset": 7757,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findNextUnquotedUnescapedCharacter",
+      "ranges": [
+        {
+          "startOffset": 8204,
+          "endOffset": 9027,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findNextNotBracketedUnescapedCharacter",
+      "ranges": [
+        {
+          "startOffset": 9610,
+          "endOffset": 10338,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "splitStringByUnquotedUnescapedCharacter",
+      "ranges": [
+        {
+          "startOffset": 10669,
+          "endOffset": 11323,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "splitStringByUnescapedNonStringNonRegexChar",
+      "ranges": [
+        {
+          "startOffset": 11710,
+          "endOffset": 12368,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "splitStringByUnescapedCharacter",
+      "ranges": [
+        {
+          "startOffset": 12632,
+          "endOffset": 13270,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isWhitespace",
+      "ranges": [
+        {
+          "startOffset": 13515,
+          "endOffset": 13588,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isDigit",
+      "ranges": [
+        {
+          "startOffset": 13792,
+          "endOffset": 13866,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isSmallLetter",
+      "ranges": [
+        {
+          "startOffset": 14084,
+          "endOffset": 14176,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isCapitalLetter",
+      "ranges": [
+        {
+          "startOffset": 14398,
+          "endOffset": 14496,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isLetter",
+      "ranges": [
+        {
+          "startOffset": 14721,
+          "endOffset": 14828,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isAlphaNumeric",
+      "ranges": [
+        {
+          "startOffset": 15051,
+          "endOffset": 15151,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findFirstNonWhitespaceCharacter",
+      "ranges": [
+        {
+          "startOffset": 15392,
+          "endOffset": 15635,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findLastNonWhitespaceCharacter",
+      "ranges": [
+        {
+          "startOffset": 15841,
+          "endOffset": 16073,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findNextWhitespaceCharacter",
+      "ranges": [
+        {
+          "startOffset": 16339,
+          "endOffset": 16589,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "escapeCharacter",
+      "ranges": [
+        {
+          "startOffset": 16850,
+          "endOffset": 17217,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "skipWS",
+      "ranges": [
+        {
+          "startOffset": 17489,
+          "endOffset": 17697,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "skipWSBack",
+      "ranges": [
+        {
+          "startOffset": 17954,
+          "endOffset": 18159,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isEOL",
+      "ranges": [
+        {
+          "startOffset": 18384,
+          "endOffset": 18461,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "splitStringByNewLines",
+      "ranges": [
+        {
+          "startOffset": 18612,
+          "endOffset": 18685,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "splitStringByNewLinesEx",
+      "ranges": [
+        {
+          "startOffset": 19004,
+          "endOffset": 20172,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "mergeStringByNewLines",
+      "ranges": [
+        {
+          "startOffset": 20432,
+          "endOffset": 21171,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "parseNumber",
+      "ranges": [
+        {
+          "startOffset": 21390,
+          "endOffset": 21575,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isString",
+      "ranges": [
+        {
+          "startOffset": 21758,
+          "endOffset": 21823,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "escapeCharacters",
+      "ranges": [
+        {
+          "startOffset": 22065,
+          "endOffset": 22367,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

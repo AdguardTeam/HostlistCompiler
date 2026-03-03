@@ -1,0 +1,145 @@
+{
+  "scriptId": "371",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/utils/Wildcard.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 2149,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 269,
+          "endOffset": 293,
+          "count": 12
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "Wildcard",
+      "ranges": [
+        {
+          "startOffset": 477,
+          "endOffset": 1078,
+          "count": 12
+        },
+        {
+          "startOffset": 517,
+          "endOffset": 579,
+          "count": 0
+        },
+        {
+          "startOffset": 678,
+          "endOffset": 702,
+          "count": 1
+        },
+        {
+          "startOffset": 703,
+          "endOffset": 724,
+          "count": 1
+        },
+        {
+          "startOffset": 726,
+          "endOffset": 845,
+          "count": 1
+        },
+        {
+          "startOffset": 845,
+          "endOffset": 1074,
+          "count": 11
+        },
+        {
+          "startOffset": 878,
+          "endOffset": 1074,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "test",
+      "ranges": [
+        {
+          "startOffset": 1310,
+          "endOffset": 1549,
+          "count": 13
+        },
+        {
+          "startOffset": 1355,
+          "endOffset": 1433,
+          "count": 0
+        },
+        {
+          "startOffset": 1505,
+          "endOffset": 1548,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "toString",
+      "ranges": [
+        {
+          "startOffset": 1608,
+          "endOffset": 1650,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get pattern",
+      "ranges": [
+        {
+          "startOffset": 1697,
+          "endOffset": 1742,
+          "count": 8
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "get isRegex",
+      "ranges": [
+        {
+          "startOffset": 1799,
+          "endOffset": 1883,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isWildcard",
+      "ranges": [
+        {
+          "startOffset": 1943,
+          "endOffset": 2031,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isPlain",
+      "ranges": [
+        {
+          "startOffset": 2095,
+          "endOffset": 2146,
+          "count": 12
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

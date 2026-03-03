@@ -1,0 +1,259 @@
+{
+  "scriptId": "436",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/parser/css/css-token-stream.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 15142,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 926,
+          "endOffset": 1147,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "CssTokenStream",
+      "ranges": [
+        {
+          "startOffset": 1351,
+          "endOffset": 2579,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get length",
+      "ranges": [
+        {
+          "startOffset": 2707,
+          "endOffset": 2762,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isEof",
+      "ranges": [
+        {
+          "startOffset": 2922,
+          "endOffset": 2986,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get",
+      "ranges": [
+        {
+          "startOffset": 3209,
+          "endOffset": 3275,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getOrFail",
+      "ranges": [
+        {
+          "startOffset": 3612,
+          "endOffset": 3930,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "fragment",
+      "ranges": [
+        {
+          "startOffset": 4199,
+          "endOffset": 4389,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "advance",
+      "ranges": [
+        {
+          "startOffset": 4555,
+          "endOffset": 4705,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "lookahead",
+      "ranges": [
+        {
+          "startOffset": 4965,
+          "endOffset": 5054,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "lookbehind",
+      "ranges": [
+        {
+          "startOffset": 5332,
+          "endOffset": 5494,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "lookbehindForNonWs",
+      "ranges": [
+        {
+          "startOffset": 5711,
+          "endOffset": 5947,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "skipWhitespace",
+      "ranges": [
+        {
+          "startOffset": 6014,
+          "endOffset": 6137,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "skipUntilBalanced",
+      "ranges": [
+        {
+          "startOffset": 6275,
+          "endOffset": 6948,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "skipUntil",
+      "ranges": [
+        {
+          "startOffset": 7237,
+          "endOffset": 7520,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "skipUntilExt",
+      "ranges": [
+        {
+          "startOffset": 8078,
+          "endOffset": 9075,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "expectNotEof",
+      "ranges": [
+        {
+          "startOffset": 9154,
+          "endOffset": 9363,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "expect",
+      "ranges": [
+        {
+          "startOffset": 9684,
+          "endOffset": 10846,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getBalance",
+      "ranges": [
+        {
+          "startOffset": 11102,
+          "endOffset": 11189,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "hasAnySelectorExtendedCssNode",
+      "ranges": [
+        {
+          "startOffset": 11412,
+          "endOffset": 11534,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "hasAnySelectorExtendedCssNodeStrict",
+      "ranges": [
+        {
+          "startOffset": 12053,
+          "endOffset": 12188,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "hasNativeCssPseudoClass",
+      "ranges": [
+        {
+          "startOffset": 12880,
+          "endOffset": 13562,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "hasAnySelectorExtendedCssNodeInternal",
+      "ranges": [
+        {
+          "startOffset": 13860,
+          "endOffset": 15111,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "scriptId": "635",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/plugins/PluginSystem.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 6888,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 369,
+          "endOffset": 456,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "PluginRegistry",
+      "ranges": [
+        {
+          "startOffset": 558,
+          "endOffset": 625,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "register",
+      "ranges": [
+        {
+          "startOffset": 666,
+          "endOffset": 2158,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "unregister",
+      "ranges": [
+        {
+          "startOffset": 2201,
+          "endOffset": 2895,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getTransformation",
+      "ranges": [
+        {
+          "startOffset": 2946,
+          "endOffset": 3018,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getDownloader",
+      "ranges": [
+        {
+          "startOffset": 3075,
+          "endOffset": 3256,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getPlugin",
+      "ranges": [
+        {
+          "startOffset": 3309,
+          "endOffset": 3365,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getPlugins",
+      "ranges": [
+        {
+          "startOffset": 3415,
+          "endOffset": 3479,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "listPlugins",
+      "ranges": [
+        {
+          "startOffset": 3530,
+          "endOffset": 3616,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "listTransformations",
+      "ranges": [
+        {
+          "startOffset": 3694,
+          "endOffset": 3969,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "listSchemes",
+      "ranges": [
+        {
+          "startOffset": 4024,
+          "endOffset": 4091,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "hasTransformation",
+      "ranges": [
+        {
+          "startOffset": 4153,
+          "endOffset": 4225,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "clear",
+      "ranges": [
+        {
+          "startOffset": 4277,
+          "endOffset": 4419,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 4605,
+          "endOffset": 4676,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "PluginTransformationWrapper",
+      "ranges": [
+        {
+          "startOffset": 4848,
+          "endOffset": 4983,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "execute",
+      "ranges": [
+        {
+          "startOffset": 5186,
+          "endOffset": 5269,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "loadPlugin",
+      "ranges": [
+        {
+          "startOffset": 5329,
+          "endOffset": 6407,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "createSimplePlugin",
+      "ranges": [
+        {
+          "startOffset": 6481,
+          "endOffset": 6792,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

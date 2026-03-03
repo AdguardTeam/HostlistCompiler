@@ -1,0 +1,28 @@
+{
+  "scriptId": "504",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/common/abp-snippet-injection-body-common.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 717,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<static_initializer>",
+      "ranges": [
+        {
+          "startOffset": 488,
+          "endOffset": 670,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "scriptId": "485",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/converter/base-interfaces/base-converter.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 2365,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "convertToAdg",
+      "ranges": [
+        {
+          "startOffset": 1133,
+          "endOffset": 1200,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertToAbp",
+      "ranges": [
+        {
+          "startOffset": 1700,
+          "endOffset": 1767,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertToUbo",
+      "ranges": [
+        {
+          "startOffset": 2268,
+          "endOffset": 2335,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "scriptId": "339",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/platform/CompositeFetcher.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1249,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 275,
+          "endOffset": 283,
+          "count": 6
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "CompositeFetcher",
+      "ranges": [
+        {
+          "startOffset": 404,
+          "endOffset": 460,
+          "count": 6
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "canHandle",
+      "ranges": [
+        {
+          "startOffset": 533,
+          "endOffset": 613,
+          "count": 7
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 583,
+          "endOffset": 607,
+          "count": 9
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "fetch",
+      "ranges": [
+        {
+          "startOffset": 703,
+          "endOffset": 928,
+          "count": 7
+        },
+        {
+          "startOffset": 804,
+          "endOffset": 851,
+          "count": 6
+        },
+        {
+          "startOffset": 857,
+          "endOffset": 927,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "addFetcher",
+      "ranges": [
+        {
+          "startOffset": 1091,
+          "endOffset": 1246,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

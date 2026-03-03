@@ -1,0 +1,17 @@
+{
+  "scriptId": "377",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/utils/index.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1912,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

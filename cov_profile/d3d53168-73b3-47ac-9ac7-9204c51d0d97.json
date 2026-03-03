@@ -1,0 +1,39 @@
+{
+  "scriptId": "416",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/parser/network/host-rule-parser.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 4790,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<static_initializer>",
+      "ranges": [
+        {
+          "startOffset": 1325,
+          "endOffset": 1384,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "parse",
+      "ranges": [
+        {
+          "startOffset": 1741,
+          "endOffset": 4759,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

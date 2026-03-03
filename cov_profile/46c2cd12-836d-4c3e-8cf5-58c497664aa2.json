@@ -1,0 +1,222 @@
+{
+  "scriptId": "366",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/storage/ChangeDetector.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 6007,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 82,
+          "endOffset": 99,
+          "count": 24
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "ChangeDetector",
+      "ranges": [
+        {
+          "startOffset": 103,
+          "endOffset": 190,
+          "count": 24
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "createSnapshot",
+      "ranges": [
+        {
+          "startOffset": 259,
+          "endOffset": 467,
+          "count": 25
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "storeSnapshot",
+      "ranges": [
+        {
+          "startOffset": 529,
+          "endOffset": 734,
+          "count": 25
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getLastSnapshot",
+      "ranges": [
+        {
+          "startOffset": 792,
+          "endOffset": 959,
+          "count": 25
+        },
+        {
+          "startOffset": 940,
+          "endOffset": 946,
+          "count": 4
+        },
+        {
+          "startOffset": 947,
+          "endOffset": 954,
+          "count": 21
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "detectChanges",
+      "ranges": [
+        {
+          "startOffset": 1045,
+          "endOffset": 2093,
+          "count": 25
+        },
+        {
+          "startOffset": 1242,
+          "endOffset": 1438,
+          "count": 21
+        },
+        {
+          "startOffset": 1438,
+          "endOffset": 1684,
+          "count": 4
+        },
+        {
+          "startOffset": 1685,
+          "endOffset": 1688,
+          "count": 0
+        },
+        {
+          "startOffset": 1784,
+          "endOffset": 1940,
+          "count": 2
+        },
+        {
+          "startOffset": 1863,
+          "endOffset": 1867,
+          "count": 0
+        },
+        {
+          "startOffset": 1940,
+          "endOffset": 2092,
+          "count": 4
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "detectAndStore",
+      "ranges": [
+        {
+          "startOffset": 2166,
+          "endOffset": 2397,
+          "count": 25
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getAllSnapshots",
+      "ranges": [
+        {
+          "startOffset": 2445,
+          "endOffset": 2634,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getSnapshotHistory",
+      "ranges": [
+        {
+          "startOffset": 2700,
+          "endOffset": 2960,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "archiveSnapshot",
+      "ranges": [
+        {
+          "startOffset": 3042,
+          "endOffset": 3242,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "generateChangeSummary",
+      "ranges": [
+        {
+          "startOffset": 3312,
+          "endOffset": 3949,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "generateChangeReport",
+      "ranges": [
+        {
+          "startOffset": 4006,
+          "endOffset": 4725,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "compareSnapshots",
+      "ranges": [
+        {
+          "startOffset": 4797,
+          "endOffset": 5124,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "clearAllSnapshots",
+      "ranges": [
+        {
+          "startOffset": 5167,
+          "endOffset": 5500,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "clearSourceSnapshots",
+      "ranges": [
+        {
+          "startOffset": 5561,
+          "endOffset": 6004,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

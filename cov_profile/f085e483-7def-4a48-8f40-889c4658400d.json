@@ -1,0 +1,127 @@
+{
+  "scriptId": "365",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/downloader/ContentFetcher.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 4842,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "readTextFile",
+      "ranges": [
+        {
+          "startOffset": 411,
+          "endOffset": 483,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "writeTextFile",
+      "ranges": [
+        {
+          "startOffset": 486,
+          "endOffset": 571,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "exists",
+      "ranges": [
+        {
+          "startOffset": 574,
+          "endOffset": 784,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "fetch",
+      "ranges": [
+        {
+          "startOffset": 872,
+          "endOffset": 941,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 1152,
+          "endOffset": 1197,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "ContentFetcher",
+      "ranges": [
+        {
+          "startOffset": 1499,
+          "endOffset": 1778,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "fetch",
+      "ranges": [
+        {
+          "startOffset": 1976,
+          "endOffset": 3033,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "fetchFromUrl",
+      "ranges": [
+        {
+          "startOffset": 3199,
+          "endOffset": 4026,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "fetchFromFile",
+      "ranges": [
+        {
+          "startOffset": 4197,
+          "endOffset": 4586,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "resolveIncludePath",
+      "ranges": [
+        {
+          "startOffset": 4728,
+          "endOffset": 4839,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "scriptId": "369",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/transformations/base/Transformation.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1818,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 344,
+          "endOffset": 350,
+          "count": 25
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "Transformation",
+      "ranges": [
+        {
+          "startOffset": 452,
+          "endOffset": 519,
+          "count": 25
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "info",
+      "ranges": [
+        {
+          "startOffset": 561,
+          "endOffset": 611,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "debug",
+      "ranges": [
+        {
+          "startOffset": 653,
+          "endOffset": 705,
+          "count": 20
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "error",
+      "ranges": [
+        {
+          "startOffset": 748,
+          "endOffset": 800,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "execute",
+      "ranges": [
+        {
+          "startOffset": 1333,
+          "endOffset": 1424,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

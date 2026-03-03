@@ -1,0 +1,79 @@
+{
+  "scriptId": "337",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/transformations/RemoveModifiersTransformation.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1787,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 552,
+          "endOffset": 670,
+          "count": 12
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "executeSync",
+      "ranges": [
+        {
+          "startOffset": 828,
+          "endOffset": 1784,
+          "count": 12
+        },
+        {
+          "startOffset": 937,
+          "endOffset": 1695,
+          "count": 11
+        },
+        {
+          "startOffset": 1103,
+          "endOffset": 1163,
+          "count": 1
+        },
+        {
+          "startOffset": 1163,
+          "endOffset": 1326,
+          "count": 10
+        },
+        {
+          "startOffset": 1326,
+          "endOffset": 1437,
+          "count": 70
+        },
+        {
+          "startOffset": 1385,
+          "endOffset": 1427,
+          "count": 10
+        },
+        {
+          "startOffset": 1437,
+          "endOffset": 1521,
+          "count": 10
+        },
+        {
+          "startOffset": 1521,
+          "endOffset": 1562,
+          "count": 9
+        },
+        {
+          "startOffset": 1571,
+          "endOffset": 1689,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

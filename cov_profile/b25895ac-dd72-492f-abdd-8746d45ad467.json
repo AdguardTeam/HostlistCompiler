@@ -1,0 +1,273 @@
+{
+  "scriptId": "367",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/storage/SourceHealthMonitor.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 7544,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 78,
+          "endOffset": 289,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 392,
+          "endOffset": 430,
+          "count": 24
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "SourceHealthMonitor",
+      "ranges": [
+        {
+          "startOffset": 434,
+          "endOffset": 593,
+          "count": 24
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "recordAttempt",
+      "ranges": [
+        {
+          "startOffset": 652,
+          "endOffset": 3132,
+          "count": 25
+        },
+        {
+          "startOffset": 1275,
+          "endOffset": 1278,
+          "count": 0
+        },
+        {
+          "startOffset": 1346,
+          "endOffset": 1349,
+          "count": 0
+        },
+        {
+          "startOffset": 1779,
+          "endOffset": 1875,
+          "count": 24
+        },
+        {
+          "startOffset": 1876,
+          "endOffset": 1887,
+          "count": 1
+        },
+        {
+          "startOffset": 2019,
+          "endOffset": 2059,
+          "count": 0
+        },
+        {
+          "startOffset": 2457,
+          "endOffset": 2478,
+          "count": 0
+        },
+        {
+          "startOffset": 2508,
+          "endOffset": 2527,
+          "count": 0
+        },
+        {
+          "startOffset": 2863,
+          "endOffset": 2972,
+          "count": 0
+        },
+        {
+          "startOffset": 3016,
+          "endOffset": 3128,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1490,
+          "endOffset": 1505,
+          "count": 29
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1556,
+          "endOffset": 1569,
+          "count": 29
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1687,
+          "endOffset": 1716,
+          "count": 29
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1808,
+          "endOffset": 1842,
+          "count": 28
+        },
+        {
+          "startOffset": 1837,
+          "endOffset": 1841,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getHealthMetrics",
+      "ranges": [
+        {
+          "startOffset": 3187,
+          "endOffset": 3704,
+          "count": 25
+        },
+        {
+          "startOffset": 3330,
+          "endOffset": 3336,
+          "count": 4
+        },
+        {
+          "startOffset": 3338,
+          "endOffset": 3370,
+          "count": 4
+        },
+        {
+          "startOffset": 3370,
+          "endOffset": 3703,
+          "count": 21
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getAllSources",
+      "ranges": [
+        {
+          "startOffset": 3753,
+          "endOffset": 3937,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getUnhealthySources",
+      "ranges": [
+        {
+          "startOffset": 3982,
+          "endOffset": 4176,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getFailingSources",
+      "ranges": [
+        {
+          "startOffset": 4238,
+          "endOffset": 4377,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "calculateHealthStatus",
+      "ranges": [
+        {
+          "startOffset": 4441,
+          "endOffset": 4988,
+          "count": 25
+        },
+        {
+          "startOffset": 4583,
+          "endOffset": 4627,
+          "count": 0
+        },
+        {
+          "startOffset": 4711,
+          "endOffset": 4754,
+          "count": 0
+        },
+        {
+          "startOffset": 4860,
+          "endOffset": 4984,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "generateHealthReport",
+      "ranges": [
+        {
+          "startOffset": 5052,
+          "endOffset": 6902,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "clearSourceHealth",
+      "ranges": [
+        {
+          "startOffset": 6965,
+          "endOffset": 7155,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "clearAllHealth",
+      "ranges": [
+        {
+          "startOffset": 7200,
+          "endOffset": 7541,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

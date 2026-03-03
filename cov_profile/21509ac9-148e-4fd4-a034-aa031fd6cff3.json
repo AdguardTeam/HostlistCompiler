@@ -1,0 +1,39 @@
+{
+  "scriptId": "768",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/parser/cosmetic/selector/handlers/compound-selector-handler.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 4054,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<static_initializer>",
+      "ranges": [
+        {
+          "startOffset": 755,
+          "endOffset": 965,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "handle",
+      "ranges": [
+        {
+          "startOffset": 1436,
+          "endOffset": 4014,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

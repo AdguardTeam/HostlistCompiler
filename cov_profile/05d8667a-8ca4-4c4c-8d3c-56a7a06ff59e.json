@@ -1,0 +1,63 @@
+{
+  "scriptId": "423",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/parser/misc/modifier-list.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 6228,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "parse",
+      "ranges": [
+        {
+          "startOffset": 1557,
+          "endOffset": 6193,
+          "count": 2
+        },
+        {
+          "startOffset": 1749,
+          "endOffset": 1849,
+          "count": 0
+        },
+        {
+          "startOffset": 2431,
+          "endOffset": 2462,
+          "count": 0
+        },
+        {
+          "startOffset": 2464,
+          "endOffset": 4728,
+          "count": 0
+        },
+        {
+          "startOffset": 4852,
+          "endOffset": 5040,
+          "count": 0
+        },
+        {
+          "startOffset": 5407,
+          "endOffset": 5460,
+          "count": 0
+        },
+        {
+          "startOffset": 5807,
+          "endOffset": 5827,
+          "count": 0
+        },
+        {
+          "startOffset": 5943,
+          "endOffset": 6164,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "scriptId": "607",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/downloader/FilterDownloader.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 13513,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1422,
+          "endOffset": 1673,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "evaluateCondition",
+      "ranges": [
+        {
+          "startOffset": 1837,
+          "endOffset": 1945,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 2021,
+          "endOffset": 2096,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "FilterDownloader",
+      "ranges": [
+        {
+          "startOffset": 2243,
+          "endOffset": 2389,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getCircuitBreaker",
+      "ranges": [
+        {
+          "startOffset": 2455,
+          "endOffset": 2922,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "download",
+      "ranges": [
+        {
+          "startOffset": 3109,
+          "endOffset": 3212,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "downloadInternal",
+      "ranges": [
+        {
+          "startOffset": 3287,
+          "endOffset": 4471,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "fetchUrl",
+      "ranges": [
+        {
+          "startOffset": 4557,
+          "endOffset": 8019,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "readFile",
+      "ranges": [
+        {
+          "startOffset": 8073,
+          "endOffset": 8598,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "processDirectives",
+      "ranges": [
+        {
+          "startOffset": 8676,
+          "endOffset": 10953,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "parseConditionalBlock",
+      "ranges": [
+        {
+          "startOffset": 11032,
+          "endOffset": 12102,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findEndIfIndex",
+      "ranges": [
+        {
+          "startOffset": 12189,
+          "endOffset": 12597,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "download",
+      "ranges": [
+        {
+          "startOffset": 12674,
+          "endOffset": 12947,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getCircuitBreakerStats",
+      "ranges": [
+        {
+          "startOffset": 13057,
+          "endOffset": 13248,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "resetCircuitBreakers",
+      "ranges": [
+        {
+          "startOffset": 13343,
+          "endOffset": 13510,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

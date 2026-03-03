@@ -1,0 +1,107 @@
+{
+  "scriptId": "365",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/downloader/ConditionalEvaluator.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 2864,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 250,
+          "endOffset": 258,
+          "count": 17
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "ConditionalEvaluator",
+      "ranges": [
+        {
+          "startOffset": 397,
+          "endOffset": 453,
+          "count": 17
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<static_initializer>",
+      "ranges": [
+        {
+          "startOffset": 510,
+          "endOffset": 933,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "evaluate",
+      "ranges": [
+        {
+          "startOffset": 1288,
+          "endOffset": 2577,
+          "count": 11
+        },
+        {
+          "startOffset": 1418,
+          "endOffset": 1444,
+          "count": 0
+        },
+        {
+          "startOffset": 1566,
+          "endOffset": 1763,
+          "count": 220
+        },
+        {
+          "startOffset": 1657,
+          "endOffset": 1670,
+          "count": 80
+        },
+        {
+          "startOffset": 1693,
+          "endOffset": 1701,
+          "count": 4
+        },
+        {
+          "startOffset": 1702,
+          "endOffset": 1711,
+          "count": 216
+        },
+        {
+          "startOffset": 2074,
+          "endOffset": 2185,
+          "count": 0
+        },
+        {
+          "startOffset": 2410,
+          "endOffset": 2573,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isValid",
+      "ranges": [
+        {
+          "startOffset": 2735,
+          "endOffset": 2861,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

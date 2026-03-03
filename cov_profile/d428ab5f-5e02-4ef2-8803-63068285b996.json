@@ -1,0 +1,116 @@
+{
+  "scriptId": "429",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/utils/quotes.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 14808,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "escapeUnescapedOccurrences",
+      "ranges": [
+        {
+          "startOffset": 1248,
+          "endOffset": 1590,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "unescapeSingleEscapedOccurrences",
+      "ranges": [
+        {
+          "startOffset": 1803,
+          "endOffset": 2223,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getStringQuoteType",
+      "ranges": [
+        {
+          "startOffset": 2372,
+          "endOffset": 2971,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "setStringQuoteType",
+      "ranges": [
+        {
+          "startOffset": 3186,
+          "endOffset": 6134,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "removeQuotes",
+      "ranges": [
+        {
+          "startOffset": 6294,
+          "endOffset": 6668,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "removeQuotesAndUnescape",
+      "ranges": [
+        {
+          "startOffset": 6915,
+          "endOffset": 7528,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "quoteAndJoinStrings",
+      "ranges": [
+        {
+          "startOffset": 7969,
+          "endOffset": 8189,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "escapeAttributeDoubleQuotes",
+      "ranges": [
+        {
+          "startOffset": 9163,
+          "endOffset": 11458,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "unescapeAttributeDoubleQuotes",
+      "ranges": [
+        {
+          "startOffset": 12462,
+          "endOffset": 14759,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

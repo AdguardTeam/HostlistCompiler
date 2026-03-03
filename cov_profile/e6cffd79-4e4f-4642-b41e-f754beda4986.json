@@ -1,0 +1,138 @@
+{
+  "scriptId": "489",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/compatibility-tables/base.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 9328,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 772,
+          "endOffset": 953,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "CompatibilityTableBase",
+      "ranges": [
+        {
+          "startOffset": 1158,
+          "endOffset": 1281,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getRowStorage",
+      "ranges": [
+        {
+          "startOffset": 1504,
+          "endOffset": 1677,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "existsAny",
+      "ranges": [
+        {
+          "startOffset": 2062,
+          "endOffset": 2234,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "exists",
+      "ranges": [
+        {
+          "startOffset": 2521,
+          "endOffset": 3749,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getSingle",
+      "ranges": [
+        {
+          "startOffset": 4020,
+          "endOffset": 4354,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getMultiple",
+      "ranges": [
+        {
+          "startOffset": 4859,
+          "endOffset": 5744,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getAllMultiple",
+      "ranges": [
+        {
+          "startOffset": 5970,
+          "endOffset": 6478,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getFirst",
+      "ranges": [
+        {
+          "startOffset": 6783,
+          "endOffset": 7673,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getRow",
+      "ranges": [
+        {
+          "startOffset": 7886,
+          "endOffset": 8134,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getRowsByProduct",
+      "ranges": [
+        {
+          "startOffset": 8284,
+          "endOffset": 9289,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

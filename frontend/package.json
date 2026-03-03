@@ -1,0 +1,44 @@
+{
+    "name": "adblock-compiler-frontend",
+    "version": "1.0.0",
+    "description": "Angular 21 PoC for Adblock Compiler with Material Design, Zoneless Change Detection, and Cloudflare Workers SSR",
+    "private": true,
+    "scripts": {
+        "ng": "ng",
+        "start": "ng serve",
+        "build": "ng build",
+        "watch": "ng build --watch --configuration development",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+        "preview": "wrangler dev",
+        "deploy": "wrangler deploy"
+    },
+    "dependencies": {
+        "@angular/animations": "^21.0.0",
+        "@angular/cdk": "^21.0.0",
+        "@angular/common": "^21.0.0",
+        "@angular/compiler": "^21.0.0",
+        "@angular/core": "^21.0.0",
+        "@angular/forms": "^21.0.0",
+        "@angular/material": "^21.0.0",
+        "@angular/platform-browser": "^21.0.0",
+        "@angular/platform-server": "^21.0.0",
+        "@angular/router": "^21.0.0",
+        "@angular/ssr": "^21.0.0",
+        "@fontsource/roboto": "^5.2.5",
+        "material-symbols": "^0.31.0",
+        "rxjs": "~7.8.2",
+        "tslib": "^2.3.0"
+    },
+    "devDependencies": {
+        "@analogjs/vitest-angular": "^1.0.0",
+        "@angular-devkit/build-angular": "^21.0.0",
+        "@angular/cli": "^21.0.0",
+        "@angular/compiler-cli": "^21.0.0",
+        "@cloudflare/workers-types": "^4.0.0",
+        "@vitest/coverage-v8": "^4.0.0",
+        "typescript": "~5.9.0",
+        "vitest": "^4.0.0"
+    }
+}

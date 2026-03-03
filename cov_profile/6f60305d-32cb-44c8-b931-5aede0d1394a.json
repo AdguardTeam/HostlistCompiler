@@ -1,0 +1,3870 @@
+{
+  "scriptId": "476",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/zod@3.24.4/node_modules/zod/lib/index.mjs",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 157150,
+          "count": 1
+        },
+        {
+          "startOffset": 19505,
+          "endOffset": 19669,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 11,
+          "endOffset": 2023,
+          "count": 1
+        },
+        {
+          "startOffset": 986,
+          "endOffset": 1246,
+          "count": 0
+        },
+        {
+          "startOffset": 1561,
+          "endOffset": 1639,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "util.assertEqual",
+      "ranges": [
+        {
+          "startOffset": 52,
+          "endOffset": 64,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "assertIs",
+      "ranges": [
+        {
+          "startOffset": 70,
+          "endOffset": 97,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "assertNever",
+      "ranges": [
+        {
+          "startOffset": 132,
+          "endOffset": 191,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "util.arrayToEnum",
+      "ranges": [
+        {
+          "startOffset": 251,
+          "endOffset": 389,
+          "count": 2
+        },
+        {
+          "startOffset": 322,
+          "endOffset": 363,
+          "count": 36
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "util.getValidEnumValues",
+      "ranges": [
+        {
+          "startOffset": 421,
+          "endOffset": 686,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "util.objectValues",
+      "ranges": [
+        {
+          "startOffset": 712,
+          "endOffset": 822,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "util.objectKeys.Object.keys.keys",
+      "ranges": [
+        {
+          "startOffset": 921,
+          "endOffset": 946,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "util.objectKeys",
+      "ranges": [
+        {
+          "startOffset": 988,
+          "endOffset": 1246,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "util.find",
+      "ranges": [
+        {
+          "startOffset": 1264,
+          "endOffset": 1419,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1491,
+          "endOffset": 1521,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "util.isInteger",
+      "ranges": [
+        {
+          "startOffset": 1563,
+          "endOffset": 1639,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "joinValues",
+      "ranges": [
+        {
+          "startOffset": 1645,
+          "endOffset": 1821,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "util.jsonStringifyReplacer",
+      "ranges": [
+        {
+          "startOffset": 1889,
+          "endOffset": 2020,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 2064,
+          "endOffset": 2246,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "objectUtil.mergeShapes",
+      "ranges": [
+        {
+          "startOffset": 2117,
+          "endOffset": 2243,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getParsedType",
+      "ranges": [
+        {
+          "startOffset": 2620,
+          "endOffset": 4087,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "quotelessJson",
+      "ranges": [
+        {
+          "startOffset": 4521,
+          "endOffset": 4627,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get errors",
+      "ranges": [
+        {
+          "startOffset": 4664,
+          "endOffset": 4712,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodError",
+      "ranges": [
+        {
+          "startOffset": 4717,
+          "endOffset": 5316,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "format",
+      "ranges": [
+        {
+          "startOffset": 5321,
+          "endOffset": 7343,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "assert",
+      "ranges": [
+        {
+          "startOffset": 7355,
+          "endOffset": 7487,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "toString",
+      "ranges": [
+        {
+          "startOffset": 7492,
+          "endOffset": 7539,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get message",
+      "ranges": [
+        {
+          "startOffset": 7544,
+          "endOffset": 7640,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isEmpty",
+      "ranges": [
+        {
+          "startOffset": 7645,
+          "endOffset": 7707,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "flatten",
+      "ranges": [
+        {
+          "startOffset": 7712,
+          "endOffset": 8187,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get formErrors",
+      "ranges": [
+        {
+          "startOffset": 8192,
+          "endOffset": 8247,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodError.create",
+      "ranges": [
+        {
+          "startOffset": 8268,
+          "endOffset": 8341,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "errorMap",
+      "ranges": [
+        {
+          "startOffset": 8361,
+          "endOffset": 14045,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "setErrorMap",
+      "ranges": [
+        {
+          "startOffset": 14081,
+          "endOffset": 14138,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getErrorMap",
+      "ranges": [
+        {
+          "startOffset": 14139,
+          "endOffset": 14194,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "makeIssue",
+      "ranges": [
+        {
+          "startOffset": 14214,
+          "endOffset": 14930,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "addIssueToContext",
+      "ranges": [
+        {
+          "startOffset": 14955,
+          "endOffset": 15538,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ParseStatus",
+      "ranges": [
+        {
+          "startOffset": 15563,
+          "endOffset": 15614,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "dirty",
+      "ranges": [
+        {
+          "startOffset": 15619,
+          "endOffset": 15704,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "abort",
+      "ranges": [
+        {
+          "startOffset": 15709,
+          "endOffset": 15798,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "mergeArray",
+      "ranges": [
+        {
+          "startOffset": 15810,
+          "endOffset": 16161,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "mergeObjectAsync",
+      "ranges": [
+        {
+          "startOffset": 16173,
+          "endOffset": 16530,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "mergeObjectSync",
+      "ranges": [
+        {
+          "startOffset": 16542,
+          "endOffset": 17243,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "DIRTY",
+      "ranges": [
+        {
+          "startOffset": 17319,
+          "endOffset": 17358,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "OK",
+      "ranges": [
+        {
+          "startOffset": 17371,
+          "endOffset": 17410,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isAborted",
+      "ranges": [
+        {
+          "startOffset": 17430,
+          "endOffset": 17459,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isDirty",
+      "ranges": [
+        {
+          "startOffset": 17477,
+          "endOffset": 17504,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValid",
+      "ranges": [
+        {
+          "startOffset": 17522,
+          "endOffset": 17549,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isAsync",
+      "ranges": [
+        {
+          "startOffset": 17567,
+          "endOffset": 17628,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "__classPrivateFieldGet",
+      "ranges": [
+        {
+          "startOffset": 18453,
+          "endOffset": 18899,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "__classPrivateFieldSet",
+      "ranges": [
+        {
+          "startOffset": 18903,
+          "endOffset": 19445,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "errorUtil.errToObj.message.message.message",
+      "ranges": [
+        {
+          "startOffset": 19507,
+          "endOffset": 19669,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 19688,
+          "endOffset": 19954,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "errorUtil.errToObj",
+      "ranges": [
+        {
+          "startOffset": 19736,
+          "endOffset": 19806,
+          "count": 2
+        },
+        {
+          "startOffset": 19777,
+          "endOffset": 19790,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "errorUtil.toString",
+      "ranges": [
+        {
+          "startOffset": 19833,
+          "endOffset": 19951,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ParseInputLazyPath",
+      "ranges": [
+        {
+          "startOffset": 20062,
+          "endOffset": 20247,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get path",
+      "ranges": [
+        {
+          "startOffset": 20252,
+          "endOffset": 20579,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleResult",
+      "ranges": [
+        {
+          "startOffset": 20603,
+          "endOffset": 21158,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "processCreateParams",
+      "ranges": [
+        {
+          "startOffset": 21160,
+          "endOffset": 22343,
+          "count": 60
+        },
+        {
+          "startOffset": 21224,
+          "endOffset": 21234,
+          "count": 15
+        },
+        {
+          "startOffset": 21234,
+          "endOffset": 21334,
+          "count": 45
+        },
+        {
+          "startOffset": 21334,
+          "endOffset": 21375,
+          "count": 13
+        },
+        {
+          "startOffset": 21377,
+          "endOffset": 21501,
+          "count": 0
+        },
+        {
+          "startOffset": 21501,
+          "endOffset": 21528,
+          "count": 45
+        },
+        {
+          "startOffset": 21528,
+          "endOffset": 21571,
+          "count": 13
+        },
+        {
+          "startOffset": 21571,
+          "endOffset": 22342,
+          "count": 32
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "customMap",
+      "ranges": [
+        {
+          "startOffset": 21594,
+          "endOffset": 22291,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get description",
+      "ranges": [
+        {
+          "startOffset": 22364,
+          "endOffset": 22427,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_getType",
+      "ranges": [
+        {
+          "startOffset": 22432,
+          "endOffset": 22497,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_getOrReturnCtx",
+      "ranges": [
+        {
+          "startOffset": 22502,
+          "endOffset": 22808,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_processInputParams",
+      "ranges": [
+        {
+          "startOffset": 22813,
+          "endOffset": 23206,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parseSync",
+      "ranges": [
+        {
+          "startOffset": 23211,
+          "endOffset": 23414,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parseAsync",
+      "ranges": [
+        {
+          "startOffset": 23419,
+          "endOffset": 23528,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "parse",
+      "ranges": [
+        {
+          "startOffset": 23533,
+          "endOffset": 23701,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "safeParse",
+      "ranges": [
+        {
+          "startOffset": 23706,
+          "endOffset": 24428,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "~validate",
+      "ranges": [
+        {
+          "startOffset": 24433,
+          "endOffset": 25850,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "parseAsync",
+      "ranges": [
+        {
+          "startOffset": 25855,
+          "endOffset": 26045,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "safeParseAsync",
+      "ranges": [
+        {
+          "startOffset": 26050,
+          "endOffset": 26808,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "refine",
+      "ranges": [
+        {
+          "startOffset": 26813,
+          "endOffset": 27989,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "refinement",
+      "ranges": [
+        {
+          "startOffset": 27994,
+          "endOffset": 28384,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_refinement",
+      "ranges": [
+        {
+          "startOffset": 28389,
+          "endOffset": 28602,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "superRefine",
+      "ranges": [
+        {
+          "startOffset": 28607,
+          "endOffset": 28683,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "ZodType",
+      "ranges": [
+        {
+          "startOffset": 28688,
+          "endOffset": 30129,
+          "count": 69
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "validate",
+      "ranges": [
+        {
+          "startOffset": 30078,
+          "endOffset": 30111,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "optional",
+      "ranges": [
+        {
+          "startOffset": 30134,
+          "endOffset": 30204,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "nullable",
+      "ranges": [
+        {
+          "startOffset": 30209,
+          "endOffset": 30279,
+          "count": 13
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "nullish",
+      "ranges": [
+        {
+          "startOffset": 30284,
+          "endOffset": 30344,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "array",
+      "ranges": [
+        {
+          "startOffset": 30349,
+          "endOffset": 30402,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "promise",
+      "ranges": [
+        {
+          "startOffset": 30407,
+          "endOffset": 30475,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "or",
+      "ranges": [
+        {
+          "startOffset": 30480,
+          "endOffset": 30557,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "and",
+      "ranges": [
+        {
+          "startOffset": 30562,
+          "endOffset": 30649,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "transform",
+      "ranges": [
+        {
+          "startOffset": 30654,
+          "endOffset": 30909,
+          "count": 7
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "default",
+      "ranges": [
+        {
+          "startOffset": 30914,
+          "endOffset": 31232,
+          "count": 24
+        },
+        {
+          "startOffset": 30988,
+          "endOffset": 30993,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "defaultValueFunc",
+      "ranges": [
+        {
+          "startOffset": 30996,
+          "endOffset": 31005,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "brand",
+      "ranges": [
+        {
+          "startOffset": 31237,
+          "endOffset": 31423,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "catch",
+      "ranges": [
+        {
+          "startOffset": 31428,
+          "endOffset": 31734,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "describe",
+      "ranges": [
+        {
+          "startOffset": 31739,
+          "endOffset": 31896,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "pipe",
+      "ranges": [
+        {
+          "startOffset": 31901,
+          "endOffset": 31970,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "readonly",
+      "ranges": [
+        {
+          "startOffset": 31975,
+          "endOffset": 32034,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isOptional",
+      "ranges": [
+        {
+          "startOffset": 32039,
+          "endOffset": 32109,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isNullable",
+      "ranges": [
+        {
+          "startOffset": 32114,
+          "endOffset": 32179,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "timeRegexSource",
+      "ranges": [
+        {
+          "startOffset": 38850,
+          "endOffset": 39330,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "timeRegex",
+      "ranges": [
+        {
+          "startOffset": 39331,
+          "endOffset": 39412,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "datetimeRegex",
+      "ranges": [
+        {
+          "startOffset": 39465,
+          "endOffset": 39765,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidIP",
+      "ranges": [
+        {
+          "startOffset": 39766,
+          "endOffset": 40001,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidJWT",
+      "ranges": [
+        {
+          "startOffset": 40002,
+          "endOffset": 40688,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidCidr",
+      "ranges": [
+        {
+          "startOffset": 40689,
+          "endOffset": 40934,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 40973,
+          "endOffset": 54354,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_regex",
+      "ranges": [
+        {
+          "startOffset": 54359,
+          "endOffset": 54589,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_addCheck",
+      "ranges": [
+        {
+          "startOffset": 54594,
+          "endOffset": 54737,
+          "count": 2
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "email",
+      "ranges": [
+        {
+          "startOffset": 54742,
+          "endOffset": 54846,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "url",
+      "ranges": [
+        {
+          "startOffset": 54851,
+          "endOffset": 54951,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "emoji",
+      "ranges": [
+        {
+          "startOffset": 54956,
+          "endOffset": 55060,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "uuid",
+      "ranges": [
+        {
+          "startOffset": 55065,
+          "endOffset": 55167,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "nanoid",
+      "ranges": [
+        {
+          "startOffset": 55172,
+          "endOffset": 55278,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "cuid",
+      "ranges": [
+        {
+          "startOffset": 55283,
+          "endOffset": 55385,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "cuid2",
+      "ranges": [
+        {
+          "startOffset": 55390,
+          "endOffset": 55494,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ulid",
+      "ranges": [
+        {
+          "startOffset": 55499,
+          "endOffset": 55601,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "base64",
+      "ranges": [
+        {
+          "startOffset": 55606,
+          "endOffset": 55712,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "base64url",
+      "ranges": [
+        {
+          "startOffset": 55717,
+          "endOffset": 55966,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "jwt",
+      "ranges": [
+        {
+          "startOffset": 55971,
+          "endOffset": 56071,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ip",
+      "ranges": [
+        {
+          "startOffset": 56076,
+          "endOffset": 56174,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "cidr",
+      "ranges": [
+        {
+          "startOffset": 56179,
+          "endOffset": 56281,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "datetime",
+      "ranges": [
+        {
+          "startOffset": 56286,
+          "endOffset": 57230,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "date",
+      "ranges": [
+        {
+          "startOffset": 57235,
+          "endOffset": 57314,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "time",
+      "ranges": [
+        {
+          "startOffset": 57319,
+          "endOffset": 57908,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "duration",
+      "ranges": [
+        {
+          "startOffset": 57913,
+          "endOffset": 58023,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "regex",
+      "ranges": [
+        {
+          "startOffset": 58028,
+          "endOffset": 58198,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "includes",
+      "ranges": [
+        {
+          "startOffset": 58203,
+          "endOffset": 58527,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "startsWith",
+      "ranges": [
+        {
+          "startOffset": 58532,
+          "endOffset": 58712,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "endsWith",
+      "ranges": [
+        {
+          "startOffset": 58717,
+          "endOffset": 58893,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "min",
+      "ranges": [
+        {
+          "startOffset": 58898,
+          "endOffset": 59072,
+          "count": 2
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "max",
+      "ranges": [
+        {
+          "startOffset": 59077,
+          "endOffset": 59251,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "length",
+      "ranges": [
+        {
+          "startOffset": 59256,
+          "endOffset": 59424,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "nonempty",
+      "ranges": [
+        {
+          "startOffset": 59476,
+          "endOffset": 59558,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "trim",
+      "ranges": [
+        {
+          "startOffset": 59563,
+          "endOffset": 59707,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "toLowerCase",
+      "ranges": [
+        {
+          "startOffset": 59712,
+          "endOffset": 59870,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "toUpperCase",
+      "ranges": [
+        {
+          "startOffset": 59875,
+          "endOffset": 60033,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isDatetime",
+      "ranges": [
+        {
+          "startOffset": 60038,
+          "endOffset": 60134,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isDate",
+      "ranges": [
+        {
+          "startOffset": 60139,
+          "endOffset": 60227,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isTime",
+      "ranges": [
+        {
+          "startOffset": 60232,
+          "endOffset": 60320,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isDuration",
+      "ranges": [
+        {
+          "startOffset": 60325,
+          "endOffset": 60421,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isEmail",
+      "ranges": [
+        {
+          "startOffset": 60426,
+          "endOffset": 60516,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isURL",
+      "ranges": [
+        {
+          "startOffset": 60521,
+          "endOffset": 60607,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isEmoji",
+      "ranges": [
+        {
+          "startOffset": 60612,
+          "endOffset": 60702,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isUUID",
+      "ranges": [
+        {
+          "startOffset": 60707,
+          "endOffset": 60795,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isNANOID",
+      "ranges": [
+        {
+          "startOffset": 60800,
+          "endOffset": 60892,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isCUID",
+      "ranges": [
+        {
+          "startOffset": 60897,
+          "endOffset": 60985,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isCUID2",
+      "ranges": [
+        {
+          "startOffset": 60990,
+          "endOffset": 61080,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isULID",
+      "ranges": [
+        {
+          "startOffset": 61085,
+          "endOffset": 61173,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isIP",
+      "ranges": [
+        {
+          "startOffset": 61178,
+          "endOffset": 61262,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isCIDR",
+      "ranges": [
+        {
+          "startOffset": 61267,
+          "endOffset": 61355,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isBase64",
+      "ranges": [
+        {
+          "startOffset": 61360,
+          "endOffset": 61452,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isBase64url",
+      "ranges": [
+        {
+          "startOffset": 61457,
+          "endOffset": 61659,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get minLength",
+      "ranges": [
+        {
+          "startOffset": 61664,
+          "endOffset": 61925,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get maxLength",
+      "ranges": [
+        {
+          "startOffset": 61930,
+          "endOffset": 62191,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodString.create",
+      "ranges": [
+        {
+          "startOffset": 62213,
+          "endOffset": 62511,
+          "count": 4
+        },
+        {
+          "startOffset": 62405,
+          "endOffset": 62420,
+          "count": 0
+        },
+        {
+          "startOffset": 62448,
+          "endOffset": 62452,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "floatSafeRemainder",
+      "ranges": [
+        {
+          "startOffset": 62643,
+          "endOffset": 63099,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodNumber",
+      "ranges": [
+        {
+          "startOffset": 63138,
+          "endOffset": 63283,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 63288,
+          "endOffset": 66790,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "gte",
+      "ranges": [
+        {
+          "startOffset": 66795,
+          "endOffset": 66901,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "gt",
+      "ranges": [
+        {
+          "startOffset": 66906,
+          "endOffset": 67012,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "lte",
+      "ranges": [
+        {
+          "startOffset": 67017,
+          "endOffset": 67123,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "lt",
+      "ranges": [
+        {
+          "startOffset": 67128,
+          "endOffset": 67234,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "setLimit",
+      "ranges": [
+        {
+          "startOffset": 67239,
+          "endOffset": 67610,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_addCheck",
+      "ranges": [
+        {
+          "startOffset": 67615,
+          "endOffset": 67758,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "int",
+      "ranges": [
+        {
+          "startOffset": 67763,
+          "endOffset": 67902,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "positive",
+      "ranges": [
+        {
+          "startOffset": 67907,
+          "endOffset": 68103,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "negative",
+      "ranges": [
+        {
+          "startOffset": 68108,
+          "endOffset": 68304,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "nonpositive",
+      "ranges": [
+        {
+          "startOffset": 68309,
+          "endOffset": 68507,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "nonnegative",
+      "ranges": [
+        {
+          "startOffset": 68512,
+          "endOffset": 68710,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "multipleOf",
+      "ranges": [
+        {
+          "startOffset": 68715,
+          "endOffset": 68901,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "finite",
+      "ranges": [
+        {
+          "startOffset": 68906,
+          "endOffset": 69051,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "safe",
+      "ranges": [
+        {
+          "startOffset": 69056,
+          "endOffset": 69440,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get minValue",
+      "ranges": [
+        {
+          "startOffset": 69445,
+          "endOffset": 69705,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get maxValue",
+      "ranges": [
+        {
+          "startOffset": 69710,
+          "endOffset": 69970,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isInt",
+      "ranges": [
+        {
+          "startOffset": 69975,
+          "endOffset": 70131,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get isFinite",
+      "ranges": [
+        {
+          "startOffset": 70136,
+          "endOffset": 70762,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodNumber.create",
+      "ranges": [
+        {
+          "startOffset": 70784,
+          "endOffset": 71035,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodBigInt",
+      "ranges": [
+        {
+          "startOffset": 71075,
+          "endOffset": 71183,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 71188,
+          "endOffset": 73621,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_getInvalidInput",
+      "ranges": [
+        {
+          "startOffset": 73626,
+          "endOffset": 73902,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "gte",
+      "ranges": [
+        {
+          "startOffset": 73907,
+          "endOffset": 74013,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "gt",
+      "ranges": [
+        {
+          "startOffset": 74018,
+          "endOffset": 74124,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "lte",
+      "ranges": [
+        {
+          "startOffset": 74129,
+          "endOffset": 74235,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "lt",
+      "ranges": [
+        {
+          "startOffset": 74240,
+          "endOffset": 74346,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "setLimit",
+      "ranges": [
+        {
+          "startOffset": 74351,
+          "endOffset": 74722,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_addCheck",
+      "ranges": [
+        {
+          "startOffset": 74727,
+          "endOffset": 74870,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "positive",
+      "ranges": [
+        {
+          "startOffset": 74875,
+          "endOffset": 75079,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "negative",
+      "ranges": [
+        {
+          "startOffset": 75084,
+          "endOffset": 75288,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "nonpositive",
+      "ranges": [
+        {
+          "startOffset": 75293,
+          "endOffset": 75499,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "nonnegative",
+      "ranges": [
+        {
+          "startOffset": 75504,
+          "endOffset": 75710,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "multipleOf",
+      "ranges": [
+        {
+          "startOffset": 75715,
+          "endOffset": 75894,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get minValue",
+      "ranges": [
+        {
+          "startOffset": 75899,
+          "endOffset": 76159,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get maxValue",
+      "ranges": [
+        {
+          "startOffset": 76164,
+          "endOffset": 76424,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodBigInt.create",
+      "ranges": [
+        {
+          "startOffset": 76446,
+          "endOffset": 76744,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 76785,
+          "endOffset": 77310,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodBoolean.create",
+      "ranges": [
+        {
+          "startOffset": 77333,
+          "endOffset": 77566,
+          "count": 1
+        },
+        {
+          "startOffset": 77490,
+          "endOffset": 77505,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 77604,
+          "endOffset": 79768,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_addCheck",
+      "ranges": [
+        {
+          "startOffset": 79773,
+          "endOffset": 79914,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "min",
+      "ranges": [
+        {
+          "startOffset": 79919,
+          "endOffset": 80105,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "max",
+      "ranges": [
+        {
+          "startOffset": 80110,
+          "endOffset": 80296,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get minDate",
+      "ranges": [
+        {
+          "startOffset": 80301,
+          "endOffset": 80591,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get maxDate",
+      "ranges": [
+        {
+          "startOffset": 80596,
+          "endOffset": 80886,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodDate.create",
+      "ranges": [
+        {
+          "startOffset": 80906,
+          "endOffset": 81153,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 81193,
+          "endOffset": 81628,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodSymbol.create",
+      "ranges": [
+        {
+          "startOffset": 81650,
+          "endOffset": 81791,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 81834,
+          "endOffset": 82275,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodUndefined.create",
+      "ranges": [
+        {
+          "startOffset": 82300,
+          "endOffset": 82447,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 82485,
+          "endOffset": 82916,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodNull.create",
+      "ranges": [
+        {
+          "startOffset": 82936,
+          "endOffset": 83073,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodAny",
+      "ranges": [
+        {
+          "startOffset": 83110,
+          "endOffset": 83305,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 83310,
+          "endOffset": 83362,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodAny.create",
+      "ranges": [
+        {
+          "startOffset": 83381,
+          "endOffset": 83516,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodUnknown",
+      "ranges": [
+        {
+          "startOffset": 83557,
+          "endOffset": 83657,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 83662,
+          "endOffset": 83714,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodUnknown.create",
+      "ranges": [
+        {
+          "startOffset": 83737,
+          "endOffset": 83880,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 83919,
+          "endOffset": 84184,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodNever.create",
+      "ranges": [
+        {
+          "startOffset": 84205,
+          "endOffset": 84344,
+          "count": 2
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 84382,
+          "endOffset": 84818,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodVoid.create",
+      "ranges": [
+        {
+          "startOffset": 84838,
+          "endOffset": 84975,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 85014,
+          "endOffset": 87602,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get element",
+      "ranges": [
+        {
+          "startOffset": 87607,
+          "endOffset": 87659,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "min",
+      "ranges": [
+        {
+          "startOffset": 87664,
+          "endOffset": 87846,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "max",
+      "ranges": [
+        {
+          "startOffset": 87851,
+          "endOffset": 88033,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "length",
+      "ranges": [
+        {
+          "startOffset": 88038,
+          "endOffset": 88213,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "nonempty",
+      "ranges": [
+        {
+          "startOffset": 88218,
+          "endOffset": 88280,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodArray.create",
+      "ranges": [
+        {
+          "startOffset": 88301,
+          "endOffset": 88547,
+          "count": 4
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "deepPartialify",
+      "ranges": [
+        {
+          "startOffset": 88549,
+          "endOffset": 89524,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodObject",
+      "ranges": [
+        {
+          "startOffset": 89563,
+          "endOffset": 91118,
+          "count": 5
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "_getCached",
+      "ranges": [
+        {
+          "startOffset": 91123,
+          "endOffset": 91346,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 91351,
+          "endOffset": 94813,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get shape",
+      "ranges": [
+        {
+          "startOffset": 94818,
+          "endOffset": 94871,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "strict",
+      "ranges": [
+        {
+          "startOffset": 94876,
+          "endOffset": 95824,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "strip",
+      "ranges": [
+        {
+          "startOffset": 95829,
+          "endOffset": 95947,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "passthrough",
+      "ranges": [
+        {
+          "startOffset": 95952,
+          "endOffset": 96082,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "extend",
+      "ranges": [
+        {
+          "startOffset": 96608,
+          "endOffset": 96820,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "shape",
+      "ranges": [
+        {
+          "startOffset": 96707,
+          "endOffset": 96801,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "merge",
+      "ranges": [
+        {
+          "startOffset": 96985,
+          "endOffset": 97355,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "setKey",
+      "ranges": [
+        {
+          "startOffset": 98557,
+          "endOffset": 98632,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "catchall",
+      "ranges": [
+        {
+          "startOffset": 99455,
+          "endOffset": 99576,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "pick",
+      "ranges": [
+        {
+          "startOffset": 99581,
+          "endOffset": 99895,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "omit",
+      "ranges": [
+        {
+          "startOffset": 99900,
+          "endOffset": 100202,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "deepPartial",
+      "ranges": [
+        {
+          "startOffset": 100242,
+          "endOffset": 100300,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "partial",
+      "ranges": [
+        {
+          "startOffset": 100305,
+          "endOffset": 100761,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "required",
+      "ranges": [
+        {
+          "startOffset": 100766,
+          "endOffset": 101393,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "keyof",
+      "ranges": [
+        {
+          "startOffset": 101398,
+          "endOffset": 101472,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodObject.create",
+      "ranges": [
+        {
+          "startOffset": 101494,
+          "endOffset": 101737,
+          "count": 2
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "shape",
+      "ranges": [
+        {
+          "startOffset": 101557,
+          "endOffset": 101568,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodObject.strictCreate",
+      "ranges": [
+        {
+          "startOffset": 101764,
+          "endOffset": 102008,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodObject.lazycreate",
+      "ranges": [
+        {
+          "startOffset": 102033,
+          "endOffset": 102263,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 102302,
+          "endOffset": 105287,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get options",
+      "ranges": [
+        {
+          "startOffset": 105292,
+          "endOffset": 105347,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodUnion.create",
+      "ranges": [
+        {
+          "startOffset": 105368,
+          "endOffset": 105538,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getDiscriminator",
+      "ranges": [
+        {
+          "startOffset": 105943,
+          "endOffset": 107243,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 107295,
+          "endOffset": 108474,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get discriminator",
+      "ranges": [
+        {
+          "startOffset": 108479,
+          "endOffset": 108546,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get options",
+      "ranges": [
+        {
+          "startOffset": 108551,
+          "endOffset": 108606,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get optionsMap",
+      "ranges": [
+        {
+          "startOffset": 108611,
+          "endOffset": 108672,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "create",
+      "ranges": [
+        {
+          "startOffset": 109151,
+          "endOffset": 110170,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "mergeValues",
+      "ranges": [
+        {
+          "startOffset": 110173,
+          "endOffset": 111704,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 111749,
+          "endOffset": 113293,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodIntersection.create",
+      "ranges": [
+        {
+          "startOffset": 113321,
+          "endOffset": 113529,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 113568,
+          "endOffset": 115269,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get items",
+      "ranges": [
+        {
+          "startOffset": 115274,
+          "endOffset": 115325,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "rest",
+      "ranges": [
+        {
+          "startOffset": 115330,
+          "endOffset": 115434,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodTuple.create",
+      "ranges": [
+        {
+          "startOffset": 115455,
+          "endOffset": 115770,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get keySchema",
+      "ranges": [
+        {
+          "startOffset": 115810,
+          "endOffset": 115867,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get valueSchema",
+      "ranges": [
+        {
+          "startOffset": 115872,
+          "endOffset": 115933,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 115938,
+          "endOffset": 116938,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get element",
+      "ranges": [
+        {
+          "startOffset": 116943,
+          "endOffset": 117000,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "create",
+      "ranges": [
+        {
+          "startOffset": 117012,
+          "endOffset": 117536,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get keySchema",
+      "ranges": [
+        {
+          "startOffset": 117574,
+          "endOffset": 117631,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get valueSchema",
+      "ranges": [
+        {
+          "startOffset": 117636,
+          "endOffset": 117697,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 117702,
+          "endOffset": 119783,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodMap.create",
+      "ranges": [
+        {
+          "startOffset": 119802,
+          "endOffset": 119993,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 120030,
+          "endOffset": 122143,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "min",
+      "ranges": [
+        {
+          "startOffset": 122148,
+          "endOffset": 122322,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "max",
+      "ranges": [
+        {
+          "startOffset": 122327,
+          "endOffset": 122501,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "size",
+      "ranges": [
+        {
+          "startOffset": 122506,
+          "endOffset": 122592,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "nonempty",
+      "ranges": [
+        {
+          "startOffset": 122597,
+          "endOffset": 122659,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodSet.create",
+      "ranges": [
+        {
+          "startOffset": 122678,
+          "endOffset": 122889,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodFunction",
+      "ranges": [
+        {
+          "startOffset": 122931,
+          "endOffset": 123021,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 123026,
+          "endOffset": 126528,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "parameters",
+      "ranges": [
+        {
+          "startOffset": 126533,
+          "endOffset": 126584,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "returnType",
+      "ranges": [
+        {
+          "startOffset": 126589,
+          "endOffset": 126643,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "args",
+      "ranges": [
+        {
+          "startOffset": 126648,
+          "endOffset": 126809,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "returns",
+      "ranges": [
+        {
+          "startOffset": 126814,
+          "endOffset": 126945,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "implement",
+      "ranges": [
+        {
+          "startOffset": 126950,
+          "endOffset": 127051,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "strictImplement",
+      "ranges": [
+        {
+          "startOffset": 127056,
+          "endOffset": 127163,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "create",
+      "ranges": [
+        {
+          "startOffset": 127175,
+          "endOffset": 127524,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get schema",
+      "ranges": [
+        {
+          "startOffset": 127563,
+          "endOffset": 127618,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 127623,
+          "endOffset": 127831,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodLazy.create",
+      "ranges": [
+        {
+          "startOffset": 127851,
+          "endOffset": 128020,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 128061,
+          "endOffset": 128458,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get value",
+      "ranges": [
+        {
+          "startOffset": 128463,
+          "endOffset": 128514,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodLiteral.create",
+      "ranges": [
+        {
+          "startOffset": 128537,
+          "endOffset": 128709,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "createZodEnum",
+      "ranges": [
+        {
+          "startOffset": 128711,
+          "endOffset": 128891,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodEnum",
+      "ranges": [
+        {
+          "startOffset": 128928,
+          "endOffset": 129020,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 129025,
+          "endOffset": 130047,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get options",
+      "ranges": [
+        {
+          "startOffset": 130052,
+          "endOffset": 130106,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get enum",
+      "ranges": [
+        {
+          "startOffset": 130111,
+          "endOffset": 130278,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get Values",
+      "ranges": [
+        {
+          "startOffset": 130283,
+          "endOffset": 130452,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get Enum",
+      "ranges": [
+        {
+          "startOffset": 130457,
+          "endOffset": 130624,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "extract",
+      "ranges": [
+        {
+          "startOffset": 130629,
+          "endOffset": 130773,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "exclude",
+      "ranges": [
+        {
+          "startOffset": 130778,
+          "endOffset": 130967,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodNativeEnum",
+      "ranges": [
+        {
+          "startOffset": 131076,
+          "endOffset": 131174,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 131179,
+          "endOffset": 132365,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get enum",
+      "ranges": [
+        {
+          "startOffset": 132370,
+          "endOffset": 132421,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodNativeEnum.create",
+      "ranges": [
+        {
+          "startOffset": 132485,
+          "endOffset": 132666,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "unwrap",
+      "ranges": [
+        {
+          "startOffset": 132707,
+          "endOffset": 132754,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 132759,
+          "endOffset": 133517,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodPromise.create",
+      "ranges": [
+        {
+          "startOffset": 133540,
+          "endOffset": 133713,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "innerType",
+      "ranges": [
+        {
+          "startOffset": 133754,
+          "endOffset": 133806,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "sourceType",
+      "ranges": [
+        {
+          "startOffset": 133811,
+          "endOffset": 133990,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 133995,
+          "endOffset": 138907,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodEffects.create",
+      "ranges": [
+        {
+          "startOffset": 138930,
+          "endOffset": 139121,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodEffects.createWithPreprocess",
+      "ranges": [
+        {
+          "startOffset": 139157,
+          "endOffset": 139399,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 139441,
+          "endOffset": 139659,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "unwrap",
+      "ranges": [
+        {
+          "startOffset": 139664,
+          "endOffset": 139716,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodOptional.create",
+      "ranges": [
+        {
+          "startOffset": 139740,
+          "endOffset": 139916,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 139958,
+          "endOffset": 140166,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "unwrap",
+      "ranges": [
+        {
+          "startOffset": 140171,
+          "endOffset": 140223,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodNullable.create",
+      "ranges": [
+        {
+          "startOffset": 140247,
+          "endOffset": 140423,
+          "count": 13
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 140464,
+          "endOffset": 140811,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "removeDefault",
+      "ranges": [
+        {
+          "startOffset": 140816,
+          "endOffset": 140875,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodDefault.create",
+      "ranges": [
+        {
+          "startOffset": 140898,
+          "endOffset": 141196,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 141235,
+          "endOffset": 142702,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "removeCatch",
+      "ranges": [
+        {
+          "startOffset": 142707,
+          "endOffset": 142764,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodCatch.create",
+      "ranges": [
+        {
+          "startOffset": 142785,
+          "endOffset": 143047,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 143084,
+          "endOffset": 143537,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodNaN.create",
+      "ranges": [
+        {
+          "startOffset": 143556,
+          "endOffset": 143691,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 143767,
+          "endOffset": 143998,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "unwrap",
+      "ranges": [
+        {
+          "startOffset": 144003,
+          "endOffset": 144050,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 144093,
+          "endOffset": 145691,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "create",
+      "ranges": [
+        {
+          "startOffset": 145703,
+          "endOffset": 145864,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "_parse",
+      "ranges": [
+        {
+          "startOffset": 145907,
+          "endOffset": 146271,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "unwrap",
+      "ranges": [
+        {
+          "startOffset": 146276,
+          "endOffset": 146328,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ZodReadonly.create",
+      "ranges": [
+        {
+          "startOffset": 146352,
+          "endOffset": 146528,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "cleanParams",
+      "ranges": [
+        {
+          "startOffset": 146817,
+          "endOffset": 147088,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "custom",
+      "ranges": [
+        {
+          "startOffset": 147089,
+          "endOffset": 148290,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 148371,
+          "endOffset": 150381,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "instanceOfType",
+      "ranges": [
+        {
+          "startOffset": 150462,
+          "endOffset": 150648,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ostring",
+      "ranges": [
+        {
+          "startOffset": 151979,
+          "endOffset": 152008,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "onumber",
+      "ranges": [
+        {
+          "startOffset": 152026,
+          "endOffset": 152055,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "oboolean",
+      "ranges": [
+        {
+          "startOffset": 152074,
+          "endOffset": 152104,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "string",
+      "ranges": [
+        {
+          "startOffset": 152136,
+          "endOffset": 152187,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "number",
+      "ranges": [
+        {
+          "startOffset": 152203,
+          "endOffset": 152254,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "boolean",
+      "ranges": [
+        {
+          "startOffset": 152271,
+          "endOffset": 152344,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "bigint",
+      "ranges": [
+        {
+          "startOffset": 152360,
+          "endOffset": 152411,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "date",
+      "ranges": [
+        {
+          "startOffset": 152425,
+          "endOffset": 152474,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "get util",
+      "ranges": [
+        {
+          "startOffset": 152927,
+          "endOffset": 152955,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get objectUtil",
+      "ranges": [
+        {
+          "startOffset": 152961,
+          "endOffset": 153001,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "get ZodFirstPartyTypeKind",
+      "ranges": [
+        {
+          "startOffset": 154228,
+          "endOffset": 154290,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

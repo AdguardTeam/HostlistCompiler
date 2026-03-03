@@ -1,0 +1,83 @@
+{
+  "scriptId": "657",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/ip-regex@4.3.0/node_modules/ip-regex/index.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 2398,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1,
+          "endOffset": 2397,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 214,
+          "endOffset": 2391,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "b",
+      "ranges": [
+        {
+          "startOffset": 275,
+          "endOffset": 381,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ip",
+      "ranges": [
+        {
+          "startOffset": 2007,
+          "endOffset": 2148,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ip.v4",
+      "ranges": [
+        {
+          "startOffset": 2159,
+          "endOffset": 2257,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ip.v6",
+      "ranges": [
+        {
+          "startOffset": 2267,
+          "endOffset": 2365,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

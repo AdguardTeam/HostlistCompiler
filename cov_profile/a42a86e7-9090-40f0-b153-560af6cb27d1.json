@@ -1,0 +1,193 @@
+{
+  "scriptId": "576",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/worker/utils/response.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 4873,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "success",
+      "ranges": [
+        {
+          "startOffset": 616,
+          "endOffset": 823,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "error",
+      "ranges": [
+        {
+          "startOffset": 1030,
+          "endOffset": 1316,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "badRequest",
+      "ranges": [
+        {
+          "startOffset": 1373,
+          "endOffset": 1455,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "unauthorized",
+      "ranges": [
+        {
+          "startOffset": 1513,
+          "endOffset": 1809,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "forbidden",
+      "ranges": [
+        {
+          "startOffset": 1864,
+          "endOffset": 1945,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "notFound",
+      "ranges": [
+        {
+          "startOffset": 2000,
+          "endOffset": 2094,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "rateLimited",
+      "ranges": [
+        {
+          "startOffset": 2215,
+          "endOffset": 2574,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "serverError",
+      "ranges": [
+        {
+          "startOffset": 2641,
+          "endOffset": 2724,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "serviceUnavailable",
+      "ranges": [
+        {
+          "startOffset": 2789,
+          "endOffset": 2879,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "accepted",
+      "ranges": [
+        {
+          "startOffset": 2956,
+          "endOffset": 3067,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "cached",
+      "ranges": [
+        {
+          "startOffset": 3206,
+          "endOffset": 3309,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "noCache",
+      "ranges": [
+        {
+          "startOffset": 3367,
+          "endOffset": 3451,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "buildHeaders",
+      "ranges": [
+        {
+          "startOffset": 3515,
+          "endOffset": 4043,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "corsPreflightResponse",
+      "ranges": [
+        {
+          "startOffset": 4094,
+          "endOffset": 4396,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "generateRequestId",
+      "ranges": [
+        {
+          "startOffset": 4515,
+          "endOffset": 4632,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "generateWorkflowId",
+      "ranges": [
+        {
+          "startOffset": 4751,
+          "endOffset": 4872,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

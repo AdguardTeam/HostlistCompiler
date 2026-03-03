@@ -1,0 +1,342 @@
+{
+  "scriptId": "337",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/transformations/ConflictDetectionTransformation.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 7917,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 468,
+          "endOffset": 610,
+          "count": 10
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "ConflictDetectionTransformation",
+      "ranges": [
+        {
+          "startOffset": 780,
+          "endOffset": 969,
+          "count": 10
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getConflicts",
+      "ranges": [
+        {
+          "startOffset": 1019,
+          "endOffset": 1083,
+          "count": 8
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getStats",
+      "ranges": [
+        {
+          "startOffset": 1140,
+          "endOffset": 1281,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "clearConflicts",
+      "ranges": [
+        {
+          "startOffset": 1329,
+          "endOffset": 1376,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "executeSync",
+      "ranges": [
+        {
+          "startOffset": 1567,
+          "endOffset": 3741,
+          "count": 10
+        },
+        {
+          "startOffset": 1811,
+          "endOffset": 2555,
+          "count": 24
+        },
+        {
+          "startOffset": 1928,
+          "endOffset": 1951,
+          "count": 23
+        },
+        {
+          "startOffset": 1953,
+          "endOffset": 1980,
+          "count": 2
+        },
+        {
+          "startOffset": 1980,
+          "endOffset": 2106,
+          "count": 22
+        },
+        {
+          "startOffset": 2106,
+          "endOffset": 2133,
+          "count": 0
+        },
+        {
+          "startOffset": 2133,
+          "endOffset": 2157,
+          "count": 22
+        },
+        {
+          "startOffset": 2157,
+          "endOffset": 2350,
+          "count": 10
+        },
+        {
+          "startOffset": 2350,
+          "endOffset": 2549,
+          "count": 12
+        },
+        {
+          "startOffset": 2736,
+          "endOffset": 2763,
+          "count": 9
+        },
+        {
+          "startOffset": 2765,
+          "endOffset": 3333,
+          "count": 9
+        },
+        {
+          "startOffset": 3639,
+          "endOffset": 3667,
+          "count": 3
+        },
+        {
+          "startOffset": 3669,
+          "endOffset": 3719,
+          "count": 3
+        },
+        {
+          "startOffset": 3719,
+          "endOffset": 3740,
+          "count": 7
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "extractDomain",
+      "ranges": [
+        {
+          "startOffset": 3791,
+          "endOffset": 4545,
+          "count": 22
+        },
+        {
+          "startOffset": 3915,
+          "endOffset": 3934,
+          "count": 10
+        },
+        {
+          "startOffset": 3935,
+          "endOffset": 3941,
+          "count": 12
+        },
+        {
+          "startOffset": 4078,
+          "endOffset": 4089,
+          "count": 0
+        },
+        {
+          "startOffset": 4181,
+          "endOffset": 4541,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "createConflict",
+      "ranges": [
+        {
+          "startOffset": 4593,
+          "endOffset": 5537,
+          "count": 9
+        },
+        {
+          "startOffset": 4954,
+          "endOffset": 4982,
+          "count": 0
+        },
+        {
+          "startOffset": 5044,
+          "endOffset": 5072,
+          "count": 1
+        },
+        {
+          "startOffset": 5073,
+          "endOffset": 5077,
+          "count": 8
+        },
+        {
+          "startOffset": 5136,
+          "endOffset": 5230,
+          "count": 1
+        },
+        {
+          "startOffset": 5230,
+          "endOffset": 5382,
+          "count": 8
+        },
+        {
+          "startOffset": 5289,
+          "endOffset": 5382,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "checkSubdomainConflicts",
+      "ranges": [
+        {
+          "startOffset": 5590,
+          "endOffset": 6433,
+          "count": 10
+        },
+        {
+          "startOffset": 5790,
+          "endOffset": 6429,
+          "count": 1
+        },
+        {
+          "startOffset": 5935,
+          "endOffset": 5963,
+          "count": 0
+        },
+        {
+          "startOffset": 5965,
+          "endOffset": 6423,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "resolveConflicts",
+      "ranges": [
+        {
+          "startOffset": 6492,
+          "endOffset": 7282,
+          "count": 3
+        },
+        {
+          "startOffset": 6656,
+          "endOffset": 6746,
+          "count": 1
+        },
+        {
+          "startOffset": 6755,
+          "endOffset": 6845,
+          "count": 1
+        },
+        {
+          "startOffset": 6854,
+          "endOffset": 7099,
+          "count": 1
+        },
+        {
+          "startOffset": 7006,
+          "endOffset": 7082,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 7148,
+          "endOffset": 7187,
+          "count": 6
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "detectConflicts",
+      "ranges": [
+        {
+          "startOffset": 7372,
+          "endOffset": 7916,
+          "count": 1
+        },
+        {
+          "startOffset": 7809,
+          "endOffset": 7812,
+          "count": 0
+        },
+        {
+          "startOffset": 7906,
+          "endOffset": 7909,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 7680,
+          "endOffset": 7708,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 7782,
+          "endOffset": 7801,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 7879,
+          "endOffset": 7898,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "scriptId": "627",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/compiler/FilterCompiler.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 9629,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 652,
+          "endOffset": 754,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "FilterCompiler",
+      "ranges": [
+        {
+          "startOffset": 1255,
+          "endOffset": 2345,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "compile",
+      "ranges": [
+        {
+          "startOffset": 2521,
+          "endOffset": 2652,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "compileWithMetrics",
+      "ranges": [
+        {
+          "startOffset": 2934,
+          "endOffset": 9075,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "prepareHeader",
+      "ranges": [
+        {
+          "startOffset": 9128,
+          "endOffset": 9229,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "prepareSourceHeader",
+      "ranges": [
+        {
+          "startOffset": 9279,
+          "endOffset": 9374,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "compile",
+      "ranges": [
+        {
+          "startOffset": 9504,
+          "endOffset": 9628,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

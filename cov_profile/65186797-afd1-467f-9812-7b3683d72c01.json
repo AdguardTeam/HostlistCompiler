@@ -1,0 +1,128 @@
+{
+  "scriptId": "377",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/transformations/CompressTransformation.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 3953,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 419,
+          "endOffset": 523,
+          "count": 31
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "executeSync",
+      "ranges": [
+        {
+          "startOffset": 692,
+          "endOffset": 2078,
+          "count": 1
+        },
+        {
+          "startOffset": 852,
+          "endOffset": 1252,
+          "count": 2
+        },
+        {
+          "startOffset": 1183,
+          "endOffset": 1238,
+          "count": 0
+        },
+        {
+          "startOffset": 1446,
+          "endOffset": 1802,
+          "count": 2
+        },
+        {
+          "startOffset": 1639,
+          "endOffset": 1788,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1905,
+          "endOffset": 1943,
+          "count": 2
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 2051,
+          "endOffset": 2072,
+          "count": 2
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "hasParentDomainRule",
+      "ranges": [
+        {
+          "startOffset": 2230,
+          "endOffset": 2519,
+          "count": 2
+        },
+        {
+          "startOffset": 2461,
+          "endOffset": 2491,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "toAdblockRules",
+      "ranges": [
+        {
+          "startOffset": 2589,
+          "endOffset": 3950,
+          "count": 2
+        },
+        {
+          "startOffset": 2720,
+          "endOffset": 3041,
+          "count": 0
+        },
+        {
+          "startOffset": 3117,
+          "endOffset": 3302,
+          "count": 0
+        },
+        {
+          "startOffset": 3479,
+          "endOffset": 3508,
+          "count": 0
+        },
+        {
+          "startOffset": 3718,
+          "endOffset": 3949,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

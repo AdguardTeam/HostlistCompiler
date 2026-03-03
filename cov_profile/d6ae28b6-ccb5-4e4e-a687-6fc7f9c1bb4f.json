@@ -1,0 +1,140 @@
+{
+  "scriptId": "337",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/utils/headerFilter.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 4045,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isMetadataHeader",
+      "ranges": [
+        {
+          "startOffset": 883,
+          "endOffset": 1136,
+          "count": 78
+        },
+        {
+          "startOffset": 1050,
+          "endOffset": 1118,
+          "count": 808
+        },
+        {
+          "startOffset": 1088,
+          "endOffset": 1114,
+          "count": 33
+        },
+        {
+          "startOffset": 1118,
+          "endOffset": 1135,
+          "count": 45
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "stripUpstreamHeaders",
+      "ranges": [
+        {
+          "startOffset": 1722,
+          "endOffset": 3435,
+          "count": 10
+        },
+        {
+          "startOffset": 1885,
+          "endOffset": 3133,
+          "count": 78
+        },
+        {
+          "startOffset": 2021,
+          "endOffset": 2044,
+          "count": 33
+        },
+        {
+          "startOffset": 2044,
+          "endOffset": 2133,
+          "count": 45
+        },
+        {
+          "startOffset": 2133,
+          "endOffset": 2151,
+          "count": 28
+        },
+        {
+          "startOffset": 2153,
+          "endOffset": 2372,
+          "count": 28
+        },
+        {
+          "startOffset": 2298,
+          "endOffset": 2325,
+          "count": 21
+        },
+        {
+          "startOffset": 2325,
+          "endOffset": 2372,
+          "count": 7
+        },
+        {
+          "startOffset": 2372,
+          "endOffset": 2515,
+          "count": 17
+        },
+        {
+          "startOffset": 2517,
+          "endOffset": 2632,
+          "count": 13
+        },
+        {
+          "startOffset": 2632,
+          "endOffset": 2743,
+          "count": 4
+        },
+        {
+          "startOffset": 2745,
+          "endOffset": 2961,
+          "count": 4
+        },
+        {
+          "startOffset": 2961,
+          "endOffset": 3133,
+          "count": 0
+        },
+        {
+          "startOffset": 3261,
+          "endOffset": 3304,
+          "count": 14
+        },
+        {
+          "startOffset": 3305,
+          "endOffset": 3335,
+          "count": 5
+        },
+        {
+          "startOffset": 3365,
+          "endOffset": 3416,
+          "count": 5
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "looksLikeUpstreamHeader",
+      "ranges": [
+        {
+          "startOffset": 3734,
+          "endOffset": 4044,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "scriptId": "494",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/converter/cosmetic/html.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 32390,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "convertToAdg",
+      "ranges": [
+        {
+          "startOffset": 6030,
+          "endOffset": 8479,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertToUbo",
+      "ranges": [
+        {
+          "startOffset": 9132,
+          "endOffset": 10338,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertSpecialAttributeSelectorAdgToAdg",
+      "ranges": [
+        {
+          "startOffset": 11330,
+          "endOffset": 13339,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertSpecialPseudoClassSelectorAdgToAdg",
+      "ranges": [
+        {
+          "startOffset": 13729,
+          "endOffset": 13987,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertSpecialAttributeSelectorUboToAdg",
+      "ranges": [
+        {
+          "startOffset": 14196,
+          "endOffset": 14359,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertSpecialPseudoClassSelectorUboToAdg",
+      "ranges": [
+        {
+          "startOffset": 15034,
+          "endOffset": 16693,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertSpecialAttributeSelectorAdgToUbo",
+      "ranges": [
+        {
+          "startOffset": 17405,
+          "endOffset": 19010,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertSpecialPseudoClassSelectorAdgToUbo",
+      "ranges": [
+        {
+          "startOffset": 19536,
+          "endOffset": 20490,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertBody",
+      "ranges": [
+        {
+          "startOffset": 21261,
+          "endOffset": 27874,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "cloneSelector",
+      "ranges": [
+        {
+          "startOffset": 28122,
+          "endOffset": 30476,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getPseudoClassSelectorNode",
+      "ranges": [
+        {
+          "startOffset": 30744,
+          "endOffset": 31084,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "assertNotEmpty",
+      "ranges": [
+        {
+          "startOffset": 31321,
+          "endOffset": 31503,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "assertValidLengthValue",
+      "ranges": [
+        {
+          "startOffset": 31957,
+          "endOffset": 32340,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

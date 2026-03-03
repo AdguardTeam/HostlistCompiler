@@ -1,0 +1,94 @@
+{
+  "scriptId": "563",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/json5@2.2.3/node_modules/json5/lib/util.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1115,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1,
+          "endOffset": 1114,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 214,
+          "endOffset": 1108,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isSpaceSeparator",
+      "ranges": [
+        {
+          "startOffset": 287,
+          "endOffset": 387,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isIdStartChar",
+      "ranges": [
+        {
+          "startOffset": 394,
+          "endOffset": 614,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isIdContinueChar",
+      "ranges": [
+        {
+          "startOffset": 621,
+          "endOffset": 929,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isDigit",
+      "ranges": [
+        {
+          "startOffset": 936,
+          "endOffset": 1011,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isHexDigit",
+      "ranges": [
+        {
+          "startOffset": 1018,
+          "endOffset": 1102,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

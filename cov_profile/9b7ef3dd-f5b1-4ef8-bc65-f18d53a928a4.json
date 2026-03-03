@@ -1,0 +1,60 @@
+{
+  "scriptId": "372",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/transformations/ConvertToAsciiTransformation.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1171,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 357,
+          "endOffset": 473,
+          "count": 31
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "executeSync",
+      "ranges": [
+        {
+          "startOffset": 633,
+          "endOffset": 1168,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 675,
+          "endOffset": 1162,
+          "count": 1
+        },
+        {
+          "startOffset": 782,
+          "endOffset": 812,
+          "count": 0
+        },
+        {
+          "startOffset": 917,
+          "endOffset": 947,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

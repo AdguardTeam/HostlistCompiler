@@ -1,0 +1,22 @@
+{
+  "scriptId": "510",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/clone-deep@4.0.1/node_modules/clone-deep/index.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 609,
+          "count": 1
+        },
+        {
+          "startOffset": 189,
+          "endOffset": 358,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

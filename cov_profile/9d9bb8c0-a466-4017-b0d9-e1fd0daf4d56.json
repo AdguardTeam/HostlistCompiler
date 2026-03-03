@@ -1,0 +1,50 @@
+{
+  "scriptId": "467",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/parser/css/ubo-selector-parser.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 18571,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "hasAnyUboModifier",
+      "ranges": [
+        {
+          "startOffset": 2409,
+          "endOffset": 3121,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "formatPseudoName",
+      "ranges": [
+        {
+          "startOffset": 3552,
+          "endOffset": 3853,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "parse",
+      "ranges": [
+        {
+          "startOffset": 4392,
+          "endOffset": 18503,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "scriptId": "424",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/utils/cosmetic-rule-separator.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 5108,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isException",
+      "ranges": [
+        {
+          "startOffset": 695,
+          "endOffset": 811,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isExtendedCssMarker",
+      "ranges": [
+        {
+          "startOffset": 1073,
+          "endOffset": 1428,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "find",
+      "ranges": [
+        {
+          "startOffset": 1687,
+          "endOffset": 5065,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

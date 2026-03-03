@@ -1,0 +1,149 @@
+{
+  "scriptId": "577",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/kind-of@6.0.3/node_modules/kind-of/index.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 3792,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1,
+          "endOffset": 3791,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 214,
+          "endOffset": 3785,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "kindOf",
+      "ranges": [
+        {
+          "startOffset": 281,
+          "endOffset": 2186,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ctorName",
+      "ranges": [
+        {
+          "startOffset": 2189,
+          "endOffset": 2293,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isArray",
+      "ranges": [
+        {
+          "startOffset": 2295,
+          "endOffset": 2399,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isError",
+      "ranges": [
+        {
+          "startOffset": 2401,
+          "endOffset": 2568,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isDate",
+      "ranges": [
+        {
+          "startOffset": 2570,
+          "endOffset": 2765,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isRegexp",
+      "ranges": [
+        {
+          "startOffset": 2767,
+          "endOffset": 2999,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isGeneratorFn",
+      "ranges": [
+        {
+          "startOffset": 3001,
+          "endOffset": 3087,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isGeneratorObj",
+      "ranges": [
+        {
+          "startOffset": 3089,
+          "endOffset": 3241,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isArguments",
+      "ranges": [
+        {
+          "startOffset": 3243,
+          "endOffset": 3494,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isBuffer",
+      "ranges": [
+        {
+          "startOffset": 3619,
+          "endOffset": 3782,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

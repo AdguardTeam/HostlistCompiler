@@ -1,0 +1,50 @@
+{
+  "scriptId": "626",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/ast-utils/clone.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1613,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "cloneScriptletRuleNode",
+      "ranges": [
+        {
+          "startOffset": 542,
+          "endOffset": 715,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "cloneDomainListNode",
+      "ranges": [
+        {
+          "startOffset": 810,
+          "endOffset": 994,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "cloneModifierListNode",
+      "ranges": [
+        {
+          "startOffset": 1091,
+          "endOffset": 1532,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

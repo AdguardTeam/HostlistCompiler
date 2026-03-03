@@ -1,0 +1,105 @@
+{
+  "scriptId": "427",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/utils/regexp.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 10119,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isRegexPattern",
+      "ranges": [
+        {
+          "startOffset": 2148,
+          "endOffset": 2507,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isNegatedRegexPattern",
+      "ranges": [
+        {
+          "startOffset": 2727,
+          "endOffset": 3180,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "removeNegationFromRegexPattern",
+      "ranges": [
+        {
+          "startOffset": 3373,
+          "endOffset": 3947,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "negateRegexPattern",
+      "ranges": [
+        {
+          "startOffset": 4246,
+          "endOffset": 5437,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "ensureSlashes",
+      "ranges": [
+        {
+          "startOffset": 5614,
+          "endOffset": 5896,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "patternToRegexp",
+      "ranges": [
+        {
+          "startOffset": 6344,
+          "endOffset": 8822,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getLengthRegexp",
+      "ranges": [
+        {
+          "startOffset": 9349,
+          "endOffset": 9439,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "globToRegExp",
+      "ranges": [
+        {
+          "startOffset": 9734,
+          "endOffset": 9838,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

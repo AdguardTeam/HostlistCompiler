@@ -6,10 +6,11 @@ compatibility_date = "2024-01-01"
 workers_dev = true
 
 # Build configuration
-# Run `npm run ui:build` (Vite) before deploying to generate ./dist.
+# Builds Angular frontend and generates static assets for deployment.
 # Wrangler calls this command automatically on `wrangler deploy`.
+# Falls back to Vite build during migration if Angular build is not available.
 [build]
-command = "npm run ui:build"
+command = "npm --prefix frontend run build"
 
 [browser]
 binding = "BROWSER"
@@ -76,12 +77,11 @@ binding = "DB"
 database_name = "adblock-compiler-d1-database"
 database_id = "3e8e7dfe-3213-452a-a671-6c18e6e74ce5"
 
-# Static assets — served from the Vite production build output.
-# Run `npm run ui:build` to generate ./dist before deploying.
-# For local Wrangler dev without Vite: `npm run ui:build` once, then `wrangler dev`.
-# For full hot-reload dev: run `wrangler dev` and `npm run ui:dev` in parallel.
+# Static assets — served from the Angular production build output.
+# Run `npm --prefix frontend run build` to generate assets before deploying.
+# For local dev: `npm --prefix frontend start` for Angular dev server.
 [assets]
-directory = "./dist"
+directory = "./frontend/dist/adblock-compiler-poc/browser"
 binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 

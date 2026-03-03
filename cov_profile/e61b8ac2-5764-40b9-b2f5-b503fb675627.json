@@ -1,0 +1,237 @@
+{
+  "scriptId": "368",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/utils/RuleUtils.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 9255,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "domainToASCII",
+      "ranges": [
+        {
+          "startOffset": 400,
+          "endOffset": 548,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isComment",
+      "ranges": [
+        {
+          "startOffset": 1094,
+          "endOffset": 1418,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isAllowRule",
+      "ranges": [
+        {
+          "startOffset": 1510,
+          "endOffset": 1725,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isJustDomain",
+      "ranges": [
+        {
+          "startOffset": 1796,
+          "endOffset": 1890,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isEtcHostsRule",
+      "ranges": [
+        {
+          "startOffset": 1980,
+          "endOffset": 2173,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "containsNonAsciiCharacters",
+      "ranges": [
+        {
+          "startOffset": 2252,
+          "endOffset": 2337,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "convertNonAsciiToPunycode",
+      "ranges": [
+        {
+          "startOffset": 2411,
+          "endOffset": 2713,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "parseRuleTokens",
+      "ranges": [
+        {
+          "startOffset": 2787,
+          "endOffset": 3704,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "extractHostname",
+      "ranges": [
+        {
+          "startOffset": 3794,
+          "endOffset": 4398,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "loadEtcHostsRuleProperties",
+      "ranges": [
+        {
+          "startOffset": 4466,
+          "endOffset": 4896,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "loadAdblockRuleProperties",
+      "ranges": [
+        {
+          "startOffset": 4968,
+          "endOffset": 6134,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "findModifier",
+      "ranges": [
+        {
+          "startOffset": 6211,
+          "endOffset": 6464,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "removeModifier",
+      "ranges": [
+        {
+          "startOffset": 6545,
+          "endOffset": 6925,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "adblockRuleToString",
+      "ranges": [
+        {
+          "startOffset": 7009,
+          "endOffset": 7606,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "parseToAST",
+      "ranges": [
+        {
+          "startOffset": 7863,
+          "endOffset": 7985,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidRule",
+      "ranges": [
+        {
+          "startOffset": 8067,
+          "endOffset": 8170,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isNetworkRule",
+      "ranges": [
+        {
+          "startOffset": 8234,
+          "endOffset": 8486,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isCosmeticRule",
+      "ranges": [
+        {
+          "startOffset": 8551,
+          "endOffset": 8748,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isEmpty",
+      "ranges": [
+        {
+          "startOffset": 8822,
+          "endOffset": 9078,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "detectSyntax",
+      "ranges": [
+        {
+          "startOffset": 9176,
+          "endOffset": 9252,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

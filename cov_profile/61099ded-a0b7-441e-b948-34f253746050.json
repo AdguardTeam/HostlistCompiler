@@ -1,0 +1,270 @@
+{
+  "scriptId": "456",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/validator/value.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 22346,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isValidAppNameChunk",
+      "ranges": [
+        {
+          "startOffset": 2149,
+          "endOffset": 2435,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidAppModifierValue",
+      "ranges": [
+        {
+          "startOffset": 2664,
+          "endOffset": 2969,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidMethodModifierValue",
+      "ranges": [
+        {
+          "startOffset": 3208,
+          "endOffset": 3261,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidStealthModifierValue",
+      "ranges": [
+        {
+          "startOffset": 3508,
+          "endOffset": 3569,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidPermissionsOrigin",
+      "ranges": [
+        {
+          "startOffset": 3876,
+          "endOffset": 4386,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidDenyAllowModifierValue",
+      "ranges": [
+        {
+          "startOffset": 4721,
+          "endOffset": 5146,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isValidDomainModifierValue",
+      "ranges": [
+        {
+          "startOffset": 5374,
+          "endOffset": 5489,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "customNoNegatedListItemsValidator",
+      "ranges": [
+        {
+          "startOffset": 5821,
+          "endOffset": 6294,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "customConsistentExceptionsValidator",
+      "ranges": [
+        {
+          "startOffset": 6928,
+          "endOffset": 7507,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validateListItemsModifier",
+      "ranges": [
+        {
+          "startOffset": 8266,
+          "endOffset": 9877,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validatePipeSeparatedApps",
+      "ranges": [
+        {
+          "startOffset": 10079,
+          "endOffset": 10204,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validatePipeSeparatedDenyAllowDomains",
+      "ranges": [
+        {
+          "startOffset": 10437,
+          "endOffset": 10592,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validatePipeSeparatedDomains",
+      "ranges": [
+        {
+          "startOffset": 10804,
+          "endOffset": 10921,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validatePipeSeparatedMethods",
+      "ranges": [
+        {
+          "startOffset": 11132,
+          "endOffset": 11300,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validatePipeSeparatedStealthOptions",
+      "ranges": [
+        {
+          "startOffset": 11527,
+          "endOffset": 11701,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validateCspValue",
+      "ranges": [
+        {
+          "startOffset": 11884,
+          "endOffset": 14138,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validatePermissionAllowlistOrigins",
+      "ranges": [
+        {
+          "startOffset": 14529,
+          "endOffset": 16057,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validatePermissionAllowlist",
+      "ranges": [
+        {
+          "startOffset": 16497,
+          "endOffset": 17223,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validateSinglePermission",
+      "ranges": [
+        {
+          "startOffset": 17481,
+          "endOffset": 18331,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validatePermissions",
+      "ranges": [
+        {
+          "startOffset": 18533,
+          "endOffset": 19265,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validateReferrerPolicy",
+      "ranges": [
+        {
+          "startOffset": 19476,
+          "endOffset": 19979,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isCustomValueFormatValidator",
+      "ranges": [
+        {
+          "startOffset": 21019,
+          "endOffset": 21110,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "validateValue",
+      "ranges": [
+        {
+          "startOffset": 21401,
+          "endOffset": 22317,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

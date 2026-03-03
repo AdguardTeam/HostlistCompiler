@@ -1,0 +1,89 @@
+{
+  "scriptId": "412",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/@adguard+agtree@4.0.1/node_modules/@adguard/agtree/dist/parser/network/network-rule-parser.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 5229,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "parse",
+      "ranges": [
+        {
+          "startOffset": 1675,
+          "endOffset": 4330,
+          "count": 4
+        },
+        {
+          "startOffset": 2087,
+          "endOffset": 2185,
+          "count": 0
+        },
+        {
+          "startOffset": 2565,
+          "endOffset": 2618,
+          "count": 0
+        },
+        {
+          "startOffset": 3124,
+          "endOffset": 3507,
+          "count": 0
+        },
+        {
+          "startOffset": 3610,
+          "endOffset": 3673,
+          "count": 0
+        },
+        {
+          "startOffset": 3675,
+          "endOffset": 3814,
+          "count": 0
+        },
+        {
+          "startOffset": 4201,
+          "endOffset": 4301,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "findNetworkRuleSeparatorIndex",
+      "ranges": [
+        {
+          "startOffset": 4560,
+          "endOffset": 5195,
+          "count": 4
+        },
+        {
+          "startOffset": 4741,
+          "endOffset": 5170,
+          "count": 57
+        },
+        {
+          "startOffset": 5050,
+          "endOffset": 5081,
+          "count": 0
+        },
+        {
+          "startOffset": 5082,
+          "endOffset": 5117,
+          "count": 0
+        },
+        {
+          "startOffset": 5119,
+          "endOffset": 5160,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

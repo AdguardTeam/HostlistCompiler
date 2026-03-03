@@ -1,0 +1,83 @@
+{
+  "scriptId": "547",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/node_modules/.deno/camelcase-keys@7.0.2/node_modules/camelcase-keys/index.js",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1894,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 1,
+          "endOffset": 1893,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 214,
+          "endOffset": 1887,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "has",
+      "ranges": [
+        {
+          "startOffset": 362,
+          "endOffset": 491,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "isObject",
+      "ranges": [
+        {
+          "startOffset": 597,
+          "endOffset": 741,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "camelCaseConvert",
+      "ranges": [
+        {
+          "startOffset": 769,
+          "endOffset": 1686,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "module.exports",
+      "ranges": [
+        {
+          "startOffset": 1706,
+          "endOffset": 1883,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

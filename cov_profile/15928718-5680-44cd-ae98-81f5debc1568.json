@@ -1,0 +1,101 @@
+{
+  "scriptId": "382",
+  "url": "file:///Users/jaysonknight/Projects/Code/adblock-compiler/src/configuration/ConfigurationValidator.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 3387,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "formatZodErrors",
+      "ranges": [
+        {
+          "startOffset": 375,
+          "endOffset": 2172,
+          "count": 1
+        },
+        {
+          "startOffset": 713,
+          "endOffset": 723,
+          "count": 0
+        },
+        {
+          "startOffset": 758,
+          "endOffset": 791,
+          "count": 0
+        },
+        {
+          "startOffset": 793,
+          "endOffset": 852,
+          "count": 0
+        },
+        {
+          "startOffset": 928,
+          "endOffset": 942,
+          "count": 0
+        },
+        {
+          "startOffset": 963,
+          "endOffset": 2083,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "validate",
+      "ranges": [
+        {
+          "startOffset": 2356,
+          "endOffset": 2951,
+          "count": 6
+        },
+        {
+          "startOffset": 2478,
+          "endOffset": 2585,
+          "count": 0
+        },
+        {
+          "startOffset": 2676,
+          "endOffset": 2885,
+          "count": 1
+        },
+        {
+          "startOffset": 2885,
+          "endOffset": 2950,
+          "count": 5
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 2771,
+          "endOffset": 2801,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "validateAndGet",
+      "ranges": [
+        {
+          "startOffset": 3162,
+          "endOffset": 3384,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}
