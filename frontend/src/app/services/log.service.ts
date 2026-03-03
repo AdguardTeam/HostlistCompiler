@@ -33,6 +33,8 @@ export interface LogEntry {
 
 @Injectable({ providedIn: 'root' })
 export class LogService {
+    private static fallbackCounter = 0;
+
     private readonly platformId = inject(PLATFORM_ID);
     private readonly logEndpoint = inject(LOG_ENDPOINT);
 
@@ -166,7 +168,30 @@ export class LogService {
             return crypto.randomUUID();
         } catch {
             // Fallback for environments without crypto.randomUUID
-            return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+            try {
+                // Use crypto.getRandomValues to generate a UUID-like identifier
+                const buf = new Uint8Array(16);
+                crypto.getRandomValues(buf);
+
+                // Set version (4) and variant bits according to RFC 4122
+                buf[6] = (buf[6] & 0x0f) | 0x40;
+                buf[8] = (buf[8] & 0x3f) | 0x80;
+
+                const toHex = (n: number) => n.toString(16).padStart(2, '0');
+                const hex = Array.from(buf, toHex).join('');
+                return (
+                    hex.slice(0, 8) + '-' +
+                    hex.slice(8, 12) + '-' +
+                    hex.slice(12, 16) + '-' +
+                    hex.slice(16, 20) + '-' +
+                    hex.slice(20)
+                );
+            } catch {
+                // Last-resort fallback for environments without crypto APIs:
+                // rely on time plus a monotonic counter (no Math.random()).
+                const counter = LogService.fallbackCounter = (LogService.fallbackCounter + 1) >>> 0;
+                return `${Date.now().toString(36)}-${counter.toString(36)}`;
+            }
         }
     }
 
