@@ -173,7 +173,7 @@ export class ValidationComponent {
 
     readonly validationResource = rxResource<ValidationResult, string[] | undefined>({
         params: () => this.pendingRules(),
-        loader: ({ params }) => {
+        stream: ({ params }) => {
             if (!params) return of(undefined as unknown as ValidationResult);
             return this.validationService.validate(params, this.strictMode);
         },

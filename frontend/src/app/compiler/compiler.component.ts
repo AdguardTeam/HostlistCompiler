@@ -449,16 +449,16 @@ export class CompilerComponent {
      *
      * NEW:
      *   rxResource() manages loading/error/value as built-in signals.
-     *   The loader ONLY runs when request() returns a non-null/undefined value
+     *   The stream ONLY runs when params() returns a non-null/undefined value
      *   (rxResource contract). When pendingRequest is undefined the resource stays
      *   Idle — no HTTP call is made. The request type is therefore non-optional
-     *   inside the loader, so no `!request` guard is needed.
+     *   inside the stream, so no `!request` guard is needed.
      *   The returned Observable is automatically unsubscribed when it completes
      *   or when the request signal changes.
      */
     readonly compileResource = rxResource<CompileResponse, CompileRequest | undefined>({
         params: () => this.pendingRequest(),
-        loader: ({ params }) => {
+        stream: ({ params }) => {
             if (!params) return of(undefined as unknown as CompileResponse);
             return this.compilerService.compile(
                 params.configuration.sources.map((s: { source: string }) => s.source),
