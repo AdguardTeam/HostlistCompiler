@@ -412,6 +412,7 @@ jobs:
         env:
             CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
             CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+            PAGES_PROJECT_NAME: adblock-compiler-ui
         steps:
             - uses: actions/checkout@v4
 
@@ -474,10 +475,21 @@ jobs:
               run: |
                   deno run --allow-read --allow-net --allow-env scripts/record-deployment.ts --status=failed || true
 
+            - name: Create Pages project if not exists
+              if: env.CLOUDFLARE_API_TOKEN != ''
+              run: |
+                  echo "Ensuring Cloudflare Pages project '${{ env.PAGES_PROJECT_NAME }}' exists..."
+                  if npx wrangler pages project list | grep -q '${{ env.PAGES_PROJECT_NAME }}'; then
+                      echo "Pages project '${{ env.PAGES_PROJECT_NAME }}' already exists."
+                  else
+                      echo "Pages project '${{ env.PAGES_PROJECT_NAME }}' not found. Creating..."
+                      npx wrangler pages project create ${{ env.PAGES_PROJECT_NAME }} --production-branch=main
+                  fi
+
             - name: Deploy Pages
               if: env.CLOUDFLARE_API_TOKEN != ''
               uses: cloudflare/wrangler-action@v3
               with:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-                  command: pages deploy frontend/dist/adblock-compiler-poc/browser --project-name=adblock-compiler-ui
+                  command: pages deploy frontend/dist/adblock-compiler-poc/browser --project-name=${{ env.PAGES_PROJECT_NAME }}
