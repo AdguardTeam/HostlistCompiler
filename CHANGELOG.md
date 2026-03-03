@@ -33,6 +33,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.29.0] - 2026-03-03
+
+### Added- **angular-poc**: replace Express with Cloudflare Workers + Vitest
+- **angular-poc**: implement all Angular 21 modernizations
+
+### Fixed
+
+- **angular-poc**: address all automated PR review comments
+
+
 ## [0.28.0] - 2026-03-02
 
 ### Added- apply styling to /api endpoint with HTML documentation page
