@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Angular 21 PoC - Adblock Compiler</title>
+        <base href="/">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <!--
+            Fonts loaded via npm packages (build-pipeline integrated, SSR-safe):
+              @fontsource/roboto    — imported in styles.css
+              material-symbols      — imported in styles.css
+            No external CDN requests required at runtime.
+        -->
+    </head>
+    <body class="mat-typography">
+        <app-root></app-root>
+        <!-- Cloudflare Turnstile (Item 1: Bot Protection) -->
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+        <!-- Cloudflare Web Analytics -->
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "{{CF_WEB_ANALYTICS_TOKEN}}"}'></script>
+    </body>
+</html>

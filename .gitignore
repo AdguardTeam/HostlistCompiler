@@ -14,6 +14,7 @@ Thumbs.db
 # Node / pnpm / Yarn
 node_modules/
 .npmrc
+!frontend/.npmrc
 *.tgz
 .yarn/
 .pnp.*
@@ -35,6 +36,7 @@ worker-configuration.d.ts
 
 # Test coverage
 coverage/
+cov_profile/
 
 # Output directory (keep directory but ignore contents)
 output/*
@@ -68,6 +70,15 @@ data/
 *.db-journal
 *.db-wal
 *.db-shm
+
+# Angular frontend
+frontend/.angular/
+frontend/dist/
+frontend/.wrangler/
+
+# Playwright
+test-results/
+playwright-report/
 
 # Generated CSS (Tailwind build output)
 public/tailwind.css

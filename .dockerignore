@@ -36,12 +36,28 @@ Thumbs.db
 
 # Test coverage
 coverage/
+cov_profile/
 coverage.lcov
+cov_profile/
+
+# npm credentials — never bake into image layers
+frontend/.npmrc
 
 # Wrangler
 .wrangler/
 worker-configuration.d.ts
 .deployment-version.json
+
+# Angular frontend build cache (rebuilt in Docker)
+frontend/.angular/
+frontend/dist/
+frontend/node_modules/
+frontend/.wrangler/
+frontend/e2e/
+
+# Playwright
+test-results/
+playwright-report/
 
 # Documentation
 *.md
