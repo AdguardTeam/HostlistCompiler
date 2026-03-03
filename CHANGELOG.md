@@ -37,6 +37,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.31.0] - 2026-03-03
+
+### Added- add exception handling, validation, logging & diagnostics
+
+### Fixed
+
+- apply review feedback - logging, SSE, tsconfig, standalone, SQL guard
+- align rxResource API, TypeScript types, and siteKey input with main
+- rename rxResource loader to stream for Angular 21 compatibility
+
+
 ## [0.30.0] - 2026-03-03
 
 ### Added- **frontend**: implement 14 enhancement items with CI/Docker updates
