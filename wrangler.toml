@@ -10,7 +10,7 @@ workers_dev = true
 # Wrangler calls this command automatically on `wrangler deploy`.
 # Falls back to Vite build during migration if Angular build is not available.
 [build]
-command = "npm --prefix frontend run build"
+command = "npm --prefix frontend install && npm --prefix frontend run build"
 
 [browser]
 binding = "BROWSER"
@@ -67,7 +67,7 @@ tag = "v1"
 # IMPORTANT: This version should match the VERSION constant in src/version.ts (single source of truth)
 # To update: change VERSION in src/version.ts, then run `deno task version:sync` to propagate changes
 # The worker will fall back to src/version.ts if this is not set
-COMPILER_VERSION = "0.29.2"
+COMPILER_VERSION = "0.30.0"
 # TURNSTILE_SITE_KEY, ADMIN_KEY, etc. are loaded from .env files via .envrc
 # For local dev: managed by .env.development and .env.local
 # For production: managed via Cloudflare secrets (wrangler secret put ADMIN_KEY)
