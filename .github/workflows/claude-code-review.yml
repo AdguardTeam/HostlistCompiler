@@ -16,13 +16,7 @@ concurrency:
 
 jobs:
   claude-review:
-    if: secrets.CLAUDE_CODE_OAUTH_TOKEN != ''
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -37,6 +31,7 @@ jobs:
           fetch-depth: 1
 
       - name: Run Claude Code Review
+        if: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
