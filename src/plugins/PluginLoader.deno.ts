@@ -1,6 +1,8 @@
 /**
  * Plugin loader for Deno environments.
- * This file is excluded from JSR publishing (Deno-specific file system feature).
+ * This file is excluded from JSR publishing because it provides a Deno-specific,
+ * runtime-dependent plugin loader that relies on dynamic imports not compatible
+ * with JSR's publishing/static-analysis model.
  * For JSR users, construct Plugin objects directly and use PluginRegistry.register().
  */
 
@@ -8,17 +10,17 @@ import type { Plugin, PluginLoadOptions } from './PluginSystem.ts';
 
 /**
  * Loads a plugin from a file path or URL.
- * This function is only available in Deno environments with file system access.
+ * This function is only available in Deno environments with the appropriate
+ * runtime permissions (read for file paths, net for remote URLs).
  * For JSR/browser environments, construct Plugin objects directly.
  */
 export async function loadPlugin(
     path: string,
     options?: PluginLoadOptions,
 ): Promise<Plugin> {
-    const opts: Required<PluginLoadOptions> = {
+    const opts: Required<Omit<PluginLoadOptions, 'initTimeout'>> = {
         allowRemote: false,
         validateManifest: true,
-        initTimeout: 5000,
         ...options,
     };
 
@@ -29,7 +31,7 @@ export async function loadPlugin(
     }
 
     try {
-        // Dynamic import - only works in Deno with file system access
+        // Dynamic import - requires Deno runtime with read (file paths) or net (remote URLs) permissions
         const module = await import(path);
         const plugin = module.default || module;
 
