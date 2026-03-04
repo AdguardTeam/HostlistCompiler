@@ -1266,5 +1266,4 @@ export const config = mergeApplicationConfig(appConfig, serverConfig);
 - [AnalogJS vitest-angular](https://analogjs.org/docs/testing)
 - [`frontend/README.md`](../frontend/README.md) — quick-start and feature list
 - [`frontend/ANGULAR_SIGNALS.md`](../frontend/ANGULAR_SIGNALS.md) — deep-dive signals guide
-- [`docs/FRAMEWORK_POCS.md`](FRAMEWORK_POCS.md) — PoC evaluation context
 - [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) — full system architecture

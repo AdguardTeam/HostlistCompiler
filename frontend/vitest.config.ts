@@ -1,5 +1,5 @@
 /**
- * Vitest configuration for the Angular 21 PoC
+ * Vitest configuration for the Angular frontend
  *
  * Uses `@analogjs/vitest-angular` (the AnalogJS Vite plugin for Angular) to
  * provide the Angular compiler transform pipeline inside Vitest's Vite runtime.
@@ -51,7 +51,7 @@ export default defineConfig({
         // Discover all Angular spec files under src/.
         include: ['src/**/*.spec.ts'],
 
-        // Verbose reporter shows individual test names — useful for a PoC where
+        // Verbose reporter shows individual test names — useful where
         // the test list is short and educational.
         reporters: ['verbose'],
 

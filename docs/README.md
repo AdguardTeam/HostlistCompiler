@@ -56,8 +56,6 @@ Welcome to the AdBlock Compiler documentation. This directory contains all the d
 - [Vite Integration](VITE.md) - Frontend build pipeline with HMR, multi-page app, and React/Vue support
 - [Tailwind CSS](TAILWIND_CSS.md) - Utility-first CSS framework integration with PostCSS
 - [SPA Benefits Analysis](SPA_BENEFITS.md) - Analysis of SPA benefits and migration recommendations
-- [Framework PoCs](../poc/README.md) - React, Vue 3, Angular, and Svelte 5 proof-of-concept implementations
-- [Framework PoCs (Alpha)](FRAMEWORK_POCS.md) - React, Vue 3, Angular, and Svelte proof-of-concept implementations
 - [Validation UI](VALIDATION_UI.md) - Color-coded validation error UI component
 
 ### Development

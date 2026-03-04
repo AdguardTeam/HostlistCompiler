@@ -597,58 +597,6 @@ Deno.test({
     },
 });
 
-// ============================================================================
-// Directory Index Routing Tests (/poc and sub-paths)
-// ============================================================================
-
-Deno.test({
-    name: 'E2E: GET /poc - serves poc/index.html (no 404)',
-    ignore: !serverAvailable,
-    fn: async () => {
-        const response = await fetchWithTimeout(`${BASE_URL}/poc`);
-
-        // Must not be 404 - directory index fallback should serve poc/index.html
-        assertEquals(response.status, 200, 'GET /poc should return 200, not 404');
-        assertEquals(
-            response.headers.get('content-type')?.includes('text/html'),
-            true,
-            'Content-Type should be text/html',
-        );
-    },
-});
-
-Deno.test({
-    name: 'E2E: GET /poc/ - serves poc/index.html (trailing slash, no 404)',
-    ignore: !serverAvailable,
-    fn: async () => {
-        const response = await fetchWithTimeout(`${BASE_URL}/poc/`);
-
-        // trailing-slash variant must also resolve correctly
-        assertEquals(response.status, 200, 'GET /poc/ should return 200, not 404');
-        assertEquals(
-            response.headers.get('content-type')?.includes('text/html'),
-            true,
-            'Content-Type should be text/html',
-        );
-    },
-});
-
-Deno.test({
-    name: 'E2E: GET /poc/react - serves poc/react/index.html (no 404)',
-    ignore: !serverAvailable,
-    fn: async () => {
-        const response = await fetchWithTimeout(`${BASE_URL}/poc/react`);
-
-        // Sub-directory index fallback must also work
-        assertEquals(response.status, 200, 'GET /poc/react should return 200, not 404');
-        assertEquals(
-            response.headers.get('content-type')?.includes('text/html'),
-            true,
-            'Content-Type should be text/html',
-        );
-    },
-});
-
 Deno.test({
     name: 'E2E: GET /api/deployments - deployment history',
     ignore: !serverAvailable,

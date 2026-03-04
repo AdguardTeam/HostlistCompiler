@@ -32,7 +32,6 @@
 ## 🎉 New in v0.30.x
 
 - **🎯 Angular 21 SPA** — Production Angular frontend with zoneless change detection, Angular Material 3, SSR, and Cloudflare Workers deployment ([docs](frontend/README.md))
-- **⚗️ Framework PoCs** — Alpha React, Vue 3, Angular, and Svelte client implementations served at `/poc/` ([docs](docs/FRAMEWORK_POCS.md))
 - **🎨 Tailwind CSS v4** — Migrated from Tailwind v3 to v4 across all legacy UI pages ([docs](docs/TAILWIND_CSS.md))
 - **📱 Mobile Responsive** — Comprehensive responsive layout improvements across all UI pages
 - **📖 Styled API Docs** — HTML documentation page served at the `/api` endpoint
@@ -82,7 +81,6 @@
 - [Development](#development)
   - [Angular Frontend](#angular-frontend-development)
   - [Legacy Frontend (Tailwind CSS / Vite)](#legacy-frontend-tailwind-css--vite)
-  - [Framework PoCs](docs/FRAMEWORK_POCS.md)
 - [Platform Support](#platform-support)
   - [Edge Runtimes (Generic)](#edge-runtimes)
   - [Cloudflare Workers](#cloudflare-workers)

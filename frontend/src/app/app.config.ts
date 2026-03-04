@@ -1,5 +1,5 @@
 /**
- * Angular PoC - Application Configuration (Browser)
+ * Angular - Application Configuration (Browser)
  *
  * Angular 21 Patterns demonstrated here:
  *

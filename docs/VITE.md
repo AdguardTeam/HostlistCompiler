@@ -46,15 +46,7 @@ public/                     ← Vite root (source files)
 ├── validation-demo.html    ← Validation demo
 └── websocket-test.html     ← WebSocket tester
 
-poc/                        ← Alpha framework PoCs (copied to dist/poc/ by ui:copy-static)
-├── index.html              ← Framework comparison hub
-├── react/index.html        ← React 18 CDN PoC
-├── vue/index.html          ← Vue 3 CDN PoC
-├── angular/                ← Angular 19 PoC (requires npm start)
-└── svelte/                 ← Svelte 5 PoC (requires npm run dev)
-
 dist/                       ← Vite build output (git-ignored)
-vite.config.ts              ← Vite configuration
 ```
 
 ## Scripts

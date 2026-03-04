@@ -91,7 +91,7 @@ export default {
  * Cloudflare Workers environment bindings.
  *
  * Add KV namespaces, D1 databases, R2 buckets, or secret variables here as
- * the PoC grows. These are declared in `wrangler.toml` and injected by the
+ * the app grows. These are declared in `wrangler.toml` and injected by the
  * runtime into the `env` parameter of `fetch()`.
  *
  * Example:

@@ -1,5 +1,5 @@
 /**
- * Angular PoC - Application Routes Configuration
+ * Angular - Application Routes Configuration
  *
  * ANGULAR ROUTER PATTERN: Declarative routing with standalone components
  *

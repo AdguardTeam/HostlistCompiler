@@ -1,13 +1,13 @@
-# Angular 21 PoC — Adblock Compiler
+# Angular Frontend — Adblock Compiler
 
-A proof-of-concept Angular 21 application that is a **complete showcase of every major modern Angular API**. It uses Angular Material 3, zoneless change detection, and Server-Side Rendering (SSR).
+A production Angular 21 application that is a **complete showcase of every major modern Angular API**. It uses Angular Material 3, zoneless change detection, and Server-Side Rendering (SSR).
 
 ---
 
 ## 🚀 How to Run
 
 ```bash
-cd poc/angular
+cd frontend
 npm install
 npm start              # CSR dev server  → http://localhost:4200
 npm run build          # Production SSR + prerender build
@@ -426,7 +426,7 @@ npm run test:coverage  # coverage report via V8
 
 ## Enhancement Items
 
-The following 14 enhancements bring the PoC to production-grade quality across security, performance, architecture, and developer experience.
+The following 14 enhancements bring the application to production-grade quality across security, performance, architecture, and developer experience.
 
 ### E1. Cloudflare Turnstile (Bot Protection)
 
