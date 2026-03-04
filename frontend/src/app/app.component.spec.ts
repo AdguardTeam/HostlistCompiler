@@ -78,16 +78,16 @@ describe('AppComponent', () => {
         expect(admin!.label).toBe('Admin');
     });
 
-    it('should start with sidenav open on desktop', () => {
-        expect(component.sidenavOpen()).toBe(true);
+    it('should start with sidenav closed (desktop uses horizontal nav tabs)', () => {
+        expect(component.sidenavOpen()).toBe(false);
     });
 
     it('should toggle sidenav', () => {
-        expect(component.sidenavOpen()).toBe(true);
-        component.toggleSidenav();
         expect(component.sidenavOpen()).toBe(false);
         component.toggleSidenav();
         expect(component.sidenavOpen()).toBe(true);
+        component.toggleSidenav();
+        expect(component.sidenavOpen()).toBe(false);
     });
 
     it('should default isMobile to false', () => {

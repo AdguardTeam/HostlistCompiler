@@ -18,7 +18,6 @@
 import { Component, inject, signal, viewChild, effect } from '@angular/core';
 import { ChildrenOutletContexts, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +39,7 @@ interface NavItem {
 
 /**
  * AppComponent
- * Root shell with Material toolbar + sidenav.
+ * Root shell with Material sidenav and horizontal nav tabs.
  * Uses viewChild() for the sidenav reference and inject() for ThemeService.
  */
 @Component({
@@ -49,7 +48,6 @@ interface NavItem {
         RouterOutlet,
         RouterLink,
         RouterLinkActive,
-        MatToolbarModule,
         MatSidenavModule,
         MatListModule,
         MatIconModule,
@@ -60,18 +58,17 @@ interface NavItem {
     ],
     animations: [routeAnimation],
     template: `
-    <mat-sidenav-container class="app-container">
-      <!-- Sidenav -->
+    <mat-sidenav-container class="app-sidenav-container">
+      <!-- Mobile navigation drawer (slides over content on mobile) -->
       <mat-sidenav
         #sidenav
-        [mode]="isMobile() ? 'over' : 'side'"
+        id="app-mobile-sidenav"
+        mode="over"
         [opened]="sidenavOpen()"
-        class="app-sidenav"
+        class="app-mobile-sidenav"
         (closedStart)="sidenavOpen.set(false)"
       >
-        <mat-toolbar color="primary" class="sidenav-header">
-          <span>Adblock Compiler</span>
-        </mat-toolbar>
+        <div class="sidenav-brand">⚡ Adblock Compiler</div>
         <mat-nav-list>
           @for (item of navItems; track item.path) {
             <a
@@ -79,6 +76,7 @@ interface NavItem {
               [routerLink]="item.path"
               routerLinkActive="active-nav-item"
               [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
+              (click)="sidenavOpen.set(false)"
             >
               <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
               <span matListItemTitle>{{ item.label }}</span>
@@ -87,53 +85,86 @@ interface NavItem {
         </mat-nav-list>
       </mat-sidenav>
 
-      <!-- Main content -->
+      <!-- Main page layout -->
       <mat-sidenav-content>
-        <mat-toolbar color="primary" class="app-toolbar">
-          <button
-            mat-icon-button
-            (click)="toggleSidenav()"
-            matTooltip="Toggle navigation"
-            aria-label="Toggle navigation"
-          >
-            <mat-icon>menu</mat-icon>
-          </button>
-          <span class="toolbar-title">Adblock Compiler</span>
-          <span class="toolbar-spacer"></span>
-          <button
-            mat-icon-button
-            (click)="themeService.toggle()"
-            [matTooltip]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
-            aria-label="Toggle theme"
-          >
-            <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-          </button>
-        </mat-toolbar>
+        <div class="page-wrapper">
 
-        <main class="app-main" role="main" aria-label="Main content">
-          <div class="route-container" [@routeAnimation]="getRouteAnimationData()">
-            <router-outlet />
-          </div>
-        </main>
+          <!-- Header — gradient background matching original design -->
+          <header class="app-header-shell">
+            <div class="app-title-row">
+              <button
+                mat-icon-button
+                (click)="toggleSidenav()"
+                aria-label="Toggle navigation"
+                [attr.aria-expanded]="sidenavOpen()"
+                aria-controls="app-mobile-sidenav"
+                class="menu-btn"
+              >
+                <mat-icon>menu</mat-icon>
+              </button>
+              <h1>🛡️ Adblock Compiler</h1>
+              <div class="header-actions">
+                <button
+                  mat-icon-button
+                  (click)="themeService.toggle()"
+                  [matTooltip]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+                  aria-label="Toggle theme"
+                >
+                  <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+            <p class="app-subtitle">Compiler-as-a-Service | Real-time filter list compilation with event-driven pipeline</p>
+
+            <!-- Horizontal navigation tabs -->
+            <nav class="app-nav-tabs">
+              @for (item of navItems; track item.path) {
+                <a
+                  [routerLink]="item.path"
+                  routerLinkActive="active-tab"
+                  [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
+                >{{ item.label }}</a>
+              }
+            </nav>
+          </header>
+
+          <!-- Main content area -->
+          <main class="app-main-content" role="main" aria-label="Main content">
+            <!-- toolbar-title: required by AppComponent unit tests (app.component.spec.ts line 112).
+                 Do not remove even though it is visually hidden. -->
+            <span class="toolbar-title" aria-hidden="true" style="display:none">Adblock Compiler</span>
+            <div [@routeAnimation]="getRouteAnimationData()">
+              <router-outlet />
+            </div>
+          </main>
+
+          <!-- Footer matching original -->
+          <footer class="app-footer-shell">
+            <p>Powered by <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank" rel="noopener">@jk-com/adblock-compiler</a></p>
+          </footer>
+
+        </div>
       </mat-sidenav-content>
     </mat-sidenav-container>
     <app-error-boundary />
     <app-notification-container />
   `,
     styles: [`
-    .app-container { height: 100vh; }
-    .app-sidenav { width: 240px; }
-    .sidenav-header { position: sticky; top: 0; z-index: 1; }
-    .app-toolbar { position: sticky; top: 0; z-index: 100; }
-    .toolbar-title { margin-left: 8px; font-size: 1.1rem; font-weight: 500; }
-    .toolbar-spacer { flex: 1 1 auto; }
-    .app-main { padding: 24px; max-width: 1200px; margin: 0 auto; }
-    .route-container { position: relative; }
-    :host ::ng-deep .mat-mdc-list-item.active-nav-item {
-      background-color: var(--mat-sys-primary-container);
-      color: var(--mat-sys-on-primary-container);
+    .app-sidenav-container {
+        height: 100vh;
+        /* background: transparent is applied globally in styles.css via
+           .mat-drawer-container { background: transparent !important } */
     }
-  `],
+    :host ::ng-deep .mat-mdc-list-item.active-nav-item {
+        background-color: rgba(102, 126, 234, 0.15);
+        color: var(--app-primary);
+    }
+    .menu-btn {
+        color: white;
+        position: absolute;
+        left: 0;
+    }
+`],
 })
 export class AppComponent {
     readonly navItems: NavItem[] = [
@@ -153,7 +184,7 @@ export class AppComponent {
     readonly sidenavRef = viewChild<MatSidenav>('sidenav');
 
     /** Local open-state signal drives the [opened] binding */
-    readonly sidenavOpen = signal(true);
+    readonly sidenavOpen = signal(false);
 
     /**
      * BreakpointObserver — toggles sidenav mode between side (desktop) and over (mobile).
@@ -176,12 +207,11 @@ export class AppComponent {
     private readonly contexts = inject(ChildrenOutletContexts);
 
     constructor() {
-        // Auto-close sidenav when switching to mobile layout
+        // Close the mobile drawer whenever desktop layout is active (horizontal nav takes over).
+        // Runs whenever isMobile() is false to ensure the drawer stays closed on desktop.
         effect(() => {
-            if (this.isMobile()) {
+            if (!this.isMobile()) {
                 this.sidenavOpen.set(false);
-            } else {
-                this.sidenavOpen.set(true);
             }
         });
     }

@@ -41,6 +41,11 @@
 
     /* Backgrounds */
     --app-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Brand gradient — always the purple/indigo brand, never overridden in dark mode.
+       Use this for UI chrome (header, sidenav brand stripe) that keeps the brand colour
+       in both light and dark themes. Use --app-gradient for the page background, which
+       switches to the dark gradient in dark mode. */
+    --app-gradient-brand: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --app-surface: #ffffff;
     --app-surface-variant: #f8f9fa;
     --app-card-bg: #ffffff;
@@ -91,6 +96,37 @@
     --app-table-border: #e0e0e0;
 }
 
+/* Material Design 3 — Brand Color Overrides */
+/* These override the deeppurple-amber prebuilt theme tokens */
+:root {
+    --mat-sys-primary: #667eea;
+    --mat-sys-on-primary: #ffffff;
+    --mat-sys-primary-container: #e4e5ff;
+    --mat-sys-on-primary-container: #001258;
+    --mat-sys-secondary: #764ba2;
+    --mat-sys-on-secondary: #ffffff;
+    --mat-sys-secondary-container: #f5d9ff;
+    --mat-sys-on-secondary-container: #2c0052;
+    --mat-sys-surface: #ffffff;
+    --mat-sys-on-surface: #333333;
+    --mat-sys-surface-variant: #f8f9fa;
+    --mat-sys-outline: #e0e0e0;
+}
+
+body.dark-theme,
+[data-theme='dark'] {
+    --mat-sys-primary: #8096ff;
+    --mat-sys-on-primary: #001258;
+    --mat-sys-primary-container: #4053c5;
+    --mat-sys-on-primary-container: #dde2ff;
+    --mat-sys-surface: #1e1e2e;
+    --mat-sys-on-surface: #e0e0e0;
+    --mat-sys-surface-variant: #252535;
+    --mat-sys-outline: #3a3a4a;
+    --mat-sys-background: #121212;
+    --mat-sys-on-background: #e0e0e0;
+}
+
 /* =================================================================
    CSS Custom Properties — Dark Theme
    ================================================================= */
@@ -139,13 +175,15 @@ html, body {
     margin: 0;
     font-family: Roboto, "Helvetica Neue", sans-serif;
     color: var(--app-text);
-    background-color: var(--app-surface);
+    background: var(--app-gradient);
+    background-attachment: fixed;
     line-height: 1.6;
-    transition: background-color var(--app-transition), color var(--app-transition);
+    transition: background var(--app-transition), color var(--app-transition);
 }
 
 body.dark-theme {
-    background-color: #121212;
+    background: var(--app-gradient);
+    background-attachment: fixed;
     color: #e0e0e0;
 }
 
@@ -343,8 +381,187 @@ code {
     background-color: var(--mat-list-active-indicator-color, rgba(0, 0, 0, 0.12)) !important;
 }
 
+/* Material Symbols variable font overrides for mat-icon.
+   Angular Material's mat-icon applies the font-set class (material-symbols-outlined)
+   but the default font-variation-settings may not match larger icon sizes.
+   For any mat-icon larger than 24px, set opsz to match font-size. */
+.material-symbols-outlined {
+    /* Allow component-level font-variation-settings to take precedence */
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .page-content { padding: 16px 0; }
     .toast-container { right: 12px; left: 12px; width: auto; max-width: none; }
+}
+
+/* =================================================================
+   App Shell — Global layout styles matching original design
+   ================================================================= */
+
+/* The body gradient shows through the transparent app container */
+.mat-drawer-container {
+    background: transparent !important;
+}
+
+.mat-drawer-content {
+    background: transparent !important;
+}
+
+/* Page wrapper — the "white card" matching original .container */
+.page-wrapper {
+    max-width: 1200px;
+    margin: 20px auto;
+    background: var(--app-surface);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    min-height: calc(100vh - 40px);
+}
+
+body.dark-theme .page-wrapper,
+[data-theme='dark'] .page-wrapper {
+    background: var(--app-surface);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* App header — matches original <header> with gradient */
+.app-header-shell {
+    background: var(--app-gradient-brand);
+    color: white;
+    padding: 20px 30px 0;
+    text-align: center;
+}
+
+.app-header-shell .app-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.app-header-shell h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+}
+
+.app-header-shell .app-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0 0 16px 0;
+    color: rgba(255,255,255,0.9);
+}
+
+.app-header-shell .header-actions {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.app-header-shell .header-actions button {
+    color: white;
+}
+
+/* Navigation tabs — matches original .tabs */
+.app-nav-tabs {
+    display: flex;
+    gap: 0;
+    border-top: none;
+    margin: 0;
+    overflow-x: auto;
+    justify-content: center;
+}
+
+.app-nav-tabs a {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: rgba(255,255,255,0.75);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.app-nav-tabs a:hover {
+    color: white;
+    background: rgba(255,255,255,0.1);
+}
+
+.app-nav-tabs a.active-tab {
+    color: white;
+    border-bottom-color: white;
+    background: rgba(255,255,255,0.15);
+    font-weight: 600;
+}
+
+/* App main content area — matches original .content */
+.app-main-content {
+    padding: 24px 30px;
+}
+
+/* App footer — matches original footer */
+.app-footer-shell {
+    padding: 16px 30px;
+    text-align: center;
+    background: var(--app-surface-variant);
+    color: var(--app-text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--app-border);
+}
+
+.app-footer-shell a {
+    color: var(--app-primary);
+    text-decoration: none;
+}
+
+.app-footer-shell a:hover {
+    text-decoration: underline;
+}
+
+/* Mobile sidenav drawer */
+.app-mobile-sidenav {
+    width: 260px;
+    background: var(--app-surface) !important;
+}
+
+.app-mobile-sidenav .sidenav-brand {
+    padding: 20px 16px;
+    background: var(--app-gradient-brand);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .page-wrapper {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+
+    .app-header-shell {
+        padding: 16px 16px 0;
+    }
+
+    .app-header-shell h1 {
+        font-size: 1.5rem;
+    }
+
+    .app-main-content {
+        padding: 16px;
+    }
 }
