@@ -44,6 +44,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.33.0] - 2026-03-04
+
+### Added- incorporate Angular Material Design into 4 Angular frontend components
+
+### Fixed
+
+- add standalone: true to SparklineComponent, SkeletonTableComponent, TurnstileComponent
+
+
 ## [0.32.2] - 2026-03-04
 
 ### Added### Fixed
