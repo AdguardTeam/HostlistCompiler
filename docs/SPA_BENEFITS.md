@@ -9,9 +9,6 @@ The Adblock Compiler is currently a **multi-page application** (MPA) where each
 every navigation. Converting to a **Single Page Application** (SPA) would meaningfully
 improve the user experience, developer experience, and long-term maintainability.
 
-Two complete proof-of-concept implementations demonstrate how this migration would
-look in practice — see [`poc/`](../poc/).
-
 ---
 
 ## Current Architecture (Multi-Page)
@@ -108,28 +105,6 @@ straightforward once the app is already an SPA.
 
 ---
 
-## What the PoCs Demonstrate
-
-Two PoC implementations in [`poc/`](../poc/) prove that the migration is
-practical with the existing project infrastructure:
-
-| PoC | Framework | Approach | Routing | State |
-|---|---|---|---|---|
-| [Vue 3](../poc/vue/index.html) | Vue 3 | CDN (no build) | Vue Router 4 | Pinia |
-| [Angular](../poc/angular/) | Angular 21 | Full build (npm) | Angular Router | Signals + RxJS |
-
-Both PoCs implement the same set of features:
-
-- ✅ Component-based architecture
-- ✅ Client-side routing (Home ↔ Compiler ↔ Benchmark)
-- ✅ Dark/light theme toggle with `localStorage` persistence
-- ✅ Compiler form with dynamic URL list and transformation checkboxes
-- ✅ API integration (`POST /api/compile`) with loading and error states
-- ✅ Benchmark page with `performance.now()` timing and summary statistics (min/max/avg)
-- ✅ Mock data fallback when the API is not running
-
----
-
 ## Why the Infrastructure Is Already Ready
 
 The Vite build system already ships `@vitejs/plugin-vue`:
@@ -201,8 +176,4 @@ existing Vite setup already has `@vitejs/plugin-vue` installed and active.
 
 ## Related Documentation
 
-- [`poc/README.md`](../poc/README.md) — Framework comparison guide
-- [`poc/SUMMARY.md`](../poc/SUMMARY.md) — Implementation summary
 - [`docs/VITE.md`](VITE.md) — Vite integration guide
-- [`poc/vue/VUE_PINIA.md`](../poc/vue/VUE_PINIA.md) — Pinia state management guide
-- [`poc/angular/ANGULAR_SIGNALS.md`](../poc/angular/ANGULAR_SIGNALS.md) — Angular Signals guide

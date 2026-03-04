@@ -1,5 +1,5 @@
 /**
- * Angular PoC - App Component (Root Component)
+ * Angular - App Component (Root Component)
  *
  * Angular 21 patterns demonstrated:
  *

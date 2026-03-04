@@ -1,7 +1,7 @@
 {
     "name": "adblock-compiler-frontend",
     "version": "1.0.0",
-    "description": "Angular 21 PoC for Adblock Compiler with Material Design, Zoneless Change Detection, and Cloudflare Workers SSR",
+    "description": "Angular 21 frontend for Adblock Compiler with Material Design, Zoneless Change Detection, and Cloudflare Workers SSR",
     "private": true,
     "scripts": {
         "ng": "ng",

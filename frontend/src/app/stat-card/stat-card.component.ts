@@ -1,5 +1,5 @@
 /**
- * Angular PoC - StatCard Component
+ * Angular - StatCard Component
  *
  * Angular 21 Signal Component API patterns demonstrated:
  *

@@ -1,5 +1,5 @@
 /**
- * Angular PoC - Application Bootstrap (Browser)
+ * Angular - Application Bootstrap (Browser)
  *
  * Angular 21 Pattern: Application bootstrap using app.config.ts
  * Supports both browser and server-side rendering

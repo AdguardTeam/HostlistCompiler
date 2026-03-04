@@ -1,5 +1,5 @@
 /**
- * Angular PoC - Server Routes Configuration
+ * Angular - Server Routes Configuration
  *
  * Angular SSR rendering modes per route:
  *

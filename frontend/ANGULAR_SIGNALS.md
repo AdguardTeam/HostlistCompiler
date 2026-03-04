@@ -521,7 +521,7 @@ export class CompilerComponent {
 
 ## 🚀 Next Steps
 
-1. **Explore the Signals Component** — Visit `/signals` route in the Angular PoC
+1. **Explore the Signals Component** — Visit `/signals` route in the Angular app
 2. **Experiment with Actions** — Try the interactive demos
 3. **Read Official Docs** — Deep dive into Angular Signals
 4. **Migrate Gradually** — Start using signals in new components

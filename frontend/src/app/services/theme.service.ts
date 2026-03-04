@@ -1,5 +1,5 @@
 /**
- * Angular PoC - Theme Service
+ * Angular - Theme Service
  *
  * Angular 21 Patterns demonstrated:
  *

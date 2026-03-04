@@ -1,4 +1,4 @@
-# Wrangler configuration for deploying the Angular 21 PoC to Cloudflare Workers
+# Wrangler configuration for deploying the Angular frontend to Cloudflare Workers
 #
 # Build output layout (produced by `npm run build` / `ng build`):
 #   dist/adblock-compiler-poc/

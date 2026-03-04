@@ -3534,7 +3534,7 @@ export default {
                         return response;
                     }
 
-                    // Directory index fallback: for paths without a file extension (e.g. /poc, /poc/),
+                    // Directory index fallback: for paths without a file extension (e.g. /some-dir, /some-dir/),
                     // try serving {path}/index.html so that directory-based routes work correctly.
                     // The regex checks for a dot followed by non-slash chars at the end, indicating a file extension.
                     if (!pathname.match(/\.[^/]+$/)) {
