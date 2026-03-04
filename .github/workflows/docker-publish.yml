@@ -80,7 +80,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # mode=min only caches the final-stage layers, keeping cache writes well under
+          # the GHA 5 GB limit. mode=max cached every intermediate stage and was hitting
+          # the limit, causing "error writing layer blob: failed to parse error response 502".
+          cache-to: type=gha,mode=min
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
