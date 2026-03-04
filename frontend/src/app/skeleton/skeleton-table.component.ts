@@ -7,29 +7,38 @@
  */
 
 import { Component, computed, input } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
     selector: 'app-skeleton-table',
+    standalone: true,
+    imports: [MatCardModule, MatProgressBarModule],
     template: `
-        <div class="skeleton-table">
-            <!-- Header row -->
-            <div class="skeleton-row header">
-                @for (col of columnArray(); track $index) {
-                    <div class="skeleton-cell shimmer" [style.flex]="col"></div>
-                }
-            </div>
-            <!-- Body rows -->
-            @for (row of rowArray(); track $index) {
-                <div class="skeleton-row">
-                    @for (col of columnArray(); track $index) {
-                        <div class="skeleton-cell shimmer"
-                            [style.flex]="col"
-                            [style.width]="getCellWidth($index, row)">
+        <mat-card appearance="outlined">
+            <mat-progress-bar mode="buffer" bufferValue="0" />
+            <mat-card-content>
+                <div class="skeleton-table">
+                    <!-- Header row -->
+                    <div class="skeleton-row header">
+                        @for (col of columnArray(); track $index) {
+                            <div class="skeleton-cell shimmer" [style.flex]="col"></div>
+                        }
+                    </div>
+                    <!-- Body rows -->
+                    @for (row of rowArray(); track $index) {
+                        <div class="skeleton-row">
+                            @for (col of columnArray(); track $index) {
+                                <div class="skeleton-cell shimmer"
+                                    [style.flex]="col"
+                                    [style.width]="getCellWidth($index, row)">
+                                </div>
+                            }
                         </div>
                     }
                 </div>
-            }
-        </div>
+            </mat-card-content>
+        </mat-card>
     `,
     styles: [`
         .skeleton-table {
