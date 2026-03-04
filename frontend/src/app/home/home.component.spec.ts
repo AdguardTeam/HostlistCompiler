@@ -71,7 +71,7 @@ describe('HomeComponent', () => {
     it('should derive live stats from metrics', () => {
         // After flushing with zeroed metrics, stats show formatted values
         const stats = component.liveStats();
-        expect(stats.length).toBe(4);
+        expect(stats.length).toBe(5);
         expect(stats[0].label).toBe('Total Requests');
         expect(stats[0].value).toBe('0');
     });

@@ -1,13 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NotificationService } from './notification.service';
+import { API_BASE_URL } from '../tokens';
 
 describe('NotificationService', () => {
     let service: NotificationService;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            providers: [provideZonelessChangeDetection()],
+            providers: [
+                provideZonelessChangeDetection(),
+                provideHttpClient(),
+                provideHttpClientTesting(),
+                { provide: API_BASE_URL, useValue: '/api' },
+            ],
         });
         service = TestBed.inject(NotificationService);
     });
@@ -16,37 +24,29 @@ describe('NotificationService', () => {
         expect(service).toBeTruthy();
     });
 
-    it('should add a job with queued status', () => {
-        service.addJob('req-1', 'My Config');
-        const jobs = service.jobs();
-        expect(jobs.length).toBe(1);
-        expect(jobs[0].requestId).toBe('req-1');
-        expect(jobs[0].configName).toBe('My Config');
-        expect(jobs[0].status).toBe('queued');
+    it('should add and dismiss a toast', () => {
+        service.showToast('success', 'Title', 'Message');
+        expect(service.toasts().length).toBe(1);
+        const id = service.toasts()[0].id;
+        service.dismissToast(id);
+        expect(service.toasts().length).toBe(0);
     });
 
-    it('should update job to completed with ruleCount', () => {
-        service.addJob('req-1', 'My Config');
-        service.updateJob('req-1', 'completed', { ruleCount: 500 });
-        const job = service.jobs().find(j => j.requestId === 'req-1')!;
-        expect(job.status).toBe('completed');
-        expect(job.ruleCount).toBe(500);
-        expect(job.completedAt).toBeDefined();
+    it('should add multiple toasts independently', () => {
+        service.showToast('info', 'Info', 'Info message');
+        service.showToast('error', 'Error', 'Error message');
+        expect(service.toasts().length).toBe(2);
+        expect(service.toasts()[0].type).toBe('info');
+        expect(service.toasts()[1].type).toBe('error');
     });
 
-    it('should update job to failed with error', () => {
-        service.addJob('req-2', 'Other Config');
-        service.updateJob('req-2', 'failed', { error: 'Queue not available' });
-        const job = service.jobs().find(j => j.requestId === 'req-2')!;
-        expect(job.status).toBe('failed');
-        expect(job.error).toBe('Queue not available');
+    it('should initialize with notifications disabled', () => {
+        expect(service.isEnabled()).toBe(false);
     });
 
-    it('should prepend new jobs to the front of the list', () => {
-        service.addJob('req-1', 'Config A');
-        service.addJob('req-2', 'Config B');
-        const jobs = service.jobs();
-        expect(jobs[0].requestId).toBe('req-2');
-        expect(jobs[1].requestId).toBe('req-1');
+    it('should track a job', () => {
+        service.trackJob('req-1', 'My Config');
+        expect(service.trackedJobs().size).toBe(1);
+        expect(service.trackedJobs().get('req-1')?.configName).toBe('My Config');
     });
 });

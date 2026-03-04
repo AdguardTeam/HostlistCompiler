@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { QueueService, QueueStats, QueueJobResult } from './queue.service';
+import { QueueService, QueueStats, QueueResult } from './queue.service';
 import { API_BASE_URL } from '../tokens';
 
 describe('QueueService', () => {
@@ -28,32 +28,50 @@ describe('QueueService', () => {
         expect(service).toBeTruthy();
     });
 
-    it('should GET /api/queue/stats', () => {
+    it('should GET queue/stats and normalize depthHistory', () => {
         const mockStats: QueueStats = {
+            currentDepth: 5,
             pending: 3,
             completed: 42,
             failed: 1,
-            cancelled: 0,
             processingRate: 5,
-            averageProcessingTime: 1200,
-            queueLag: 600,
-            lastUpdate: new Date().toISOString(),
+            lag: 600,
+            depthHistory: [],
         };
 
-        service.getQueueStats().subscribe(stats => {
-            expect(stats).toEqual(mockStats);
+        service.getStats().subscribe(stats => {
+            expect(stats.pending).toBe(3);
+            expect(stats.depthHistory).toEqual([]);
         });
 
-        const req = httpTesting.expectOne('/api/queue/stats');
+        const req = httpTesting.expectOne('/api/../queue/stats');
         expect(req.request.method).toBe('GET');
         req.flush(mockStats);
     });
 
-    it('should poll /api/queue/results/:requestId and complete on terminal status', async () => {
+    it('should GET queue/results/:requestId', () => {
+        const requestId = 'req-001';
+        const mockResult: QueueResult = {
+            success: true,
+            status: 'completed',
+            requestId,
+            ruleCount: 200,
+        };
+
+        service.getResults(requestId).subscribe(result => {
+            expect(result.status).toBe('completed');
+        });
+
+        const req = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+        expect(req.request.method).toBe('GET');
+        req.flush(mockResult);
+    });
+
+    it('should poll results and complete on terminal status', async () => {
         vi.useFakeTimers();
         try {
             const requestId = 'abc123';
-            const results: QueueJobResult[] = [];
+            const results: QueueResult[] = [];
             let completed = false;
 
             service.pollResults(requestId, 1000).subscribe({
@@ -61,14 +79,15 @@ describe('QueueService', () => {
                 complete: () => { completed = true; },
             });
 
-            // First emission: startWith(0) fires synchronously
-            const req1 = httpTesting.expectOne(`/api/queue/results/${requestId}`);
-            req1.flush({ status: 'pending' });
+            // Advance 1ms to trigger the initial timer(0, ...) emission
+            await vi.advanceTimersByTimeAsync(1);
+            const req1 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            req1.flush({ success: true, status: 'pending', requestId });
 
             // Second emission: advance by the polling interval
             await vi.advanceTimersByTimeAsync(1000);
-            const req2 = httpTesting.expectOne(`/api/queue/results/${requestId}`);
-            req2.flush({ status: 'completed', ruleCount: 100 });
+            const req2 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            req2.flush({ success: true, status: 'completed', requestId, ruleCount: 100 });
 
             expect(results.length).toBe(2);
             expect(results[0].status).toBe('pending');

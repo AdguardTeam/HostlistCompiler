@@ -76,12 +76,12 @@ describe('CompilerComponent', () => {
     });
 
     it('should default compilation mode to json', () => {
-        expect(component.compilationMode()).toBe('json');
+        expect(component.compileMode).toBe('json');
     });
 
     it('should set compilation mode', () => {
-        component.compilationMode.set('async');
-        expect(component.compilationMode()).toBe('async');
+        component.compileMode = 'async';
+        expect(component.compileMode).toBe('async');
     });
 
     it('should have drag over state default to false', () => {
