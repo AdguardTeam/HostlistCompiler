@@ -26,6 +26,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
+import { MatIconRegistry } from '@angular/material/icon';
 import { routes } from './app.routes';
 import { ThemeService } from './services/theme.service';
 import { GlobalErrorHandler } from './error/global-error-handler';
@@ -66,7 +67,11 @@ export const appConfig: ApplicationConfig = {
         // provideAppInitializer() — runs before the first render.
         // ThemeService reads localStorage and applies the saved theme class to <body>
         // so the app never flashes the wrong theme on load (especially important in SSR).
+        // MatIconRegistry: switches mat-icon from the legacy 'Material Icons' ligature font
+        // (not in npm) to the 'material-symbols' npm package which is already imported in
+        // styles.css via `@import 'material-symbols/outlined.css'`.
         provideAppInitializer(() => {
+            inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
             inject(ThemeService).loadPreferences();
         }),
     ],

@@ -381,6 +381,15 @@ code {
     background-color: var(--mat-list-active-indicator-color, rgba(0, 0, 0, 0.12)) !important;
 }
 
+/* Material Symbols variable font overrides for mat-icon.
+   Angular Material's mat-icon applies the font-set class (material-symbols-outlined)
+   but the default font-variation-settings may not match larger icon sizes.
+   For any mat-icon larger than 24px, set opsz to match font-size. */
+.material-symbols-outlined {
+    /* Allow component-level font-variation-settings to take precedence */
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .page-content { padding: 16px 0; }

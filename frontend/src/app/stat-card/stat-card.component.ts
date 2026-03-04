@@ -110,6 +110,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         width: 48px;
         height: 48px;
         margin-bottom: 8px;
+        /* Material Symbols variable font: match optical size to rendered size */
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
     }
 
     .stat-value {
