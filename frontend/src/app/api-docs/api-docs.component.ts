@@ -15,7 +15,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { FormsModule, JsonPipe } from '@angular/common';
+import { JsonPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { API_BASE_URL } from '../tokens';
 
 interface VersionInfo {
