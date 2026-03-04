@@ -12,11 +12,40 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, timer } from 'rxjs';
-import { map, switchMap, takeWhile } from 'rxjs/operators';
+import { map, scan, switchMap, takeWhile } from 'rxjs/operators';
 import { API_BASE_URL } from '../tokens';
 import { LogService } from './log.service';
 
+/**
+ * All possible statuses returned by the queue results endpoint.
+ * - `pending`    / `processing` — job is still running (non-terminal, keep polling)
+ * - `completed`  / `failed` / `cancelled` — job is done (terminal, stop polling)
+ * - `not_found`  — job not yet written to history (transient; treated as non-terminal
+ *                  for up to NOT_FOUND_GRACE_RETRIES polls, then terminal)
+ * - `cache_miss` — job result expired from cache (terminal; log and stop polling)
+ */
+export type QueueJobStatus =
+    | 'pending'
+    | 'processing'
+    | 'completed'
+    | 'failed'
+    | 'cancelled'
+    | 'not_found'
+    | 'cache_miss';
+
+/** Statuses that unambiguously end polling immediately (excluding `not_found` which has a grace budget). */
+const TERMINAL_JOB_STATUSES: readonly QueueJobStatus[] = ['completed', 'failed', 'cancelled', 'not_found', 'cache_miss'];
+
+/**
+ * Number of consecutive `not_found` responses to tolerate before treating the
+ * status as terminal.  The backend only writes history entries once a job
+ * completes / fails / is cancelled, so the first several polls for a freshly
+ * queued job often return `not_found`.
+ */
+const NOT_FOUND_GRACE_RETRIES = 10;
+
 export interface QueueStats {
+    readonly success?: boolean;
     readonly currentDepth: number;
     readonly pending: number;
     readonly completed: number;
@@ -25,6 +54,7 @@ export interface QueueStats {
     readonly lag: number;
     readonly depthHistory: DepthHistoryEntry[];
     readonly history?: QueueJobEntry[];
+    readonly error?: string;
 }
 
 export interface DepthHistoryEntry {
@@ -35,14 +65,14 @@ export interface DepthHistoryEntry {
 export interface QueueJobEntry {
     readonly requestId: string;
     readonly configName?: string;
-    readonly status: 'pending' | 'processing' | 'completed' | 'failed';
+    readonly status: QueueJobStatus;
     readonly duration?: number;
     readonly completedAt?: string;
 }
 
 export interface QueueResult {
     readonly success: boolean;
-    readonly status: 'pending' | 'processing' | 'completed' | 'failed';
+    readonly status: QueueJobStatus;
     readonly requestId: string;
     readonly rules?: string[];
     readonly ruleCount?: number;
@@ -83,6 +113,10 @@ export class QueueService {
      * Emits every poll response (including intermediate 'pending' statuses),
      * and completes when the job reaches a terminal state.
      *
+     * `not_found` responses are tolerated for up to NOT_FOUND_GRACE_RETRIES
+     * consecutive polls (the backend only writes history on completion), after
+     * which they are treated as terminal and polling stops.
+     *
      * @param requestId  - The async job request ID
      * @param intervalMs - Polling interval in milliseconds (default 5000)
      */
@@ -91,11 +125,20 @@ export class QueueService {
 
         return timer(0, intervalMs).pipe(
             switchMap(() => this.getResults(requestId)),
+            scan(
+                (acc, result) => ({
+                    result,
+                    notFoundCount: result.status === 'not_found' ? acc.notFoundCount + 1 : 0,
+                }),
+                { result: null as unknown as QueueResult, notFoundCount: 0 },
+            ),
             takeWhile(
-                (result) => result.status === 'pending' || result.status === 'processing',
+                ({ result, notFoundCount }) =>
+                    !TERMINAL_JOB_STATUSES.includes(result.status) ||
+                    (result.status === 'not_found' && notFoundCount <= NOT_FOUND_GRACE_RETRIES),
                 true, // include the terminal emission
             ),
-            map(result => {
+            map(({ result }) => {
                 if (result.status === 'completed') {
                     this.log.info(`Job ${requestId} completed`, 'queue', {
                         requestId,
@@ -107,6 +150,8 @@ export class QueueService {
                         requestId,
                         error: result.error,
                     });
+                } else if (result.status === 'not_found') {
+                    this.log.debug(`Job ${requestId} not_found (may still be pending)`, 'queue', { requestId });
                 }
                 return result;
             }),

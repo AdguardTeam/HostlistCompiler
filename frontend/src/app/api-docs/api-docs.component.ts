@@ -120,8 +120,8 @@ interface Endpoint {
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Endpoint</mat-label>
               <mat-select [value]="selectedEndpoint()" (selectionChange)="selectedEndpoint.set($event.value)">
-                <mat-option value="/api/compile">POST /api/compile</mat-option>
-                <mat-option value="/api/compile/async">POST /compile/async</mat-option>
+                <mat-option value="/compile">POST /compile</mat-option>
+                <mat-option value="/compile/async">POST /compile/async</mat-option>
               </mat-select>
             </mat-form-field>
             <mat-form-field appearance="outline" class="full-width">
@@ -182,7 +182,7 @@ export class ApiDocsComponent {
             title: 'Compilation',
             icon: 'build',
             endpoints: [
-                { method: 'POST' as const, path: '/api/compile', description: 'Compile filter lists (JSON response)' },
+                { method: 'POST' as const, path: '/compile', description: 'Compile filter lists (JSON response)' },
                 { method: 'POST' as const, path: '/compile/stream', description: 'Compile with SSE streaming progress' },
                 { method: 'POST' as const, path: '/compile/async', description: 'Queue async compilation job' },
                 { method: 'POST' as const, path: '/compile/batch/async', description: 'Queue batch compilation' },
@@ -194,7 +194,7 @@ export class ApiDocsComponent {
             title: 'Monitoring',
             icon: 'monitoring',
             endpoints: [
-                { method: 'GET' as const, path: '/api/health', description: 'Health check — status, version, uptime' },
+                { method: 'GET' as const, path: '/health/latest', description: 'Health check — status, version, uptime' },
                 { method: 'GET' as const, path: '/api/version', description: 'Service version info' },
                 { method: 'GET' as const, path: '/metrics', description: 'Request metrics and latency data' },
             ],
@@ -246,7 +246,7 @@ export class ApiDocsComponent {
         benchmark: true,
     };
 
-    readonly selectedEndpoint = signal('/api/compile');
+    readonly selectedEndpoint = signal('/compile');
     readonly requestBodyJson = signal(JSON.stringify(this.exampleRequest, null, 2));
     readonly testerResponse = signal<string | null>(null);
     readonly testerLoading = signal(false);
@@ -254,7 +254,7 @@ export class ApiDocsComponent {
     sendTestRequest(): void {
         this.testerLoading.set(true);
         this.testerResponse.set(null);
-        const path = this.selectedEndpoint().replace(/^\/api/, '');
+        const path = this.selectedEndpoint();
         const url = `${this.apiBaseUrl}${path}`;
         let body: unknown;
         try {

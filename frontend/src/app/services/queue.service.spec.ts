@@ -97,4 +97,65 @@ describe('QueueService', () => {
             vi.useRealTimers();
         }
     });
+
+    it('should continue polling on not_found within grace retries', async () => {
+        vi.useFakeTimers();
+        try {
+            const requestId = 'not-found-grace';
+            const results: QueueResult[] = [];
+
+            service.pollResults(requestId, 1000).subscribe({
+                next: r => results.push(r),
+            });
+
+            // First poll: not_found (within grace)
+            await vi.advanceTimersByTimeAsync(1);
+            const req1 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            req1.flush({ success: false, status: 'not_found', requestId });
+
+            // Second poll: still not_found but within grace
+            await vi.advanceTimersByTimeAsync(1000);
+            const req2 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            req2.flush({ success: false, status: 'not_found', requestId });
+
+            // Third poll: job now available as pending (non-terminal, keep going)
+            await vi.advanceTimersByTimeAsync(1000);
+            const req3 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            req3.flush({ success: true, status: 'pending', requestId });
+
+            expect(results.length).toBe(3);
+            expect(results[0].status).toBe('not_found');
+            expect(results[1].status).toBe('not_found');
+            expect(results[2].status).toBe('pending');
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it('should stop polling after not_found grace budget is exhausted', async () => {
+        vi.useFakeTimers();
+        try {
+            const requestId = 'not-found-timeout';
+            const results: QueueResult[] = [];
+            let completed = false;
+
+            service.pollResults(requestId, 100).subscribe({
+                next: r => results.push(r),
+                complete: () => { completed = true; },
+            });
+
+            // Exhaust grace retries (NOT_FOUND_GRACE_RETRIES = 10) + 1 terminal emit
+            for (let i = 0; i <= 10; i++) {
+                await vi.advanceTimersByTimeAsync(i === 0 ? 1 : 100);
+                const req = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+                req.flush({ success: false, status: 'not_found', requestId });
+            }
+
+            expect(results.length).toBe(11);
+            expect(results.every(r => r.status === 'not_found')).toBe(true);
+            expect(completed).toBe(true);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
 });
