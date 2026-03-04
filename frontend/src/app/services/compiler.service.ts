@@ -44,6 +44,7 @@ export interface AsyncCompileResponse {
     success: boolean;
     requestId: string;
     note: string;
+    error?: string;
 }
 
 export interface ASTResult {

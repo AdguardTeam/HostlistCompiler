@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrate `@opentelemetry/api` from npm to JSR (`jsr:@opentelemetry/api@^1.9.0`)
 - Improve Deno-native architecture by reducing npm dependencies where JSR alternatives are available
 - Replace `console.*` calls in `EventEmitter`, `AnalyticsService`, and `CloudflareQueueProvider` with `IBasicLogger` dependency injection, defaulting to `silentLogger` for backward compatibility
+- **frontend**: Add async/batch compilation modes, queue stats panel, and supporting services (QueueService, NotificationService, CompilerService extensions, CompilerComponent updates)
+- **frontend**: Add structured logging (LogService) to QueueService, NotificationService, and CompilerService
+- **frontend**: Expand API Docs with missing endpoints (batch, AST parse, queue management, workflow) and embedded API tester
 
 
 

@@ -136,6 +136,9 @@ export class NotificationService {
             next: (result: QueueResult) => {
                 if (result.status === 'completed') {
                     this.notifyJobComplete(requestId, configName, result.duration ?? 0);
+                } else if (result.status === 'cancelled') {
+                    this.showToast('warning', 'Job Cancelled', `${configName} was cancelled`);
+                    this.markJobNotified(requestId);
                 } else if (result.status === 'failed') {
                     this.showToast('error', 'Job Failed', `${configName} failed: ${result.error ?? 'Unknown error'}`);
                     this.markJobNotified(requestId);

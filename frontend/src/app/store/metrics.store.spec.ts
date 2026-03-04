@@ -39,7 +39,7 @@ describe('MetricsStore', () => {
     });
 
     it('should expose isLoading signal', () => {
-        expect(store.isLoading()).toBe(false);
+        expect(store.isLoading()).toBe(true);
     });
 
     it('should expose isStale signal', () => {

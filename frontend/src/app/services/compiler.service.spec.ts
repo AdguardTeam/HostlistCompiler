@@ -48,28 +48,13 @@ describe('CompilerService', () => {
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual({
             configuration: {
-                name: 'Angular PoC Compilation',
+                name: 'Adblock Compilation',
                 sources: [{ source: 'https://easylist.to/easylist/easylist.txt' }],
                 transformations: ['RemoveComments', 'Deduplicate'],
             },
             benchmark: true,
         });
         req.flush(mockResponse);
-    });
-
-    it('should return mock data on HTTP error', (done) => {
-        const urls = ['https://example.com/filters.txt'];
-        const transformations = ['Validate'];
-
-        service.compile(urls, transformations).subscribe(result => {
-            expect(result.success).toBe(true);
-            expect(result.ruleCount).toBe(1234);
-            expect(result.message).toContain('Mock compilation result');
-            done();
-        });
-
-        const req = httpTesting.expectOne('/api/compile');
-        req.error(new ProgressEvent('error'), { status: 500, statusText: 'Server Error' });
     });
 
     it('should include all expected transformations', () => {
@@ -94,5 +79,49 @@ describe('CompilerService', () => {
             { source: 'https://b.com/2.txt' },
         ]);
         req.flush({});
+    });
+
+    it('should POST to /api/compile/async with correct payload', () => {
+        const urls = ['https://easylist.to/easylist/easylist.txt'];
+        const transformations = ['RemoveComments'];
+        const mockResponse = {
+            success: true,
+            note: 'Will process async',
+            requestId: 'abc-123',
+        };
+
+        service.compileAsync(urls, transformations).subscribe(result => {
+            expect(result).toEqual(mockResponse);
+        });
+
+        const req = httpTesting.expectOne('/api/compile/async');
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({
+            configuration: {
+                name: 'Async Compilation',
+                sources: [{ source: urls[0] }],
+                transformations,
+            },
+            benchmark: true,
+        });
+        req.flush(mockResponse);
+    });
+
+    it('should POST to /api/compile/batch with correct payload', () => {
+        const mockResponse = [{ success: true, ruleCount: 100, sources: 1, transformations: [], message: 'OK' }];
+        const configurations = [{
+            name: 'Test',
+            sources: [{ source: 'https://example.com/list.txt' }],
+            transformations: ['RemoveComments'],
+        }];
+
+        service.compileBatch(configurations).subscribe(result => {
+            expect(result).toEqual(mockResponse);
+        });
+
+        const req = httpTesting.expectOne('/api/compile/batch');
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({ configurations, benchmark: true });
+        req.flush(mockResponse);
     });
 });

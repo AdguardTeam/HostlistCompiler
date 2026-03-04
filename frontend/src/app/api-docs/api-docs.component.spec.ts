@@ -41,14 +41,14 @@ describe('ApiDocsComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('should have 4 endpoint groups', () => {
-        expect(component.endpointGroups.length).toBe(4);
+    it('should have 6 endpoint groups', () => {
+        expect(component.endpointGroups.length).toBe(6);
     });
 
-    it('should have Compilation group with 4 endpoints', () => {
+    it('should have Compilation group with 6 endpoints', () => {
         const compilation = component.endpointGroups.find(g => g.title === 'Compilation');
         expect(compilation).toBeTruthy();
-        expect(compilation!.endpoints.length).toBe(4);
+        expect(compilation!.endpoints.length).toBe(6);
     });
 
     it('should have Monitoring group', () => {
