@@ -8,6 +8,7 @@
 ## Epic 6 — Stabilization & Comprehensive Testing
 
 ### 6.1 End-to-End Test Suite
+
 - **Milestone:** `rtm`
 - **Labels:** `enhancement`
 - **Description:** Automated E2E tests covering all critical user journeys.
@@ -24,6 +25,7 @@
 ---
 
 ### 6.2 Backend & API Integration Tests
+
 - **Milestone:** `rtm`
 - **Labels:** `enhancement`
 - **Description:** Integration tests for all Cloudflare Worker API endpoints and DB access paths.
@@ -39,6 +41,7 @@
 ---
 
 ### 6.3 Load & Performance Testing
+
 - **Milestone:** `rtm`
 - **Labels:** `enhancement`
 - **Description:** Stress test compilation APIs and frontend under realistic load.
@@ -56,6 +59,7 @@
 ## Epic 7 — Security & Compliance
 
 ### 7.1 Dependency Security Audit
+
 - **Milestone:** `rtm`
 - **Labels:** `enhancement`
 - **Description:** Audit all dependencies for known CVEs and set up ongoing monitoring.
@@ -70,6 +74,7 @@
 ---
 
 ### 7.2 Application Security Review
+
 - **Milestone:** `rtm`
 - **Labels:** `enhancement`
 - **Description:** Review all API inputs, auth, secrets handling, CORS, and Turnstile validation.
@@ -86,6 +91,7 @@
 ---
 
 ### 7.3 GPL-3.0 License Compliance Review
+
 - **Milestone:** `rtm`
 - **Labels:** `documentation`
 - **Description:** Verify all dependencies are license-compatible with GPL-3.0.
@@ -102,6 +108,7 @@
 ## Epic 8 — Production Observability (Full)
 
 ### 8.1 Full Grafana Dashboard & Alerting
+
 - **Milestone:** `rtm`
 - **Labels:** `enhancement`
 - **Description:** Expand Grafana dashboards to all subsystems and add production alerting.
@@ -117,6 +124,7 @@
 ---
 
 ### 8.2 Structured Logging & Error Tracking
+
 - **Milestone:** `rtm`
 - **Labels:** `enhancement`
 - **Description:** Implement structured logging and integrate error capture across all Workers.
@@ -133,6 +141,7 @@
 ## Epic 9 — Final Documentation & Release
 
 ### 9.1 Complete End-User Documentation
+
 - **Milestone:** `rtm`
 - **Labels:** `documentation`
 - **Description:** Full user-facing and contributor documentation, reviewed and finalized.
@@ -149,6 +158,7 @@
 ---
 
 ### 9.2 v1.0.0 Release Candidate & GA Cut
+
 - **Milestone:** `rtm`
 - **Labels:** `enhancement`
 - **Description:** Cut the v1.0.0-rc tag, run final smoke tests, publish release notes, and ship GA.
@@ -180,4 +190,4 @@
 
 ---
 
-*Once all items above are checked, promote these items to live GitHub issues under the `rtm` milestone.*
+_Once all items above are checked, promote these items to live GitHub issues under the `rtm` milestone._
