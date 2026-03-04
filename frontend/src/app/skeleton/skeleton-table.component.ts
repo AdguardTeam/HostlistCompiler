@@ -12,6 +12,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
     selector: 'app-skeleton-table',
+    standalone: true,
     imports: [MatCardModule, MatProgressBarModule],
     template: `
         <mat-card appearance="outlined">

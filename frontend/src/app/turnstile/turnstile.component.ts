@@ -18,6 +18,7 @@ import { TurnstileService } from '../services/turnstile.service';
 
 @Component({
     selector: 'app-turnstile',
+    standalone: true,
     imports: [MatCardModule],
     template: `
         <mat-card appearance="outlined" class="turnstile-card">

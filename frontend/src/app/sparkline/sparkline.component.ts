@@ -14,6 +14,7 @@ import { MatCardModule } from '@angular/material/card';
 
 @Component({
     selector: 'app-sparkline',
+    standalone: true,
     imports: [MatCardModule],
     template: `
         <mat-card appearance="outlined" class="sparkline-card">
