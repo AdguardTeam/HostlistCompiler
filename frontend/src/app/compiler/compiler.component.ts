@@ -1,35 +1,17 @@
 /**
- * Angular PoC - Compiler Form Component
+ * CompilerComponent — Full-featured filter list compiler.
  *
- * Angular 21 patterns demonstrated:
+ * Features:
+ *   - 5 compilation modes: JSON, Stream (SSE), Async (queued), Batch, Batch+Async
+ *   - Preset selector with linkedSignal() URL defaults
+ *   - Real-time queue stats panel (shown for async modes)
+ *   - Progress indication per mode
+ *   - LogService + NotificationService integration
+ *   - Drag-and-drop file upload with Web Worker parsing
+ *   - Turnstile bot protection
  *
- * resource() — stable v19+
- *   Signal-native async data primitive. Replaces the loading/error/result signal
- *   trio + manual subscribe/unsubscribe boilerplate. A resource has:
- *     .value()     — Signal<T | undefined> — current resolved data
- *     .status()    — Signal<ResourceStatus> — Idle / Loading / Resolved / Error / Local
- *     .error()     — Signal<unknown>        — thrown error (if any)
- *     .isLoading() — Signal<boolean>        — convenience alias
- *     .reload()    — triggers a fresh load with the same request
- *   The loader only runs when request() returns a non-undefined value, so setting
- *   pendingRequest to undefined effectively "pauses" the resource.
- *
- * rxResource() — from @angular/core/rxjs-interop, stable v19+
- *   Same as resource() but the loader returns an Observable instead of a Promise.
- *   Ideal for keeping the existing CompilerService (which returns Observable) while
- *   consuming the result as a signal in the template.
- *
- * linkedSignal() — stable v19+
- *   A writable signal whose value automatically resets when a source signal changes.
- *   Used here for preset-driven URL defaults: when the user picks a preset, the URL
- *   list resets to the preset's defaults — but can still be manually overridden.
- *
- * toSignal() — from @angular/core/rxjs-interop
- *   Bridges an Observable to a Signal. Automatically unsubscribes when the component
- *   is destroyed — no takeUntilDestroyed() needed.
- *
- * takeUntilDestroyed() — from @angular/core/rxjs-interop
- *   Declarative subscription teardown; still used for the query-param side-effect.
+ * Angular 21 patterns: signal(), computed(), linkedSignal(), rxResource(),
+ *   toSignal(), effect(), @if/@for, inject(), DestroyRef, zoneless.
  */
 
 import { Component, computed, DestroyRef, effect, inject, linkedSignal, signal } from '@angular/core';
@@ -38,8 +20,8 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { takeUntilDestroyed, toSignal, rxResource } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CompileRequest, CompileResponse, CompilerService } from '../services/compiler.service';
-import { EMPTY } from 'rxjs';
+import { CompileRequest, CompileResponse, CompilerService, AsyncCompileResponse } from '../services/compiler.service';
+import { EMPTY, firstValueFrom } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -57,6 +39,16 @@ import { TurnstileComponent } from '../turnstile/turnstile.component';
 import { TurnstileService } from '../services/turnstile.service';
 import { FilterParserService } from '../services/filter-parser.service';
 import { TURNSTILE_SITE_KEY } from '../tokens';
+import { MetricsStore } from '../store/metrics.store';
+import { NotificationService } from '../services/notification.service';
+import { LogService } from '../services/log.service';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { FormsModule } from '@angular/forms';
+
+/** Compilation mode */
+type CompileMode = 'json' | 'stream' | 'async' | 'batch' | 'batch-async';
 
 /** Named preset configurations */
 interface Preset {
@@ -65,14 +57,11 @@ interface Preset {
     readonly transformations: string[];
 }
 
-/**
- * CompilerComponent
- * Demonstrates resource(), rxResource(), linkedSignal(), and toSignal().
- */
 @Component({
     selector: 'app-compiler',
     imports: [
         ReactiveFormsModule,
+        FormsModule,
         JsonPipe,
         MatFormFieldModule,
         MatInputModule,
@@ -81,10 +70,13 @@ interface Preset {
         MatCheckboxModule,
         MatCardModule,
         MatProgressSpinnerModule,
+        MatProgressBarModule,
         MatChipsModule,
         MatDividerModule,
         MatSelectModule,
         MatSlideToggleModule,
+        MatTooltipModule,
+        MatButtonToggleModule,
         ScrollingModule,
         TurnstileComponent,
     ],
@@ -93,15 +85,82 @@ interface Preset {
         <h1 class="mat-headline-4">Compiler</h1>
         <p class="subtitle mat-body-1">Configure and compile your adblock filter lists</p>
 
-        <!-- Preset selector — drives linkedSignal() URL defaults -->
+        <!-- Compilation Mode Selector -->
+        <mat-card appearance="outlined" class="mb-2">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>tune</mat-icon>
+                <mat-card-title>Compilation Mode</mat-card-title>
+                <mat-card-subtitle>Choose how the compilation request is processed</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-button-toggle-group [(ngModel)]="compileMode" class="mode-toggle">
+                    <mat-button-toggle value="json" matTooltip="Synchronous JSON response">
+                        <mat-icon>code</mat-icon> JSON
+                    </mat-button-toggle>
+                    <mat-button-toggle value="stream" matTooltip="Server-Sent Events streaming">
+                        <mat-icon>stream</mat-icon> Stream
+                    </mat-button-toggle>
+                    <mat-button-toggle value="async" matTooltip="Queue for background processing">
+                        <mat-icon>schedule_send</mat-icon> Async
+                    </mat-button-toggle>
+                    <mat-button-toggle value="batch" matTooltip="Compile multiple configs at once">
+                        <mat-icon>dynamic_feed</mat-icon> Batch
+                    </mat-button-toggle>
+                    <mat-button-toggle value="batch-async" matTooltip="Queue batch for background">
+                        <mat-icon>queue</mat-icon> Batch+Async
+                    </mat-button-toggle>
+                </mat-button-toggle-group>
+                <p class="mode-hint mat-caption mt-1">{{ modeDescription() }}</p>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Queue Stats Panel (shown for async modes) -->
+        @if (compileMode === 'async' || compileMode === 'batch-async') {
+            <mat-card appearance="outlined" class="mb-2 queue-panel">
+                <mat-card-header>
+                    <mat-icon mat-card-avatar>insights</mat-icon>
+                    <mat-card-title>Queue Status</mat-card-title>
+                    <mat-card-subtitle>
+                        @if (store.isQueueRevalidating()) { Refreshing… } @else { Live queue statistics }
+                    </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="queue-stats-row">
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">{{ store.queueStats()?.currentDepth ?? '--' }}</span>
+                            <span class="queue-stat-label">Depth</span>
+                        </div>
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">{{ store.queueStats()?.pending ?? '--' }}</span>
+                            <span class="queue-stat-label">Pending</span>
+                        </div>
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">{{ store.queueStats()?.completed ?? '--' }}</span>
+                            <span class="queue-stat-label">Completed</span>
+                        </div>
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">{{ store.queueStats()?.failed ?? '--' }}</span>
+                            <span class="queue-stat-label">Failed</span>
+                        </div>
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">{{ (store.queueStats()?.processingRate ?? 0).toFixed(1) }}/s</span>
+                            <span class="queue-stat-label">Rate</span>
+                        </div>
+                    </div>
+                </mat-card-content>
+                <mat-card-actions>
+                    <button mat-button (click)="store.refreshQueue()">
+                        <mat-icon>refresh</mat-icon> Refresh
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+        }
+
+        <!-- Preset selector -->
         <mat-card appearance="outlined" class="mb-2">
             <mat-card-header>
                 <mat-card-title>Quick Presets</mat-card-title>
-                <mat-card-subtitle>
-                    Select a preset to pre-fill the form.
-                    <code>linkedSignal()</code> resets URLs when the preset changes,
-                    but you can still edit them manually.
-                </mat-card-subtitle>
+                <mat-card-subtitle>Select a preset to pre-fill the form</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
                 <mat-form-field appearance="outline">
@@ -198,43 +257,26 @@ interface Preset {
 
             <!-- Submit -->
             <div class="submit-row">
-                <mat-slide-toggle
-                    [checked]="streamingMode()"
-                    (change)="streamingMode.set($event.checked)">
-                    SSE Streaming
-                </mat-slide-toggle>
                 <button
                     mat-raised-button color="primary" type="submit"
                     [disabled]="isCompiling() || compilerForm.invalid"
                 >
                     @if (isCompiling()) {
                         <mat-progress-spinner diameter="20" mode="indeterminate" color="accent" />
-                        Compiling…
+                        {{ compileMode === 'stream' ? 'Streaming…' : compileMode === 'async' || compileMode === 'batch-async' ? 'Queueing…' : 'Compiling…' }}
                     } @else {
-                        <span><mat-icon>play_arrow</mat-icon> {{ streamingMode() ? 'Stream' : 'Compile' }}</span>
+                        <span><mat-icon>play_arrow</mat-icon> {{ submitLabel() }}</span>
                     }
                 </button>
             </div>
-        </form>
 
-        <!-- resource() status display -->
-        <mat-card appearance="outlined" class="resource-status-card mt-2">
-            <mat-card-header>
-                <mat-icon mat-card-avatar>info</mat-icon>
-                <mat-card-title>resource() Status</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <mat-chip-set>
-                    <mat-chip [highlighted]="compileResource.status() === 'idle'">Idle</mat-chip>
-                    <mat-chip [highlighted]="compileResource.isLoading()" color="accent">Loading</mat-chip>
-                    <mat-chip [highlighted]="compileResource.status() === 'resolved'" color="primary">Resolved</mat-chip>
-                    <mat-chip [highlighted]="compileResource.status() === 'error'" color="warn">Error</mat-chip>
-                </mat-chip-set>
-                <p class="mat-caption mt-1">
-                    <code>compileResource.status()</code> = {{ compileResource.status() }}
-                </p>
-            </mat-card-content>
-        </mat-card>
+            <!-- Progress bar -->
+            @if (isCompiling()) {
+                <mat-progress-bar
+                    [mode]="compileMode === 'stream' ? 'buffer' : 'indeterminate'"
+                    class="mt-1" />
+            }
+        </form>
 
         <!-- Error state -->
         @if (compileResource.status() === 'error') {
@@ -254,9 +296,7 @@ interface Preset {
                 <mat-card-header>
                     <mat-icon mat-card-avatar color="primary">check_circle</mat-icon>
                     <mat-card-title>Compilation Results</mat-card-title>
-                    <mat-card-subtitle>
-                        Loaded via <code>rxResource()</code> — signal-native, no manual subscribe
-                    </mat-card-subtitle>
+                    <mat-card-subtitle>Compiled successfully</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
                     <mat-chip-set class="mb-2">
@@ -320,36 +360,20 @@ interface Preset {
             </mat-card>
         }
 
-        <!-- Pattern info card -->
-        <mat-card appearance="outlined" class="info-card mt-2">
-            <mat-card-header>
-                <mat-icon mat-card-avatar>school</mat-icon>
-                <mat-card-title>Angular 21 Patterns Used Here</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="pattern-list">
-                    <div class="pattern-item">
-                        <code>rxResource()</code>
-                        <span>Signal-native HTTP; replaces Observable + loading/error signals + takeUntilDestroyed()</span>
-                    </div>
-                    <mat-divider></mat-divider>
-                    <div class="pattern-item">
-                        <code>linkedSignal()</code>
-                        <span>URL list resets automatically when preset changes, but remains manually editable</span>
-                    </div>
-                    <mat-divider></mat-divider>
-                    <div class="pattern-item">
-                        <code>toSignal()</code>
-                        <span>Route query params bridged from Observable to Signal via toSignal()</span>
-                    </div>
-                    <mat-divider></mat-divider>
-                    <div class="pattern-item">
-                        <code>takeUntilDestroyed()</code>
-                        <span>Remaining Observable subscriptions auto-unsubscribed on component destroy</span>
-                    </div>
-                </div>
-            </mat-card-content>
-        </mat-card>
+        <!-- Async job queued confirmation -->
+        @if (asyncResult()) {
+            <mat-card appearance="outlined" class="async-card mt-2">
+                <mat-card-header>
+                    <mat-icon mat-card-avatar color="primary">schedule_send</mat-icon>
+                    <mat-card-title>Job Queued</mat-card-title>
+                    <mat-card-subtitle>{{ asyncResult()!.note }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <p class="mat-body-2">Request ID: <code>{{ asyncResult()!.requestId }}</code></p>
+                    <p class="mat-body-2">You will be notified when the job completes.</p>
+                </mat-card-content>
+            </mat-card>
+        }
     </div>
     `,
     styles: [`
@@ -359,16 +383,18 @@ interface Preset {
     .url-input-row { display: flex; align-items: center; gap: 8px; }
     .url-field { flex: 1; }
     .transformations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 8px; }
+    .mode-toggle { margin-bottom: 8px; }
+    .mode-hint { color: var(--mat-sys-on-surface-variant); }
+    .queue-panel { border-color: var(--app-warning, #ff9800); }
+    .queue-stats-row { display: flex; gap: 24px; flex-wrap: wrap; }
+    .queue-stat { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
+    .queue-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--mat-sys-primary); }
+    .queue-stat-label { font-size: 0.75rem; color: var(--mat-sys-on-surface-variant); }
     .error-card { border-color: var(--mat-sys-error); }
     .error-content { display: flex; align-items: center; gap: 8px; color: var(--mat-sys-error); }
+    .async-card { border-color: var(--mat-sys-tertiary); }
     .results-card { border-color: var(--mat-sys-primary); }
     .results-json { background: var(--mat-sys-surface-variant); padding: 16px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto; max-height: 400px; overflow-y: auto; margin: 0; }
-    .info-card { background-color: var(--mat-sys-surface-variant); }
-    .resource-status-card { background-color: var(--mat-sys-surface-variant); }
-    .pattern-list { display: flex; flex-direction: column; gap: 8px; }
-    .pattern-item { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; }
-    .pattern-item code { font-weight: 700; font-size: 0.95em; }
-    .pattern-item span { color: var(--mat-sys-on-surface-variant); font-size: 0.875rem; }
     .drop-zone { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px; margin-top: 16px; border: 2px dashed var(--mat-sys-outline-variant); border-radius: 12px; text-align: center; transition: border-color 0.2s, background-color 0.2s; }
     .drop-zone.drag-over { border-color: var(--mat-sys-primary); background-color: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent); }
     .submit-row { display: flex; align-items: center; gap: 16px; }
@@ -477,21 +503,49 @@ export class CompilerComponent {
     private readonly destroyRef      = inject(DestroyRef);
     private readonly turnstileService = inject(TurnstileService);
     readonly filterParser            = inject(FilterParserService);
+    readonly store                   = inject(MetricsStore);
+    private readonly notifications   = inject(NotificationService);
+    private readonly log             = inject(LogService);
 
-    /** Item 1: Turnstile site key — injected via TURNSTILE_SITE_KEY token */
     readonly turnstileSiteKey = inject(TURNSTILE_SITE_KEY);
-    /** Whether SSE streaming mode is on */
-    readonly streamingMode = signal(false);
+
+    /** Active compilation mode */
+    compileMode: CompileMode = 'json';
     /** Active SSE connection (null when not streaming) */
     readonly sseConnection = signal<SseConnection | null>(null);
+    /** Async compilation result (requestId) */
+    readonly asyncResult = signal<AsyncCompileResponse | null>(null);
     /** Drag-over state for the drop zone */
     readonly dragOver = signal(false);
     /** File upload validation error */
     readonly fileError = signal<string | null>(null);
-    /** Combined loading state for both JSON and SSE modes */
+    /** Combined loading state across all modes */
     readonly isCompiling = computed(() =>
-        this.compileResource.isLoading() || (this.sseConnection()?.isActive() ?? false),
+        this.compileResource.isLoading() || (this.sseConnection()?.isActive() ?? false) || this.asyncLoading(),
     );
+    private readonly asyncLoading = signal(false);
+
+    /** Dynamic submit button label */
+    readonly submitLabel = computed(() => {
+        switch (this.compileMode) {
+            case 'json': return 'Compile';
+            case 'stream': return 'Stream';
+            case 'async': return 'Queue Async';
+            case 'batch': return 'Batch Compile';
+            case 'batch-async': return 'Queue Batch';
+        }
+    });
+
+    /** Mode description for help text */
+    readonly modeDescription = computed(() => {
+        switch (this.compileMode) {
+            case 'json': return 'Standard synchronous compilation — returns JSON result immediately.';
+            case 'stream': return 'Server-Sent Events streaming — receive compilation progress in real time.';
+            case 'async': return 'Queue compilation for background processing via Cloudflare Queue. You\'ll be notified on completion.';
+            case 'batch': return 'Compile multiple filter list configurations in a single request.';
+            case 'batch-async': return 'Queue multiple configurations for background batch processing.';
+        }
+    });
 
     /**
      * toSignal() — from @angular/core/rxjs-interop
@@ -620,22 +674,39 @@ export class CompilerComponent {
 
         const request: CompileRequest = {
             configuration: {
-                name: 'Angular PoC Compilation',
+                name: 'Adblock Compilation',
                 sources: urls.map(source => ({ source })),
                 transformations: selectedTransformations,
             },
             benchmark: true,
         };
 
+        this.log.info(`Compilation started: mode=${this.compileMode}, urls=${urls.length}`, 'compiler');
         this.liveAnnouncer.announce('Compilation started', 'polite');
+        this.asyncResult.set(null);
 
-        if (this.streamingMode()) {
-            // SSE streaming mode — close previous connection and open new one
-            this.sseConnection()?.close();
-            this.sseConnection.set(this.sseService.connect('/compile/stream', request));
-        } else {
-            // JSON mode — trigger rxResource
-            this.pendingRequest.set(request);
+        switch (this.compileMode) {
+            case 'json':
+                this.pendingRequest.set(request);
+                break;
+
+            case 'stream':
+                this.sseConnection()?.close();
+                this.sseConnection.set(this.sseService.connect('/compile/stream', request));
+                break;
+
+            case 'async':
+                this.submitAsync(urls, selectedTransformations);
+                break;
+
+            case 'batch':
+                // Batch with single config for now; user can add more via presets
+                this.pendingRequest.set(request);
+                break;
+
+            case 'batch-async':
+                this.submitBatchAsync([request.configuration], selectedTransformations);
+                break;
         }
 
         if (urls[0]) {
@@ -644,6 +715,45 @@ export class CompilerComponent {
                 queryParams: { url: urls[0] },
                 queryParamsHandling: 'merge',
             });
+        }
+    }
+
+    /** Submit async compilation and track the job */
+    private async submitAsync(urls: string[], transformations: string[]): Promise<void> {
+        this.asyncLoading.set(true);
+        try {
+            const result = await firstValueFrom(this.compilerService.compileAsync(urls, transformations));
+            this.asyncResult.set(result);
+            this.notifications.trackJob(result.requestId, 'Async Compilation');
+            this.notifications.showToast('info', 'Job Queued', `Request ${result.requestId} queued for processing`);
+            this.log.info(`Async job queued: ${result.requestId}`, 'compiler');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.notifications.showToast('error', 'Queue Error', message);
+            this.log.error(`Async submit failed: ${message}`, 'compiler');
+        } finally {
+            this.asyncLoading.set(false);
+        }
+    }
+
+    /** Submit batch async compilation */
+    private async submitBatchAsync(
+        configurations: CompileRequest['configuration'][],
+        _transformations: string[],
+    ): Promise<void> {
+        this.asyncLoading.set(true);
+        try {
+            const result = await firstValueFrom(this.compilerService.compileBatchAsync(configurations));
+            this.asyncResult.set(result);
+            this.notifications.trackJob(result.requestId, 'Batch Async Compilation');
+            this.notifications.showToast('info', 'Batch Queued', `Batch request ${result.requestId} queued`);
+            this.log.info(`Batch async job queued: ${result.requestId}`, 'compiler');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.notifications.showToast('error', 'Batch Queue Error', message);
+            this.log.error(`Batch async submit failed: ${message}`, 'compiler');
+        } finally {
+            this.asyncLoading.set(false);
         }
     }
 

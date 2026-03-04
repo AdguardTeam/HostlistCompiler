@@ -1,69 +1,350 @@
-/* Angular Material Custom Theme - Angular 21 + Material 3 */
+/* =================================================================
+   Adblock Compiler — Unified Design System
+   Angular 21 + Material Design 3
+   ================================================================= */
 
 /*
  * Fonts loaded from npm packages (build-pipeline integrated, no CDN requests):
  *   @fontsource/roboto   — Roboto font family (300, 400, 500 weights)
  *   material-symbols     — Material Symbols variable font (replaces Material Icons)
- *
- * Why npm packages over Google Fonts CDN?
- *   1. Works in SSR / offline environments (no external network request)
- *   2. Bundled and hashed by the Angular build pipeline (cache-busting)
- *   3. GDPR-friendly (no third-party cookie / IP logging from Google Fonts)
- *   4. Material Symbols is the modern icon font (variable axes: opsz, wght, FILL, GRAD)
- *      and supersedes the legacy Material Icons font.
  */
 @import '@fontsource/roboto/300.css';
 @import '@fontsource/roboto/400.css';
 @import '@fontsource/roboto/500.css';
 @import 'material-symbols/outlined.css';
 
-/* Base styles */
+/* =================================================================
+   CSS Custom Properties — Light Theme (Default)
+   ================================================================= */
+:root {
+    /* Brand Colors */
+    --app-primary: #667eea;
+    --app-primary-dark: #5568d3;
+    --app-primary-light: #8096ff;
+    --app-secondary: #764ba2;
+    --app-secondary-dark: #5c3a80;
+    --app-tertiary: #10b981;
+
+    /* Status Colors */
+    --app-success: #10b981;
+    --app-success-light: #d1fae5;
+    --app-success-dark: #059669;
+    --app-error: #ef4444;
+    --app-error-light: #fee2e2;
+    --app-error-dark: #dc2626;
+    --app-warning: #f59e0b;
+    --app-warning-light: #fef3c7;
+    --app-warning-dark: #d97706;
+    --app-info: #3b82f6;
+    --app-info-light: #dbeafe;
+    --app-info-dark: #2563eb;
+
+    /* Backgrounds */
+    --app-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --app-surface: #ffffff;
+    --app-surface-variant: #f8f9fa;
+    --app-card-bg: #ffffff;
+    --app-input-bg: #ffffff;
+    --app-code-bg: #f5f5f5;
+    --app-log-bg: #1e293b;
+
+    /* Text */
+    --app-text: #333333;
+    --app-text-muted: #666666;
+    --app-text-light: #64748b;
+    --app-text-inverse: #ffffff;
+    --app-heading: #2d3748;
+
+    /* Borders */
+    --app-border: #e0e0e0;
+    --app-border-light: #e5e7eb;
+
+    /* Shadows */
+    --app-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --app-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --app-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --app-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    /* Radii */
+    --app-radius-sm: 4px;
+    --app-radius-md: 8px;
+    --app-radius-lg: 12px;
+    --app-radius-xl: 16px;
+
+    /* Transitions */
+    --app-transition-fast: 0.2s ease;
+    --app-transition: 0.3s ease;
+
+    /* Status Badge Colors */
+    --app-badge-success-bg: #d1fae5;
+    --app-badge-success-text: #059669;
+    --app-badge-error-bg: #fee2e2;
+    --app-badge-error-text: #dc2626;
+    --app-badge-warning-bg: #fef3c7;
+    --app-badge-warning-text: #d97706;
+    --app-badge-info-bg: #dbeafe;
+    --app-badge-info-text: #2563eb;
+
+    /* Table */
+    --app-table-header-bg: #f8f9fa;
+    --app-table-row-hover: #f8f9fa;
+    --app-table-border: #e0e0e0;
+}
+
+/* =================================================================
+   CSS Custom Properties — Dark Theme
+   ================================================================= */
+body.dark-theme,
+[data-theme='dark'] {
+    --app-surface: #1e1e2e;
+    --app-surface-variant: #252535;
+    --app-card-bg: #1e1e2e;
+    --app-input-bg: #2a2a3a;
+    --app-code-bg: #1a1a2a;
+    --app-log-bg: #0f0f1a;
+    --app-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+
+    --app-text: #e0e0e0;
+    --app-text-muted: #a0a0a0;
+    --app-text-light: #94a3b8;
+    --app-heading: #f0f0f0;
+
+    --app-border: #3a3a4a;
+    --app-border-light: #3a3a4a;
+
+    --app-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --app-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --app-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --app-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    --app-badge-success-bg: rgba(16, 185, 129, 0.2);
+    --app-badge-success-text: #6ee7b7;
+    --app-badge-error-bg: rgba(239, 68, 68, 0.2);
+    --app-badge-error-text: #fca5a5;
+    --app-badge-warning-bg: rgba(245, 158, 11, 0.2);
+    --app-badge-warning-text: #fcd34d;
+    --app-badge-info-bg: rgba(59, 130, 246, 0.2);
+    --app-badge-info-text: #93c5fd;
+
+    --app-table-header-bg: #252535;
+    --app-table-row-hover: #2a2a3a;
+    --app-table-border: #3a3a4a;
+}
+
+/* =================================================================
+   Base Styles
+   ================================================================= */
 html, body {
     height: 100%;
     margin: 0;
     font-family: Roboto, "Helvetica Neue", sans-serif;
+    color: var(--app-text);
+    background-color: var(--app-surface);
+    line-height: 1.6;
+    transition: background-color var(--app-transition), color var(--app-transition);
 }
 
-/* Dark theme class applied to body by ThemeService */
 body.dark-theme {
     background-color: #121212;
-    color: #ffffff;
+    color: #e0e0e0;
 }
 
-/* Page content padding adjustments */
+/* =================================================================
+   Page Content
+   ================================================================= */
 .page-content {
     padding: 24px 0;
 }
 
-/* Code blocks */
+/* =================================================================
+   Code & JSON Viewer
+   ================================================================= */
 code {
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.9em;
     padding: 2px 6px;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: var(--app-radius-sm);
+    background-color: var(--app-code-bg);
+    color: var(--app-text);
 }
 
-body.dark-theme code {
-    background-color: rgba(255, 255, 255, 0.12);
+.json-viewer {
+    background: var(--app-log-bg);
+    color: #e2e8f0;
+    padding: 20px;
+    border-radius: var(--app-radius-md);
+    overflow-x: auto;
+    font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    max-height: 500px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
-/* Utility classes */
+.json-key { color: #93c5fd; }
+.json-string { color: #86efac; }
+.json-number { color: #fcd34d; }
+.json-boolean { color: #f472b6; }
+.json-null { color: #94a3b8; }
+.json-bracket { color: #e2e8f0; }
+
+/* =================================================================
+   Status Badges
+   ================================================================= */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--app-radius-md);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.success { background: var(--app-badge-success-bg); color: var(--app-badge-success-text); }
+.status-badge.error { background: var(--app-badge-error-bg); color: var(--app-badge-error-text); }
+.status-badge.warning { background: var(--app-badge-warning-bg); color: var(--app-badge-warning-text); }
+.status-badge.info { background: var(--app-badge-info-bg); color: var(--app-badge-info-text); }
+
+/* =================================================================
+   Status Dot (pulsing indicator)
+   ================================================================= */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.status-dot.online { background-color: var(--app-success); }
+.status-dot.offline { background-color: var(--app-error); }
+.status-dot.connecting { background-color: var(--app-warning); }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* =================================================================
+   Method Badges (API endpoints)
+   ================================================================= */
+.method-badge {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--app-radius-sm);
+    min-width: 40px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.method-get { background: var(--app-badge-info-bg); color: var(--app-badge-info-text); }
+.method-post { background: var(--app-badge-success-bg); color: var(--app-badge-success-text); }
+.method-delete { background: var(--app-badge-error-bg); color: var(--app-badge-error-text); }
+
+/* =================================================================
+   Card Interactions
+   ================================================================= */
+.card-interactive {
+    cursor: pointer;
+    transition: transform var(--app-transition-fast), box-shadow var(--app-transition-fast);
+}
+
+.card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--app-shadow-hover);
+}
+
+/* =================================================================
+   Toast Notifications (driven by NotificationService)
+   ================================================================= */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    max-width: 400px;
+    width: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--app-card-bg);
+    border-radius: var(--app-radius-lg);
+    padding: 16px 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    pointer-events: auto;
+    animation: toastSlideIn 0.3s ease-out;
+}
+
+.toast::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.toast.success::before { background: var(--app-success); }
+.toast.error::before { background: var(--app-error); }
+.toast.warning::before { background: var(--app-warning); }
+.toast.info::before { background: var(--app-info); }
+
+.toast-title { font-weight: 600; color: var(--app-heading); margin-bottom: 2px; font-size: 14px; }
+.toast-message { font-size: 13px; color: var(--app-text-muted); }
+
+@keyframes toastSlideIn {
+    from { transform: translateX(400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastSlideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(400px); opacity: 0; }
+}
+
+/* =================================================================
+   Utility Classes
+   ================================================================= */
 .mt-1 { margin-top: 8px; }
 .mt-2 { margin-top: 16px; }
 .mt-3 { margin-top: 24px; }
 .mb-1 { margin-bottom: 8px; }
 .mb-2 { margin-bottom: 16px; }
 .mb-3 { margin-bottom: 24px; }
+.gap-1 { gap: 8px; }
 .gap-2 { gap: 16px; }
+.gap-3 { gap: 24px; }
 .flex { display: flex; }
 .flex-wrap { flex-wrap: wrap; }
 .flex-col { flex-direction: column; }
 .items-center { align-items: center; }
 .justify-between { justify-content: space-between; }
 .w-full { width: 100%; }
+.text-center { text-align: center; }
 
-/* Angular Material list item active state */
+/* =================================================================
+   Angular Material Overrides
+   ================================================================= */
 .active-nav-item {
     background-color: var(--mat-list-active-indicator-color, rgba(0, 0, 0, 0.12)) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-content { padding: 16px 0; }
+    .toast-container { right: 12px; left: 12px; width: auto; max-width: none; }
 }

@@ -76,5 +76,7 @@ export class ThemeService {
         } else {
             body.classList.remove('dark-theme');
         }
+        // Also set data-theme attribute for [data-theme="dark"] CSS selectors
+        this.doc.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
     }
 }

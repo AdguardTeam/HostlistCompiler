@@ -29,6 +29,7 @@ import { map } from 'rxjs/operators';
 import { ThemeService } from './services/theme.service';
 import { routeAnimation } from './route-animations';
 import { ErrorBoundaryComponent } from './error/error-boundary.component';
+import { NotificationContainerComponent } from './notification/notification-container.component';
 
 /** Navigation item interface */
 interface NavItem {
@@ -55,6 +56,7 @@ interface NavItem {
         MatButtonModule,
         MatTooltipModule,
         ErrorBoundaryComponent,
+        NotificationContainerComponent,
     ],
     animations: [routeAnimation],
     template: `
@@ -116,6 +118,7 @@ interface NavItem {
       </mat-sidenav-content>
     </mat-sidenav-container>
     <app-error-boundary />
+    <app-notification-container />
   `,
     styles: [`
     .app-container { height: 100vh; }

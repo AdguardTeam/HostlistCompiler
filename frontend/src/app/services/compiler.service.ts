@@ -1,14 +1,19 @@
 /**
- * Angular PoC - Compiler API Service
+ * CompilerService — Wraps all /compile/* and /ast/* API endpoints.
  *
- * Angular 21 Pattern: Service with functional DI using inject()
- * Services are singleton instances that handle business logic and API calls
+ * Provides methods for every compilation mode the worker supports:
+ *   - compile()           → POST /compile       (JSON response)
+ *   - compileAsync()      → POST /compile/async  (queued, returns requestId)
+ *   - compileBatch()      → POST /compile/batch  (multiple configs, JSON)
+ *   - compileBatchAsync()→ POST /compile/batch/async (multiple configs, queued)
+ *   - astParse()          → POST /ast/parse      (AGTree AST)
+ *
+ * Angular 21 Pattern: Injectable service with functional DI via inject()
  */
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError, delay } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../tokens';
 
 export interface CompileRequest {
@@ -18,6 +23,7 @@ export interface CompileRequest {
         transformations: string[];
     };
     benchmark?: boolean;
+    turnstileToken?: string;
 }
 
 export interface CompileResponse {
@@ -26,55 +32,85 @@ export interface CompileResponse {
     sources: number;
     transformations: string[];
     message: string;
+    rules?: string[];
+    cached?: boolean;
     benchmark?: {
         duration: string;
         rulesPerSecond: number;
     };
 }
 
-/**
- * CompilerService
- * Angular 21 Pattern: Injectable service using inject() for HttpClient DI
- */
+export interface AsyncCompileResponse {
+    success: boolean;
+    requestId: string;
+    note: string;
+}
+
+export interface ASTResult {
+    success: boolean;
+    ast: unknown;
+    ruleCount: number;
+    parseTime?: string;
+}
+
 @Injectable({
     providedIn: 'root',
 })
 export class CompilerService {
     private readonly apiBaseUrl = inject(API_BASE_URL);
-    private readonly apiUrl = `${this.apiBaseUrl}/compile`;
-
-    /**
-     * Functional dependency injection using inject() (Angular 21 pattern)
-     * Can be used in services, components, directives, and pipes
-     */
     private readonly http = inject(HttpClient);
 
-    compile(urls: string[], transformations: string[]): Observable<CompileResponse> {
+    /** POST /compile — synchronous JSON compilation */
+    compile(urls: string[], transformations: string[], turnstileToken?: string): Observable<CompileResponse> {
         const payload: CompileRequest = {
             configuration: {
-                name: 'Angular PoC Compilation',
+                name: 'Adblock Compilation',
                 sources: urls.map((url) => ({ source: url })),
                 transformations,
             },
             benchmark: true,
+            turnstileToken,
         };
 
-        return this.http.post<CompileResponse>(this.apiUrl, payload).pipe(
-            catchError((error) => {
-                console.log('API call failed (expected in PoC), returning mock data:', error);
-                return of({
-                    success: true,
-                    ruleCount: 1234,
-                    sources: urls.length,
-                    transformations: transformations,
-                    message: 'Mock compilation result (API not available in PoC)',
-                    benchmark: {
-                        duration: '123ms',
-                        rulesPerSecond: 10000,
-                    },
-                }).pipe(delay(1000));
-            }),
-        );
+        return this.http.post<CompileResponse>(`${this.apiBaseUrl}/compile`, payload);
+    }
+
+    /** POST /compile/async — queue for background processing, returns requestId */
+    compileAsync(urls: string[], transformations: string[], turnstileToken?: string): Observable<AsyncCompileResponse> {
+        const payload: CompileRequest = {
+            configuration: {
+                name: 'Async Compilation',
+                sources: urls.map((url) => ({ source: url })),
+                transformations,
+            },
+            benchmark: true,
+            turnstileToken,
+        };
+
+        return this.http.post<AsyncCompileResponse>(`${this.apiBaseUrl}/compile/async`, payload);
+    }
+
+    /** POST /compile/batch — compile multiple configurations in parallel */
+    compileBatch(configurations: CompileRequest['configuration'][], turnstileToken?: string): Observable<CompileResponse[]> {
+        return this.http.post<CompileResponse[]>(`${this.apiBaseUrl}/compile/batch`, {
+            configurations,
+            benchmark: true,
+            turnstileToken,
+        });
+    }
+
+    /** POST /compile/batch/async — queue batch for background processing */
+    compileBatchAsync(configurations: CompileRequest['configuration'][], turnstileToken?: string): Observable<AsyncCompileResponse> {
+        return this.http.post<AsyncCompileResponse>(`${this.apiBaseUrl}/compile/batch/async`, {
+            configurations,
+            benchmark: true,
+            turnstileToken,
+        });
+    }
+
+    /** POST /ast/parse — parse filter rules into AST */
+    astParse(rules: string[]): Observable<ASTResult> {
+        return this.http.post<ASTResult>(`${this.apiBaseUrl}/ast/parse`, { rules });
     }
 
     getAvailableTransformations(): string[] {
