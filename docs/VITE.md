@@ -47,7 +47,6 @@ public/                     ← Vite root (source files)
 └── websocket-test.html     ← WebSocket tester
 
 dist/                       ← Vite build output (git-ignored)
-vite.config.ts              ← Vite configuration
 ```
 
 ## Scripts
