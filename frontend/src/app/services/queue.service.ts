@@ -1,59 +1,55 @@
 /**
- * QueueService — Fetches queue stats and polls async compilation results.
+ * QueueService — Wraps /queue/* API endpoints for async compilation monitoring.
+ *
+ * Provides:
+ *   - getStats()     → GET /queue/stats
+ *   - getResults()   → GET /queue/results/:requestId
+ *   - pollResults()  → Observable that polls until job completes/fails
+ *
+ * Angular 21 Pattern: Injectable service with inject(), Observable + signal interop
  */
+
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, interval } from 'rxjs';
-import { startWith, switchMap, takeWhile, scan, tap } from 'rxjs/operators';
+import { Observable, timer } from 'rxjs';
+import { map, switchMap, takeWhile } from 'rxjs/operators';
 import { API_BASE_URL } from '../tokens';
 import { LogService } from './log.service';
 
 export interface QueueStats {
-    pending: number;
-    completed: number;
-    failed: number;
-    cancelled: number;
-    processingRate: number;
-    averageProcessingTime: number;
-    queueLag: number;
-    lastUpdate: string;
+    readonly currentDepth: number;
+    readonly pending: number;
+    readonly completed: number;
+    readonly failed: number;
+    readonly processingRate: number;
+    readonly lag: number;
+    readonly depthHistory: DepthHistoryEntry[];
+    readonly history?: QueueJobEntry[];
 }
 
-/**
- * Terminal and non-terminal states for a queued compilation job.
- *
- * - `pending`   — Job is in the queue, not yet started.
- * - `completed` — Job finished successfully; `ruleCount` and `rules` are populated.
- * - `failed`    — Job encountered an error; `error` field contains the reason.
- * - `not_found` — The requestId is unknown to the server (never queued or expired).
- * - `no_cache`  — The result existed but the cache entry has been evicted.
- * - `cache_miss`— Result was expected in cache but was not found (transient, retry once).
- * - `cancelled` — Job was explicitly cancelled before processing.
- */
-export type QueueJobStatus = 'completed' | 'pending' | 'failed' | 'not_found' | 'no_cache' | 'cache_miss' | 'cancelled';
-
-export interface QueueJobResult {
-    status: QueueJobStatus;
-    ruleCount?: number;
-    rules?: string[];
-    error?: string;
-    jobInfo?: {
-        configName: string;
-        duration: number;
-        timestamp: string;
-        error?: string;
-    };
+export interface DepthHistoryEntry {
+    readonly timestamp: string;
+    readonly depth: number;
 }
 
-/** Statuses that indicate a job has reached a final state with no further polling needed. */
-export const TERMINAL_JOB_STATUSES: QueueJobStatus[] = ['completed', 'failed', 'no_cache', 'cache_miss', 'cancelled'];
+export interface QueueJobEntry {
+    readonly requestId: string;
+    readonly configName?: string;
+    readonly status: 'pending' | 'processing' | 'completed' | 'failed';
+    readonly duration?: number;
+    readonly completedAt?: string;
+}
 
-/**
- * Maximum number of consecutive `not_found` responses before treating the job as truly missing.
- * The backend only writes a result to history on completion/failed/cancelled, so a newly queued
- * job will return `not_found` for several polls while it is still pending.
- */
-const NOT_FOUND_GRACE_RETRIES = 10;
+export interface QueueResult {
+    readonly success: boolean;
+    readonly status: 'pending' | 'processing' | 'completed' | 'failed';
+    readonly requestId: string;
+    readonly rules?: string[];
+    readonly ruleCount?: number;
+    readonly error?: string;
+    readonly duration?: number;
+    readonly metrics?: Record<string, unknown>;
+}
 
 @Injectable({
     providedIn: 'root',
@@ -63,51 +59,56 @@ export class QueueService {
     private readonly apiBaseUrl = inject(API_BASE_URL);
     private readonly log = inject(LogService);
 
-    getQueueStats(): Observable<QueueStats> {
-        return this.http.get<QueueStats>(`${this.apiBaseUrl}/queue/stats`).pipe(
-            tap({ error: (err) => this.log.error('QueueService.getQueueStats failed', 'QueueService', { error: err instanceof Error ? err.message : String(err) }) }),
+    /** GET /queue/stats — queue depth, job counts, depth history */
+    getStats(): Observable<QueueStats> {
+        return this.http.get<QueueStats>(`${this.apiBaseUrl}/../queue/stats`).pipe(
+            map(stats => {
+                // Normalize: ensure depthHistory is always an array
+                return {
+                    ...stats,
+                    depthHistory: stats.depthHistory ?? [],
+                };
+            }),
         );
     }
 
+    /** GET /queue/results/:requestId — retrieve results for a queued job */
+    getResults(requestId: string): Observable<QueueResult> {
+        return this.http.get<QueueResult>(`${this.apiBaseUrl}/../queue/results/${requestId}`);
+    }
+
     /**
-     * Polls /queue/results/:requestId every intervalMs until the job reaches a terminal state.
+     * Poll for queue results until the job completes or fails.
      *
-     * `not_found` is treated as non-terminal for the first NOT_FOUND_GRACE_RETRIES polls because
-     * the backend only writes a result to history on completion/failed/cancelled — a pending job
-     * will return `not_found` until it finishes.  After the grace budget is exhausted the job is
-     * considered truly missing and polling stops.
+     * Emits every poll response (including intermediate 'pending' statuses),
+     * and completes when the job reaches a terminal state.
      *
-     * @param requestId - The unique identifier of the async compilation job to poll.
-     * @param intervalMs - Polling interval in milliseconds. Defaults to 3000ms.
+     * @param requestId  - The async job request ID
+     * @param intervalMs - Polling interval in milliseconds (default 5000)
      */
-    pollResults(requestId: string, intervalMs = 3000): Observable<QueueJobResult> {
-        this.log.debug('pollResults: start', 'QueueService', { requestId, intervalMs });
-        return interval(intervalMs).pipe(
-            startWith(0),
-            switchMap(() =>
-                this.http.get<QueueJobResult>(`${this.apiBaseUrl}/queue/results/${requestId}`),
-            ),
-            scan(
-                (acc, result) => ({
-                    result,
-                    notFoundCount: result.status === 'not_found' ? acc.notFoundCount + 1 : 0,
-                }),
-                { result: null as unknown as QueueJobResult, notFoundCount: 0 },
-            ),
+    pollResults(requestId: string, intervalMs = 5000): Observable<QueueResult> {
+        this.log.info(`Starting poll for job ${requestId}`, 'queue', { requestId, intervalMs });
+
+        return timer(0, intervalMs).pipe(
+            switchMap(() => this.getResults(requestId)),
             takeWhile(
-                ({ result, notFoundCount }) =>
-                    !TERMINAL_JOB_STATUSES.includes(result.status) &&
-                    !(result.status === 'not_found' && notFoundCount > NOT_FOUND_GRACE_RETRIES),
-                true,
+                (result) => result.status === 'pending' || result.status === 'processing',
+                true, // include the terminal emission
             ),
-            // unwrap the scan accumulator back to QueueJobResult
-            switchMap(({ result }) => [result]),
-            tap(result => {
+            map(result => {
                 if (result.status === 'completed') {
-                    this.log.info('pollResults: job completed', 'QueueService', { requestId });
+                    this.log.info(`Job ${requestId} completed`, 'queue', {
+                        requestId,
+                        ruleCount: result.ruleCount,
+                        duration: result.duration,
+                    });
                 } else if (result.status === 'failed') {
-                    this.log.warn('pollResults: job failed', 'QueueService', { requestId, error: result.error });
+                    this.log.error(`Job ${requestId} failed: ${result.error}`, 'queue', {
+                        requestId,
+                        error: result.error,
+                    });
                 }
+                return result;
             }),
         );
     }
