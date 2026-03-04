@@ -13,14 +13,21 @@
  */
 
 import { Component, DestroyRef, afterRenderEffect, inject, input, output, viewChild, ElementRef } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 import { TurnstileService } from '../services/turnstile.service';
 
 @Component({
     selector: 'app-turnstile',
+    imports: [MatCardModule],
     template: `
-        <div #turnstileContainer class="turnstile-container"></div>
+        <mat-card appearance="outlined" class="turnstile-card">
+            <mat-card-content>
+                <div #turnstileContainer class="turnstile-container"></div>
+            </mat-card-content>
+        </mat-card>
     `,
     styles: [`
+        .turnstile-card { text-align: center; }
         .turnstile-container {
             display: flex;
             justify-content: center;

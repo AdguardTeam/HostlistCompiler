@@ -9,13 +9,15 @@
 
 import { Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
     selector: 'app-skeleton-card',
     standalone: true,
-    imports: [MatCardModule],
+    imports: [MatCardModule, MatProgressBarModule],
     template: `
         <mat-card appearance="outlined" class="skeleton-card">
+            <mat-progress-bar mode="buffer" bufferValue="0" class="skeleton-progress" />
             <mat-card-content>
                 @if (showAvatar()) {
                     <div class="skeleton-avatar shimmer"></div>
