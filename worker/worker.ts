@@ -3559,8 +3559,12 @@ export default {
                 }
             }
 
-            // Fallback: serve index.html for all GET requests (SPA routing + ASSETS unavailable case)
-            return serveWebUI(env);
+            // SPA fallback only for extensionless paths (Angular client-side routes).
+            // Paths with file extensions that are not found in ASSETS should return 404,
+            // not index.html, to avoid incorrect content-type and caching issues.
+            if (!pathname.match(/\.[^/]+$/)) {
+                return serveWebUI(env);
+            }
         }
 
         return new Response('Not Found', { status: 404 });
