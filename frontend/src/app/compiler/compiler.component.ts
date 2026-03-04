@@ -286,13 +286,6 @@ interface BatchItem {
                         <mat-card appearance="outlined" class="batch-item mb-2">
                             <mat-card-header>
                                 <mat-card-title>{{ item.name }}</mat-card-title>
-                                <mat-card-actions>
-                                    @if (batchItems().length > 1) {
-                                        <button mat-icon-button color="warn" (click)="removeBatchItem(i)" aria-label="Remove configuration">
-                                            <mat-icon>delete</mat-icon>
-                                        </button>
-                                    }
-                                </mat-card-actions>
                             </mat-card-header>
                             <mat-card-content>
                                 <mat-form-field appearance="outline" class="full-width mb-1">
@@ -327,6 +320,13 @@ interface BatchItem {
                                     }
                                 </div>
                             </mat-card-content>
+                            <mat-card-actions>
+                                @if (batchItems().length > 1) {
+                                    <button mat-icon-button color="warn" (click)="removeBatchItem(i)" aria-label="Remove configuration">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                }
+                            </mat-card-actions>
                         </mat-card>
                     }
                     <button mat-stroked-button (click)="addBatchItem()">
@@ -501,12 +501,12 @@ interface BatchItem {
                     @for (job of notificationService.jobs(); track job.requestId) {
                         <div class="job-history-row">
                             <mat-chip
-                                [color]="job.status === 'completed' ? 'primary' : job.status === 'failed' ? 'warn' : ''">
+                                [color]="job.status === 'completed' ? 'primary' : job.status === 'failed' ? 'warn' : undefined">
                                 {{ job.status }}
                             </mat-chip>
                             <span class="mat-body-2">{{ job.configName }}</span>
                             <code class="job-id">{{ job.requestId }}</code>
-                            @if (job.ruleCount != null) {
+                            @if (job.ruleCount !== null && job.ruleCount !== undefined) {
                                 <span class="mat-caption">{{ job.ruleCount | number }} rules</span>
                             }
                         </div>
@@ -974,7 +974,7 @@ export class CompilerComponent {
      * @param requestId - The ID returned by the async compile endpoint.
      * @param configName - Display name for the job record.
      */
-    private startPolling(requestId: string, configName: string): void {
+    private startPolling(requestId: string, _configName: string): void {
         this.asyncPollSubscription?.unsubscribe();
         this.asyncPollSubscription = this.queueService.pollResults(requestId)
             .pipe(takeUntilDestroyed(this.destroyRef))

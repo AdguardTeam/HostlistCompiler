@@ -51,29 +51,31 @@ describe('QueueService', () => {
 
     it('should poll /api/queue/results/:requestId and complete on terminal status', async () => {
         vi.useFakeTimers();
-        const requestId = 'abc123';
-        const results: QueueJobResult[] = [];
-        let completed = false;
+        try {
+            const requestId = 'abc123';
+            const results: QueueJobResult[] = [];
+            let completed = false;
 
-        service.pollResults(requestId, 1000).subscribe({
-            next: r => results.push(r),
-            complete: () => { completed = true; },
-        });
+            service.pollResults(requestId, 1000).subscribe({
+                next: r => results.push(r),
+                complete: () => { completed = true; },
+            });
 
-        // First emission: startWith(0) fires synchronously
-        const req1 = httpTesting.expectOne(`/api/queue/results/${requestId}`);
-        req1.flush({ status: 'pending' });
+            // First emission: startWith(0) fires synchronously
+            const req1 = httpTesting.expectOne(`/api/queue/results/${requestId}`);
+            req1.flush({ status: 'pending' });
 
-        // Second emission: advance by the polling interval
-        await vi.advanceTimersByTimeAsync(1000);
-        const req2 = httpTesting.expectOne(`/api/queue/results/${requestId}`);
-        req2.flush({ status: 'completed', ruleCount: 100 });
+            // Second emission: advance by the polling interval
+            await vi.advanceTimersByTimeAsync(1000);
+            const req2 = httpTesting.expectOne(`/api/queue/results/${requestId}`);
+            req2.flush({ status: 'completed', ruleCount: 100 });
 
-        expect(results.length).toBe(2);
-        expect(results[0].status).toBe('pending');
-        expect(results[1].status).toBe('completed');
-        expect(completed).toBe(true);
-
-        vi.useRealTimers();
+            expect(results.length).toBe(2);
+            expect(results[0].status).toBe('pending');
+            expect(results[1].status).toBe('completed');
+            expect(completed).toBe(true);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 });

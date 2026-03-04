@@ -112,6 +112,14 @@ describe('CompilerService', () => {
 
         const req = httpTesting.expectOne('/api/compile/async');
         expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual({
+            configuration: {
+                name: 'Angular PoC Compilation',
+                sources: [{ source: urls[0] }],
+                transformations,
+            },
+            benchmark: true,
+        });
         req.flush(mockResponse);
     });
 

@@ -4,7 +4,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, interval } from 'rxjs';
-import { startWith, switchMap, takeWhile } from 'rxjs/operators';
+import { startWith, switchMap, takeWhile, scan } from 'rxjs/operators';
 import { API_BASE_URL } from '../tokens';
 
 export interface QueueStats {
@@ -45,7 +45,14 @@ export interface QueueJobResult {
 }
 
 /** Statuses that indicate a job has reached a final state with no further polling needed. */
-export const TERMINAL_JOB_STATUSES: QueueJobStatus[] = ['completed', 'failed', 'not_found', 'no_cache', 'cache_miss', 'cancelled'];
+export const TERMINAL_JOB_STATUSES: QueueJobStatus[] = ['completed', 'failed', 'no_cache', 'cache_miss', 'cancelled'];
+
+/**
+ * Maximum number of consecutive `not_found` responses before treating the job as truly missing.
+ * The backend only writes a result to history on completion/failed/cancelled, so a newly queued
+ * job will return `not_found` for several polls while it is still pending.
+ */
+const NOT_FOUND_GRACE_RETRIES = 10;
 
 @Injectable({
     providedIn: 'root',
@@ -60,6 +67,12 @@ export class QueueService {
 
     /**
      * Polls /queue/results/:requestId every intervalMs until the job reaches a terminal state.
+     *
+     * `not_found` is treated as non-terminal for the first NOT_FOUND_GRACE_RETRIES polls because
+     * the backend only writes a result to history on completion/failed/cancelled — a pending job
+     * will return `not_found` until it finishes.  After the grace budget is exhausted the job is
+     * considered truly missing and polling stops.
+     *
      * @param requestId - The unique identifier of the async compilation job to poll.
      * @param intervalMs - Polling interval in milliseconds. Defaults to 3000ms.
      */
@@ -69,8 +82,21 @@ export class QueueService {
             switchMap(() =>
                 this.http.get<QueueJobResult>(`${this.apiBaseUrl}/queue/results/${requestId}`),
             ),
-            // inclusive: true ensures the terminal-status result is emitted before the observable completes
-            takeWhile(result => !TERMINAL_JOB_STATUSES.includes(result.status), true),
+            scan(
+                (acc, result) => ({
+                    result,
+                    notFoundCount: result.status === 'not_found' ? acc.notFoundCount + 1 : 0,
+                }),
+                { result: null as unknown as QueueJobResult, notFoundCount: 0 },
+            ),
+            takeWhile(
+                ({ result, notFoundCount }) =>
+                    !TERMINAL_JOB_STATUSES.includes(result.status) &&
+                    !(result.status === 'not_found' && notFoundCount > NOT_FOUND_GRACE_RETRIES),
+                true,
+            ),
+            // unwrap the scan accumulator back to QueueJobResult
+            switchMap(({ result }) => [result]),
         );
     }
 }
