@@ -12,7 +12,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, timer } from 'rxjs';
-import { map, scan, switchMap, takeWhile } from 'rxjs/operators';
+import { map, switchMap, takeWhile, tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../tokens';
 import { LogService } from './log.service';
 
@@ -123,22 +123,22 @@ export class QueueService {
     pollResults(requestId: string, intervalMs = 5000): Observable<QueueResult> {
         this.log.info(`Starting poll for job ${requestId}`, 'queue', { requestId, intervalMs });
 
+        // Track consecutive not_found responses outside the pipe to avoid
+        // an unsafe initial accumulator cast in scan().
+        let notFoundCount = 0;
+
         return timer(0, intervalMs).pipe(
             switchMap(() => this.getResults(requestId)),
-            scan(
-                (acc, result) => ({
-                    result,
-                    notFoundCount: result.status === 'not_found' ? acc.notFoundCount + 1 : 0,
-                }),
-                { result: null as unknown as QueueResult, notFoundCount: 0 },
-            ),
+            tap(result => {
+                notFoundCount = result.status === 'not_found' ? notFoundCount + 1 : 0;
+            }),
             takeWhile(
-                ({ result, notFoundCount }) =>
+                result =>
                     !TERMINAL_JOB_STATUSES.includes(result.status) ||
                     (result.status === 'not_found' && notFoundCount <= NOT_FOUND_GRACE_RETRIES),
                 true, // include the terminal emission
             ),
-            map(({ result }) => {
+            tap(result => {
                 if (result.status === 'completed') {
                     this.log.info(`Job ${requestId} completed`, 'queue', {
                         requestId,
@@ -153,7 +153,6 @@ export class QueueService {
                 } else if (result.status === 'not_found') {
                     this.log.debug(`Job ${requestId} not_found (may still be pending)`, 'queue', { requestId });
                 }
-                return result;
             }),
         );
     }
