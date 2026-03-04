@@ -1,0 +1,1 @@
+### Tasks\n- [ ] Add MatProgressBarModule to imports\n- [ ] Render <mat-progress-bar mode=\"buffer\" bufferValue=\"0\"> above mat-card-content\n- [ ] Verify shimmer animation is not broken\n- [ ] Vitest unit tests pass\n\n### Acceptance Criteria\n- MatProgressBar visible in buffer mode during skeleton loading\n- No CSS regression on shimmer
