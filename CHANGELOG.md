@@ -43,6 +43,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.32.2] - 2026-03-04
+
+### Added### Fixed
+
+- apply PR review suggestions — required BootstrapContext, remove MatToolbarModule, add aria attrs
+- configure MatIconRegistry to use material-symbols-outlined font set
+- change Docker cache mode from max to min to fix 502 on layer blob write
+- restore original design — gradient theme, horizontal nav, white card layout
+- pass BootstrapContext to bootstrapApplication in main.server.ts
+
+
 ## [0.32.1] - 2026-03-04
 
 ### Added### Fixed
