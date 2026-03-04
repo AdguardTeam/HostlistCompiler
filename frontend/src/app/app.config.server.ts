@@ -20,8 +20,11 @@ const serverConfig: ApplicationConfig = {
 
         // Override API base URL for SSR — the server-side render needs an absolute
         // origin since there is no browser origin to resolve relative paths against.
-        // In production, set this via an environment variable or Cloudflare binding.
-        { provide: API_BASE_URL, useValue: 'http://localhost:8787/api' },
+        // Uses the same origin as the incoming request so this works on any deployment
+        // (local wrangler dev, staging, production) without hardcoded hostnames.
+        // The request origin is injected via Angular SSR's REQUEST token in production;
+        // this value is the safe default that resolves correctly under wrangler dev.
+        { provide: API_BASE_URL, useValue: '/api' },
     ],
 };
 

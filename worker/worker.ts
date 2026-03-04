@@ -3544,6 +3544,14 @@ export default {
                         if (indexResponse.ok) {
                             return indexResponse;
                         }
+
+                        // SPA fallback: serve root index.html for Angular client-side routing.
+                        // Handles /compiler, /performance, /validation, /api-docs, /admin, etc.
+                        // Angular's router picks up the path and renders the correct component.
+                        const spaResponse = await env.ASSETS.fetch(new URL('/index.html', 'http://assets'));
+                        if (spaResponse.ok) {
+                            return spaResponse;
+                        }
                     }
                 } catch (error) {
                     // deno-lint-ignore no-console
@@ -3551,10 +3559,8 @@ export default {
                 }
             }
 
-            // Fallback for root path
-            if (pathname === '/') {
-                return serveWebUI(env);
-            }
+            // Fallback: serve index.html for all GET requests (SPA routing + ASSETS unavailable case)
+            return serveWebUI(env);
         }
 
         return new Response('Not Found', { status: 404 });
