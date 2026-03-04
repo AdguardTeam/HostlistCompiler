@@ -18,7 +18,6 @@
 import { Component, inject, signal, viewChild, effect } from '@angular/core';
 import { ChildrenOutletContexts, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +39,7 @@ interface NavItem {
 
 /**
  * AppComponent
- * Root shell with Material toolbar + sidenav.
+ * Root shell with Material sidenav and horizontal nav tabs.
  * Uses viewChild() for the sidenav reference and inject() for ThemeService.
  */
 @Component({
@@ -49,7 +48,6 @@ interface NavItem {
         RouterOutlet,
         RouterLink,
         RouterLinkActive,
-        MatToolbarModule,
         MatSidenavModule,
         MatListModule,
         MatIconModule,
@@ -64,6 +62,7 @@ interface NavItem {
       <!-- Mobile navigation drawer (slides over content on mobile) -->
       <mat-sidenav
         #sidenav
+        id="app-mobile-sidenav"
         mode="over"
         [opened]="sidenavOpen()"
         class="app-mobile-sidenav"
@@ -97,6 +96,8 @@ interface NavItem {
                 mat-icon-button
                 (click)="toggleSidenav()"
                 aria-label="Toggle navigation"
+                [attr.aria-expanded]="sidenavOpen()"
+                aria-controls="app-mobile-sidenav"
                 class="menu-btn"
               >
                 <mat-icon>menu</mat-icon>
