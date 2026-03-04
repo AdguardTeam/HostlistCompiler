@@ -41,6 +41,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.32.0] - 2026-03-04
+
+### Added- **compiler**: complete phases 6-8 — API docs, logging wiring, and changelog
+- **compiler**: add async/batch compilation modes, queue stats panel, and supporting services
+
+### Fixed
+
+- **review**: apply 7 PR review comments — QueueJobStatus, TERMINAL_JOB_STATUSES, not_found grace, cancelled handling, API path alignment
+- **specs**: update service specs to match main's refactored service APIs
+- **api-docs**: add MatFormFieldModule and MatInputModule to fix mat-form-field control error in tests
+- **api-docs**: fix FormsModule wrong import and update spec assertions for Phase 6 endpoint groups
+- **compiler**: address PR review comments — lint error, mat-card structure, chip color, test assertions, and not_found grace period
+
+
 ## [0.31.0] - 2026-03-03
 
 ### Added- add exception handling, validation, logging & diagnostics
