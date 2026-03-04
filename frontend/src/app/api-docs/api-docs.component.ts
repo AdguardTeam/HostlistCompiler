@@ -13,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { JsonPipe } from '@angular/common';
@@ -42,6 +44,8 @@ interface Endpoint {
         MatChipsModule,
         MatDividerModule,
         MatProgressSpinnerModule,
+        MatFormFieldModule,
+        MatInputModule,
         MatSelectModule,
         MatButtonModule,
     ],
