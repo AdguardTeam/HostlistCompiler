@@ -1,7 +1,8 @@
 /**
  * NotificationService — Tracks async compilation jobs by requestId.
  */
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { LogService } from './log.service';
 
 export interface AsyncJobRecord {
     requestId: string;
@@ -19,8 +20,10 @@ export interface AsyncJobRecord {
 export class NotificationService {
     private readonly _jobs = signal<AsyncJobRecord[]>([]);
     readonly jobs = this._jobs.asReadonly();
+    private readonly log = inject(LogService);
 
     addJob(requestId: string, configName: string): void {
+        this.log.info('Async job queued', 'NotificationService', { requestId, configName });
         this._jobs.update(jobs => [
             { requestId, configName, status: 'queued', createdAt: new Date() },
             ...jobs,
@@ -33,6 +36,7 @@ export class NotificationService {
      * 'queued' to a terminal state — it is never moved back to 'queued' after creation.
      */
     updateJob(requestId: string, status: 'completed' | 'failed', data?: Pick<AsyncJobRecord, 'ruleCount' | 'error'>): void {
+        this.log.info('Async job updated', 'NotificationService', { requestId, status });
         this._jobs.update(jobs =>
             jobs.map(job =>
                 job.requestId === requestId

@@ -4,8 +4,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, interval } from 'rxjs';
-import { startWith, switchMap, takeWhile, scan } from 'rxjs/operators';
+import { startWith, switchMap, takeWhile, scan, tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../tokens';
+import { LogService } from './log.service';
 
 export interface QueueStats {
     pending: number;
@@ -60,9 +61,12 @@ const NOT_FOUND_GRACE_RETRIES = 10;
 export class QueueService {
     private readonly http = inject(HttpClient);
     private readonly apiBaseUrl = inject(API_BASE_URL);
+    private readonly log = inject(LogService);
 
     getQueueStats(): Observable<QueueStats> {
-        return this.http.get<QueueStats>(`${this.apiBaseUrl}/queue/stats`);
+        return this.http.get<QueueStats>(`${this.apiBaseUrl}/queue/stats`).pipe(
+            tap({ error: (err) => this.log.error('QueueService.getQueueStats failed', 'QueueService', { error: err instanceof Error ? err.message : String(err) }) }),
+        );
     }
 
     /**
@@ -77,6 +81,7 @@ export class QueueService {
      * @param intervalMs - Polling interval in milliseconds. Defaults to 3000ms.
      */
     pollResults(requestId: string, intervalMs = 3000): Observable<QueueJobResult> {
+        this.log.debug('pollResults: start', 'QueueService', { requestId, intervalMs });
         return interval(intervalMs).pipe(
             startWith(0),
             switchMap(() =>
@@ -97,6 +102,13 @@ export class QueueService {
             ),
             // unwrap the scan accumulator back to QueueJobResult
             switchMap(({ result }) => [result]),
+            tap(result => {
+                if (result.status === 'completed') {
+                    this.log.info('pollResults: job completed', 'QueueService', { requestId });
+                } else if (result.status === 'failed') {
+                    this.log.warn('pollResults: job failed', 'QueueService', { requestId, error: result.error });
+                }
+            }),
         );
     }
 }

@@ -8,8 +8,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, delay } from 'rxjs/operators';
+import { catchError, delay, tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../tokens';
+import { LogService } from './log.service';
 
 export interface CompileRequest {
     configuration: {
@@ -80,6 +81,7 @@ export class CompilerService {
      * Can be used in services, components, directives, and pipes
      */
     private readonly http = inject(HttpClient);
+    private readonly log = inject(LogService);
 
     compile(urls: string[], transformations: string[]): Observable<CompileResponse> {
         const payload: CompileRequest = {
@@ -92,6 +94,7 @@ export class CompilerService {
         };
 
         return this.http.post<CompileResponse>(this.apiUrl, payload).pipe(
+            tap({ error: (err) => this.log.error('CompilerService.compile failed', 'CompilerService', { error: err instanceof Error ? err.message : String(err) }) }),
             catchError((error) => {
                 console.log('API call failed (expected in PoC), returning mock data:', error);
                 return of({
@@ -134,11 +137,15 @@ export class CompilerService {
             },
             benchmark: true,
         };
-        return this.http.post<AsyncCompileResponse>(`${this.apiUrl}/async`, payload);
+        return this.http.post<AsyncCompileResponse>(`${this.apiUrl}/async`, payload).pipe(
+            tap({ error: (err) => this.log.error('CompilerService.compileAsync failed', 'CompilerService', { error: err instanceof Error ? err.message : String(err) }) }),
+        );
     }
 
     compileBatch(items: BatchCompileItem[]): Observable<BatchCompileResponse> {
         const payload: BatchCompileRequest = { requests: items };
-        return this.http.post<BatchCompileResponse>(`${this.apiUrl}/batch`, payload);
+        return this.http.post<BatchCompileResponse>(`${this.apiUrl}/batch`, payload).pipe(
+            tap({ error: (err) => this.log.error('CompilerService.compileBatch failed', 'CompilerService', { error: err instanceof Error ? err.message : String(err) }) }),
+        );
     }
 }
