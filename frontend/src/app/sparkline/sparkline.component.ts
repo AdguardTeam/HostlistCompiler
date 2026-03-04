@@ -10,16 +10,23 @@
  */
 
 import { Component, afterRenderEffect, computed, input, viewChild, ElementRef } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
     selector: 'app-sparkline',
+    standalone: true,
+    imports: [MatCardModule],
     template: `
-        <canvas #canvas
-            [width]="width()"
-            [height]="height()"
-            class="sparkline-canvas"
-            [attr.aria-label]="ariaLabel()">
-        </canvas>
+        <mat-card appearance="outlined" class="sparkline-card">
+            <mat-card-content>
+                <canvas #canvas
+                    [width]="width()"
+                    [height]="height()"
+                    class="sparkline-canvas"
+                    [attr.aria-label]="ariaLabel()">
+                </canvas>
+            </mat-card-content>
+        </mat-card>
     `,
     styles: [`
         .sparkline-canvas {
