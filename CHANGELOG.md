@@ -42,6 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.32.1] - 2026-03-04
+
+### Added### Fixed
+
+- exclude skills/ and .claude/ from deno fmt and deno lint
+
+
 ## [0.32.0] - 2026-03-04
 
 ### Added- **compiler**: complete phases 6-8 — API docs, logging wiring, and changelog
