@@ -90,21 +90,15 @@ function handleCors(): Response {
 }
 
 /**
- * API info handler
+ * API info handler.
+ * Always returns JSON — this entrypoint does not serve static assets,
+ * so browser requests are not redirected and receive the JSON response directly.
  */
 async function handleInfo(
-    request: Request,
+    _request: Request,
     env: Env,
     _params: RouteParams,
 ): Promise<Response> {
-    const accept = request.headers.get('Accept') ?? '';
-    const searchParams = new URL(request.url).searchParams;
-    const wantsHtml = !!env.ASSETS && accept.includes('text/html') && searchParams.get('format') !== 'json';
-
-    if (wantsHtml) {
-        return Response.redirect(new URL(API_DOCS_REDIRECT, request.url).toString(), 302);
-    }
-
     return JsonResponse.success({
         name: 'adblock-compiler-worker',
         version: env.COMPILER_VERSION || VERSION,

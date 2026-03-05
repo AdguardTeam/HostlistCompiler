@@ -88,10 +88,23 @@ const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR = 'Queue bindings are not available. ' 
     'Alternatively, use the synchronous endpoints: POST /compile or POST /compile/batch';
 
 /**
- * Path prefixes that are handled server-side.
- * The SPA fallback will not apply to these paths, so unknown sub-routes return 404.
+ * Server-handled path prefixes that must NOT be intercepted by the SPA fallback.
+ * Browser navigations to paths under these prefixes should return a real 404/error
+ * rather than the Angular shell with a 200.
+ * Note: use the most-specific prefix needed — e.g. '/admin/storage' (not '/admin') so
+ * that the Angular /admin route is still served by the SPA fallback.
  */
-const SERVER_PATH_PREFIXES = ['/api', '/metrics', '/queue', '/admin', '/workflow', '/health', '/ws', '/compile'];
+const SPA_SERVER_PREFIXES: readonly string[] = [
+    '/api',
+    '/metrics',
+    '/queue',
+    '/admin/storage',
+    '/workflow',
+    '/health',
+    '/ws',
+    '/compile',
+    '/ast',
+];
 
 /**
  * In-memory map for request deduplication
@@ -1453,14 +1466,15 @@ async function handleCompileBatchAsync(
 
 /**
  * Handle GET requests - return API info and example.
- * When the caller is a browser (Accept: text/html), redirect to the styled documentation page.
+ * When the caller is a browser (Accept: text/html) AND static assets are available (env.ASSETS),
+ * redirect to the styled documentation page at /api-docs. Otherwise return a JSON response.
  * @param request - The incoming HTTP request used for content negotiation.
  * @param env - The worker environment bindings.
  */
 function handleInfo(request: Request, env: Env): Response {
     const accept = request.headers.get('Accept') ?? '';
     const searchParams = new URL(request.url).searchParams;
-    const wantsHtml = !!env.ASSETS && accept.includes('text/html') && searchParams.get('format') !== 'json';
+    const wantsHtml = Boolean(env.ASSETS) && accept.includes('text/html') && searchParams.get('format') !== 'json';
 
     if (wantsHtml) {
         return Response.redirect(new URL(API_DOCS_REDIRECT, request.url).toString(), 302);
@@ -3541,12 +3555,13 @@ export default {
                         return response;
                     }
 
-                    // SPA fallback: serve root index.html for extensionless paths that look like Angular client-side routes.
-                    // Only applies to document navigations (Accept: text/html) to avoid masking missing API endpoints.
-                    // Excludes server-handled path prefixes so unknown backend routes still return 404.
-                    const isDocumentNavigation = (request.headers.get('Accept') ?? '').includes('text/html');
-                    const isServerPath = SERVER_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'));
-                    if (!pathname.match(/\.[^/]+$/) && isDocumentNavigation && !isServerPath) {
+                    // SPA fallback: serve root index.html for Angular client-side routes (e.g. /api-docs, /compiler).
+                    // Only applies to browser navigation requests (Accept: text/html), extensionless paths that
+                    // are not served by a server-side handler. Server-handled prefixes are excluded so that unknown
+                    // API routes continue to return 404 rather than the Angular shell with a 200.
+                    const isServerPath = SPA_SERVER_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+                    const acceptsHtml = (request.headers.get('Accept') ?? '').includes('text/html');
+                    if (!pathname.match(/\.[^/]+$/) && !isServerPath && acceptsHtml) {
                         const spaUrl = new URL('/index.html', 'http://assets');
                         const spaResponse = await env.ASSETS.fetch(spaUrl);
                         if (spaResponse.ok) {
