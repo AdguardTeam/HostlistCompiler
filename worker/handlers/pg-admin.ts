@@ -106,20 +106,19 @@ export async function handlePgStorageStats(
     const pool = createPool(hyperdrive.connectionString);
 
     try {
-        const [storageRes, cacheRes, compilationRes, expiredStorageRes, expiredCacheRes, usersRes, apiKeysRes] =
-            await Promise.all([
-                pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM storage_entries`),
-                pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM filter_cache`),
-                pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM compilation_metadata`),
-                pool.query<{ count: string }>(
-                    `SELECT COUNT(*) as count FROM storage_entries WHERE "expiresAt" IS NOT NULL AND "expiresAt" < NOW()`,
-                ),
-                pool.query<{ count: string }>(
-                    `SELECT COUNT(*) as count FROM filter_cache WHERE "expiresAt" IS NOT NULL AND "expiresAt" < NOW()`,
-                ),
-                pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM users`),
-                pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM api_keys WHERE revoked_at IS NULL`),
-            ]);
+        const [storageRes, cacheRes, compilationRes, expiredStorageRes, expiredCacheRes, usersRes, apiKeysRes] = await Promise.all([
+            pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM storage_entries`),
+            pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM filter_cache`),
+            pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM compilation_metadata`),
+            pool.query<{ count: string }>(
+                `SELECT COUNT(*) as count FROM storage_entries WHERE "expiresAt" IS NOT NULL AND "expiresAt" < NOW()`,
+            ),
+            pool.query<{ count: string }>(
+                `SELECT COUNT(*) as count FROM filter_cache WHERE "expiresAt" IS NOT NULL AND "expiresAt" < NOW()`,
+            ),
+            pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM users`),
+            pool.query<{ count: string }>(`SELECT COUNT(*) as count FROM api_keys WHERE revoked_at IS NULL`),
+        ]);
 
         return JsonResponse.success({
             stats: {

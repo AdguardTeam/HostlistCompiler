@@ -336,9 +336,7 @@ export async function handleMigrateD1ToPg(
     const url = new URL(request.url);
     const dryRun = url.searchParams.get('dryRun') === 'true';
     const tablesParam = url.searchParams.get('tables');
-    const requestedTables = tablesParam
-        ? tablesParam.split(',').map((t) => t.trim())
-        : ['storage_entries', 'filter_cache', 'compilation_metadata'];
+    const requestedTables = tablesParam ? tablesParam.split(',').map((t) => t.trim()) : ['storage_entries', 'filter_cache', 'compilation_metadata'];
 
     const validTables = new Set(['storage_entries', 'filter_cache', 'compilation_metadata']);
     const invalidTables = requestedTables.filter((t) => !validTables.has(t));
