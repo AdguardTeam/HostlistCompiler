@@ -1544,23 +1544,6 @@ function handleCors(): Response {
 }
 
 /**
- * Returns true when a URL path ends with a file extension
- * (e.g. /favicon.ico, /main.js, /styles.css).
- * Used to distinguish Angular SPA routes (extensionless) from static-asset
- * requests so that the SPA fallback is not applied to missing asset files.
- */
-function hasFileExtension(path: string): boolean {
-    return /\.[^/]+$/.test(path);
-}
-
-/**
- * Serve the web UI HTML from static assets.
- */
-async function serveWebUI(env: Env): Promise<Response> {
-    return serveStaticFile(env, 'index.html');
-}
-
-/**
  * Serve a static file from static assets.
  */
 async function serveStaticAsset(request: Request, env: Env, pathname: string): Promise<Response> {
