@@ -1,0 +1,121 @@
+name: Cleanup Branches
+
+on:
+    pull_request:
+        types: [closed]
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'Dry run (list branches that would be deleted without deleting them)'
+                required: false
+                default: true
+                type: boolean
+
+permissions:
+    contents: write
+
+env:
+    PROTECTED_BRANCHES: 'main,master,develop,staging,production'
+
+jobs:
+    delete-pr-branch:
+        name: Delete Branch After PR Close
+        if: github.event_name == 'pull_request'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Delete head branch
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const branch = context.payload.pull_request.head.ref;
+                      const protectedBranches = process.env.PROTECTED_BRANCHES.split(',');
+
+                      if (protectedBranches.includes(branch)) {
+                          console.log(`Skipping protected branch: ${branch}`);
+                          return;
+                      }
+
+                      try {
+                          await github.rest.git.deleteRef({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              ref: `heads/${branch}`,
+                          });
+                          console.log(`✅ Deleted branch: ${branch}`);
+                      } catch (error) {
+                          if (error.status === 422) {
+                              console.log(`Branch ${branch} already deleted.`);
+                          } else {
+                              console.log(`⚠️ Could not delete branch ${branch}: ${error.message}`);
+                          }
+                      }
+
+    cleanup-stale-branches:
+        name: Cleanup Stale Branches
+        if: github.event_name == 'workflow_dispatch'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Find and delete stale branches
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const dryRun = ${{ inputs.dry_run }};
+                      const protectedBranches = process.env.PROTECTED_BRANCHES.split(',');
+
+                      // Get all branches
+                      const branches = await github.paginate(github.rest.repos.listBranches, {
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          per_page: 100,
+                      });
+
+                      // Get all closed/merged PRs to identify branches that can be cleaned up
+                      const closedPRs = await github.paginate(github.rest.pulls.list, {
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          state: 'closed',
+                          per_page: 100,
+                      });
+
+                      const closedPRBranchNames = new Set(
+                          closedPRs.map((pr) => pr.head.ref)
+                      );
+
+                      const toDelete = branches.filter(
+                          (b) =>
+                              !protectedBranches.includes(b.name) &&
+                              closedPRBranchNames.has(b.name)
+                      );
+
+                      if (toDelete.length === 0) {
+                          console.log('No stale branches found.');
+                          return;
+                      }
+
+                      console.log(`Found ${toDelete.length} stale branch(es):`);
+                      for (const branch of toDelete) {
+                          console.log(`  - ${branch.name}`);
+                      }
+
+                      if (dryRun) {
+                          console.log('\nDry run enabled — no branches were deleted.');
+                          return;
+                      }
+
+                      console.log('\nDeleting stale branches...');
+                      for (const branch of toDelete) {
+                          try {
+                              await github.rest.git.deleteRef({
+                                  owner: context.repo.owner,
+                                  repo: context.repo.repo,
+                                  ref: `heads/${branch.name}`,
+                              });
+                              console.log(`✅ Deleted: ${branch.name}`);
+                          } catch (error) {
+                              if (error.status === 422) {
+                                  console.log(`Already deleted: ${branch.name}`);
+                              } else {
+                                  console.log(`⚠️ Could not delete ${branch.name}: ${error.message}`);
+                              }
+                          }
+                      }
