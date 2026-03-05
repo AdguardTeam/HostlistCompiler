@@ -29,9 +29,52 @@ import {
     handleAdminStorageStats,
     handleAdminVacuum,
 } from './handlers/admin.ts';
+import {
+    handleCreateApiKey,
+    handleCreateUser,
+    handleListApiKeys,
+    handleRevokeApiKey,
+    handleValidateApiKey,
+} from './handlers/auth-admin.ts';
 
 // Re-export Env type for external use
 export type { Env };
+
+/**
+ * Creates a pg Pool from a connection string.
+ * Uses dynamic import so the module only loads when Hyperdrive is configured.
+ *
+ * Note: Requires `node_compat = true` in wrangler.toml for the `pg` module.
+ * Until pg is installed, this is a placeholder that throws a clear error.
+ */
+function createPgPool(connectionString: string): {
+    query<T = Record<string, unknown>>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount: number | null }>;
+} {
+    // Lazy initialization: create Pool on first query
+    let pool: unknown = null;
+
+    const ensurePool = async () => {
+        if (!pool) {
+            try {
+                const { Pool } = await import('pg');
+                pool = new Pool({ connectionString });
+            } catch {
+                throw new Error(
+                    'pg module not available. Install with: npm install pg. ' +
+                    'Ensure node_compat = true in wrangler.toml.',
+                );
+            }
+        }
+        return pool as { query: (text: string, values?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }> };
+    };
+
+    return {
+        async query<T = Record<string, unknown>>(text: string, values?: unknown[]) {
+            const p = await ensurePool();
+            return p.query(text, values) as Promise<{ rows: T[]; rowCount: number | null }>;
+        },
+    };
+}
 
 /**
  * Route handler type
@@ -235,6 +278,53 @@ const routes: Route[] = [
         method: 'POST',
         pattern: '/admin/storage/query',
         handler: async (req, env) => handleAdminQuery(req, env),
+        requireAuth: true,
+    },
+
+    // Auth admin endpoints (require Hyperdrive)
+    {
+        method: 'POST',
+        pattern: '/admin/auth/users',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleCreateUser(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/auth/api-keys',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleCreateApiKey(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'GET',
+        pattern: '/admin/auth/api-keys',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleListApiKeys(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/auth/api-keys/revoke',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleRevokeApiKey(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/auth/api-keys/validate',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleValidateApiKey(req, env.HYPERDRIVE, createPgPool);
+        },
         requireAuth: true,
     },
 ];
