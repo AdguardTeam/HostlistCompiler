@@ -16,17 +16,17 @@ import { NotificationService, type Toast } from '../services/notification.servic
     selector: 'app-notification-container',
     imports: [MatIconModule, MatButtonModule],
     template: `
-        <div class="toast-container">
+        <div class="toast-container" aria-live="polite" role="status" aria-atomic="false">
             @for (toast of notificationService.toasts(); track toast.id) {
                 <div class="toast" [class]="toast.type">
-                    <mat-icon class="toast-icon">{{ iconFor(toast.type) }}</mat-icon>
+                    <mat-icon class="toast-icon" aria-hidden="true">{{ iconFor(toast.type) }}</mat-icon>
                     <div class="toast-body">
                         <div class="toast-title">{{ toast.title }}</div>
                         <div class="toast-message">{{ toast.message }}</div>
                     </div>
                     <button mat-icon-button class="toast-close" (click)="notificationService.dismissToast(toast.id)"
                         aria-label="Dismiss notification">
-                        <mat-icon>close</mat-icon>
+                        <mat-icon aria-hidden="true">close</mat-icon>
                     </button>
                 </div>
             }
