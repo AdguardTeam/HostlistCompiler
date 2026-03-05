@@ -17,7 +17,7 @@
  *   "Adblock Compiler"
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 
@@ -25,9 +25,7 @@ const APP_NAME = 'Adblock Compiler';
 
 @Injectable({ providedIn: 'root' })
 export class AppTitleStrategy extends TitleStrategy {
-    constructor(private readonly title: Title) {
-        super();
-    }
+    private readonly title = inject(Title);
 
     override updateTitle(snapshot: RouterStateSnapshot): void {
         const routeTitle = this.buildTitle(snapshot);
