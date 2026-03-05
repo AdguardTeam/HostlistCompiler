@@ -110,7 +110,7 @@ interface EndpointInfo {
                 </div>
                 <div class="status-chips">
                     <mat-chip-set>
-                        <mat-chip highlighted color="primary">Angular 21</mat-chip>
+                        <mat-chip highlighted>Angular 21</mat-chip>
                         <mat-chip>Material Design 3</mat-chip>
                         <mat-chip>Zoneless</mat-chip>
                         <mat-chip>Cloudflare Workers</mat-chip>
