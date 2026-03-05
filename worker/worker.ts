@@ -1538,6 +1538,16 @@ function handleCors(): Response {
 }
 
 /**
+ * Returns true when a URL path ends with a file extension
+ * (e.g. /favicon.ico, /main.js, /styles.css).
+ * Used to distinguish Angular SPA routes (extensionless) from static-asset
+ * requests so that the SPA fallback is not applied to missing asset files.
+ */
+function hasFileExtension(path: string): boolean {
+    return /\.[^/]+$/.test(path);
+}
+
+/**
  * Serve the web UI HTML from static assets.
  */
 async function serveWebUI(env: Env): Promise<Response> {
@@ -1568,10 +1578,11 @@ async function serveStaticFile(env: Env, filename: string): Promise<Response> {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hostlist Compiler</title>
+    <meta name="description" content="Adblock Compiler — a compiler-as-a-service for adblock and DNS filter lists. POST /compile to merge, deduplicate, and transform filter rules at the edge.">
+    <title>Adblock Compiler API</title>
 </head>
 <body style="font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px;">
-    <h1>🛡️ Hostlist Compiler API</h1>
+    <h1>🛡️ Adblock Compiler API</h1>
     <p>The web UI is available for local development only.</p>
     <p>To use the web interface locally, run:</p>
     <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">npm run dev</pre>
@@ -1604,7 +1615,7 @@ async function serveStaticFile(env: Env, filename: string): Promise<Response> {
     return new Response(html, {
         headers: {
             'Content-Type': 'text/html; charset=utf-8',
-            'Cache-Control': 'public, max-age=300',
+            'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600',
         },
     });
 }

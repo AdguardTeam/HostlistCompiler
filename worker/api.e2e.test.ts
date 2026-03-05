@@ -613,7 +613,6 @@ Deno.test({
     },
 });
 
-// ============================================================================
 // SPA Routing / Fallback Behaviour Tests
 // ============================================================================
 
@@ -675,5 +674,58 @@ Deno.test({
         if (response.status === 200) {
             assertEquals(isJson, true);
         }
+    },
+});
+
+Deno.test({
+    name: 'E2E: GET /favicon.ico - missing static asset returns 404, not index.html',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/favicon.ico`);
+
+        assertEquals(response.status, 404);
+        // Must NOT return HTML content — that would mean the SPA fallback fired incorrectly.
+        const contentType = response.headers.get('content-type') ?? '';
+        assertEquals(
+            contentType.includes('text/html'),
+            false,
+            'A missing static asset with a file extension must not return text/html (SPA fallback must not fire)',
+        );
+        await response.body?.cancel();
+    },
+});
+
+Deno.test({
+    name: 'E2E: GET /nonexistent.js - missing JS asset returns 404, not index.html',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/nonexistent.js`);
+
+        assertEquals(response.status, 404);
+        const contentType = response.headers.get('content-type') ?? '';
+        assertEquals(
+            contentType.includes('text/html'),
+            false,
+            'A missing .js asset must not return text/html (SPA fallback must not fire)',
+        );
+        await response.body?.cancel();
+    },
+});
+
+Deno.test({
+    name: 'E2E: GET /compiler with Accept:text/html - SPA route returns 200 with HTML',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/compiler`, {
+            headers: { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+        });
+
+        assertEquals(response.status, 200);
+        assertEquals(
+            response.headers.get('content-type')?.includes('text/html'),
+            true,
+            'Extensionless SPA route with Accept:text/html must return text/html via the SPA fallback',
+        );
+        await response.body?.cancel();
     },
 });
