@@ -176,17 +176,17 @@ frontend/
 │   │   ├── interceptors/
 │   │   │   └── error.interceptor.ts    # Functional HttpInterceptorFn (401, 429, 5xx)
 │   │   ├── skeleton/
-│   │   │   ├── skeleton-card.component.ts      # Animated shimmer card placeholder
-│   │   │   └── skeleton-table.component.ts     # Animated shimmer table placeholder
+│   │   │   ├── skeleton-card.component.ts      # mat-card (outlined) + mat-progress-bar buffer + shimmer card placeholder
+│   │   │   └── skeleton-table.component.ts     # mat-card (outlined) + mat-progress-bar buffer + shimmer table placeholder
 │   │   ├── sparkline/
-│   │   │   └── sparkline.component.ts  # Canvas 2D mini chart (zero dependencies)
+│   │   │   └── sparkline.component.ts  # mat-card (outlined) wrapper, Canvas 2D mini chart (zero dependencies)
 │   │   ├── stat-card/
 │   │   │   ├── stat-card.component.ts  # input() / output() / model() demo component
 │   │   │   └── stat-card.component.spec.ts
 │   │   ├── store/
 │   │   │   └── metrics.store.ts        # Shared singleton signal store with SWR cache
 │   │   ├── turnstile/
-│   │   │   └── turnstile.component.ts  # Cloudflare Turnstile CAPTCHA widget wrapper
+│   │   │   └── turnstile.component.ts  # mat-card (outlined) wrapper, Cloudflare Turnstile CAPTCHA widget
 │   │   ├── services/
 │   │   │   ├── auth.service.ts         # Admin key management (sessionStorage)
 │   │   │   ├── compiler.service.ts     # POST /api/compile — Observable HTTP
@@ -772,10 +772,10 @@ import { adminGuard } from './guards/admin.guard';
 | `ApiDocsComponent` | `/api-docs` | `httpResource()` |
 | `AdminComponent` | `/admin` | `rxResource()`, `AuthService`, CDK Virtual Scroll, D1 SQL console |
 | `StatCardComponent` | Shared | `input.required()`, `output()`, `model()` |
-| `SkeletonCardComponent` | Shared | Shimmer CSS animation, configurable line count |
-| `SkeletonTableComponent` | Shared | Shimmer CSS animation, configurable rows/columns |
-| `SparklineComponent` | Shared | Canvas 2D line/area chart, zero dependencies |
-| `TurnstileComponent` | Shared | Wraps Cloudflare Turnstile widget, `TurnstileService` |
+| `SkeletonCardComponent` | Shared | `mat-card appearance="outlined"` + `mat-progress-bar` (buffer mode), shimmer CSS animation, configurable line count |
+| `SkeletonTableComponent` | Shared | `mat-card appearance="outlined"` + `mat-progress-bar` (buffer mode), shimmer CSS animation, configurable rows/columns |
+| `SparklineComponent` | Shared | `mat-card appearance="outlined"` wrapper, Canvas 2D line/area chart, zero dependencies |
+| `TurnstileComponent` | Shared | `mat-card appearance="outlined"` wrapper, Cloudflare Turnstile CAPTCHA widget, `TurnstileService` |
 | `ErrorBoundaryComponent` | Shared | Reads `GlobalErrorHandler` signals, dismissible overlay |
 
 ---
