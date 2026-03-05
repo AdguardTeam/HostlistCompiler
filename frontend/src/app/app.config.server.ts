@@ -14,6 +14,34 @@ import { appConfig } from './app.config';
 import { serverRoutes } from './app.routes.server';
 import { API_BASE_URL } from './tokens';
 
+/**
+ * Factory for `API_BASE_URL` in SSR contexts.
+ *
+ * Extracts the origin from the incoming `REQUEST` so that server-side HTTP
+ * calls use a fully-qualified URL (e.g. `https://example.workers.dev/api`).
+ * There is no browser origin server-side, so a relative `/api` path would
+ * not resolve.
+ *
+ * Falls back to `'/api'` when:
+ *   - `REQUEST` is not provided (prerendering / static generation)
+ *   - The request URL is malformed and `new URL()` throws
+ *
+ * Exported for unit testing — the spec imports this function directly so
+ * tests always exercise the exact production implementation.
+ */
+export function ssrApiBaseUrlFactory(): string {
+    const request = inject(REQUEST, { optional: true });
+    if (request?.url) {
+        try {
+            const { origin } = new URL(request.url);
+            return `${origin}/api`;
+        } catch {
+            // Malformed request URL — fall through to relative default.
+        }
+    }
+    return '/api';
+}
+
 const serverConfig: ApplicationConfig = {
     providers: [
         provideServerRendering(withRoutes(serverRoutes)),
@@ -25,21 +53,7 @@ const serverConfig: ApplicationConfig = {
         // The REQUEST token is injected with { optional: true } so prerendering /
         // static generation (where no request object exists) safely falls back to
         // the relative '/api' path.
-        {
-            provide: API_BASE_URL,
-            useFactory: () => {
-                const request = inject(REQUEST, { optional: true });
-                if (request?.url) {
-                    try {
-                        const { origin } = new URL(request.url);
-                        return `${origin}/api`;
-                    } catch {
-                        // Malformed request URL — fall through to relative default.
-                    }
-                }
-                return '/api';
-            },
-        },
+        { provide: API_BASE_URL, useFactory: ssrApiBaseUrlFactory },
     ],
 };
 

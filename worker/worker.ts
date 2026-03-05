@@ -1517,6 +1517,16 @@ function handleCors(): Response {
 }
 
 /**
+ * Returns true when a URL path ends with a file extension
+ * (e.g. /favicon.ico, /main.js, /styles.css).
+ * Used to distinguish Angular SPA routes (extensionless) from static-asset
+ * requests so that the SPA fallback is not applied to missing asset files.
+ */
+function hasFileExtension(path: string): boolean {
+    return /\.[^/]+$/.test(path);
+}
+
+/**
  * Serve the web UI HTML from static assets.
  */
 async function serveWebUI(env: Env): Promise<Response> {
@@ -3536,8 +3546,7 @@ export default {
 
                     // Directory index fallback: for paths without a file extension (e.g. /some-dir, /some-dir/),
                     // try serving {path}/index.html so that directory-based routes work correctly.
-                    // The regex checks for a dot followed by non-slash chars at the end, indicating a file extension.
-                    if (!pathname.match(/\.[^/]+$/)) {
+                    if (!hasFileExtension(pathname)) {
                         const normalizedPath = pathname.replace(/\/$/, '');
                         const indexUrl = new URL(`${normalizedPath}/index.html`, 'http://assets');
                         const indexResponse = await env.ASSETS.fetch(indexUrl);
@@ -3562,7 +3571,7 @@ export default {
             // SPA fallback only for extensionless paths (Angular client-side routes).
             // Paths with file extensions that are not found in ASSETS should return 404,
             // not index.html, to avoid incorrect content-type and caching issues.
-            if (!pathname.match(/\.[^/]+$/)) {
+            if (!hasFileExtension(pathname)) {
                 return serveWebUI(env);
             }
         }
