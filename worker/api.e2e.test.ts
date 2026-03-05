@@ -612,3 +612,58 @@ Deno.test({
         }
     },
 });
+
+// ============================================================================
+// SPA Fallback Routing Tests
+// ============================================================================
+
+Deno.test({
+    name: 'E2E: GET /favicon.ico - missing static asset returns 404, not index.html',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/favicon.ico`);
+
+        assertEquals(response.status, 404);
+        // Must NOT return HTML content — that would mean the SPA fallback fired incorrectly.
+        const contentType = response.headers.get('content-type') ?? '';
+        assertEquals(
+            contentType.includes('text/html'),
+            false,
+            'A missing static asset with a file extension must not return text/html (SPA fallback must not fire)',
+        );
+        await response.body?.cancel();
+    },
+});
+
+Deno.test({
+    name: 'E2E: GET /nonexistent.js - missing JS asset returns 404, not index.html',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/nonexistent.js`);
+
+        assertEquals(response.status, 404);
+        const contentType = response.headers.get('content-type') ?? '';
+        assertEquals(
+            contentType.includes('text/html'),
+            false,
+            'A missing .js asset must not return text/html (SPA fallback must not fire)',
+        );
+        await response.body?.cancel();
+    },
+});
+
+Deno.test({
+    name: 'E2E: GET /compiler - SPA route returns 200 with HTML',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/compiler`);
+
+        assertEquals(response.status, 200);
+        assertEquals(
+            response.headers.get('content-type')?.includes('text/html'),
+            true,
+            'Extensionless SPA route must return text/html via the SPA fallback',
+        );
+        await response.body?.cancel();
+    },
+});
