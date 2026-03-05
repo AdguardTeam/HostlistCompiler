@@ -46,6 +46,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.33.2] - 2026-03-05
+
+### Added### Fixed
+
+- use inject() function in AppTitleStrategy to satisfy prefer-inject lint rule
+- remove dead hasFileExtension and duplicate serveWebUI overload in worker
+- import REQUEST from @angular/core not @angular/ssr
+- merge main into branch to resolve conflicts
+- remove unused _env param from serveWebUI
+- merge main, resolve conflicts, consolidate env.ASSETS into serveStaticAsset()
+- WCAG accessibility improvements across Angular SSR frontend
+- remove unused hasFileExtension function and fix spelling
+- resolve merge conflicts between fix/api-html-404 and main
+- remove unused API_DOCS_REDIRECT import from worker/router.ts
+- remove unused API_DOCS_REDIRECT import from router.ts
+- hoist SPA_SERVER_PREFIXES to module constant, use Boolean(env.ASSETS) for explicit boolean
+- narrow /admin SPA exclusion, clean router.ts redirect, update JSDoc, add routing E2E tests
+- apply review feedback for /api redirect, SPA fallback, and router.ts sync
+- scope SPA fallback, gate handleInfo redirect on ASSETS, sync router.ts
+- resolve landing page issues #622 #623 #624
+- redirect /api to Angular /api-docs route and add SPA fallback
+- add tests for API_BASE_URL factory and extract hasFileExtension helper
+- address review comments on SPA fallback and SSR API base URL
+- restore Angular routing on Cloudflare Workers deployment
+
+
 ## [0.33.1] - 2026-03-04
 
 ### Fixed
