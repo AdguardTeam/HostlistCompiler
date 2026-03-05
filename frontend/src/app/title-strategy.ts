@@ -38,8 +38,11 @@ export class AppTitleStrategy extends TitleStrategy {
         let value: string | undefined;
         let current: ActivatedRouteSnapshot | null = route;
         while (current) {
-            if (current.data[key]) {
-                value = current.data[key];
+            if (Object.prototype.hasOwnProperty.call(current.data, key)) {
+                const candidate = current.data[key];
+                if (typeof candidate === 'string') {
+                    value = candidate;
+                }
             }
             current = current.firstChild;
         }
