@@ -16,6 +16,10 @@ describe('SseService', () => {
         service = TestBed.inject(SseService);
     });
 
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it('should be created', () => {
         expect(service).toBeTruthy();
     });
@@ -117,12 +121,13 @@ describe('SseService', () => {
     it('should set error status on HTTP error response', async () => {
         // Mock fetch to return an error response; mock setTimeout to skip retry delays
         vi.useFakeTimers();
+        let connection: ReturnType<typeof service.connect> | undefined;
         try {
             vi.spyOn(globalThis, 'fetch').mockResolvedValue(
                 new Response(null, { status: 500, statusText: 'Internal Server Error' }),
             );
 
-            const connection = service.connect('/test', {});
+            connection = service.connect('/test', {});
 
             // Advance through all retries (3 retries with exponential backoff)
             for (let i = 0; i < 4; i++) {
@@ -130,8 +135,8 @@ describe('SseService', () => {
             }
 
             expect(connection.status()).toBe('error');
-            connection.close();
         } finally {
+            connection?.close();
             vi.useRealTimers();
         }
     });

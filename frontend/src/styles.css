@@ -204,7 +204,7 @@
    Selectors cover: body.dark-theme and html[data-theme='dark'].
    ================================================================= */
 body.dark-theme,
-[data-theme='dark'] {
+html[data-theme='dark'] {
     /* ── M3 Dark Palette ─────────────────────────────────────────── */
     --mat-sys-primary: #f59e0b;
     --mat-sys-on-primary: #000000;
@@ -329,7 +329,7 @@ body {
 
 html.dark-theme,
 body.dark-theme,
-[data-theme='dark'] {
+html[data-theme='dark'] {
     background-image: radial-gradient(circle, rgba(245, 158, 11, 0.04) 1px, transparent 1px);
     background-size: 28px 28px;
 }
@@ -426,13 +426,13 @@ h1, h2, h3, h4, h5, h6,
     background: var(--mat-sys-surface);
     border-radius: var(--mat-sys-corner-large);
     border: 1px solid var(--mat-sys-outline-variant);
-    box-shadow: var(--mat-sys-level3);
+    box-shadow: var(--app-shadow-lg);
     overflow: hidden;
     min-height: calc(100vh - 48px);
 }
 
 body.dark-theme .page-wrapper,
-[data-theme='dark'] .page-wrapper {
+html[data-theme='dark'] .page-wrapper {
     box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7);
 }
 
