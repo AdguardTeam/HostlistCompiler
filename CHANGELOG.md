@@ -59,14 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.34.0] - 2026-03-05
 
-### Added- **frontend**: redesign with Deep Ink + Electric Amber design system
-- add SEO and AEO optimizations for frontend
+### Added
+
+- **frontend**: Redesign with Deep Ink + Electric Amber design system
+- Add SEO and AEO optimizations for frontend
 
 ### Fixed
 
-- **merge**: resolve merge conflict with main - fix sse.service.spec try/finally and incorporate SEO/title-strategy changes
-- **merge**: resolve sse.service.spec.ts conflict between feat/deep-ink-amber-design-system and main
-- **merge**: resolve merge conflict with main in sse.service.spec.ts
 - **tests**: align SSE spec API_BASE_URL with production browser config ('/api')
 - **frontend**: tighten dark-theme selectors, fix shadow token, improve SSE test cleanup
 - align index.html meta description with home route metaDescription
