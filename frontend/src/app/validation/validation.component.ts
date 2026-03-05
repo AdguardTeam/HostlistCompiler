@@ -17,7 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
-import { ValidationService, ValidationResult, ValidationError } from '../services/validation.service';
+import { ValidationService, ValidationResult } from '../services/validation.service';
 
 @Component({
     selector: 'app-validation',

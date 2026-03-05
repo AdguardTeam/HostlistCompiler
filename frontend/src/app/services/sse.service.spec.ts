@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { SseService, type SseConnection } from './sse.service';
+import { SseService } from './sse.service';
 import { API_BASE_URL } from '../tokens';
 
 describe('SseService', () => {

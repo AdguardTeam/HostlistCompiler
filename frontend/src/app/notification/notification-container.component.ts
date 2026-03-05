@@ -10,7 +10,7 @@
 import { Component, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { NotificationService, type Toast } from '../services/notification.service';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
     selector: 'app-notification-container',

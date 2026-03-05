@@ -5,14 +5,12 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { AppComponent } from './app.component';
-import { ThemeService } from './services/theme.service';
 import { GlobalErrorHandler } from './error/global-error-handler';
 import { API_BASE_URL } from './tokens';
 
 describe('AppComponent', () => {
     let fixture: ComponentFixture<AppComponent>;
     let component: AppComponent;
-    let themeService: ThemeService;
     let httpTesting: HttpTestingController;
 
     beforeEach(async () => {
@@ -31,7 +29,6 @@ describe('AppComponent', () => {
 
         fixture = TestBed.createComponent(AppComponent);
         component = fixture.componentInstance;
-        themeService = TestBed.inject(ThemeService);
         httpTesting = TestBed.inject(HttpTestingController);
 
         // Flush initial MetricsStore requests
