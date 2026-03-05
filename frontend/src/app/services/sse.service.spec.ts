@@ -18,8 +18,8 @@ describe('SseService', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-        vi.useRealTimers();
         vi.clearAllTimers();
+        vi.useRealTimers();
     });
 
     it('should be created', () => {
