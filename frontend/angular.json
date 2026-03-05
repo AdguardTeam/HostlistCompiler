@@ -30,6 +30,7 @@
                         "assets": [
                             "src/assets",
                             "src/favicon.svg",
+                            "src/favicon.ico",
                             "src/robots.txt",
                             "src/sitemap.xml"
                         ],
