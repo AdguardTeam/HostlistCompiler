@@ -15,6 +15,7 @@ import type { Env } from './types.ts';
 import { VERSION } from '../src/version.ts';
 import { JsonResponse } from './utils/response.ts';
 import { createWorkerErrorReporter } from './utils/errorReporter.ts';
+import { API_DOCS_REDIRECT } from './utils/constants.ts';
 import { ErrorUtils } from '../src/utils/ErrorUtils.ts';
 import { checkRateLimit, validateRequestSize, verifyAdminAuth, verifyTurnstileToken } from './middleware/index.ts';
 import { handleASTParseRequest, handleCompileAsync, handleCompileBatch, handleCompileBatchAsync, handleCompileJson, handleCompileStream } from './handlers/compile.ts';

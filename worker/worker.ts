@@ -46,6 +46,7 @@ import { handleWebSocketUpgrade } from './websocket.ts';
 import { AnalyticsService } from '../src/services/AnalyticsService.ts';
 import { getDeploymentHistory, getDeploymentStats, getLatestDeployment } from '../src/deployment/version.ts';
 import { validateRequestSize } from './middleware/index.ts';
+import { API_DOCS_REDIRECT } from './utils/constants.ts';
 
 // Import Workflow classes and types
 import {
@@ -1476,7 +1477,7 @@ function handleInfo(request: Request, env: Env): Response {
     const wantsHtml = Boolean(env.ASSETS) && accept.includes('text/html') && searchParams.get('format') !== 'json';
 
     if (wantsHtml) {
-        return Response.redirect(new URL('/api-docs', request.url).toString(), 302);
+        return Response.redirect(new URL(API_DOCS_REDIRECT, request.url).toString(), 302);
     }
 
     const info = {
