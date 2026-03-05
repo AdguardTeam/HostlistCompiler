@@ -15,6 +15,7 @@ import type { Env } from './types.ts';
 import { VERSION } from '../src/version.ts';
 import { JsonResponse } from './utils/response.ts';
 import { createWorkerErrorReporter } from './utils/errorReporter.ts';
+import { API_DOCS_REDIRECT } from './utils/constants.ts';
 import { ErrorUtils } from '../src/utils/ErrorUtils.ts';
 import { checkRateLimit, validateRequestSize, verifyAdminAuth, verifyTurnstileToken } from './middleware/index.ts';
 import { handleASTParseRequest, handleCompileAsync, handleCompileBatch, handleCompileBatchAsync, handleCompileJson, handleCompileStream } from './handlers/compile.ts';
@@ -98,10 +99,10 @@ async function handleInfo(
 ): Promise<Response> {
     const accept = request.headers.get('Accept') ?? '';
     const searchParams = new URL(request.url).searchParams;
-    const wantsHtml = accept.includes('text/html') && searchParams.get('format') !== 'json';
+    const wantsHtml = !!env.ASSETS && accept.includes('text/html') && searchParams.get('format') !== 'json';
 
     if (wantsHtml) {
-        return Response.redirect(new URL('/api.html', request.url).toString(), 302);
+        return Response.redirect(new URL(API_DOCS_REDIRECT, request.url).toString(), 302);
     }
 
     return JsonResponse.success({
