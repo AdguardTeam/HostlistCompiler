@@ -21,13 +21,14 @@
  */
 
 import { ApplicationConfig, ErrorHandler, provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withViewTransitions, withPreloading, PreloadAllModules } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withViewTransitions, withPreloading, PreloadAllModules, TitleStrategy } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material/icon';
 import { routes } from './app.routes';
+import { AppTitleStrategy } from './title-strategy';
 import { ThemeService } from './services/theme.service';
 import { GlobalErrorHandler } from './error/global-error-handler';
 import { API_BASE_URL } from './tokens';
@@ -45,6 +46,10 @@ export const appConfig: ApplicationConfig = {
             withViewTransitions(),
             withPreloading(PreloadAllModules),
         ),
+
+        // Custom TitleStrategy: appends "| Adblock Compiler" to each route title
+        // for WCAG 2.4.2 (Page Titled) compliance.
+        { provide: TitleStrategy, useClass: AppTitleStrategy },
 
         // HttpClient with fetch for SSR compatibility + error interceptor.
         provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),

@@ -1544,19 +1544,24 @@ function handleCors(): Response {
 }
 
 /**
- * Serve a static file or Angular SPA route.
- *
- * When `env.ASSETS` is bound (Cloudflare Workers production / `wrangler dev`):
- *   1. Fetch the exact path from the ASSETS binding.
- *   2. Follow any redirect the binding returns.
- *   3. If the asset is found, return it.
- *   4. SPA fallback: for extensionless paths that are browser navigations
- *      (Accept: text/html) and are not server-handled prefixes, serve the
- *      Angular root `/index.html` so the client-side router takes over.
- *
- * When `env.ASSETS` is NOT bound (local `deno task dev`):
- *   - Return a minimal HTML page for extensionless paths.
- *   - Return 404 for paths with a file extension.
+ * Returns true when a URL path ends with a file extension
+ * (e.g. /favicon.ico, /main.js, /styles.css).
+ * Used to distinguish Angular SPA routes (extensionless) from static-asset
+ * requests so that the SPA fallback is not applied to missing asset files.
+ */
+function hasFileExtension(path: string): boolean {
+    return /\.[^/]+$/.test(path);
+}
+
+/**
+ * Serve the web UI HTML from static assets.
+ */
+async function serveWebUI(env: Env): Promise<Response> {
+    return serveStaticFile(env, 'index.html');
+}
+
+/**
+ * Serve a static file from static assets.
  */
 async function serveStaticAsset(request: Request, env: Env, pathname: string): Promise<Response> {
     if (env.ASSETS) {
