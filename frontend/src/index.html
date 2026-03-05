@@ -5,11 +5,57 @@
         <title>Adblock Compiler</title>
         <base href="/">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <meta name="description" content="Compile, validate, and transform adblock filter lists in real-time. Open-source compiler-as-a-service powered by Cloudflare Workers with streaming, batch, and async compilation modes.">
+        <meta name="robots" content="index, follow">
+        <link rel="canonical" href="https://adblock-compiler.jk-com.workers.dev/">
+        <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+        <!-- Open Graph -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="Adblock Compiler - Filter List Compilation Service">
+        <meta property="og:description" content="Compile, validate, and transform adblock filter lists in real-time. Streaming, batch, and async compilation modes.">
+        <meta property="og:url" content="https://adblock-compiler.jk-com.workers.dev/">
+        <meta property="og:site_name" content="Adblock Compiler">
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Adblock Compiler - Filter List Compilation Service">
+        <meta name="twitter:description" content="Compile, validate, and transform adblock filter lists in real-time. Open-source compiler-as-a-service.">
+
+        <!-- Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "Adblock Compiler",
+            "url": "https://adblock-compiler.jk-com.workers.dev/",
+            "description": "Open-source adblock filter list compiler-as-a-service. Supports real-time streaming, batch, and async compilation modes.",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Any",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "author": {
+                "@type": "Organization",
+                "name": "jk-com",
+                "url": "https://github.com/jaypatrick/adblock-compiler"
+            },
+            "sourceOrganization": {
+                "@type": "Organization",
+                "name": "jk-com",
+                "url": "https://github.com/jaypatrick"
+            }
+        }
+        </script>
+
         <!--
             Fonts loaded via npm packages (build-pipeline integrated, SSR-safe):
-              @fontsource/roboto    — imported in styles.css
-              material-symbols      — imported in styles.css
+              @fontsource/syne          — Syne (headings) 400/600/700/800 — imported in styles.css
+              @fontsource/ibm-plex-sans — IBM Plex Sans (body) 300/400/500 — imported in styles.css
+              @fontsource/jetbrains-mono — JetBrains Mono (code) 400/700  — imported in styles.css
+              material-symbols          — Material Symbols Outlined icon font — imported in styles.css
             No external CDN requests required at runtime.
         -->
     </head>
