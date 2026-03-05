@@ -8,8 +8,8 @@
  * old provideServerRendering() + provideServerRoutesConfig() pair.
  */
 
-import { mergeApplicationConfig, ApplicationConfig, inject } from '@angular/core';
-import { provideServerRendering, withRoutes, REQUEST } from '@angular/ssr';
+import { mergeApplicationConfig, ApplicationConfig, inject, REQUEST } from '@angular/core';
+import { provideServerRendering, withRoutes } from '@angular/ssr';
 import { appConfig } from './app.config';
 import { serverRoutes } from './app.routes.server';
 import { API_BASE_URL } from './tokens';

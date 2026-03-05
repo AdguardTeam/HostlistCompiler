@@ -13,7 +13,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { REQUEST } from '@angular/ssr';
+import { REQUEST } from '@angular/core';
 import { API_BASE_URL } from './tokens';
 import { ssrApiBaseUrlFactory } from './app.config.server';
 
