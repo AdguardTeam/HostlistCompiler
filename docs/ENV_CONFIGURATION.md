@@ -101,6 +101,19 @@ wrangler secret put ADMIN_KEY --env production
 wrangler secret put TURNSTILE_SECRET_KEY --env production
 ```
 
+### Hyperdrive (Local Development)
+
+When using Cloudflare Hyperdrive to connect the Worker to PlanetScale PostgreSQL, `wrangler dev` requires a local connection string so requests are forwarded to your local (or remote) PostgreSQL instance instead of the real Hyperdrive tunnel:
+
+```bash
+# .env.local
+WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE=postgresql://user:password@127.0.0.1:5432/adblock_dev
+```
+
+The variable name must match the pattern `WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_<BINDING_NAME>`, where `BINDING_NAME` is the Hyperdrive binding key defined in `wrangler.toml` (default: `HYPERDRIVE`).
+
+See [`docs/database-setup/local-dev.md`](database-setup/local-dev.md) for step-by-step local PostgreSQL setup instructions.
+
 ## Troubleshooting
 
 ### Environment not loading?

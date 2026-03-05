@@ -143,6 +143,47 @@ One-click access to common tasks:
 - **Queue Stats** - Detailed queue statistics
 - **Clear Cache** - Cache management (admin only)
 
+### 🗄️ PostgreSQL Administration
+
+Admin endpoints for managing the PlanetScale PostgreSQL backend via Cloudflare Hyperdrive. All endpoints require `Authorization: Bearer <ADMIN_KEY>` and a configured `HYPERDRIVE` binding.
+
+#### Backend Health
+
+- **`GET /admin/backends`** — Returns health status and latency for both D1 and PostgreSQL backends. Useful for verifying connectivity during the D1→PostgreSQL transition.
+
+#### PostgreSQL Storage (`/admin/pg/*`)
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /admin/pg/stats` | Storage statistics (mirrors `/admin/storage/stats`) |
+| `GET /admin/pg/export` | Export data from PostgreSQL |
+| `POST /admin/pg/clear-expired` | Remove expired entries |
+| `POST /admin/pg/clear-cache` | Clear the filter cache |
+| `POST /admin/pg/query` | Execute a read-only SQL query |
+
+#### D1 → PostgreSQL Migration
+
+- **`POST /admin/migrate/d1-to-pg`** — One-time migration that reads from Cloudflare D1 and writes to PlanetScale via Hyperdrive. Migrates three shared tables: `storage_entries`, `filter_cache`, and `compilation_metadata`.
+
+  | Query parameter | Description |
+  |-----------------|-------------|
+  | `dryRun=true` | Preview row counts without writing |
+  | `tables=t1,t2` | Migrate only the specified tables |
+
+  Response includes per-table stats: `sourceCount`, `migratedCount`, `skippedCount`, `errorCount`, `durationMs`.
+
+#### API Key Management (`/admin/auth/*`)
+
+Endpoints for managing users and API keys backed by PostgreSQL. Requires `HYPERDRIVE` binding.
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /admin/auth/users` | Create a new user |
+| `GET /admin/auth/api-keys` | List API keys |
+| `POST /admin/auth/api-keys` | Create a new API key (returns `abc_…` bearer token once) |
+| `POST /admin/auth/api-keys/:id/revoke` | Revoke an API key |
+| `POST /admin/auth/api-keys/validate` | Validate a bearer token |
+
 ## File Structure Changes
 
 The admin dashboard is part of a reorganization of the public files:
@@ -184,6 +225,21 @@ The dashboard makes calls to the following endpoints:
 - `GET /metrics` - Performance and request metrics
 - `GET /queue/stats` - Queue depth, history, and job status
 - `GET /queue/history` - Historical queue depth data
+
+**Admin (require `Authorization: Bearer <ADMIN_KEY>`):**
+
+- `GET /admin/backends` - Backend health check (D1 + PostgreSQL)
+- `GET /admin/pg/stats` - PostgreSQL storage statistics
+- `GET /admin/pg/export` - PostgreSQL data export
+- `POST /admin/pg/clear-expired` - Remove expired PostgreSQL entries
+- `POST /admin/pg/clear-cache` - Clear PostgreSQL filter cache
+- `POST /admin/pg/query` - Read-only PostgreSQL query
+- `POST /admin/migrate/d1-to-pg` - D1 → PostgreSQL one-time migration
+- `POST /admin/auth/users` - Create user
+- `GET /admin/auth/api-keys` - List API keys
+- `POST /admin/auth/api-keys` - Create API key
+- `POST /admin/auth/api-keys/:id/revoke` - Revoke API key
+- `POST /admin/auth/api-keys/validate` - Validate bearer token
 
 ## Browser Compatibility
 
