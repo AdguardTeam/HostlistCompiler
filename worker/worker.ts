@@ -1597,7 +1597,7 @@ async function serveStaticAsset(request: Request, env: Env, pathname: string): P
     // No ASSETS binding (local dev) or asset not found: serve minimal HTML for
     // extensionless paths, 404 for anything that looks like a file request.
     if (!FILE_EXTENSION_RE.test(pathname)) {
-        return serveWebUI(env);
+        return serveWebUI();
     }
 
     return new Response('Not Found', { status: 404 });
@@ -1607,7 +1607,7 @@ async function serveStaticAsset(request: Request, env: Env, pathname: string): P
  * Serve a minimal fallback HTML page when the ASSETS binding is not available.
  * Used in local `deno task dev` mode only.
  */
-function serveWebUI(_env: Env): Response {
+function serveWebUI(): Response {
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
