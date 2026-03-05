@@ -13,13 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation: Add missing v0.16.0 release notes for centralized error reporting (Sentry, Cloudflare Analytics Engine, and console backends)
 - Documentation: Add missing v0.16.0 release notes for Zod schema validation for configuration objects and API request bodies
 - Documentation: Add missing v0.16.0 release notes for ConfigurationValidator refactor to use Zod
-
-### Added
-
 - Inject optional `IBasicLogger` into `CompilerEventEmitter` / `createEventEmitter` for structured error logging when event handlers throw
 - Inject optional `IBasicLogger` into `AnalyticsService` to route Analytics Engine write failures through the logger instead of `console.warn`
 - Inject optional `IBasicLogger` into `CloudflareQueueProvider` / `createCloudflareQueueProvider` to route queue processing errors through the logger instead of `console.error`
 - Add `CloudflareQueueProvider.test.ts` with full test coverage including logger injection tests
+- **frontend**: Add `AppTitleStrategy` — custom Angular `TitleStrategy` that formats every page title as `"<Route> | Adblock Compiler"` (WCAG 2.4.2 Page Titled, Level A)
+- **frontend**: WCAG 2.1 accessibility improvements — skip navigation link, single `<h1>` per page, `aria-live` toast container, `aria-hidden` on decorative icons, `.visually-hidden` utility class, `prefers-reduced-motion` support
+- **frontend**: Angular SPA routing fallback in Cloudflare Worker — extensionless paths not handled by the API are served the Angular shell (`index.html`) for client-side navigation
+- **worker**: Add `SPA_SERVER_PREFIXES` constant to prevent API routes from being masked by the Angular SPA fallback
 
 ### Changed
 
@@ -30,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **frontend**: Add async/batch compilation modes, queue stats panel, and supporting services (QueueService, NotificationService, CompilerService extensions, CompilerComponent updates)
 - **frontend**: Add structured logging (LogService) to QueueService, NotificationService, and CompilerService
 - **frontend**: Expand API Docs with missing endpoints (batch, AST parse, queue management, workflow) and embedded API tester
+- **frontend**: Switch `home` and `compiler` routes to `RenderMode.Client` to prevent SSR crash caused by `MatSlideToggle.writeValue()` accessing the DOM during server rendering
+- **frontend**: Use `inject()` function throughout Angular services and components in place of constructor parameter injection (`@angular-eslint/prefer-inject`)
+- **docs**: Update `ANGULAR_FRONTEND.md` — Routing section (short route titles + `TitleStrategy` docs), SSR render mode table and code example, new Accessibility section
+
+### Fixed
+
+- **frontend**: `REQUEST` injection token imported from `@angular/core` (not `@angular/ssr`) — fixes `TS2305` build error that broke the Docker CI pipeline
+- **worker**: Remove dead `hasFileExtension` function and stale `async serveWebUI(env)` overload that referenced a non-existent `serveStaticFile` helper — fixes `TS2393`/`TS6133` type-check failures in CI
 
 
 
