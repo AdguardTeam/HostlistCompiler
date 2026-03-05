@@ -58,6 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.36.0] - 2026-03-05
+
+### Added- add automated branch cleanup GitHub Actions workflow
+
+
 ## [0.35.0] - 2026-03-05
 
 ### Added- add PostgreSQL admin endpoints and backend health check (#587)
