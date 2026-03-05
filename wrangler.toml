@@ -84,6 +84,10 @@ database_id = "3e8e7dfe-3213-452a-a671-6c18e6e74ce5"
 directory = "./frontend/dist/adblock-compiler-poc/browser"
 binding = "ASSETS"
 html_handling = "auto-trailing-slash"
+# SPA fallback: serve root index.html for any path that doesn't match a static file.
+# Required for Angular's client-side router — /compiler, /performance, /validation,
+# /api-docs, and /admin are all handled by Angular, not by physical HTML files.
+not_found_handling = "single-page-application"
 
 # Tail Workers - uncomment after creating the tail worker service
 [[tail_consumers]]
