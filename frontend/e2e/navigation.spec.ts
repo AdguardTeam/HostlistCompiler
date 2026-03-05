@@ -19,6 +19,27 @@ test.describe('Navigation', () => {
         }
     });
 
+    /**
+     * WCAG 2.4.2 (Page Titled) — Level A
+     * Each route must produce a unique, descriptive <title> element so that
+     * screen reader and browser-tab users can identify the current page.
+     */
+    test('should set a unique page title for each route', async ({ page }) => {
+        const routes = [
+            { path: '/', title: 'Home | Adblock Compiler' },
+            { path: '/compiler', title: 'Compiler | Adblock Compiler' },
+            { path: '/performance', title: 'Performance | Adblock Compiler' },
+            { path: '/validation', title: 'Validation | Adblock Compiler' },
+            { path: '/api-docs', title: 'API Reference | Adblock Compiler' },
+            { path: '/admin', title: 'Admin | Adblock Compiler' },
+        ];
+
+        for (const route of routes) {
+            await page.goto(route.path);
+            await expect(page).toHaveTitle(route.title);
+        }
+    });
+
     test('should toggle theme', async ({ page }) => {
         await page.goto('/');
         const themeButton = page.locator('button[aria-label="Toggle theme"]');
