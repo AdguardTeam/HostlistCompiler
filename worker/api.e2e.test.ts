@@ -613,7 +613,7 @@ Deno.test({
     },
 });
 
-// SPA Routing / Fallback Behaviour Tests
+// SPA Routing / Fallback Behavior Tests
 // ============================================================================
 
 Deno.test({
