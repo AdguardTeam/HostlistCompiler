@@ -57,6 +57,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.35.0] - 2026-03-05
+
+### Added- add PostgreSQL admin endpoints and backend health check (#587)
+- add D1 to PostgreSQL migration handler (#587)
+- add API key authentication via Hyperdrive (#587)
+- add HyperdriveStorageAdapter for PlanetScale PostgreSQL (#587)
+- add Zod validation schemas for database models (#587)
+- Phase 1 PlanetScale PostgreSQL setup (#587)
+
+### Fixed
+
+- resolve CI failures - format 7 files and fix RFC 4122 UUID in schema tests
+- resolve CI format check and test failures
+- address PR review comments for Phase 1 PostgreSQL + Hyperdrive setup
+- **frontend**: resolve all Angular ESLint warnings for architecture modernization
+
+
 ## [0.34.0] - 2026-03-05
 
 ### Added
