@@ -97,7 +97,7 @@ export class NotificationService {
             this.showToast('success', 'Notifications Enabled', 'You will be notified when async jobs complete');
             new Notification('Adblock Compiler', {
                 body: 'Notifications are now enabled!',
-                icon: '/favicon.ico',
+                icon: '/favicon.svg',
             });
         } else {
             this.showToast('warning', 'Permission Denied', 'Please allow notifications in your browser settings');
@@ -161,7 +161,7 @@ export class NotificationService {
         if (this.isEnabled() && isPlatformBrowser(this.platformId) && Notification.permission === 'granted') {
             new Notification('Compilation Complete', {
                 body: `${configName} compiled${durationStr}`,
-                icon: '/favicon.ico',
+                icon: '/favicon.svg',
             });
         }
 

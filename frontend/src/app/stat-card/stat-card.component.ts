@@ -119,6 +119,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         font-weight: 700;
         line-height: 1.2;
         margin-bottom: 4px;
+        color: var(--mat-sys-on-surface);
     }
 
     .stat-label {
