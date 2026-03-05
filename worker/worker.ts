@@ -1453,7 +1453,7 @@ async function handleCompileBatchAsync(
 function handleInfo(request: Request, env: Env): Response {
     const accept = request.headers.get('Accept') ?? '';
     const searchParams = new URL(request.url).searchParams;
-    const wantsHtml = accept.includes('text/html') && searchParams.get('format') !== 'json';
+    const wantsHtml = env.ASSETS && accept.includes('text/html') && searchParams.get('format') !== 'json';
 
     if (wantsHtml) {
         return Response.redirect(new URL('/api-docs', request.url).toString(), 302);
@@ -3534,10 +3534,14 @@ export default {
                         return response;
                     }
 
-                    // SPA fallback: for paths without a file extension (e.g. Angular routes like /api-docs, /compiler),
-                    // serve the root index.html so the Angular router handles the route client-side.
-                    // The regex checks for a dot followed by non-slash chars at the end, indicating a file extension.
-                    if (!pathname.match(/\.[^/]+$/)) {
+                    // SPA fallback: serve root index.html for Angular client-side routes (e.g. /api-docs, /compiler).
+                    // Only applies to browser navigation requests (Accept: text/html), extensionless paths that
+                    // are not served by a server-side handler. Server-handled prefixes are excluded so that unknown
+                    // API routes continue to return 404 rather than the Angular shell with a 200.
+                    const serverPrefixes = ['/api', '/metrics', '/queue', '/admin', '/workflow', '/health', '/ws', '/compile', '/ast'];
+                    const isServerPath = serverPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+                    const acceptsHtml = (request.headers.get('Accept') ?? '').includes('text/html');
+                    if (!pathname.match(/\.[^/]+$/) && !isServerPath && acceptsHtml) {
                         const spaUrl = new URL('/index.html', 'http://assets');
                         const spaResponse = await env.ASSETS.fetch(spaUrl);
                         if (spaResponse.ok) {

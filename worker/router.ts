@@ -98,10 +98,10 @@ async function handleInfo(
 ): Promise<Response> {
     const accept = request.headers.get('Accept') ?? '';
     const searchParams = new URL(request.url).searchParams;
-    const wantsHtml = accept.includes('text/html') && searchParams.get('format') !== 'json';
+    const wantsHtml = env.ASSETS && accept.includes('text/html') && searchParams.get('format') !== 'json';
 
     if (wantsHtml) {
-        return Response.redirect(new URL('/api.html', request.url).toString(), 302);
+        return Response.redirect(new URL('/api-docs', request.url).toString(), 302);
     }
 
     return JsonResponse.success({
