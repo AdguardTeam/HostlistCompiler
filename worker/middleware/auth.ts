@@ -161,7 +161,7 @@ export async function authenticateApiKey(
         pool.query(
             `UPDATE api_keys SET last_used_at = NOW() WHERE id = $1`,
             [apiKey.id],
-        ).catch(() => { /* intentional: non-critical update */ });
+        ).catch(() => {/* intentional: non-critical update */});
 
         return {
             authenticated: true,

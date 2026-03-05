@@ -14,7 +14,7 @@
 import type { HyperdriveBinding } from '../types.ts';
 import { JsonResponse } from '../utils/response.ts';
 import { generateApiKey, hashKey } from '../middleware/api-key-utils.ts';
-import { CreateUserSchema, CreateApiKeySchema } from '../../src/storage/schemas.ts';
+import { CreateApiKeySchema, CreateUserSchema } from '../../src/storage/schemas.ts';
 
 // ============================================================================
 // Types
@@ -248,9 +248,7 @@ export async function handleListApiKeys(
             expiresAt: row.expires_at,
             revokedAt: row.revoked_at,
             lastUsedAt: row.last_used_at,
-            status: row.revoked_at ? 'revoked'
-                : (row.expires_at && new Date(row.expires_at) < new Date()) ? 'expired'
-                : 'active',
+            status: row.revoked_at ? 'revoked' : (row.expires_at && new Date(row.expires_at) < new Date()) ? 'expired' : 'active',
         }));
 
         return JsonResponse.success({ keys, count: keys.length });
