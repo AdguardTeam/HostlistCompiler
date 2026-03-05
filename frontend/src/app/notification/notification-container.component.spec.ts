@@ -27,6 +27,12 @@ describe('NotificationContainerComponent', () => {
         fixture = TestBed.createComponent(NotificationContainerComponent);
         component = fixture.componentInstance;
         notificationService = TestBed.inject(NotificationService);
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.clearAllTimers();
+        vi.useRealTimers();
     });
 
     it('should create', () => {
