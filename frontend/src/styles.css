@@ -168,9 +168,9 @@
     --app-border: var(--mat-sys-outline-variant);
     --app-border-light: var(--mat-sys-surface-container-highest);
 
-    --app-shadow-sm: var(--mat-sys-level1);
-    --app-shadow-md: var(--mat-sys-level2);
-    --app-shadow-lg: var(--mat-sys-level3);
+    --app-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.18);
+    --app-shadow-md: 0 4px 8px rgba(15, 23, 42, 0.22);
+    --app-shadow-lg: 0 12px 24px rgba(15, 23, 42, 0.28);
     --app-shadow-hover: 0 4px 16px rgba(180, 83, 9, 0.18);
 
     --app-radius-sm: var(--mat-sys-corner-extra-small);
@@ -201,12 +201,10 @@
 
 /* =================================================================
    Dark Theme — M3 token + app token overrides
-   Selectors cover: html.dark-theme (Angular Material applies tokens
-   on <html> in prebuilt), body.dark-theme, and [data-theme='dark'].
+   Selectors cover: body.dark-theme and html[data-theme='dark'].
    ================================================================= */
-html.dark-theme,
 body.dark-theme,
-[data-theme='dark'] {
+html[data-theme='dark'] {
     /* ── M3 Dark Palette ─────────────────────────────────────────── */
     --mat-sys-primary: #f59e0b;
     --mat-sys-on-primary: #000000;
@@ -331,7 +329,7 @@ body {
 
 html.dark-theme,
 body.dark-theme,
-[data-theme='dark'] {
+html[data-theme='dark'] {
     background-image: radial-gradient(circle, rgba(245, 158, 11, 0.04) 1px, transparent 1px);
     background-size: 28px 28px;
 }
@@ -428,13 +426,13 @@ h1, h2, h3, h4, h5, h6,
     background: var(--mat-sys-surface);
     border-radius: var(--mat-sys-corner-large);
     border: 1px solid var(--mat-sys-outline-variant);
-    box-shadow: var(--mat-sys-level3);
+    box-shadow: var(--app-shadow-lg);
     overflow: hidden;
     min-height: calc(100vh - 48px);
 }
 
 body.dark-theme .page-wrapper,
-[data-theme='dark'] .page-wrapper {
+html[data-theme='dark'] .page-wrapper {
     box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7);
 }
 
@@ -630,7 +628,7 @@ code {
     padding: 2px 6px;
     border-radius: var(--mat-sys-corner-extra-small);
     background-color: var(--mat-sys-surface-container);
-    color: var(--app-header-accent);
+    color: var(--mat-sys-primary);
     border: 1px solid var(--mat-sys-outline-variant);
 }
 
@@ -922,8 +920,7 @@ code {
     --mdc-linear-progress-active-indicator-color: var(--mat-sys-primary);
     --mat-progress-bar-active-indicator-color: var(--mat-sys-primary);
 }
-.mat-mdc-progress-spinner.mat-primary,
-mat-progress-spinner {
+.mat-mdc-progress-spinner.mat-primary {
     --mdc-circular-progress-active-indicator-color: var(--mat-sys-primary);
     --mat-progress-spinner-active-indicator-color: var(--mat-sys-primary);
 }
