@@ -613,9 +613,69 @@ Deno.test({
     },
 });
 
+// SPA Routing / Fallback Behavior Tests
 // ============================================================================
-// SPA Fallback Routing Tests
-// ============================================================================
+
+Deno.test({
+    name: 'E2E: GET /api/does-not-exist with Accept:text/html - returns 404, not Angular shell',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/api/does-not-exist`, {
+            headers: { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+        });
+
+        // An unknown /api/* path must never be masked by the SPA fallback; it must be a real error.
+        assertEquals(response.status, 404);
+    },
+});
+
+Deno.test({
+    name: 'E2E: GET /api-docs with Accept:text/html - returns Angular shell (200)',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/api-docs`, {
+            headers: { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+        });
+
+        // The Angular /api-docs route should be served via the SPA fallback.
+        assertEquals(response.status, 200);
+        assertEquals(response.headers.get('content-type')?.includes('text/html'), true);
+    },
+});
+
+Deno.test({
+    name: 'E2E: GET /admin with Accept:text/html - returns Angular shell (200), not 404',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/admin`, {
+            headers: { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+        });
+
+        // /admin is an Angular route, not a server-only prefix; SPA fallback must serve index.html.
+        assertEquals(response.status, 200);
+        assertEquals(response.headers.get('content-type')?.includes('text/html'), true);
+    },
+});
+
+Deno.test({
+    name: 'E2E: GET /admin/storage/stats with Accept:text/html - returns JSON/404, not Angular shell',
+    ignore: !serverAvailable,
+    fn: async () => {
+        const response = await fetchWithTimeout(`${BASE_URL}/admin/storage/stats`, {
+            headers: { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+        });
+
+        // /admin/storage/* is server-handled; the SPA fallback must not intercept it.
+        // Accept either 200 (JSON data), 401/403 (auth required) or 404 (not found) — but not the Angular shell.
+        const contentType = response.headers.get('content-type') ?? '';
+        const isJson = contentType.includes('application/json');
+        const isHtmlShell = response.status === 200 && contentType.includes('text/html');
+        assertEquals(isHtmlShell, false, 'SPA shell must not be returned for a server-handled /admin/storage/* path');
+        if (response.status === 200) {
+            assertEquals(isJson, true);
+        }
+    },
+});
 
 Deno.test({
     name: 'E2E: GET /favicon.ico - missing static asset returns 404, not index.html',
@@ -653,16 +713,18 @@ Deno.test({
 });
 
 Deno.test({
-    name: 'E2E: GET /compiler - SPA route returns 200 with HTML',
+    name: 'E2E: GET /compiler with Accept:text/html - SPA route returns 200 with HTML',
     ignore: !serverAvailable,
     fn: async () => {
-        const response = await fetchWithTimeout(`${BASE_URL}/compiler`);
+        const response = await fetchWithTimeout(`${BASE_URL}/compiler`, {
+            headers: { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+        });
 
         assertEquals(response.status, 200);
         assertEquals(
             response.headers.get('content-type')?.includes('text/html'),
             true,
-            'Extensionless SPA route must return text/html via the SPA fallback',
+            'Extensionless SPA route with Accept:text/html must return text/html via the SPA fallback',
         );
         await response.body?.cancel();
     },

@@ -46,6 +46,7 @@ import { handleWebSocketUpgrade } from './websocket.ts';
 import { AnalyticsService } from '../src/services/AnalyticsService.ts';
 import { getDeploymentHistory, getDeploymentStats, getLatestDeployment } from '../src/deployment/version.ts';
 import { validateRequestSize } from './middleware/index.ts';
+import { API_DOCS_REDIRECT } from './utils/constants.ts';
 
 // Import Workflow classes and types
 import {
@@ -85,6 +86,31 @@ const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR = 'Queue bindings are not available. ' 
     'To use async compilation, you must configure Cloudflare Queues in wrangler.toml. ' +
     'See https://github.com/jaypatrick/adblock-compiler/blob/main/docs/QUEUE_SUPPORT.md for setup instructions. ' +
     'Alternatively, use the synchronous endpoints: POST /compile or POST /compile/batch';
+
+/**
+ * Server-handled path prefixes that must NOT be intercepted by the SPA fallback.
+ * Browser navigations to paths under these prefixes should return a real 404/error
+ * rather than the Angular shell with a 200.
+ * Note: use the most-specific prefix needed — e.g. '/admin/storage' (not '/admin') so
+ * that the Angular /admin route is still served by the SPA fallback.
+ */
+const SPA_SERVER_PREFIXES: readonly string[] = [
+    '/api',
+    '/metrics',
+    '/queue',
+    '/admin/storage',
+    '/workflow',
+    '/health',
+    '/ws',
+    '/compile',
+    '/ast',
+];
+
+/** Base URL used when constructing asset fetch requests to the ASSETS binding. */
+const ASSETS_BASE_URL = 'http://assets';
+
+/** Matches paths that have a file extension (e.g. `.js`, `.css`, `.png`). */
+const FILE_EXTENSION_RE = /\.[^/]+$/;
 
 /**
  * In-memory map for request deduplication
@@ -1446,17 +1472,18 @@ async function handleCompileBatchAsync(
 
 /**
  * Handle GET requests - return API info and example.
- * When the caller is a browser (Accept: text/html), redirect to the styled documentation page.
+ * When the caller is a browser (Accept: text/html) AND static assets are available (env.ASSETS),
+ * redirect to the styled documentation page at /api-docs. Otherwise return a JSON response.
  * @param request - The incoming HTTP request used for content negotiation.
  * @param env - The worker environment bindings.
  */
 function handleInfo(request: Request, env: Env): Response {
     const accept = request.headers.get('Accept') ?? '';
     const searchParams = new URL(request.url).searchParams;
-    const wantsHtml = accept.includes('text/html') && searchParams.get('format') !== 'json';
+    const wantsHtml = Boolean(env.ASSETS) && accept.includes('text/html') && searchParams.get('format') !== 'json';
 
     if (wantsHtml) {
-        return Response.redirect(new URL('/api.html', request.url).toString(), 302);
+        return Response.redirect(new URL(API_DOCS_REDIRECT, request.url).toString(), 302);
     }
 
     const info = {
@@ -1536,22 +1563,56 @@ async function serveWebUI(env: Env): Promise<Response> {
 /**
  * Serve a static file from static assets.
  */
-async function serveStaticFile(env: Env, filename: string): Promise<Response> {
-    // Try to serve from ASSETS if available (modern approach)
+async function serveStaticAsset(request: Request, env: Env, pathname: string): Promise<Response> {
     if (env.ASSETS) {
         try {
-            const assetUrl = new URL(filename, 'http://assets');
-            const response = await env.ASSETS.fetch(assetUrl);
+            const assetUrl = new URL(pathname === '/' ? '/index.html' : pathname, ASSETS_BASE_URL);
+            let response = await env.ASSETS.fetch(assetUrl);
+
+            // Follow redirects that the ASSETS binding may issue
+            if (response.status === 301 || response.status === 302 || response.status === 307 || response.status === 308) {
+                const location = response.headers.get('Location');
+                if (location) {
+                    response = await env.ASSETS.fetch(new URL(location, assetUrl));
+                }
+            }
+
             if (response.ok) {
                 return response;
             }
+
+            // SPA fallback: serve root index.html for Angular client-side routes (e.g. /api-docs, /compiler).
+            // Only applies to browser navigation requests (Accept: text/html), extensionless paths that
+            // are not served by a server-side handler. Server-handled prefixes are excluded so that unknown
+            // API routes continue to return 404 rather than the Angular shell with a 200.
+            const isServerPath = SPA_SERVER_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+            const acceptsHtml = (request.headers.get('Accept') ?? '').includes('text/html');
+            if (!FILE_EXTENSION_RE.test(pathname) && !isServerPath && acceptsHtml) {
+                const spaResponse = await env.ASSETS.fetch(new URL('/index.html', ASSETS_BASE_URL));
+                if (spaResponse.ok) {
+                    return spaResponse;
+                }
+            }
         } catch (error) {
             // deno-lint-ignore no-console
-            console.error(`Failed to load ${filename} from assets:`, error);
+            console.error('Asset fetch error:', error);
         }
     }
 
-    // Fallback to simple HTML if static assets not available
+    // No ASSETS binding (local dev) or asset not found: serve minimal HTML for
+    // extensionless paths, 404 for anything that looks like a file request.
+    if (!FILE_EXTENSION_RE.test(pathname)) {
+        return serveWebUI();
+    }
+
+    return new Response('Not Found', { status: 404 });
+}
+
+/**
+ * Serve a minimal fallback HTML page when the ASSETS binding is not available.
+ * Used in local `deno task dev` mode only.
+ */
+function serveWebUI(): Response {
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1587,7 +1648,7 @@ async function serveStaticFile(env: Env, filename: string): Promise<Response> {
     }
   }'</pre>
   
-    <p><a href="/api">View full API documentation →</a></p>
+    <p><a href="/api-docs">View full API documentation →</a></p>
 </body>
 </html>`;
 
@@ -3521,60 +3582,9 @@ export default {
             return handleHealthLatest(env);
         }
 
-        // Serve web UI and static files
+        // Serve web UI and static assets (including Angular SPA routes)
         if (request.method === 'GET') {
-            // Try to serve from ASSETS
-            if (env.ASSETS) {
-                try {
-                    const assetUrl = new URL(
-                        pathname === '/' ? '/index.html' : pathname,
-                        'http://assets',
-                    );
-                    let response = await env.ASSETS.fetch(assetUrl);
-
-                    // Follow redirects for .html files and directory indexes (ASSETS may redirect to extensionless or trailing-slash paths)
-                    if (response.status === 301 || response.status === 302 || response.status === 307 || response.status === 308) {
-                        const location = response.headers.get('Location');
-                        if (location) {
-                            const redirectUrl = new URL(location, assetUrl);
-                            response = await env.ASSETS.fetch(redirectUrl);
-                        }
-                    }
-
-                    if (response.ok) {
-                        return response;
-                    }
-
-                    // Directory index fallback: for paths without a file extension (e.g. /some-dir, /some-dir/),
-                    // try serving {path}/index.html so that directory-based routes work correctly.
-                    if (!hasFileExtension(pathname)) {
-                        const normalizedPath = pathname.replace(/\/$/, '');
-                        const indexUrl = new URL(`${normalizedPath}/index.html`, 'http://assets');
-                        const indexResponse = await env.ASSETS.fetch(indexUrl);
-                        if (indexResponse.ok) {
-                            return indexResponse;
-                        }
-
-                        // SPA fallback: serve root index.html for Angular client-side routing.
-                        // Handles /compiler, /performance, /validation, /api-docs, /admin, etc.
-                        // Angular's router picks up the path and renders the correct component.
-                        const spaResponse = await env.ASSETS.fetch(new URL('/index.html', 'http://assets'));
-                        if (spaResponse.ok) {
-                            return spaResponse;
-                        }
-                    }
-                } catch (error) {
-                    // deno-lint-ignore no-console
-                    console.error('Asset fetch error:', error);
-                }
-            }
-
-            // SPA fallback only for extensionless paths (Angular client-side routes).
-            // Paths with file extensions that are not found in ASSETS should return 404,
-            // not index.html, to avoid incorrect content-type and caching issues.
-            if (!hasFileExtension(pathname)) {
-                return serveWebUI(env);
-            }
+            return serveStaticAsset(request, env, pathname);
         }
 
         return new Response('Not Found', { status: 404 });
