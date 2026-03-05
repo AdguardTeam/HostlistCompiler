@@ -10,7 +10,7 @@ describe('SseService', () => {
         TestBed.configureTestingModule({
             providers: [
                 provideZonelessChangeDetection(),
-                { provide: API_BASE_URL, useValue: 'http://localhost' },
+                { provide: API_BASE_URL, useValue: '/api' },
             ],
         });
         service = TestBed.inject(SseService);
@@ -147,7 +147,7 @@ describe('SseService', () => {
         const connection = service.connect('/compile/stream', body);
 
         expect(fetchSpy).toHaveBeenCalledWith(
-            'http://localhost/compile/stream',
+            '/api/compile/stream',
             expect.objectContaining({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
