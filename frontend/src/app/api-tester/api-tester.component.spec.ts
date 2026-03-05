@@ -22,6 +22,10 @@ describe('ApiTesterComponent', () => {
         component = fixture.componentInstance;
     });
 
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it('should create', () => {
         expect(component).toBeTruthy();
     });

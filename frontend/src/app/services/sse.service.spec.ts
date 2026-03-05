@@ -10,10 +10,16 @@ describe('SseService', () => {
         TestBed.configureTestingModule({
             providers: [
                 provideZonelessChangeDetection(),
-                { provide: API_BASE_URL, useValue: 'http://localhost/api' },
+                { provide: API_BASE_URL, useValue: 'http://localhost' },
             ],
         });
         service = TestBed.inject(SseService);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.useRealTimers();
+        vi.clearAllTimers();
     });
 
     it('should be created', () => {
@@ -21,6 +27,7 @@ describe('SseService', () => {
     });
 
     it('should return an SseConnection with all required properties', () => {
+        vi.useFakeTimers();
         vi.spyOn(globalThis, 'fetch').mockResolvedValue(
             new Response(null, { status: 500, statusText: 'Error' }),
         );
@@ -34,6 +41,7 @@ describe('SseService', () => {
         expect(connection.latestByType).toBeInstanceOf(Function);
 
         connection.close();
+        vi.clearAllTimers();
     });
 
     it('should start with connecting status', () => {
@@ -130,7 +138,6 @@ describe('SseService', () => {
 
         expect(connection.status()).toBe('error');
         connection.close();
-        vi.useRealTimers();
     });
 
     it('should POST with JSON body', async () => {
@@ -140,7 +147,7 @@ describe('SseService', () => {
         const connection = service.connect('/compile/stream', body);
 
         expect(fetchSpy).toHaveBeenCalledWith(
-            'http://localhost/api/compile/stream',
+            'http://localhost/compile/stream',
             expect.objectContaining({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
