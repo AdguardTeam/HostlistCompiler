@@ -1,170 +1,272 @@
 /* =================================================================
-   Adblock Compiler — Unified Design System
+   Adblock Compiler — Design System: "Deep Ink + Electric Amber"
    Angular 21 + Material Design 3
+   Fonts: IBM Plex Sans (body) · Syne (headings) · JetBrains Mono (code)
+   Primary: Electric Amber (#f59e0b / #b45309)
    ================================================================= */
 
-/*
- * Fonts loaded from npm packages (build-pipeline integrated, no CDN requests):
- *   @fontsource/roboto   — Roboto font family (300, 400, 500 weights)
- *   material-symbols     — Material Symbols variable font (replaces Material Icons)
- */
-@import '@fontsource/roboto/300.css';
-@import '@fontsource/roboto/400.css';
-@import '@fontsource/roboto/500.css';
+/* -----------------------------------------------------------------
+   1. Angular Material M3 prebuilt — provides base component styles
+      and default --mat-sys-* tokens. MUST be first import.
+   ----------------------------------------------------------------- */
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+
+/* -----------------------------------------------------------------
+   2. Fonts — loaded from npm packages (build-pipeline, no CDN)
+   ----------------------------------------------------------------- */
+@import '@fontsource/syne/400.css';
+@import '@fontsource/syne/600.css';
+@import '@fontsource/syne/700.css';
+@import '@fontsource/syne/800.css';
+@import '@fontsource/ibm-plex-sans/300.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/700.css';
 @import 'material-symbols/outlined.css';
 
 /* =================================================================
    CSS Custom Properties — Light Theme (Default)
+   All --mat-sys-* tokens override azure-blue prebuilt defaults.
+   All --app-* tokens are app-layer design tokens.
    ================================================================= */
 :root {
-    /* Brand Colors */
-    --app-primary: #667eea;
-    --app-primary-dark: #5568d3;
-    --app-primary-light: #8096ff;
-    --app-secondary: #764ba2;
-    --app-secondary-dark: #5c3a80;
-    --app-tertiary: #10b981;
-
-    /* Status Colors */
-    --app-success: #10b981;
-    --app-success-light: #d1fae5;
-    --app-success-dark: #059669;
-    --app-error: #ef4444;
-    --app-error-light: #fee2e2;
-    --app-error-dark: #dc2626;
-    --app-warning: #f59e0b;
-    --app-warning-light: #fef3c7;
-    --app-warning-dark: #d97706;
-    --app-info: #3b82f6;
-    --app-info-light: #dbeafe;
-    --app-info-dark: #2563eb;
-
-    /* Backgrounds */
-    --app-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    /* Brand gradient — always the purple/indigo brand, never overridden in dark mode.
-       Use this for UI chrome (header, sidenav brand stripe) that keeps the brand colour
-       in both light and dark themes. Use --app-gradient for the page background, which
-       switches to the dark gradient in dark mode. */
-    --app-gradient-brand: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --app-surface: #ffffff;
-    --app-surface-variant: #f8f9fa;
-    --app-card-bg: #ffffff;
-    --app-input-bg: #ffffff;
-    --app-code-bg: #f5f5f5;
-    --app-log-bg: #1e293b;
-
-    /* Text */
-    --app-text: #333333;
-    --app-text-muted: #666666;
-    --app-text-light: #64748b;
-    --app-text-inverse: #ffffff;
-    --app-heading: #2d3748;
-
-    /* Borders */
-    --app-border: #e0e0e0;
-    --app-border-light: #e5e7eb;
-
-    /* Shadows */
-    --app-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --app-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --app-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
-    --app-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-    /* Radii */
-    --app-radius-sm: 4px;
-    --app-radius-md: 8px;
-    --app-radius-lg: 12px;
-    --app-radius-xl: 16px;
-
-    /* Transitions */
-    --app-transition-fast: 0.2s ease;
-    --app-transition: 0.3s ease;
-
-    /* Status Badge Colors */
-    --app-badge-success-bg: #d1fae5;
-    --app-badge-success-text: #059669;
-    --app-badge-error-bg: #fee2e2;
-    --app-badge-error-text: #dc2626;
-    --app-badge-warning-bg: #fef3c7;
-    --app-badge-warning-text: #d97706;
-    --app-badge-info-bg: #dbeafe;
-    --app-badge-info-text: #2563eb;
-
-    /* Table */
-    --app-table-header-bg: #f8f9fa;
-    --app-table-row-hover: #f8f9fa;
-    --app-table-border: #e0e0e0;
-}
-
-/* Material Design 3 — Brand Color Overrides */
-/* These override the deeppurple-amber prebuilt theme tokens */
-:root {
-    --mat-sys-primary: #667eea;
+    /* ── M3 Color Tokens — Amber Palette ─────────────────────────── */
+    --mat-sys-primary: #b45309;
     --mat-sys-on-primary: #ffffff;
-    --mat-sys-primary-container: #e4e5ff;
-    --mat-sys-on-primary-container: #001258;
-    --mat-sys-secondary: #764ba2;
-    --mat-sys-on-secondary: #ffffff;
-    --mat-sys-secondary-container: #f5d9ff;
-    --mat-sys-on-secondary-container: #2c0052;
-    --mat-sys-surface: #ffffff;
-    --mat-sys-on-surface: #333333;
-    --mat-sys-surface-variant: #f8f9fa;
-    --mat-sys-outline: #e0e0e0;
-}
+    --mat-sys-primary-container: #fef3c7;
+    --mat-sys-on-primary-container: #431407;
+    --mat-sys-primary-fixed: #fef3c7;
+    --mat-sys-primary-fixed-dim: #fcd34d;
+    --mat-sys-on-primary-fixed: #431407;
+    --mat-sys-on-primary-fixed-variant: #92400e;
+    --mat-sys-inverse-primary: #f59e0b;
+    --mat-sys-surface-tint: #b45309;
 
-body.dark-theme,
-[data-theme='dark'] {
-    --mat-sys-primary: #8096ff;
-    --mat-sys-on-primary: #001258;
-    --mat-sys-primary-container: #4053c5;
-    --mat-sys-on-primary-container: #dde2ff;
-    --mat-sys-surface: #1e1e2e;
-    --mat-sys-on-surface: #e0e0e0;
-    --mat-sys-surface-variant: #252535;
-    --mat-sys-outline: #3a3a4a;
-    --mat-sys-background: #121212;
-    --mat-sys-on-background: #e0e0e0;
+    --mat-sys-secondary: #0369a1;
+    --mat-sys-on-secondary: #ffffff;
+    --mat-sys-secondary-container: #e0f2fe;
+    --mat-sys-on-secondary-container: #023e6a;
+    --mat-sys-secondary-fixed: #e0f2fe;
+    --mat-sys-secondary-fixed-dim: #7dd3fc;
+    --mat-sys-on-secondary-fixed: #023e6a;
+    --mat-sys-on-secondary-fixed-variant: #0369a1;
+
+    --mat-sys-tertiary: #059669;
+    --mat-sys-on-tertiary: #ffffff;
+    --mat-sys-tertiary-container: #d1fae5;
+    --mat-sys-on-tertiary-container: #022c22;
+    --mat-sys-tertiary-fixed: #d1fae5;
+    --mat-sys-tertiary-fixed-dim: #6ee7b7;
+    --mat-sys-on-tertiary-fixed: #022c22;
+    --mat-sys-on-tertiary-fixed-variant: #059669;
+
+    --mat-sys-error: #dc2626;
+    --mat-sys-on-error: #ffffff;
+    --mat-sys-error-container: #fee2e2;
+    --mat-sys-on-error-container: #7f1d1d;
+
+    --mat-sys-background: #fafaf8;
+    --mat-sys-on-background: #111111;
+    --mat-sys-surface: #ffffff;
+    --mat-sys-on-surface: #111111;
+    --mat-sys-surface-variant: #f5f2ed;
+    --mat-sys-on-surface-variant: #4b4540;
+    --mat-sys-surface-dim: #dbd7d0;
+    --mat-sys-surface-bright: #ffffff;
+    --mat-sys-surface-container-lowest: #ffffff;
+    --mat-sys-surface-container-low: #f9f6f1;
+    --mat-sys-surface-container: #f5f2ed;
+    --mat-sys-surface-container-high: #ede9e2;
+    --mat-sys-surface-container-highest: #e5e1da;
+
+    --mat-sys-inverse-surface: #1a1613;
+    --mat-sys-inverse-on-surface: #f5f2ed;
+
+    --mat-sys-outline: #c9c4be;
+    --mat-sys-outline-variant: #e5e1da;
+    --mat-sys-scrim: rgba(0, 0, 0, 0.32);
+    --mat-sys-shadow: rgba(0, 0, 0, 0.2);
+    --mat-sys-neutral10: #1a1613;
+    --mat-sys-neutral-variant20: #362e27;
+
+    /* ── M3 Typography Tokens — IBM Plex Sans + Syne ─────────────── */
+    --mat-sys-body-large-font: 'IBM Plex Sans', sans-serif;
+    --mat-sys-body-medium-font: 'IBM Plex Sans', sans-serif;
+    --mat-sys-body-small-font: 'IBM Plex Sans', sans-serif;
+    --mat-sys-label-large-font: 'IBM Plex Sans', sans-serif;
+    --mat-sys-label-medium-font: 'IBM Plex Sans', sans-serif;
+    --mat-sys-label-small-font: 'IBM Plex Sans', sans-serif;
+    --mat-sys-title-small-font: 'IBM Plex Sans', sans-serif;
+    --mat-sys-title-medium-font: 'IBM Plex Sans', sans-serif;
+    --mat-sys-title-large-font: 'Syne', sans-serif;
+    --mat-sys-headline-small-font: 'Syne', sans-serif;
+    --mat-sys-headline-medium-font: 'Syne', sans-serif;
+    --mat-sys-headline-large-font: 'Syne', sans-serif;
+    --mat-sys-display-small-font: 'Syne', sans-serif;
+    --mat-sys-display-medium-font: 'Syne', sans-serif;
+    --mat-sys-display-large-font: 'Syne', sans-serif;
+
+    /* Composite shorthand typography tokens */
+    --mat-sys-body-large: 400 1rem / 1.5rem 'IBM Plex Sans', sans-serif;
+    --mat-sys-body-medium: 400 0.875rem / 1.25rem 'IBM Plex Sans', sans-serif;
+    --mat-sys-body-small: 400 0.75rem / 1rem 'IBM Plex Sans', sans-serif;
+    --mat-sys-label-large: 500 0.875rem / 1.25rem 'IBM Plex Sans', sans-serif;
+    --mat-sys-label-medium: 500 0.75rem / 1rem 'IBM Plex Sans', sans-serif;
+    --mat-sys-label-small: 500 0.688rem / 1rem 'IBM Plex Sans', sans-serif;
+    --mat-sys-title-small: 500 0.875rem / 1.25rem 'IBM Plex Sans', sans-serif;
+    --mat-sys-title-medium: 500 1rem / 1.5rem 'IBM Plex Sans', sans-serif;
+    --mat-sys-title-large: 600 1.375rem / 1.75rem 'Syne', sans-serif;
+    --mat-sys-headline-small: 600 1.5rem / 2rem 'Syne', sans-serif;
+    --mat-sys-headline-medium: 700 1.75rem / 2.25rem 'Syne', sans-serif;
+    --mat-sys-headline-large: 700 2rem / 2.5rem 'Syne', sans-serif;
+    --mat-sys-display-small: 700 2.25rem / 2.75rem 'Syne', sans-serif;
+    --mat-sys-display-medium: 800 2.812rem / 3.25rem 'Syne', sans-serif;
+    --mat-sys-display-large: 800 3.562rem / 4rem 'Syne', sans-serif;
+
+    /* ── M3 Shape Tokens — tighter, industrial ───────────────────── */
+    --mat-sys-corner-extra-small: 2px;
+    --mat-sys-corner-extra-small-top: 2px 2px 0 0;
+    --mat-sys-corner-small: 4px;
+    --mat-sys-corner-medium: 6px;
+    --mat-sys-corner-large: 8px;
+    --mat-sys-corner-large-end: 0 8px 8px 0;
+    --mat-sys-corner-large-start: 8px 0 0 8px;
+    --mat-sys-corner-large-top: 8px 8px 0 0;
+    --mat-sys-corner-extra-large: 12px;
+    --mat-sys-corner-extra-large-top: 12px 12px 0 0;
+
+    /* ── App Design Tokens — derived from M3 palette ─────────────── */
+    --app-primary: var(--mat-sys-primary);
+    --app-primary-dark: #92400e;
+    --app-primary-light: #d97706;
+    --app-secondary: var(--mat-sys-secondary);
+    --app-tertiary: var(--mat-sys-tertiary);
+
+    --app-success: #059669;
+    --app-success-light: #d1fae5;
+    --app-error: #dc2626;
+    --app-error-light: #fee2e2;
+    --app-warning: #d97706;
+    --app-warning-light: #fef3c7;
+    --app-info: #0284c7;
+    --app-info-light: #e0f2fe;
+
+    --app-surface: var(--mat-sys-surface);
+    --app-surface-variant: var(--mat-sys-surface-variant);
+    --app-card-bg: var(--mat-sys-surface-container-low);
+    --app-input-bg: var(--mat-sys-surface-container-lowest);
+    --app-code-bg: var(--mat-sys-surface-container);
+    --app-log-bg: #0d0d0d;
+
+    --app-text: var(--mat-sys-on-background);
+    --app-text-muted: var(--mat-sys-on-surface-variant);
+    --app-text-light: var(--mat-sys-outline);
+    --app-text-inverse: var(--mat-sys-inverse-on-surface);
+    --app-heading: var(--mat-sys-on-background);
+
+    --app-border: var(--mat-sys-outline-variant);
+    --app-border-light: var(--mat-sys-surface-container-highest);
+
+    --app-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.18);
+    --app-shadow-md: 0 4px 8px rgba(15, 23, 42, 0.22);
+    --app-shadow-lg: 0 12px 24px rgba(15, 23, 42, 0.28);
+    --app-shadow-hover: 0 4px 16px rgba(180, 83, 9, 0.18);
+
+    --app-radius-sm: var(--mat-sys-corner-extra-small);
+    --app-radius-md: var(--mat-sys-corner-small);
+    --app-radius-lg: var(--mat-sys-corner-medium);
+    --app-radius-xl: var(--mat-sys-corner-large);
+
+    --app-transition-fast: 0.15s cubic-bezier(0.2, 0, 0, 1);
+    --app-transition: 0.25s cubic-bezier(0.2, 0, 0, 1);
+
+    --app-badge-success-bg: var(--app-success-light);
+    --app-badge-success-text: #047857;
+    --app-badge-error-bg: var(--app-error-light);
+    --app-badge-error-text: #b91c1c;
+    --app-badge-warning-bg: var(--app-warning-light);
+    --app-badge-warning-text: #b45309;
+    --app-badge-info-bg: var(--app-info-light);
+    --app-badge-info-text: #0369a1;
+
+    --app-table-header-bg: var(--mat-sys-surface-container);
+    --app-table-row-hover: var(--mat-sys-surface-container-low);
+    --app-table-border: var(--mat-sys-outline-variant);
+
+    --app-header-bg: #0d0d0d;
+    --app-header-text: #f0ece4;
+    --app-header-accent: #f59e0b;
 }
 
 /* =================================================================
-   CSS Custom Properties — Dark Theme
+   Dark Theme — M3 token + app token overrides
+   Selectors cover: body.dark-theme and html[data-theme='dark'].
    ================================================================= */
 body.dark-theme,
-[data-theme='dark'] {
-    --app-surface: #1e1e2e;
-    --app-surface-variant: #252535;
-    --app-card-bg: #1e1e2e;
-    --app-input-bg: #2a2a3a;
-    --app-code-bg: #1a1a2a;
-    --app-log-bg: #0f0f1a;
-    --app-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+html[data-theme='dark'] {
+    /* ── M3 Dark Palette ─────────────────────────────────────────── */
+    --mat-sys-primary: #f59e0b;
+    --mat-sys-on-primary: #000000;
+    --mat-sys-primary-container: #92400e;
+    --mat-sys-on-primary-container: #fef3c7;
+    --mat-sys-primary-fixed: #fef3c7;
+    --mat-sys-primary-fixed-dim: #fcd34d;
+    --mat-sys-on-primary-fixed: #431407;
+    --mat-sys-on-primary-fixed-variant: #b45309;
+    --mat-sys-inverse-primary: #b45309;
+    --mat-sys-surface-tint: #f59e0b;
 
-    --app-text: #e0e0e0;
-    --app-text-muted: #a0a0a0;
-    --app-text-light: #94a3b8;
-    --app-heading: #f0f0f0;
+    --mat-sys-secondary: #38bdf8;
+    --mat-sys-on-secondary: #000000;
+    --mat-sys-secondary-container: #0369a1;
+    --mat-sys-on-secondary-container: #e0f2fe;
 
-    --app-border: #3a3a4a;
-    --app-border-light: #3a3a4a;
+    --mat-sys-tertiary: #34d399;
+    --mat-sys-on-tertiary: #000000;
+    --mat-sys-tertiary-container: #047857;
+    --mat-sys-on-tertiary-container: #d1fae5;
 
-    --app-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-    --app-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
-    --app-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.4);
-    --app-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --mat-sys-error: #f87171;
+    --mat-sys-on-error: #000000;
+    --mat-sys-error-container: #7f1d1d;
+    --mat-sys-on-error-container: #fecaca;
 
-    --app-badge-success-bg: rgba(16, 185, 129, 0.2);
-    --app-badge-success-text: #6ee7b7;
-    --app-badge-error-bg: rgba(239, 68, 68, 0.2);
-    --app-badge-error-text: #fca5a5;
-    --app-badge-warning-bg: rgba(245, 158, 11, 0.2);
-    --app-badge-warning-text: #fcd34d;
-    --app-badge-info-bg: rgba(59, 130, 246, 0.2);
-    --app-badge-info-text: #93c5fd;
+    --mat-sys-background: #080808;
+    --mat-sys-on-background: #f0ece4;
+    --mat-sys-surface: #0f0f0f;
+    --mat-sys-on-surface: #f0ece4;
+    --mat-sys-surface-variant: #1a1a1a;
+    --mat-sys-on-surface-variant: #c9c4be;
+    --mat-sys-surface-dim: #080808;
+    --mat-sys-surface-bright: #262626;
+    --mat-sys-surface-container-lowest: #050505;
+    --mat-sys-surface-container-low: #111111;
+    --mat-sys-surface-container: #141414;
+    --mat-sys-surface-container-high: #1c1c1c;
+    --mat-sys-surface-container-highest: #242424;
 
-    --app-table-header-bg: #252535;
-    --app-table-row-hover: #2a2a3a;
-    --app-table-border: #3a3a4a;
+    --mat-sys-inverse-surface: #f0ece4;
+    --mat-sys-inverse-on-surface: #1a1613;
+
+    --mat-sys-outline: #6b6560;
+    --mat-sys-outline-variant: #3a3630;
+    --mat-sys-neutral10: #1a1613;
+    --mat-sys-neutral-variant20: #3a3630;
+
+    /* ── Dark App Tokens ─────────────────────────────────────────── */
+    --app-log-bg: #060606;
+    --app-header-bg: #080808;
+    --app-shadow-hover: 0 4px 20px rgba(245, 158, 11, 0.2);
+
+    --app-badge-success-bg: rgba(5, 150, 105, 0.15);
+    --app-badge-success-text: #34d399;
+    --app-badge-error-bg: rgba(220, 38, 38, 0.15);
+    --app-badge-error-text: #f87171;
+    --app-badge-warning-bg: rgba(217, 119, 6, 0.15);
+    --app-badge-warning-text: #fbbf24;
+    --app-badge-info-bg: rgba(2, 132, 199, 0.15);
+    --app-badge-info-text: #38bdf8;
 }
 
 /* =================================================================
@@ -175,14 +277,16 @@ body.dark-theme,
     top: -48px;
     left: 8px;
     z-index: 10000;
-    background: #000;
-    color: #fff;
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
     padding: 10px 16px;
-    border-radius: 0 0 4px 4px;
+    border-radius: var(--mat-sys-corner-small);
+    font-family: var(--mat-sys-label-large-font);
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     text-decoration: none;
     transition: top 0.2s;
+    letter-spacing: 0.02em;
 }
 
 .skip-link:focus {
@@ -202,23 +306,310 @@ body.dark-theme,
 }
 
 /* =================================================================
-   Base Styles
+   Base HTML / Body
+   Dot-grid background: subtle on light, amber-tinted on dark.
    ================================================================= */
-html, body {
+html,
+body {
     height: 100%;
     margin: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
-    color: var(--app-text);
-    background: var(--app-gradient);
+    font-family: var(--mat-sys-body-large-font);
+    font-size: 15px;
+    color: var(--mat-sys-on-background);
+    background-color: var(--mat-sys-background);
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.055) 1px, transparent 1px);
+    background-size: 28px 28px;
     background-attachment: fixed;
     line-height: 1.6;
-    transition: background var(--app-transition), color var(--app-transition);
+    transition: background-color 0.25s cubic-bezier(0.2, 0, 0, 1),
+                color 0.25s cubic-bezier(0.2, 0, 0, 1);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-body.dark-theme {
-    background: var(--app-gradient);
-    background-attachment: fixed;
-    color: #e0e0e0;
+html.dark-theme,
+body.dark-theme,
+html[data-theme='dark'] {
+    background-image: radial-gradient(circle, rgba(245, 158, 11, 0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+}
+
+/* =================================================================
+   Typography Hierarchy
+   ================================================================= */
+h1, h2, h3, h4, h5, h6,
+.mat-headline-1,
+.mat-headline-2,
+.mat-headline-3,
+.mat-headline-4,
+.mat-headline-5,
+.mat-headline-6,
+.mat-title-large,
+.mat-display-large,
+.mat-display-medium {
+    font-family: var(--mat-sys-headline-large-font);
+    color: var(--mat-sys-on-background);
+    letter-spacing: -0.02em;
+}
+
+/* =================================================================
+   Angular Material Component Overrides
+   ================================================================= */
+
+/* Body font — override .mat-typography root */
+.mat-typography {
+    font-family: var(--mat-sys-body-large-font) !important;
+}
+
+/* Material Symbols variable font settings */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Cards — force M3 surface token + correct text color inheritance */
+.mat-mdc-card {
+    background-color: var(--mat-sys-surface-container-low) !important;
+    border-radius: var(--mat-sys-corner-medium) !important;
+    color: var(--mat-sys-on-surface) !important;
+}
+
+.mat-mdc-card-title,
+.mat-mdc-card-subtitle,
+.mat-mdc-card-content {
+    color: var(--mat-sys-on-surface);
+}
+
+/* Form fields */
+.mat-mdc-form-field input,
+.mat-mdc-form-field textarea,
+.mat-mdc-form-field .mat-mdc-input-element {
+    font-family: var(--mat-sys-body-large-font) !important;
+}
+
+/* Buttons */
+.mat-mdc-button .mdc-button__label,
+.mat-mdc-raised-button .mdc-button__label,
+.mat-mdc-outlined-button .mdc-button__label,
+.mat-mdc-unelevated-button .mdc-button__label {
+    font-family: var(--mat-sys-label-large-font) !important;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+}
+
+/* Drawer — transparent so body dot-grid shows through */
+.mat-drawer-container {
+    background: transparent !important;
+}
+
+.mat-drawer-content {
+    background: transparent !important;
+}
+
+/* Tabs */
+.mat-mdc-tab .mdc-tab__text-label,
+.mat-mdc-tab-link {
+    font-family: var(--mat-sys-label-large-font) !important;
+}
+
+/* Active nav list item */
+.active-nav-item {
+    background-color: var(--mat-list-active-indicator-color, rgba(0, 0, 0, 0.12)) !important;
+}
+
+/* =================================================================
+   App Shell — Page Layout
+   The .page-wrapper "card" floats on the dot-grid body background.
+   ================================================================= */
+.page-wrapper {
+    max-width: 1200px;
+    margin: 24px auto;
+    background: var(--mat-sys-surface);
+    border-radius: var(--mat-sys-corner-large);
+    border: 1px solid var(--mat-sys-outline-variant);
+    box-shadow: var(--app-shadow-lg);
+    overflow: hidden;
+    min-height: calc(100vh - 48px);
+}
+
+body.dark-theme .page-wrapper,
+html[data-theme='dark'] .page-wrapper {
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7);
+}
+
+@media (max-width: 768px) {
+    .page-wrapper {
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        min-height: 100vh;
+    }
+}
+
+/* =================================================================
+   App Header Shell
+   Dark ink background — brand identity, not theme-dependent.
+   Thin amber gradient accent stripe at top.
+   ================================================================= */
+.app-header-shell {
+    background: var(--app-header-bg);
+    color: var(--app-header-text);
+    padding: 0;
+    position: relative;
+}
+
+/* 2px amber accent stripe at the very top */
+.app-header-shell::before {
+    content: '';
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, #b45309 0%, #f59e0b 40%, #fcd34d 100%);
+}
+
+.app-header-shell .app-header-inner {
+    padding: 20px 30px 0;
+    text-align: center;
+}
+
+.app-header-shell .app-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.app-header-shell .app-brand-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--app-header-accent);
+    letter-spacing: -0.03em;
+}
+
+.app-header-shell .app-subtitle {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 300;
+    margin: 0 0 16px 0;
+    color: rgba(240, 236, 228, 0.55);
+    letter-spacing: 0.02em;
+}
+
+.app-header-shell .header-actions {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.app-header-shell .header-actions button {
+    color: var(--app-header-text);
+}
+
+/* Navigation tabs */
+.app-nav-tabs {
+    display: flex;
+    gap: 0;
+    margin: 0;
+    overflow-x: auto;
+    justify-content: center;
+    scrollbar-width: none;
+}
+
+.app-nav-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.app-nav-tabs a {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: rgba(240, 236, 228, 0.55);
+    transition: color var(--app-transition-fast),
+                background var(--app-transition-fast),
+                border-color var(--app-transition-fast);
+    text-decoration: none;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+}
+
+.app-nav-tabs a:hover {
+    color: rgba(240, 236, 228, 0.9);
+    background: rgba(245, 158, 11, 0.07);
+}
+
+.app-nav-tabs a.active-tab {
+    color: var(--app-header-accent);
+    border-bottom-color: var(--app-header-accent);
+    background: rgba(245, 158, 11, 0.1);
+    font-weight: 600;
+}
+
+/* Main content area */
+.app-main-content {
+    padding: 24px 30px;
+}
+
+/* Footer */
+.app-footer-shell {
+    padding: 16px 30px;
+    text-align: center;
+    background: var(--mat-sys-surface-container);
+    color: var(--mat-sys-on-surface-variant);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.825rem;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.app-footer-shell a {
+    color: var(--mat-sys-primary);
+    text-decoration: none;
+}
+
+.app-footer-shell a:hover {
+    text-decoration: underline;
+}
+
+/* Mobile sidenav drawer */
+.app-mobile-sidenav {
+    width: 260px;
+    background: var(--mat-sys-surface-container-low) !important;
+}
+
+.app-mobile-sidenav .sidenav-brand {
+    padding: 20px 16px;
+    background: #0d0d0d;
+    border-bottom: 2px solid var(--app-header-accent);
+    color: var(--app-header-accent);
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .app-header-shell .app-header-inner {
+        padding: 16px 16px 0;
+    }
+
+    .app-header-shell .app-brand-title {
+        font-size: 1.5rem;
+    }
+
+    .app-main-content {
+        padding: 16px;
+    }
 }
 
 /* =================================================================
@@ -232,34 +623,36 @@ body.dark-theme {
    Code & JSON Viewer
    ================================================================= */
 code {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9em;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 0.85em;
     padding: 2px 6px;
-    border-radius: var(--app-radius-sm);
-    background-color: var(--app-code-bg);
-    color: var(--app-text);
+    border-radius: var(--mat-sys-corner-extra-small);
+    background-color: var(--mat-sys-surface-container);
+    color: var(--mat-sys-primary);
+    border: 1px solid var(--mat-sys-outline-variant);
 }
 
 .json-viewer {
     background: var(--app-log-bg);
     color: #e2e8f0;
     padding: 20px;
-    border-radius: var(--app-radius-md);
+    border-radius: var(--mat-sys-corner-medium);
     overflow-x: auto;
-    font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+    font-family: 'JetBrains Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
     font-size: 13px;
     line-height: 1.6;
     max-height: 500px;
     overflow-y: auto;
     white-space: pre-wrap;
     word-wrap: break-word;
+    border: 1px solid rgba(245, 158, 11, 0.12);
 }
 
-.json-key { color: #93c5fd; }
-.json-string { color: #86efac; }
-.json-number { color: #fcd34d; }
+.json-key     { color: #93c5fd; }
+.json-string  { color: #86efac; }
+.json-number  { color: #fcd34d; }
 .json-boolean { color: #f472b6; }
-.json-null { color: #94a3b8; }
+.json-null    { color: #94a3b8; }
 .json-bracket { color: #e2e8f0; }
 
 /* =================================================================
@@ -270,18 +663,20 @@ code {
     align-items: center;
     gap: 6px;
     padding: 4px 12px;
-    border-radius: var(--app-radius-md);
+    border-radius: var(--mat-sys-corner-small);
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
     font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .status-badge.success { background: var(--app-badge-success-bg); color: var(--app-badge-success-text); }
-.status-badge.error { background: var(--app-badge-error-bg); color: var(--app-badge-error-text); }
+.status-badge.error   { background: var(--app-badge-error-bg);   color: var(--app-badge-error-text); }
 .status-badge.warning { background: var(--app-badge-warning-bg); color: var(--app-badge-warning-text); }
-.status-badge.info { background: var(--app-badge-info-bg); color: var(--app-badge-info-text); }
+.status-badge.info    { background: var(--app-badge-info-bg);    color: var(--app-badge-info-text); }
 
 /* =================================================================
-   Status Dot (pulsing indicator)
+   Status Dot (pulsing live indicator)
    ================================================================= */
 .status-dot {
     width: 8px;
@@ -291,39 +686,41 @@ code {
     animation: pulse 2s ease-in-out infinite;
 }
 
-.status-dot.online { background-color: var(--app-success); }
-.status-dot.offline { background-color: var(--app-error); }
+.status-dot.online     { background-color: var(--app-success); }
+.status-dot.offline    { background-color: var(--app-error); }
 .status-dot.connecting { background-color: var(--app-warning); }
 
 @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    50%       { opacity: 0.45; }
 }
 
 /* =================================================================
-   Method Badges (API endpoints)
+   Method Badges (HTTP verbs)
    ================================================================= */
 .method-badge {
-    font-family: 'Courier New', monospace;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 8px;
-    border-radius: var(--app-radius-sm);
+    border-radius: var(--mat-sys-corner-extra-small);
     min-width: 40px;
     text-align: center;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-.method-get { background: var(--app-badge-info-bg); color: var(--app-badge-info-text); }
-.method-post { background: var(--app-badge-success-bg); color: var(--app-badge-success-text); }
-.method-delete { background: var(--app-badge-error-bg); color: var(--app-badge-error-text); }
+.method-get    { background: var(--app-badge-info-bg);    color: var(--app-badge-info-text); }
+.method-post   { background: var(--app-badge-success-bg); color: var(--app-badge-success-text); }
+.method-delete { background: var(--app-badge-error-bg);   color: var(--app-badge-error-text); }
 
 /* =================================================================
    Card Interactions
    ================================================================= */
 .card-interactive {
     cursor: pointer;
-    transition: transform var(--app-transition-fast), box-shadow var(--app-transition-fast);
+    transition: transform var(--app-transition-fast),
+                box-shadow var(--app-transition-fast);
 }
 
 .card-interactive:hover {
@@ -348,8 +745,9 @@ code {
 }
 
 .toast {
-    background: var(--app-card-bg);
-    border-radius: var(--app-radius-lg);
+    background: var(--mat-sys-surface-container-low);
+    border-radius: var(--mat-sys-corner-medium);
+    border: 1px solid var(--mat-sys-outline-variant);
     padding: 16px 20px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     display: flex;
@@ -358,7 +756,7 @@ code {
     position: relative;
     overflow: hidden;
     pointer-events: auto;
-    animation: toastSlideIn 0.3s ease-out;
+    animation: toastSlideIn 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .toast::before {
@@ -367,25 +765,45 @@ code {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 4px;
+    width: 3px;
 }
 
 .toast.success::before { background: var(--app-success); }
-.toast.error::before { background: var(--app-error); }
+.toast.error::before   { background: var(--app-error); }
 .toast.warning::before { background: var(--app-warning); }
-.toast.info::before { background: var(--app-info); }
+.toast.info::before    { background: var(--app-info); }
 
-.toast-title { font-weight: 600; color: var(--app-heading); margin-bottom: 2px; font-size: 14px; }
-.toast-message { font-size: 13px; color: var(--app-text-muted); }
+.toast-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+    margin-bottom: 2px;
+    font-size: 14px;
+}
+
+.toast-message {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    color: var(--mat-sys-on-surface-variant);
+}
 
 @keyframes toastSlideIn {
-    from { transform: translateX(400px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from { transform: translateX(420px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
 }
 
 @keyframes toastSlideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(400px); opacity: 0; }
+    from { transform: translateX(0);     opacity: 1; }
+    to   { transform: translateX(420px); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+    .toast-container {
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-width: none;
+    }
 }
 
 /* =================================================================
@@ -409,199 +827,14 @@ code {
 .text-center { text-align: center; }
 
 /* =================================================================
-   Angular Material Overrides
+   Responsive Content
    ================================================================= */
-.active-nav-item {
-    background-color: var(--mat-list-active-indicator-color, rgba(0, 0, 0, 0.12)) !important;
-}
-
-/* Material Symbols variable font overrides for mat-icon.
-   Angular Material's mat-icon applies the font-set class (material-symbols-outlined)
-   but the default font-variation-settings may not match larger icon sizes.
-   For any mat-icon larger than 24px, set opsz to match font-size. */
-.material-symbols-outlined {
-    /* Allow component-level font-variation-settings to take precedence */
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
     .page-content { padding: 16px 0; }
-    .toast-container { right: 12px; left: 12px; width: auto; max-width: none; }
 }
 
 /* =================================================================
-   App Shell — Global layout styles matching original design
-   ================================================================= */
-
-/* The body gradient shows through the transparent app container */
-.mat-drawer-container {
-    background: transparent !important;
-}
-
-.mat-drawer-content {
-    background: transparent !important;
-}
-
-/* Page wrapper — the "white card" matching original .container */
-.page-wrapper {
-    max-width: 1200px;
-    margin: 20px auto;
-    background: var(--app-surface);
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-    min-height: calc(100vh - 40px);
-}
-
-body.dark-theme .page-wrapper,
-[data-theme='dark'] .page-wrapper {
-    background: var(--app-surface);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-}
-
-/* App header — matches original <header> with gradient */
-.app-header-shell {
-    background: var(--app-gradient-brand);
-    color: white;
-    padding: 20px 30px 0;
-    text-align: center;
-}
-
-.app-header-shell .app-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 8px;
-    position: relative;
-}
-
-.app-header-shell .app-brand-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0;
-    color: white;
-}
-
-.app-header-shell .app-subtitle {
-    font-size: 1rem;
-    opacity: 0.9;
-    margin: 0 0 16px 0;
-    color: rgba(255,255,255,0.9);
-}
-
-.app-header-shell .header-actions {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.app-header-shell .header-actions button {
-    color: white;
-}
-
-/* Navigation tabs — matches original .tabs */
-.app-nav-tabs {
-    display: flex;
-    gap: 0;
-    border-top: none;
-    margin: 0;
-    overflow-x: auto;
-    justify-content: center;
-}
-
-.app-nav-tabs a {
-    padding: 12px 20px;
-    background: none;
-    border: none;
-    font-size: 0.95rem;
-    cursor: pointer;
-    color: rgba(255,255,255,0.75);
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-    text-decoration: none;
-    white-space: nowrap;
-    font-weight: 500;
-}
-
-.app-nav-tabs a:hover {
-    color: white;
-    background: rgba(255,255,255,0.1);
-}
-
-.app-nav-tabs a.active-tab {
-    color: white;
-    border-bottom-color: white;
-    background: rgba(255,255,255,0.15);
-    font-weight: 600;
-}
-
-/* App main content area — matches original .content */
-.app-main-content {
-    padding: 24px 30px;
-}
-
-/* App footer — matches original footer */
-.app-footer-shell {
-    padding: 16px 30px;
-    text-align: center;
-    background: var(--app-surface-variant);
-    color: var(--app-text-muted);
-    font-size: 0.85rem;
-    border-top: 1px solid var(--app-border);
-}
-
-.app-footer-shell a {
-    color: var(--app-primary);
-    text-decoration: none;
-}
-
-.app-footer-shell a:hover {
-    text-decoration: underline;
-}
-
-/* Mobile sidenav drawer */
-.app-mobile-sidenav {
-    width: 260px;
-    background: var(--app-surface) !important;
-}
-
-.app-mobile-sidenav .sidenav-brand {
-    padding: 20px 16px;
-    background: var(--app-gradient-brand);
-    color: white;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .page-wrapper {
-        margin: 0;
-        border-radius: 0;
-        min-height: 100vh;
-    }
-
-    .app-header-shell {
-        padding: 16px 16px 0;
-    }
-
-    .app-header-shell .app-brand-title {
-        font-size: 1.5rem;
-    }
-
-    .app-main-content {
-        padding: 16px;
-    }
-}
-
-/* =================================================================
-   Reduced Motion — respect user's OS preference (WCAG 2.3.3)
+   Reduced Motion — WCAG 2.3.3
    ================================================================= */
 @media (prefers-reduced-motion: reduce) {
     *,
@@ -615,4 +848,96 @@ body.dark-theme .page-wrapper,
     .status-dot {
         animation: none;
     }
+}
+
+/* =================================================================
+   Angular Material M2→M3 Compat Overrides
+   Override hardcoded M2 palette colors injected by the compat layer
+   when components use the deprecated color="primary/accent/warn" API.
+   ================================================================= */
+
+/* Chips: color="primary" → amber primary-container
+   Use exact 3-class selector from azure-blue M2 compat rule so our later declaration wins */
+.mat-mdc-standard-chip.mat-mdc-chip-selected.mat-primary,
+.mat-mdc-standard-chip.mat-mdc-chip-highlighted.mat-primary {
+    --mat-chip-elevated-container-color: var(--mat-sys-primary-container);
+    --mat-chip-elevated-disabled-container-color: var(--mat-sys-surface-container);
+    --mat-chip-elevated-selected-container-color: var(--mat-sys-primary-container);
+    --mat-chip-disabled-label-text-color: var(--mat-sys-on-surface);
+    --mat-chip-selected-label-text-color: var(--mat-sys-on-primary-container);
+    --mat-chip-with-icon-selected-icon-color: var(--mat-sys-on-primary-container);
+}
+
+/* Slide toggles: color="primary" → amber */
+.mat-mdc-slide-toggle.mat-primary {
+    --mdc-switch-selected-track-color: var(--mat-sys-primary);
+    --mdc-switch-selected-handle-color: var(--mat-sys-on-primary);
+    --mdc-switch-selected-hover-track-color: var(--mat-sys-primary);
+    --mdc-switch-selected-focus-track-color: var(--mat-sys-primary);
+    --mdc-switch-selected-pressed-track-color: var(--mat-sys-primary);
+    --mdc-switch-selected-focus-handle-color: var(--mat-sys-primary-container);
+    --mdc-switch-selected-hover-handle-color: var(--mat-sys-primary-container);
+    --mdc-switch-selected-pressed-handle-color: var(--mat-sys-primary-container);
+}
+
+/* Buttons: color="primary" → amber
+   Use exact M2 compat rule selector + correct AM21 token names to win cascade */
+.mat-mdc-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-outlined-button.mat-primary,
+.mat-tonal-button.mat-primary {
+    --mat-button-filled-container-color: var(--mat-sys-primary);
+    --mat-button-filled-label-text-color: var(--mat-sys-on-primary);
+    --mat-button-filled-ripple-color: color-mix(in srgb, var(--mat-sys-on-primary) 12%, transparent);
+    --mat-button-filled-state-layer-color: var(--mat-sys-on-primary);
+    --mat-button-protected-container-color: var(--mat-sys-primary);
+    --mat-button-protected-label-text-color: var(--mat-sys-on-primary);
+    --mat-button-protected-ripple-color: color-mix(in srgb, var(--mat-sys-on-primary) 12%, transparent);
+    --mat-button-protected-state-layer-color: var(--mat-sys-on-primary);
+    --mat-text-button-state-layer-color: var(--mat-sys-primary);
+    --mat-text-button-label-text-color: var(--mat-sys-primary);
+    --mat-outlined-button-state-layer-color: var(--mat-sys-primary);
+    --mat-outlined-button-label-text-color: var(--mat-sys-primary);
+    --mat-button-outlined-label-text-color: var(--mat-sys-primary);
+    --mat-button-outlined-outline-color: var(--mat-sys-outline);
+    /* legacy mdc tokens */
+    --mdc-filled-button-container-color: var(--mat-sys-primary);
+    --mdc-filled-button-label-text-color: var(--mat-sys-on-primary);
+    --mdc-protected-button-container-color: var(--mat-sys-primary);
+    --mdc-protected-button-label-text-color: var(--mat-sys-on-primary);
+}
+
+/* Icon buttons: color="primary" → amber */
+.mat-mdc-icon-button.mat-primary {
+    --mat-icon-button-icon-color: var(--mat-sys-primary);
+    --mat-icon-button-state-layer-color: var(--mat-sys-primary);
+    --mat-icon-button-ripple-color: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}
+
+/* Progress bar / spinner: color="primary" → amber */
+.mat-mdc-progress-bar.mat-primary {
+    --mdc-linear-progress-active-indicator-color: var(--mat-sys-primary);
+    --mat-progress-bar-active-indicator-color: var(--mat-sys-primary);
+}
+.mat-mdc-progress-spinner.mat-primary {
+    --mdc-circular-progress-active-indicator-color: var(--mat-sys-primary);
+    --mat-progress-spinner-active-indicator-color: var(--mat-sys-primary);
+}
+
+/* Checkboxes: color="primary" → amber */
+.mat-mdc-checkbox.mat-primary {
+    --mdc-checkbox-selected-checkmark-color: var(--mat-sys-on-primary);
+    --mdc-checkbox-selected-focus-icon-color: var(--mat-sys-primary);
+    --mdc-checkbox-selected-hover-icon-color: var(--mat-sys-primary);
+    --mdc-checkbox-selected-icon-color: var(--mat-sys-primary);
+    --mdc-checkbox-selected-pressed-icon-color: var(--mat-sys-primary);
+}
+
+/* Button toggle — selected state uses amber primary-container */
+.mat-button-toggle-checked {
+    --mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
+    --mat-button-toggle-selected-state-text-color: var(--mat-sys-on-primary-container);
+    color: var(--mat-sys-on-primary-container);
+    background-color: var(--mat-sys-primary-container) !important;
 }

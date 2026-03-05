@@ -28,10 +28,13 @@
                         "polyfills": [],
                         "tsConfig": "tsconfig.app.json",
                         "assets": [
-                            "src/assets"
+                            "src/assets",
+                            "src/favicon.svg",
+                            "src/favicon.ico",
+                            "src/robots.txt",
+                            "src/sitemap.xml"
                         ],
                         "styles": [
-                            "@angular/material/prebuilt-themes/deeppurple-amber.css",
                             "src/styles.css"
                         ],
                         "scripts": []

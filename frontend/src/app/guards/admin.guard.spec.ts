@@ -1,12 +1,15 @@
 import { TestBed } from '@angular/core/testing';
-import { provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter, Router } from '@angular/router';
+import { Component, provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { adminGuard } from './admin.guard';
 import { AuthService } from '../services/auth.service';
 
+@Component({ template: '' })
+class StubComponent {}
+
 describe('adminGuard', () => {
     let auth: AuthService;
-    let router: Router;
 
     beforeEach(() => {
         sessionStorage.clear();
@@ -14,13 +17,12 @@ describe('adminGuard', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 provideRouter([
-                    { path: '', component: class {} as any },
-                    { path: 'admin', component: class {} as any, canActivate: [adminGuard] },
+                    { path: '', component: StubComponent },
+                    { path: 'admin', component: StubComponent, canActivate: [adminGuard] },
                 ]),
             ],
         });
         auth = TestBed.inject(AuthService);
-        router = TestBed.inject(Router);
     });
 
     afterEach(() => sessionStorage.clear());
@@ -29,7 +31,8 @@ describe('adminGuard', () => {
         auth.setKey('valid-key');
 
         // The guard is a soft guard — always returns true
-        const result = TestBed.runInInjectionContext(() => adminGuard({} as any, {} as any));
+        const result = TestBed.runInInjectionContext(() =>
+            adminGuard({} as unknown as ActivatedRouteSnapshot, {} as unknown as RouterStateSnapshot));
         expect(result).toBe(true);
     });
 
@@ -38,7 +41,8 @@ describe('adminGuard', () => {
         // navigation. The AdminComponent handles auth inline.
         expect(auth.isAuthenticated()).toBe(false);
 
-        const result = TestBed.runInInjectionContext(() => adminGuard({} as any, {} as any));
+        const result = TestBed.runInInjectionContext(() =>
+            adminGuard({} as unknown as ActivatedRouteSnapshot, {} as unknown as RouterStateSnapshot));
         expect(result).toBe(true);
     });
 });

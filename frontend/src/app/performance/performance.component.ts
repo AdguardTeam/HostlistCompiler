@@ -21,13 +21,6 @@ import { SparklineComponent } from '../sparkline/sparkline.component';
 import { MetricsStore } from '../store/metrics.store';
 import { API_BASE_URL } from '../tokens';
 
-interface EndpointMetric {
-    readonly endpoint: string;
-    readonly requests: number;
-    readonly avgDuration: number;
-    readonly errorRate: number;
-}
-
 /** Health response shape from /api/health */
 interface HealthResponse {
     readonly status: 'healthy' | 'degraded' | 'unhealthy';

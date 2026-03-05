@@ -56,6 +56,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.34.0] - 2026-03-05
+
+### Added
+
+- **frontend**: Redesign with Deep Ink + Electric Amber design system
+- Add SEO and AEO optimizations for frontend
+
+### Fixed
+
+- **tests**: align SSE spec API_BASE_URL with production browser config ('/api')
+- **frontend**: tighten dark-theme selectors, fix shadow token, improve SSE test cleanup
+- align index.html meta description with home route metaDescription
+- **tests**: clear fake timers before restoring real timers in sse.service.spec afterEach
+- **frontend**: apply PR review feedback - favicon, CSS tokens, fonts, theme, spinner
+- address PR review feedback on SEO/AEO optimizations
+- address test mock/timer leaks and SSE URL contract issues
+- use RenderMode.Client for home and compiler routes to prevent SSR crash
+
+
 ## [0.33.2] - 2026-03-05
 
 ### Added### Fixed
