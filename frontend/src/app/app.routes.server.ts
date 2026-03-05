@@ -22,8 +22,18 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
     {
-        // All routes use server-side rendering (rendered per request).
-        // Prerendering can be re-enabled for static routes once the migration stabilises.
+        // Home and Compiler use client-side rendering: they contain MatSlideToggle
+        // bound via ngModel/FormControl, which calls writeValue during SSR and
+        // crashes the server renderer (Angular Material DOM access in Node.js).
+        path: '',
+        renderMode: RenderMode.Client,
+    },
+    {
+        path: 'compiler',
+        renderMode: RenderMode.Client,
+    },
+    {
+        // All other routes use server-side rendering (rendered per request).
         path: '**',
         renderMode: RenderMode.Server,
     },
