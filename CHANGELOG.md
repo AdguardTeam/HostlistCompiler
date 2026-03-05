@@ -48,14 +48,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.33.1] - 2026-03-04
 
-### Added### Fixed
+### Fixed
 
 - apply deno fmt to failing markdown files
 
 
 ## [0.33.0] - 2026-03-04
 
-### Added- incorporate Angular Material Design into 4 Angular frontend components
+### Added
+
+- Incorporate Angular Material Design into 4 Angular frontend components (`SkeletonCardComponent`, `SkeletonTableComponent`, `SparklineComponent`, `TurnstileComponent`) — all now use `mat-card appearance="outlined"` wrappers; skeleton components add a `mat-progress-bar` in buffer mode as a loading indicator
 
 ### Fixed
 
@@ -64,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.32.2] - 2026-03-04
 
-### Added### Fixed
+### Fixed
 
 - apply PR review suggestions — required BootstrapContext, remove MatToolbarModule, add aria attrs
 - configure MatIconRegistry to use material-symbols-outlined font set
@@ -75,15 +77,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.32.1] - 2026-03-04
 
-### Added### Fixed
+### Fixed
 
 - exclude skills/ and .claude/ from deno fmt and deno lint
 
 
 ## [0.32.0] - 2026-03-04
 
-### Added- **compiler**: complete phases 6-8 — API docs, logging wiring, and changelog
-- **compiler**: add async/batch compilation modes, queue stats panel, and supporting services
+### Added
+
+- **compiler**: Complete phases 6-8 — API docs, logging wiring, and changelog
+- **compiler**: Add async/batch compilation modes, queue stats panel, and supporting services
 
 ### Fixed
 
@@ -96,7 +100,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.31.0] - 2026-03-03
 
-### Added- add exception handling, validation, logging & diagnostics
+### Added
+
+- Add exception handling, validation, logging & diagnostics
 
 ### Fixed
 
@@ -107,7 +113,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.30.0] - 2026-03-03
 
-### Added- **frontend**: implement 14 enhancement items with CI/Docker updates
+### Added
+
+- **frontend**: Implement 14 enhancement items with CI/Docker updates
 - complete Angular migration gaps - MetricsService, a11y, animations, cleanup
 - **frontend**: Phases 3-7 — additional pages, services, responsive sidenav, CI, docs
 - **frontend**: Phase 2 — core pages with live data, SSE streaming, drag-and-drop
@@ -125,7 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.29.2] - 2026-03-03
 
-### Added### Fixed
+### Fixed
 
 - correct deno fmt indentation in src/plugins/index.ts
 - address PR review feedback on PluginLoader and loadPlugin stubs
@@ -134,7 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.29.1] - 2026-03-03
 
-### Added### Fixed
+### Fixed
 
 - correct CHANGELOG.md formatting for 0.29.0 and 0.28.0 entries
 
@@ -172,19 +180,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.26.0] - 2026-03-02
 
-### Added- migrate Tailwind CSS v3 to v4
+### Added
+
+- Migrate Tailwind CSS v3 to v4
 
 
 ## [0.25.3] - 2026-02-27
 
-### Added### Performance
+### Performance
 
 - web performance audit improvements
 
 
 ## [0.25.2] - 2026-02-24
 
-### Added### Fixed
+### Fixed
 
 - address CHANGELOG formatting and sync version to HTML/package-lock
 
@@ -200,19 +210,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.24.1] - 2026-02-23
 
-### Added### Fixed
+### Fixed
 
 - add --allow-write flag to generate-deployment-version.ts deno run commands
 
 
 ## [0.24.0] - 2026-02-22
 
-### Added- generate Cloudflare Web Assets schema from OpenAPI spec
+### Added
+
+- Generate Cloudflare Web Assets schema from OpenAPI spec
 
 
 ## [0.23.2] - 2026-02-22
 
-### Added### Fixed
+### Fixed
 
 - sync HTML version fallbacks to 0.23.1 and extend version:sync script
 
@@ -282,7 +294,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.20.0] - 2026-02-21
 
-### Added- add PoC project links and Svelte 5 demo client
+### Added
+
+- Add PoC project links and Svelte 5 demo client
 
 ### Fixed
 
