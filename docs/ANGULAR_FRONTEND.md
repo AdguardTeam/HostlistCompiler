@@ -34,13 +34,14 @@
 9. [State Management](#state-management)
 10. [Routing](#routing)
 11. [SSR and Rendering Modes](#ssr-and-rendering-modes)
-12. [Security](#security)
-13. [Testing](#testing)
-14. [Cloudflare Workers Deployment](#cloudflare-workers-deployment)
-15. [Configuration Tokens](#configuration-tokens)
-16. [Extending the Frontend](#extending-the-frontend)
-17. [Migration Reference (v16 → v21)](#migration-reference-v16--v21)
-18. [Further Reading](#further-reading)
+12. [Accessibility (WCAG 2.1)](#accessibility-wcag-21)
+13. [Security](#security)
+14. [Testing](#testing)
+15. [Cloudflare Workers Deployment](#cloudflare-workers-deployment)
+16. [Configuration Tokens](#configuration-tokens)
+17. [Extending the Frontend](#extending-the-frontend)
+18. [Migration Reference (v16 → v21)](#migration-reference-v16--v21)
+19. [Further Reading](#further-reading)
 
 ---
 
@@ -673,16 +674,21 @@ Defined in `src/app/app.routes.server.ts`, Angular 21 supports three per-route r
 
 | Mode | Behaviour | Best for |
 |---|---|---|
-| `RenderMode.Prerender` | HTML generated once at build time (SSG) | Static content — Home page |
+| `RenderMode.Prerender` | HTML generated once at build time (SSG) | Fully static content |
 | `RenderMode.Server` | HTML rendered per request inside the Worker | Dynamic / user-specific pages |
-| `RenderMode.Client` | No server rendering, pure CSR | Heavy canvas / WebGL components |
+| `RenderMode.Client` | No server rendering, pure CSR | Routes with DOM-dependent Material components (e.g. `mat-slide-toggle`) |
 
 ```typescript
 // app.routes.server.ts
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
-    { path: '**', renderMode: RenderMode.Server },
+    // Home and Compiler use CSR: mat-slide-toggle bound via ngModel
+    // calls writeValue() during SSR, which crashes the server renderer.
+    { path: '',        renderMode: RenderMode.Client },
+    { path: 'compiler', renderMode: RenderMode.Client },
+    // All other routes use per-request SSR.
+    { path: '**',      renderMode: RenderMode.Server },
 ];
 ```
 
@@ -868,23 +874,31 @@ export const routes: Routes = [
     {
         path: '',
         loadComponent: () => import('./home/home.component').then(m => m.HomeComponent),
-        title: 'Home - Adblock Compiler',
+        title: 'Home',
     },
     {
         path: 'compiler',
         loadComponent: () => import('./compiler/compiler.component').then(m => m.CompilerComponent),
-        title: 'Compiler - Adblock Compiler',
+        title: 'Compiler',
         data: { description: 'Configure and run filter list compilations' },
+    },
+    {
+        path: 'api-docs',
+        loadComponent: () => import('./api-docs/api-docs.component').then(m => m.ApiDocsComponent),
+        title: 'API Reference',
     },
     // … more routes
     {
         path: 'admin',
         loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent),
         canActivate: [() => import('./guards/admin.guard').then(m => m.adminGuard)],
+        title: 'Admin',
     },
     { path: '**', redirectTo: '' },
 ];
 ```
+
+Route `title` values are short labels (e.g. `'Compiler'`). The `AppTitleStrategy` appends the application name automatically, producing titles like **"Compiler | Adblock Compiler"** (see [Page Titles](#page-titles) below).
 
 **Router features enabled:**
 
@@ -893,6 +907,36 @@ export const routes: Routes = [
 | Component input binding | `withComponentInputBinding()` | Route params auto-bound to `input()` signals |
 | View Transitions API | `withViewTransitions()` | Native browser cross-document transition animations |
 | Preload all | `withPreloading(PreloadAllModules)` | All lazy chunks prefetched after initial navigation |
+| Custom title strategy | `{ provide: TitleStrategy, useClass: AppTitleStrategy }` | Appends app name to every route title (WCAG 2.4.2) |
+
+### Page Titles
+
+`src/app/title-strategy.ts` implements a custom `TitleStrategy` that formats every page's `<title>` element as:
+
+```
+<route title> | Adblock Compiler
+```
+
+When a route has no `title`, the fallback is just `"Adblock Compiler"`. This satisfies **WCAG 2.4.2 (Page Titled — Level A)**.
+
+```typescript
+// title-strategy.ts
+@Injectable({ providedIn: 'root' })
+export class AppTitleStrategy extends TitleStrategy {
+    private readonly title = inject(Title);
+
+    override updateTitle(snapshot: RouterStateSnapshot): void {
+        const routeTitle = this.buildTitle(snapshot);
+        this.title.setTitle(routeTitle ? `${routeTitle} | Adblock Compiler` : 'Adblock Compiler');
+    }
+}
+```
+
+Register it in `app.config.ts`:
+
+```typescript
+{ provide: TitleStrategy, useClass: AppTitleStrategy }
+```
 
 ---
 
@@ -946,13 +990,58 @@ export default {
 
 | Strategy | When to use | Example route |
 |---|---|---|
-| `RenderMode.Server` | Dynamic content, user-specific data | `/compiler`, `/admin` |
-| `RenderMode.Prerender` | Static content, SEO landing pages | `/` (Home) |
-| `RenderMode.Client` | Heavy canvas/WebGL, no SEO required | — |
+| `RenderMode.Server` | Dynamic content, user-specific data | `/admin`, `/performance`, `/api-docs` |
+| `RenderMode.Prerender` | Static content, SEO landing pages | — |
+| `RenderMode.Client` | Components with DOM-dependent Material widgets (e.g. `mat-slide-toggle`) | `/` (Home), `/compiler` |
 
 ### HTTP Transfer Cache
 
 `provideClientHydration(withHttpTransferCacheOptions({ includePostRequests: false }))` prevents double-fetching: data fetched during SSR is serialised into the HTML payload and replayed client-side without a second network request.
+
+---
+
+## Accessibility (WCAG 2.1)
+
+The Angular frontend targets **WCAG 2.1 Level AA** compliance. The following features are implemented:
+
+| Feature | Location | Standard |
+|---|---|---|
+| Skip navigation link | `app.component.html` | WCAG 2.4.1 — Bypass Blocks |
+| Unique per-route page titles | `AppTitleStrategy` | WCAG 2.4.2 — Page Titled |
+| Single `<h1>` per page | Route components | WCAG 1.3.1 — Info and Relationships |
+| `aria-label` on `<nav>` | `app.component.html` | WCAG 4.1.2 — Name, Role, Value |
+| `aria-live="polite"` on toast container | `notification-container.component.ts` | WCAG 4.1.3 — Status Messages |
+| `aria-hidden="true"` on decorative icons | Home, Admin, Compiler components | WCAG 1.1.1 — Non-text Content |
+| `.visually-hidden` utility class | `styles.css` | Screen-reader-only text pattern |
+| `prefers-reduced-motion` media query | `styles.css` | WCAG 2.3.3 — Animation from Interactions |
+| `id="main-content"` on `<main>` | `app.component.html` | Skip link target |
+
+### Skip Link
+
+The app shell renders a visually-hidden skip link as the first focusable element on every page:
+
+```html
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<!-- … header/nav … -->
+<main id="main-content" tabindex="-1">
+    <router-outlet />
+</main>
+```
+
+The `.skip-link` class in `styles.css` positions it off-screen until focused, then brings it into view for keyboard users.
+
+### Reduced Motion
+
+All CSS transitions and animations respect the user's OS preference:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+```
 
 ---
 
