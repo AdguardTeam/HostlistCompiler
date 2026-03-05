@@ -86,7 +86,7 @@ interface EndpointInfo {
                 <button mat-stroked-button (click)="store.refresh()"
                     [disabled]="store.isLoading()"
                     matTooltip="Refresh all data">
-                    <mat-icon>refresh</mat-icon>
+                    <mat-icon aria-hidden="true">refresh</mat-icon>
                     @if (store.isLoading()) { Refreshing… } @else { Refresh }
                 </button>
             </div>
@@ -96,7 +96,7 @@ interface EndpointInfo {
         <mat-card appearance="outlined" class="status-bar">
             <mat-card-content class="status-bar-content">
                 <div class="status-indicator">
-                    <mat-icon [style.color]="healthColor()">{{ healthIcon() }}</mat-icon>
+                    <mat-icon [style.color]="healthColor()" aria-hidden="true">{{ healthIcon() }}</mat-icon>
                     @if (store.isHealthRevalidating() && !store.health()) {
                         <span class="mat-body-2">Checking API status…</span>
                     } @else if (store.health(); as h) {
@@ -135,7 +135,7 @@ interface EndpointInfo {
             </div>
             @if (store.isStale()) {
                 <span class="stale-indicator mat-body-2">
-                    <mat-icon class="inline-icon">schedule</mat-icon> Data may be stale
+                    <mat-icon class="inline-icon" aria-hidden="true">schedule</mat-icon> Data may be stale
                 </span>
             }
         </div>
@@ -166,7 +166,7 @@ interface EndpointInfo {
         @defer (on viewport) {
             <mat-card appearance="outlined" class="section-card">
                 <mat-card-header>
-                    <mat-icon mat-card-avatar>show_chart</mat-icon>
+                    <mat-icon mat-card-avatar aria-hidden="true">show_chart</mat-icon>
                     <mat-card-title>Queue Depth Over Time</mat-card-title>
                     <mat-card-subtitle>
                         Processing rate: {{ queueProcessingRate() }} jobs/sec
@@ -181,7 +181,7 @@ interface EndpointInfo {
                 </mat-card-content>
                 <mat-card-actions>
                     <button mat-button (click)="store.refreshQueue()">
-                        <mat-icon>refresh</mat-icon> Refresh Queue
+                        <mat-icon aria-hidden="true">refresh</mat-icon> Refresh Queue
                     </button>
                 </mat-card-actions>
             </mat-card>
@@ -193,16 +193,16 @@ interface EndpointInfo {
         <h2 class="mat-headline-6 section-title">Quick Actions</h2>
         <div class="quick-actions">
             <button mat-raised-button color="primary" (click)="navigateTo('/compiler')">
-                <mat-icon>build</mat-icon> Compile Filter List
+                <mat-icon aria-hidden="true">build</mat-icon> Compile Filter List
             </button>
             <button mat-stroked-button (click)="navigateTo('/compiler')" matTooltip="Send batch compilation">
-                <mat-icon>dynamic_feed</mat-icon> Batch Compile
+                <mat-icon aria-hidden="true">dynamic_feed</mat-icon> Batch Compile
             </button>
             <button mat-stroked-button (click)="navigateTo('/compiler')" matTooltip="Queue async compilation">
-                <mat-icon>schedule_send</mat-icon> Async Compile
+                <mat-icon aria-hidden="true">schedule_send</mat-icon> Async Compile
             </button>
             <button mat-stroked-button (click)="showTester.set(true)" matTooltip="Test API endpoints">
-                <mat-icon>science</mat-icon> API Tester
+                <mat-icon aria-hidden="true">science</mat-icon> API Tester
             </button>
         </div>
 
@@ -218,7 +218,7 @@ interface EndpointInfo {
                 @defer (on viewport; prefetch on hover) {
                     <mat-card appearance="outlined" class="nav-card" (click)="navigateTo(card.path)">
                         <mat-card-header>
-                            <mat-icon mat-card-avatar [style.color]="'var(--mat-sys-primary)'">{{ card.icon }}</mat-icon>
+                            <mat-icon mat-card-avatar [style.color]="'var(--mat-sys-primary)'" aria-hidden="true">{{ card.icon }}</mat-icon>
                             <mat-card-title>{{ card.title }}</mat-card-title>
                         </mat-card-header>
                         <mat-card-content>
@@ -242,7 +242,7 @@ interface EndpointInfo {
         @defer (on viewport) {
             <mat-card appearance="outlined" class="section-card">
                 <mat-card-header>
-                    <mat-icon mat-card-avatar>compare_arrows</mat-icon>
+                    <mat-icon mat-card-avatar aria-hidden="true">compare_arrows</mat-icon>
                     <mat-card-title>API Endpoint Comparison</mat-card-title>
                     <mat-card-subtitle>All available compilation and monitoring endpoints</mat-card-subtitle>
                 </mat-card-header>

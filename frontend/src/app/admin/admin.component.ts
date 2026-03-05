@@ -49,7 +49,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
         @if (!auth.isAuthenticated()) {
             <mat-card appearance="outlined" class="auth-card mb-2">
                 <mat-card-header>
-                    <mat-icon mat-card-avatar style="color: var(--mat-sys-tertiary)">lock</mat-icon>
+                    <mat-icon mat-card-avatar style="color: var(--mat-sys-tertiary)" aria-hidden="true">lock</mat-icon>
                     <mat-card-title>Authentication Required</mat-card-title>
                     <mat-card-subtitle>Enter your admin key to access storage management</mat-card-subtitle>
                 </mat-card-header>
@@ -59,10 +59,10 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                             <mat-label>Admin Key</mat-label>
                             <input matInput type="password" [(ngModel)]="keyInput"
                                 (keyup.enter)="authenticate()" placeholder="X-Admin-Key" />
-                            <mat-icon matSuffix>vpn_key</mat-icon>
+                            <mat-icon matSuffix aria-hidden="true">vpn_key</mat-icon>
                         </mat-form-field>
                         <button mat-raised-button color="primary" (click)="authenticate()">
-                            <span><mat-icon>login</mat-icon> Authenticate</span>
+                            <span><mat-icon aria-hidden="true">login</mat-icon> Authenticate</span>
                         </button>
                     </div>
                 </mat-card-content>
@@ -77,11 +77,11 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                     <div class="status-bar">
                         <mat-chip-set>
                             <mat-chip highlighted color="primary">
-                                <mat-icon>check_circle</mat-icon> Authenticated
+                                <mat-icon aria-hidden="true">check_circle</mat-icon> Authenticated
                             </mat-chip>
                         </mat-chip-set>
                         <button mat-stroked-button color="warn" (click)="auth.clearKey()">
-                            <span><mat-icon>logout</mat-icon> Logout</span>
+                            <span><mat-icon aria-hidden="true">logout</mat-icon> Logout</span>
                         </button>
                     </div>
                 </mat-card-content>
@@ -90,7 +90,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
             <!-- Stats -->
             <mat-card appearance="outlined" class="mb-2">
                 <mat-card-header>
-                    <mat-icon mat-card-avatar>bar_chart</mat-icon>
+                    <mat-icon mat-card-avatar aria-hidden="true">bar_chart</mat-icon>
                     <mat-card-title>Storage Stats</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
@@ -129,22 +129,22 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
             <!-- Actions -->
             <mat-card appearance="outlined" class="mb-2">
                 <mat-card-header>
-                    <mat-icon mat-card-avatar>settings</mat-icon>
+                    <mat-icon mat-card-avatar aria-hidden="true">settings</mat-icon>
                     <mat-card-title>Actions</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
                     <div class="actions-row">
                         <button mat-stroked-button (click)="clearCache()">
-                            <span><mat-icon>delete_sweep</mat-icon> Clear Cache</span>
+                            <span><mat-icon aria-hidden="true">delete_sweep</mat-icon> Clear Cache</span>
                         </button>
                         <button mat-stroked-button (click)="clearExpired()">
-                            <span><mat-icon>auto_delete</mat-icon> Clear Expired</span>
+                            <span><mat-icon aria-hidden="true">auto_delete</mat-icon> Clear Expired</span>
                         </button>
                         <button mat-stroked-button (click)="vacuum()">
-                            <span><mat-icon>compress</mat-icon> Vacuum DB</span>
+                            <span><mat-icon aria-hidden="true">compress</mat-icon> Vacuum DB</span>
                         </button>
                         <button mat-stroked-button (click)="exportData()">
-                            <span><mat-icon>download</mat-icon> Export</span>
+                            <span><mat-icon aria-hidden="true">download</mat-icon> Export</span>
                         </button>
                     </div>
                     @if (actionResult()) {
@@ -156,7 +156,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
             <!-- SQL Query -->
             <mat-card appearance="outlined" class="mb-2">
                 <mat-card-header>
-                    <mat-icon mat-card-avatar>terminal</mat-icon>
+                    <mat-icon mat-card-avatar aria-hidden="true">terminal</mat-icon>
                     <mat-card-title>SQL Query (Read-only)</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
@@ -170,7 +170,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                     </mat-form-field>
                     @if (sqlWarning()) {
                         <p style="color: var(--mat-sys-error); margin-bottom: 8px;">
-                            <mat-icon style="vertical-align: middle; font-size: 18px;">block</mat-icon>
+                            <mat-icon style="vertical-align: middle; font-size: 18px;" aria-hidden="true">block</mat-icon>
                             {{ sqlWarning() }}
                         </p>
                     }
@@ -179,7 +179,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                         @if (queryResource.isLoading()) {
                             <mat-progress-spinner diameter="20" mode="indeterminate" />
                         } @else {
-                            <span><mat-icon>play_arrow</mat-icon> Execute</span>
+                            <span><mat-icon aria-hidden="true">play_arrow</mat-icon> Execute</span>
                         }
                     </button>
 
