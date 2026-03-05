@@ -1456,7 +1456,7 @@ function handleInfo(request: Request, env: Env): Response {
     const wantsHtml = accept.includes('text/html') && searchParams.get('format') !== 'json';
 
     if (wantsHtml) {
-        return Response.redirect(new URL('/api.html', request.url).toString(), 302);
+        return Response.redirect(new URL('/api-docs', request.url).toString(), 302);
     }
 
     const info = {
@@ -1576,7 +1576,7 @@ async function serveStaticFile(env: Env, filename: string): Promise<Response> {
     }
   }'</pre>
   
-    <p><a href="/api">View full API documentation →</a></p>
+    <p><a href="/api-docs">View full API documentation →</a></p>
 </body>
 </html>`;
 
@@ -3534,15 +3534,14 @@ export default {
                         return response;
                     }
 
-                    // Directory index fallback: for paths without a file extension (e.g. /some-dir, /some-dir/),
-                    // try serving {path}/index.html so that directory-based routes work correctly.
+                    // SPA fallback: for paths without a file extension (e.g. Angular routes like /api-docs, /compiler),
+                    // serve the root index.html so the Angular router handles the route client-side.
                     // The regex checks for a dot followed by non-slash chars at the end, indicating a file extension.
                     if (!pathname.match(/\.[^/]+$/)) {
-                        const normalizedPath = pathname.replace(/\/$/, '');
-                        const indexUrl = new URL(`${normalizedPath}/index.html`, 'http://assets');
-                        const indexResponse = await env.ASSETS.fetch(indexUrl);
-                        if (indexResponse.ok) {
-                            return indexResponse;
+                        const spaUrl = new URL('/index.html', 'http://assets');
+                        const spaResponse = await env.ASSETS.fetch(spaUrl);
+                        if (spaResponse.ok) {
+                            return spaResponse;
                         }
                     }
                 } catch (error) {
