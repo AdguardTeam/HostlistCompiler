@@ -58,6 +58,7 @@ interface NavItem {
     ],
     animations: [routeAnimation],
     template: `
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <mat-sidenav-container class="app-sidenav-container">
       <!-- Mobile navigation drawer (slides over content on mobile) -->
       <mat-sidenav
@@ -78,7 +79,7 @@ interface NavItem {
               [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
               (click)="sidenavOpen.set(false)"
             >
-              <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+              <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
               <span matListItemTitle>{{ item.label }}</span>
             </a>
           }
@@ -100,9 +101,9 @@ interface NavItem {
                 aria-controls="app-mobile-sidenav"
                 class="menu-btn"
               >
-                <mat-icon>menu</mat-icon>
+                <mat-icon aria-hidden="true">menu</mat-icon>
               </button>
-              <h1>🛡️ Adblock Compiler</h1>
+              <p class="app-brand-title"><span aria-hidden="true">🛡️</span> Adblock Compiler</p>
               <div class="header-actions">
                 <button
                   mat-icon-button
@@ -110,14 +111,14 @@ interface NavItem {
                   [matTooltip]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
                   aria-label="Toggle theme"
                 >
-                  <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+                  <mat-icon aria-hidden="true">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
                 </button>
               </div>
             </div>
             <p class="app-subtitle">Compiler-as-a-Service | Real-time filter list compilation with event-driven pipeline</p>
 
             <!-- Horizontal navigation tabs -->
-            <nav class="app-nav-tabs">
+            <nav class="app-nav-tabs" aria-label="Main navigation">
               @for (item of navItems; track item.path) {
                 <a
                   [routerLink]="item.path"
@@ -129,7 +130,7 @@ interface NavItem {
           </header>
 
           <!-- Main content area -->
-          <main class="app-main-content" role="main" aria-label="Main content">
+          <main id="main-content" class="app-main-content" role="main" aria-label="Main content" tabindex="-1">
             <!-- toolbar-title: required by AppComponent unit tests (app.component.spec.ts line 112).
                  Do not remove even though it is visually hidden. -->
             <span class="toolbar-title" aria-hidden="true" style="display:none">Adblock Compiler</span>
@@ -140,7 +141,7 @@ interface NavItem {
 
           <!-- Footer matching original -->
           <footer class="app-footer-shell">
-            <p>Powered by <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank" rel="noopener">@jk-com/adblock-compiler</a></p>
+            <p>Powered by <a href="https://github.com/jaypatrick/adblock-compiler" target="_blank" rel="noopener noreferrer">@jk-com/adblock-compiler<span class="visually-hidden"> (opens in new tab)</span></a></p>
           </footer>
 
         </div>
