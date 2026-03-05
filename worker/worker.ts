@@ -1446,7 +1446,8 @@ async function handleCompileBatchAsync(
 
 /**
  * Handle GET requests - return API info and example.
- * When the caller is a browser (Accept: text/html), redirect to the styled documentation page.
+ * When the caller is a browser (Accept: text/html) AND static assets are available (env.ASSETS),
+ * redirect to the styled documentation page at /api-docs. Otherwise return a JSON response.
  * @param request - The incoming HTTP request used for content negotiation.
  * @param env - The worker environment bindings.
  */
@@ -3538,7 +3539,7 @@ export default {
                     // Only applies to browser navigation requests (Accept: text/html), extensionless paths that
                     // are not served by a server-side handler. Server-handled prefixes are excluded so that unknown
                     // API routes continue to return 404 rather than the Angular shell with a 200.
-                    const serverPrefixes = ['/api', '/metrics', '/queue', '/admin', '/workflow', '/health', '/ws', '/compile', '/ast'];
+                    const serverPrefixes = ['/api', '/metrics', '/queue', '/admin/storage', '/workflow', '/health', '/ws', '/compile', '/ast'];
                     const isServerPath = serverPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
                     const acceptsHtml = (request.headers.get('Accept') ?? '').includes('text/html');
                     if (!pathname.match(/\.[^/]+$/) && !isServerPath && acceptsHtml) {
