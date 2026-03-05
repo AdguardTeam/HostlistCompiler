@@ -144,6 +144,7 @@ See the [GitHub issue #587](https://github.com/jaypatrick/adblock-compiler/issue
 
 ## References
 
+- [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md) — Mermaid diagrams: storage tiers, data flow, auth, migration, schema relationships
 - [DATABASE_EVALUATION.md](../DATABASE_EVALUATION.md) — Full vendor comparison
 - [PRISMA_EVALUATION.md](../PRISMA_EVALUATION.md) — Storage adapter patterns
 - [PlanetScale Postgres + Workers](https://planetscale.com/docs/postgres/tutorials/planetscale-postgres-cloudflare-workers)
