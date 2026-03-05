@@ -29,22 +29,9 @@ import {
     handleAdminStorageStats,
     handleAdminVacuum,
 } from './handlers/admin.ts';
-import {
-    handleCreateApiKey,
-    handleCreateUser,
-    handleListApiKeys,
-    handleRevokeApiKey,
-    handleValidateApiKey,
-} from './handlers/auth-admin.ts';
+import { handleCreateApiKey, handleCreateUser, handleListApiKeys, handleRevokeApiKey, handleValidateApiKey } from './handlers/auth-admin.ts';
 import { handleMigrateD1ToPg } from './handlers/migrate.ts';
-import {
-    handleBackendStatus,
-    handlePgClearCache,
-    handlePgClearExpired,
-    handlePgExport,
-    handlePgQuery,
-    handlePgStorageStats,
-} from './handlers/pg-admin.ts';
+import { handleBackendStatus, handlePgClearCache, handlePgClearExpired, handlePgExport, handlePgQuery, handlePgStorageStats } from './handlers/pg-admin.ts';
 
 // Re-export Env type for external use
 export type { Env };
@@ -70,7 +57,7 @@ function createPgPool(connectionString: string): {
             } catch {
                 throw new Error(
                     'pg module not available. Install with: npm install pg. ' +
-                    'Ensure node_compat = true in wrangler.toml.',
+                        'Ensure node_compat = true in wrangler.toml.',
                 );
             }
         }
