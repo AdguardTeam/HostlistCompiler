@@ -15,7 +15,7 @@ import {
     CreateUserSchema,
 } from './schemas.ts';
 
-const VALID_UUID = '00000000-0000-4000-8000-000000000001';
+const VALID_UUID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const VALID_HASH = 'a'.repeat(64);
 const VALID_URL = 'https://example.com/list.txt';
 
