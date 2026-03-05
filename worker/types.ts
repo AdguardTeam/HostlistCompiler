@@ -82,6 +82,23 @@ export interface WorkflowStatusResult {
 }
 
 // ============================================================================
+// Hyperdrive Binding
+// ============================================================================
+
+/**
+ * Cloudflare Hyperdrive binding type.
+ * Provides accelerated PostgreSQL connectivity via Cloudflare's edge network.
+ */
+export interface HyperdriveBinding {
+    connectionString: string;
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+}
+
+// ============================================================================
 // Environment Bindings
 // ============================================================================
 
@@ -109,6 +126,8 @@ export interface Env {
     TURNSTILE_SECRET_KEY?: string;
     // D1 Database binding (optional - for SQLite admin features)
     DB?: D1Database;
+    // Hyperdrive binding (optional - for PlanetScale PostgreSQL via Hyperdrive)
+    HYPERDRIVE?: HyperdriveBinding;
     // Admin authentication key
     ADMIN_KEY?: string;
     // Request body size limit in megabytes (optional - defaults to 1MB)

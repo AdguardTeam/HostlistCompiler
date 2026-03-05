@@ -11,6 +11,7 @@
  * |---------|---------|----------|
  * | `PrismaStorageAdapter` | Prisma ORM (SQLite default) | Local/multi-instance |
  * | `D1StorageAdapter` | Cloudflare D1 | Edge deployments |
+ * | `HyperdriveStorageAdapter` | PostgreSQL via Hyperdrive | PlanetScale (source of truth) |
  *
  * ## Supported Databases (via Prisma)
  *
@@ -420,9 +421,10 @@ export interface IStorageAdapter {
  * |------|---------|-------------|
  * | `prisma` | Prisma ORM | SQL/MongoDB databases (default, uses SQLite) |
  * | `d1` | Cloudflare D1 | Edge SQLite |
+ * | `hyperdrive` | PostgreSQL via Hyperdrive | PlanetScale PostgreSQL (source of truth) |
  * | `memory` | In-memory | Testing only |
  */
-export type StorageAdapterType = 'prisma' | 'd1' | 'memory';
+export type StorageAdapterType = 'prisma' | 'd1' | 'hyperdrive' | 'memory';
 
 /**
  * Configuration options for storage adapters

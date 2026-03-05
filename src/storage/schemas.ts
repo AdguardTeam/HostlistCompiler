@@ -40,7 +40,7 @@ export const CreateApiKeySchema = z.object({
 export const CreateSessionSchema = z.object({
     userId: UuidSchema,
     tokenHash: z.string().min(64).max(128),
-    ipAddress: z.string().ip().optional(),
+    ipAddress: z.string().max(45).optional(),
     userAgent: z.string().max(500).optional(),
     expiresAt: z.coerce.date(),
 });
@@ -77,7 +77,7 @@ export const CreateFilterListVersionSchema = z.object({
 export const CreateCompiledOutputSchema = z.object({
     configHash: z.string().min(64).max(128),
     configName: z.string().min(1).max(200),
-    configSnapshot: z.record(z.unknown()),
+    configSnapshot: z.record(z.string(), z.unknown()),
     ruleCount: z.number().int().min(0),
     sourceCount: z.number().int().min(1),
     durationMs: z.number().int().min(0),
