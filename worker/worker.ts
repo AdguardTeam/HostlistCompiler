@@ -87,6 +87,25 @@ const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR = 'Queue bindings are not available. ' 
     'Alternatively, use the synchronous endpoints: POST /compile or POST /compile/batch';
 
 /**
+ * Server-handled path prefixes that must NOT be intercepted by the SPA fallback.
+ * Browser navigations to paths under these prefixes should return a real 404/error
+ * rather than the Angular shell with a 200.
+ * Note: use the most-specific prefix needed — e.g. '/admin/storage' (not '/admin') so
+ * that the Angular /admin route is still served by the SPA fallback.
+ */
+const SPA_SERVER_PREFIXES: readonly string[] = [
+    '/api',
+    '/metrics',
+    '/queue',
+    '/admin/storage',
+    '/workflow',
+    '/health',
+    '/ws',
+    '/compile',
+    '/ast',
+];
+
+/**
  * In-memory map for request deduplication
  * Maps cache keys to pending compilation promises
  */
@@ -1454,7 +1473,7 @@ async function handleCompileBatchAsync(
 function handleInfo(request: Request, env: Env): Response {
     const accept = request.headers.get('Accept') ?? '';
     const searchParams = new URL(request.url).searchParams;
-    const wantsHtml = env.ASSETS && accept.includes('text/html') && searchParams.get('format') !== 'json';
+    const wantsHtml = Boolean(env.ASSETS) && accept.includes('text/html') && searchParams.get('format') !== 'json';
 
     if (wantsHtml) {
         return Response.redirect(new URL('/api-docs', request.url).toString(), 302);
@@ -3539,8 +3558,7 @@ export default {
                     // Only applies to browser navigation requests (Accept: text/html), extensionless paths that
                     // are not served by a server-side handler. Server-handled prefixes are excluded so that unknown
                     // API routes continue to return 404 rather than the Angular shell with a 200.
-                    const serverPrefixes = ['/api', '/metrics', '/queue', '/admin/storage', '/workflow', '/health', '/ws', '/compile', '/ast'];
-                    const isServerPath = serverPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+                    const isServerPath = SPA_SERVER_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
                     const acceptsHtml = (request.headers.get('Accept') ?? '').includes('text/html');
                     if (!pathname.match(/\.[^/]+$/) && !isServerPath && acceptsHtml) {
                         const spaUrl = new URL('/index.html', 'http://assets');
