@@ -69,7 +69,25 @@ flowchart TB
 
 ## Request Data Flow
 
-End-to-end path for a compilation request, showing which tier is consulted at each step:
+### Current behaviour (Phase 1)
+
+The compile handler today only consults the KV cache (`COMPILATION_CACHE`). D1, PostgreSQL, and R2 are **not** in the hot compile path yet:
+
+```mermaid
+flowchart TD
+    REQ([Incoming Request\nPOST /compile]) --> KV_CHECK{L0 KV\ncache hit?}
+
+    KV_CHECK -->|Hit| RETURN_KV([Return cached result\n~1–5 ms])
+    KV_CHECK -->|Miss| DO_COMPILE[Run in-memory\ntransformation pipeline]
+    DO_COMPILE --> KV_WRITE[L0: SET compiled result\nin COMPILATION_CACHE\nTTL 60 s]
+    KV_WRITE --> RESPOND([Return response])
+
+    style RETURN_KV fill:#fff9c4,stroke:#fbc02d
+```
+
+### Target behaviour (Phase 5 — planned)
+
+Once the full Hyperdrive/R2 integration is complete (Phases 2–5), the flow will traverse all storage tiers:
 
 ```mermaid
 flowchart TD
@@ -111,7 +129,27 @@ flowchart TD
 
 ## Write Path
 
-How writes propagate through the storage tiers to ensure consistency:
+### Current behaviour (Phase 1)
+
+Today `POST /compile` writes only to the KV cache:
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant W as Worker
+    participant KV as L0 KV (COMPILATION_CACHE)
+
+    C->>W: POST /compile (with filter sources)
+
+    Note over W: Run in-memory transformation pipeline<br/>and compile filter list
+
+    W->>KV: SET compiled result (TTL 60s)
+    W-->>C: 200 OK (compiled filter list)
+```
+
+### Target behaviour (Phase 5 — planned)
+
+Once Phase 2–5 are implemented, writes will propagate through all tiers:
 
 ```mermaid
 sequenceDiagram
@@ -131,8 +169,8 @@ sequenceDiagram
     Note over W: Run transformation pipeline if stale
 
     W->>R2: PUT new compiled blob → new r2_key
-    W->>PG: INSERT CompiledOutput (r2_key, checksum, size)
-    W->>PG: INSERT CompilationEvent (duration, rule counts)
+    W->>PG: INSERT CompiledOutput (config_hash, r2_key, rule_count)
+    W->>PG: INSERT CompilationEvent (duration_ms, cache_hit)
     W->>D1: UPSERT cache entry (TTL 60–300s)
     W->>KV: SET cached result (TTL 60s)
     W-->>C: 200 OK (compiled filter list)
@@ -142,33 +180,43 @@ sequenceDiagram
 
 ## Authentication Flow
 
-API key authentication with PostgreSQL as the authority:
+API key authentication as implemented in `worker/middleware/auth.ts` (`authenticateRequest`):
 
 ```mermaid
 flowchart TD
-    REQ([Request with\nBearer token]) --> EXTRACT[Extract token\nfrom Authorization header]
+    REQ([Request]) --> HAS_BEARER{Authorization header\nwith Bearer token?}
+
+    HAS_BEARER -->|Yes| HAS_HD{Hyperdrive binding\navailable?}
+    HAS_HD -->|No| ADMIN_HEADER
+    HAS_HD -->|Yes| EXTRACT[Extract token\nfrom Authorization header]
     EXTRACT --> HASH[SHA-256 hash\nthe raw token]
     HASH --> PG_LOOKUP[L2: SELECT api_keys\nWHERE key_hash = $1]
 
     PG_LOOKUP --> FOUND{Key found?}
-    FOUND -->|No| FALLBACK{Static\nADMIN_KEY\nmatch?}
-    FALLBACK -->|No| REJECT([401 Unauthorized])
-    FALLBACK -->|Yes| ADMIN_OK([Proceed as admin])
+    FOUND -->|No| REJECT([401 Unauthorized])
 
-    FOUND -->|Yes| ACTIVE{is_active\n= true?}
-    ACTIVE -->|No| REJECT
-    ACTIVE -->|Yes| EXPIRY{expires_at\ncheck}
+    FOUND -->|Yes| REVOKED{revoked_at\nIS NULL?}
+    REVOKED -->|No| REJECT
+    REVOKED -->|Yes| EXPIRY{expires_at\nin the future\nor NULL?}
     EXPIRY -->|Expired| REJECT
     EXPIRY -->|Valid| SCOPE[Validate request\nscope vs key scopes]
     SCOPE -->|Insufficient| REJECT403([403 Forbidden])
     SCOPE -->|OK| UPDATE_USED[Fire-and-forget:\nUPDATE last_used_at]
     UPDATE_USED --> PROCEED([Proceed with request])
 
+    HAS_BEARER -->|No| ADMIN_HEADER{X-Admin-Key\nheader present?}
+    ADMIN_HEADER -->|No| REJECT
+    ADMIN_HEADER -->|Yes| ADMIN_MATCH{X-Admin-Key equals\nstatic ADMIN_KEY?}
+    ADMIN_MATCH -->|No| REJECT
+    ADMIN_MATCH -->|Yes| ADMIN_OK([Proceed as admin])
+
     style REJECT fill:#ffcdd2,stroke:#d32f2f
     style REJECT403 fill:#ffcdd2,stroke:#d32f2f
     style PROCEED fill:#c8e6c9,stroke:#388e3c
     style ADMIN_OK fill:#c8e6c9,stroke:#388e3c
 ```
+
+> **Header routing**: Bearer token → Hyperdrive API key auth. No Bearer token (or no Hyperdrive binding) → `X-Admin-Key` static key fallback.
 
 ---
 
@@ -232,66 +280,96 @@ flowchart LR
 
 ## Schema Relationships
 
-Core PostgreSQL model relationships:
+Core PostgreSQL model relationships derived from `prisma/schema.prisma`.
+Field names reflect the underlying **database column names** (snake_case); Prisma model field names are the camelCase equivalents (e.g., `display_name` → `displayName`).
 
 ```mermaid
 erDiagram
     User {
         uuid id PK
-        string username
         string email
-        boolean is_active
+        string display_name
+        string role
         timestamp created_at
+        timestamp updated_at
     }
 
     ApiKey {
         uuid id PK
         uuid user_id FK
         string key_hash
+        string key_prefix
+        string name
         string[] scopes
-        boolean is_active
-        timestamp expires_at
+        int rate_limit_per_minute
         timestamp last_used_at
+        timestamp expires_at
+        timestamp revoked_at
+        timestamp created_at
+        timestamp updated_at
     }
 
     Session {
         uuid id PK
         uuid user_id FK
         string token_hash
+        string ip_address
+        string user_agent
         timestamp expires_at
+        timestamp created_at
     }
 
     FilterSource {
         uuid id PK
-        string name
         string url
-        string format
-        boolean is_enabled
+        string name
+        string description
+        boolean is_public
+        string owner_user_id
+        int refresh_interval_seconds
+        int consecutive_failures
+        string status
+        timestamp last_checked_at
+        timestamp created_at
+        timestamp updated_at
     }
 
     FilterListVersion {
         uuid id PK
         uuid source_id FK
         string content_hash
+        int rule_count
+        string etag
+        string r2_key
         boolean is_current
         timestamp fetched_at
+        timestamp expires_at
     }
 
     CompiledOutput {
         uuid id PK
-        uuid source_id FK
+        string config_hash
+        string config_name
+        json config_snapshot
+        int rule_count
+        int source_count
+        int duration_ms
         string r2_key
-        string checksum
-        integer rule_count
-        timestamp compiled_at
+        string owner_user_id
+        timestamp created_at
+        timestamp expires_at
     }
 
     CompilationEvent {
         uuid id PK
-        uuid output_id FK
-        integer duration_ms
-        integer rules_in
-        integer rules_out
+        uuid compiled_output_id FK
+        string user_id
+        string api_key_id
+        string request_source
+        string worker_region
+        int duration_ms
+        boolean cache_hit
+        string error_message
         timestamp created_at
     }
 
@@ -299,22 +377,28 @@ erDiagram
         uuid id PK
         uuid source_id FK
         string status
-        integer latency_ms
-        timestamp checked_at
+        int total_attempts
+        int successful_attempts
+        int failed_attempts
+        int consecutive_failures
+        float avg_duration_ms
+        float avg_rule_count
+        timestamp recorded_at
     }
 
     SourceChangeEvent {
         uuid id PK
         uuid source_id FK
-        string change_type
-        string details
+        string previous_version_id
+        string new_version_id
+        int rule_count_delta
+        boolean content_hash_changed
         timestamp detected_at
     }
 
     User ||--o{ ApiKey : "owns"
     User ||--o{ Session : "has"
     FilterSource ||--o{ FilterListVersion : "has versions"
-    FilterSource ||--o{ CompiledOutput : "compiled as"
     FilterSource ||--o{ SourceHealthSnapshot : "monitored by"
     FilterSource ||--o{ SourceChangeEvent : "changes tracked by"
     CompiledOutput ||--o{ CompilationEvent : "recorded in"
