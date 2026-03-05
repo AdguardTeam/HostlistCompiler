@@ -36,6 +36,7 @@ import {
     handleRevokeApiKey,
     handleValidateApiKey,
 } from './handlers/auth-admin.ts';
+import { handleMigrateD1ToPg } from './handlers/migrate.ts';
 
 // Re-export Env type for external use
 export type { Env };
@@ -324,6 +325,17 @@ const routes: Route[] = [
         handler: async (req, env) => {
             if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
             return handleValidateApiKey(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+
+    // Migration endpoint (D1 -> PostgreSQL)
+    {
+        method: 'POST',
+        pattern: '/admin/migrate/d1-to-pg',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleMigrateD1ToPg(req, env, env.HYPERDRIVE, createPgPool);
         },
         requireAuth: true,
     },
