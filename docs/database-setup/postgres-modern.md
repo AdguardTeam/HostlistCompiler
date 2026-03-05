@@ -1,6 +1,6 @@
 # Modern PostgreSQL Practices
 
-> Target: PostgreSQL 17+ (PlanetScale native PostgreSQL)
+> Target: PostgreSQL 18+ (PlanetScale native PostgreSQL)
 
 ## Extensions
 
@@ -8,13 +8,13 @@ PlanetScale PostgreSQL supports commonly used extensions. The schema leverages:
 
 | Extension | Purpose | Used For |
 |-----------|---------|----------|
-| `uuid-ossp` | UUID generation | Primary keys (`uuid_generate_v4()`) |
+| `pgcrypto` | UUID generation | Primary keys (`gen_random_uuid()`) |
 | `pg_trgm` | Trigram similarity | Future: fuzzy search on filter rule content |
 
 Enable in a migration:
 
 ```sql
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 ```
 
@@ -43,7 +43,8 @@ All tables use `UUID` primary keys instead of auto-incrementing integers:
 
 ### Partial Unique Indexes
 
-`filter_list_versions` uses a partial unique index to enforce "only one current version per source":
+`filter_list_versions` enforces "at most one current version per source" via a partial unique index
+(applied as a raw SQL migration, since Prisma does not support partial indexes in the schema DSL):
 
 ```sql
 CREATE UNIQUE INDEX idx_filter_list_versions_current
@@ -51,7 +52,8 @@ CREATE UNIQUE INDEX idx_filter_list_versions_current
     WHERE is_current = TRUE;
 ```
 
-This is a PostgreSQL-specific feature that SQLite and MySQL don't support.
+This allows unlimited historical (non-current) versions while still guaranteeing uniqueness for
+the active version. It is a PostgreSQL-specific feature that SQLite and MySQL don't support.
 
 ### Timestamptz
 
@@ -117,7 +119,7 @@ This is planned for Phase 4 (authentication) when per-user data isolation is nee
 ## References
 
 - [PlanetScale PostgreSQL Compatibility](https://planetscale.com/docs/postgres/postgres-compatibility)
-- [PostgreSQL JSONB](https://www.postgresql.org/docs/17/datatype-json.html)
-- [PostgreSQL Arrays](https://www.postgresql.org/docs/17/arrays.html)
-- [PostgreSQL Row-Level Security](https://www.postgresql.org/docs/17/ddl-rowsecurity.html)
-- [PostgreSQL Partial Indexes](https://www.postgresql.org/docs/17/indexes-partial.html)
+- [PostgreSQL JSONB](https://www.postgresql.org/docs/18/datatype-json.html)
+- [PostgreSQL Arrays](https://www.postgresql.org/docs/18/arrays.html)
+- [PostgreSQL Row-Level Security](https://www.postgresql.org/docs/18/ddl-rowsecurity.html)
+- [PostgreSQL Partial Indexes](https://www.postgresql.org/docs/18/indexes-partial.html)

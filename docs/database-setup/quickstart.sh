@@ -3,7 +3,7 @@
 #
 # Usage: bash docs/database-setup/quickstart.sh
 #
-# Prerequisites: Docker installed and running, or native PostgreSQL 17+
+# Prerequisites: Docker installed and running, or native PostgreSQL 18+
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ echo ""
 
 # Check if Docker is available
 if command -v docker &>/dev/null; then
-    echo "[1/4] Starting PostgreSQL 17 via Docker..."
+    echo "[1/4] Starting PostgreSQL 18 via Docker..."
 
     # Stop existing container if running
     if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
@@ -33,24 +33,32 @@ if command -v docker &>/dev/null; then
             -e POSTGRES_PASSWORD="$DB_PASS" \
             -e POSTGRES_DB="$DB_NAME" \
             -p "$DB_PORT:5432" \
-            postgres:17-alpine
+            postgres:18-alpine
         echo "  Container '$CONTAINER_NAME' started."
     fi
 
     # Wait for PostgreSQL to be ready
     echo "  Waiting for PostgreSQL to accept connections..."
+    POSTGRES_READY=0
     for i in {1..30}; do
         if docker exec "$CONTAINER_NAME" pg_isready -U "$DB_USER" &>/dev/null; then
+            POSTGRES_READY=1
             break
         fi
         sleep 1
     done
+
+    if [ "$POSTGRES_READY" -ne 1 ]; then
+        echo "ERROR: PostgreSQL in container '$CONTAINER_NAME' did not become ready within 30 seconds."
+        echo "       Check container logs with: docker logs \"$CONTAINER_NAME\""
+        exit 1
+    fi
 else
     echo "[1/4] Docker not found. Checking for native PostgreSQL..."
     if ! command -v psql &>/dev/null; then
         echo "ERROR: Neither Docker nor PostgreSQL found. Install one of them."
         echo "  Docker: https://docs.docker.com/get-docker/"
-        echo "  PostgreSQL: brew install postgresql@17"
+        echo "  PostgreSQL: brew install postgresql@18"
         exit 1
     fi
 

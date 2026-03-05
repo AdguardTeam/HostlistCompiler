@@ -197,7 +197,7 @@ class_name = "HealthMonitoringWorkflow"
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "126a652809674e4abc722e9777ee4140"
-localConnectionString = "postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev"
+localConnectionString = "postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev"
 
 # ============================================================================
 # Cron Triggers for Scheduled Workflows
