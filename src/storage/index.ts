@@ -22,3 +22,31 @@ export { PrismaStorageAdapter } from './PrismaStorageAdapter.ts';
 
 // Cloudflare D1 storage adapter (for edge deployments)
 export { createD1Storage, D1StorageAdapter, type D1StorageConfig } from './D1StorageAdapter.ts';
+
+// Cloudflare Hyperdrive storage adapter (for PlanetScale PostgreSQL)
+export { createHyperdriveStorage, type HyperdriveBinding, HyperdriveStorageAdapter, type HyperdriveStorageConfig, type PgPoolFactory } from './HyperdriveStorageAdapter.ts';
+
+// Zod validation schemas for database models
+export {
+    CreateApiKeySchema,
+    CreateCompilationEventSchema,
+    CreateCompiledOutputSchema,
+    CreateFilterListVersionSchema,
+    CreateFilterSourceSchema,
+    CreateSessionSchema,
+    CreateSourceChangeEventSchema,
+    CreateSourceHealthSnapshotSchema,
+    CreateUserSchema,
+} from './schemas.ts';
+
+export type {
+    CreateApiKey,
+    CreateCompilationEvent,
+    CreateCompiledOutput,
+    CreateFilterListVersion,
+    CreateFilterSource,
+    CreateSession,
+    CreateSourceChangeEvent,
+    CreateSourceHealthSnapshot,
+    CreateUser,
+} from './schemas.ts';

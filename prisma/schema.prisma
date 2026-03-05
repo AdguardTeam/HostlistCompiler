@@ -1,62 +1,248 @@
-// Prisma Schema for AdBlock Compiler Storage
-// This schema supports SQLite (default), PostgreSQL, and MongoDB
+// Prisma Schema for AdBlock Compiler
+//
+// PostgreSQL via PlanetScale or Neon, accessed through Cloudflare Hyperdrive.
+// Local development uses a local PostgreSQL instance (Docker or native).
 //
 // Usage:
-//   SQLite:     DATABASE_URL="file:./dev.db"
-//   PostgreSQL: DATABASE_URL="postgresql://user:pass@localhost:5432/adblock"
-//   MongoDB:    DATABASE_URL="mongodb://localhost:27017/adblock"
+//   Local:      DATABASE_URL="postgresql://<user>:<password>@127.0.0.1:5432/<db_name>"  # See .env.example or docs/database-setup/local-dev.md
+//   Production: Set via `wrangler secret put DATABASE_URL` (PlanetScale/Neon connection string)
+//
+// Migrations:
+//   npx prisma migrate dev --name <description>   # Create + apply migration locally
+//   npx prisma migrate deploy                      # Apply pending migrations (CI/prod)
 
 generator client {
   provider = "prisma-client"
-  // Deno support is enabled via the runtime setting below.
-  // Note: previewFeatures = ["deno"] is no longer required in recent Prisma versions.
-  output   = "./generator"
-  runtime = "deno"
+  output   = "./generated"
+  // Use edge-compatible runtime for Cloudflare Workers
+  // For local dev with Deno, set runtime = "deno"
 }
 
 datasource db {
-  // Switch provider based on your needs:
-  // - "sqlite" for local/embedded (default)
-  // - "postgresql" for production SQL
-  // - "mongodb" for NoSQL
-  provider = "sqlite"
-  // Note: In Prisma 7, the url is configured in prisma.config.ts, not here
+  provider = "postgresql"
+  // Connection URL is configured in prisma.config.ts (Prisma 7+)
 }
 
-// Default DATABASE_URL for SQLite: "file:./data/adblock.db"
-// The database will be created in the project's data/ directory
+// ============================================================================
+// Authentication
+// ============================================================================
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  email       String   @unique
+  displayName String?  @map("display_name")
+  role        String   @default("user") // admin | user | readonly
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  apiKeys  ApiKey[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+model ApiKey {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+  keyHash            String    @unique @map("key_hash")
+  keyPrefix          String    @map("key_prefix") // first 8 chars for display
+  name               String
+  scopes             String[]  @default(["compile"])
+  rateLimitPerMinute Int       @default(60) @map("rate_limit_per_minute")
+  lastUsedAt         DateTime? @map("last_used_at") @db.Timestamptz
+  expiresAt          DateTime? @map("expires_at") @db.Timestamptz
+  revokedAt          DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tokenHash String   @unique @map("token_hash")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
 
 // ============================================================================
-// Storage Entry - Generic key-value storage with metadata
+// Filter Sources & Versions
+// ============================================================================
+
+model FilterSource {
+  id                     String    @id @default(uuid()) @db.Uuid
+  url                    String    @unique
+  name                   String
+  description            String?
+  homepage               String?
+  license                String?
+  isPublic               Boolean   @default(true) @map("is_public")
+  ownerUserId            String?   @map("owner_user_id") @db.Uuid
+  refreshIntervalSeconds Int       @default(3600) @map("refresh_interval_seconds")
+  lastCheckedAt          DateTime? @map("last_checked_at") @db.Timestamptz
+  lastSuccessAt          DateTime? @map("last_success_at") @db.Timestamptz
+  lastFailureAt          DateTime? @map("last_failure_at") @db.Timestamptz
+  consecutiveFailures    Int       @default(0) @map("consecutive_failures")
+  status                 String    @default("unknown") // healthy | degraded | unhealthy | unknown
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  versions       FilterListVersion[]
+  healthSnapshots SourceHealthSnapshot[]
+  changeEvents   SourceChangeEvent[]
+
+  @@index([status])
+  @@map("filter_sources")
+}
+
+model FilterListVersion {
+  id          String    @id @default(uuid()) @db.Uuid
+  sourceId    String    @map("source_id") @db.Uuid
+  contentHash String    @map("content_hash")
+  ruleCount   Int       @map("rule_count")
+  etag        String?
+  r2Key       String    @map("r2_key") // pointer to R2 object
+  fetchedAt   DateTime  @default(now()) @map("fetched_at") @db.Timestamptz
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz
+  isCurrent   Boolean   @default(false) @map("is_current")
+
+  source FilterSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  // Note: We intentionally avoid a unique constraint on (sourceId, isCurrent) because
+  // that would prevent storing multiple historical (non-current) versions per source.
+  // To enforce "at most one current version per source" at the database level, apply a
+  // PostgreSQL partial unique index via a SQL migration (sourceId maps to source_id column):
+  //   CREATE UNIQUE INDEX idx_filter_list_versions_current ON filter_list_versions(source_id) WHERE is_current = true;
+  @@index([sourceId, isCurrent], name: "idx_filter_list_versions_source_current")
+  @@index([contentHash])
+  @@map("filter_list_versions")
+}
+
+// ============================================================================
+// Compiled Outputs
+// ============================================================================
+
+model CompiledOutput {
+  id             String    @id @default(uuid()) @db.Uuid
+  configHash     String    @unique @map("config_hash")
+  configName     String    @map("config_name")
+  configSnapshot Json      @map("config_snapshot") @db.JsonB
+  ruleCount      Int       @map("rule_count")
+  sourceCount    Int       @map("source_count")
+  durationMs     Int       @map("duration_ms")
+  r2Key          String    @map("r2_key")
+  ownerUserId    String?   @map("owner_user_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz
+
+  events CompilationEvent[]
+
+  @@index([configName])
+  @@index([createdAt(sort: Desc)])
+  @@index([ownerUserId])
+  @@map("compiled_outputs")
+}
+
+// ============================================================================
+// Compilation Events (append-only telemetry)
+// ============================================================================
+
+model CompilationEvent {
+  id               String    @id @default(uuid()) @db.Uuid
+  compiledOutputId String?   @map("compiled_output_id") @db.Uuid
+  userId           String?   @map("user_id") @db.Uuid
+  apiKeyId         String?   @map("api_key_id") @db.Uuid
+  requestSource    String    @map("request_source") // worker | cli | batch_api | workflow
+  workerRegion     String?   @map("worker_region")
+  durationMs       Int       @map("duration_ms")
+  cacheHit         Boolean   @default(false) @map("cache_hit")
+  errorMessage     String?   @map("error_message")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  compiledOutput CompiledOutput? @relation(fields: [compiledOutputId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("compilation_events")
+}
+
+// ============================================================================
+// Source Health Tracking
+// ============================================================================
+
+model SourceHealthSnapshot {
+  id                  String   @id @default(uuid()) @db.Uuid
+  sourceId            String   @map("source_id") @db.Uuid
+  status              String   // healthy | degraded | unhealthy
+  totalAttempts       Int      @default(0) @map("total_attempts")
+  successfulAttempts  Int      @default(0) @map("successful_attempts")
+  failedAttempts      Int      @default(0) @map("failed_attempts")
+  consecutiveFailures Int      @default(0) @map("consecutive_failures")
+  avgDurationMs       Float    @default(0) @map("avg_duration_ms")
+  avgRuleCount        Float    @default(0) @map("avg_rule_count")
+  recordedAt          DateTime @default(now()) @map("recorded_at") @db.Timestamptz
+
+  source FilterSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId])
+  @@index([recordedAt(sort: Desc)])
+  @@map("source_health_snapshots")
+}
+
+model SourceChangeEvent {
+  id                 String   @id @default(uuid()) @db.Uuid
+  sourceId           String   @map("source_id") @db.Uuid
+  previousVersionId  String?  @map("previous_version_id") @db.Uuid
+  newVersionId       String   @map("new_version_id") @db.Uuid
+  ruleCountDelta     Int      @default(0) @map("rule_count_delta")
+  contentHashChanged Boolean  @default(true) @map("content_hash_changed")
+  detectedAt         DateTime @default(now()) @map("detected_at") @db.Timestamptz
+
+  source FilterSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId])
+  @@index([detectedAt(sort: Desc)])
+  @@map("source_change_events")
+}
+
+// ============================================================================
+// Legacy: Generic Key-Value Storage (retained for backward compatibility)
 // ============================================================================
 
 model StorageEntry {
-  id        String   @id @default(cuid())
-  key       String   @unique // Serialized key path (e.g., "cache/filters/source")
-  data      String   // JSON-serialized data
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  expiresAt DateTime?
-  tags      String?  // JSON array of tags
+  id        String    @id @default(cuid())
+  key       String    @unique
+  data      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  expiresAt DateTime? @map("expires_at")
+  tags      String?
 
   @@index([key])
   @@index([expiresAt])
   @@map("storage_entries")
 }
 
-// ============================================================================
-// Filter Cache - Cached filter list downloads
-// ============================================================================
-
 model FilterCache {
-  id        String   @id @default(cuid())
-  source    String   @unique // Source URL or path
-  content   String   // JSON array of filter rules
-  hash      String   // Content hash for validation
-  etag      String?  // ETag from server response
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  expiresAt DateTime?
+  id        String    @id @default(cuid())
+  source    String    @unique
+  content   String
+  hash      String
+  etag      String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  expiresAt DateTime? @map("expires_at")
 
   @@index([source])
   @@index([expiresAt])
@@ -64,8 +250,9 @@ model FilterCache {
 }
 
 // ============================================================================
-// Compilation Metadata - Build history tracking
+// Legacy: Compilation Metadata (retained for backward compatibility with PrismaStorageAdapter)
 // ============================================================================
+// TODO(Phase 2): Migrate callers to use CompiledOutput + CompilationEvent instead.
 
 model CompilationMetadata {
   id          String   @id @default(cuid())
@@ -79,68 +266,4 @@ model CompilationMetadata {
   @@index([configName])
   @@index([timestamp])
   @@map("compilation_metadata")
-}
-
-// ============================================================================
-// Source Snapshot - Point-in-time source state for change detection
-// ============================================================================
-
-model SourceSnapshot {
-  id          String   @id @default(cuid())
-  source      String
-  timestamp   DateTime @default(now())
-  contentHash String
-  ruleCount   Int
-  ruleSample  String?  // JSON array of sample rules
-  etag        String?
-  isCurrent   Boolean  @default(true)
-
-  @@unique([source, isCurrent])
-  @@index([source])
-  @@index([timestamp])
-  @@map("source_snapshots")
-}
-
-// ============================================================================
-// Source Health - Reliability metrics for filter sources
-// ============================================================================
-
-model SourceHealth {
-  id                  String   @id @default(cuid())
-  source              String   @unique
-  status              String   // HealthStatus enum: healthy, degraded, unhealthy, unknown
-  totalAttempts       Int      @default(0)
-  successfulAttempts  Int      @default(0)
-  failedAttempts      Int      @default(0)
-  consecutiveFailures Int      @default(0)
-  averageDuration     Float    @default(0)
-  averageRuleCount    Float    @default(0)
-  lastAttemptAt       DateTime?
-  lastSuccessAt       DateTime?
-  lastFailureAt       DateTime?
-  recentAttempts      String?  // JSON array of recent SourceAttempt records
-  updatedAt           DateTime @updatedAt
-
-  @@index([source])
-  @@index([status])
-  @@map("source_health")
-}
-
-// ============================================================================
-// Source Attempt - Individual fetch attempt record
-// ============================================================================
-
-model SourceAttempt {
-  id        String   @id @default(cuid())
-  source    String
-  timestamp DateTime @default(now())
-  success   Boolean
-  duration  Int      // Duration in milliseconds
-  error     String?
-  ruleCount Int?
-  etag      String?
-
-  @@index([source])
-  @@index([timestamp])
-  @@map("source_attempts")
 }

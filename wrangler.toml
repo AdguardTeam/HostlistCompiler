@@ -190,15 +190,14 @@ name = "health-monitoring-workflow"
 binding = "HEALTH_MONITORING_WORKFLOW"
 class_name = "HealthMonitoringWorkflow"
 
-# Hyperdrive configuration
+# Hyperdrive configuration — PlanetScale PostgreSQL (production)
+# Production connection string is configured via `wrangler hyperdrive update`.
+# Local dev uses localConnectionString which points to a local PostgreSQL instance.
+# See docs/database-setup/local-dev.md for setup instructions.
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "126a652809674e4abc722e9777ee4140"
-# NOTE: Wrangler does NOT interpolate environment variables here.
-# Set this to a real local connection string for development, e.g.:
-#   postgres://username:password@127.0.0.1:5432/database
-# Update the values above to match your local database configuration before running `wrangler dev`.
-localConnectionString = "postgres://username:password@127.0.0.1:5432/database"
+localConnectionString = "postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev"
 
 # ============================================================================
 # Cron Triggers for Scheduled Workflows

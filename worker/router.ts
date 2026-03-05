@@ -29,9 +29,48 @@ import {
     handleAdminStorageStats,
     handleAdminVacuum,
 } from './handlers/admin.ts';
+import { handleCreateApiKey, handleCreateUser, handleListApiKeys, handleRevokeApiKey, handleValidateApiKey } from './handlers/auth-admin.ts';
+import { handleMigrateD1ToPg } from './handlers/migrate.ts';
+import { handleBackendStatus, handlePgClearCache, handlePgClearExpired, handlePgExport, handlePgQuery, handlePgStorageStats } from './handlers/pg-admin.ts';
 
 // Re-export Env type for external use
 export type { Env };
+
+/**
+ * Creates a pg Pool from a connection string.
+ * Uses dynamic import so the module only loads when Hyperdrive is configured.
+ *
+ * Note: Requires `node_compat = true` in wrangler.toml for the `pg` module.
+ * Until pg is installed, this is a placeholder that throws a clear error.
+ */
+function createPgPool(connectionString: string): {
+    query<T = Record<string, unknown>>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount: number | null }>;
+} {
+    // Lazy initialization: create Pool on first query
+    let pool: unknown = null;
+
+    const ensurePool = async () => {
+        if (!pool) {
+            try {
+                const { Pool } = await import('pg');
+                pool = new Pool({ connectionString });
+            } catch {
+                throw new Error(
+                    'pg module not available. Install with: npm install pg. ' +
+                        'Ensure node_compat = true in wrangler.toml.',
+                );
+            }
+        }
+        return pool as { query: (text: string, values?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }> };
+    };
+
+    return {
+        async query<T = Record<string, unknown>>(text: string, values?: unknown[]) {
+            const p = await ensurePool();
+            return p.query(text, values) as Promise<{ rows: T[]; rowCount: number | null }>;
+        },
+    };
+}
 
 /**
  * Route handler type
@@ -235,6 +274,119 @@ const routes: Route[] = [
         method: 'POST',
         pattern: '/admin/storage/query',
         handler: async (req, env) => handleAdminQuery(req, env),
+        requireAuth: true,
+    },
+
+    // Auth admin endpoints (require Hyperdrive)
+    {
+        method: 'POST',
+        pattern: '/admin/auth/users',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleCreateUser(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/auth/api-keys',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleCreateApiKey(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'GET',
+        pattern: '/admin/auth/api-keys',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleListApiKeys(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/auth/api-keys/revoke',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleRevokeApiKey(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/auth/api-keys/validate',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleValidateApiKey(req, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+
+    // Migration endpoint (D1 -> PostgreSQL)
+    {
+        method: 'POST',
+        pattern: '/admin/migrate/d1-to-pg',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handleMigrateD1ToPg(req, env, env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+
+    // Backend health (both D1 and PostgreSQL)
+    {
+        method: 'GET',
+        pattern: '/admin/backends',
+        handler: async (_req, env) => handleBackendStatus(env, env.HYPERDRIVE ? createPgPool : undefined),
+        requireAuth: true,
+    },
+
+    // PostgreSQL admin endpoints (mirror D1 admin endpoints)
+    {
+        method: 'GET',
+        pattern: '/admin/pg/stats',
+        handler: async (_req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handlePgStorageStats(env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'GET',
+        pattern: '/admin/pg/export',
+        handler: async (_req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handlePgExport(env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/pg/clear-expired',
+        handler: async (_req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handlePgClearExpired(env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/pg/clear-cache',
+        handler: async (_req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handlePgClearCache(env.HYPERDRIVE, createPgPool);
+        },
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/pg/query',
+        handler: async (req, env) => {
+            if (!env.HYPERDRIVE) return JsonResponse.serviceUnavailable('Hyperdrive not configured');
+            return handlePgQuery(req, env.HYPERDRIVE, createPgPool);
+        },
         requireAuth: true,
     },
 ];
