@@ -113,23 +113,23 @@ function createPrisma(env: Env): PrismaClient {
 
 ### Local Development
 
-Local dev uses a PostgreSQL instance (Docker or native) with a direct connection:
+Local dev uses a PostgreSQL instance (Docker or native) with a direct connection.
+Set credentials in `.env.local` (see `.env.example`):
 
 ```
-DATABASE_URL="postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev"
+DATABASE_URL="postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev"
 ```
 
 See [local-dev.md](./local-dev.md) for setup instructions.
 
 ### Wrangler Hyperdrive
 
-The `wrangler.toml` Hyperdrive section points to PlanetScale in production and local PostgreSQL in development:
+The `wrangler.toml` Hyperdrive section points to PlanetScale in production.
+For local dev, set the real connection string via env var (see `.env.example`):
 
-```toml
-[[hyperdrive]]
-binding = "HYPERDRIVE"
-id = "126a652809674e4abc722e9777ee4140"
-localConnectionString = "postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev"
+```bash
+# .env.local (gitignored)
+WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE="postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev"
 ```
 
 ## Migration Phases

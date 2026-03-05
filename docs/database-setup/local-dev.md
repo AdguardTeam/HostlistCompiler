@@ -5,20 +5,22 @@
 Run PostgreSQL locally via Docker. No installation needed.
 
 ```bash
-# Start PostgreSQL 17 in Docker
+# Start PostgreSQL 18 in Docker
 docker run -d \
   --name adblock-postgres \
-  -e POSTGRES_USER=adblock \
-  -e POSTGRES_PASSWORD=adblock \
+  -e POSTGRES_USER=<user> \
+  -e POSTGRES_PASSWORD=<password> \
   -e POSTGRES_DB=adblock_dev \
   -p 5432:5432 \
-  postgres:17-alpine
+  postgres:18-alpine
 
 # Verify it's running
 docker ps | grep adblock-postgres
 ```
 
-Connection string: `postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev`
+Connection string: `postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev`
+
+See `.env.example` for the variable names to set in `.env.local`.
 
 ### Docker Compose (alternative)
 
@@ -27,12 +29,12 @@ Add to a `docker-compose.yml` at the project root:
 ```yaml
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: adblock
-      POSTGRES_PASSWORD: adblock
+      POSTGRES_USER: <user>
+      POSTGRES_PASSWORD: <password>
       POSTGRES_DB: adblock_dev
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -49,26 +51,29 @@ docker compose up -d
 
 ```bash
 # Install via Homebrew
-brew install postgresql@17
+brew install postgresql@18
 
 # Start the service
-brew services start postgresql@17
+brew services start postgresql@18
 
-# Create the development database
+# Create the development database and user
 createdb adblock_dev
-createuser adblock --createdb
-psql -c "ALTER USER adblock PASSWORD 'adblock';"
+createuser <user> --createdb
+psql -c "ALTER USER <user> PASSWORD '<password>';"
 ```
 
-Connection string: `postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev`
+Connection string: `postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev`
 
 ## Configure Environment
 
 Set `DATABASE_URL` in your `.env.local` (not committed to git):
 
 ```bash
-DATABASE_URL="postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev"
-DIRECT_DATABASE_URL="postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev"
+# Copy the example file and fill in your local credentials
+cp .env.example .env.local
+# Then edit .env.local and set:
+# DATABASE_URL="postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev"
+# DIRECT_DATABASE_URL="postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev"
 ```
 
 The `.envrc` file loads `.env.local` automatically via `direnv`.
@@ -95,14 +100,13 @@ npx prisma db seed
 
 ## Wrangler Local Dev
 
-Wrangler uses `localConnectionString` for Hyperdrive when running `wrangler dev`:
+Wrangler uses the `WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` env var (or the
+`localConnectionString` placeholder in `wrangler.toml`) for the Hyperdrive binding during
+`wrangler dev`. Set the real value in `.env.local`:
 
-```toml
-# wrangler.toml — already configured
-[[hyperdrive]]
-binding = "HYPERDRIVE"
-id = "126a652809674e4abc722e9777ee4140"
-localConnectionString = "postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev"
+```bash
+# .env.local (gitignored)
+WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE="postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev"
 ```
 
 When you run `npm run dev` (which calls `wrangler dev`), the Hyperdrive binding resolves to your local PostgreSQL instance.
@@ -111,7 +115,7 @@ When you run `npm run dev` (which calls `wrangler dev`), the Hyperdrive binding 
 
 | Environment | DATABASE_URL | How |
 |-------------|-------------|-----|
-| Local dev | `postgresql://adblock:adblock@localhost:5432/adblock_dev` | `.env.local` |
+| Local dev | `postgresql://<user>:<password>@localhost:5432/adblock_dev` | `.env.local` |
 | CI/staging | PlanetScale `development` branch connection string | GitHub Actions secret |
 | Production | PlanetScale `main` branch connection string | `wrangler secret put DATABASE_URL` |
 

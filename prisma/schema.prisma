@@ -4,7 +4,7 @@
 // Local development uses a local PostgreSQL instance (Docker or native).
 //
 // Usage:
-//   Local:      DATABASE_URL="postgresql://adblock:adblock@127.0.0.1:5432/adblock_dev"
+//   Local:      DATABASE_URL="postgresql://<user>:<password>@127.0.0.1:5432/<db_name>"  # See .env.example or docs/database-setup/local-dev.md
 //   Production: Set via `wrangler secret put DATABASE_URL` (PlanetScale/Neon connection string)
 //
 // Migrations:
@@ -119,7 +119,12 @@ model FilterListVersion {
 
   source FilterSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
 
-  @@unique([sourceId, isCurrent], name: "unique_current_version")
+  // Note: We intentionally avoid a unique constraint on (sourceId, isCurrent) because
+  // that would prevent storing multiple historical (non-current) versions per source.
+  // To enforce "at most one current version per source" at the database level, apply a
+  // PostgreSQL partial unique index via a SQL migration (sourceId maps to source_id column):
+  //   CREATE UNIQUE INDEX idx_filter_list_versions_current ON filter_list_versions(source_id) WHERE is_current = true;
+  @@index([sourceId, isCurrent], name: "idx_filter_list_versions_source_current")
   @@index([contentHash])
   @@map("filter_list_versions")
 }
@@ -242,4 +247,23 @@ model FilterCache {
   @@index([source])
   @@index([expiresAt])
   @@map("filter_cache")
+}
+
+// ============================================================================
+// Legacy: Compilation Metadata (retained for backward compatibility with PrismaStorageAdapter)
+// ============================================================================
+// TODO(Phase 2): Migrate callers to use CompiledOutput + CompilationEvent instead.
+
+model CompilationMetadata {
+  id          String   @id @default(cuid())
+  configName  String
+  timestamp   DateTime @default(now())
+  sourceCount Int
+  ruleCount   Int
+  duration    Int      // Duration in milliseconds
+  outputPath  String?
+
+  @@index([configName])
+  @@index([timestamp])
+  @@map("compilation_metadata")
 }
