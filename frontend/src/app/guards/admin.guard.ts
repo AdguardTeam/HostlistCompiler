@@ -6,15 +6,10 @@
  * is a soft check — it allows navigation but prompts for auth.
  */
 
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { CanActivateFn } from '@angular/router';
 
 export const adminGuard: CanActivateFn = () => {
-    const auth = inject(AuthService);
-    const router = inject(Router);
-
     // Allow navigation — the admin component handles the auth form inline.
-    // If we wanted strict blocking: return auth.isAuthenticated() || router.createUrlTree(['/']);
+    // For strict blocking: inject(AuthService).isAuthenticated() || inject(Router).createUrlTree(['/'])
     return true;
 };

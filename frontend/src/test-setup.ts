@@ -31,7 +31,7 @@ if (typeof globalThis.IntersectionObserver === 'undefined') {
         unobserve(): void {}
         disconnect(): void {}
         takeRecords(): IntersectionObserverEntry[] { return []; }
-    } as any;
+    } as unknown as typeof IntersectionObserver;
 }
 
 TestBed.initTestEnvironment(
