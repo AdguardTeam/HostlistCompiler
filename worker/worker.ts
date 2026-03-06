@@ -1642,7 +1642,7 @@ function serveWebUI(): Response {
     <h1>🛡️ Adblock Compiler API</h1>
     <p>The web UI is available for local development only.</p>
     <p>To use the web interface locally, run:</p>
-    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">npm run dev</pre>
+    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">deno task wrangler:dev</pre>
     <p>Then visit: <code>http://localhost:8787</code></p>
     
     <h2>API Endpoints</h2>

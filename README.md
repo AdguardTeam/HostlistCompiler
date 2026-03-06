@@ -1473,10 +1473,10 @@ The compiler runs natively in Cloudflare Workers. A production-ready implementat
 npm install
 
 # Run locally
-npm run dev
+deno task wrangler:dev
 
 # Deploy to Cloudflare
-npm run deploy
+deno task wrangler:deploy
 ```
 
 **Deployment**: A `wrangler.toml` configuration file is provided in the repository root for easy deployment via Cloudflare's Git integration or using `wrangler deploy`.
@@ -1534,10 +1534,10 @@ A Cloudflare Tail Worker is included for advanced logging and monitoring. The ta
 
 ```bash
 # Deploy the tail worker
-npm run tail:deploy
+deno task wrangler:tail:deploy
 
 # View tail worker logs
-npm run tail:logs
+deno task wrangler:tail:logs
 ```
 
 Features:

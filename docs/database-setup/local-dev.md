@@ -109,7 +109,7 @@ Wrangler uses the `WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` env v
 WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE="postgresql://<user>:<password>@127.0.0.1:5432/adblock_dev"
 ```
 
-When you run `npm run dev` (which calls `wrangler dev`), the Hyperdrive binding resolves to your local PostgreSQL instance.
+When you run `deno task wrangler:dev` (which calls `wrangler dev`), the Hyperdrive binding resolves to your local PostgreSQL instance.
 
 ## Switching Environments
 

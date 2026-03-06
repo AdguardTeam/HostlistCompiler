@@ -348,8 +348,8 @@ Production-ready worker with web UI, REST API, WebSocket support, and queue inte
 
 ```bash
 npm install
-npm run dev        # Local development
-npm run deploy     # Deploy to Cloudflare
+deno task wrangler:dev   # Local development
+deno task wrangler:deploy  # Deploy to Cloudflare
 ```
 
 Access at your Cloudflare Workers URL with:

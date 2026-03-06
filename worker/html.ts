@@ -13,6 +13,6 @@ export const HTML_CONTENT = `<!DOCTYPE html>
 <body>
     <h1>Redirecting to Adblock Compiler...</h1>
     <p>If you are not redirected, <a href="https://adblock-compiler.pages.dev">click here</a>.</p>
-    <p>For local development, use: npm run dev</p>
+    <p>For local development, use: deno task wrangler:dev</p>
 </body>
 </html>`;
