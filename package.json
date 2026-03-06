@@ -4,24 +4,12 @@
     "description": "Compiler-as-a-Service for adblock filter lists",
     "type": "module",
     "scripts": {
-        "dev": "wrangler dev",
-        "deploy": "wrangler deploy",
-        "tail": "wrangler tail",
-        "tail:deploy": "wrangler deploy --config wrangler.tail.toml",
-        "tail:dev": "wrangler dev --config wrangler.tail.toml",
-        "tail:logs": "wrangler tail adblock-compiler-tail",
         "ui:build": "npm --prefix frontend run build",
         "ui:dev": "npm --prefix frontend start",
         "ui:test": "npm --prefix frontend run test",
         "ui:lint": "npm --prefix frontend run lint"
     },
     "devDependencies": {
-        "@cloudflare/playwright-mcp": "^0.0.5",
-        "@cloudflare/workers-types": "^4.20260301.1",
-        "@types/node": "^25.3.3",
-        "wrangler": "^4.69.0"
-    },
-    "dependencies": {
-        "@adguard/agtree": "^4.0.1"
+        "@cloudflare/playwright-mcp": "^0.0.5"
     }
 }
