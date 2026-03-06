@@ -17,13 +17,13 @@ The project is built around a **REST + SSE + WebSocket** model on a **Cloudflare
 
 The API surfaces are **narrow, well-defined, and mostly write-heavy or streaming**. GraphQL shines when clients need to query varied shapes of relational data — that is not this API's core use case.
 
-| Concern | Current Solution | GraphQL Alternative | Verdict |
-|---|---|---|---|
-| Compilation | `POST /compile` (JSON) | GraphQL mutation | No benefit — single-purpose, no field selection needed |
-| Streaming progress | `POST /compile/stream` (SSE) | GraphQL subscriptions | REST SSE is simpler and runs natively on Workers |
-| Metrics / health | `GET /metrics`, `GET /health` | GraphQL query | Overkill for fixed-shape responses |
-| Admin storage | `POST /admin/storage/query` (raw SQL) | GraphQL + resolvers | Actually *less* flexible than direct SQL for an admin tool |
-| Queue management | `GET /queue/stats`, etc. | GraphQL query | Simple, fixed-shape — no benefit |
+| Concern            | Current Solution                      | GraphQL Alternative   | Verdict                                                    |
+| ------------------ | ------------------------------------- | --------------------- | ---------------------------------------------------------- |
+| Compilation        | `POST /compile` (JSON)                | GraphQL mutation      | No benefit — single-purpose, no field selection needed     |
+| Streaming progress | `POST /compile/stream` (SSE)          | GraphQL subscriptions | REST SSE is simpler and runs natively on Workers           |
+| Metrics / health   | `GET /metrics`, `GET /health`         | GraphQL query         | Overkill for fixed-shape responses                         |
+| Admin storage      | `POST /admin/storage/query` (raw SQL) | GraphQL + resolvers   | Actually _less_ flexible than direct SQL for an admin tool |
+| Queue management   | `GET /queue/stats`, etc.              | GraphQL query         | Simple, fixed-shape — no benefit                           |
 
 ---
 
@@ -86,15 +86,19 @@ query {
 ## Practical Constraints to Keep in Mind
 
 ### Cloudflare Workers
+
 GraphQL servers (e.g., `graphql-yoga`, `pothos`) do work on Cloudflare Workers, but they add bundle size. The current worker is already substantial — adding a schema runtime and resolver layer has a real cost. Evaluate whether the Worker CPU/memory budget can absorb it.
 
 ### SSE / Streaming
-GraphQL subscriptions over WebSockets *could* replace the current SSE streaming, but the current SSE approach is functional, simpler, and fits the Workers model cleanly. This would be a non-trivial migration for no clear gain.
+
+GraphQL subscriptions over WebSockets _could_ replace the current SSE streaming, but the current SSE approach is functional, simpler, and fits the Workers model cleanly. This would be a non-trivial migration for no clear gain.
 
 ### Deno Compatibility
+
 The primary runtime is Deno 2.4+. Most GraphQL server libraries are Node-first. Before committing, verify that any chosen GraphQL library is compatible with both Deno and the Cloudflare Workers runtime.
 
 ### Type Safety
+
 The project is TypeScript strict-mode throughout. A code-first GraphQL approach using a library like [`pothos`](https://pothos-graphql.dev/) or schema-first with generated types (via `graphql-codegen`) would preserve that type safety. Schema-first with untyped resolvers would be a step backward.
 
 ---
@@ -111,11 +115,11 @@ The project is TypeScript strict-mode throughout. A code-first GraphQL approach 
 
 ## Decision Log
 
-| Date | Decision | Reason |
-|---|---|---|
-| 2026-03-06 | Do not integrate GraphQL now | API is narrow, write-heavy, and streaming-focused; REST + SSE is the right fit |
-| 2026-03-06 | Revisit if multi-tenant data query layer is built | D1/PlanetScale schema is rich enough to justify GraphQL at that point |
+| Date       | Decision                                          | Reason                                                                         |
+| ---------- | ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| 2026-03-06 | Do not integrate GraphQL now                      | API is narrow, write-heavy, and streaming-focused; REST + SSE is the right fit |
+| 2026-03-06 | Revisit if multi-tenant data query layer is built | D1/PlanetScale schema is rich enough to justify GraphQL at that point          |
 
 ---
 
-*This document was generated from a Copilot Chat analysis session on 2026-03-06.*
+_This document was generated from a Copilot Chat analysis session on 2026-03-06._

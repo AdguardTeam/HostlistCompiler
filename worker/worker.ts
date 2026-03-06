@@ -1544,36 +1544,70 @@ function handleCors(): Response {
 }
 
 /**
+ * Fetch a single asset from the ASSETS binding, following any redirects the
+ * binding may issue (301 / 302 / 307 / 308).
+ */
+async function fetchAssetWithRedirects(assets: Fetcher, url: URL): Promise<Response> {
+    let response = await assets.fetch(url);
+    if (response.status === 301 || response.status === 302 || response.status === 307 || response.status === 308) {
+        const location = response.headers.get('Location');
+        if (location) {
+            response = await assets.fetch(new URL(location, url));
+        }
+    }
+    return response;
+}
+
+/**
+ * Return the Angular SPA shell from the ASSETS binding.
+ * Tries index.html first (the canonical name produced by the postbuild script),
+ * then index.csr.html (the raw Angular artifact) as a defensive fallback in case
+ * the postbuild step was skipped (e.g. `ng build` invoked directly).
+ * Both attempts go through fetchAssetWithRedirects so redirect chains are handled
+ * identically to all other asset requests.
+ */
+async function fetchSpaShell(assets: Fetcher): Promise<Response | null> {
+    const htmlResponse = await fetchAssetWithRedirects(assets, new URL('/index.html', ASSETS_BASE_URL));
+    if (htmlResponse.ok) {
+        return htmlResponse;
+    }
+    const csrResponse = await fetchAssetWithRedirects(assets, new URL('/index.csr.html', ASSETS_BASE_URL));
+    if (csrResponse.ok) {
+        return csrResponse;
+    }
+    return null;
+}
+
+/**
  * Serve a static file from static assets.
  */
 async function serveStaticAsset(request: Request, env: Env, pathname: string): Promise<Response> {
     if (env.ASSETS) {
         try {
-            const assetUrl = new URL(pathname === '/' ? '/index.html' : pathname, ASSETS_BASE_URL);
-            let response = await env.ASSETS.fetch(assetUrl);
-
-            // Follow redirects that the ASSETS binding may issue
-            if (response.status === 301 || response.status === 302 || response.status === 307 || response.status === 308) {
-                const location = response.headers.get('Location');
-                if (location) {
-                    response = await env.ASSETS.fetch(new URL(location, assetUrl));
+            // For the root path, serve the Angular SPA shell directly.
+            if (pathname === '/') {
+                const shell = await fetchSpaShell(env.ASSETS);
+                if (shell) {
+                    return shell;
                 }
             }
+
+            const response = await fetchAssetWithRedirects(env.ASSETS, new URL(pathname, ASSETS_BASE_URL));
 
             if (response.ok) {
                 return response;
             }
 
-            // SPA fallback: serve root index.html for Angular client-side routes (e.g. /api-docs, /compiler).
-            // Only applies to browser navigation requests (Accept: text/html), extensionless paths that
-            // are not served by a server-side handler. Server-handled prefixes are excluded so that unknown
-            // API routes continue to return 404 rather than the Angular shell with a 200.
+            // SPA fallback: serve the Angular shell for client-side routes (e.g. /compiler, /api-docs).
+            // Only applies to browser navigation requests (Accept: text/html) for extensionless paths
+            // that are not handled by a server-side route. Server-handled prefixes are excluded so that
+            // unknown API routes return 404 rather than the Angular shell with a 200.
             const isServerPath = SPA_SERVER_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
             const acceptsHtml = (request.headers.get('Accept') ?? '').includes('text/html');
             if (!FILE_EXTENSION_RE.test(pathname) && !isServerPath && acceptsHtml) {
-                const spaResponse = await env.ASSETS.fetch(new URL('/index.html', ASSETS_BASE_URL));
-                if (spaResponse.ok) {
-                    return spaResponse;
+                const shell = await fetchSpaShell(env.ASSETS);
+                if (shell) {
+                    return shell;
                 }
             }
         } catch (error) {
