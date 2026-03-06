@@ -552,3 +552,15 @@ Available transformations (applied in this order):
 - `details`: `object` - 
 
 ---
+
+---
+
+## Additional API Documentation
+
+- [Quick Reference](QUICK_REFERENCE.md) - Common commands and workflows at a glance
+- [OpenAPI Support](OPENAPI_SUPPORT.md) - OpenAPI 3.0 specification details and tooling
+- [OpenAPI Tooling Guide](OPENAPI_TOOLING.md) - Validation, testing, and documentation generation
+- [Streaming API](STREAMING_API.md) - Real-time event streaming via SSE and WebSocket
+- [Batch API Guide](BATCH_API_GUIDE.md) - Parallel compilation with diagrams and examples
+- [Zod Validation](ZOD_VALIDATION.md) - Runtime schema validation for all inputs
+- [AGTree Integration](AGTREE_INTEGRATION.md) - AST-based adblock rule parsing
