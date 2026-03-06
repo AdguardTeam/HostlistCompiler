@@ -100,8 +100,9 @@
 
 /* -----------------------------------------------------------------
    2. Fonts — loaded from npm packages (build-pipeline, no CDN)
-      Latin subset only: reduces CSS bundle size by ~15 kB while
-      covering all characters used in this English-language UI.
+      Latin subsets only: reduce CSS bundle size by ~15 kB and fully
+      cover the static English UI chrome; user content with non-Latin
+      characters will fall back to system/browser fonts.
    ----------------------------------------------------------------- */
 @import '@fontsource/syne/latin-400.css';
 @import '@fontsource/syne/latin-600.css';
