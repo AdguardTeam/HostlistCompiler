@@ -22,13 +22,15 @@ describe('SkeletonTableComponent', () => {
 
     it('should render default 5 rows + 1 header', () => {
         fixture.detectChanges();
-        const rows = fixture.nativeElement.querySelectorAll('.skeleton-row');
-        expect(rows.length).toBe(6); // 1 header + 5 body
+        const rows = fixture.nativeElement.querySelectorAll('[data-testid="skeleton-row"]');
+        const header = fixture.nativeElement.querySelector('[data-testid="skeleton-row-header"]');
+        expect(rows.length).toBe(5);   // 5 body rows
+        expect(header).toBeTruthy();   // 1 header row
     });
 
     it('should render 4 columns by default', () => {
         fixture.detectChanges();
-        const headerCells = fixture.nativeElement.querySelectorAll('.skeleton-row.header .skeleton-cell');
+        const headerCells = fixture.nativeElement.querySelectorAll('[data-testid="skeleton-row-header"] [data-testid="skeleton-cell"]');
         expect(headerCells.length).toBe(4);
     });
 

@@ -6,6 +6,14 @@
    ================================================================= */
 
 /* -----------------------------------------------------------------
+   0. TailwindCSS v4 — utility-first CSS framework
+   ----------------------------------------------------------------- */
+@import "tailwindcss";
+
+/* Dark mode variant: matches existing ThemeService selectors */
+@custom-variant dark (&:where(body.dark-theme *, [data-theme='dark'] *));
+
+/* -----------------------------------------------------------------
    1. Angular Material M3 prebuilt — provides base component styles
       and default --mat-sys-* tokens. MUST be first import.
    ----------------------------------------------------------------- */

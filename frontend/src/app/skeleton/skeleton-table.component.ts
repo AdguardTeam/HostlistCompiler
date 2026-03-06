@@ -18,20 +18,21 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
         <mat-card appearance="outlined">
             <mat-progress-bar mode="buffer" bufferValue="0" />
             <mat-card-content>
-                <div class="skeleton-table">
+                <div class="flex flex-col gap-2 py-2">
                     <!-- Header row -->
-                    <div class="skeleton-row header">
+                    <div data-testid="skeleton-row-header" class="flex gap-3">
                         @for (col of columnArray(); track $index) {
-                            <div class="skeleton-cell shimmer" [style.flex]="col"></div>
+                            <div data-testid="skeleton-cell" class="h-4 rounded animate-pulse bg-[var(--mat-sys-surface-variant)] opacity-80"
+                                 [style.flex]="col"></div>
                         }
                     </div>
                     <!-- Body rows -->
                     @for (row of rowArray(); track $index) {
-                        <div class="skeleton-row">
+                        <div data-testid="skeleton-row" class="flex gap-3">
                             @for (col of columnArray(); track $index) {
-                                <div class="skeleton-cell shimmer"
-                                    [style.flex]="col"
-                                    [style.width]="getCellWidth($index, row)">
+                                <div data-testid="skeleton-cell" class="h-[14px] rounded min-w-[40px] animate-pulse bg-[var(--mat-sys-surface-variant)]"
+                                     [style.flex]="col"
+                                     [style.width]="getCellWidth($index, row)">
                                 </div>
                             }
                         </div>
@@ -40,41 +41,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
             </mat-card-content>
         </mat-card>
     `,
-    styles: [`
-        .skeleton-table {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 8px 0;
-        }
-        .skeleton-row {
-            display: flex;
-            gap: 12px;
-        }
-        .skeleton-row.header .skeleton-cell {
-            height: 16px;
-            opacity: 0.8;
-        }
-        .skeleton-cell {
-            height: 14px;
-            border-radius: 4px;
-            min-width: 40px;
-        }
-        .shimmer {
-            background: linear-gradient(
-                90deg,
-                var(--mat-sys-surface-variant, #e0e0e0) 25%,
-                var(--mat-sys-surface, #f5f5f5) 50%,
-                var(--mat-sys-surface-variant, #e0e0e0) 75%
-            );
-            background-size: 200% 100%;
-            animation: shimmer 1.5s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-    `],
+    styles: [],
 })
 export class SkeletonTableComponent {
     /** Number of data rows */
