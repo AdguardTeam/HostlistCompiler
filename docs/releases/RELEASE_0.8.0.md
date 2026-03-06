@@ -222,7 +222,7 @@ const DashboardState = {
 
 The admin dashboard is production-ready and deployed to:
 
-**Live URL:** https://adblock-compiler.jayson-knight.workers.dev/
+**Live URL:** https://adblock.jaysonknight.com/
 
 **Features:**
 - Cloudflare Workers edge deployment
