@@ -76,12 +76,18 @@ export type { DownloaderOptions } from './downloader/index.ts';
 
 // Configuration and Validation Schemas
 export {
+    AdblockRuleSchema,
     BatchRequestAsyncSchema,
     BatchRequestSchema,
     BatchRequestSyncSchema,
+    BenchmarkMetricsSchema,
+    CliArgumentsSchema,
+    CompilationResultSchema,
     CompileRequestSchema,
     ConfigurationSchema,
     ConfigurationValidator,
+    EnvironmentSchema,
+    EtcHostsRuleSchema,
     HttpFetcherOptionsSchema,
     PlatformCompilerOptionsSchema,
     SourceSchema,
@@ -90,7 +96,9 @@ export {
     ValidationReportSchema,
     ValidationResultSchema,
     ValidationSeveritySchema,
+    WorkerCompilationResultSchema,
 } from './configuration/index.ts';
+export type { AdblockRule, BenchmarkMetrics, CliArguments, CompilationResultOutput, Environment, EtcHostsRule, WorkerCompilationResultOutput } from './configuration/index.ts';
 
 // Transformations
 export {
