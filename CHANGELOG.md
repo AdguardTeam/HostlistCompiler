@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **frontend**: Integrate TailwindCSS v4 with Angular Material Design 3 via `@theme inline` bridge — maps every `--mat-sys-*` token to a semantic Tailwind utility (`bg-surface-variant`, `text-primary`, etc.); dark mode handled automatically through CSS variable swapping; see `docs/frontend/TAILWIND_CSS.md`
+- **frontend**: Add `scripts/postbuild.js` and `npm postbuild` lifecycle hook — copies `index.csr.html` → `index.html` after `ng build` so the Cloudflare Worker `ASSETS` binding and Cloudflare Pages serve the Angular SPA shell correctly when `RenderMode.Client` routes are used
+- **frontend**: Add `src/_redirects` with `/* /index.html 200` for Cloudflare Pages SPA routing fallback; include in Angular build via `assets` array in `angular.json`
+- **frontend**: Expand Zod validation coverage — add `SourceSchema`, `ConfigurationSchema`, `BenchmarkMetricsSchema`, `CompileRequestSchema`, and related schemas to `src/configuration/schemas.ts`; integrate schema validation into `ArgumentParser` and `CliApp`; export all schemas from `src/index.ts`; see `docs/api/ZOD_VALIDATION.md`
 - Integrate framework PoCs (React, Vue 3, Angular, Svelte) into the main project as alpha/experimental code: served under `/poc/` in the production build, linked from the admin dashboard with an ⚗️ Alpha label, and documented in `docs/FRAMEWORK_POCS.md`
 - Documentation: Add missing v0.16.0 release notes for centralized error reporting (Sentry, Cloudflare Analytics Engine, and console backends)
 - Documentation: Add missing v0.16.0 release notes for Zod schema validation for configuration objects and API request bodies
@@ -24,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **frontend**: Migrate all Cloudflare Workers API/asset URLs from `*.workers.dev` development domains to the production domain `adblock.jaysonknight.com` across all documentation, examples, Postman collections, and OpenAPI specs
+- **worker**: Update `serveStaticAsset()` to try `index.html` first (served by postbuild), falling back to `index.csr.html` defensively if the postbuild step was skipped
 - Migrate `zod` from npm to JSR (`jsr:@zod/zod@^4.3.6`)
 - Migrate `@opentelemetry/api` from npm to JSR (`jsr:@opentelemetry/api@^1.9.0`)
 - Improve Deno-native architecture by reducing npm dependencies where JSR alternatives are available
