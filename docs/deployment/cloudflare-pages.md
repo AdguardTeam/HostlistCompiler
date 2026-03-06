@@ -45,9 +45,29 @@ npm run deploy
 wrangler deploy
 ```
 
-#### Pages Deployment
+#### Angular SPA Deployment (Frontend)
 
-For deploying the static UI to Cloudflare Pages:
+The Angular frontend is deployed as part of the Cloudflare Workers bundle via the Worker's **`ASSETS` binding**, **not** as a standalone Cloudflare Pages project. (The "Cloudflare Pages" sections below cover only the legacy `public/` static UI.) The build process requires a postbuild step because Angular's SSR builder with `RenderMode.Client` emits `index.csr.html` instead of `index.html`:
+
+```bash
+cd frontend
+
+# npm run build automatically runs the postbuild lifecycle hook:
+#   1. ng build  → emits dist/frontend/browser/index.csr.html
+#   2. postbuild → copies index.csr.html to index.html
+npm run build
+
+# Deploy the Worker (which serves the Angular SPA via ASSETS binding)
+npm run deploy
+```
+
+The postbuild step is handled by `frontend/scripts/postbuild.js`. If you skip the postbuild, the Cloudflare Worker `ASSETS` binding falls back to `index.csr.html`, but the recommended path is always to run `npm run build` (not `ng build` directly).
+
+**SPA Routing (Worker):** The Cloudflare Worker already handles SPA fallback — extensionless paths not matched by API routes are served the Angular shell (`index.html`) via the `ASSETS` binding. **SPA Routing (Pages-only):** If you deploy the Angular `dist/` output directly to **Cloudflare Pages** instead of serving it via the Worker `ASSETS` binding, you can use a `_redirects` file for SPA routing. In that setup, `frontend/src/_redirects` should contain `/* /index.html 200`, and this file is copied into the browser output root during the Angular build via `angular.json`'s `assets` configuration.
+
+#### Pages Deployment (Legacy static UI)
+
+For deploying the static UI in `public/` to Cloudflare Pages:
 
 ```bash
 # Deploy public directory to Pages

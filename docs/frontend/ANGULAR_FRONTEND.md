@@ -240,6 +240,7 @@ frontend/
 | **Wrangler** | — | Cloudflare Workers CLI (deploy + local dev) |
 | **Vitest** | ^3.0.0 | Fast unit test runner (replaces Karma) |
 | **@analogjs/vitest-angular** | ^1.0.0 | Angular compiler plugin for Vitest |
+| **TailwindCSS** | ^4.x | Utility-first CSS; bridged to Angular Material M3 tokens via `@theme inline` |
 | **Playwright** | — | E2E browser test framework |
 | **@fontsource/roboto** | ^5.x | Roboto font — npm package, no CDN dependency |
 | **material-symbols** | ^0.31.0 | Material Symbols icon font — npm package, no CDN |
@@ -1215,6 +1216,8 @@ binding   = "ASSETS"
 
 ```bash
 # 1. Full production build (SSR bundle + static assets)
+#    The `postbuild` npm lifecycle hook runs automatically after ng build,
+#    copying index.csr.html → index.html so the ASSETS binding serves the SPA shell.
 npm run build
 
 # 2. Preview locally (mirrors Workers runtime exactly)
@@ -1223,6 +1226,13 @@ npm run preview        # wrangler dev → http://localhost:8787
 # 3. Deploy to production
 npm run deploy         # wrangler deploy
 ```
+
+> **Note:** `RenderMode.Client` routes cause Angular's SSR builder to emit
+> `index.csr.html` (CSR = client-side render) instead of `index.html`. The
+> `scripts/postbuild.js` script copies it to `index.html` so the Cloudflare
+> Worker `ASSETS` binding and Cloudflare Pages can locate the SPA shell.
+> A `src/_redirects` file (`/* /index.html 200`) provides the SPA fallback
+> rule for Cloudflare Pages deployments.
 
 ### Edge Compatibility
 
