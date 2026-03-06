@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { type IConfiguration, type ISource, SourceType, TransformationType } from '../types/index.ts';
+import { type IConfiguration, type ISource, type LogLevelType, SourceType, TransformationType } from '../types/index.ts';
 
 // ============================================================================
 // Output types for schemas without matching public interfaces
@@ -357,7 +357,7 @@ type BenchmarkMetricsOutput = {
     outputRuleCount: number;
 };
 
-type WorkerCompilationResultType = CompilationResultBaseOutput & {
+export type WorkerCompilationResultOutput = CompilationResultBaseOutput & {
     metrics?: BenchmarkMetricsOutput;
 };
 
@@ -379,7 +379,7 @@ type EnvironmentOutput = {
     RATE_LIMIT_MAX_REQUESTS?: number;
     RATE_LIMIT_WINDOW_MS?: number;
     CACHE_TTL?: number;
-    LOG_LEVEL?: 'trace' | 'debug' | 'info' | 'warn' | 'error';
+    LOG_LEVEL?: LogLevelType;
     [key: string]: unknown;
 };
 
@@ -434,10 +434,9 @@ export type BenchmarkMetrics = BenchmarkMetricsOutput;
 /**
  * Schema for worker compilation result (extends CompilationResultSchema with optional metrics)
  */
-export const WorkerCompilationResultSchema: z.ZodType<WorkerCompilationResultType> = compilationResultBase.extend({
+export const WorkerCompilationResultSchema: z.ZodType<WorkerCompilationResultOutput> = compilationResultBase.extend({
     metrics: BenchmarkMetricsSchema.optional(),
 });
-export type WorkerCompilationResultOutput = WorkerCompilationResultType;
 
 // ============================================================================
 // CLI and Environment Schemas
