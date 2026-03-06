@@ -32,8 +32,8 @@ deno task check            # Type check
 
 # Build & Deploy
 deno task build            # Build standalone executable
-npm run dev                # Run wrangler dev server (port 8787)
-npm run deploy             # Deploy to Cloudflare Workers
+deno task wrangler:dev     # Run wrangler dev server (port 8787)
+deno task wrangler:deploy  # Deploy to Cloudflare Workers
 
 # Benchmarks
 deno task bench            # Run performance benchmarks
@@ -235,8 +235,8 @@ Minimal external dependencies:
 
 1. Edit `worker/worker.ts`
 2. Update route handlers
-3. Test with `npm run dev`
-4. Deploy with `npm run deploy`
+3. Test with `deno task wrangler:dev`
+4. Deploy with `deno task wrangler:deploy`
 
 ### Adding CLI Options
 

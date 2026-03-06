@@ -78,7 +78,7 @@ npm run build
 npm run preview        # → http://localhost:8787
 
 # 5. Deploy to Cloudflare Workers
-npm run deploy
+deno task wrangler:deploy
 
 # 6. Run unit tests (Vitest)
 npm test               # single pass
@@ -1224,7 +1224,7 @@ npm run build
 npm run preview        # wrangler dev → http://localhost:8787
 
 # 3. Deploy to production
-npm run deploy         # wrangler deploy
+deno task wrangler:deploy  # wrangler deploy
 ```
 
 > **Note:** `RenderMode.Client` routes cause Angular's SSR builder to emit

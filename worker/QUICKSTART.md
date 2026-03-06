@@ -11,7 +11,7 @@ This guide will help you get the Cloudflare Tail Worker up and running in 5 minu
 ## Step 1: Deploy the Tail Worker
 
 ```bash
-npm run tail:deploy
+deno task wrangler:tail:deploy
 ```
 
 This deploys the tail worker to Cloudflare as `adblock-compiler-tail`.
@@ -29,17 +29,17 @@ tail_consumers = [
 Then redeploy the main worker:
 
 ```bash
-npm run deploy
+deno task wrangler:deploy
 ```
 
 ## Step 3: View Logs
 
 ```bash
 # View logs from the tail worker itself
-npm run tail:logs
+deno task wrangler:tail:logs
 
 # Or view logs from the main worker (which also shows what's sent to tail)
-npm run tail
+deno task wrangler:tail
 ```
 
 ## That's it!
@@ -66,7 +66,7 @@ The tail worker is now capturing logs and events from your main worker.
 
 4. Redeploy:
    ```bash
-   npm run tail:deploy
+   deno task wrangler:tail:deploy
    ```
 
 ### Forward Errors to Slack
@@ -81,7 +81,7 @@ The tail worker is now capturing logs and events from your main worker.
 
 3. Redeploy:
    ```bash
-   npm run tail:deploy
+   deno task wrangler:tail:deploy
    ```
 
 Now you'll get Slack notifications when errors occur!
@@ -98,7 +98,7 @@ Now you'll get Slack notifications when errors occur!
 
 3. Redeploy:
    ```bash
-   npm run tail:deploy
+   deno task wrangler:tail:deploy
    ```
 
 ## Troubleshooting
@@ -112,7 +112,7 @@ Now you'll get Slack notifications when errors occur!
 **Webhook not working?**
 
 - Verify the URL is correct in `wrangler.tail.toml`
-- Check tail worker logs: `npm run tail:logs`
+- Check tail worker logs: `deno task wrangler:tail:logs`
 - Ensure only errors are being sent (webhook only triggers on exceptions/errors)
 
 ## Learn More

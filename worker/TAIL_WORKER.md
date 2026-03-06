@@ -28,7 +28,7 @@ The adblock-compiler tail worker provides:
 First, deploy the tail worker to Cloudflare:
 
 ```bash
-npm run tail:deploy
+deno task wrangler:tail:deploy
 ```
 
 This deploys the tail worker as a separate worker named `adblock-compiler-tail`.
@@ -59,7 +59,7 @@ tail_consumers = [
 Then redeploy the main worker:
 
 ```bash
-npm run deploy
+deno task wrangler:deploy
 ```
 
 ### 4. (Optional) Configure Error Webhook
@@ -78,7 +78,7 @@ ERROR_WEBHOOK_URL = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
 To view logs from the tail worker in real-time:
 
 ```bash
-npm run tail:logs
+deno task wrangler:tail:logs
 ```
 
 ### View Main Worker Logs
@@ -86,7 +86,7 @@ npm run tail:logs
 To view logs from the main worker (which are also sent to the tail worker):
 
 ```bash
-npm run tail
+deno task wrangler:tail
 ```
 
 ### Development
@@ -94,7 +94,7 @@ npm run tail
 Run the tail worker locally:
 
 ```bash
-npm run tail:dev
+deno task wrangler:tail:dev
 ```
 
 Note: Local tail workers don't receive events from other local workers. This is primarily for testing the tail worker's code itself.
@@ -222,7 +222,7 @@ Log keys are in the format `log:{timestamp}` where timestamp is the event's Unix
 
 1. Verify the `ERROR_WEBHOOK_URL` is set correctly
 2. Check the webhook endpoint is accessible
-3. Review tail worker logs for error messages: `npm run tail:logs`
+3. Review tail worker logs for error messages: `deno task wrangler:tail:logs`
 4. Ensure events match the filtering criteria in `shouldForwardEvent()`
 
 ### KV storage not working

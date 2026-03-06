@@ -40,7 +40,7 @@ See `.github/workflows/ci.yml` for the deployment configuration.
 npm install
 
 # Deploy worker
-npm run deploy
+deno task wrangler:deploy
 # or
 wrangler deploy
 ```
@@ -58,7 +58,7 @@ cd frontend
 npm run build
 
 # Deploy the Worker (which serves the Angular SPA via ASSETS binding)
-npm run deploy
+deno task wrangler:deploy
 ```
 
 The postbuild step is handled by `frontend/scripts/postbuild.js`. If you skip the postbuild, the Cloudflare Worker `ASSETS` binding falls back to `index.csr.html`, but the recommended path is always to run `npm run build` (not `ng build` directly).
