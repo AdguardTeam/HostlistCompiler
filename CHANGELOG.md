@@ -68,6 +68,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.37.3] - 2026-03-06
+
+### Added### Fixed
+
+- resolve CI #1526 stuck deployment — remove invalid --env=\"\" from wrangler deploy and add timeout
+
+
 ## [0.37.2] - 2026-03-06
 
 ### Added### Fixed

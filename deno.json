@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.37.2",
+    "version": "0.37.3",
     "exports": "./src/index.ts",
     "nodeModulesDir": "auto",
     "publish": {
