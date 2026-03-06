@@ -1,403 +1,286 @@
-# Docker Deployment Guide
+# Docker Configuration
 
-This guide explains how to deploy the Adblock Compiler using Docker containers.
+This project uses Docker and Docker Compose with the layered environment configuration system.
 
 ## Quick Start
 
-### Using Docker Compose (Recommended)
+### Development
 
-1. **Start the container:**
-   ```bash
-   docker-compose up -d
-   ```
+```bash
+# Build and run with development configuration
+docker compose up -d
 
-2. **Access the web UI:**
-   Open http://localhost:8787 in your browser
+# View logs
+docker compose logs -f
 
-3. **Access the API:**
-   The API is available at http://localhost:8787/api
+# Stop
+docker compose down
+```
 
-4. **View logs:**
-   ```bash
-   docker-compose logs -f adblock-compiler
-   ```
+### Production
 
-5. **Stop the container:**
-   ```bash
-   docker-compose down
-   ```
+```bash
+# Set production secrets as environment variables
+export ADMIN_KEY="your_admin_key"
+export TURNSTILE_SECRET_KEY="your_secret_key"
+export DIRECT_DATABASE_URL="your_database_url"
+export PRISMA_DATABASE_URL="your_prisma_url"
+export OPTIMIZE_API_KEY="your_optimize_key"
 
-### Using Docker CLI
+# Build and run with production configuration
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
 
-1. **Build the image:**
-   ```bash
-   docker build -t adblock-compiler:latest .
-   ```
+## Environment Configuration
 
-2. **Run the container:**
-   ```bash
-   docker run -d \
-     --name adblock-compiler \
-     -p 8787:8787 \
-     -e COMPILER_VERSION=0.8.8 \
-     adblock-compiler:latest
-   ```
+The Docker setup integrates with the layered `.env` file system:
 
-3. **Access the application:**
-   Open http://localhost:8787 in your browser
+### File Loading Order
 
-## Container Architecture
+1. **`.env`** - Base configuration (loaded by docker-compose)
+2. **`.env.${ENV}`** - Environment-specific (development or production)
+3. **Environment variables** - Passed via `docker-compose.override.yml` or `-e` flags
 
-The Docker image is built in multiple stages for optimal size and security:
+### Environment Selection
 
-1. **Base Stage**: Node.js 20 runtime with Deno 2.6.7+
-2. **Builder Stage**: Installs npm dependencies (Wrangler)
-3. **Runtime Stage**: Minimal production image with only necessary files
+Set the `ENV` variable to control which environment file is loaded:
 
-### What's Included
+```bash
+# Development (default)
+docker compose up
 
-- ✅ Node.js 20.x runtime
-- ✅ Deno 2.6.7+ (configurable via build argument)
-- ✅ Wrangler (Cloudflare Worker local dev server)
-- ✅ Adblock Compiler library
-- ✅ Web UI (public/ directory)
-- ✅ Cloudflare Worker API (worker/)
-- ✅ direnv for environment variable management
-- ✅ Health checks (requires curl, installed in runtime stage)
-- ✅ Non-root user for security
+# Production
+ENV=production docker compose up
 
-### Important Note
+# Or use the production compose file
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+```
 
-The standalone CLI executable is not included in the Docker image due to JSR (JavaScript Registry) access limitations during the Docker build process. Some Docker build environments may have network restrictions or SSL certificate issues that prevent accessing JSR.
+## Configuration Files
 
-The container is designed to run the Cloudflare Worker with the web UI and API endpoints.
+### docker-compose.yml (Base)
 
-For CLI usage:
+The base configuration that works for all environments:
 
-- Build the executable on your host machine: `deno task build`
-- Mount it as a volume when running the container
-- Or use the web UI/API endpoints which provide the same functionality
+- Defines service structure
+- Loads `.env` and `.env.${ENV}` files
+- Sets up volumes and networks
+- Configures health checks
 
-## Configuration
+### docker-compose.override.yml (Development)
 
-### Environment Variables
+Automatically merged in development, adds:
 
-The container supports the following environment variables:
+- Source code volume mounts for live reloading
+- Development-specific settings
+- Template for local secrets
 
-|| Variable           | Default      | Description                 |
-|| ------------------ | ------------ | --------------------------- |
-|| `COMPILER_VERSION` | `0.8.8`      | Compiler version identifier |
-|| `PORT`             | `8787`       | Port for the web server     |
-|| `DENO_DIR`         | `/app/.deno` | Deno cache directory        |
+### docker-compose.prod.yml (Production)
+
+Production-specific configuration:
+
+- Uses `.env.production`
+- Expects secrets from environment variables
+- Resource limits and constraints
+- Always-restart policy
+
+## Secrets Management
+
+### Development
+
+Option 1 - Use `.env.local` (recommended):
+
+```bash
+# Create .env.local with your secrets
+cp .env.example .env.local
+# Edit .env.local with actual values
+
+# Note: .env.local is excluded from Docker builds via .dockerignore
+# You need to pass secrets explicitly
+```
+
+Option 2 - Add to `docker-compose.override.yml`:
+
+```yaml
+services:
+    adblock-compiler:
+        environment:
+            - ADMIN_KEY=your_dev_key
+            - TURNSTILE_SECRET_KEY=your_dev_secret
+```
+
+### Production
+
+**Always use environment variables, never hardcode secrets:**
+
+```bash
+# Method 1: Export before running
+export ADMIN_KEY="production_key"
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+# Method 2: Pass inline
+ADMIN_KEY="production_key" docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+# Method 3: Use a secrets file (not committed)
+echo "ADMIN_KEY=production_key" > .env.secrets
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.secrets up
+```
+
+## Available Environment Variables
+
+### From `.env` (all environments)
+
+- `COMPILER_VERSION` - Compiler version
+- `PORT` - Server port (default: 8787)
+- `DENO_DIR` - Deno cache directory
+
+### From `.env.development`
+
+- `DATABASE_URL` - Local SQLite database
+- `TURNSTILE_SITE_KEY` - Test Turnstile key
+- `TURNSTILE_SECRET_KEY` - Test Turnstile secret
+
+### From `.env.production`
+
+- `DATABASE_URL` - Production database (placeholder)
+- `TURNSTILE_SITE_KEY` - Production site key (placeholder)
+- `TURNSTILE_SECRET_KEY` - Production secret (placeholder)
+
+### Required Secrets (production)
+
+- `ADMIN_KEY` - Admin API key
+- `TURNSTILE_SECRET_KEY` - Real Turnstile secret
+- `DIRECT_DATABASE_URL` - Postgres connection
+- `PRISMA_DATABASE_URL` - Prisma Accelerate connection
+- `OPTIMIZE_API_KEY` - Optimize API key
+- `WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` - Hyperdrive connection
+
+## Docker Build
 
 ### Build Arguments
 
-Customize the Docker image at build time:
-
-|| Argument       | Default | Description             |
-|| -------------- | ------- | ----------------------- |
-|| `DENO_VERSION` | `2.6.7` | Deno version to install |
-
-To build with a different Deno version:
-
 ```bash
-docker build --build-arg DENO_VERSION=2.7.0 -t adblock-compiler:latest .
+# Build with specific Deno version
+docker build --build-arg DENO_VERSION=2.6.7 .
+
+# Build for specific architecture
+docker buildx build --platform linux/amd64,linux/arm64 .
 ```
 
-### Volumes
+### Multi-stage Build
 
-You can mount volumes for persistent data:
+The Dockerfile uses multi-stage builds:
+
+1. **node-base** - Base image with Deno and Node.js
+2. **builder** - Installs dependencies and prepares files
+3. **runtime** - Minimal production image
+
+## Volume Mounts
+
+### Development (docker-compose.override.yml)
 
 ```yaml
 volumes:
-    # Source code (for development - use docker-compose.override.yml)
-    - ./src:/app/src
-    - ./worker:/app/worker
-    - ./public:/app/public
-
-    # Configuration files
-    - ./config.json:/app/config.json:ro
-
-    # Output directory
-    - ./output:/app/output
-
-    # Deno cache
-    - deno-cache:/app/.deno
+    - ./src:/app/src # Source code
+    - ./worker:/app/worker # Worker code
+    - ./public:/app/public # Static files
 ```
 
-## Usage Examples
-
-### Web UI and API Server
-
-The default command runs the Cloudflare Worker with the web UI:
-
-```bash
-docker compose up -d
-```
-
-Then visit:
-
-- Web UI: http://localhost:8787
-- API Docs: http://localhost:8787/api
-- Test Interface: http://localhost:8787/test.html
-- Metrics: http://localhost:8787/metrics
-
-### CLI Mode
-
-**Note**: The standalone CLI executable is not included in the Docker image. For CLI usage, you have two options:
-
-**Option 1: Build the CLI on your host and mount it**
-
-```bash
-# First, build the CLI executable on your host
-deno task build
-
-# Then run it in a container with mounted volumes
-docker run --rm \
-  -v $(pwd)/adblock-compiler:/usr/local/bin/adblock-compiler:ro \
-  -v $(pwd)/config.json:/app/config.json:ro \
-  -v $(pwd)/output:/app/output \
-  adblock-compiler:latest \
-  adblock-compiler -c /app/config.json -o /app/output/filter.txt
-```
-
-**Option 2: Use the Web UI or API**
-
-The Docker container provides full compiler functionality through the web interface and REST API:
-
-```bash
-# Start the container
-docker compose up -d
-
-# Use the API to compile
-curl -X POST http://localhost:8787/compile \
-  -H "Content-Type: application/json" \
-  -d '{
-    "configuration": {
-      "name": "My Filter List",
-      "sources": [{"source": "https://example.com/filters.txt"}],
-      "transformations": ["Deduplicate", "RemoveEmptyLines"]
-    }
-  }'
-```
-
-### Development Mode
-
-For active development with live code reloading:
-
-The repository includes a `docker-compose.override.yml` file that automatically mounts source code directories for development. Just run:
-
-```bash
-docker compose up
-```
-
-Any changes to files in `src/`, `worker/`, or `public/` will be reflected immediately.
-
-To disable development mode for production, rename or remove `docker-compose.override.yml`:
-
-```bash
-mv docker-compose.override.yml docker-compose.override.yml.disabled
-docker compose up -d
-```
-
-## Production Deployment
-
-### Cloudflare Workers
-
-While this Docker container is great for local development and self-hosted deployments, for production on Cloudflare, we recommend using Cloudflare's native deployment:
-
-```bash
-npm run deploy
-```
-
-### Self-Hosted Production
-
-For production deployments:
-
-1. **Build for production:**
-   ```bash
-   docker build -t adblock-compiler:0.8.8 .
-   ```
-
-2. **Use environment-specific configuration:**
-   ```bash
-   docker run -d \
-     --name adblock-compiler-prod \
-     --restart always \
-     -p 8787:8787 \
-     -e COMPILER_VERSION=0.8.8 \
-     --health-cmd="curl -f http://localhost:8787/api || exit 1" \
-     --health-interval=30s \
-     --health-timeout=3s \
-     --health-retries=3 \
-     adblock-compiler:0.8.8
-   ```
-
-3. **Use a reverse proxy (nginx/traefik):**
-   ```nginx
-   server {
-       listen 80;
-       server_name adblock.example.com;
-       
-       location / {
-           proxy_pass http://localhost:8787;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-       }
-   }
-   ```
-
-### Kubernetes Deployment
-
-Example Kubernetes deployment:
+### Production
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-    name: adblock-compiler
-spec:
-    replicas: 2
-    selector:
-        matchLabels:
-            app: adblock-compiler
-    template:
-        metadata:
-            labels:
-                app: adblock-compiler
-        spec:
-            containers:
-                - name: adblock-compiler
-                  image: adblock-compiler:0.8.8
-                  ports:
-                      - containerPort: 8787
-                  env:
-                      - name: COMPILER_VERSION
-                        value: '0.8.8'
-                  livenessProbe:
-                      httpGet:
-                          path: /api
-                          port: 8787
-                      initialDelaySeconds: 10
-                      periodSeconds: 30
-                  readinessProbe:
-                      httpGet:
-                          path: /api
-                          port: 8787
-                      initialDelaySeconds: 5
-                      periodSeconds: 10
----
-apiVersion: v1
-kind: Service
-metadata:
-    name: adblock-compiler
-spec:
-    selector:
-        app: adblock-compiler
-    ports:
-        - port: 80
-          targetPort: 8787
-    type: LoadBalancer
-```
-
-## Troubleshooting
-
-### Container won't start
-
-Check logs:
-
-```bash
-docker-compose logs -f adblock-compiler
-```
-
-### Port already in use
-
-Change the port mapping in docker-compose.yml:
-
-```yaml
-ports:
-    - '8788:8787' # Use port 8788 instead
-```
-
-### Permission issues
-
-The container runs as a non-root user (uid 1001). If you're mounting volumes, ensure they have appropriate permissions:
-
-```bash
-chown -R 1001:1001 ./output
-```
-
-### Out of memory
-
-Increase Docker memory limit:
-
-```bash
-docker run -d \
-  --name adblock-compiler \
-  --memory="2g" \
-  -p 8787:8787 \
-  adblock-compiler:latest
-```
-
-### Deno cache issues
-
-Clear the Deno cache volume:
-
-```bash
-docker-compose down -v
-docker volume rm adblock-compiler-deno-cache
-docker-compose up -d
+volumes:
+    - deno-cache:/app/.deno # Only Deno cache
 ```
 
 ## Health Checks
 
-The container includes built-in health checks:
+The service includes a health check:
 
-```bash
-# Check container health status
-docker inspect --format='{{.State.Health.Status}}' adblock-compiler
-
-# View health check logs
-docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' adblock-compiler
+```yaml
+healthcheck:
+    test: ['CMD', 'curl', '-f', 'http://localhost:8787/api']
+    interval: 30s
+    timeout: 3s
+    retries: 3
+    start_period: 5s
 ```
 
-## Security Considerations
+Check health status:
 
-- ✅ Container runs as non-root user (uid 1001)
-- ✅ Minimal base image with only necessary dependencies
-- ✅ No secrets in environment variables or image layers
-- ✅ Health checks for monitoring
-- ⚠️ For production, use HTTPS via reverse proxy
-- ⚠️ Consider rate limiting at the reverse proxy level
-- ⚠️ Regularly update base images for security patches
+```bash
+docker compose ps
+docker inspect adblock-compiler --format='{{.State.Health.Status}}'
+```
 
-## Performance Tips
+## Troubleshooting
 
-1. **Use volume mounts for cache:**
-   ```yaml
-   volumes:
-       - deno-cache:/app/.deno
-   ```
+### View logs
 
-2. **Limit container resources:**
-   ```yaml
-   deploy:
-       resources:
-           limits:
-               cpus: '1.0'
-               memory: 1G
-           reservations:
-               cpus: '0.5'
-               memory: 512M
-   ```
+```bash
+docker compose logs -f adblock-compiler
+```
 
-3. **Enable gzip compression at reverse proxy level**
+### Rebuild after changes
 
-## Support
+```bash
+docker compose build --no-cache
+docker compose up -d
+```
 
-For issues or questions:
+### Check environment variables
 
-- GitHub Issues: https://github.com/jaypatrick/adblock-compiler/issues
-- Documentation: https://github.com/jaypatrick/adblock-compiler/blob/main/README.md
+```bash
+docker compose exec adblock-compiler env | grep -E 'COMPILER_VERSION|PORT|DATABASE_URL'
+```
+
+### Access container shell
+
+```bash
+docker compose exec adblock-compiler sh
+```
+
+### Remove all containers and volumes
+
+```bash
+docker compose down -v
+```
+
+## Security Best Practices
+
+1. ✅ **DO** use `.dockerignore` to exclude sensitive files
+2. ✅ **DO** pass secrets via environment variables in production
+3. ✅ **DO** use `.env.local` for local development secrets
+4. ❌ **DON'T** commit secrets to any Docker Compose file
+5. ❌ **DON'T** hardcode credentials in Dockerfile
+6. ❌ **DON'T** include `.env.local` in Docker builds
+
+## Example: Complete Production Deployment
+
+```bash
+#!/bin/bash
+# production-deploy.sh
+
+# Load secrets from secure storage (e.g., AWS Secrets Manager, Vault)
+export ADMIN_KEY=$(aws secretsmanager get-secret-value --secret-id prod/admin-key --query SecretString --output text)
+export TURNSTILE_SECRET_KEY=$(aws secretsmanager get-secret-value --secret-id prod/turnstile --query SecretString --output text)
+
+# Pull latest code
+git pull origin main
+
+# Build and deploy
+docker compose -f docker-compose.yml -f docker-compose.prod.yml build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Verify health
+sleep 10
+curl -f http://localhost:8787/api || exit 1
+
+echo "Deployment successful!"
+```
+
+## See Also
+
+- [Environment Configuration](../reference/ENV_CONFIGURATION.md)
+- [GitHub Actions Integration](../workflows/ENV_SETUP.md)
+- [Main README](../../README.md)
