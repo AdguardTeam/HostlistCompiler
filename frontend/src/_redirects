@@ -1,0 +1,6 @@
+# DO NOT add SPA redirect rules here (e.g., "/* /index.html 200").
+# Cloudflare Workers handles SPA routing via wrangler.toml:
+#   not_found_handling = "single-page-application"
+# Adding SPA redirect rules here will conflict with
+#   html_handling = "auto-trailing-slash"
+# and cause an "Infinite loop detected" error on wrangler deploy.
