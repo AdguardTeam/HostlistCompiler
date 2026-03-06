@@ -125,14 +125,14 @@ Deno.test('ArgumentParser - validate should fail without output', () => {
     const parser = new ArgumentParser();
     const args = parser.parse(['-c', 'config.json']);
     const error = parser.validate(args);
-    assertEquals(error, 'Output file path is required (use -o or --output)');
+    assertEquals(error, '--output is required');
 });
 
 Deno.test('ArgumentParser - validate should fail without config or input', () => {
     const parser = new ArgumentParser();
     const args = parser.parse(['-o', 'output.txt']);
     const error = parser.validate(args);
-    assertEquals(error, 'Either config file (-c) or input sources (-i) must be provided');
+    assertEquals(error, 'Either --input or --config must be specified (or --help/--version)');
 });
 
 Deno.test('ArgumentParser - validate should fail with both config and input', () => {

@@ -362,12 +362,12 @@ Deno.test('ConfigurationValidator.validate - should accept all valid transformat
         TransformationType.ConvertToAscii,
         TransformationType.TrimLines,
         TransformationType.RemoveComments,
+        TransformationType.Deduplicate,
         TransformationType.Compress,
         TransformationType.RemoveModifiers,
         TransformationType.InvertAllow,
         TransformationType.Validate,
         TransformationType.ValidateAllowIp,
-        TransformationType.Deduplicate,
         TransformationType.RemoveEmptyLines,
         TransformationType.InsertFinalNewLine,
     ];
