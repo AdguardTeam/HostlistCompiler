@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-console
 import { parseArgs } from '@std/cli/parse-args';
+import { CliArgumentsSchema } from '../configuration/schemas.ts';
 
 /**
  * Parsed CLI arguments
@@ -64,26 +65,10 @@ export class ArgumentParser {
      * @returns Error message if invalid, null if valid
      */
     public validate(args: ParsedArguments): string | null {
-        // Help and version don't require other arguments
-        if (args.help || args.version) {
-            return null;
+        const result = CliArgumentsSchema.safeParse(args);
+        if (!result.success) {
+            return result.error.issues.map((i) => i.message).join('; ');
         }
-
-        // Output is always required
-        if (!args.output) {
-            return 'Output file path is required (use -o or --output)';
-        }
-
-        // Either config or input must be provided
-        if (!args.config && (!args.input || args.input.length === 0)) {
-            return 'Either config file (-c) or input sources (-i) must be provided';
-        }
-
-        // Cannot specify both config and input
-        if (args.config && args.input && args.input.length > 0) {
-            return 'Cannot specify both config file (-c) and input sources (-i)';
-        }
-
         return null;
     }
 

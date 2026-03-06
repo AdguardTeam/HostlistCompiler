@@ -422,13 +422,20 @@ if (!parseResult.success) {
 
 **Available Schemas:**
 
-- `ConfigurationSchema` - Main configuration validation
-- `SourceSchema` - Individual source validation
-- `CompileRequestSchema` - Worker compilation request
-- `BatchRequestSchema` - Batch compilation requests
+- `ConfigurationSchema` - Main configuration validation (with transformation ordering refinement)
+- `SourceSchema` - Individual source validation (with `.transform()` normalization and ordering refinement)
+- `CompileRequestSchema` - Worker compilation request (with URL key validation on `preFetchedContent`)
+- `BatchRequestSchema` - Batch compilation requests (with URL key validation on `preFetchedContent`)
 - `ValidationReportSchema` - Validation error reports
 - `HttpFetcherOptionsSchema` - HTTP fetcher options
 - `PlatformCompilerOptionsSchema` - Platform compiler options
+- `CompilationResultSchema` - Compilation output shape
+- `WorkerCompilationResultSchema` - Worker compilation output with optional benchmark metrics
+- `BenchmarkMetricsSchema` - Performance benchmark metrics
+- `CliArgumentsSchema` - CLI argument validation (used by `ArgumentParser.validate()`)
+- `EnvironmentSchema` - Worker environment bindings and runtime variables
+- `AdblockRuleSchema` - Parsed adblock-syntax rule structure
+- `EtcHostsRuleSchema` - Parsed `/etc/hosts`-syntax rule structure
 
 For detailed documentation and examples, see [Zod Validation Guide](docs/api/ZOD_VALIDATION.md).
 
