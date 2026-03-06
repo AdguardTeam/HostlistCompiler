@@ -307,5 +307,5 @@ Potential improvements for validation error tracking:
 ## Related Documentation
 
 - [AGTree Integration](./AGTREE_INTEGRATION.md)
-- [Validation Transformation](../src/transformations/ValidateTransformation.ts)
-- [Validation Types](../src/types/validation.ts)
+- [Validation Transformation](../../src/transformations/ValidateTransformation.ts)
+- [Validation Types](../../src/types/validation.ts)

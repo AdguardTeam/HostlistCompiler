@@ -133,9 +133,9 @@ max_batch_timeout = 30
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Get the worker running in 5 minutes
 - **[TAIL_WORKER.md](TAIL_WORKER.md)** - Observability and logging setup
-- **[Queue Support](../docs/QUEUE_SUPPORT.md)** - Async compilation guide
-- **[Batch API Guide](../docs/BATCH_API_GUIDE.md)** - Visual guide to batch processing
-- **[Streaming API](../docs/STREAMING_API.md)** - Real-time updates via SSE/WebSocket
+- **[Queue Support](../docs/cloudflare/QUEUE_SUPPORT.md)** - Async compilation guide
+- **[Batch API Guide](../docs/api/BATCH_API_GUIDE.md)** - Visual guide to batch processing
+- **[Streaming API](../docs/api/STREAMING_API.md)** - Real-time updates via SSE/WebSocket
 
 ## Architecture
 

@@ -190,7 +190,19 @@ frontend/             # Angular 21 frontend (Material Design 3, SSR, Zoneless)
 │   ├── services/     # MetricsService, SseService, CompilerService, etc.
 │   ├── interceptors/ # HTTP error interceptor (401/429/5xx)
 │   └── guards/       # Admin route guard
-docs/                 # Documentation
+docs/                 # Documentation (organized by category)
+├── api/              # REST API reference, OpenAPI, streaming, validation
+├── cloudflare/       # Cloudflare-specific features (Queues, D1, Workflows)
+├── database-setup/   # Database architecture and local dev setup
+├── deployment/       # Docker and Cloudflare deployment guides
+├── development/      # Architecture, extensibility, diagnostics
+├── frontend/         # Angular SPA, Vite, Tailwind CSS
+├── guides/           # Getting started, migration, troubleshooting
+├── postman/          # Postman collection and environment files
+├── reference/        # Version management, environment config
+├── releases/         # Release notes and announcements
+├── testing/          # Testing guides and E2E documentation
+└── workflows/        # GitHub Actions CI/CD workflows
 examples/             # Example implementations
 ```
 
@@ -245,7 +257,7 @@ By contributing, you agree that your contributions will be licensed under the sa
 
 ## Additional Resources
 
-- [VERSION_MANAGEMENT.md](docs/VERSION_MANAGEMENT.md) - Version synchronization details
-- [docs/AUTO_VERSION_BUMP.md](docs/AUTO_VERSION_BUMP.md) - Automatic version bumping
+- [VERSION_MANAGEMENT.md](docs/reference/VERSION_MANAGEMENT.md) - Version synchronization details
+- [docs/reference/AUTO_VERSION_BUMP.md](docs/reference/AUTO_VERSION_BUMP.md) - Automatic version bumping
 - [Conventional Commits](https://www.conventionalcommits.org/) - Official specification
 - [Semantic Versioning](https://semver.org/) - SemVer specification

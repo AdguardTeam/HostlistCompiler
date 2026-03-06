@@ -128,6 +128,6 @@ If a source is permanently unavailable, the circuit breaker will continue cyclin
 
 ## Related Documentation
 
-- [Troubleshooting](TROUBLESHOOTING.md) — General troubleshooting guide
+- [Troubleshooting](../guides/TROUBLESHOOTING.md) — General troubleshooting guide
 - [Diagnostics](DIAGNOSTICS.md) — Event emission and tracing
 - [Extensibility](EXTENSIBILITY.md) — Custom transformations and fetchers

@@ -408,10 +408,10 @@ const timeout = setTimeout(() => {
 
 ## 📚 Related Documentation
 
-- [OpenAPI Tooling Guide](OPENAPI_TOOLING.md)
+- [OpenAPI Tooling Guide](../api/OPENAPI_TOOLING.md)
 - [Contract Testing](../worker/openapi-contract.test.ts)
 - [Postman Testing](POSTMAN_TESTING.md)
-- [Queue Support](QUEUE_SUPPORT.md)
+- [Queue Support](../cloudflare/QUEUE_SUPPORT.md)
 - [WebSocket Implementation](../worker/websocket.ts)
 
 ## 💡 Best Practices

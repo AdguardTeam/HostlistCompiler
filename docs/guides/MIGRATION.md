@@ -262,11 +262,11 @@ npm install @adguard/hostlist-compiler@^1.0.39
 
 ## Support & Resources
 
-- **Documentation**: [docs/api/README.md](../docs/api/README.md)
+- **Documentation**: [docs/api/README.md](../api/README.md)
 - **Web UI**: https://adblock-compiler.jayson-knight.workers.dev/
 - **API Reference**: https://adblock-compiler.jayson-knight.workers.dev/api
 - **GitHub Issues**: https://github.com/jaypatrick/adblock-compiler/issues
-- **Examples**: [docs/guides/clients.md](../docs/guides/clients.md)
+- **Examples**: [docs/guides/clients.md](./clients.md)
 
 ## Common Issues
 
@@ -351,4 +351,4 @@ After migrating, users typically see:
 
 ---
 
-Need help? Open an issue or check the [documentation](../README.md)!
+Need help? Open an issue or check the [documentation](../../README.md)!

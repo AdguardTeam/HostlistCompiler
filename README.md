@@ -32,7 +32,7 @@
 ## 🎉 New in v0.30.x
 
 - **🎯 Angular 21 SPA** — Production Angular frontend with zoneless change detection, Angular Material 3, SSR, and Cloudflare Workers deployment ([docs](frontend/README.md))
-- **🎨 Tailwind CSS v4** — Migrated from Tailwind v3 to v4 across all legacy UI pages ([docs](docs/TAILWIND_CSS.md))
+- **🎨 Tailwind CSS v4** — Migrated from Tailwind v3 to v4 across all legacy UI pages ([docs](docs/frontend/TAILWIND_CSS.md))
 - **📱 Mobile Responsive** — Comprehensive responsive layout improvements across all UI pages
 - **📖 Styled API Docs** — HTML documentation page served at the `/api` endpoint
 - **🔧 IBasicLogger Injection** — Structured error logging injected into `CompilerEventEmitter`, `AnalyticsService`, and `CloudflareQueueProvider`
@@ -430,7 +430,7 @@ if (!parseResult.success) {
 - `HttpFetcherOptionsSchema` - HTTP fetcher options
 - `PlatformCompilerOptionsSchema` - Platform compiler options
 
-For detailed documentation and examples, see [Zod Validation Guide](docs/ZOD_VALIDATION.md).
+For detailed documentation and examples, see [Zod Validation Guide](docs/api/ZOD_VALIDATION.md).
 
 ## <a name="openapi-specification"></a> OpenAPI Specification
 
@@ -466,10 +466,10 @@ The OpenAPI specification (`openapi.yaml`) documents all API endpoints:
 
 ### Documentation
 
-- **📚 [OpenAPI Tooling Guide](docs/OPENAPI_TOOLING.md)** - Complete guide to validation, testing, and documentation generation
+- **📚 [OpenAPI Tooling Guide](docs/api/OPENAPI_TOOLING.md)** - Complete guide to validation, testing, and documentation generation
 - **📖 [API Quick Reference](docs/api/QUICK_REFERENCE.md)** - Common commands and workflows
 - **🌐 [Interactive API Docs](docs/api/index.html)** - Auto-generated HTML documentation
-- **📮 [Postman Testing Guide](docs/POSTMAN_TESTING.md)** - Import and test with Postman
+- **📮 [Postman Testing Guide](docs/testing/POSTMAN_TESTING.md)** - Import and test with Postman
 
 ### Example: Using the OpenAPI Spec
 
@@ -794,7 +794,7 @@ const fetcher = new CompositeFetcher([
 ]);
 ```
 
-📚 **For complete extensibility examples and patterns, see [docs/EXTENSIBILITY.md](docs/EXTENSIBILITY.md)**
+📚 **For complete extensibility examples and patterns, see [docs/development/EXTENSIBILITY.md](docs/development/EXTENSIBILITY.md)**
 
 Topics covered:
 
@@ -1342,7 +1342,7 @@ npm --prefix frontend start  # Angular on :4200 → proxies /api to :8787
 
 The `public/` directory contains the original vanilla HTML frontend. It will be removed once the Angular migration is complete.
 
-📄 **[SPA Benefits Analysis](docs/SPA_BENEFITS.md)** - Analysis of SPA benefits for this application
+📄 **[SPA Benefits Analysis](docs/frontend/SPA_BENEFITS.md)** - Analysis of SPA benefits for this application
 
 ### Project structure
 
@@ -1519,7 +1519,7 @@ The worker supports asynchronous compilation through Cloudflare Queues, allowing
 - Pre-warm the cache with popular filter lists
 - Bypass rate limits for queued requests
 
-📚 **[Queue Support Documentation](docs/QUEUE_SUPPORT.md)** - Complete guide for using async compilation
+📚 **[Queue Support Documentation](docs/cloudflare/QUEUE_SUPPORT.md)** - Complete guide for using async compilation
 
 **Tail Worker for Observability**:
 
@@ -1757,7 +1757,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 3. Use conventional commits: `feat:`, `fix:`, `docs:`, etc.
 4. Submit a pull request
 
-**Automatic Version Bumping**: When your PR is merged, the version will be automatically bumped based on your commit messages. See [docs/AUTO_VERSION_BUMP.md](docs/AUTO_VERSION_BUMP.md) for details.
+**Automatic Version Bumping**: When your PR is merged, the version will be automatically bumped based on your commit messages. See [docs/reference/AUTO_VERSION_BUMP.md](docs/reference/AUTO_VERSION_BUMP.md) for details.
 
 ## License
 

@@ -235,16 +235,16 @@ scripts/generate-docs.ts          # Documentation generator
 worker/openapi-contract.test.ts   # Contract tests
 docs/api/index.html              # Generated HTML docs
 docs/api/README.md               # Generated markdown docs
-docs/OPENAPI_TOOLING.md          # Complete guide
-docs/POSTMAN_TESTING.md          # Postman guide
+docs/api/OPENAPI_TOOLING.md          # Complete guide
+docs/testing/POSTMAN_TESTING.md          # Postman guide
 ```
 
 ## 🔗 Links
 
 - **OpenAPI Spec:** [openapi.yaml](openapi.yaml)
-- **Complete Guide:** [OPENAPI_TOOLING.md](../OPENAPI_TOOLING.md)
-- **Postman Guide:** [POSTMAN_TESTING.md](../POSTMAN_TESTING.md)
-- **Queue Guide:** [QUEUE_SUPPORT.md](../QUEUE_SUPPORT.md)
+- **Complete Guide:** [OPENAPI_TOOLING.md](./OPENAPI_TOOLING.md)
+- **Postman Guide:** [POSTMAN_TESTING.md](../testing/POSTMAN_TESTING.md)
+- **Queue Guide:** [QUEUE_SUPPORT.md](../cloudflare/QUEUE_SUPPORT.md)
 - **Generated Docs:** [index.html](index.html)
 
 ## 💡 Tips
@@ -279,4 +279,4 @@ docs/POSTMAN_TESTING.md          # Postman guide
 
 ---
 
-For detailed information, see [OPENAPI_TOOLING.md](../OPENAPI_TOOLING.md)
+For detailed information, see [OPENAPI_TOOLING.md](./OPENAPI_TOOLING.md)

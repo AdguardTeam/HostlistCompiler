@@ -906,6 +906,6 @@ CREATE INDEX idx_source_change_detected_at ON source_change_events(detected_at D
 - [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
 - [Cloudflare R2 Documentation](https://developers.cloudflare.com/r2/)
 - [PostgreSQL Row-Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
-- [Current Storage Implementation](../src/storage/README.md)
+- [Current Storage Implementation](../../src/storage/README.md)
 - [Prisma Evaluation](PRISMA_EVALUATION.md)
-- [Cloudflare D1 Integration Guide](CLOUDFLARE_D1.md)
+- [Cloudflare D1 Integration Guide](../cloudflare/CLOUDFLARE_D1.md)

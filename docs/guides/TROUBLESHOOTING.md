@@ -689,9 +689,9 @@ Include:
 
 ### Community support
 
-- **Documentation**: [README.md](../README.md)
-- **API Reference**: [docs/api/README.md](../docs/api/README.md)
-- **Examples**: [docs/guides/clients.md](../docs/guides/clients.md)
+- **Documentation**: [README.md](../../README.md)
+- **API Reference**: [docs/api/README.md](../api/README.md)
+- **Examples**: [docs/guides/clients.md](./clients.md)
 - **Web UI**: https://adblock-compiler.jayson-knight.workers.dev/
 
 ## Quick Fixes Checklist

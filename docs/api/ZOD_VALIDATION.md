@@ -637,7 +637,7 @@ Deno.test('ConfigurationSchema rejects missing name', () => {
 
 ## Related Documentation
 
-- [Configuration Validation](../README.md#configuration)
+- [Configuration Validation](../../README.md#configuration)
 - [Worker API Documentation](./api/README.md)
 - [Batch Processing Guide](./BATCH_API_GUIDE.md)
 - [Error Handling](./VALIDATION_ERRORS.md)

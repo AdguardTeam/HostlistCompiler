@@ -407,7 +407,7 @@ The storage module supports multiple backends through the `IStorageAdapter` inte
 | --------------------------- | --------------------------------- | ---------------------------------------------------- |
 | **Prisma/SQLite** (default) | Local/single-instance deployments | This document                                        |
 | **Prisma/PostgreSQL**       | Multi-instance, production        | [prisma/README.md](../../prisma/README.md)           |
-| **Cloudflare D1**           | Edge deployments                  | [docs/CLOUDFLARE_D1.md](../../docs/CLOUDFLARE_D1.md) |
+| **Cloudflare D1**           | Edge deployments                  | [docs/CLOUDFLARE_D1.md](../../docs/cloudflare/CLOUDFLARE_D1.md) |
 
 ### Choosing a Backend
 
@@ -423,7 +423,7 @@ The storage module supports multiple backends through the `IStorageAdapter` inte
 
 ### Prisma Supported Databases
 
-Prisma supports these databases (see [PRISMA_EVALUATION.md](../../docs/PRISMA_EVALUATION.md)):
+Prisma supports these databases (see [PRISMA_EVALUATION.md](../../docs/database-setup/PRISMA_EVALUATION.md)):
 
 **SQL Databases:**
 

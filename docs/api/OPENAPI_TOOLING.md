@@ -269,7 +269,7 @@ jobs:
 
 ## Postman Testing
 
-See [POSTMAN_TESTING.md](POSTMAN_TESTING.md) for complete Postman documentation.
+See [POSTMAN_TESTING.md](../testing/POSTMAN_TESTING.md) for complete Postman documentation.
 
 ### Quick Start
 
@@ -573,8 +573,8 @@ deno task openapi:validate
 - [OpenAPI 3.0 Specification](https://spec.openapis.org/oas/v3.0.3)
 - [Redoc Documentation](https://redocly.com/redoc)
 - [Cloudflare Queues Guide](https://developers.cloudflare.com/queues/)
-- [Queue Support Guide](QUEUE_SUPPORT.md)
-- [Postman Testing Guide](POSTMAN_TESTING.md)
+- [Queue Support Guide](../cloudflare/QUEUE_SUPPORT.md)
+- [Postman Testing Guide](../testing/POSTMAN_TESTING.md)
 
 ## Summary
 
