@@ -177,6 +177,7 @@
         "npm:workerd@1.20251210.0",
         "npm:workerd@1.20260107.1",
         "npm:workerd@1.20260128.0",
-        "npm:workerd@1.20260301.1"
+        "npm:workerd@1.20260301.1",
+        "npm:workerd@1.20260305.0"
     ]
 }
