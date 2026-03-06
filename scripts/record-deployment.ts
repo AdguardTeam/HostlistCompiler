@@ -282,8 +282,15 @@ async function main() {
     try {
         await recordDeployment(accountId, databaseId, apiToken, versionInfo, status);
     } catch (error) {
-        console.error('Error recording deployment:', error);
-        console.error('Deployment succeeded but was not recorded in database.');
+        const msg = error instanceof Error ? error.message : String(error);
+        const isPermissionError = msg.startsWith('D1 API error: 403') || msg.startsWith('D1 API error: 401');
+        if (isPermissionError) {
+            console.warn('⚠️  Could not record deployment to D1 (permission error).');
+            console.warn('   Ensure the CLOUDFLARE_API_TOKEN has D1:Edit permissions for this account.');
+        } else {
+            console.warn(`⚠️  Could not record deployment to D1: ${msg}`);
+        }
+        console.warn('   This is non-blocking — the deployment itself succeeded.');
         Deno.exit(0); // Don't fail the deployment
     }
 
