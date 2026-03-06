@@ -14,6 +14,83 @@
 @custom-variant dark (&:where(body.dark-theme *, [data-theme='dark'] *));
 
 /* -----------------------------------------------------------------
+   Tailwind ↔ Material M3 Bridge
+   @theme inline maps M3 role tokens to Tailwind color/font utilities.
+   "inline" resolves values at runtime so dark-mode token swaps work.
+
+   Generated utilities (examples):
+     bg-primary          → background-color: var(--mat-sys-primary)
+     text-on-surface     → color: var(--mat-sys-on-surface)
+     border-outline      → border-color: var(--mat-sys-outline)
+     bg-surface-variant  → background-color: var(--mat-sys-surface-variant)
+     font-sans           → font-family: IBM Plex Sans
+     font-mono           → font-family: JetBrains Mono
+     font-display        → font-family: Syne
+     text-stat           → font-size: 2rem (primary metric value)
+     text-stat-lg        → font-size: 1.75rem (admin stat tiles)
+     text-code           → font-size: 0.8125rem (inline code)
+   ----------------------------------------------------------------- */
+@theme inline {
+    /* ── M3 Primary ─────────────────────────────────────────────── */
+    --color-primary: var(--mat-sys-primary);
+    --color-on-primary: var(--mat-sys-on-primary);
+    --color-primary-container: var(--mat-sys-primary-container);
+    --color-on-primary-container: var(--mat-sys-on-primary-container);
+
+    /* ── M3 Secondary ────────────────────────────────────────────── */
+    --color-secondary: var(--mat-sys-secondary);
+    --color-on-secondary: var(--mat-sys-on-secondary);
+    --color-secondary-container: var(--mat-sys-secondary-container);
+    --color-on-secondary-container: var(--mat-sys-on-secondary-container);
+
+    /* ── M3 Tertiary ─────────────────────────────────────────────── */
+    --color-tertiary: var(--mat-sys-tertiary);
+    --color-on-tertiary: var(--mat-sys-on-tertiary);
+    --color-tertiary-container: var(--mat-sys-tertiary-container);
+    --color-on-tertiary-container: var(--mat-sys-on-tertiary-container);
+
+    /* ── M3 Error ────────────────────────────────────────────────── */
+    --color-error: var(--mat-sys-error);
+    --color-on-error: var(--mat-sys-on-error);
+    --color-error-container: var(--mat-sys-error-container);
+    --color-on-error-container: var(--mat-sys-on-error-container);
+
+    /* ── M3 Surface / Background ─────────────────────────────────── */
+    --color-background: var(--mat-sys-background);
+    --color-on-background: var(--mat-sys-on-background);
+    --color-surface: var(--mat-sys-surface);
+    --color-on-surface: var(--mat-sys-on-surface);
+    --color-surface-variant: var(--mat-sys-surface-variant);
+    --color-on-surface-variant: var(--mat-sys-on-surface-variant);
+    --color-surface-container: var(--mat-sys-surface-container);
+    --color-surface-container-low: var(--mat-sys-surface-container-low);
+    --color-surface-container-high: var(--mat-sys-surface-container-high);
+    --color-surface-dim: var(--mat-sys-surface-dim);
+
+    /* ── M3 Outline ──────────────────────────────────────────────── */
+    --color-outline: var(--mat-sys-outline);
+    --color-outline-variant: var(--mat-sys-outline-variant);
+
+    /* ── App semantic tokens ─────────────────────────────────────── */
+    --color-success: var(--app-success);
+    --color-success-light: var(--app-success-light);
+    --color-warning: var(--app-warning);
+    --color-warning-light: var(--app-warning-light);
+    --color-info: var(--app-info);
+    --color-info-light: var(--app-info-light);
+
+    /* ── Typography: map to project font stack ───────────────────── */
+    --font-sans: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-display: 'Syne', sans-serif;
+
+    /* ── Semantic font sizes ─────────────────────────────────────── */
+    --text-stat: 2rem;       /* primary metric value in StatCardComponent */
+    --text-stat-lg: 1.75rem; /* large stat value in admin tiles (28px) */
+    --text-code: 0.8125rem;  /* inline code snippets (13px) */
+}
+
+/* -----------------------------------------------------------------
    1. Angular Material M3 prebuilt — provides base component styles
       and default --mat-sys-* tokens. MUST be first import.
    ----------------------------------------------------------------- */

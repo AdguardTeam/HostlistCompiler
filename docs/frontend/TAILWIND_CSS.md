@@ -37,9 +37,67 @@ Tailwind is imported at the top of the global stylesheet, before Angular Materia
 The `@custom-variant dark` selector matches the existing ThemeService dark mode selectors
 (`body.dark-theme` class and `html[data-theme='dark']` attribute).
 
+## Material Design 3 Bridge (`@theme inline`)
+
+The integration's key feature is a `@theme inline` block that maps Angular Material's
+M3 role tokens to Tailwind CSS custom properties. This makes every Material token
+available as a semantic Tailwind utility class.
+
+```css
+@theme inline {
+    --color-primary: var(--mat-sys-primary);
+    --color-on-surface: var(--mat-sys-on-surface);
+    --color-surface-variant: var(--mat-sys-surface-variant);
+    --color-on-surface-variant: var(--mat-sys-on-surface-variant);
+    --color-error: var(--mat-sys-error);
+    --color-outline: var(--mat-sys-outline);
+    --font-sans: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-display: 'Syne', sans-serif;
+    /* ... full list in styles.css */
+}
+```
+
+### Why `inline`?
+
+The `inline` keyword tells Tailwind v4 to resolve values at runtime rather than
+build time. This is essential for integration with Angular Material M3 tokens, whose
+CSS custom properties change value when the dark theme is applied — ensuring dark mode
+works correctly with all generated Tailwind utilities.
+
+### Generated utilities
+
+Every `--color-*` entry generates `bg-*`, `text-*`, `border-*`, `ring-*`, and
+`fill-*` utilities. Every `--font-*` entry generates `font-*` utilities.
+
+| CSS variable | Example Tailwind classes |
+|---|---|
+| `--color-primary` | `bg-primary`, `text-primary`, `border-primary` |
+| `--color-on-surface` | `text-on-surface` |
+| `--color-surface-variant` | `bg-surface-variant` |
+| `--color-on-surface-variant` | `text-on-surface-variant` |
+| `--color-error` | `text-error`, `border-error` |
+| `--color-tertiary` | `text-tertiary` |
+| `--color-outline` | `border-outline` |
+| `--font-sans` | `font-sans` (IBM Plex Sans) |
+| `--font-mono` | `font-mono` (JetBrains Mono) |
+| `--font-display` | `font-display` (Syne) |
+
 ## Usage in Components
 
 Angular components use Tailwind utility classes directly in their inline templates.
+
+### Semantic color classes (preferred)
+
+Use the bridged Material token utilities instead of arbitrary CSS variable values:
+
+```html
+<!-- ✅ Preferred: semantic Tailwind class via @theme inline bridge -->
+<div class="bg-surface-variant text-on-surface-variant">...</div>
+
+<!-- ❌ Avoid: arbitrary value syntax — brittle and verbose -->
+<div class="bg-[var(--mat-sys-surface-variant)] text-[var(--mat-sys-on-surface-variant)]">...</div>
+```
 
 ### Layout and Spacing
 
@@ -58,29 +116,36 @@ Angular components use Tailwind utility classes directly in their inline templat
 
 ### Skeleton Loaders
 
-Skeleton components use Tailwind's `animate-pulse` utility:
+Skeleton components use Tailwind's `animate-pulse` utility with Material surface tokens:
 ```html
-<div class="h-[14px] rounded mb-[10px] animate-pulse bg-[var(--mat-sys-surface-variant)]"></div>
+<div class="h-[14px] rounded animate-pulse bg-surface-variant"></div>
 ```
-
-This leverages CSS custom properties from the Material Design 3 token system.
 
 ### Dark Mode
 
+Tailwind dark mode is wired to the same selectors as the existing ThemeService.
+M3 token utilities (`bg-primary`, `text-on-surface`, etc.) automatically adapt because
+the underlying CSS variables change at runtime when the dark theme activates — no
+`dark:` prefix needed for Material-token-based utilities:
+
 ```html
-<div class="bg-white dark:bg-zinc-900 text-black dark:text-white">
-  Adapts to the active theme
-</div>
+<!-- M3 tokens: dark mode handled automatically via CSS variable swap -->
+<div class="bg-surface-variant text-on-surface-variant">Always correct</div>
+
+<!-- Standard Tailwind colors: use dark: prefix -->
+<div class="bg-white dark:bg-zinc-900">Custom palette value</div>
 ```
 
-Dark mode applies when `body.dark-theme` class or `[data-theme='dark']` attribute is present.
+## Integration Rules
 
-## Integration with Angular Material
-
-Tailwind utilities work alongside Angular Material components:
-- Material components handle their own theming via `--mat-sys-*` tokens
-- Tailwind handles layout, spacing, and utility styling
-- CSS custom properties from `styles.css` can be used as arbitrary values: `bg-[var(--app-primary)]`
+| Concern | Use |
+|---|---|
+| Layout (flex, grid, spacing) | Tailwind utilities |
+| Color (backgrounds, text, borders) | Semantic classes via `@theme inline` bridge |
+| Typography size/weight | Tailwind (`text-sm`, `font-bold`) |
+| Font family | `font-sans`, `font-mono`, `font-display` (bridged) |
+| Angular Material components | Leave to Material — do not override with Tailwind |
+| Hover/focus transforms, complex state | Component-scoped CSS in `styles: []` |
 
 ## Development Workflow
 
@@ -96,5 +161,6 @@ Only classes used in component templates are included in the final bundle.
 ## References
 
 - [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
+- [Tailwind v4 `@theme` reference](https://tailwindcss.com/docs/theme)
 - [Angular guide for Tailwind](https://angular.dev/guide/tailwind)
 - [Install Tailwind CSS with Angular](https://tailwindcss.com/docs/guides/angular)

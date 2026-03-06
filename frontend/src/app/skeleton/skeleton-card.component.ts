@@ -20,10 +20,10 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
             <mat-progress-bar mode="buffer" bufferValue="0" class="skeleton-progress" />
             <mat-card-content>
                 @if (showAvatar()) {
-                    <div data-testid="skeleton-avatar" class="size-10 rounded-full mb-3 animate-pulse bg-[var(--mat-sys-surface-variant)]"></div>
+                    <div data-testid="skeleton-avatar" class="size-10 rounded-full mb-3 animate-pulse bg-surface-variant"></div>
                 }
                 @for (line of lineWidths(); track $index) {
-                    <div data-testid="skeleton-line" class="h-[14px] rounded mb-[10px] last:mb-0 animate-pulse bg-[var(--mat-sys-surface-variant)]"
+                    <div data-testid="skeleton-line" class="h-[14px] rounded mb-[10px] last:mb-0 animate-pulse bg-surface-variant"
                          [style.width]="line"></div>
                 }
             </mat-card-content>

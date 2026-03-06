@@ -63,8 +63,8 @@ describe('StatCardComponent', () => {
 
     it('should render the label and value', () => {
         const el: HTMLElement = fixture.nativeElement;
-        expect(el.querySelector('.stat-label')?.textContent?.trim()).toBe('Total Rules');
-        expect(el.querySelector('.stat-value')?.textContent?.trim()).toBe('456K');
+        expect(el.querySelector('[data-testid="stat-label"]')?.textContent?.trim()).toBe('Total Rules');
+        expect(el.querySelector('[data-testid="stat-value"]')?.textContent?.trim()).toBe('456K');
     });
 
     it('should use the default icon when icon input is not provided', () => {

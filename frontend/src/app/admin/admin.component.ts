@@ -103,21 +103,21 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                         </div>
                     } @else if (statsResource.value(); as stats) {
                         <div class="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4">
-                            <div class="flex flex-col items-center p-4 rounded-lg bg-[var(--mat-sys-surface-variant)]">
-                                <span class="text-[28px] font-bold">{{ stats.kvKeys }}</span>
-                                <span class="text-xs text-[var(--mat-sys-on-surface-variant)] uppercase tracking-wide">KV Keys</span>
+                            <div class="flex flex-col items-center p-4 rounded-lg bg-surface-variant">
+                                <span class="text-stat-lg font-bold">{{ stats.kvKeys }}</span>
+                                <span class="text-xs text-on-surface-variant uppercase tracking-wide">KV Keys</span>
                             </div>
-                            <div class="flex flex-col items-center p-4 rounded-lg bg-[var(--mat-sys-surface-variant)]">
-                                <span class="text-[28px] font-bold">{{ stats.r2Objects }}</span>
-                                <span class="text-xs text-[var(--mat-sys-on-surface-variant)] uppercase tracking-wide">R2 Objects</span>
+                            <div class="flex flex-col items-center p-4 rounded-lg bg-surface-variant">
+                                <span class="text-stat-lg font-bold">{{ stats.r2Objects }}</span>
+                                <span class="text-xs text-on-surface-variant uppercase tracking-wide">R2 Objects</span>
                             </div>
-                            <div class="flex flex-col items-center p-4 rounded-lg bg-[var(--mat-sys-surface-variant)]">
-                                <span class="text-[28px] font-bold">{{ stats.d1Tables }}</span>
-                                <span class="text-xs text-[var(--mat-sys-on-surface-variant)] uppercase tracking-wide">D1 Tables</span>
+                            <div class="flex flex-col items-center p-4 rounded-lg bg-surface-variant">
+                                <span class="text-stat-lg font-bold">{{ stats.d1Tables }}</span>
+                                <span class="text-xs text-on-surface-variant uppercase tracking-wide">D1 Tables</span>
                             </div>
-                            <div class="flex flex-col items-center p-4 rounded-lg bg-[var(--mat-sys-surface-variant)]">
-                                <span class="text-[28px] font-bold">{{ stats.cacheEntries }}</span>
-                                <span class="text-xs text-[var(--mat-sys-on-surface-variant)] uppercase tracking-wide">Cache Entries</span>
+                            <div class="flex flex-col items-center p-4 rounded-lg bg-surface-variant">
+                                <span class="text-stat-lg font-bold">{{ stats.cacheEntries }}</span>
+                                <span class="text-xs text-on-surface-variant uppercase tracking-wide">Cache Entries</span>
                             </div>
                         </div>
                     } @else {
@@ -210,8 +210,12 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
     .query-field { width: 100%; }
     .query-results-viewport { height: 400px; }
     .query-results {
-        background: var(--mat-sys-surface-variant); padding: 16px; border-radius: 8px;
-        font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto;
+        background-color: var(--mat-sys-surface-variant);
+        padding: 16px;
+        border-radius: var(--mat-sys-corner-large);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        overflow-x: auto;
     }
   `],
 })

@@ -84,54 +84,54 @@ interface HealthResponse {
 
         <!-- Key Metrics (Item 13: skeleton loading + Item 3: sparklines) -->
         @if (store.isMetricsRevalidating() && !store.metrics()) {
-            <div class="metrics-grid">
+            <div class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mb-4">
                 @for (i of [0,1,2,3,4,5]; track i) {
                     <app-skeleton-card [lines]="2" [lineWidths]="['50%', '80%']" />
                 }
             </div>
         } @else if (store.metrics(); as m) {
-            <div class="metrics-grid">
+            <div class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mb-4">
                 <mat-card appearance="outlined">
-                <mat-card-content class="metric-card">
+                <mat-card-content class="flex flex-col items-center px-4 py-5 text-center">
                         <mat-icon class="metric-icon" style="color: var(--mat-sys-primary)">api</mat-icon>
-                        <div class="metric-value">{{ m.totalRequests | number }}</div>
-                        <div class="metric-label mat-caption">Total Requests</div>
+                        <div class="text-2xl font-bold text-on-surface">{{ m.totalRequests | number }}</div>
+                        <div class="mat-caption uppercase tracking-wide mt-1 text-on-surface-variant">Total Requests</div>
                         <app-sparkline [data]="requestsHistory()" color="var(--mat-sys-primary, #1976d2)" [width]="100" [height]="24" label="Requests trend" />
                     </mat-card-content>
                 </mat-card>
                 <mat-card appearance="outlined">
-                    <mat-card-content class="metric-card">
+                    <mat-card-content class="flex flex-col items-center px-4 py-5 text-center">
                         <mat-icon class="metric-icon" style="color: var(--mat-sys-tertiary)">timer</mat-icon>
-                        <div class="metric-value">{{ m.averageDuration | number:'1.0-0' }} ms</div>
-                        <div class="metric-label mat-caption">Avg Duration</div>
+                        <div class="text-2xl font-bold text-on-surface">{{ m.averageDuration | number:'1.0-0' }} ms</div>
+                        <div class="mat-caption uppercase tracking-wide mt-1 text-on-surface-variant">Avg Duration</div>
                     </mat-card-content>
                 </mat-card>
                 <mat-card appearance="outlined">
-                    <mat-card-content class="metric-card">
+                    <mat-card-content class="flex flex-col items-center px-4 py-5 text-center">
                         <mat-icon class="metric-icon" style="color: var(--mat-sys-secondary)">speed</mat-icon>
-                        <div class="metric-value">{{ m.p95Duration | number:'1.0-0' }} ms</div>
-                        <div class="metric-label mat-caption">p95 Latency</div>
+                        <div class="text-2xl font-bold text-on-surface">{{ m.p95Duration | number:'1.0-0' }} ms</div>
+                        <div class="mat-caption uppercase tracking-wide mt-1 text-on-surface-variant">p95 Latency</div>
                     </mat-card-content>
                 </mat-card>
                 <mat-card appearance="outlined">
-                    <mat-card-content class="metric-card">
+                    <mat-card-content class="flex flex-col items-center px-4 py-5 text-center">
                         <mat-icon class="metric-icon" style="color: var(--mat-sys-error)">check_circle</mat-icon>
-                        <div class="metric-value">{{ m.successRate }}%</div>
-                        <div class="metric-label mat-caption">Success Rate</div>
+                        <div class="text-2xl font-bold text-on-surface">{{ m.successRate }}%</div>
+                        <div class="mat-caption uppercase tracking-wide mt-1 text-on-surface-variant">Success Rate</div>
                     </mat-card-content>
                 </mat-card>
                 <mat-card appearance="outlined">
-                    <mat-card-content class="metric-card">
+                    <mat-card-content class="flex flex-col items-center px-4 py-5 text-center">
                         <mat-icon class="metric-icon" style="color: var(--mat-sys-primary)">cached</mat-icon>
-                        <div class="metric-value">{{ m.cacheHitRate }}%</div>
-                        <div class="metric-label mat-caption">Cache Hit Rate</div>
+                        <div class="text-2xl font-bold text-on-surface">{{ m.cacheHitRate }}%</div>
+                        <div class="mat-caption uppercase tracking-wide mt-1 text-on-surface-variant">Cache Hit Rate</div>
                     </mat-card-content>
                 </mat-card>
                 <mat-card appearance="outlined">
-                    <mat-card-content class="metric-card">
+                    <mat-card-content class="flex flex-col items-center px-4 py-5 text-center">
                         <mat-icon class="metric-icon" style="color: var(--mat-sys-tertiary)">warning</mat-icon>
-                        <div class="metric-value">{{ m.p99Duration | number:'1.0-0' }} ms</div>
-                        <div class="metric-label mat-caption">p99 Latency</div>
+                        <div class="text-2xl font-bold text-on-surface">{{ m.p99Duration | number:'1.0-0' }} ms</div>
+                        <div class="mat-caption uppercase tracking-wide mt-1 text-on-surface-variant">p99 Latency</div>
                     </mat-card-content>
                 </mat-card>
             </div>
@@ -144,7 +144,7 @@ interface HealthResponse {
                         <mat-card-title>Endpoint Breakdown</mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
-                        <table mat-table [dataSource]="m.endpoints ?? []" class="endpoint-table">
+                        <table mat-table [dataSource]="m.endpoints ?? []" class="w-full">
                             <ng-container matColumnDef="endpoint">
                                 <th mat-header-cell *matHeaderCellDef>Endpoint</th>
                                 <td mat-cell *matCellDef="let row">{{ row.endpoint }}</td>
@@ -168,9 +168,9 @@ interface HealthResponse {
                 </mat-card>
             }
         } @else {
-            <mat-card appearance="outlined" class="error-card mb-2">
+            <mat-card appearance="outlined" class="border-error mb-2">
                 <mat-card-content>
-                    <div class="error-content">
+                    <div class="flex items-center gap-2 text-error">
                         <mat-icon color="warn">error</mat-icon>
                         <span>Failed to load metrics. The API may be unavailable.</span>
                     </div>
@@ -184,7 +184,7 @@ interface HealthResponse {
         }
 
         <!-- Refresh button -->
-        <div class="actions mt-2">
+        <div class="flex gap-3 mt-2">
             <button mat-stroked-button (click)="refreshMetrics()" [disabled]="store.isLoading()">
                 <mat-icon>refresh</mat-icon> Refresh Metrics
             </button>
@@ -194,27 +194,7 @@ interface HealthResponse {
     styles: [`
     .page-content { padding: 0; }
     .subtitle { color: var(--mat-sys-on-surface-variant); margin-bottom: 24px; }
-    .metrics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 16px;
-        margin-bottom: 16px;
-    }
-    .metric-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px 16px;
-        text-align: center;
-    }
     .metric-icon { font-size: 32px; width: 32px; height: 32px; margin-bottom: 8px; }
-    .metric-value { font-size: 1.5rem; font-weight: 700; color: var(--mat-sys-on-surface); }
-    .metric-label { color: var(--mat-sys-on-surface-variant); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-    .endpoint-table { width: 100%; }
-    .error-card { border-color: var(--mat-sys-error); }
-    .error-content { display: flex; align-items: center; gap: 8px; color: var(--mat-sys-error); }
-    .loading-content { display: flex; align-items: center; gap: 16px; padding: 24px; }
-    .actions { display: flex; gap: 12px; }
   `],
 })
 export class PerformanceComponent {

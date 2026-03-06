@@ -60,7 +60,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     <mat-card
         matRipple
         appearance="outlined"
-        class="stat-card"
+        class="stat-card text-center cursor-pointer relative"
         [class.highlighted]="highlighted()"
         (click)="handleClick()"
         [matTooltip]="'Click to highlight: ' + label()"
@@ -71,8 +71,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     >
         <mat-card-content>
             <mat-icon class="stat-icon" [style.color]="color()">{{ icon() }}</mat-icon>
-            <div class="stat-value">{{ value() }}</div>
-            <div class="stat-label">{{ label() }}</div>
+            <div data-testid="stat-value" class="text-stat font-bold leading-tight mb-1 text-on-surface">{{ value() }}</div>
+            <div data-testid="stat-label" class="text-sm text-on-surface-variant">{{ label() }}</div>
 
             @if (highlighted()) {
                 <mat-icon class="highlight-badge" color="primary">star</mat-icon>
@@ -82,10 +82,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     `,
     styles: [`
     .stat-card {
-        text-align: center;
-        cursor: pointer;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
-        position: relative;
     }
 
     .stat-card:hover {
@@ -102,7 +99,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
     .stat-card.highlighted {
         border-color: var(--mat-sys-primary);
-        background-color: var(--mat-sys-primary-container, rgba(var(--mat-sys-primary), 0.08));
+        background-color: var(--mat-sys-primary-container);
     }
 
     .stat-icon {
@@ -112,19 +109,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         margin-bottom: 8px;
         /* Material Symbols variable font: match optical size to rendered size */
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1.2;
-        margin-bottom: 4px;
-        color: var(--mat-sys-on-surface);
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--mat-sys-on-surface-variant);
     }
 
     .highlight-badge {

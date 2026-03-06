@@ -22,7 +22,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
                     <!-- Header row -->
                     <div data-testid="skeleton-row-header" class="flex gap-3">
                         @for (col of columnArray(); track $index) {
-                            <div data-testid="skeleton-cell" class="h-4 rounded animate-pulse bg-[var(--mat-sys-surface-variant)] opacity-80"
+                            <div data-testid="skeleton-cell" class="h-4 rounded animate-pulse bg-surface-variant opacity-80"
                                  [style.flex]="col"></div>
                         }
                     </div>
@@ -30,7 +30,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
                     @for (row of rowArray(); track $index) {
                         <div data-testid="skeleton-row" class="flex gap-3">
                             @for (col of columnArray(); track $index) {
-                                <div data-testid="skeleton-cell" class="h-[14px] rounded min-w-[40px] animate-pulse bg-[var(--mat-sys-surface-variant)]"
+                                <div data-testid="skeleton-cell" class="h-[14px] rounded min-w-[40px] animate-pulse bg-surface-variant"
                                      [style.flex]="col"
                                      [style.width]="getCellWidth($index, row)">
                                 </div>

@@ -107,11 +107,11 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
                         <mat-divider class="mb-2"></mat-divider>
                         <div class="flex flex-col gap-3">
                             @for (err of result.errors; track $index) {
-                                <div class="flex gap-3 p-3 rounded-lg bg-[var(--mat-sys-surface-variant)]">
+                                <div class="flex gap-3 p-3 rounded-lg bg-surface-variant">
                                     <mat-icon class="error-icon" style="color: var(--mat-sys-error)">error</mat-icon>
                                     <div class="flex flex-col gap-1 flex-1">
-                                        <code class="font-mono text-[13px] break-all">{{ err.rule }}</code>
-                                        <span class="text-sm text-[var(--mat-sys-on-surface-variant)]">{{ err.message }}</span>
+                                        <code class="font-mono text-code break-all">{{ err.rule }}</code>
+                                        <span class="text-sm text-on-surface-variant">{{ err.message }}</span>
                                         <mat-chip-set>
                                             <mat-chip>Line {{ err.line }}</mat-chip>
                                             <mat-chip>{{ err.errorType }}</mat-chip>
@@ -120,11 +120,11 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
                                 </div>
                             }
                             @for (warn of result.warnings; track $index) {
-                                <div class="flex gap-3 p-3 rounded-lg bg-[var(--mat-sys-surface-variant)]">
+                                <div class="flex gap-3 p-3 rounded-lg bg-surface-variant">
                                     <mat-icon class="error-icon" style="color: var(--mat-sys-tertiary)">warning</mat-icon>
                                     <div class="flex flex-col gap-1 flex-1">
-                                        <code class="font-mono text-[13px] break-all">{{ warn.rule }}</code>
-                                        <span class="text-sm text-[var(--mat-sys-on-surface-variant)]">{{ warn.message }}</span>
+                                        <code class="font-mono text-code break-all">{{ warn.rule }}</code>
+                                        <span class="text-sm text-on-surface-variant">{{ warn.message }}</span>
                                         <mat-chip-set>
                                             <mat-chip>Line {{ warn.line }}</mat-chip>
                                             <mat-chip>{{ warn.errorType }}</mat-chip>
