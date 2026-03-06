@@ -67,6 +67,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.37.2] - 2026-03-06
+
+### Added### Fixed
+
+- update deno.lock for wrangler 4.71.0, add workerd@1.20260305.0 to allowScripts, pin npx wrangler@4.71.0 in CI
+- update wrangler to 4.71.0, fix esbuild allowScripts, fix wrangler.toml environments and CI deploy command
+
+
 ## [0.37.1] - 2026-03-06
 
 ### Added### Fixed
