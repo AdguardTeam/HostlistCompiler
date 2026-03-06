@@ -123,7 +123,12 @@ const SourceTypeSchema: z.ZodEnum<typeof SourceType> = z.nativeEnum(SourceType);
  */
 const PreFetchedContentSchema = z.record(
     z.string().refine((key) => {
-        try { new URL(key); return true; } catch { return false; }
+        try {
+            new URL(key);
+            return true;
+        } catch {
+            return false;
+        }
     }, { message: 'preFetchedContent keys must be valid URLs' }),
     z.string(),
 ).optional();
@@ -142,8 +147,8 @@ function hasValidTransformationOrdering(data: { transformations?: Transformation
 
 const transformationOrderingMessage = {
     message: 'Deduplicate transformation is recommended before Compress. Add Deduplicate to transformations.',
-    path: ['transformations'],
-} as const;
+    path: ['transformations'] as string[],
+};
 
 // ============================================================================
 // Public schemas

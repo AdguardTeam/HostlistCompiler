@@ -98,15 +98,7 @@ export {
     ValidationSeveritySchema,
     WorkerCompilationResultSchema,
 } from './configuration/index.ts';
-export type {
-    AdblockRule,
-    BenchmarkMetrics,
-    CliArguments,
-    CompilationResultOutput,
-    Environment,
-    EtcHostsRule,
-    WorkerCompilationResultOutput,
-} from './configuration/index.ts';
+export type { AdblockRule, BenchmarkMetrics, CliArguments, CompilationResultOutput, Environment, EtcHostsRule, WorkerCompilationResultOutput } from './configuration/index.ts';
 
 // Transformations
 export {

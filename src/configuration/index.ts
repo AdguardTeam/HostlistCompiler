@@ -23,12 +23,4 @@ export {
     ValidationSeveritySchema,
     WorkerCompilationResultSchema,
 } from './schemas.ts';
-export type {
-    AdblockRule,
-    BenchmarkMetrics,
-    CliArguments,
-    CompilationResultOutput,
-    Environment,
-    EtcHostsRule,
-    WorkerCompilationResultOutput,
-} from './schemas.ts';
+export type { AdblockRule, BenchmarkMetrics, CliArguments, CompilationResultOutput, Environment, EtcHostsRule, WorkerCompilationResultOutput } from './schemas.ts';
