@@ -68,7 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.37.0] - 2026-03-06
 
-### Added- integrate TailwindCSS v4 with Angular Material Design via @theme inline bridge
+### Added
+
+- integrate TailwindCSS v4 with Angular Material Design via `@theme inline` bridge
 - expand Zod validation coverage with new schemas and integrations
 
 ### Fixed
@@ -85,12 +87,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.36.0] - 2026-03-05
 
-### Added- add automated branch cleanup GitHub Actions workflow
+### Added
+
+- add automated branch cleanup GitHub Actions workflow
 
 
 ## [0.35.0] - 2026-03-05
 
-### Added- add PostgreSQL admin endpoints and backend health check (#587)
+### Added
+
+- add PostgreSQL admin endpoints and backend health check (#587)
 - add D1 to PostgreSQL migration handler (#587)
 - add API key authentication via Hyperdrive (#587)
 - add HyperdriveStorageAdapter for PlanetScale PostgreSQL (#587)
