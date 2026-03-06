@@ -65,6 +65,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.37.0] - 2026-03-06
+
+### Added- integrate TailwindCSS v4 with Angular Material Design via @theme inline bridge
+- expand Zod validation coverage with new schemas and integrations
+
+### Fixed
+
+- resolve CI failures — fmt GRAPHQL_INTEGRATION.md and regen cloudflare schema
+- address review feedback on postbuild script and worker asset fetching
+- apply PR review suggestions from review thread #3900928199
+- resolve dashboard not displaying by generating index.html from index.csr.html
+- remove duplicate dev server entry in openapi.yaml and fix README badge link path
+- move Deduplicate before Compress in ConfigurationValidator test to satisfy ordering validation
+- align markdown table columns in src/storage/README.md for deno fmt
+- resolve CI failures - type error in refine path and deno fmt violations
+
+
 ## [0.36.0] - 2026-03-05
 
 ### Added- add automated branch cleanup GitHub Actions workflow
