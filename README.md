@@ -12,7 +12,7 @@
 
 [![Web UI](https://img.shields.io/badge/Web%20UI-Live-brightgreen?logo=cloudflare)](https://adblock.jaysonknight.com/)
 [![API](https://img.shields.io/badge/API-Live-blue?logo=cloudflare)](https://adblock.jaysonknight.com/api)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-6BA539?logo=openapiinitiative&logoColor=white)](openapi.yaml)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-6BA539?logo=openapiinitiative&logoColor=white)](docs/api/openapi.yaml)
 [![Deno](https://img.shields.io/badge/Deno-2.0+-black?logo=deno)](https://deno.land)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](#docker-deployment)
 
