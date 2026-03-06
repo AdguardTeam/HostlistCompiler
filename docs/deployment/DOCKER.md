@@ -281,6 +281,6 @@ echo "Deployment successful!"
 
 ## See Also
 
-- [Environment Configuration](ENV_CONFIGURATION.md)
-- [GitHub Actions Integration](ENV_SETUP.md)
-- [Main README](../README.md)
+- [Environment Configuration](../reference/ENV_CONFIGURATION.md)
+- [GitHub Actions Integration](../workflows/ENV_SETUP.md)
+- [Main README](../../README.md)

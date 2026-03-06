@@ -365,4 +365,4 @@ Potential improvements to the deployment versioning system:
 
 - [CI/CD Workflows](.github/workflows/README.md)
 - [Database Schema](migrations/0002_deployment_history.sql)
-- [Version Utilities](../src/deployment/version.ts)
+- [Version Utilities](../../src/deployment/version.ts)

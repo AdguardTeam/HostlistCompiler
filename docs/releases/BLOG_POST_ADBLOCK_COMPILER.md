@@ -556,7 +556,7 @@ docker compose up -d
 - 📚 **[Quick Start Guide](guides/quick-start.md)** - Get started in minutes
 - 🔧 **[API Documentation](api/README.md)** - REST API reference
 - 🐳 **[Docker Deployment](deployment/docker.md)** - Production deployment
-- 📖 **[Extensibility Guide](EXTENSIBILITY.md)** - Build custom features
+- 📖 **[Extensibility Guide](../development/EXTENSIBILITY.md)** - Build custom features
 - 🌐 **[Live Demo](https://adblock-compiler.jayson-knight.workers.dev/)** - Try it now
 
 ---

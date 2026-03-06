@@ -8,13 +8,13 @@ This guide explains how to use the Postman collection to test the Adblock Compil
 
 1. Open Postman
 2. Click **Import** in the top left
-3. Select **File** and choose `docs/tools/postman-collection.json`
+3. Select **File** and choose `docs/postman/postman-collection.json`
 4. The collection will appear in your workspace
 
 ### 2. Import the Environment
 
 1. Click **Import** again
-2. Select **File** and choose `docs/tools/postman-environment.json`
+2. Select **File** and choose `docs/postman/postman-environment.json`
 3. Select the "Adblock Compiler - Local" environment from the dropdown in the top right
 
 ### 3. Start the Server
@@ -129,13 +129,13 @@ You can run the collection from the command line using Newman:
 npm install -g newman
 
 # Run the collection against local server
-newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json
+newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json
 
 # Run with detailed output
-newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json --reporters cli,json
+newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json --reporters cli,json
 
 # Run specific folder
-newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json --folder "Compilation"
+newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json --folder "Compilation"
 ```
 
 ## CI/CD Integration
@@ -162,7 +162,7 @@ jobs:
         run: npm install -g newman
       
       - name: Run Postman tests
-        run: newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json
+        run: newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json
       
       - name: Stop server
         run: docker compose down
@@ -239,14 +239,14 @@ If you hit rate limits (429 responses), wait for the rate limit window to reset 
 
 ## Related Documentation
 
-- [OpenAPI Specification](../openapi.yaml)
-- [API Documentation](api/README.md)
-- [Queue Support](QUEUE_SUPPORT.md)
-- [WebSocket Documentation](../worker/websocket.ts)
+- [OpenAPI Specification](../../openapi.yaml)
+- [API Documentation](../api/README.md)
+- [Queue Support](../cloudflare/QUEUE_SUPPORT.md)
+- [WebSocket Documentation](../../worker/websocket.ts)
 
 ## Support
 
 For issues or questions:
-- Check the [main README](../README.md)
-- Review the [OpenAPI spec](../openapi.yaml)
+- Check the [main README](../../README.md)
+- Review the [OpenAPI spec](../../openapi.yaml)
 - Open an issue on GitHub

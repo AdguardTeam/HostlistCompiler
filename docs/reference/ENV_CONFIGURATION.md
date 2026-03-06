@@ -143,7 +143,7 @@ Make sure:
 
 ## GitHub Actions Integration
 
-This environment system works seamlessly in GitHub Actions workflows. See [ENV_SETUP.md](ENV_SETUP.md) for detailed documentation.
+This environment system works seamlessly in GitHub Actions workflows. See [ENV_SETUP.md](../workflows/ENV_SETUP.md) for detailed documentation.
 
 ### Quick Start
 

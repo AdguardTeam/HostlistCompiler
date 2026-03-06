@@ -31,7 +31,7 @@ Access the web UI at http://localhost:8787
 - [Main README](../../README.md) - Full project documentation
 - [API Documentation](../../docs/api/README.md) - REST API reference
 - [Docker Deployment](../../docs/deployment/docker.md) - Container deployment guide
-- [Queue Support](../../docs/QUEUE_SUPPORT.md) - Async compilation via queues
+- [Queue Support](../../docs/cloudflare/QUEUE_SUPPORT.md) - Async compilation via queues
 - [Tail Worker](../../worker/TAIL_WORKER.md) - Observability and logging
 
 ## Features

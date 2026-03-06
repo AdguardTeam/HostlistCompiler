@@ -75,11 +75,11 @@ Tests validate that the live API conforms to the OpenAPI specification:
 
 ### 5. Comprehensive Documentation
 
-- **[OpenAPI Tooling Guide](../OPENAPI_TOOLING.md)** - Complete guide to validation, testing, and documentation generation
+- **[OpenAPI Tooling Guide](./OPENAPI_TOOLING.md)** - Complete guide to validation, testing, and documentation generation
 - **[API Quick Reference](QUICK_REFERENCE.md)** - Common commands and workflows
-- **[Postman Testing Guide](../POSTMAN_TESTING.md)** - Import and test with Postman
-- **[Streaming API Guide](../STREAMING_API.md)** - Real-time event streaming documentation
-- **[Batch API Guide](../BATCH_API_GUIDE.md)** - Parallel compilation documentation
+- **[Postman Testing Guide](../testing/POSTMAN_TESTING.md)** - Import and test with Postman
+- **[Streaming API Guide](./STREAMING_API.md)** - Real-time event streaming documentation
+- **[Batch API Guide](./BATCH_API_GUIDE.md)** - Parallel compilation documentation
 
 ## API Endpoints Documented
 
@@ -217,7 +217,7 @@ All the infrastructure was already in place—we've just made it more visible in
 
 ## Learn More
 
-- 📚 [OpenAPI Tooling Guide](../OPENAPI_TOOLING.md)
+- 📚 [OpenAPI Tooling Guide](./OPENAPI_TOOLING.md)
 - 📖 [API Quick Reference](QUICK_REFERENCE.md)
 - 🌐 [Interactive API Docs](index.html)
-- 📮 [Postman Testing Guide](../POSTMAN_TESTING.md)
+- 📮 [Postman Testing Guide](../testing/POSTMAN_TESTING.md)

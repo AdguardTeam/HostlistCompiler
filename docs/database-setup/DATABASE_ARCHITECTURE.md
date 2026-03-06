@@ -412,4 +412,4 @@ erDiagram
 - [local-dev.md](./local-dev.md) — Local PostgreSQL setup guide
 - [postgres-modern.md](./postgres-modern.md) — PostgreSQL best practices
 - [quickstart.sh](./quickstart.sh) — Automated local Docker bootstrap
-- [WORKFLOW_DIAGRAMS.md](../WORKFLOW_DIAGRAMS.md) — Compilation and queue workflow diagrams
+- [WORKFLOW_DIAGRAMS.md](../workflows/WORKFLOW_DIAGRAMS.md) — Compilation and queue workflow diagrams
