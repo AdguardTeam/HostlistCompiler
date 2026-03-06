@@ -54,7 +54,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                     <mat-card-subtitle>Enter your admin key to access storage management</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
-                    <div class="auth-row">
+                    <div class="flex items-center gap-3">
                         <mat-form-field appearance="outline" class="auth-field">
                             <mat-label>Admin Key</mat-label>
                             <input matInput type="password" [(ngModel)]="keyInput"
@@ -74,7 +74,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
             <!-- Status bar -->
             <mat-card appearance="outlined" class="mb-2">
                 <mat-card-content>
-                    <div class="status-bar">
+                    <div class="flex items-center justify-between">
                         <mat-chip-set>
                             <mat-chip highlighted color="primary">
                                 <mat-icon aria-hidden="true">check_circle</mat-icon> Authenticated
@@ -96,28 +96,28 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                 <mat-card-content>
                     @if (statsResource.isLoading()) {
                         <!-- Item 13: skeleton loading state -->
-                        <div class="stats-grid">
+                        <div class="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4">
                             @for (i of [0,1,2,3]; track i) {
                                 <app-skeleton-card [lines]="1" [lineWidths]="['60%']" />
                             }
                         </div>
                     } @else if (statsResource.value(); as stats) {
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-value">{{ stats.kvKeys }}</span>
-                                <span class="stat-label">KV Keys</span>
+                        <div class="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4">
+                            <div class="flex flex-col items-center p-4 rounded-lg bg-surface-variant">
+                                <span class="text-stat-lg font-bold">{{ stats.kvKeys }}</span>
+                                <span class="text-xs text-on-surface-variant uppercase tracking-wide">KV Keys</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-value">{{ stats.r2Objects }}</span>
-                                <span class="stat-label">R2 Objects</span>
+                            <div class="flex flex-col items-center p-4 rounded-lg bg-surface-variant">
+                                <span class="text-stat-lg font-bold">{{ stats.r2Objects }}</span>
+                                <span class="text-xs text-on-surface-variant uppercase tracking-wide">R2 Objects</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-value">{{ stats.d1Tables }}</span>
-                                <span class="stat-label">D1 Tables</span>
+                            <div class="flex flex-col items-center p-4 rounded-lg bg-surface-variant">
+                                <span class="text-stat-lg font-bold">{{ stats.d1Tables }}</span>
+                                <span class="text-xs text-on-surface-variant uppercase tracking-wide">D1 Tables</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-value">{{ stats.cacheEntries }}</span>
-                                <span class="stat-label">Cache Entries</span>
+                            <div class="flex flex-col items-center p-4 rounded-lg bg-surface-variant">
+                                <span class="text-stat-lg font-bold">{{ stats.cacheEntries }}</span>
+                                <span class="text-xs text-on-surface-variant uppercase tracking-wide">Cache Entries</span>
                             </div>
                         </div>
                     } @else {
@@ -133,7 +133,7 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
                     <mat-card-title>Actions</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                    <div class="actions-row">
+                    <div class="flex gap-3 flex-wrap">
                         <button mat-stroked-button (click)="clearCache()">
                             <span><mat-icon aria-hidden="true">delete_sweep</mat-icon> Clear Cache</span>
                         </button>
@@ -205,20 +205,17 @@ import { StorageService, StorageStats, QueryResult } from '../services/storage.s
     .page-content { padding: 0; }
     .subtitle { color: var(--mat-sys-on-surface-variant); margin-bottom: 24px; }
     .auth-card { border-color: var(--mat-sys-tertiary); }
-    .auth-row { display: flex; align-items: center; gap: 12px; }
     .auth-field { flex: 1; }
-    .status-bar { display: flex; align-items: center; justify-content: space-between; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
-    .stat-item { display: flex; flex-direction: column; align-items: center; padding: 16px; border-radius: 8px; background: var(--mat-sys-surface-variant); }
-    .stat-value { font-size: 28px; font-weight: 700; }
-    .stat-label { font-size: 12px; color: var(--mat-sys-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; }
-    .actions-row { display: flex; gap: 12px; flex-wrap: wrap; }
     .action-result { color: var(--mat-sys-primary); }
     .query-field { width: 100%; }
     .query-results-viewport { height: 400px; }
     .query-results {
-        background: var(--mat-sys-surface-variant); padding: 16px; border-radius: 8px;
-        font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto;
+        background-color: var(--mat-sys-surface-variant);
+        padding: 16px;
+        border-radius: var(--mat-sys-corner-large);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        overflow-x: auto;
     }
   `],
 })

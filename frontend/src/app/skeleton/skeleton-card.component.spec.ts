@@ -23,7 +23,7 @@ describe('SkeletonCardComponent', () => {
     it('should render default 3 lines', () => {
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        const lines = el.querySelectorAll('.skeleton-line');
+        const lines = el.querySelectorAll('[data-testid="skeleton-line"]');
         expect(lines.length).toBe(3);
     });
 
@@ -33,20 +33,20 @@ describe('SkeletonCardComponent', () => {
         await fixture.whenStable();
 
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('.skeleton-avatar')).toBeTruthy();
+        expect(el.querySelector('[data-testid="skeleton-avatar"]')).toBeTruthy();
     });
 
     it('should not show avatar by default', () => {
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('.skeleton-avatar')).toBeNull();
+        expect(el.querySelector('[data-testid="skeleton-avatar"]')).toBeNull();
     });
 
-    it('should apply shimmer class to lines', () => {
+    it('should apply animate-pulse to lines', () => {
         fixture.detectChanges();
-        const lines = fixture.nativeElement.querySelectorAll('.skeleton-line');
+        const lines = fixture.nativeElement.querySelectorAll('[data-testid="skeleton-line"]');
         lines.forEach((line: HTMLElement) => {
-            expect(line.classList.contains('shimmer')).toBe(true);
+            expect(line.classList.contains('animate-pulse')).toBe(true);
         });
     });
 });
