@@ -48,6 +48,29 @@ if (result.success) {
 - `inclusions_sources` (string[], optional): List of files containing inclusions
 - `transformations` (TransformationType[], optional): List of transformations to apply
 
+**Normalization (`.transform()`):**
+
+`SourceSchema` automatically normalizes the parsed data:
+- `source`: leading and trailing whitespace is trimmed (whitespace-only values are rejected during validation)
+- `name`: leading and trailing whitespace is trimmed (if provided)
+
+**Transformation Ordering Refinement:**
+
+`SourceSchema` validates that if `Compress` is included in `transformations`, `Deduplicate` must also be present and must appear before `Compress`. This enforces correct ordering to prevent data loss.
+
+```typescript
+// Valid: Deduplicate before Compress
+{ transformations: ['Deduplicate', 'Compress'] }
+
+// Invalid: Compress without Deduplicate
+{ transformations: ['Compress'] }
+// Error: "Deduplicate transformation is recommended before Compress. Add Deduplicate before Compress in transformations."
+
+// Invalid: Compress before Deduplicate (wrong ordering)
+{ transformations: ['Compress', 'Deduplicate'] }
+// Error: "Deduplicate transformation is recommended before Compress. Add Deduplicate before Compress in transformations."
+```
+
 #### `ConfigurationSchema`
 
 Validates the main compilation configuration object.
@@ -87,6 +110,10 @@ if (result.success) {
 - `sources` (ISource[], required): Array of source configurations (must not be empty)
 - Plus all fields from `SourceSchema` (exclusions, inclusions, transformations)
 
+**Transformation Ordering Refinement:**
+
+Same as `SourceSchema` — if `Compress` is in `transformations`, `Deduplicate` must also be present and must appear before `Compress`.
+
 ### Worker Request Schemas
 
 #### `CompileRequestSchema`
@@ -114,7 +141,7 @@ const result = CompileRequestSchema.safeParse(request);
 
 **Schema Definition:**
 - `configuration` (IConfiguration, required): Configuration object (validated by ConfigurationSchema)
-- `preFetchedContent` (Record<string, string>, optional): Pre-fetched content map (URL → content)
+- `preFetchedContent` (Record<string, string>, optional): Pre-fetched content map (source identifier → content). Keys may be URLs or arbitrary source identifiers.
 - `benchmark` (boolean, optional): Whether to collect benchmark metrics
 - `priority` (enum, optional): Request priority - `'standard'` or `'high'`
 - `turnstileToken` (string, optional): Cloudflare Turnstile verification token
@@ -199,6 +226,164 @@ const result = BatchRequestAsyncSchema.safeParse(asyncBatch);
 
 **Limit:** Maximum 100 requests
 **Error Message:** "Batch request limited to 100 requests maximum"
+
+### Compilation Output Schemas
+
+#### `CompilationResultSchema`
+
+Validates the output of a compilation operation.
+
+```typescript
+import { CompilationResultSchema } from '@jk-com/adblock-compiler';
+
+const result = CompilationResultSchema.safeParse({
+    rules: ['||ads.example.com^', '||tracker.com^'],
+    ruleCount: 2,
+});
+```
+
+**Schema Definition:**
+- `rules` (string[], required): Array of compiled filter rules
+- `ruleCount` (number, required): Non-negative integer count of rules
+
+#### `BenchmarkMetricsSchema`
+
+Validates compilation performance metrics returned when `benchmark: true`. Matches the `CompilationMetrics` interface from the compiler.
+
+```typescript
+import { BenchmarkMetricsSchema } from '@jk-com/adblock-compiler';
+```
+
+**Schema Definition:**
+- `totalDurationMs` (number, required): Total compilation duration in milliseconds (non-negative)
+- `stages` (array, required): Per-stage benchmark results, each containing:
+  - `name` (string, required): Stage name (e.g., `'fetch'`, `'transform'`)
+  - `durationMs` (number, required): Stage duration in milliseconds (non-negative)
+  - `itemCount` (number, optional): Number of items processed in this stage
+  - `itemsPerSecond` (number, optional): Throughput: items processed per second
+- `sourceCount` (number, required): Number of sources processed (non-negative integer)
+- `ruleCount` (number, required): Total input rule count before transformations (non-negative integer)
+- `outputRuleCount` (number, required): Final output rule count after all transformations (non-negative integer)
+
+#### `WorkerCompilationResultSchema`
+
+Extends `CompilationResultSchema` with optional compilation metrics for worker responses. Matches the actual HTTP response shape returned by the Worker `/compile` endpoint.
+
+```typescript
+import { WorkerCompilationResultSchema } from '@jk-com/adblock-compiler';
+
+const result = WorkerCompilationResultSchema.safeParse({
+    rules: ['||ads.example.com^'],
+    ruleCount: 1,
+    metrics: {
+        totalDurationMs: 250,
+        stages: [{ name: 'fetch', durationMs: 100 }, { name: 'transform', durationMs: 50 }],
+        sourceCount: 1,
+        ruleCount: 5,
+        outputRuleCount: 1,
+    },
+});
+```
+
+**Schema Definition:**
+- All fields from `CompilationResultSchema`
+- `metrics` (BenchmarkMetrics, optional): Compilation performance metrics (present when `benchmark: true`)
+
+### CLI Schemas
+
+#### `CliArgumentsSchema`
+
+Validates parsed CLI arguments. Integrates with `ArgumentParser.validate()`.
+
+```typescript
+import { CliArgumentsSchema } from '@jk-com/adblock-compiler';
+
+const args = CliArgumentsSchema.safeParse({
+    config: 'myconfig.json',
+    output: 'output.txt',
+    verbose: true,
+});
+```
+
+**Schema Definition:**
+- `config` (string, optional): Path to configuration file
+- `input` (string[], optional): Input source URLs or file paths
+- `inputType` (enum, optional): Input type — `'adblock'` or `'hosts'`
+- `output` (string, optional): Output file path
+- `verbose` (boolean, optional): Enable verbose logging
+- `benchmark` (boolean, optional): Enable benchmark reporting
+- `useQueue` (boolean, optional): Use async queue-based compilation
+- `priority` (enum, optional): Queue priority — `'standard'` or `'high'`
+- `help` (boolean, optional): Show help message
+- `version` (boolean, optional): Show version information
+
+**Refinements:**
+1. Either `--input` or `--config` must be specified (unless `--help` or `--version`)
+2. `--output` is required (unless `--help` or `--version`)
+3. Cannot specify both `--config` and `--input` simultaneously
+
+### Environment Schema
+
+#### `EnvironmentSchema`
+
+Validates Cloudflare Worker environment bindings and runtime variables.
+
+```typescript
+import { EnvironmentSchema } from '@jk-com/adblock-compiler';
+
+const env = EnvironmentSchema.safeParse(workerEnv);
+```
+
+**Schema Definition (all fields optional):**
+- `TURNSTILE_SECRET_KEY` (string): Cloudflare Turnstile secret key
+- `RATE_LIMIT_MAX_REQUESTS` (number): Maximum requests per window (coerced from string)
+- `RATE_LIMIT_WINDOW_MS` (number): Rate limit window duration in milliseconds (coerced from string)
+- `CACHE_TTL` (number): Cache TTL in seconds (coerced from string)
+- `LOG_LEVEL` (enum): Log level — `'trace'` | `'debug'` | `'info'` | `'warn'` | `'error'`
+
+Additional worker bindings are allowed via `.passthrough()`.
+
+### Filter Rule Schemas
+
+#### `AdblockRuleSchema`
+
+Validates the structure of a parsed adblock-syntax rule.
+
+```typescript
+import { AdblockRuleSchema } from '@jk-com/adblock-compiler';
+
+const rule = AdblockRuleSchema.safeParse({
+    ruleText: '||ads.example.com^$important',
+    pattern: 'ads.example.com',
+    whitelist: false,
+    options: [{ name: 'important', value: null }],
+    hostname: 'ads.example.com',
+});
+```
+
+**Schema Definition:**
+- `ruleText` (string, required, min 1): The raw rule text
+- `pattern` (string, required): The rule pattern
+- `whitelist` (boolean, required): Whether the rule is an allowlist rule
+- `options` (array | null, required): Array of `{ name: string, value: string | null }` objects, or null
+- `hostname` (string | null, required): The target hostname, or null
+
+#### `EtcHostsRuleSchema`
+
+Validates the structure of a parsed `/etc/hosts`-syntax rule.
+
+```typescript
+import { EtcHostsRuleSchema } from '@jk-com/adblock-compiler';
+
+const rule = EtcHostsRuleSchema.safeParse({
+    ruleText: '0.0.0.0 ads.example.com tracker.example.com',
+    hostnames: ['ads.example.com', 'tracker.example.com'],
+});
+```
+
+**Schema Definition:**
+- `ruleText` (string, required, min 1): The raw rule text
+- `hostnames` (string[], required, non-empty): Array of blocked hostnames
 
 ## Using ConfigurationValidator
 

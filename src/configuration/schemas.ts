@@ -118,6 +118,37 @@ const TransformableSchema: z.ZodObject<{
  */
 const SourceTypeSchema: z.ZodEnum<typeof SourceType> = z.nativeEnum(SourceType);
 
+/**
+ * Reusable schema for preFetchedContent fields.
+ * Keys are arbitrary source identifiers mapped to their pre-fetched content.
+ */
+const PreFetchedContentSchema = z.record(z.string(), z.string()).optional();
+
+/**
+ * Validates that when Compress is used, Deduplicate is present and appears before it
+ */
+function hasValidTransformationOrdering(data: { transformations?: TransformationType[] }): boolean {
+    const t = data.transformations;
+    if (!t) return true;
+
+    const compressIndex = t.indexOf(TransformationType.Compress);
+
+    // If Compress is not used, no ordering constraint applies
+    if (compressIndex === -1) return true;
+
+    const deduplicateIndex = t.indexOf(TransformationType.Deduplicate);
+
+    // Compress requires Deduplicate, and Deduplicate must come before Compress
+    if (deduplicateIndex === -1) return false;
+
+    return deduplicateIndex < compressIndex;
+}
+
+const transformationOrderingMessage = {
+    message: 'Deduplicate transformation is recommended before Compress. Add Deduplicate before Compress in transformations.',
+    path: ['transformations'] as string[],
+};
+
 // ============================================================================
 // Public schemas
 // ============================================================================
@@ -126,10 +157,16 @@ const SourceTypeSchema: z.ZodEnum<typeof SourceType> = z.nativeEnum(SourceType);
  * Schema for ISource validation
  */
 export const SourceSchema: z.ZodType<ISource> = z.object({
-    source: z.string().min(1, 'source is required and must be a non-empty string'),
-    name: z.string().min(1, 'name must be a non-empty string').optional(),
+    source: z.string().trim().min(1, 'source is required and must be a non-empty string'),
+    name: z.string().trim().min(1, 'name must be a non-empty string').optional(),
     type: SourceTypeSchema.optional(),
-}).merge(FilterableSchema).merge(TransformableSchema).strict();
+}).merge(FilterableSchema).merge(TransformableSchema).strict()
+    .refine(hasValidTransformationOrdering, transformationOrderingMessage)
+    .transform((data) => ({
+        ...data,
+        source: data.source.trim(),
+        name: data.name?.trim() || data.name,
+    }));
 
 /**
  * Schema for IConfiguration validation
@@ -141,14 +178,15 @@ export const ConfigurationSchema: z.ZodType<IConfiguration> = z.object({
     license: z.string().optional(),
     version: z.string().optional(),
     sources: z.array(SourceSchema).nonempty('sources is required and must be a non-empty array'),
-}).merge(FilterableSchema).merge(TransformableSchema).strict();
+}).merge(FilterableSchema).merge(TransformableSchema).strict()
+    .refine(hasValidTransformationOrdering, transformationOrderingMessage);
 
 /**
  * Schema for CompileRequest validation (worker)
  */
 export const CompileRequestSchema: z.ZodType<CompileRequestOutput> = z.object({
     configuration: ConfigurationSchema,
-    preFetchedContent: z.record(z.string(), z.string()).optional(),
+    preFetchedContent: PreFetchedContentSchema,
     benchmark: z.boolean().optional(),
     priority: z.enum(['standard', 'high']).optional(),
     turnstileToken: z.string().optional(),
@@ -162,7 +200,7 @@ export const BatchRequestSchema: z.ZodType<BatchRequestOutput> = z.object({
         z.object({
             id: z.string().min(1, 'id is required and must be a non-empty string'),
             configuration: ConfigurationSchema,
-            preFetchedContent: z.record(z.string(), z.string()).optional(),
+            preFetchedContent: PreFetchedContentSchema,
             benchmark: z.boolean().optional(),
         }),
     ).nonempty('requests array must not be empty'),
@@ -296,3 +334,126 @@ export const ValidationResultSchema: z.ZodType<ValidationResultOutput> = z.objec
     rules: z.array(z.string()),
     validation: ValidationReportSchema,
 });
+
+// ============================================================================
+// Compilation Output Schemas
+// ============================================================================
+
+/**
+ * Base compilation result object schema (used internally for extension)
+ */
+const compilationResultBase = z.object({
+    rules: z.array(z.string()),
+    ruleCount: z.number().int().nonnegative(),
+});
+
+/**
+ * Schema for compilation result output
+ */
+export const CompilationResultSchema = compilationResultBase;
+export type CompilationResultOutput = z.infer<typeof CompilationResultSchema>;
+
+/**
+ * Schema for benchmark metrics that matches the CompilationMetrics interface.
+ * Present when benchmark mode is enabled during compilation.
+ */
+export const BenchmarkMetricsSchema = z.object({
+    totalDurationMs: z.number().nonnegative(),
+    stages: z.array(z.object({
+        name: z.string(),
+        durationMs: z.number().nonnegative(),
+        itemCount: z.number().int().nonnegative().optional(),
+        itemsPerSecond: z.number().nonnegative().optional(),
+    })),
+    sourceCount: z.number().int().nonnegative(),
+    ruleCount: z.number().int().nonnegative(),
+    outputRuleCount: z.number().int().nonnegative(),
+});
+export type BenchmarkMetrics = z.infer<typeof BenchmarkMetricsSchema>;
+
+/**
+ * Schema for worker compilation result (extends CompilationResultSchema with optional metrics)
+ */
+export const WorkerCompilationResultSchema = compilationResultBase.extend({
+    metrics: BenchmarkMetricsSchema.optional(),
+});
+export type WorkerCompilationResultOutput = z.infer<typeof WorkerCompilationResultSchema>;
+
+// ============================================================================
+// CLI and Environment Schemas
+// ============================================================================
+
+/**
+ * Schema for CLI arguments (matches ParsedArguments interface in ArgumentParser.ts)
+ */
+export const CliArgumentsSchema = z.object({
+    config: z.string().optional(),
+    input: z.array(z.string()).optional(),
+    inputType: z.enum(['adblock', 'hosts']).optional(),
+    output: z.string().optional(),
+    verbose: z.boolean().optional(),
+    benchmark: z.boolean().optional(),
+    useQueue: z.boolean().optional(),
+    priority: z.enum(['standard', 'high']).optional(),
+    help: z.boolean().optional(),
+    version: z.boolean().optional(),
+}).refine(
+    (args) => args.help || args.version || !!(args.input?.length || args.config),
+    {
+        message: 'Either --input or --config must be specified (or --help/--version)',
+        path: ['input'],
+    },
+).refine(
+    (args) => args.help || args.version || !!args.output,
+    {
+        message: '--output is required',
+        path: ['output'],
+    },
+).refine(
+    (args) => !(args.config && args.input && args.input.length > 0),
+    {
+        message: 'Cannot specify both config file (-c) and input sources (-i)',
+        path: ['config'],
+    },
+);
+export type CliArguments = z.infer<typeof CliArgumentsSchema>;
+
+/**
+ * Schema for Worker environment bindings and runtime env vars
+ */
+export const EnvironmentSchema = z.object({
+    TURNSTILE_SECRET_KEY: z.string().optional(),
+    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().optional(),
+    RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().optional(),
+    CACHE_TTL: z.coerce.number().int().positive().optional(),
+    LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).optional(),
+}).passthrough(); // Allow additional worker bindings
+export type Environment = z.infer<typeof EnvironmentSchema>;
+
+// ============================================================================
+// Filter Rule Schemas
+// ============================================================================
+
+/**
+ * Schema for a parsed adblock-syntax rule
+ */
+export const AdblockRuleSchema = z.object({
+    ruleText: z.string().min(1),
+    pattern: z.string(),
+    whitelist: z.boolean(),
+    options: z.array(z.object({
+        name: z.string(),
+        value: z.string().nullable(),
+    })).nullable(),
+    hostname: z.string().nullable(),
+});
+export type AdblockRule = z.infer<typeof AdblockRuleSchema>;
+
+/**
+ * Schema for a parsed /etc/hosts-syntax rule
+ */
+export const EtcHostsRuleSchema = z.object({
+    ruleText: z.string().min(1),
+    hostnames: z.array(z.string()).nonempty(),
+});
+export type EtcHostsRule = z.infer<typeof EtcHostsRuleSchema>;
