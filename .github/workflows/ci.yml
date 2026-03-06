@@ -403,6 +403,7 @@ jobs:
     deploy:
         name: Deploy to Cloudflare
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         needs: [lint, format, typecheck, test, validate-cloudflare-schema, frontend-lint, frontend-build, frontend-test]
         if: |
             github.event_name == 'push' &&
@@ -478,7 +479,7 @@ jobs:
               if: env.CLOUDFLARE_API_TOKEN != ''
               run: |
                   echo "Deploying version: ${{ steps.version.outputs.full_version }}"
-                  npx wrangler@4.71.0 deploy --env=""
+                  npx wrangler@4.71.0 deploy
 
             - name: Record deployment
               if: success() && env.CLOUDFLARE_API_TOKEN != ''
