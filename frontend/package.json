@@ -7,6 +7,7 @@
         "ng": "ng",
         "start": "ng serve",
         "build": "ng build",
+        "postbuild": "node scripts/postbuild.js",
         "watch": "ng build --watch --configuration development",
         "test": "vitest run",
         "test:watch": "vitest",

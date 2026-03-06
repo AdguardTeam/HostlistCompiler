@@ -32,7 +32,12 @@
                             "src/favicon.svg",
                             "src/favicon.ico",
                             "src/robots.txt",
-                            "src/sitemap.xml"
+                            "src/sitemap.xml",
+                            {
+                                "glob": "_redirects",
+                                "input": "src",
+                                "output": "/"
+                            }
                         ],
                         "styles": [
                             "src/styles.css"
