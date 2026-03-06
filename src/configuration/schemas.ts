@@ -32,7 +32,6 @@ type BatchRequestOutput = {
     priority?: Priority;
 };
 
-
 type HttpFetcherOptionsOutput = {
     timeout?: number;
     userAgent?: string;
@@ -122,7 +121,7 @@ const SourceTypeSchema: z.ZodEnum<typeof SourceType> = z.nativeEnum(SourceType);
 /**
  * Reusable schema for preFetchedContent fields that validates URL keys
  */
-const preFetchedContentSchema = z.record(
+const PreFetchedContentSchema = z.record(
     z.string().refine((key) => {
         try { new URL(key); return true; } catch { return false; }
     }, { message: 'preFetchedContent keys must be valid URLs' }),
@@ -183,7 +182,7 @@ export const ConfigurationSchema: z.ZodType<IConfiguration> = z.object({
  */
 export const CompileRequestSchema: z.ZodType<CompileRequestOutput> = z.object({
     configuration: ConfigurationSchema,
-    preFetchedContent: preFetchedContentSchema,
+    preFetchedContent: PreFetchedContentSchema,
     benchmark: z.boolean().optional(),
     priority: z.enum(['standard', 'high']).optional(),
     turnstileToken: z.string().optional(),
@@ -197,7 +196,7 @@ export const BatchRequestSchema: z.ZodType<BatchRequestOutput> = z.object({
         z.object({
             id: z.string().min(1, 'id is required and must be a non-empty string'),
             configuration: ConfigurationSchema,
-            preFetchedContent: preFetchedContentSchema,
+            preFetchedContent: PreFetchedContentSchema,
             benchmark: z.boolean().optional(),
         }),
     ).nonempty('requests array must not be empty'),
@@ -351,21 +350,21 @@ export const CompilationResultSchema = compilationResultBase;
 export type CompilationResultOutput = z.infer<typeof CompilationResultSchema>;
 
 /**
- * Schema for benchmark metrics (optional, present when benchmark mode is enabled)
+ * Schema for benchmark metrics (present when benchmark mode is enabled)
  */
 export const BenchmarkMetricsSchema = z.object({
     totalDurationMs: z.number().nonnegative(),
     sourceFetchDurationMs: z.number().nonnegative().optional(),
     transformationDurationMs: z.number().nonnegative().optional(),
     ruleCount: z.number().int().nonnegative(),
-}).optional();
-export type BenchmarkMetrics = NonNullable<z.infer<typeof BenchmarkMetricsSchema>>;
+});
+export type BenchmarkMetrics = z.infer<typeof BenchmarkMetricsSchema>;
 
 /**
  * Schema for worker compilation result (extends CompilationResultSchema with optional benchmark metrics)
  */
 export const WorkerCompilationResultSchema = compilationResultBase.extend({
-    benchmark: BenchmarkMetricsSchema,
+    benchmark: BenchmarkMetricsSchema.optional(),
 });
 export type WorkerCompilationResultOutput = z.infer<typeof WorkerCompilationResultSchema>;
 

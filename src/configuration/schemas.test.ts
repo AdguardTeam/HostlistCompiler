@@ -602,9 +602,9 @@ Deno.test('BenchmarkMetricsSchema - should validate minimal metrics', () => {
     assertEquals(result.success, true);
 });
 
-Deno.test('BenchmarkMetricsSchema - should validate undefined (optional)', () => {
+Deno.test('BenchmarkMetricsSchema - should reject undefined (not optional by itself)', () => {
     const result = BenchmarkMetricsSchema.safeParse(undefined);
-    assertEquals(result.success, true);
+    assertEquals(result.success, false);
 });
 
 Deno.test('BenchmarkMetricsSchema - should reject negative duration', () => {
