@@ -9,6 +9,12 @@
         "ui:test": "npm --prefix frontend run test",
         "ui:lint": "npm --prefix frontend run lint"
     },
+    "_syncNote": "Dependency versions here must match those pinned in deno.json's import map; keep them in sync (for example via the existing version:sync-style task).",
+    "dependencies": {
+        "@adguard/agtree": "^4.0.1",
+        "@opentelemetry/api": "^1.9.0",
+        "zod": "^4.3.6"
+    },
     "devDependencies": {
         "@cloudflare/playwright-mcp": "^0.0.5"
     }

@@ -136,7 +136,8 @@
             "*.lcov",
             "*.d.ts",
             "CHANGELOG.md",
-            "MEMORY.md"
+            "MEMORY.md",
+            "issues/"
         ]
     },
     "test": {

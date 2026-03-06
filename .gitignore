@@ -49,8 +49,9 @@ examples/energized/hosts
 examples/china/filter.txt
 examples/whitelist/filter.txt
 
-# Claude Code local settings
+# Claude Code local settings and worktrees
 .claude/settings.local.json
+.claude/worktrees/
 
 # Environment files
 .env.local

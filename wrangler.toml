@@ -8,9 +8,10 @@ workers_dev = true
 # Build configuration
 # Builds Angular frontend and generates static assets for deployment.
 # Wrangler calls this command automatically on `wrangler deploy`.
-# Falls back to Vite build during migration if Angular build is not available.
+# npm ci installs root deps (zod, @opentelemetry/api, @adguard/agtree) that the
+# worker's TypeScript imports need for esbuild to resolve them during bundling.
 [build]
-command = "npm --prefix frontend install && npm --prefix frontend run build"
+command = "npm ci --omit=dev && npm --prefix frontend ci && npm --prefix frontend run build"
 
 [browser]
 binding = "BROWSER"
