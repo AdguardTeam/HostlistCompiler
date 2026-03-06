@@ -479,7 +479,7 @@ jobs:
               if: env.CLOUDFLARE_API_TOKEN != ''
               run: |
                   echo "Deploying version: ${{ steps.version.outputs.full_version }}"
-                  npx wrangler@4.71.0 deploy
+                  deno task wrangler:deploy
 
             - name: Record deployment
               if: success() && env.CLOUDFLARE_API_TOKEN != ''
