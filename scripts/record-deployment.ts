@@ -293,7 +293,7 @@ async function main() {
         } else {
             console.warn(`⚠️  Could not record deployment to D1: ${msg}`);
         }
-        console.warn('   This is non-blocking — the deployment itself succeeded.');
+        console.warn('   This is non-blocking — it does not affect the deployment result.');
         Deno.exit(0); // Don't fail the deployment
     }
 

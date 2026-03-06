@@ -11,7 +11,7 @@ workers_dev = true
 # npm ci installs root deps (zod, @opentelemetry/api, @adguard/agtree) that the
 # worker's TypeScript imports need for esbuild to resolve them during bundling.
 [build]
-command = "npm ci && npm --prefix frontend ci && npm --prefix frontend run build"
+command = "npm ci --omit=dev && npm --prefix frontend ci && npm --prefix frontend run build"
 
 [browser]
 binding = "BROWSER"
