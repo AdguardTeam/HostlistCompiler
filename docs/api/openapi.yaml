@@ -16,7 +16,7 @@ info:
         ## Links
         - [GitHub Repository](https://github.com/jaypatrick/adblock-compiler)
         - [Documentation](https://github.com/jaypatrick/adblock-compiler/tree/master/docs)
-        - [Web UI](https://adblock-compiler.jayson-knight.workers.dev/)
+        - [Web UI](https://adblock.jaysonknight.com/)
 
     version: 2.0.0
     license:
@@ -27,8 +27,6 @@ info:
         url: https://github.com/jaypatrick/adblock-compiler
 
 servers:
-    - url: https://adblock-compiler.jayson-knight.workers.dev
-      description: Development server
     - url: https://adblock.jaysonknight.com
       description: Production server
     - url: http://localhost:8787

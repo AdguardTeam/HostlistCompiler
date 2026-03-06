@@ -287,7 +287,7 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 ## Resources
 
 - **JSR Package**: https://jsr.io/@jk-com/adblock-compiler
-- **Live Web UI**: https://adblock-compiler.jayson-knight.workers.dev/
+- **Live Web UI**: https://adblock.jaysonknight.com/
 - **AdGuard DNS Syntax**: https://adguard-dns.io/kb/general/dns-filtering-syntax/
 - **Deno Manual**: https://deno.land/manual
 - **Cloudflare Workers**: https://developers.cloudflare.com/workers/
