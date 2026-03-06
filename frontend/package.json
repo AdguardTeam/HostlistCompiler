@@ -47,10 +47,13 @@
         "@angular/compiler-cli": "^21.0.0",
         "@cloudflare/workers-types": "^4.0.0",
         "@playwright/test": "^1.52.0",
+        "@tailwindcss/postcss": "^4.2.1",
         "@vitest/coverage-v8": "^4.0.0",
         "angular-eslint": "^21.2.0",
         "eslint": "^9.0.0",
         "jsdom": "^28.1.0",
+        "postcss": "^8.5.8",
+        "tailwindcss": "^4.2.1",
         "typescript": "~5.9.0",
         "typescript-eslint": "^8.56.1",
         "vitest": "^4.0.0"

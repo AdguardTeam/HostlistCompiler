@@ -59,7 +59,7 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
                     <mat-hint>{{ ruleCount() }} rule(s) entered</mat-hint>
                 </mat-form-field>
 
-                <div class="controls-row">
+                <div class="flex items-center gap-4 mt-2">
                     <mat-checkbox [(ngModel)]="strictMode">Strict mode</mat-checkbox>
                     <button mat-raised-button color="primary"
                         [disabled]="validationResource.isLoading() || ruleCount() === 0"
@@ -105,13 +105,13 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
 
                     @if (result.errors.length || result.warnings.length) {
                         <mat-divider class="mb-2"></mat-divider>
-                        <div class="error-list">
+                        <div class="flex flex-col gap-3">
                             @for (err of result.errors; track $index) {
-                                <div class="error-item error">
+                                <div class="flex gap-3 p-3 rounded-lg bg-surface-variant">
                                     <mat-icon class="error-icon" style="color: var(--mat-sys-error)">error</mat-icon>
-                                    <div class="error-detail">
-                                        <code class="error-rule">{{ err.rule }}</code>
-                                        <span class="error-msg">{{ err.message }}</span>
+                                    <div class="flex flex-col gap-1 flex-1">
+                                        <code class="font-mono text-code break-all">{{ err.rule }}</code>
+                                        <span class="text-sm text-on-surface-variant">{{ err.message }}</span>
                                         <mat-chip-set>
                                             <mat-chip>Line {{ err.line }}</mat-chip>
                                             <mat-chip>{{ err.errorType }}</mat-chip>
@@ -120,11 +120,11 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
                                 </div>
                             }
                             @for (warn of result.warnings; track $index) {
-                                <div class="error-item warning">
+                                <div class="flex gap-3 p-3 rounded-lg bg-surface-variant">
                                     <mat-icon class="error-icon" style="color: var(--mat-sys-tertiary)">warning</mat-icon>
-                                    <div class="error-detail">
-                                        <code class="error-rule">{{ warn.rule }}</code>
-                                        <span class="error-msg">{{ warn.message }}</span>
+                                    <div class="flex flex-col gap-1 flex-1">
+                                        <code class="font-mono text-code break-all">{{ warn.rule }}</code>
+                                        <span class="text-sm text-on-surface-variant">{{ warn.message }}</span>
                                         <mat-chip-set>
                                             <mat-chip>Line {{ warn.line }}</mat-chip>
                                             <mat-chip>{{ warn.errorType }}</mat-chip>
@@ -143,15 +143,9 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
     .page-content { padding: 0; }
     .subtitle { color: var(--mat-sys-on-surface-variant); margin-bottom: 24px; }
     .rules-field { width: 100%; }
-    .controls-row { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
     .results-card.valid { border-color: var(--mat-sys-primary); }
     .results-card.invalid { border-color: var(--mat-sys-error); }
-    .error-list { display: flex; flex-direction: column; gap: 12px; }
-    .error-item { display: flex; gap: 12px; padding: 12px; border-radius: 8px; background: var(--mat-sys-surface-variant); }
     .error-icon { flex-shrink: 0; margin-top: 2px; }
-    .error-detail { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .error-rule { font-family: 'Courier New', monospace; font-size: 13px; word-break: break-all; }
-    .error-msg { color: var(--mat-sys-on-surface-variant); font-size: 0.875rem; }
   `],
 })
 export class ValidationComponent {
