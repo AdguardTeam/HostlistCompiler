@@ -17,9 +17,6 @@ info:
 servers:
     -
         url: 'https://adblock.jaysonknight.com'
-        description: Development server
-    -
-        url: 'https://adblock.jaysonknight.com'
         description: Production server
 tags:
     -
