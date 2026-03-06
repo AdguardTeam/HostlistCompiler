@@ -92,7 +92,9 @@
 
 /* -----------------------------------------------------------------
    1. Angular Material M3 prebuilt — provides base component styles
-      and default --mat-sys-* tokens. MUST be first import.
+      and default --mat-sys-* tokens. MUST be first non-Tailwind import;
+      Tailwind is intentionally imported earlier so its @layer utilities
+      have lower cascade precedence than unlayered Material CSS.
    ----------------------------------------------------------------- */
 @import '@angular/material/prebuilt-themes/azure-blue.css';
 

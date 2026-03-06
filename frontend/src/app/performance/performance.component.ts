@@ -92,7 +92,7 @@ interface HealthResponse {
         } @else if (store.metrics(); as m) {
             <div class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mb-4">
                 <mat-card appearance="outlined">
-                <mat-card-content class="flex flex-col items-center px-4 py-5 text-center">
+                    <mat-card-content class="flex flex-col items-center px-4 py-5 text-center">
                         <mat-icon class="metric-icon" style="color: var(--mat-sys-primary)">api</mat-icon>
                         <div class="text-2xl font-bold text-on-surface">{{ m.totalRequests | number }}</div>
                         <div class="mat-caption uppercase tracking-wide mt-1 text-on-surface-variant">Total Requests</div>
@@ -168,9 +168,9 @@ interface HealthResponse {
                 </mat-card>
             }
         } @else {
-            <mat-card appearance="outlined" class="border-error mb-2">
+            <mat-card appearance="outlined" class="error-card mb-2">
                 <mat-card-content>
-                    <div class="flex items-center gap-2 text-error">
+                    <div class="flex items-center gap-2" style="color: var(--mat-sys-error)">
                         <mat-icon color="warn">error</mat-icon>
                         <span>Failed to load metrics. The API may be unavailable.</span>
                     </div>
@@ -195,6 +195,7 @@ interface HealthResponse {
     .page-content { padding: 0; }
     .subtitle { color: var(--mat-sys-on-surface-variant); margin-bottom: 24px; }
     .metric-icon { font-size: 32px; width: 32px; height: 32px; margin-bottom: 8px; }
+    .error-card { border-color: var(--mat-sys-error); }
   `],
 })
 export class PerformanceComponent {
