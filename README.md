@@ -10,9 +10,9 @@
 
 <!-- Platform & Service Badges -->
 
-[![Web UI](https://img.shields.io/badge/Web%20UI-Live-brightgreen?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/)
-[![API](https://img.shields.io/badge/API-Live-blue?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/api)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-6BA539?logo=openapiinitiative&logoColor=white)](openapi.yaml)
+[![Web UI](https://img.shields.io/badge/Web%20UI-Live-brightgreen?logo=cloudflare)](https://adblock.jaysonknight.com/)
+[![API](https://img.shields.io/badge/API-Live-blue?logo=cloudflare)](https://adblock.jaysonknight.com/api)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-6BA539?logo=openapiinitiative&logoColor=white)](docs/api/openapi.yaml)
 [![Deno](https://img.shields.io/badge/Deno-2.0+-black?logo=deno)](https://deno.land)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](#docker-deployment)
 
@@ -25,7 +25,7 @@
 
 **Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.
 
-🌐 **[Try the Admin Dashboard](https://adblock-compiler.jayson-knight.workers.dev/)** | 🔧 **[Compiler UI](https://adblock-compiler.jayson-knight.workers.dev/compiler.html)** | 🚀 **[API Endpoint](https://adblock-compiler.jayson-knight.workers.dev/api)** | 📚 **[Documentation](docs/api/README.md)**
+🌐 **[Try the Admin Dashboard](https://adblock.jaysonknight.com/)** | 🔧 **[Compiler UI](https://adblock.jaysonknight.com/compiler.html)** | 🚀 **[API Endpoint](https://adblock.jaysonknight.com/api)** | 📚 **[Documentation](docs/api/README.md)**
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). The package provides more functionality with improved performance and no Node.js dependencies.
 
@@ -488,7 +488,7 @@ openapi-generator-cli generate -i openapi.yaml -g typescript-fetch -o ./client
 # File → Import → openapi.yaml
 
 # Test against production
-curl https://adblock-compiler.jayson-knight.workers.dev/api
+curl https://adblock.jaysonknight.com/api
 ```
 
 **View the full OpenAPI specification:** [`openapi.yaml`](openapi.yaml)
