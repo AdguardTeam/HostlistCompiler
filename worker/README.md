@@ -49,13 +49,13 @@ The worker exposes a comprehensive REST API:
 
 ```bash
 # Run worker locally
-npm run dev
+deno task wrangler:dev
 
 # Deploy to Cloudflare
-npm run deploy
+deno task wrangler:deploy
 
 # View logs
-npm run tail
+deno task wrangler:tail
 ```
 
 ### Testing
@@ -161,10 +161,10 @@ Deploy to Cloudflare:
 
 ```bash
 # Deploy main worker
-npm run deploy
+deno task wrangler:deploy
 
 # Deploy tail worker (optional, for observability)
-npm run tail:deploy
+deno task wrangler:tail:deploy
 ```
 
 ### Monitoring
@@ -173,7 +173,7 @@ Access metrics and logs:
 
 ```bash
 # Real-time logs
-npm run tail
+deno task wrangler:tail
 
 # Metrics endpoint
 curl https://your-worker.workers.dev/metrics

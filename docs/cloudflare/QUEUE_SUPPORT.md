@@ -421,7 +421,7 @@ To test queue functionality locally (including priority):
 
 ```bash
 # Start the worker in development mode
-npm run dev
+deno task wrangler:dev
 
 # In another terminal, send a standard priority request
 curl -X POST http://localhost:8787/compile/async \
@@ -459,7 +459,7 @@ wrangler queues create adblock-compiler-worker-queue
 wrangler queues create adblock-compiler-worker-queue-high-priority
 
 # Deploy the worker
-npm run deploy
+deno task wrangler:deploy
 ```
 
 ## Troubleshooting

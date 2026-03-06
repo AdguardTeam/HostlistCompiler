@@ -42,7 +42,7 @@ deno task openapi:docs && \
 deno task test:contract
 
 # Deploy
-npm run deploy
+deno task wrangler:deploy
 ```
 
 ### Testing Specific Endpoints
