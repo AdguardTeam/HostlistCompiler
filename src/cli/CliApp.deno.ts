@@ -17,6 +17,7 @@ import {
     TransformationType,
 } from '../types/index.ts';
 import { FilterCompiler, FilterCompilerOptions } from '../compiler/index.ts';
+import { ConfigurationSchema } from '../configuration/index.ts';
 import { formatDuration } from '../utils/index.ts';
 
 // Log level constants
@@ -226,18 +227,21 @@ Examples:
 
     /**
      * Reads the configuration file using Deno's file system API.
-     *
-     * NOTE: This currently doesn't validate the configuration schema.
-     * In the full migration, this should use ConfigurationValidator
-     * which validates against the JSON schema. For now, validation
-     * will happen later when FilterCompiler.compile() is called.
      */
     private async readConfig(): Promise<IConfiguration> {
         this.logger.debug(`Reading configuration from ${this.args.config}`);
 
         try {
             const configStr = await Deno.readTextFile(this.args.config!);
-            return JSON.parse(configStr) as IConfiguration;
+            const configData = JSON.parse(configStr);
+
+            const result = ConfigurationSchema.safeParse(configData);
+            if (!result.success) {
+                const issues = result.error.issues.map((i) => `  ${i.path.join('.')}: ${i.message}`).join('\n');
+                throw new Error(`Invalid configuration file:\n${issues}`);
+            }
+
+            return result.data;
         } catch (error) {
             if (error instanceof Deno.errors.NotFound) {
                 throw new Error(`Configuration file not found: ${this.args.config}`);
