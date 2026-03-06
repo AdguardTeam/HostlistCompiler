@@ -66,6 +66,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.37.1] - 2026-03-06
+
+### Added### Fixed
+
+- **fmt**: exclude issues/ directory from deno fmt check
+- add missing npm deps (zod, @opentelemetry/api, @adguard/agtree) so wrangler can bundle the worker
+- use regex to parse HTTP status code from D1 error message for precise permission error detection
+- remove dangling git submodule, improve deployment error handling, suppress wrangler Pages warning
+- address code review feedback and prevent recurring Cloudflare deploy failure
+- add explicit JSR type annotations to schemas to resolve slow types errors
+
+
 ## [0.37.0] - 2026-03-06
 
 ### Added
