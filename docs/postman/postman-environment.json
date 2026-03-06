@@ -9,7 +9,7 @@
         },
         {
             "key": "prodUrl",
-            "value": "https://adblock-compiler.jayson-knight.workers.dev",
+            "value": "https://adblock.jaysonknight.com",
             "type": "default",
             "enabled": true
         }
