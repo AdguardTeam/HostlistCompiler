@@ -119,34 +119,33 @@ const TransformableSchema: z.ZodObject<{
 const SourceTypeSchema: z.ZodEnum<typeof SourceType> = z.nativeEnum(SourceType);
 
 /**
- * Reusable schema for preFetchedContent fields that validates URL keys
+ * Reusable schema for preFetchedContent fields.
+ * Keys are arbitrary source identifiers mapped to their pre-fetched content.
  */
-const PreFetchedContentSchema = z.record(
-    z.string().refine((key) => {
-        try {
-            new URL(key);
-            return true;
-        } catch {
-            return false;
-        }
-    }, { message: 'preFetchedContent keys must be valid URLs' }),
-    z.string(),
-).optional();
+const PreFetchedContentSchema = z.record(z.string(), z.string()).optional();
 
 /**
- * Validates that Compress is not used without Deduplicate in transformations
+ * Validates that when Compress is used, Deduplicate is present and appears before it
  */
 function hasValidTransformationOrdering(data: { transformations?: TransformationType[] }): boolean {
     const t = data.transformations;
     if (!t) return true;
-    const hasCompress = t.includes(TransformationType.Compress);
-    const hasDeduplicate = t.includes(TransformationType.Deduplicate);
-    if (hasCompress && !hasDeduplicate) return false;
-    return true;
+
+    const compressIndex = t.indexOf(TransformationType.Compress);
+
+    // If Compress is not used, no ordering constraint applies
+    if (compressIndex === -1) return true;
+
+    const deduplicateIndex = t.indexOf(TransformationType.Deduplicate);
+
+    // Compress requires Deduplicate, and Deduplicate must come before Compress
+    if (deduplicateIndex === -1) return false;
+
+    return deduplicateIndex < compressIndex;
 }
 
 const transformationOrderingMessage = {
-    message: 'Deduplicate transformation is recommended before Compress. Add Deduplicate to transformations.',
+    message: 'Deduplicate transformation is recommended before Compress. Add Deduplicate before Compress in transformations.',
     path: ['transformations'] as string[],
 };
 
@@ -158,8 +157,8 @@ const transformationOrderingMessage = {
  * Schema for ISource validation
  */
 export const SourceSchema: z.ZodType<ISource> = z.object({
-    source: z.string().min(1, 'source is required and must be a non-empty string'),
-    name: z.string().min(1, 'name must be a non-empty string').optional(),
+    source: z.string().trim().min(1, 'source is required and must be a non-empty string'),
+    name: z.string().trim().min(1, 'name must be a non-empty string').optional(),
     type: SourceTypeSchema.optional(),
 }).merge(FilterableSchema).merge(TransformableSchema).strict()
     .refine(hasValidTransformationOrdering, transformationOrderingMessage)
@@ -355,21 +354,28 @@ export const CompilationResultSchema = compilationResultBase;
 export type CompilationResultOutput = z.infer<typeof CompilationResultSchema>;
 
 /**
- * Schema for benchmark metrics (present when benchmark mode is enabled)
+ * Schema for benchmark metrics that matches the CompilationMetrics interface.
+ * Present when benchmark mode is enabled during compilation.
  */
 export const BenchmarkMetricsSchema = z.object({
     totalDurationMs: z.number().nonnegative(),
-    sourceFetchDurationMs: z.number().nonnegative().optional(),
-    transformationDurationMs: z.number().nonnegative().optional(),
+    stages: z.array(z.object({
+        name: z.string(),
+        durationMs: z.number().nonnegative(),
+        itemCount: z.number().int().nonnegative().optional(),
+        itemsPerSecond: z.number().nonnegative().optional(),
+    })),
+    sourceCount: z.number().int().nonnegative(),
     ruleCount: z.number().int().nonnegative(),
+    outputRuleCount: z.number().int().nonnegative(),
 });
 export type BenchmarkMetrics = z.infer<typeof BenchmarkMetricsSchema>;
 
 /**
- * Schema for worker compilation result (extends CompilationResultSchema with optional benchmark metrics)
+ * Schema for worker compilation result (extends CompilationResultSchema with optional metrics)
  */
 export const WorkerCompilationResultSchema = compilationResultBase.extend({
-    benchmark: BenchmarkMetricsSchema.optional(),
+    metrics: BenchmarkMetricsSchema.optional(),
 });
 export type WorkerCompilationResultOutput = z.infer<typeof WorkerCompilationResultSchema>;
 

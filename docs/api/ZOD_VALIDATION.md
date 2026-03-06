@@ -51,20 +51,24 @@ if (result.success) {
 **Normalization (`.transform()`):**
 
 `SourceSchema` automatically normalizes the parsed data:
-- `source`: leading and trailing whitespace is trimmed
+- `source`: leading and trailing whitespace is trimmed (whitespace-only values are rejected during validation)
 - `name`: leading and trailing whitespace is trimmed (if provided)
 
 **Transformation Ordering Refinement:**
 
-`SourceSchema` validates that if `Compress` is included in `transformations`, `Deduplicate` must also be present. This is a best-practice guard to prevent data loss.
+`SourceSchema` validates that if `Compress` is included in `transformations`, `Deduplicate` must also be present and must appear before `Compress`. This enforces correct ordering to prevent data loss.
 
 ```typescript
-// Valid: Both Deduplicate and Compress present
+// Valid: Deduplicate before Compress
 { transformations: ['Deduplicate', 'Compress'] }
 
 // Invalid: Compress without Deduplicate
 { transformations: ['Compress'] }
-// Error: "Deduplicate transformation is recommended before Compress. Add Deduplicate to transformations."
+// Error: "Deduplicate transformation is recommended before Compress. Add Deduplicate before Compress in transformations."
+
+// Invalid: Compress before Deduplicate (wrong ordering)
+{ transformations: ['Compress', 'Deduplicate'] }
+// Error: "Deduplicate transformation is recommended before Compress. Add Deduplicate before Compress in transformations."
 ```
 
 #### `ConfigurationSchema`
@@ -108,7 +112,7 @@ if (result.success) {
 
 **Transformation Ordering Refinement:**
 
-Same as `SourceSchema` — if `Compress` is in `transformations`, `Deduplicate` must also be present.
+Same as `SourceSchema` — if `Compress` is in `transformations`, `Deduplicate` must also be present and must appear before `Compress`.
 
 ### Worker Request Schemas
 
@@ -137,23 +141,10 @@ const result = CompileRequestSchema.safeParse(request);
 
 **Schema Definition:**
 - `configuration` (IConfiguration, required): Configuration object (validated by ConfigurationSchema)
-- `preFetchedContent` (Record<string, string>, optional): Pre-fetched content map (URL → content). **Keys must be valid URLs.**
+- `preFetchedContent` (Record<string, string>, optional): Pre-fetched content map (source identifier → content). Keys may be URLs or arbitrary source identifiers.
 - `benchmark` (boolean, optional): Whether to collect benchmark metrics
 - `priority` (enum, optional): Request priority - `'standard'` or `'high'`
 - `turnstileToken` (string, optional): Cloudflare Turnstile verification token
-
-**`preFetchedContent` URL Key Validation:**
-
-The `preFetchedContent` record keys are validated to be valid URLs. This ensures pre-fetched content is properly indexed.
-
-```typescript
-// Valid: URL keys
-{ preFetchedContent: { 'https://example.com/filters.txt': 'rule content' } }
-
-// Invalid: non-URL key
-{ preFetchedContent: { 'local-file.txt': 'rule content' } }
-// Error: "preFetchedContent keys must be valid URLs"
-```
 
 #### `BatchRequestSchema`
 
@@ -257,21 +248,26 @@ const result = CompilationResultSchema.safeParse({
 
 #### `BenchmarkMetricsSchema`
 
-Validates optional benchmark performance metrics returned when `benchmark: true`.
+Validates compilation performance metrics returned when `benchmark: true`. Matches the `CompilationMetrics` interface from the compiler.
 
 ```typescript
 import { BenchmarkMetricsSchema } from '@jk-com/adblock-compiler';
 ```
 
-**Schema Definition (optional — may be `undefined`):**
+**Schema Definition:**
 - `totalDurationMs` (number, required): Total compilation duration in milliseconds (non-negative)
-- `sourceFetchDurationMs` (number, optional): Time spent fetching sources (non-negative)
-- `transformationDurationMs` (number, optional): Time spent on transformations (non-negative)
-- `ruleCount` (number, required): Non-negative integer rule count
+- `stages` (array, required): Per-stage benchmark results, each containing:
+  - `name` (string, required): Stage name (e.g., `'fetch'`, `'transform'`)
+  - `durationMs` (number, required): Stage duration in milliseconds (non-negative)
+  - `itemCount` (number, optional): Number of items processed in this stage
+  - `itemsPerSecond` (number, optional): Throughput: items processed per second
+- `sourceCount` (number, required): Number of sources processed (non-negative integer)
+- `ruleCount` (number, required): Total input rule count before transformations (non-negative integer)
+- `outputRuleCount` (number, required): Final output rule count after all transformations (non-negative integer)
 
 #### `WorkerCompilationResultSchema`
 
-Extends `CompilationResultSchema` with optional benchmark metrics for worker responses.
+Extends `CompilationResultSchema` with optional compilation metrics for worker responses. Matches the actual HTTP response shape returned by the Worker `/compile` endpoint.
 
 ```typescript
 import { WorkerCompilationResultSchema } from '@jk-com/adblock-compiler';
@@ -279,16 +275,19 @@ import { WorkerCompilationResultSchema } from '@jk-com/adblock-compiler';
 const result = WorkerCompilationResultSchema.safeParse({
     rules: ['||ads.example.com^'],
     ruleCount: 1,
-    benchmark: {
+    metrics: {
         totalDurationMs: 250,
-        ruleCount: 1,
+        stages: [{ name: 'fetch', durationMs: 100 }, { name: 'transform', durationMs: 50 }],
+        sourceCount: 1,
+        ruleCount: 5,
+        outputRuleCount: 1,
     },
 });
 ```
 
 **Schema Definition:**
 - All fields from `CompilationResultSchema`
-- `benchmark` (BenchmarkMetrics, optional): Performance metrics
+- `metrics` (BenchmarkMetrics, optional): Compilation performance metrics (present when `benchmark: true`)
 
 ### CLI Schemas
 

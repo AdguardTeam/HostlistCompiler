@@ -44,6 +44,12 @@ Deno.test('SourceSchema - should validate full source', () => {
     assertEquals(result.success, true);
 });
 
+Deno.test('SourceSchema - should reject whitespace-only source', () => {
+    const source = { source: '   ' };
+    const result = SourceSchema.safeParse(source);
+    assertEquals(result.success, false);
+});
+
 Deno.test('SourceSchema - should reject empty source string', () => {
     const source = { source: '' };
     const result = SourceSchema.safeParse(source);
@@ -455,13 +461,22 @@ Deno.test('SourceSchema - should reject Compress without Deduplicate', () => {
     assertEquals(result.success, false);
 });
 
-Deno.test('SourceSchema - should accept Compress with Deduplicate', () => {
+Deno.test('SourceSchema - should accept Compress with Deduplicate before it', () => {
     const source = {
         source: 'https://example.com/list.txt',
         transformations: [TransformationType.Deduplicate, TransformationType.Compress],
     };
     const result = SourceSchema.safeParse(source);
     assertEquals(result.success, true);
+});
+
+Deno.test('SourceSchema - should reject Compress before Deduplicate (wrong ordering)', () => {
+    const source = {
+        source: 'https://example.com/list.txt',
+        transformations: [TransformationType.Compress, TransformationType.Deduplicate],
+    };
+    const result = SourceSchema.safeParse(source);
+    assertEquals(result.success, false);
 });
 
 Deno.test('SourceSchema - should accept neither Compress nor Deduplicate', () => {
@@ -502,7 +517,7 @@ Deno.test('ConfigurationSchema - should reject Compress without Deduplicate', ()
     assertEquals(result.success, false);
 });
 
-Deno.test('ConfigurationSchema - should accept Compress with Deduplicate', () => {
+Deno.test('ConfigurationSchema - should accept Compress with Deduplicate before it', () => {
     const config = {
         name: 'Test',
         sources: [{ source: 'https://example.com/list.txt' }],
@@ -510,6 +525,16 @@ Deno.test('ConfigurationSchema - should accept Compress with Deduplicate', () =>
     };
     const result = ConfigurationSchema.safeParse(config);
     assertEquals(result.success, true);
+});
+
+Deno.test('ConfigurationSchema - should reject Compress before Deduplicate (wrong ordering)', () => {
+    const config = {
+        name: 'Test',
+        sources: [{ source: 'https://example.com/list.txt' }],
+        transformations: [TransformationType.Compress, TransformationType.Deduplicate],
+    };
+    const result = ConfigurationSchema.safeParse(config);
+    assertEquals(result.success, false);
 });
 
 // preFetchedContent URL key validation tests
@@ -525,16 +550,16 @@ Deno.test('CompileRequestSchema - should accept valid URL keys in preFetchedCont
     assertEquals(result.success, true);
 });
 
-Deno.test('CompileRequestSchema - should reject non-URL keys in preFetchedContent', () => {
+Deno.test('CompileRequestSchema - should accept arbitrary string keys in preFetchedContent', () => {
     const request = {
         configuration: {
             name: 'Test',
             sources: [{ source: 'https://example.com/list.txt' }],
         },
-        preFetchedContent: { 'not-a-url': 'content' },
+        preFetchedContent: { 'bench-test': 'content', 'source-1': 'more content' },
     };
     const result = CompileRequestSchema.safeParse(request);
-    assertEquals(result.success, false);
+    assertEquals(result.success, true);
 });
 
 // CompilationResultSchema tests
@@ -557,29 +582,30 @@ Deno.test('CompilationResultSchema - should reject negative ruleCount', () => {
 });
 
 // WorkerCompilationResultSchema tests
-Deno.test('WorkerCompilationResultSchema - should validate result without benchmark', () => {
+Deno.test('WorkerCompilationResultSchema - should validate result without metrics', () => {
     const result = { rules: ['||ads.com^'], ruleCount: 1 };
     const parseResult = WorkerCompilationResultSchema.safeParse(result);
     assertEquals(parseResult.success, true);
 });
 
-Deno.test('WorkerCompilationResultSchema - should validate result with benchmark metrics', () => {
+Deno.test('WorkerCompilationResultSchema - should validate result with full metrics', () => {
     const result = {
         rules: ['||ads.com^'],
         ruleCount: 1,
-        benchmark: {
+        metrics: {
             totalDurationMs: 250,
-            sourceFetchDurationMs: 100,
-            transformationDurationMs: 50,
-            ruleCount: 1,
+            stages: [{ name: 'fetch', durationMs: 100 }, { name: 'transform', durationMs: 50 }],
+            sourceCount: 1,
+            ruleCount: 5,
+            outputRuleCount: 1,
         },
     };
     const parseResult = WorkerCompilationResultSchema.safeParse(result);
     assertEquals(parseResult.success, true);
 });
 
-Deno.test('WorkerCompilationResultSchema - should validate result with undefined benchmark', () => {
-    const result = { rules: [], ruleCount: 0, benchmark: undefined };
+Deno.test('WorkerCompilationResultSchema - should validate result with undefined metrics', () => {
+    const result = { rules: [], ruleCount: 0, metrics: undefined };
     const parseResult = WorkerCompilationResultSchema.safeParse(result);
     assertEquals(parseResult.success, true);
 });
@@ -588,16 +614,20 @@ Deno.test('WorkerCompilationResultSchema - should validate result with undefined
 Deno.test('BenchmarkMetricsSchema - should validate full metrics', () => {
     const metrics = {
         totalDurationMs: 500,
-        sourceFetchDurationMs: 200,
-        transformationDurationMs: 100,
-        ruleCount: 42,
+        stages: [
+            { name: 'fetch', durationMs: 200, itemCount: 3, itemsPerSecond: 15 },
+            { name: 'transform', durationMs: 100 },
+        ],
+        sourceCount: 3,
+        ruleCount: 1000,
+        outputRuleCount: 42,
     };
     const result = BenchmarkMetricsSchema.safeParse(metrics);
     assertEquals(result.success, true);
 });
 
 Deno.test('BenchmarkMetricsSchema - should validate minimal metrics', () => {
-    const metrics = { totalDurationMs: 100, ruleCount: 0 };
+    const metrics = { totalDurationMs: 100, stages: [], sourceCount: 0, ruleCount: 0, outputRuleCount: 0 };
     const result = BenchmarkMetricsSchema.safeParse(metrics);
     assertEquals(result.success, true);
 });
@@ -608,7 +638,7 @@ Deno.test('BenchmarkMetricsSchema - should reject undefined (not optional by its
 });
 
 Deno.test('BenchmarkMetricsSchema - should reject negative duration', () => {
-    const metrics = { totalDurationMs: -100, ruleCount: 0 };
+    const metrics = { totalDurationMs: -100, stages: [], sourceCount: 0, ruleCount: 0, outputRuleCount: 0 };
     const result = BenchmarkMetricsSchema.safeParse(metrics);
     assertEquals(result.success, false);
 });
