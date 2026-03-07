@@ -44,7 +44,7 @@ describe('QueueService', () => {
             expect(stats.depthHistory).toEqual([]);
         });
 
-        const req = httpTesting.expectOne('/api/../queue/stats');
+        const req = httpTesting.expectOne('/queue/stats');
         expect(req.request.method).toBe('GET');
         req.flush(mockStats);
     });
@@ -62,7 +62,7 @@ describe('QueueService', () => {
             expect(result.status).toBe('completed');
         });
 
-        const req = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+        const req = httpTesting.expectOne(`/queue/results/${requestId}`);
         expect(req.request.method).toBe('GET');
         req.flush(mockResult);
     });
@@ -81,12 +81,12 @@ describe('QueueService', () => {
 
             // Advance 1ms to trigger the initial timer(0, ...) emission
             await vi.advanceTimersByTimeAsync(1);
-            const req1 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            const req1 = httpTesting.expectOne(`/queue/results/${requestId}`);
             req1.flush({ success: true, status: 'pending', requestId });
 
             // Second emission: advance by the polling interval
             await vi.advanceTimersByTimeAsync(1000);
-            const req2 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            const req2 = httpTesting.expectOne(`/queue/results/${requestId}`);
             req2.flush({ success: true, status: 'completed', requestId, ruleCount: 100 });
 
             expect(results.length).toBe(2);
@@ -110,17 +110,17 @@ describe('QueueService', () => {
 
             // First poll: not_found (within grace)
             await vi.advanceTimersByTimeAsync(1);
-            const req1 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            const req1 = httpTesting.expectOne(`/queue/results/${requestId}`);
             req1.flush({ success: false, status: 'not_found', requestId });
 
             // Second poll: still not_found but within grace
             await vi.advanceTimersByTimeAsync(1000);
-            const req2 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            const req2 = httpTesting.expectOne(`/queue/results/${requestId}`);
             req2.flush({ success: false, status: 'not_found', requestId });
 
             // Third poll: job now available as pending (non-terminal, keep going)
             await vi.advanceTimersByTimeAsync(1000);
-            const req3 = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+            const req3 = httpTesting.expectOne(`/queue/results/${requestId}`);
             req3.flush({ success: true, status: 'pending', requestId });
 
             expect(results.length).toBe(3);
@@ -147,7 +147,7 @@ describe('QueueService', () => {
             // Exhaust grace retries (NOT_FOUND_GRACE_RETRIES = 10) + 1 terminal emit
             for (let i = 0; i <= 10; i++) {
                 await vi.advanceTimersByTimeAsync(i === 0 ? 1 : 100);
-                const req = httpTesting.expectOne(`/api/../queue/results/${requestId}`);
+                const req = httpTesting.expectOne(`/queue/results/${requestId}`);
                 req.flush({ success: false, status: 'not_found', requestId });
             }
 
