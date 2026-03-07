@@ -190,6 +190,7 @@ jobs:
               continue-on-error: true
               with:
                   files: ./coverage.lcov
+                  flags: deno
                   fail_ci_if_error: false
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -300,8 +301,19 @@ jobs:
             - name: Install frontend dependencies
               run: npm --prefix frontend ci
 
-            - name: Run frontend tests
-              run: npm --prefix frontend test
+            - name: Run frontend tests with coverage
+              run: npm --prefix frontend run test:coverage
+
+            - name: Upload frontend coverage to Codecov
+              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+              uses: codecov/codecov-action@v5
+              continue-on-error: true
+              with:
+                  files: ./frontend/coverage/lcov.info
+                  flags: frontend
+                  fail_ci_if_error: false
+              env:
+                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     validate-cloudflare-schema:
         name: Validate Cloudflare Schema
