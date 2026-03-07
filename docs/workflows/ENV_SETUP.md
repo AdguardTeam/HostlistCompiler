@@ -112,7 +112,7 @@ jobs:
       - name: Deploy to environment
         run: |
           if [ "${{ steps.env.outputs.environment }}" = "production" ]; then
-            wrangler deploy --env production
+            wrangler deploy  # production is the top-level default env; no --env flag needed
           else
             wrangler deploy --env development
           fi

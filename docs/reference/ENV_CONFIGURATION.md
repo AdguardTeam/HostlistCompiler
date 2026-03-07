@@ -82,14 +82,14 @@ Then edit `.env.local` with your actual secrets and API keys.
 
 ## Wrangler Integration
 
-The `wrangler.toml` configuration supports environment-based deployments:
+The `wrangler.toml` configuration supports environment-based deployments. Production is the default (top-level) environment; there is no `--env production` flag:
 
 ```bash
-# Development deployment
+# Development deployment (uses [env.development] overrides in wrangler.toml)
 wrangler deploy --env development
 
-# Production deployment
-wrangler deploy --env production
+# Production deployment (uses top-level wrangler.toml config — no --env flag needed)
+wrangler deploy
 ```
 
 Environment variables from `.env.local` are automatically available during local development (`wrangler dev`).
@@ -97,8 +97,8 @@ Environment variables from `.env.local` are automatically available during local
 For production deployments, secrets should be set using:
 
 ```bash
-wrangler secret put ADMIN_KEY --env production
-wrangler secret put TURNSTILE_SECRET_KEY --env production
+wrangler secret put ADMIN_KEY
+wrangler secret put TURNSTILE_SECRET_KEY
 ```
 
 ## Troubleshooting
