@@ -3458,6 +3458,10 @@ export default {
 
         // Validate filter rules
         if (routePath === '/validate' && request.method === 'POST') {
+            const sizeValidation = await validateRequestSize(request, env);
+            if (!sizeValidation.valid) {
+                return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
+            }
             try {
                 const body = await request.json() as { rules?: string[]; strict?: boolean };
                 const rules = Array.isArray(body.rules) ? body.rules : [];
@@ -3474,22 +3478,21 @@ export default {
                 const { ASTViewerService } = await import('../src/services/ASTViewerService.ts');
                 for (let i = 0; i < rules.length; i++) {
                     const rule = rules[i].trim();
-                    if (!rule || rule.startsWith('!') || rule.startsWith('#')) {
-                        // Empty lines and comments are valid
+                    if (!rule || rule.startsWith('!')) {
+                        // Empty lines and `!`-prefixed comments are valid
                         validRules++;
                         continue;
                     }
-                    try {
-                        // Try parsing via ASTViewerService
-                        ASTViewerService.parseRules([rule]);
+                    // Parse via ASTViewerService and check success flag
+                    const result = ASTViewerService.parseRule(rule);
+                    if (result.success) {
                         validRules++;
-                    } catch (e) {
-                        const message = e instanceof Error ? e.message : String(e);
+                    } else {
                         errors.push({
                             line: i + 1,
                             rule,
                             errorType: 'ParseError',
-                            message,
+                            message: String(result.error),
                             severity: 'error',
                         });
                     }

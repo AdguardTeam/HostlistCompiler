@@ -91,7 +91,7 @@ export class QueueService {
 
     /** GET /queue/stats — queue depth, job counts, depth history */
     getStats(): Observable<QueueStats> {
-        return this.http.get<QueueStats>(`/queue/stats`).pipe(
+        return this.http.get<QueueStats>(`${this.apiBaseUrl}/queue/stats`).pipe(
             map(stats => {
                 // Normalize: ensure depthHistory is always an array
                 return {
@@ -104,7 +104,7 @@ export class QueueService {
 
     /** GET /queue/results/:requestId — retrieve results for a queued job */
     getResults(requestId: string): Observable<QueueResult> {
-        return this.http.get<QueueResult>(`/queue/results/${requestId}`);
+        return this.http.get<QueueResult>(`${this.apiBaseUrl}/queue/results/${requestId}`);
     }
 
     /**
