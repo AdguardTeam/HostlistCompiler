@@ -68,7 +68,7 @@ tag = "v1"
 # IMPORTANT: This version should match the VERSION constant in src/version.ts (single source of truth)
 # To update: change VERSION in src/version.ts, then run `deno task version:sync` to propagate changes
 # The worker will fall back to src/version.ts if this is not set
-COMPILER_VERSION = "0.37.5"
+COMPILER_VERSION = "0.37.6"
 ENVIRONMENT = "production"
 # TURNSTILE_SITE_KEY, ADMIN_KEY, etc. are loaded from .env files via .envrc
 # For local dev: managed by .env.development and .env.local
