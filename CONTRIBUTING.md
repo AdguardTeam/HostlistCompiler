@@ -14,13 +14,13 @@ Thank you for your interest in contributing to the Adblock Compiler project! Thi
    git clone https://github.com/jaypatrick/adblock-compiler.git
    cd adblock-compiler
    deno cache src/index.ts
-   npm --prefix frontend ci    # Install Angular frontend dependencies
+   pnpm install                    # Install Angular frontend dependencies
    ```
 
 3. **Run Tests**
    ```bash
-   deno task test                       # Backend tests (Deno)
-   npm --prefix frontend run test       # Frontend tests (Vitest)
+   deno task test                                       # Backend tests (Deno)
+   pnpm --filter adblock-compiler-frontend run test     # Frontend tests (Vitest)
    ```
 
 ## Commit Message Guidelines
@@ -113,9 +113,9 @@ update code                # Too vague, missing type
    deno task check          # Type check
 
    # Frontend (Angular)
-   npm --prefix frontend run test       # Vitest unit tests
-   npm --prefix frontend run lint       # ESLint
-   npm --prefix frontend run build      # Production build
+   pnpm --filter adblock-compiler-frontend run test     # Vitest unit tests
+   pnpm --filter adblock-compiler-frontend run lint     # ESLint
+   pnpm --filter adblock-compiler-frontend run build    # Production build
    ```
 
 4. **Commit with Conventional Format**
@@ -219,8 +219,8 @@ The frontend is an Angular 21 app in `frontend/` using:
 ### Running Locally
 
 ```bash
-npm --prefix frontend start              # Angular dev server (http://localhost:4200)
-wrangler dev                              # Worker API (http://localhost:8787)
+pnpm --filter adblock-compiler-frontend run start    # Angular dev server (http://localhost:4200)
+deno task wrangler:dev                               # Worker API (http://localhost:8787)
 ```
 
 The Angular dev server proxies `/api` requests to the Worker.

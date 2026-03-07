@@ -131,7 +131,7 @@ await compiler.compileWithMetrics(configuration, true);
 
 ```typescript
 // Using the deployed API
-const response = await fetch('https://adblock.jaysonknight.com/compile/batch', {
+const response = await fetch('https://adblock-compiler-ui.pages.dev/compile/batch', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -147,7 +147,7 @@ const { results } = await response.json();
 
 ### Visual Diff
 
-Use the Web UI at https://adblock.jaysonknight.com/ to see visual diffs between compilations.
+Use the Web UI at https://adblock-compiler-ui.pages.dev/ to see visual diffs between compilations.
 
 ## Platform-Specific Migration
 
@@ -263,8 +263,8 @@ npm install @adguard/hostlist-compiler@^1.0.39
 ## Support & Resources
 
 - **Documentation**: [docs/api/README.md](../api/README.md)
-- **Web UI**: https://adblock.jaysonknight.com/
-- **API Reference**: https://adblock.jaysonknight.com/api
+- **Web UI**: https://adblock-compiler-ui.pages.dev/
+- **API Reference**: https://adblock-compiler-ui.pages.dev/api
 - **GitHub Issues**: https://github.com/jaypatrick/adblock-compiler/issues
 - **Examples**: [docs/guides/clients.md](./clients.md)
 

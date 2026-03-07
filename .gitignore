@@ -14,6 +14,7 @@ Thumbs.db
 # Node / pnpm / Yarn
 node_modules/
 .npmrc
+!/.npmrc
 !frontend/.npmrc
 *.tgz
 .yarn/

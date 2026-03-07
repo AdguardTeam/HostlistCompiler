@@ -49,9 +49,9 @@
         "wrangler:tail:dev": "deno run -A npm:wrangler dev --config wrangler.tail.toml",
         "wrangler:tail:logs": "deno run -A npm:wrangler tail adblock-compiler-tail",
         "version:sync": "deno run --allow-read --allow-write scripts/sync-version.ts",
-        "ui:build:ng": "npm --prefix frontend run build",
-        "ui:dev:ng": "npm --prefix frontend start",
-        "ui:test:ng": "npm --prefix frontend run test"
+        "ui:build:ng": "pnpm --filter adblock-compiler-frontend run build",
+        "ui:dev:ng": "pnpm --filter adblock-compiler-frontend run start",
+        "ui:test:ng": "pnpm --filter adblock-compiler-frontend run test"
     },
     "imports": {
         "@/": "./src/",
