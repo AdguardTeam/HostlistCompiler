@@ -540,7 +540,6 @@ jobs:
                   npx wrangler queues create adblock-compiler-worker-queue-high-priority 2>/dev/null || echo "High priority queue already exists"
                   npx wrangler queues create adblock-compiler-dlq 2>/dev/null || echo "DLQ already exists"
                   npx wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || echo "R2 bucket already exists"
-                  npx wrangler kv namespace create TAIL_LOGS 2>/dev/null || echo "TAIL_LOGS KV namespace already exists"
 
             - name: Deploy Tail Worker
               if: env.CLOUDFLARE_API_TOKEN != ''
