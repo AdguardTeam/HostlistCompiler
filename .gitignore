@@ -14,11 +14,13 @@ Thumbs.db
 # Node / pnpm / Yarn
 node_modules/
 .npmrc
+!/.npmrc
 !frontend/.npmrc
 *.tgz
 .yarn/
 .pnp.*
 yarn.lock
+pnpm-lock.yaml
 .yarnrc.yml
 
 # Build output

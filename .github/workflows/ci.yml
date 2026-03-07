@@ -223,6 +223,34 @@ jobs:
               with:
                   sarif_file: trivy-results.sarif
 
+    frontend:
+        name: Frontend (lint + test)
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Lint frontend
+              run: pnpm --filter adblock-compiler-frontend run lint
+
+            - name: Test frontend
+              run: pnpm --filter adblock-compiler-frontend run test
+
     frontend-lint:
         name: Frontend Lint
         runs-on: ubuntu-latest
@@ -231,24 +259,22 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
                   node-version: '22'
-
-            - name: Cache frontend dependencies
-              uses: actions/cache@v4
-              with:
-                  path: frontend/node_modules
-                  key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
-                  restore-keys: |
-                      frontend-${{ runner.os }}-
+                  cache: 'pnpm'
 
             - name: Install frontend dependencies
-              run: npm --prefix frontend ci
+              run: pnpm install --frozen-lockfile
 
             - name: Lint Angular frontend
-              run: npm --prefix frontend run lint
+              run: pnpm --filter adblock-compiler-frontend run lint
 
     frontend-build:
         name: Frontend Build
@@ -258,24 +284,22 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
                   node-version: '22'
-
-            - name: Cache frontend dependencies
-              uses: actions/cache@v4
-              with:
-                  path: frontend/node_modules
-                  key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
-                  restore-keys: |
-                      frontend-${{ runner.os }}-
+                  cache: 'pnpm'
 
             - name: Install frontend dependencies
-              run: npm --prefix frontend ci
+              run: pnpm install --frozen-lockfile
 
             - name: Build Angular frontend
-              run: npm --prefix frontend run build
+              run: pnpm --filter adblock-compiler-frontend run build
 
             - name: Upload frontend build artifact
               uses: actions/upload-artifact@v4
@@ -292,24 +316,22 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
                   node-version: '22'
-
-            - name: Cache frontend dependencies
-              uses: actions/cache@v4
-              with:
-                  path: frontend/node_modules
-                  key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
-                  restore-keys: |
-                      frontend-${{ runner.os }}-
+                  cache: 'pnpm'
 
             - name: Install frontend dependencies
-              run: npm --prefix frontend ci
+              run: pnpm install --frozen-lockfile
 
             - name: Run frontend tests with coverage
-              run: npm --prefix frontend run test:coverage
+              run: pnpm --filter adblock-compiler-frontend run test:coverage
 
             - name: Upload frontend coverage to Codecov
               if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -387,6 +409,7 @@ jobs:
             - typecheck
             - test
             - validate-cloudflare-schema
+            - frontend
             - frontend-lint
             - frontend-build
             - frontend-test
