@@ -29,6 +29,21 @@
 
 > **Note:** This is a Deno-native rewrite of the original [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler). The package provides more functionality with improved performance and no Node.js dependencies.
 
+## 📚 Documentation
+
+The full project documentation is available at **[adblock.jaysonknight.com/docs](https://adblock.jaysonknight.com/docs)** (coming soon via Cloudflare Pages).
+
+To preview locally:
+```bash
+# Install mdBook (requires Rust/Cargo or direct binary)
+cargo install mdbook
+# or download binary: https://github.com/rust-lang/mdBook/releases
+
+# Serve with live reload from the repo root (uses book.toml with src = "docs")
+mdbook serve
+# → open http://localhost:3000
+```
+
 ## 🎉 New in v0.30.x
 
 - **🎯 Angular 21 SPA** — Production Angular frontend with zoneless change detection, Angular Material 3, SSR, and Cloudflare Workers deployment ([docs](frontend/README.md))

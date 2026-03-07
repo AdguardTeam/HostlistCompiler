@@ -24,6 +24,7 @@ yarn.lock
 # Build output
 dist/
 artifacts/
+book/
 adblock-compiler
 adblock-compiler.exe
 hostlist-compiler
