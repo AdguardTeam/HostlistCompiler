@@ -169,7 +169,7 @@ Contract tests validate that your live API conforms to the OpenAPI specification
 deno task test:contract
 
 # Test against production
-API_BASE_URL=https://adblock.jaysonknight.com deno task test:contract
+API_BASE_URL=https://adblock-compiler-ui.pages.dev deno task test:contract
 
 # Test specific scenarios
 deno test --allow-read --allow-write --allow-net --allow-env worker/openapi-contract.test.ts --filter "Contract: GET /api"
