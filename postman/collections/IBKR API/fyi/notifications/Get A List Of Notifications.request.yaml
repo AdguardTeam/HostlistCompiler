@@ -1,21 +1,19 @@
 $kind: http-request
 description: Get a list of available notifications.
-url: https://api.ibkr.com/v1/api/fyi/notifications?max=10&include=include&exclude=exclude&id=if
-  more required, notifcationId of last notification should be used to define
-  next batch border
+url: https://api.ibkr.com/v1/api/fyi/notifications
 method: GET
 headers:
   Accept: application/json
 queryParams:
   - key: max
     value: "10"
-    description: "(Required) "
+    description: "(Required) Maximum number of notifications to retrieve."
   - key: include
     value: include
   - key: exclude
     value: exclude
   - key: id
-    value: if more required, notifcationId of last notification should be used to
-      define next batch border
+    value: "{{notificationId}}"
+    description: "If more results are required, the notificationId of the last notification should be used to define the next batch border."
 examples: ./.resources/Get A List Of Notifications.resources/examples
 order: 2000

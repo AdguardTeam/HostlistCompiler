@@ -39,13 +39,13 @@ body:
   type: urlencoded
   content:
     - key: mfa_token
-      value: "577672"
+      value: "{{vault:ADGUARD_MFA_TOKEN}}"
       description: Two-Factor authentication token
     - key: password
-      value: I grew up on 1308 Hemlock Street
-      description: Account password
+      value: "{{vault:ADGUARD_PASSWORD}}"
+      description: Account password (stored in Postman Vault)
     - key: username
-      value: jayson.knight@jaysonknight.com
+      value: "{{vault:ADGUARD_USERNAME}}"
       description: Account email
 examples: ./.resources/Generates Access and Refresh token.resources/examples
 order: 1000

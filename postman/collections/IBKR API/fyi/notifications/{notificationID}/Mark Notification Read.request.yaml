@@ -6,10 +6,7 @@ headers:
   Accept: application/json
 pathVariables:
   - key: notificationID
-    value: ""
-  - key: notificationId
-    value: Code used to signify a specific notification to mark. Value received from
-      /fyi/notifications
-    description: "(Required) "
+    value: "123456"
+    description: "(Required) Code used to signify a specific notification to mark. Value received from /fyi/notifications."
 examples: ./.resources/Mark Notification Read.resources/examples
 order: 1000
