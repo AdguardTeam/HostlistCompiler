@@ -393,18 +393,19 @@ jobs:
         if: always()
         steps:
             - name: Check all jobs passed
+              env:
+                  NEEDS_JSON: ${{ toJSON(needs) }}
               run: |
-                  results='${{ toJSON(needs) }}'
-                  echo "Job results: $results"
-                  echo "$results" | python3 - <<'PY'
-                  import sys
+                  echo "Job results: $NEEDS_JSON"
+                  python3 - <<'PY'
+                  import os
                   import json
 
-                  needs = json.load(sys.stdin)
+                  needs = json.loads(os.environ['NEEDS_JSON'])
                   failures = [name for name, data in needs.items() if data['result'] not in ('success', 'skipped')]
                   if failures:
                       print('FAILED: ' + ', '.join(failures))
-                      sys.exit(1)
+                      raise SystemExit(1)
                   print('All checks passed')
                   PY
 
