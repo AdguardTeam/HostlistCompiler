@@ -61,7 +61,7 @@ export default defineConfig({
 
             // Generate text summary (terminal), JSON (CI ingestion), HTML
             // (human-readable report at coverage/index.html), and LCOV
-            // (coverage/lcov.info) for Codecov ingestion.
+            // (coverage/lcov.info — consumed by Codecov).
             reporter: ['text', 'json', 'html', 'lcov'],
 
             // Measure coverage across all app source files …
