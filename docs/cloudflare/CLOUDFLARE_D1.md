@@ -425,11 +425,11 @@ try {
 ### Deploy to Cloudflare Workers
 
 ```bash
-# Deploy worker
+# Deploy worker (production — top-level default, no --env flag needed)
 wrangler deploy
 
-# Deploy with environment
-wrangler deploy --env production
+# Deploy to development environment
+wrangler deploy --env development
 ```
 
 ### Environment Variables

@@ -72,21 +72,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.37.4] - 2026-03-06
 
-### Added### Fixed
+### Fixed
 
 - use deno task wrangler:deploy to resolve missing esbuild module
 
 
 ## [0.37.3] - 2026-03-06
 
-### Added### Fixed
+### Fixed
 
 - resolve CI #1526 stuck deployment — remove invalid --env=\"\" from wrangler deploy and add timeout
 
 
 ## [0.37.2] - 2026-03-06
 
-### Added### Fixed
+### Fixed
 
 - update deno.lock for wrangler 4.71.0, add workerd@1.20260305.0 to allowScripts, pin npx wrangler@4.71.0 in CI
 - update wrangler to 4.71.0, fix esbuild allowScripts, fix wrangler.toml environments and CI deploy command
@@ -94,7 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.37.1] - 2026-03-06
 
-### Added### Fixed
+### Fixed
 
 - **fmt**: exclude issues/ directory from deno fmt check
 - add missing npm deps (zod, @opentelemetry/api, @adguard/agtree) so wrangler can bundle the worker
