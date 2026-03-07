@@ -1,15 +1,13 @@
 $kind: http-request
 name: Enable/Disable Email Option
 description: Enable or disable your account’s primary email to receive notifications.
-url: "https://api.ibkr.com/v1/api/fyi/deliveryoptions/email?enabled=Enable or
-  disable your email. Value format: true: Enable; false: Disable"
+url: "https://api.ibkr.com/v1/api/fyi/deliveryoptions/email"
 method: PUT
 headers:
   Accept: application/json
 queryParams:
   - key: enabled
-    value: |
-      Enable or disable your email. Value format: true: Enable; false: Disable
-    description: "(Required) "
+    value: "{{enabled}}"
+    description: "(Required) Enable or disable your email. Value format: true: Enable; false: Disable"
 examples: ./.resources/Enable-Disable Email Option.resources/examples
 order: 1000

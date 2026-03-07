@@ -11,5 +11,3 @@ localResources:
     - ../cloudflare-openapi.json
     - ../index.json
     - ../openapi.yaml
-    - ../docs/api/cloudflare-schema.yaml
-    - ../docs/api/openapi.yaml
