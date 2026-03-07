@@ -541,6 +541,12 @@ jobs:
                   npx wrangler queues create adblock-compiler-dlq 2>/dev/null || echo "DLQ already exists"
                   npx wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || echo "R2 bucket already exists"
 
+            - name: Deploy Tail Worker
+              if: env.CLOUDFLARE_API_TOKEN != ''
+              run: |
+                  echo "Deploying tail worker (adblock-compiler-tail)..."
+                  deno task wrangler:tail:deploy
+
             - name: Deploy Worker
               id: deploy
               if: env.CLOUDFLARE_API_TOKEN != ''
