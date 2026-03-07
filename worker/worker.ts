@@ -3115,8 +3115,15 @@ export default {
             );
         }
 
+        // The Angular frontend uses API_BASE_URL = '/api', so functional calls
+        // arrive as /api/compile, /api/metrics, /api/validate, etc.
+        // Strip the /api prefix so they reach the root-level handlers below.
+        // Note: the native /api, /api/version, /api/deployments, /api/turnstile-config
+        // routes above are already handled before this point.
+        const routePath = pathname.startsWith('/api/') ? pathname.slice(4) : pathname;
+
         // Handle metrics endpoint
-        if (pathname === '/metrics' && request.method === 'GET') {
+        if (routePath === '/metrics' && request.method === 'GET') {
             const metrics = await getMetrics(env);
             return Response.json(metrics, {
                 headers: {
@@ -3127,7 +3134,7 @@ export default {
         }
 
         // Handle queue stats endpoint
-        if (pathname === '/queue/stats' && request.method === 'GET') {
+        if (routePath === '/queue/stats' && request.method === 'GET') {
             const stats = await getQueueStats(env);
             return Response.json(stats, {
                 headers: {
@@ -3138,7 +3145,7 @@ export default {
         }
 
         // Handle queue history endpoint
-        if (pathname === '/queue/history' && request.method === 'GET') {
+        if (routePath === '/queue/history' && request.method === 'GET') {
             const stats = await getQueueStats(env);
             return Response.json({
                 history: stats.history || [],
@@ -3155,7 +3162,7 @@ export default {
         // Admin Storage Endpoints (require X-Admin-Key header)
         // ========================================================================
 
-        if (pathname.startsWith('/admin/storage')) {
+        if (routePath.startsWith('/admin/storage')) {
             // Verify admin authentication
             const auth = verifyAdminAuth(request, env);
             if (!auth.authorized) {
@@ -3172,37 +3179,37 @@ export default {
             }
 
             // Admin storage stats
-            if (pathname === '/admin/storage/stats' && request.method === 'GET') {
+            if (routePath === '/admin/storage/stats' && request.method === 'GET') {
                 return handleAdminStorageStats(env);
             }
 
             // Admin clear expired entries
-            if (pathname === '/admin/storage/clear-expired' && request.method === 'POST') {
+            if (routePath === '/admin/storage/clear-expired' && request.method === 'POST') {
                 return handleAdminClearExpired(env);
             }
 
             // Admin clear cache
-            if (pathname === '/admin/storage/clear-cache' && request.method === 'POST') {
+            if (routePath === '/admin/storage/clear-cache' && request.method === 'POST') {
                 return handleAdminClearCache(env);
             }
 
             // Admin export data
-            if (pathname === '/admin/storage/export' && request.method === 'GET') {
+            if (routePath === '/admin/storage/export' && request.method === 'GET') {
                 return handleAdminExport(env);
             }
 
             // Admin vacuum database
-            if (pathname === '/admin/storage/vacuum' && request.method === 'POST') {
+            if (routePath === '/admin/storage/vacuum' && request.method === 'POST') {
                 return handleAdminVacuum(env);
             }
 
             // Admin list tables
-            if (pathname === '/admin/storage/tables' && request.method === 'GET') {
+            if (routePath === '/admin/storage/tables' && request.method === 'GET') {
                 return handleAdminListTables(env);
             }
 
             // Admin SQL query (read-only)
-            if (pathname === '/admin/storage/query' && request.method === 'POST') {
+            if (routePath === '/admin/storage/query' && request.method === 'POST') {
                 return handleAdminQuery(request, env);
             }
 
@@ -3214,8 +3221,8 @@ export default {
         }
 
         // Handle queue results endpoint - fetch cached results for a completed job
-        if (pathname.startsWith('/queue/results/') && request.method === 'GET') {
-            const requestId = pathname.split('/').pop();
+        if (routePath.startsWith('/queue/results/') && request.method === 'GET') {
+            const requestId = routePath.split('/').pop();
             if (!requestId) {
                 return Response.json({
                     success: false,
@@ -3331,8 +3338,8 @@ export default {
         }
 
         // Handle cancel job endpoint
-        if (pathname.startsWith('/queue/cancel/') && request.method === 'POST') {
-            const requestId = pathname.split('/').pop();
+        if (routePath.startsWith('/queue/cancel/') && request.method === 'POST') {
+            const requestId = routePath.split('/').pop();
             if (requestId) {
                 await updateQueueStats(env, 'cancelled', 0, 1, {
                     requestId,
@@ -3361,8 +3368,8 @@ export default {
 
         // Rate limit and Turnstile verify compile endpoints
         if (
-            (pathname === '/compile' || pathname === '/compile/stream' ||
-                pathname === '/compile/batch') && request.method === 'POST'
+            (routePath === '/compile' || routePath === '/compile/stream' ||
+                routePath === '/compile/batch') && request.method === 'POST'
         ) {
             // Validate request body size
             const sizeValidation = await validateRequestSize(request, env);
@@ -3426,21 +3433,21 @@ export default {
                 }
             }
 
-            if (pathname === '/compile') {
+            if (routePath === '/compile') {
                 return handleCompileJson(request, env, analytics, requestId);
             }
 
-            if (pathname === '/compile/stream') {
+            if (routePath === '/compile/stream') {
                 return handleCompileStream(request, env);
             }
 
-            if (pathname === '/compile/batch') {
+            if (routePath === '/compile/batch') {
                 return handleCompileBatch(request, env);
             }
         }
 
         // AST Parser endpoint
-        if (pathname === '/ast/parse' && request.method === 'POST') {
+        if (routePath === '/ast/parse' && request.method === 'POST') {
             // Validate request body size
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
@@ -3449,13 +3456,78 @@ export default {
             return handleASTParseRequest(request, env);
         }
 
+        // Validate filter rules
+        if (routePath === '/validate' && request.method === 'POST') {
+            const sizeValidation = await validateRequestSize(request, env);
+            if (!sizeValidation.valid) {
+                return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
+            }
+            try {
+                const body = await request.json() as { rules?: string[]; strict?: boolean };
+                const rules = Array.isArray(body.rules) ? body.rules : [];
+                const startTime = Date.now();
+                const errors: Array<{
+                    line: number;
+                    rule: string;
+                    errorType: string;
+                    message: string;
+                    severity: 'error' | 'warning' | 'info';
+                }> = [];
+
+                let validRules = 0;
+                const { ASTViewerService } = await import('../src/services/ASTViewerService.ts');
+                for (let i = 0; i < rules.length; i++) {
+                    const rule = rules[i].trim();
+                    if (!rule || rule.startsWith('!')) {
+                        // Empty lines and `!`-prefixed comments are valid
+                        validRules++;
+                        continue;
+                    }
+                    // Parse via ASTViewerService and check success flag
+                    const result = ASTViewerService.parseRule(rule);
+                    if (result.success) {
+                        validRules++;
+                    } else {
+                        errors.push({
+                            line: i + 1,
+                            rule,
+                            errorType: 'ParseError',
+                            message: String(result.error),
+                            severity: 'error',
+                        });
+                    }
+                }
+
+                const duration = `${Date.now() - startTime}ms`;
+                return Response.json(
+                    {
+                        success: true,
+                        valid: errors.length === 0,
+                        totalRules: rules.length,
+                        validRules,
+                        invalidRules: errors.length,
+                        errors,
+                        warnings: [],
+                        duration,
+                    },
+                    { headers: { 'Access-Control-Allow-Origin': '*' } },
+                );
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return Response.json(
+                    { success: false, error: message },
+                    { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                );
+            }
+        }
+
         // WebSocket endpoint
-        if (pathname === '/ws/compile' && request.method === 'GET') {
+        if (routePath === '/ws/compile' && request.method === 'GET') {
             return handleWebSocketUpgrade(request, env);
         }
 
         // Async compilation endpoints (Turnstile verified)
-        if (pathname === '/compile/async' && request.method === 'POST') {
+        if (routePath === '/compile/async' && request.method === 'POST') {
             // Validate request body size
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
@@ -3495,7 +3567,7 @@ export default {
             return handleCompileAsync(request, env);
         }
 
-        if (pathname === '/compile/batch/async' && request.method === 'POST') {
+        if (routePath === '/compile/batch/async' && request.method === 'POST') {
             // Validate request body size
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
@@ -3540,29 +3612,29 @@ export default {
         // ========================================================================
 
         // Workflow: Start async compilation
-        if (pathname === '/workflow/compile' && request.method === 'POST') {
+        if (routePath === '/workflow/compile' && request.method === 'POST') {
             return handleWorkflowCompile(request, env);
         }
 
         // Workflow: Start batch compilation
-        if (pathname === '/workflow/batch' && request.method === 'POST') {
+        if (routePath === '/workflow/batch' && request.method === 'POST') {
             return handleWorkflowBatchCompile(request, env);
         }
 
         // Workflow: Trigger manual cache warming
-        if (pathname === '/workflow/cache-warm' && request.method === 'POST') {
+        if (routePath === '/workflow/cache-warm' && request.method === 'POST') {
             return handleWorkflowCacheWarm(request, env);
         }
 
         // Workflow: Trigger manual health check
-        if (pathname === '/workflow/health-check' && request.method === 'POST') {
+        if (routePath === '/workflow/health-check' && request.method === 'POST') {
             return handleWorkflowHealthCheck(request, env);
         }
 
         // Workflow: Get workflow instance status
         // Pattern: /workflow/status/:type/:id
-        if (pathname.startsWith('/workflow/status/') && request.method === 'GET') {
-            const parts = pathname.split('/');
+        if (routePath.startsWith('/workflow/status/') && request.method === 'GET') {
+            const parts = routePath.split('/');
             if (parts.length >= 5) {
                 const workflowType = parts[3];
                 const instanceId = parts[4];
@@ -3575,14 +3647,14 @@ export default {
         }
 
         // Workflow: Get workflow metrics
-        if (pathname === '/workflow/metrics' && request.method === 'GET') {
+        if (routePath === '/workflow/metrics' && request.method === 'GET') {
             return handleWorkflowMetrics(env);
         }
 
         // Workflow: Get workflow events for real-time progress
         // Pattern: /workflow/events/:workflowId
-        if (pathname.startsWith('/workflow/events/') && request.method === 'GET') {
-            const parts = pathname.split('/');
+        if (routePath.startsWith('/workflow/events/') && request.method === 'GET') {
+            const parts = routePath.split('/');
             if (parts.length >= 4) {
                 const workflowId = parts[3];
                 const since = url.searchParams.get('since') || undefined;
@@ -3594,8 +3666,19 @@ export default {
             );
         }
 
+        // Health check — returns current service health status
+        if (routePath === '/health' && request.method === 'GET') {
+            return Response.json(
+                {
+                    status: 'healthy',
+                    version: env.COMPILER_VERSION || VERSION,
+                },
+                { headers: { 'Access-Control-Allow-Origin': '*' } },
+            );
+        }
+
         // Health: Get latest health check results
-        if (pathname === '/health/latest' && request.method === 'GET') {
+        if (routePath === '/health/latest' && request.method === 'GET') {
             return handleHealthLatest(env);
         }
 
