@@ -73,6 +73,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.39.0] - 2026-03-07
+
+### Added- add Angular frontend CI gate, artifact reuse, and change detection (#615)
+
+### Fixed
+
+- **ci**: pass needs JSON via env var to fix ci-gate Python heredoc stdin conflict
+- address review comments on CI workflow - Python heredoc, detect-changes simplification
+
+
 ## [0.38.0] - 2026-03-07
 
 ### Added- integrate Codecov for frontend vitest coverage
