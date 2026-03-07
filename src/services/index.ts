@@ -13,4 +13,4 @@ export {
 } from './AnalyticsService.ts';
 export { ASTViewerService, type ParsedRuleInfo, type RuleSummary } from './ASTViewerService.ts';
 export { PipelineService } from './PipelineService.ts';
-export type { PipelineEvent, PipelineEventType } from './PipelineService.ts';
+export type { PipelineBinding, PipelineEvent, PipelineEventType, PipelineMessage } from './PipelineService.ts';

@@ -9,7 +9,24 @@
 
 import type { IBasicLogger } from '../types/index.ts';
 import { silentLogger } from '../utils/logger.ts';
-import type { PipelineBinding } from '../../worker/types.ts';
+
+/**
+ * Cloudflare Pipelines binding type.
+ * Provides scalable HTTP event ingestion for metrics and audit logs.
+ * @see https://developers.cloudflare.com/pipelines/
+ */
+export interface PipelineBinding {
+    /** Send one or more messages to the pipeline for ingestion */
+    send(messages: PipelineMessage[]): Promise<void>;
+}
+
+/**
+ * A single pipeline message payload.
+ * The `value` field contains the structured JSON event data.
+ */
+export interface PipelineMessage {
+    value: Record<string, unknown>;
+}
 
 /**
  * Event types that can be sent to the pipeline.
