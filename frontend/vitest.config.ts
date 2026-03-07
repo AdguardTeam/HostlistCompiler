@@ -59,9 +59,10 @@ export default defineConfig({
             // V8 provider uses native V8 coverage — fast and zero-config.
             provider: 'v8',
 
-            // Generate text summary (terminal), JSON (CI ingestion), and HTML
-            // (human-readable report at coverage/index.html).
-            reporter: ['text', 'json', 'html'],
+            // Generate text summary (terminal), JSON (CI ingestion), HTML
+            // (human-readable report at coverage/index.html), and LCOV
+            // (coverage/lcov.info) for Codecov ingestion.
+            reporter: ['text', 'json', 'html', 'lcov'],
 
             // Measure coverage across all app source files …
             include: ['src/app/**/*.ts'],
