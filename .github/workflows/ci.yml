@@ -277,6 +277,13 @@ jobs:
             - name: Build Angular frontend
               run: npm --prefix frontend run build
 
+            - name: Upload frontend build artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-dist
+                  path: frontend/dist/
+                  retention-days: 1
+
     frontend-test:
         name: Frontend Test
         runs-on: ubuntu-latest
@@ -354,11 +361,59 @@ jobs:
                   fi
                   echo "✅ Cloudflare schema is up to date"
 
+    detect-changes:
+        name: Detect Changes
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        outputs:
+            frontend: ${{ steps.filter.outputs.frontend }}
+            backend: ${{ steps.filter.outputs.backend }}
+        steps:
+            - name: Detect changed paths
+              id: filter
+              run: |
+                  # Currently, always run both frontend and backend jobs.
+                  # If you later want conditional execution, reintroduce real detection logic here.
+                  echo "frontend=true" >> "$GITHUB_OUTPUT"
+                  echo "backend=true" >> "$GITHUB_OUTPUT"
+
+    ci-gate:
+        name: CI Gate
+        runs-on: ubuntu-latest
+        needs:
+            - lint
+            - format
+            - typecheck
+            - test
+            - validate-cloudflare-schema
+            - frontend-lint
+            - frontend-build
+            - frontend-test
+        if: always()
+        steps:
+            - name: Check all jobs passed
+              env:
+                  NEEDS_JSON: ${{ toJSON(needs) }}
+              run: |
+                  echo "Job results: $NEEDS_JSON"
+                  python3 - <<'PY'
+                  import os
+                  import json
+
+                  needs = json.loads(os.environ['NEEDS_JSON'])
+                  failures = [name for name, data in needs.items() if data['result'] not in ('success', 'skipped')]
+                  if failures:
+                      print('FAILED: ' + ', '.join(failures))
+                      raise SystemExit(1)
+                  print('All checks passed')
+                  PY
+
     # Only publish on main pushes, and gate on all checks
     publish:
         name: Publish to JSR
         runs-on: ubuntu-latest
-        needs: [lint, format, typecheck, test, validate-cloudflare-schema, frontend-lint, frontend-build, frontend-test]
+        needs: [ci-gate, frontend-build]
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         permissions:
             contents: read
@@ -416,7 +471,7 @@ jobs:
         name: Deploy to Cloudflare
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        needs: [lint, format, typecheck, test, validate-cloudflare-schema, frontend-lint, frontend-build, frontend-test]
+        needs: [ci-gate, frontend-build]
         if: |
             github.event_name == 'push' &&
             github.ref == 'refs/heads/main'
@@ -461,11 +516,11 @@ jobs:
               env:
                   DENO_TLS_CA_STORE: system
 
-            - name: Install frontend dependencies
-              run: npm --prefix frontend ci
-
-            - name: Build Angular frontend
-              run: npm --prefix frontend run build
+            - name: Download frontend build artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-dist
+                  path: frontend/dist/
 
             - name: Run database migrations
               run: |
