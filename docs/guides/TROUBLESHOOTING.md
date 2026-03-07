@@ -322,7 +322,7 @@ Use the API endpoint which has CORS enabled:
 
 ```typescript
 // ✅ CORRECT - CORS enabled
-fetch('https://adblock.jaysonknight.com/compile', {
+fetch('https://adblock-compiler-ui.pages.dev/compile', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ configuration }),
@@ -669,7 +669,7 @@ deno --version
 node --version
 
 # Network test
-curl -I https://adblock.jaysonknight.com/api
+curl -I https://adblock-compiler-ui.pages.dev/api
 
 # Permissions test
 deno run --allow-net test.ts
@@ -692,7 +692,7 @@ Include:
 - **Documentation**: [README.md](../../README.md)
 - **API Reference**: [docs/api/README.md](../api/README.md)
 - **Examples**: [docs/guides/clients.md](./clients.md)
-- **Web UI**: https://adblock.jaysonknight.com/
+- **Web UI**: https://adblock-compiler-ui.pages.dev/
 
 ## Quick Fixes Checklist
 
