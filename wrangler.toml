@@ -1,4 +1,4 @@
-name = "adblock-compiler-backend"
+name = "adblock-compiler"
 main = "worker/worker.ts"
 compatibility_date = "2024-01-01"
 
