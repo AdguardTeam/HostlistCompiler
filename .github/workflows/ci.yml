@@ -507,15 +507,6 @@ jobs:
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '22'
-                  cache: 'npm'
-
-            - name: Install project dependencies
-              run: npm ci
-
             - name: Install Deno dependencies
               run: |
                   for i in 1 2 3; do
@@ -540,8 +531,8 @@ jobs:
             - name: Run database migrations
               run: |
                   echo "Running D1 migrations..."
-                  npx wrangler d1 execute adblock-compiler-d1-database --file=migrations/0001_init.sql --remote || echo "Migration 0001 already applied or failed"
-                  npx wrangler d1 execute adblock-compiler-d1-database --file=migrations/0002_deployment_history.sql --remote || echo "Migration 0002 already applied or failed"
+                  deno task wrangler d1 execute adblock-compiler-d1-database --file=migrations/0001_init.sql --remote || echo "Migration 0001 already applied or failed"
+                  deno task wrangler d1 execute adblock-compiler-d1-database --file=migrations/0002_deployment_history.sql --remote || echo "Migration 0002 already applied or failed"
 
             - name: Generate deployment version
               id: version
@@ -551,10 +542,10 @@ jobs:
             - name: Setup Cloudflare resources
               run: |
                   echo "Creating Cloudflare resources..."
-                  npx wrangler queues create adblock-compiler-worker-queue 2>/dev/null || echo "Queue already exists"
-                  npx wrangler queues create adblock-compiler-worker-queue-high-priority 2>/dev/null || echo "High priority queue already exists"
-                  npx wrangler queues create adblock-compiler-dlq 2>/dev/null || echo "DLQ already exists"
-                  npx wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || echo "R2 bucket already exists"
+                  deno task wrangler queues create adblock-compiler-worker-queue 2>/dev/null || echo "Queue already exists"
+                  deno task wrangler queues create adblock-compiler-worker-queue-high-priority 2>/dev/null || echo "High priority queue already exists"
+                  deno task wrangler queues create adblock-compiler-dlq 2>/dev/null || echo "DLQ already exists"
+                  deno task wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || echo "R2 bucket already exists"
 
             - name: Deploy Tail Worker
               if: env.CLOUDFLARE_API_TOKEN != ''
@@ -583,11 +574,11 @@ jobs:
               if: env.CLOUDFLARE_API_TOKEN != ''
               run: |
                   echo "Ensuring Cloudflare Pages project '${{ env.PAGES_PROJECT_NAME }}' exists..."
-                  if npx wrangler pages project list | grep -q '${{ env.PAGES_PROJECT_NAME }}'; then
+                  if deno task wrangler pages project list | grep -q '${{ env.PAGES_PROJECT_NAME }}'; then
                       echo "Pages project '${{ env.PAGES_PROJECT_NAME }}' already exists."
                   else
                       echo "Pages project '${{ env.PAGES_PROJECT_NAME }}' not found. Creating..."
-                      npx wrangler pages project create ${{ env.PAGES_PROJECT_NAME }} --production-branch=main
+                      deno task wrangler pages project create ${{ env.PAGES_PROJECT_NAME }} --production-branch=main
                   fi
 
             - name: Deploy Pages
