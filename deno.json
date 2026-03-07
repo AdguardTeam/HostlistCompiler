@@ -137,6 +137,7 @@
             "*.d.ts",
             "CHANGELOG.md",
             "MEMORY.md",
+            "README.md",
             "issues/"
         ]
     },
