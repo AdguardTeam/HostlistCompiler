@@ -51,13 +51,6 @@ bucket_name = "adblock-compiler-r2-storage"
 class_name = "AdblockCompiler"
 name = "ADBLOCK_COMPILER"
 
-# Containers configuration for AdblockCompiler
-[[containers]]
-class_name = "AdblockCompiler"
-image = "./Dockerfile"
-max_instances = 5
-instance_type = "basic"
-
 # Database migrations - each must have a unique tag
 [[migrations]]
 new_sqlite_classes = ["AdblockCompiler"]

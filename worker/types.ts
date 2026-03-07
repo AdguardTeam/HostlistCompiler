@@ -6,6 +6,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { IConfiguration } from '../src/types/index.ts';
+import type { PipelineBinding } from '../src/services/PipelineService.ts';
 
 // ============================================================================
 // Database Types
@@ -93,28 +94,6 @@ export interface HyperdriveBinding {
     user: string;
     password: string;
     database: string;
-}
-
-// ============================================================================
-// Cloudflare Pipelines Binding
-// ============================================================================
-
-/**
- * Cloudflare Pipelines binding type.
- * Provides scalable HTTP event ingestion for metrics and audit logs.
- * @see https://developers.cloudflare.com/pipelines/
- */
-export interface PipelineBinding {
-    /** Send one or more messages to the pipeline for ingestion */
-    send(messages: PipelineMessage[]): Promise<void>;
-}
-
-/**
- * A single pipeline message payload.
- * The `value` field contains the structured JSON event data.
- */
-export interface PipelineMessage {
-    value: Record<string, unknown>;
 }
 
 // ============================================================================
