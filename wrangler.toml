@@ -155,14 +155,11 @@ dataset = "adguard-compiler-analytics-engine"
 # ============================================================================
 # Pipelines provide scalable, batched ingestion of structured events.
 # Use for metrics aggregation, audit log ingestion, and analytics forwarding.
-# Created with:
-#   wrangler pipelines streams create adblock_compiler_metrics_stream
-#   wrangler pipelines sinks create adblock_compiler_metrics_sink --type r2 --bucket adblock-compiler-r2-storage --format json --path metrics/ --roll-interval 300
-#   wrangler pipelines create adblock_compiler_metrics_pipeline --sql "INSERT INTO adblock_compiler_metrics_sink SELECT value FROM adblock_compiler_metrics_stream"
+# Create with: wrangler pipelines create adblock-compiler-metrics-pipeline --r2-bucket adblock-compiler-r2-storage
 # See: https://developers.cloudflare.com/pipelines/
 [[pipelines]]
 binding = "METRICS_PIPELINE"
-pipeline = "c846e37117874905a94b1ef9da2e138e"
+pipeline = "adblock-compiler-metrics-pipeline"
 
 # ============================================================================
 # Cloudflare Workflows - Durable execution for async operations

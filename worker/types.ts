@@ -111,10 +111,9 @@ export interface PipelineBinding {
 
 /**
  * A single pipeline message payload.
- * The `value` field contains the structured JSON event data.
  */
 export interface PipelineMessage {
-    value: Record<string, unknown>;
+    body: string | ArrayBuffer | ReadableStream | Blob;
 }
 
 // ============================================================================

@@ -99,7 +99,7 @@ export class PipelineService {
         };
 
         try {
-            await this.pipeline.send([{ value: payload as unknown as Record<string, unknown> }]);
+            await this.pipeline.send([{ body: JSON.stringify(payload) }]);
         } catch (error) {
             this.logger.warn(`PipelineService: failed to send event (${event.type}): ${error instanceof Error ? error.message : String(error)}`);
         }
@@ -116,7 +116,7 @@ export class PipelineService {
 
         const now = new Date().toISOString();
         const messages = events.map((event) => ({
-            value: { ...event, timestamp: now } as unknown as Record<string, unknown>,
+            body: JSON.stringify({ ...event, timestamp: now } satisfies PipelineEvent),
         }));
 
         try {
