@@ -10,6 +10,7 @@
   - [Streaming API](api/STREAMING_API.md)
   - [Zod Validation](api/ZOD_VALIDATION.md)
 - [Cloudflare Integration](cloudflare/README.md)
+  - [Services Overview](cloudflare/CLOUDFLARE_SERVICES.md)
   - [Admin Dashboard](cloudflare/ADMIN_DASHBOARD.md)
   - [Analytics](cloudflare/CLOUDFLARE_ANALYTICS.md)
   - [D1 Database](cloudflare/CLOUDFLARE_D1.md)

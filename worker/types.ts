@@ -53,9 +53,6 @@ export interface D1ExecResult {
 // Workflow Types
 // ============================================================================
 
-/**
- * Workflow status values
- */
 export type WorkflowStatus = 'queued' | 'running' | 'completed' | 'failed' | 'paused' | 'terminated';
 
 /**
@@ -99,6 +96,27 @@ export interface HyperdriveBinding {
 }
 
 // ============================================================================
+// Cloudflare Pipelines Binding
+// ============================================================================
+
+/**
+ * Cloudflare Pipelines binding type.
+ * Provides scalable HTTP event ingestion for metrics and audit logs.
+ * @see https://developers.cloudflare.com/pipelines/
+ */
+export interface PipelineBinding {
+    /** Send one or more messages to the pipeline for ingestion */
+    send(messages: PipelineMessage[]): Promise<void>;
+}
+
+/**
+ * A single pipeline message payload.
+ */
+export interface PipelineMessage {
+    body: string | ArrayBuffer | ReadableStream | Blob;
+}
+
+// ============================================================================
 // Environment Bindings
 // ============================================================================
 
@@ -139,6 +157,8 @@ export interface Env {
     HEALTH_MONITORING_WORKFLOW?: Workflow<HealthMonitoringParams>;
     // Analytics Engine binding (optional - for metrics tracking)
     ANALYTICS_ENGINE?: AnalyticsEngineDataset;
+    // Cloudflare Pipelines binding (optional - for metrics/audit log ingestion)
+    METRICS_PIPELINE?: PipelineBinding;
     // Error reporting configuration
     ERROR_REPORTER_TYPE?: string; // 'console', 'cloudflare', 'sentry', 'composite'
     SENTRY_DSN?: string; // Sentry Data Source Name (required if using Sentry)

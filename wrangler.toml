@@ -151,6 +151,17 @@ binding = "ANALYTICS_ENGINE"
 dataset = "adguard-compiler-analytics-engine"
 
 # ============================================================================
+# Cloudflare Pipelines — HTTP event ingestion for metrics and audit logs
+# ============================================================================
+# Pipelines provide scalable, batched ingestion of structured events.
+# Use for metrics aggregation, audit log ingestion, and analytics forwarding.
+# Create with: wrangler pipelines create adblock-compiler-metrics-pipeline --r2-bucket adblock-compiler-r2-storage
+# See: https://developers.cloudflare.com/pipelines/
+[[pipelines]]
+binding = "METRICS_PIPELINE"
+pipeline = "adblock-compiler-metrics-pipeline"
+
+# ============================================================================
 # Cloudflare Workflows - Durable execution for async operations
 # ============================================================================
 # Workflows provide crash-resistant, automatically resumable execution

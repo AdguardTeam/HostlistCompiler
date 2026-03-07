@@ -12,3 +12,5 @@ export {
     type WorkflowEventData,
 } from './AnalyticsService.ts';
 export { ASTViewerService, type ParsedRuleInfo, type RuleSummary } from './ASTViewerService.ts';
+export { PipelineService } from './PipelineService.ts';
+export type { PipelineEvent, PipelineEventType } from './PipelineService.ts';

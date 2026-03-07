@@ -27,6 +27,13 @@ export interface TailEnv {
 
     // Optional log retention period in seconds (default: 24 hours)
     LOG_RETENTION_TTL?: string;
+
+    // HTTP log sink endpoint (e.g., Better Stack, Logtail, Grafana Loki)
+    LOG_SINK_URL?: string;
+    // Bearer token for authenticating with the log sink
+    LOG_SINK_TOKEN?: string;
+    // Minimum log level to forward to sink ('debug'|'info'|'warn'|'error'), default 'warn'
+    LOG_SINK_MIN_LEVEL?: string;
 }
 
 /**
@@ -109,6 +116,49 @@ export function createStructuredEvent(event: TailEvent): Record<string, unknown>
 }
 
 /**
+ * Forward structured log events to an external HTTP log sink (e.g., Better Stack, Logtail).
+ * Only forwards events at or above the configured minimum level.
+ */
+export async function forwardToLogSink(event: TailEvent, env: TailEnv): Promise<void> {
+    const sinkUrl = env.LOG_SINK_URL;
+    if (!sinkUrl) return;
+
+    const minLevel = env.LOG_SINK_MIN_LEVEL ?? 'warn';
+    const levelOrder: Record<string, number> = { debug: 0, info: 1, log: 1, warn: 2, error: 3 };
+    const minLevelNum = levelOrder[minLevel] ?? 2;
+
+    const logsToForward = event.logs.filter((log) => (levelOrder[log.level] ?? 0) >= minLevelNum);
+    const hasExceptions = event.exceptions.length > 0;
+
+    if (logsToForward.length === 0 && !hasExceptions) return;
+
+    const payload = {
+        timestamp: new Date(event.eventTimestamp).toISOString(),
+        scriptName: event.scriptName ?? 'adblock-compiler',
+        outcome: event.outcome,
+        url: event.event?.request?.url,
+        method: event.event?.request?.method,
+        logs: logsToForward.map((log) => ({
+            level: log.level,
+            timestamp: new Date(log.timestamp).toISOString(),
+            message: log.message.map((m) => (typeof m === 'object' ? JSON.stringify(m) : String(m))).join(' '),
+        })),
+        exceptions: event.exceptions.map((ex) => ({ name: ex.name, message: ex.message })),
+    };
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (env.LOG_SINK_TOKEN) {
+        headers['Authorization'] = `Bearer ${env.LOG_SINK_TOKEN}`;
+    }
+
+    try {
+        await fetch(sinkUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
+    } catch (_error) {
+        // Never throw from the tail worker — swallow forwarding errors
+    }
+}
+
+/**
  * Main tail handler
  */
 export default {
@@ -148,6 +198,8 @@ export default {
                     ),
                 );
             }
+
+            promises.push(forwardToLogSink(event, env));
 
             // Forward critical errors to webhook if configured
             if (env.ERROR_WEBHOOK_URL && shouldForwardEvent(event)) {
