@@ -72,6 +72,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.38.0] - 2026-03-07
+
+### Added- integrate Codecov for frontend vitest coverage
+- integrate mdBook for project documentation site (#728)
+
+### Fixed
+
+- exclude mdBook content from deno fmt check (#734)
+- gate frontend Codecov upload to main pushes only
+- exclude README.md from deno fmt check (#732)
+- apply PR review feedback for mdBook integration
+
+
 ## [0.37.6] - 2026-03-07
 
 ### Added### Fixed
