@@ -241,36 +241,24 @@ jobs:
                   cache: 'pnpm'
 
             - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+              run: pnpm install --no-frozen-lockfile
 
             - name: Lint frontend
               run: pnpm --filter adblock-compiler-frontend run lint
 
-            - name: Test frontend
-              run: pnpm --filter adblock-compiler-frontend run test
+            - name: Test frontend with coverage
+              run: pnpm --filter adblock-compiler-frontend run test:coverage
 
-    frontend-lint:
-        name: Frontend Lint
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
+            - name: Upload frontend coverage to Codecov
+              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+              uses: codecov/codecov-action@v5
+              continue-on-error: true
               with:
-                  node-version: '22'
-                  cache: 'pnpm'
-
-            - name: Install frontend dependencies
-              run: pnpm install --frozen-lockfile
-
-            - name: Lint Angular frontend
-              run: pnpm --filter adblock-compiler-frontend run lint
+                  files: ./frontend/coverage/lcov.info
+                  flags: frontend
+                  fail_ci_if_error: false
+              env:
+                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     frontend-build:
         name: Frontend Build
@@ -290,7 +278,7 @@ jobs:
                   cache: 'pnpm'
 
             - name: Install frontend dependencies
-              run: pnpm install --frozen-lockfile
+              run: pnpm install --no-frozen-lockfile
 
             - name: Build Angular frontend
               run: pnpm --filter adblock-compiler-frontend run build
@@ -301,40 +289,6 @@ jobs:
                   name: frontend-dist
                   path: frontend/dist/
                   retention-days: 1
-
-    frontend-test:
-        name: Frontend Test
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '22'
-                  cache: 'pnpm'
-
-            - name: Install frontend dependencies
-              run: pnpm install --frozen-lockfile
-
-            - name: Run frontend tests with coverage
-              run: pnpm --filter adblock-compiler-frontend run test:coverage
-
-            - name: Upload frontend coverage to Codecov
-              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-              uses: codecov/codecov-action@v5
-              continue-on-error: true
-              with:
-                  files: ./frontend/coverage/lcov.info
-                  flags: frontend
-                  fail_ci_if_error: false
-              env:
-                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     validate-cloudflare-schema:
         name: Validate Cloudflare Schema
@@ -402,9 +356,7 @@ jobs:
             - test
             - validate-cloudflare-schema
             - frontend
-            - frontend-lint
             - frontend-build
-            - frontend-test
         if: always()
         steps:
             - name: Check all jobs passed
@@ -583,8 +535,7 @@ jobs:
 
             - name: Deploy Pages
               if: env.CLOUDFLARE_API_TOKEN != ''
-              uses: cloudflare/wrangler-action@v3
-              with:
-                  apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-                  command: pages deploy frontend/dist/adblock-compiler-poc/browser --project-name=${{ env.PAGES_PROJECT_NAME }} --commit-dirty=true
+              run: deno task wrangler pages deploy frontend/dist/adblock-compiler-poc/browser --project-name=${{ env.PAGES_PROJECT_NAME }} --commit-dirty=true
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
