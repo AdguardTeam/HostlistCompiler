@@ -75,6 +75,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.40.1] - 2026-03-07
+
+### Added### Fixed
+
+- resolve CI failures in JSR publish and Cloudflare deploy
+
+
 ## [0.40.0] - 2026-03-07
 
 ### Added- add Cloudflare Pipelines and log sink integrations (#710) (#749)
