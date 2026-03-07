@@ -113,6 +113,8 @@ Configure the tail worker behavior in `wrangler.tail.toml`:
 The tail worker forwards events to webhooks when:
 
 - Worker execution outcome is `exception`
+- Worker execution outcome is `exceededCpu` (worker hit CPU time limit)
+- Worker execution outcome is `exceededMemory` (worker hit memory limit)
 - Any unhandled exceptions occur
 - Any error-level logs are present
 

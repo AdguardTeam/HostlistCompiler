@@ -237,8 +237,8 @@ Deno.test('shouldForwardEvent - forwards exceededCpu outcome', () => {
         exceptions: [],
     };
 
-    // exceededCpu is not 'exception', so it depends on logs/exceptions
-    assertEquals(shouldForwardEvent(event), false);
+    // exceededCpu is a critical resource limit error that should be forwarded
+    assertEquals(shouldForwardEvent(event), true);
 });
 
 Deno.test('shouldForwardEvent - forwards exceededMemory outcome', () => {
@@ -249,7 +249,8 @@ Deno.test('shouldForwardEvent - forwards exceededMemory outcome', () => {
         exceptions: [],
     };
 
-    assertEquals(shouldForwardEvent(event), false);
+    // exceededMemory is a critical resource limit error that should be forwarded
+    assertEquals(shouldForwardEvent(event), true);
 });
 
 Deno.test('shouldForwardEvent - does not forward warn logs', () => {

@@ -86,8 +86,10 @@ export function formatLogMessage(log: TailLog): string {
  * Check if event should be forwarded to webhook
  */
 export function shouldForwardEvent(event: TailEvent): boolean {
-    // Forward exceptions and critical errors
+    // Forward exceptions and critical errors, including resource limit violations
     return event.outcome === 'exception' ||
+        event.outcome === 'exceededCpu' ||
+        event.outcome === 'exceededMemory' ||
         event.exceptions.length > 0 ||
         event.logs.some((log) => log.level === 'error');
 }
