@@ -7,6 +7,8 @@
 [![CI/CD Pipeline](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/jaypatrick/adblock-compiler/branch/main/graph/badge.svg?token=LC5EYHK71O)](https://codecov.io/gh/jaypatrick/adblock-compiler)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/releases)
+[![GitHub Tag](https://img.shields.io/github/v/tag/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/tags)
 
 <!-- Platform & Service Badges -->
 
@@ -15,6 +17,19 @@
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-6BA539?logo=openapiinitiative&logoColor=white)](docs/api/openapi.yaml)
 [![Deno](https://img.shields.io/badge/Deno-2.0+-black?logo=deno)](https://deno.land)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](#docker-deployment)
+[![Uptime](https://img.shields.io/website?url=https%3A%2F%2Fadblock.jaysonknight.com%2F&label=uptime)](https://adblock.jaysonknight.com/)
+[![Deployed on Cloudflare Workers](https://img.shields.io/badge/Deployed%20on-Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white)](https://adblock.jaysonknight.com/)
+[![mdBook Docs](https://img.shields.io/badge/docs-mdBook-blue?logo=mdBook)](https://adblock.jaysonknight.com/docs)
+
+<!-- Security & Quality Badges -->
+
+[![Known Vulnerabilities](https://snyk.io/test/github/jaypatrick/adblock-compiler/badge.svg)](https://snyk.io/test/github/jaypatrick/adblock-compiler)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/jaypatrick/adblock-compiler/badge)](https://scorecard.dev/viewer/?uri=github.com/jaypatrick/adblock-compiler)
+[![Last Commit](https://img.shields.io/github/last-commit/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/commits/main)
+[![Commit Activity](https://img.shields.io/github/commit-activity/m/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/commits/main)
+[![Repo Size](https://img.shields.io/github/repo-size/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler)
+[![Code Size](https://img.shields.io/github/languages/code-size/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler)
+[![Top Language](https://img.shields.io/github/languages/top/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler)
 
 <!-- Community & Stats Badges -->
 
@@ -22,6 +37,10 @@
 [![GitHub Forks](https://img.shields.io/github/forks/jaypatrick/adblock-compiler?style=social)](https://github.com/jaypatrick/adblock-compiler/network/members)
 [![GitHub Issues](https://img.shields.io/github/issues/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/pulls)
+[![Contributors](https://img.shields.io/github/contributors/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/graphs/contributors)
+[![Watchers](https://img.shields.io/github/watchers/jaypatrick/adblock-compiler?style=social)](https://github.com/jaypatrick/adblock-compiler/watchers)
+[![Discussions](https://img.shields.io/github/discussions/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/discussions)
+[![Changelog](https://img.shields.io/badge/Changelog-CHANGELOG.md-blue)](CHANGELOG.md)
 
 **Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.
 
