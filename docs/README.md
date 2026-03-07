@@ -66,6 +66,7 @@ docs/
 - [Docker Configuration](deployment/DOCKER.md) - Docker Compose with layered environment configuration
 - [Cloudflare Containers](deployment/cloudflare-containers.md) - Deploy to Cloudflare edge network
 - [Cloudflare Pages](deployment/cloudflare-pages.md) - Deploy to Cloudflare Pages
+- [Cloudflare Workers Architecture](deployment/CLOUDFLARE_WORKERS_ARCHITECTURE.md) - Backend vs frontend workers, deployment modes, and their relationship
 - [Deployment Versioning](deployment/DEPLOYMENT_VERSIONING.md) - Automated deployment tracking and versioning
 - [Production Readiness](deployment/PRODUCTION_READINESS.md) - Production readiness assessment and recommendations
 
