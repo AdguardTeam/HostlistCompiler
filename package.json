@@ -4,11 +4,12 @@
     "description": "Compiler-as-a-Service for adblock filter lists",
     "type": "module",
     "scripts": {
-        "ui:build": "npm --prefix frontend run build",
-        "ui:dev": "npm --prefix frontend start",
-        "ui:test": "npm --prefix frontend run test",
-        "ui:lint": "npm --prefix frontend run lint"
+        "ui:build": "pnpm --filter adblock-compiler-frontend run build",
+        "ui:dev": "pnpm --filter adblock-compiler-frontend run start",
+        "ui:test": "pnpm --filter adblock-compiler-frontend run test",
+        "ui:lint": "pnpm --filter adblock-compiler-frontend run lint"
     },
+    "packageManager": "pnpm@9.15.0",
     "_syncNote": "Dependency versions here must match those pinned in deno.json's import map; keep them in sync (for example via the existing version:sync-style task).",
     "dependencies": {
         "@adguard/agtree": "^4.0.1",

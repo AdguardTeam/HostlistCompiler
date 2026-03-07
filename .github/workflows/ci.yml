@@ -223,93 +223,31 @@ jobs:
               with:
                   sarif_file: trivy-results.sarif
 
-    frontend-lint:
-        name: Frontend Lint
+    frontend:
+        name: Frontend (lint + test)
         runs-on: ubuntu-latest
         permissions:
             contents: read
         steps:
             - uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '22'
-
-            - name: Cache frontend dependencies
-              uses: actions/cache@v4
-              with:
-                  path: frontend/node_modules
-                  key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
-                  restore-keys: |
-                      frontend-${{ runner.os }}-
-
-            - name: Install frontend dependencies
-              run: npm --prefix frontend ci
-
-            - name: Lint Angular frontend
-              run: npm --prefix frontend run lint
-
-    frontend-build:
-        name: Frontend Build
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@v4
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
                   node-version: '22'
+                  cache: 'pnpm'
 
-            - name: Cache frontend dependencies
-              uses: actions/cache@v4
-              with:
-                  path: frontend/node_modules
-                  key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
-                  restore-keys: |
-                      frontend-${{ runner.os }}-
+            - name: Install dependencies
+              run: pnpm install --no-frozen-lockfile
 
-            - name: Install frontend dependencies
-              run: npm --prefix frontend ci
+            - name: Lint frontend
+              run: pnpm --filter adblock-compiler-frontend run lint
 
-            - name: Build Angular frontend
-              run: npm --prefix frontend run build
-
-            - name: Upload frontend build artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: frontend-dist
-                  path: frontend/dist/
-                  retention-days: 1
-
-    frontend-test:
-        name: Frontend Test
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '22'
-
-            - name: Cache frontend dependencies
-              uses: actions/cache@v4
-              with:
-                  path: frontend/node_modules
-                  key: frontend-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
-                  restore-keys: |
-                      frontend-${{ runner.os }}-
-
-            - name: Install frontend dependencies
-              run: npm --prefix frontend ci
-
-            - name: Run frontend tests with coverage
-              run: npm --prefix frontend run test:coverage
+            - name: Test frontend with coverage
+              run: pnpm --filter adblock-compiler-frontend run test:coverage
 
             - name: Upload frontend coverage to Codecov
               if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -321,6 +259,36 @@ jobs:
                   fail_ci_if_error: false
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    frontend-build:
+        name: Frontend Build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: Install frontend dependencies
+              run: pnpm install --no-frozen-lockfile
+
+            - name: Build Angular frontend
+              run: pnpm --filter adblock-compiler-frontend run build
+
+            - name: Upload frontend build artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-dist
+                  path: frontend/dist/
+                  retention-days: 1
 
     validate-cloudflare-schema:
         name: Validate Cloudflare Schema
@@ -387,9 +355,8 @@ jobs:
             - typecheck
             - test
             - validate-cloudflare-schema
-            - frontend-lint
+            - frontend
             - frontend-build
-            - frontend-test
         if: always()
         steps:
             - name: Check all jobs passed
@@ -492,15 +459,6 @@ jobs:
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '22'
-                  cache: 'npm'
-
-            - name: Install project dependencies
-              run: npm ci
-
             - name: Install Deno dependencies
               run: |
                   for i in 1 2 3; do
@@ -525,8 +483,8 @@ jobs:
             - name: Run database migrations
               run: |
                   echo "Running D1 migrations..."
-                  npx wrangler d1 execute adblock-compiler-d1-database --file=migrations/0001_init.sql --remote || echo "Migration 0001 already applied or failed"
-                  npx wrangler d1 execute adblock-compiler-d1-database --file=migrations/0002_deployment_history.sql --remote || echo "Migration 0002 already applied or failed"
+                  deno task wrangler d1 execute adblock-compiler-d1-database --file=migrations/0001_init.sql --remote || echo "Migration 0001 already applied or failed"
+                  deno task wrangler d1 execute adblock-compiler-d1-database --file=migrations/0002_deployment_history.sql --remote || echo "Migration 0002 already applied or failed"
 
             - name: Generate deployment version
               id: version
@@ -536,10 +494,10 @@ jobs:
             - name: Setup Cloudflare resources
               run: |
                   echo "Creating Cloudflare resources..."
-                  npx wrangler queues create adblock-compiler-worker-queue 2>/dev/null || echo "Queue already exists"
-                  npx wrangler queues create adblock-compiler-worker-queue-high-priority 2>/dev/null || echo "High priority queue already exists"
-                  npx wrangler queues create adblock-compiler-dlq 2>/dev/null || echo "DLQ already exists"
-                  npx wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || echo "R2 bucket already exists"
+                  deno task wrangler queues create adblock-compiler-worker-queue 2>/dev/null || echo "Queue already exists"
+                  deno task wrangler queues create adblock-compiler-worker-queue-high-priority 2>/dev/null || echo "High priority queue already exists"
+                  deno task wrangler queues create adblock-compiler-dlq 2>/dev/null || echo "DLQ already exists"
+                  deno task wrangler r2 bucket create adblock-compiler-r2-storage 2>/dev/null || echo "R2 bucket already exists"
 
             - name: Deploy Tail Worker
               if: env.CLOUDFLARE_API_TOKEN != ''
@@ -568,17 +526,16 @@ jobs:
               if: env.CLOUDFLARE_API_TOKEN != ''
               run: |
                   echo "Ensuring Cloudflare Pages project '${{ env.PAGES_PROJECT_NAME }}' exists..."
-                  if npx wrangler pages project list | grep -q '${{ env.PAGES_PROJECT_NAME }}'; then
+                  if deno task wrangler pages project list | grep -q '${{ env.PAGES_PROJECT_NAME }}'; then
                       echo "Pages project '${{ env.PAGES_PROJECT_NAME }}' already exists."
                   else
                       echo "Pages project '${{ env.PAGES_PROJECT_NAME }}' not found. Creating..."
-                      npx wrangler pages project create ${{ env.PAGES_PROJECT_NAME }} --production-branch=main
+                      deno task wrangler pages project create ${{ env.PAGES_PROJECT_NAME }} --production-branch=main
                   fi
 
             - name: Deploy Pages
               if: env.CLOUDFLARE_API_TOKEN != ''
-              uses: cloudflare/wrangler-action@v3
-              with:
-                  apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-                  command: pages deploy frontend/dist/adblock-compiler-poc/browser --project-name=${{ env.PAGES_PROJECT_NAME }} --commit-dirty=true
+              run: deno task wrangler pages deploy frontend/dist/adblock-compiler-poc/browser --project-name=${{ env.PAGES_PROJECT_NAME }} --commit-dirty=true
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

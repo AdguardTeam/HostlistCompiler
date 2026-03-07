@@ -1,5 +1,5 @@
 {
-  "name": "adblock-compiler",
+  "name": "adblock-compiler-worker-example",
   "version": "0.8.7",
   "description": "Cloudflare Worker for compiling adblock filter lists",
   "type": "module",
