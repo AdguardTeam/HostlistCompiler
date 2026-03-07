@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **frontend**: Migrate all Cloudflare Workers API/asset URLs from `*.workers.dev` development domains to the production domain `adblock.jaysonknight.com` across all documentation, examples, Postman collections, and OpenAPI specs
+- **frontend**: Migrate all Cloudflare Workers API/asset URLs from `*.workers.dev` development domains to the production domain `adblock-compiler-ui.pages.dev` across all documentation, examples, Postman collections, and OpenAPI specs
 - **worker**: Update `serveStaticAsset()` to try `index.html` first (served by postbuild), falling back to `index.csr.html` defensively if the postbuild step was skipped
 - Migrate `zod` from npm to JSR (`jsr:@zod/zod@^4.3.6`)
 - Migrate `@opentelemetry/api` from npm to JSR (`jsr:@opentelemetry/api@^1.9.0`)

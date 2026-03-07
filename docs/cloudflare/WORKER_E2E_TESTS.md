@@ -39,7 +39,7 @@ deno task test:e2e
 
 ```bash
 # Set the E2E_BASE_URL environment variable
-E2E_BASE_URL=https://adblock.jaysonknight.com deno task test:e2e
+E2E_BASE_URL=https://adblock-compiler-ui.pages.dev deno task test:e2e
 ```
 
 ## Running Tests

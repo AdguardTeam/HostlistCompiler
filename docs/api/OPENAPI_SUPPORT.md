@@ -145,10 +145,10 @@ Host the `openapi.yaml` file and point Swagger UI to it.
 
 ```bash
 # Test against production
-curl https://adblock.jaysonknight.com/api
+curl https://adblock-compiler-ui.pages.dev/api
 
 # Get API information
-curl -X POST https://adblock.jaysonknight.com/compile \
+curl -X POST https://adblock-compiler-ui.pages.dev/compile \
   -H "Content-Type: application/json" \
   -d @request.json
 ```
@@ -187,8 +187,8 @@ deno task test:contract
 
 ## Live Resources
 
-- **Production API:** https://adblock.jaysonknight.com/api
-- **Web UI:** https://adblock.jaysonknight.com/
+- **Production API:** https://adblock-compiler-ui.pages.dev/api
+- **Web UI:** https://adblock-compiler-ui.pages.dev/
 - **OpenAPI Spec:** [openapi.yaml](openapi.yaml)
 - **Generated Docs:** [index.html](index.html)
 
