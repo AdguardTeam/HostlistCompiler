@@ -4,7 +4,8 @@
    Fonts: IBM Plex Sans (body) · Syne (headings) · JetBrains Mono (code)
    ================================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+/* Fonts are expected to be provided by the host application or system fonts.
+   External CDN font imports (e.g. Google Fonts) are intentionally avoided. */
 
 :root {
     --amber-primary:    #b45309;

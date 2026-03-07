@@ -39,8 +39,8 @@ To preview locally:
 cargo install mdbook
 # or download binary: https://github.com/rust-lang/mdBook/releases
 
-# Serve with live reload
-mdbook serve docs/
+# Serve with live reload from the repo root (uses book.toml with src = "docs")
+mdbook serve
 # → open http://localhost:3000
 ```
 
