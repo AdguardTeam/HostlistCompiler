@@ -13,7 +13,7 @@
 # Local dev (mirrors production):
 #   npm run preview        # wrangler dev
 
-name = "adblock-compiler-angular-poc"
+name = "adblock-compiler-frontend"
 
 # Compiled server entry point output by `ng build` when ssr.entry = "server.ts"
 main = "dist/adblock-compiler-poc/server/server.mjs"
