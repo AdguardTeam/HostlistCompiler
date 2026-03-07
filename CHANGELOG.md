@@ -70,6 +70,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.37.5] - 2026-03-07
+
+### Added### Fixed
+
+- address PR review comments — validate endpoint fixes and queue service URL corrections
+- update queue.service.spec.ts to use correct URL paths after queue service refactor
+- normalize /api prefix in worker to resolve frontend API 404s (#721)
+
+
 ## [0.37.4] - 2026-03-06
 
 ### Fixed
