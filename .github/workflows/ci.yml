@@ -370,36 +370,13 @@ jobs:
             frontend: ${{ steps.filter.outputs.frontend }}
             backend: ${{ steps.filter.outputs.backend }}
         steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-
             - name: Detect changed paths
               id: filter
               run: |
-                  # On push to main, compare with the previous commit
-                  # On pull_request, compare with the base branch
-                  if [ "${{ github.event_name }}" = "pull_request" ]; then
-                      BASE="${{ github.event.pull_request.base.sha }}"
-                      HEAD="${{ github.event.pull_request.head.sha }}"
-                  else
-                      BASE="${{ github.event.before }}"
-                      HEAD="${{ github.sha }}"
-                  fi
-
-                  # Check for frontend changes
-                  if git diff --name-only "$BASE" "$HEAD" 2>/dev/null | grep -qE '^frontend/|^package\.json|^package-lock\.json'; then
-                      echo "frontend=true" >> "$GITHUB_OUTPUT"
-                  else
-                      echo "frontend=true" >> "$GITHUB_OUTPUT"
-                  fi
-
-                  # Check for backend changes
-                  if git diff --name-only "$BASE" "$HEAD" 2>/dev/null | grep -qvE '^frontend/'; then
-                      echo "backend=true" >> "$GITHUB_OUTPUT"
-                  else
-                      echo "backend=true" >> "$GITHUB_OUTPUT"
-                  fi
+                  # Currently, always run both frontend and backend jobs.
+                  # If you later want conditional execution, reintroduce real detection logic here.
+                  echo "frontend=true" >> "$GITHUB_OUTPUT"
+                  echo "backend=true" >> "$GITHUB_OUTPUT"
 
     ci-gate:
         name: CI Gate
@@ -416,18 +393,21 @@ jobs:
         if: always()
         steps:
             - name: Check all jobs passed
+              env:
+                  NEEDS_JSON: ${{ toJSON(needs) }}
               run: |
-                  results='${{ toJSON(needs) }}'
-                  echo "Job results: $results"
-                  failed=$(echo "$results" | python3 -c "
-                  import sys, json
-                  needs = json.load(sys.stdin)
+                  echo "Job results: $NEEDS_JSON"
+                  python3 - <<'PY'
+                  import os
+                  import json
+
+                  needs = json.loads(os.environ['NEEDS_JSON'])
                   failures = [name for name, data in needs.items() if data['result'] not in ('success', 'skipped')]
                   if failures:
                       print('FAILED: ' + ', '.join(failures))
-                      sys.exit(1)
+                      raise SystemExit(1)
                   print('All checks passed')
-                  ")
+                  PY
 
     # Only publish on main pushes, and gate on all checks
     publish:
