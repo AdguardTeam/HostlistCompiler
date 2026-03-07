@@ -71,6 +71,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.37.6] - 2026-03-07
+
+### Added### Fixed
+
+- add trailing newline to DESCRIPTION.md to pass deno fmt check (#726)
+
+
 ## [0.37.5] - 2026-03-07
 
 ### Added### Fixed
