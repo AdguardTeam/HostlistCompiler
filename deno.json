@@ -126,6 +126,8 @@
             "examples/",
             "prisma/",
             "docs/",
+            "book/",
+            "book.toml",
             ".github/",
             ".agents/",
             ".claude/",
