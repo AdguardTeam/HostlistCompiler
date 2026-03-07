@@ -126,6 +126,8 @@
             "examples/",
             "prisma/",
             "docs/",
+            "book/",
+            "book.toml",
             ".github/",
             ".agents/",
             ".claude/",
@@ -137,6 +139,7 @@
             "*.d.ts",
             "CHANGELOG.md",
             "MEMORY.md",
+            "README.md",
             "issues/"
         ]
     },
