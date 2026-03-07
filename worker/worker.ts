@@ -1619,7 +1619,7 @@ async function serveStaticAsset(request: Request, env: Env, pathname: string): P
     // No ASSETS binding (local dev) or asset not found: serve minimal HTML for
     // extensionless paths, 404 for anything that looks like a file request.
     if (!FILE_EXTENSION_RE.test(pathname)) {
-        return serveWebUI();
+        return serveWebUI(request);
     }
 
     return new Response('Not Found', { status: 404 });
@@ -1629,7 +1629,8 @@ async function serveStaticAsset(request: Request, env: Env, pathname: string): P
  * Serve a minimal fallback HTML page when the ASSETS binding is not available.
  * Used in local `deno task dev` mode only.
  */
-function serveWebUI(): Response {
+function serveWebUI(request: Request): Response {
+    const origin = new URL(request.url).origin;
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1653,7 +1654,7 @@ function serveWebUI(): Response {
     </ul>
     
     <h2>Example Usage</h2>
-    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">curl -X POST https://adblock-compiler-ui.pages.dev/compile \\
+    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">curl -X POST ${origin}/compile \\
   -H "Content-Type: application/json" \\
   -d '{
     "configuration": {
