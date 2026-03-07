@@ -1,0 +1,114 @@
+/* =================================================================
+   AdBlock Compiler — mdBook Theme
+   Matches Angular frontend design system: "Deep Ink + Electric Amber"
+   Fonts: IBM Plex Sans (body) · Syne (headings) · JetBrains Mono (code)
+   ================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+    --amber-primary:    #b45309;
+    --amber-light:      #f59e0b;
+    --amber-dim:        #fcd34d;
+    --ink-bg:           #0d0d0d;
+    --ink-surface:      #111111;
+    --ink-border:       #3a3630;
+    --ink-text:         #f0ece4;
+    --ink-muted:        #c9c4be;
+    --light-bg:         #fafaf8;
+    --light-surface:    #ffffff;
+    --light-border:     #e5e1da;
+    --light-text:       #111111;
+    --light-muted:      #4b4540;
+}
+
+/* ── Fonts ───────────────────────────────────────────────────── */
+body { font-family: 'IBM Plex Sans', sans-serif; }
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Syne', sans-serif;
+    letter-spacing: -0.02em;
+}
+code, pre, .hljs {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.85em;
+}
+
+/* ── Amber accent stripe (matches app-header-shell::before) ──── */
+.nav-wide-wrapper::before,
+#menu-bar::before {
+    content: '';
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, #b45309 0%, #f59e0b 40%, #fcd34d 100%);
+}
+
+/* ── Light theme ─────────────────────────────────────────────── */
+.light, html {
+    --bg:          var(--light-bg);
+    --fg:          var(--light-text);
+    --sidebar-bg:  #f5f2ed;
+    --sidebar-fg:  var(--light-text);
+    --sidebar-active: var(--amber-primary);
+    --links:       var(--amber-primary);
+    --inline-code-color: var(--amber-primary);
+    --theme-hover: rgba(180, 83, 9, 0.08);
+    --searchbar-border-color: #c9c4be;
+    --searchresults-header-fg: var(--amber-primary);
+}
+
+/* ── Dark theme ──────────────────────────────────────────────── */
+.navy, .coal, .ayu {
+    --bg:          var(--ink-surface);
+    --fg:          var(--ink-text);
+    --sidebar-bg:  #0a0a0a;
+    --sidebar-fg:  var(--ink-text);
+    --sidebar-active: var(--amber-light);
+    --links:       var(--amber-light);
+    --inline-code-color: var(--amber-light);
+    --theme-hover: rgba(245, 158, 11, 0.08);
+    --searchbar-border-color: var(--ink-border);
+    --searchresults-header-fg: var(--amber-light);
+}
+
+/* ── Menu bar (header) ───────────────────────────────────────── */
+#menu-bar, #menu-bar-hover-placeholder {
+    background: var(--ink-bg);
+    border-bottom: 1px solid var(--ink-border);
+}
+#menu-bar .menu-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    color: var(--amber-light);
+    letter-spacing: -0.03em;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+.sidebar { border-right: 1px solid var(--ink-border); }
+.sidebar .active > a { color: var(--sidebar-active) !important; font-weight: 600; }
+.sidebar a:hover { color: var(--links); }
+
+/* ── Links ───────────────────────────────────────────────────── */
+a { color: var(--links); }
+a:hover { text-decoration: underline; }
+
+/* ── Inline code ─────────────────────────────────────────────── */
+code:not(.hljs) {
+    color: var(--inline-code-color);
+    background: rgba(180, 83, 9, 0.08);
+    border: 1px solid rgba(180, 83, 9, 0.15);
+    border-radius: 2px;
+    padding: 1px 5px;
+}
+
+/* ── Search bar ──────────────────────────────────────────────── */
+#searchbar {
+    border: 1px solid var(--searchbar-border-color);
+    border-radius: 4px;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+/* ── Dot-grid body background (matches Angular site) ─────────── */
+.content main {
+    background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+}
