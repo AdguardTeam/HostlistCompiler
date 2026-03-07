@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/iserver/auth/ssodh/init"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "publish": false,
+        "compete": false
+      }
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 4000

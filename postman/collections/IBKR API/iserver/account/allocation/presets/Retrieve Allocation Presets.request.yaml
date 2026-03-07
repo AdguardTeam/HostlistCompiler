@@ -1,0 +1,8 @@
+$kind: http-request
+description: Retrieve the preset behavior for allocation groups for specific events.
+url: "{{baseUrl}}/iserver/account/allocation/presets"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Retrieve Allocation Presets.resources/examples
+order: 1000

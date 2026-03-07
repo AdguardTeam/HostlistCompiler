@@ -1,0 +1,8 @@
+$kind: http-request
+description: Validates the current session for the SSO user.
+url: "{{baseUrl}}/sso/validate"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Validate SSO.resources/examples
+order: 1000

@@ -1,0 +1,19 @@
+$kind: http-request
+description: "Get list of brokers supported for given asset transfer
+  type<br><br>**Scope**: `enumerations.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/enumerations/complex-asset-transfer?instructionType\
+  =COMPLEX_ASSET_TRANSFER"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: instructionType
+    value: COMPLEX_ASSET_TRANSFER
+    description: (Required) Asset transfer type to get the list of supported brokers
+pathVariables:
+  - key: client-id
+    value: abc123
+    description: (Required) The client's clientId
+examples: ./.resources/Get A List Of Participating Brokers For The Given Asset
+  Type.resources/examples
+order: 1000

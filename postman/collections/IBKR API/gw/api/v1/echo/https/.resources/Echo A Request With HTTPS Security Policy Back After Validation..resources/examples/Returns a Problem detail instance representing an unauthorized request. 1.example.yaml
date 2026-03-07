@@ -1,0 +1,22 @@
+$kind: http-example
+name: Returns a Problem detail instance representing an unauthorized request.
+request:
+  url: "{{baseUrl}}/gw/api/v1/echo/https"
+  method: GET
+  headers:
+    Accept: application/problem+json
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 401,
+        "title": "Unauthorized",
+        "type": "/simple",
+        "detail": "The access token request is invalid"
+      }
+order: 7000

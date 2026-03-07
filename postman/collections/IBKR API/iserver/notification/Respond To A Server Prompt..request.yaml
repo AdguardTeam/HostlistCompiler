@@ -1,0 +1,17 @@
+$kind: http-request
+description: Respond to a server prompt received via ntf webscoket message.
+url: "{{baseUrl}}/iserver/notification"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "orderId": 987654321,
+      "reqId": "12345",
+      "text": "Yes"
+    }
+examples: ./.resources/Respond To A Server Prompt..resources/examples
+order: 1000

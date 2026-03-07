@@ -1,0 +1,59 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Auth/loginApp"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/plain
+body:
+  type: text
+  content: |-
+    {
+      "userName": "string",
+      "password": "string",
+      "deviceId": "string",
+      "appId": "string",
+      "verifyKey": "string"
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Response status code is 200", function () {
+          pm.expect(pm.response.code).to.equal(200);
+      });
+
+
+
+      pm.test("Response has the required fields", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData).to.have.all.keys('token', 'success', 'errorCode', 'errorMessage');
+      });
+
+
+
+      pm.test("Success must be true", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.true;
+      });
+
+
+
+      pm.test("Error code should be 0", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.errorCode).to.exist.and.to.equal(0, "Error code should be 0");
+      });
+
+
+
+      pm.test("Response time is less than 200ms", function () {
+          pm.expect(pm.response.responseTime).to.be.below(200);
+      });
+    language: text/javascript
+examples: ./.resources/Login as the specified user using the specified
+  application..resources/examples
+order: 1000

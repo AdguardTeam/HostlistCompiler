@@ -1,0 +1,48 @@
+$kind: http-example
+name: Returns a JSON object containing the available report dates.
+request:
+  url: "{{baseUrl}}/gw/api/v1/tax-documents/available?accountId=UXXXX&year=2024"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: accountId
+      value: UXXXX
+      description: (Required) Specifies the account id to retrieve information
+    - key: year
+      value: "2024"
+      description: (Required) Specifies the tax year to retrieve information
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "dataType": "String",
+          "value": {
+            "forms": [
+              {
+                "isForm": false,
+                "taxFormName": "1099",
+                "formats": [
+                  "PDF",
+                  "PDF"
+                ]
+              },
+              {
+                "isForm": false,
+                "taxFormName": "1099",
+                "formats": [
+                  "PDF",
+                  "PDF"
+                ]
+              }
+            ]
+          }
+        }
+      }
+order: 10000

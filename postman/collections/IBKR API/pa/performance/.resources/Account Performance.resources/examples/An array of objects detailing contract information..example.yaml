@@ -1,0 +1,116 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/pa/performance"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "period": "12M"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "currencyType": "base",
+        "rc": 0,
+        "nav": {
+          "data": [
+            {
+              "idType": "acctid",
+              "navs": [
+                202767332.1223,
+                215718598.8239
+              ],
+              "start": "20230102",
+              "end": "20231213",
+              "id": "U1234567",
+              "startNAV": {
+                "date": "20221230",
+                "val": 202767761.3449
+              },
+              "baseCurrency": "USD"
+            }
+          ],
+          "freq": "D",
+          "dates": [
+            "20230102",
+            "20231213"
+          ]
+        },
+        "nd": 346,
+        "cps": {
+          "data": [
+            {
+              "idType": "acctid",
+              "start": "20230102",
+              "end": "20231213",
+              "returns": [
+                0,
+                0.0639
+              ],
+              "id": "U1234567",
+              "baseCurrency": "USD"
+            }
+          ],
+          "freq": "D",
+          "dates": [
+            "20230102",
+            "20231213"
+          ]
+        },
+        "tpps": {
+          "data": [
+            {
+              "idType": "acctid",
+              "start": "20230102",
+              "end": "20231213",
+              "returns": [
+                0.0037,
+                0.0031,
+                0.0033,
+                0.0034,
+                0.02,
+                0.0127,
+                0.0036,
+                0.0036,
+                0.0034,
+                0.0012,
+                0.0026,
+                0.0017
+              ],
+              "id": "U1234567",
+              "baseCurrency": "USD"
+            }
+          ],
+          "freq": "M",
+          "dates": [
+            "202301",
+            "202302",
+            "202303",
+            "202304",
+            "202305",
+            "202306",
+            "202307",
+            "202308",
+            "202309",
+            "202310",
+            "202311",
+            "202312"
+          ]
+        },
+        "id": "getPerformanceData",
+        "included": [
+          "U1234567"
+        ],
+        "pm": "TWR"
+      }
+order: 1000

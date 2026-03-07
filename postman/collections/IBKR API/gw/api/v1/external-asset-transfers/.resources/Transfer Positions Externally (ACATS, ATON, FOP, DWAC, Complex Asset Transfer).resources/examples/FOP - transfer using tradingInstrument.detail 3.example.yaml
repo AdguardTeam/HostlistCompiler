@@ -1,0 +1,44 @@
+$kind: http-example
+name: FOP - transfer using tradingInstrument.detail
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "FOP",
+        "instruction": {
+          "clientInstructionId": 7013039,
+          "direction": "IN",
+          "accountId": "U46377",
+          "contraBrokerAccountId": "12345678A",
+          "contraBrokerDtcCode": "534",
+          "quantity": 1000,
+          "tradingInstrument": {
+            "tradingInstrumentDescription": {
+              "securityIdType": "ISIN",
+              "securityId": "459200101",
+              "assetType": "STK"
+            },
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "/simple"
+      }
+order: 42000

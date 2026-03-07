@@ -1,0 +1,16 @@
+$kind: http-request
+description: "Query registration tasks assigned to account and pending tasks
+  that are required for account approval<br><br>**Scope**:
+  `accounts.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/accounts/:accountId/tasks?type=registration"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  type: registration
+pathVariables:
+  - key: accountId
+    value: minim
+    description: "(Required) "
+examples: ./.resources/Get Registration Tasks.resources/examples
+order: 1000

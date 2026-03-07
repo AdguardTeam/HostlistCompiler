@@ -1,0 +1,122 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/oapi/v1/dns_servers"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "name": "<string>",
+        "settings": {
+          "access_settings": {
+            "allowed_clients": [
+              "<string>",
+              "<string>"
+            ],
+            "block_known_scanners": "<boolean>",
+            "blocked_clients": [
+              "<string>",
+              "<string>"
+            ],
+            "blocked_domain_rules": [
+              "<string>",
+              "<string>"
+            ],
+            "enabled": "<boolean>"
+          },
+          "auto_connect_devices_enabled": "<boolean>",
+          "block_chrome_prefetch": "<boolean>",
+          "block_firefox_canary": "<boolean>",
+          "block_private_relay": "<boolean>",
+          "block_ttl_seconds": "<integer>",
+          "blocking_mode_settings": {
+            "blocking_mode": "NXDOMAIN",
+            "ipv4_blocking_address": "<string>",
+            "ipv6_blocking_address": "<string>"
+          },
+          "filter_lists_settings": {
+            "enabled": "<boolean>",
+            "filter_list": [
+              {
+                "filter_id": "<string>",
+                "enabled": "<boolean>"
+              },
+              {
+                "filter_id": "<string>",
+                "enabled": "<boolean>"
+              }
+            ]
+          },
+          "ip_log_enabled": "<boolean>",
+          "parental_control_settings": {
+            "block_adult_websites_enabled": "<boolean>",
+            "blocked_services": [
+              {
+                "id": "<string>",
+                "enabled": "<boolean>"
+              },
+              {
+                "id": "<string>",
+                "enabled": "<boolean>"
+              }
+            ],
+            "enabled": "<boolean>",
+            "engines_safe_search_enabled": "<boolean>",
+            "screen_time_schedule": {
+              "daily_schedule": [
+                {
+                  "day_of_week": "THURSDAY",
+                  "enabled": "<boolean>",
+                  "from_time": {
+                    "hours": "<integer>",
+                    "minutes": "<integer>"
+                  },
+                  "to_time": {
+                    "hours": "<integer>",
+                    "minutes": "<integer>"
+                  }
+                },
+                {
+                  "day_of_week": "SUNDAY",
+                  "enabled": "<boolean>",
+                  "from_time": {
+                    "hours": "<integer>",
+                    "minutes": "<integer>"
+                  },
+                  "to_time": {
+                    "hours": "<integer>",
+                    "minutes": "<integer>"
+                  }
+                }
+              ]
+            },
+            "youtube_safe_search_enabled": "<boolean>"
+          },
+          "protection_enabled": "<boolean>",
+          "safebrowsing_settings": {
+            "block_dangerous_domains": "<boolean>",
+            "block_nrd": "<boolean>",
+            "enabled": "<boolean>"
+          },
+          "user_rules_settings": {
+            "enabled": "<boolean>",
+            "rules": [
+              "<string>",
+              "<string>"
+            ]
+          }
+        }
+      }
+response:
+  statusCode: 429
+  statusText: Too Many Requests
+  body:
+    type: text
+    content: ""
+order: 3000

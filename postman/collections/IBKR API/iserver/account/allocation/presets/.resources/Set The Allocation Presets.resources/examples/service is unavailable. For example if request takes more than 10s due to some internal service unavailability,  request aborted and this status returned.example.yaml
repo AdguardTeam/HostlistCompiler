@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/iserver/account/allocation/presets"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "group_auto_close_positions": true,
+        "default_method_for_all": "AvailableEquity",
+        "profiles_auto_close_positions": false,
+        "strict_credit_check": true,
+        "group_proportional_allocation": false
+      }
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 4000

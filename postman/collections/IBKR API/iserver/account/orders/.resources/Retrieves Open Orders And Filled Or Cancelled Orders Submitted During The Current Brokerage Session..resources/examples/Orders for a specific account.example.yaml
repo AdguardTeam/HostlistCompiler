@@ -1,0 +1,66 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/orders?filters=Filled,SortByTime&force=true&accountId=DU123456
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: filters
+      value: Filled,SortByTime
+      description: Filter results using a comma-separated list of Order Status values.
+        Also accepts a value to sort results by time.
+    - key: force
+      value: "true"
+      description: Instructs IB to clear cache of orders and obtain updated view from
+        brokerage backend. Response will be an empty array.
+    - key: accountId
+      value: DU123456
+      description: Retrieve orders for a specific account in the structure.
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "orders": [
+          {
+            "acct": "U1234567",
+            "exchange": "IDEALPRO",
+            "conidex": "15016138@IDEALPRO",
+            "conid": 15016138,
+            "account": "DU4355398",
+            "orderId": 1370093238,
+            "cashCcy": "CAD",
+            "sizeAndFills": "2.4K CAD",
+            "orderDesc": "Bought 2806.46 Limit 0.90000, Day",
+            "description1": "AUD.CAD",
+            "ticker": "AUD",
+            "secType": "CASH",
+            "listingExchange": "FXCONV",
+            "remainingQuantity": 0,
+            "filledQuantity": 2499.99,
+            "totalSize": 2806.46,
+            "totalCashSize": 2500,
+            "companyName": "Australian dollar",
+            "status": "Filled",
+            "order_ccp_status": "Filled",
+            "origOrderType": "LIMIT",
+            "supportsTaxOpt": "0",
+            "lastExecutionTime": "240425160326",
+            "orderType": "Limit",
+            "bgColor": "#FFFFFF",
+            "fgColor": "#000000",
+            "isEventTrading": "0",
+            "price": "0.90000",
+            "timeInForce": "CLOSE",
+            "lastExecutionTime_r": 1714061006000,
+            "side": "BUY",
+            "avgPrice": "0.8908"
+          }
+        ],
+        "snapshot": true
+      }
+order: 1000

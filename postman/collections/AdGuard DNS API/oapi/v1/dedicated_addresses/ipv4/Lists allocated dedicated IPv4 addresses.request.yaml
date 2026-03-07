@@ -1,0 +1,31 @@
+$kind: http-request
+description: >-
+  This endpoint makes an HTTP GET request to retrieve a list of dedicated IPv4
+  addresses. The response for this request can be documented as a JSON schema as
+  follows:
+
+
+  ``` json
+
+  {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "device_id": {
+          "type": "string"
+        }
+      }
+    }
+  }
+
+   ```
+url: "{{baseUrl}}/oapi/v1/dedicated_addresses/ipv4"
+method: GET
+headers:
+  Accept: "*/*"
+examples: ./.resources/Lists allocated dedicated IPv4 addresses.resources/examples
+order: 1000

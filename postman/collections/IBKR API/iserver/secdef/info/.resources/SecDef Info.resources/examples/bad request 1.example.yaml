@@ -1,0 +1,35 @@
+$kind: http-example
+name: bad request
+request:
+  url: https://api.ibkr.com/v1/api/iserver/secdef/info?conid=265598&sectype=Security
+    type of the requested contract of interest.&month=Expiration month for the
+    given derivative.&exchange=Designate the exchange you wish to receive
+    information for in relation to the contract.&strike=Set the strike price for
+    the requested contract details&right=P&issuerId=“e1234567”&filters=comma
+    separted list of additional filters. Applicable when SecTyp is BOND
+  method: GET
+  headers:
+    Accept: application/json; charset=utf-8
+  queryParams:
+    conid: "265598"
+    sectype: Security type of the requested contract of interest.
+    month: Expiration month for the given derivative.
+    exchange: Designate the exchange you wish to receive information for in relation
+      to the contract.
+    strike: Set the strike price for the requested contract details
+    right: P
+    issuerId: “e1234567”
+    filters: comma separted list of additional filters. Applicable when SecTyp is BOND
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 6000

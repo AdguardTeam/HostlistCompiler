@@ -1,0 +1,24 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/trades?days=3&accountId=DU123456
+  method: GET
+  headers:
+    Accept: text/plain; charset=utf-8
+  queryParams:
+    - key: days
+      value: "3"
+      description: The number of prior days prior to include in response, up to a
+        maximum of 7. If omitted, only the current day's executions will be
+        returned.
+    - key: accountId
+      value: DU123456
+      description: Filter trades by account ID or allocation group.
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: text/plain; charset=utf-8
+  body:
+    type: text
+    content: pariatur deserunt mollit
+order: 2000

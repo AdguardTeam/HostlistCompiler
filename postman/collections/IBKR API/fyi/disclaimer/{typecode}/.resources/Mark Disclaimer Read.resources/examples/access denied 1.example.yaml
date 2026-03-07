@@ -1,0 +1,18 @@
+$kind: http-example
+name: access denied
+request:
+  url: https://api.ibkr.com/v1/api/fyi/disclaimer/:typecode
+  method: PUT
+  headers:
+    Accept: text/plain; charset=utf-8
+  pathVariables:
+    typecode: ""
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: text/plain; charset=utf-8
+  body:
+    type: text
+    content: pariatur deserunt mollit
+order: 10000

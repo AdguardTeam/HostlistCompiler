@@ -1,0 +1,216 @@
+$kind: http-example
+name: ErrorResponse
+request:
+  url: "{{baseUrl}}/v3/orderexecution/ordergroups"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: >-
+      {
+        "Type": "<string>",
+        "Orders": [
+          {
+            "AccountID": "<string>",
+            "TimeInForce": {
+              "Duration": "<string>",
+              "Expiration": {}
+            },
+            "OrderType": "StopMarket",
+            "Quantity": "<string>",
+            "Symbol": "<string>",
+            "TradeAction": "<string>",
+            "AdvancedOptions": {
+              "AddLiquidity": "<boolean>",
+              "AllOrNone": "<boolean>",
+              "BookOnly": "<boolean>",
+              "DiscretionaryPrice": "<string>",
+              "MarketActivationRules": [
+                {
+                  "RuleType": "<string>",
+                  "Symbol": "<string>",
+                  "Predicate": "<string>",
+                  "TriggerKey": "TTTN",
+                  "Price": "<string>",
+                  "LogicOperator": "Or"
+                },
+                {
+                  "RuleType": "<string>",
+                  "Symbol": "<string>",
+                  "Predicate": "<string>",
+                  "TriggerKey": "TTTN",
+                  "Price": "<string>",
+                  "LogicOperator": "And"
+                }
+              ],
+              "NonDisplay": "<boolean>",
+              "PegValue": "<string>",
+              "ShowOnlyQuantity": "<string>",
+              "TimeActivationRules": [
+                {
+                  "TimeUtc": {}
+                },
+                {
+                  "TimeUtc": {}
+                }
+              ],
+              "TrailingStop": {
+                "Amount": "<string>",
+                "Percent": "<string>"
+              }
+            },
+            "BuyingPowerWarning": "<string>",
+            "Legs": [
+              {
+                "Symbol": "<string>",
+                "Quantity": "<string>",
+                "TradeAction": "<string>"
+              },
+              {
+                "Symbol": "<string>",
+                "Quantity": "<string>",
+                "TradeAction": "<string>"
+              }
+            ],
+            "LimitPrice": "<string>",
+            "OSOs": [
+              {
+                "Type": "BRK",
+                "Orders": [
+                  {
+                    "value": "<Circular reference to #/components/schemas/OrderRequest detected>"
+                  },
+                  {
+                    "value": "<Circular reference to #/components/schemas/OrderRequest detected>"
+                  }
+                ]
+              },
+              {
+                "Type": "OCO",
+                "Orders": [
+                  {
+                    "value": "<Circular reference to #/components/schemas/OrderRequest detected>"
+                  },
+                  {
+                    "value": "<Circular reference to #/components/schemas/OrderRequest detected>"
+                  }
+                ]
+              }
+            ],
+            "OrderConfirmID": "<string>",
+            "Route": "<string>",
+            "StopPrice": "<string>"
+          },
+          {
+            "AccountID": "<string>",
+            "TimeInForce": {
+              "Duration": "<string>",
+              "Expiration": {}
+            },
+            "OrderType": "Limit",
+            "Quantity": "<string>",
+            "Symbol": "<string>",
+            "TradeAction": "<string>",
+            "AdvancedOptions": {
+              "AddLiquidity": "<boolean>",
+              "AllOrNone": "<boolean>",
+              "BookOnly": "<boolean>",
+              "DiscretionaryPrice": "<string>",
+              "MarketActivationRules": [
+                {
+                  "RuleType": "<string>",
+                  "Symbol": "<string>",
+                  "Predicate": "<string>",
+                  "TriggerKey": "TTTN",
+                  "Price": "<string>",
+                  "LogicOperator": "And"
+                },
+                {
+                  "RuleType": "<string>",
+                  "Symbol": "<string>",
+                  "Predicate": "<string>",
+                  "TriggerKey": "DTTN",
+                  "Price": "<string>",
+                  "LogicOperator": "Or"
+                }
+              ],
+              "NonDisplay": "<boolean>",
+              "PegValue": "<string>",
+              "ShowOnlyQuantity": "<string>",
+              "TimeActivationRules": [
+                {
+                  "TimeUtc": {}
+                },
+                {
+                  "TimeUtc": {}
+                }
+              ],
+              "TrailingStop": {
+                "Amount": "<string>",
+                "Percent": "<string>"
+              }
+            },
+            "BuyingPowerWarning": "<string>",
+            "Legs": [
+              {
+                "Symbol": "<string>",
+                "Quantity": "<string>",
+                "TradeAction": "<string>"
+              },
+              {
+                "Symbol": "<string>",
+                "Quantity": "<string>",
+                "TradeAction": "<string>"
+              }
+            ],
+            "LimitPrice": "<string>",
+            "OSOs": [
+              {
+                "Type": "OCO",
+                "Orders": [
+                  {
+                    "value": "<Circular reference to #/components/schemas/OrderRequest detected>"
+                  },
+                  {
+                    "value": "<Circular reference to #/components/schemas/OrderRequest detected>"
+                  }
+                ]
+              },
+              {
+                "Type": "OCO",
+                "Orders": [
+                  {
+                    "value": "<Circular reference to #/components/schemas/OrderRequest detected>"
+                  },
+                  {
+                    "value": "<Circular reference to #/components/schemas/OrderRequest detected>"
+                  }
+                ]
+              }
+            ],
+            "OrderConfirmID": "<string>",
+            "Route": "<string>",
+            "StopPrice": "<string>"
+          }
+        ]
+      }
+response:
+  statusCode: 504
+  statusText: Gateway Timeout
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "Error": "<string>",
+        "Message": "<string>"
+      }
+order: 8000

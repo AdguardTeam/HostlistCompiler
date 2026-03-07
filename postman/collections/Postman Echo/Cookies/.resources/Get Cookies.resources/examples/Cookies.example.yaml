@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: https://echo.getpostman.com/cookies
+  method: GET
+  body:
+    type: formdata
+    content: []
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Access-Control-Allow-Credentials: ""
+    Access-Control-Allow-Headers: ""
+    Access-Control-Allow-Methods: ""
+    Access-Control-Allow-Origin: ""
+    Connection: keep-alive
+    Content-Encoding: gzip
+    Content-Length: "46"
+    Content-Type: application/json; charset=utf-8
+    Date: Thu, 29 Oct 2015 06:16:29 GMT
+    Server: nginx/1.6.2
+    Vary: Accept-Encoding
+    X-Powered-By: Sails <sailsjs.org>
+  body:
+    type: javascript
+    content: '{"cookies":{"foo2":"bar"}}'
+order: 1000

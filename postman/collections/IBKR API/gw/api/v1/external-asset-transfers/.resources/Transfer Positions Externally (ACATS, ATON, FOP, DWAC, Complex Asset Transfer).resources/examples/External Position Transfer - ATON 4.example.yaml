@@ -1,0 +1,38 @@
+$kind: http-example
+name: External Position Transfer - ATON
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "EXTERNAL_POSITION_TRANSFER",
+        "instruction": {
+          "clientInstructionId": 7013060,
+          "type": "FULL",
+          "subType": "ATON",
+          "brokerId": "3265",
+          "brokerName": "Wall Street Financial Group",
+          "accountAtBroker": "SOL12345",
+          "accountId": "U1225448",
+          "signature": "Marko Barr"
+        }
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "/simple"
+      }
+order: 50000

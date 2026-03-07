@@ -1,0 +1,17 @@
+$kind: http-request
+description: Instruct IServer to close its backend stream for the instrument
+  when real-time snapshots are no longer needed.
+url: "{{baseUrl}}/iserver/marketdata/unsubscribe"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "conid": 265598
+    }
+examples: ./.resources/Instruct IServer To Close Its Backend Stream For The
+  Instrument..resources/examples
+order: 1000

@@ -1,0 +1,19 @@
+$kind: http-request
+description: Stream aggregate market depth quotes for equities, futures and
+  stock options. A separate quote is returned for each price and side, using
+  aggregated data from the participants.
+url: "{{baseUrl}}/v3/marketdata/stream/marketdepth/aggregates/:symbol?maxlevels=20"
+method: GET
+headers:
+  Accept: application/vnd.tradestation.streams.v2+json
+queryParams:
+  - key: maxlevels
+    value: "20"
+    description: The maximum number of market depth levels to return. Must be a
+      positive integer. If omitted it defaults to 20.
+pathVariables:
+  - key: symbol
+    value: <string>
+    description: (Required) A valid symbol for the security.
+examples: ./.resources/Stream Market Depth Aggregates.resources/examples
+order: 1000

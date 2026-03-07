@@ -1,0 +1,79 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Account/search"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/plain
+body:
+  type: text
+  content: |-
+    {
+      "onlyActiveAccounts": true
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Response status code is 200", function () {
+          pm.expect(pm.response.code).to.eql(200);
+      });
+
+
+
+      pm.test("Response has required fields", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData).to.have.all.keys('accounts', 'success', 'errorCode', 'errorMessage');
+      });
+
+
+
+      pm.test("Accounts array contains objects with expected properties",
+      function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.a('boolean');
+          pm.expect(responseData.errorCode).to.be.a('number');
+          pm.expect(responseData.errorMessage).to.satisfy(value => value === null || typeof value === 'string');
+          
+          pm.expect(responseData.accounts).to.be.an('array').that.is.not.empty;
+
+          responseData.accounts.forEach(account => {
+              pm.expect(account).to.be.an('object');
+              pm.expect(account).to.have.all.keys('id', 'name', 'balance', 'canTrade', 'isVisible', 'simulated');
+              pm.expect(account.id).to.be.a('number');
+              pm.expect(account.name).to.be.a('string');
+              pm.expect(account.balance).to.be.a('number');
+              pm.expect(account.canTrade).to.be.a('boolean');
+              pm.expect(account.isVisible).to.be.a('boolean');
+              pm.expect(account.simulated).to.be.a('boolean');
+          });
+      });
+
+
+
+      pm.test("Balance is a non-negative number", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.have.property('accounts').that.is.an('array').that.is.not.empty;
+          
+          responseData.accounts.forEach(account => {
+              pm.expect(account).to.have.property('balance').that.is.a('number').and.to.be.at.least(0);
+          });
+      });
+
+
+
+      pm.test("Success is true and errorCode is 0 when there are no errors",
+      function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.true;
+          pm.expect(responseData.errorCode).to.equal(0);
+      });
+    language: text/javascript
+examples: ./.resources/Searches for accounts based on the provided
+  request..resources/examples
+order: 1000

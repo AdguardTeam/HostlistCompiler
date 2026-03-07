@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: https://template.postman-echo.com/api/v1/accounts/:accountId
+  method: GET
+  headers:
+    Content-Type: application/json
+  pathVariables:
+    accountId: "{{e2e_user_account_id_from}}"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:11:17 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "139"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "account": {
+              "id": 153,
+              "owner": "Edyth Wilderman - FromAccount",
+              "balance": 0,
+              "currency": "COSMIC_COINS",
+              "createdAt": "2024-03-11T01:10:32.000Z"
+          }
+      }
+order: 1000

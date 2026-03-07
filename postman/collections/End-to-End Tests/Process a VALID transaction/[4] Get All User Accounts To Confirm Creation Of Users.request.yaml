@@ -1,0 +1,48 @@
+$kind: http-request
+description: Get a list of all accounts to ensure the accounts were created and
+  saved correctly.
+url: "{{baseUrl}}/api/v1/accounts"
+method: GET
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: ""
+scripts:
+  - type: afterResponse
+    code: >-
+      const response = pm.response.json();
+
+
+      pm.test("Should contain an accounts 'array' in the response", function ()
+      {
+          pm.expect(response.accounts).to.be.an('array');
+      });
+
+
+      pm.test("Should return the correct account data for the `fromAccount`
+      user", function () {
+          let fromAccount = response.accounts.filter(function (account) {
+              return account.id === parseInt(pm.collectionVariables.get("e2e_user_account_id_from"));
+          });
+          pm.expect(fromAccount[0]).to.be.an("object");
+          pm.expect(fromAccount[0].owner).to.eql(pm.collectionVariables.get("e2e_user_name_from"));
+          pm.expect(fromAccount[0].balance).to.eql(50);
+          pm.expect(fromAccount[0].currency).to.eql("COSMIC_COINS");
+      })
+
+
+      pm.test("Should return the correct account data for the `toAccount` user",
+      function () {
+          let toAccount = response.accounts.filter(function (account) {
+              return account.id === parseInt(pm.collectionVariables.get("e2e_user_account_id_to"));
+          });
+          pm.expect(toAccount[0]).to.be.an("object");
+          pm.expect(toAccount[0].owner).to.eql(pm.collectionVariables.get("e2e_user_name_to"));
+          pm.expect(toAccount[0].balance).to.eql(0);
+          pm.expect(toAccount[0].currency).to.eql("COSMIC_COINS");
+      })
+    language: text/javascript
+examples: ./.resources/[4] Get All User Accounts To Confirm Creation Of
+  Users.resources/examples
+order: 4000

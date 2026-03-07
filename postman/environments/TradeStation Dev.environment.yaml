@@ -1,0 +1,6 @@
+name: TradeStation Dev
+values:
+  - key: baseUrl
+    value: https://api.tradestation.com
+    enabled: true
+color: null

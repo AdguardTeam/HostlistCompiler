@@ -1,0 +1,58 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Contract/search"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/plain
+body:
+  type: text
+  content: |-
+    {
+      "live": true,
+      "searchText": "string"
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Response status code is 200", function () {
+          pm.expect(pm.response.code).to.equal(200);
+      });
+
+
+
+      pm.test("Response contains 'success' field and it is true", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.have.property('success').that.is.true;
+      });
+
+
+
+      pm.test("Response contains errorCode field and it is 0", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.have.property('errorCode').that.equals(0);
+      });
+
+
+
+      pm.test("Response contains the errorMessage field and it is null",
+      function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData).to.have.property('errorMessage').that.is.null;
+      });
+
+
+
+      pm.test("Response has required fields", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData).to.have.all.keys('contracts', 'success', 'errorCode', 'errorMessage');
+      });
+    language: text/javascript
+examples: ./.resources/Searches for contracts based on the provided search
+  criteria..resources/examples
+order: 1000

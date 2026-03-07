@@ -1,0 +1,35 @@
+$kind: http-request
+description: Test caching behavior
+url: "{{baseUrl}}/compile"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "configuration": {
+        "name": "Cache Test List",
+        "sources": [
+          {
+            "source": "cache-test"
+          }
+        ]
+      },
+      "preFetchedContent": {
+        "cache-test": "||ads.test.com^"
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+
+      pm.test('Check cache headers', function () {
+          pm.expect(pm.response.headers.get('X-Cache')).to.be.oneOf(['HIT', 'MISS']);
+      });
+    language: text/javascript
+order: 3000

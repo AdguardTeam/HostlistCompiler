@@ -1,0 +1,24 @@
+$kind: http-example
+name: bad request
+request:
+  url: https://api.ibkr.com/v1/api/md/regsnapshot?conid=265598
+  method: GET
+  headers:
+    Accept: application/json; charset=utf-8
+  queryParams:
+    - key: conid
+      value: "265598"
+      description: (Required) An IB contract ID.
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 7000

@@ -1,0 +1,56 @@
+$kind: http-request
+description: >-
+  ### Delete Device Dedicated IPv4 Address
+
+
+  This endpoint is used to delete a dedicated IPv4 address for a specific
+  device.
+
+
+  #### Request
+
+
+  - Method: `DELETE`
+      
+  - URL: `{{baseUrl}}/oapi/v1/devices/:device_id/dedicated_addresses/ipv4`
+      
+
+  ##### Request Body
+
+
+  - `ip` (string, required): The IPv4 address to be deleted.
+      
+
+  #### Response
+
+
+  The response for this request is a `null` value, indicating that the dedicated
+  IPv4 address has been successfully deleted.
+
+
+  #### JSON Schema
+
+
+  ``` json
+
+  {
+    "type": "null"
+  }
+
+   ```
+url: "{{baseUrl}}/oapi/v1/devices/:device_id/dedicated_addresses/ipv4"
+method: DELETE
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: device_id
+    value: <string>
+    description: "(Required) "
+body:
+  type: json
+  content: |-
+    {
+      "ip": "<string>"
+    }
+examples: ./.resources/Unlink dedicated IPv4 from the device.resources/examples
+order: 1000

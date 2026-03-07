@@ -1,0 +1,49 @@
+$kind: http-example
+name: Withdraw Funds
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-cash-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "WITHDRAWAL",
+        "instruction": {
+          "clientInstructionId": 7013048,
+          "accountId": "U46377",
+          "bankInstructionName": "Test Withdrawal",
+          "bankInstructionMethod": "WIRE",
+          "amount": 123.45,
+          "currency": "GBP",
+          "dateTimeToOccur": "2023-11-20T09:12:13Z"
+        }
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Business Error",
+        "status": 422,
+        "detail": "Funds and Banking server cannot process your request because it contains invalid data",
+        "instructionSetId": 2591,
+        "instructionResult": {
+          "clientInstructionId": 7008150,
+          "instructionType": "DEPOSIT",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092565,
+          "error": {
+            "errorCode": "NOT_IRA_ACCOUNT",
+            "errorMessage": "Account U46377 is not IRA"
+          }
+        }
+      }
+order: 48000

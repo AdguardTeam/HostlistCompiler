@@ -1,0 +1,52 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "COMPLEX_ASSET_TRANSFER",
+        "instruction": {
+          "clientInstructionId": 7013040,
+          "direction": "IN",
+          "accountId": "U399192",
+          "quantity": 10,
+          "contraBrokerInfo": {
+            "accountType": "ORG",
+            "brokerName": "JP MORGAN",
+            "depositoryId": "1234",
+            "brokerAccountId": "as3456567678578N",
+            "country": "United States",
+            "contactName": "as",
+            "contactEmail": "a@gmail.com",
+            "contactPhone": "2039126155"
+          },
+          "tradingInstrument": {
+            "conid": 12123,
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 1013031,
+          "instructionType": "FOP",
+          "instructionStatus": "PENDING",
+          "instructionId": 43091814
+        },
+        "instructionSetId": 1703,
+        "status": 202
+      }
+order: 5000

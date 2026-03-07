@@ -1,0 +1,27 @@
+$kind: http-example
+name: ErrorResponse
+request:
+  url: "{{baseUrl}}/v3/brokerage/accounts/:accounts/orders/:orderIds"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    accounts: ""
+    orderIds: ""
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "Error": "<string>",
+        "Message": "<string>"
+      }
+order: 4000

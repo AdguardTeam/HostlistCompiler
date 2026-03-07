@@ -1,0 +1,12 @@
+$kind: http-request
+description: Portfolio account summary
+url: https://api.ibkr.com/v1/api/portfolio/:accountId/summary
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: accountId
+    value: DU123456
+    description: "(Required) "
+examples: ./.resources/Portfolio Account Summary.resources/examples
+order: 1000

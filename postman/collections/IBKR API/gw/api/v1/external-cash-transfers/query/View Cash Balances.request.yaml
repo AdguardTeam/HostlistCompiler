@@ -1,0 +1,26 @@
+$kind: http-request
+description: "View available cash for withdrawal with and without margin loan by
+  accountId<br><br>**Scope**: `transfers.read`<br>**Security Policy**: `Signed
+  JWT`"
+url: "{{baseUrl}}/gw/api/v1/external-cash-transfers/query"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: client-id
+    value: abc123
+    description: (Required) The client's clientId
+body:
+  type: json
+  content: |-
+    {
+      "instructionType": "QUERY_WITHDRAWABLE_FUNDS",
+      "instruction": {
+        "clientInstructionId": 7009005,
+        "accountId": "U87440",
+        "currency": "USD"
+      }
+    }
+examples: ./.resources/View Cash Balances.resources/examples
+order: 1000

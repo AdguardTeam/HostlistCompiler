@@ -1,0 +1,22 @@
+$kind: http-request
+description: "<br>**Scope**: `sso-sessions.write`<br>**Security Policy**: `Signed JWT`"
+url: "{{baseUrl}}/gw/api/v1/sso-sessions"
+method: POST
+headers:
+  Content-Type: application/jwt
+  Accept: application/json
+body:
+  type: text
+  content: |-
+    {
+      "credential": "ddowney2",
+      "ip": "10.10.10.10",
+      "service": "officia dolore amet",
+      "alternativeIps": [
+        "10.10.10.11",
+        "10.10.10.12"
+      ]
+    }
+examples: ./.resources/Create A New SSO Session On Behalf Of An
+  End-user..resources/examples
+order: 1000

@@ -1,0 +1,30 @@
+$kind: http-request
+url: blog.jaysonknight.com
+method: GET
+scripts:
+  - type: afterResponse
+    code: >
+      // Test that the response status code is 200
+
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+
+      // Test that the response body contains valid HTML content (e.g., contains
+      <!DOCTYPE html>)
+
+      pm.test("Response contains valid HTML (<!DOCTYPE html>)", function () {
+          pm.expect(pm.response.text()).to.include("<!DOCTYPE html>");
+      });
+
+
+      // Test that the response time is less than 2000 ms
+
+      pm.test("Response time is less than 2000 ms", function () {
+          pm.expect(pm.response.responseTime).to.be.below(2000);
+      });
+    language: text/javascript
+settings:
+  disabledSystemHeaders: []
+order: 1000

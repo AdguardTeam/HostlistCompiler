@@ -1,0 +1,14 @@
+$kind: http-request
+description: "Fetch Requests' Details By Timeframe<br><br>**Scope**:
+  `accounts.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/requests?requestDetails=endDate,1983-11-03,startDat\
+  e,1995-08-31,offset,94626202,limit,834,status,C"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: requestDetails
+    value: endDate,1983-11-03,startDate,1995-08-31,offset,94626202,limit,834,status,C
+    description: "(Required) "
+examples: ./.resources/Get Requests' Details By Timeframe.resources/examples
+order: 2000

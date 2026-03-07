@@ -1,0 +1,38 @@
+$kind: http-example
+name: Accepts request to create a new instruction asynchronously
+request:
+  url: "{{baseUrl}}/gw/api/v1/fee-templates"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "APPLY_FEE_TEMPLATE",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "accountId": "U46377",
+          "templateName": "Test template"
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 1013031,
+          "instructionType": "APPLY_FEE_TEMPLATE",
+          "instructionStatus": "PENDING",
+          "instructionId": 43091814
+        },
+        "instructionSetId": 1703,
+        "status": 202
+      }
+order: 7000

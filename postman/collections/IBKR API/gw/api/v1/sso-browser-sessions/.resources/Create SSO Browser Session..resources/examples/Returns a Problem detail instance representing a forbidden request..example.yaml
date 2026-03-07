@@ -1,0 +1,29 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/sso-browser-sessions"
+  method: POST
+  headers:
+    Content-Type: application/jwt
+    Accept: application/problem+json
+  body:
+    type: text
+    content: |-
+      {
+        "credential": "ddowney2",
+        "ip": "10.10.10.10"
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 403,
+        "title": "Forbidden",
+        "type": "/simple",
+        "detail": "The access token fails to have sufficient scope"
+      }
+order: 4000

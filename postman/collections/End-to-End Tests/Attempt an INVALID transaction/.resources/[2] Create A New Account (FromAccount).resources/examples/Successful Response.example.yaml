@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: https://template.postman-echo.com/api/v1/accounts
+  method: POST
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: "{{payload}}"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:10:32 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "22"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "account": {
+              "id": 153
+          }
+      }
+order: 1000

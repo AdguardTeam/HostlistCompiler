@@ -1,0 +1,50 @@
+$kind: http-example
+name: eDDA Instruction
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "EDDA_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 7012743,
+          "bankInstructionName": "{instrution-name}",
+          "currency": "CNH",
+          "accountId": "U8072517",
+          "bankBranchCode": "003",
+          "bankAccountNumber": "132456",
+          "bankClearingCode": "003",
+          "debtorIdentificationDocumentType": "hkId"
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 2603,
+        "instructionResult": {
+          "clientInstructionId": 80140,
+          "instructionType": "ACH_INSTRUCTION",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092579,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 15000

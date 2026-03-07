@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/enumerations/complex-asset-transfer?instructionType\
+    =COMPLEX_ASSET_TRANSFER"
+  method: GET
+  headers:
+    Accept: application/problem+json
+  queryParams:
+    - key: instructionType
+      value: COMPLEX_ASSET_TRANSFER
+      description: (Required) Asset transfer type to get the list of supported brokers
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Request path does not contain all expected fields, please consult provided documentation, escalate to IB contact if issue persists"
+      }
+order: 2000

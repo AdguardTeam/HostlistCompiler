@@ -1,0 +1,25 @@
+$kind: http-request
+description: >-
+  Using this endpoint one can configure how long it takes for the server to come
+  back with a response. Appending a number to the URL defines the time (in
+  seconds) the server will wait before responding.
+
+
+  Note that a maximum delay of 10 seconds is accepted by the server.
+url: https://echo.getpostman.com/delay/3
+method: GET
+body:
+  type: formdata
+  content: []
+scripts:
+  - type: afterResponse
+    code: |
+      var responseJSON;
+      try { 
+          responseJSON = JSON.parse(responseBody); 
+          tests["response body has key delay"] = 'delay' in responseJSON;
+      }
+      catch (e) { }
+      tests["response code is 200"] = responseCode.code === 200;
+    language: text/javascript
+order: 3000

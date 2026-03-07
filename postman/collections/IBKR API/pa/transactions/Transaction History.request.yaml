@@ -1,0 +1,18 @@
+$kind: http-request
+description: Transaction history for a given number of conids and accounts.
+  Types of transactions include dividend payments, buy and sell transactions,
+  transfers.
+url: "{{baseUrl}}/pa/transactions"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "currency": "USD",
+      "days": 90
+    }
+examples: ./.resources/Transaction History.resources/examples
+order: 1000

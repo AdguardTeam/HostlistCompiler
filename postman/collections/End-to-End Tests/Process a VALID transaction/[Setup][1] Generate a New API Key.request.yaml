@@ -1,0 +1,37 @@
+$kind: http-request
+description: This request generates a new API key and saves it to the collection
+  variables if the request is successful.
+url: "{{baseUrl}}/api/v1/auth"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: >
+      let response = pm.response.json();
+
+
+      pm.test("Should return a object", function () {
+          pm.expect(response, 'The response is not an object').to.be.an('object');
+      });
+
+
+      pm.test("Should contain the `apiKey` property in the response", function
+      () {
+          pm.expect(response, 'The response does not contain the property').to.haveOwnProperty('apiKey');
+      });
+
+
+      pm.test("Should return a string for the `apiKey` property", function () {
+          pm.expect(response.apiKey, 'The property is not a string').to.be.a('string');
+      });
+
+
+      // Only set the variable if the response is successful 
+
+      if (pm.response.code === 200) {
+          pm.collectionVariables.set('apiKey', response.apiKey);
+      }
+    language: text/javascript
+examples: ./.resources/[Setup][1] Generate a New API Key.resources/examples
+order: 1000

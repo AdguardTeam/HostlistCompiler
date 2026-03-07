@@ -1,0 +1,58 @@
+$kind: http-example
+name: Deposit Funds - IRA
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-cash-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "DEPOSIT",
+        "instruction": {
+          "clientInstructionId": 7013046,
+          "accountId": "U399192",
+          "currency": "USD",
+          "amount": 1,
+          "bankInstructionMethod": "WIRE",
+          "sendingInstitution": "Sending Institution name",
+          "identifier": "indentifier",
+          "specialInstruction": "U399192",
+          "bankInstructionName": "Instruction",
+          "fromAccountNumber": "U399192",
+          "senderInstitutionName": "Senders Institution name",
+          "iraDepositDetail": {
+            "iraContributionType": "ROLLOVER",
+            "iraTaxYearType": "CURRENT",
+            "fromIraType": "TRADITIONAL"
+          }
+        }
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Business Error",
+        "status": 422,
+        "detail": "Funds and Banking server cannot process your request because it contains invalid data",
+        "instructionSetId": 2591,
+        "instructionResult": {
+          "clientInstructionId": 7008150,
+          "instructionType": "DEPOSIT",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092565,
+          "error": {
+            "errorCode": "NOT_IRA_ACCOUNT",
+            "errorMessage": "Account U46377 is not IRA"
+          }
+        }
+      }
+order: 16000

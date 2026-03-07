@@ -1,0 +1,25 @@
+$kind: http-request
+description: "View active bank instructions for an accountId.<br><br>**Scope**:
+  `bank-instructions.read`<br>**Security Policy**: `Signed JWT`"
+url: "{{baseUrl}}/gw/api/v1/bank-instructions/query"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: client-id
+    value: abc123
+    description: (Required) The client's clientId
+body:
+  type: json
+  content: |-
+    {
+      "instructionType": "QUERY_BANK_INSTRUCTION",
+      "instruction": {
+        "clientInstructionId": 1012983,
+        "accountId": "U46377",
+        "bankInstructionMethod": "WIRE"
+      }
+    }
+examples: ./.resources/View Bank Instructions.resources/examples
+order: 1000

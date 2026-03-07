@@ -1,0 +1,76 @@
+$kind: http-request
+description: >-
+  This endpoint retrieves statistics for companies based on the specified time
+  range, devices, and countries. The request should include the
+  time_from_millis, time_to_millis, devices, and countries as query parameters.
+
+
+  ### Response
+
+
+  The response will be in the form of a JSON object with a "stats" array,
+  containing objects for each company's statistics. Each company object will
+  have the following structure:
+
+
+  - "company_name": The name of the company.
+      
+  - "value": An object containing the statistics for the company, including:
+      
+      - "blocked": The number of blocked items.
+          
+      - "companies": The number of companies.
+          
+      - "queries": The number of queries.
+
+          
+
+  Here is an example response:
+
+
+  ``` json
+
+  {
+    "stats": [
+      {
+        "company_name": "",
+        "value": {
+          "blocked": "",
+          "companies": "",
+          "queries": ""
+        }
+      }
+    ]
+  }
+
+   ```
+
+  The response of this request can be documented as a JSON schema for further
+  reference.
+url: "{{baseUrl}}/oapi/v1/stats/companies?time_from_millis=<long>&time_to_milli\
+  s=<long>&devices=<string>&devices=<string>&countries=<string>&countries=<stri\
+  ng>"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  - key: time_from_millis
+    value: <long>
+    description: (Required) Time from in milliseconds (inclusive)
+  - key: time_to_millis
+    value: <long>
+    description: (Required) Time to in milliseconds (inclusive)
+  - key: devices
+    value: <string>
+    description: Filter by devices
+  - key: devices
+    value: <string>
+    description: Filter by devices
+  - key: countries
+    value: <string>
+    description: Filter by countries
+  - key: countries
+    value: <string>
+    description: Filter by countries
+examples: ./.resources/Gets companies statistics.resources/examples
+order: 2000

@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/transactions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    api-key: "1234"
+  body:
+    type: text
+    content: |-
+      {
+          "fromAccountId": {{e2e_user_account_id_from}},
+          "toAccountId": {{e2e_user_account_id_to}},
+          "amount": 20,
+          "currency": "COSMIC_COINS"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:08:15 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "40"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "success": true,
+          "transaction": {
+              "id": 67
+          }
+      }
+order: 1000

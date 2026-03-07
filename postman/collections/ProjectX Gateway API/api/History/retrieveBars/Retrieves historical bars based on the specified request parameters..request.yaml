@@ -1,0 +1,67 @@
+$kind: http-request
+url: "{{baseUrl}}/api/History/retrieveBars"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/plain
+body:
+  type: text
+  content: |-
+    {
+      "contractId": "string",
+      "live": true,
+      "startTime": "1975-02-23T13:37:52.171Z",
+      "endTime": "1966-05-09T10:41:34.344Z",
+      "unit": 4,
+      "unitNumber": 80,
+      "limit": 1921,
+      "includePartialBar": false
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Response status code is 200", function () {
+          pm.expect(pm.response.code).to.equal(200);
+      });
+
+
+
+      pm.test("Response has the required fields", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData).to.have.all.keys('bars', 'success', 'errorCode', 'errorMessage');
+      });
+
+
+
+      pm.test("Success field is true", function () {
+          const responseData = pm.response.json();
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.true;
+      });
+
+
+
+      pm.test("Error code should be 0 when there are no errors", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.true;
+          pm.expect(responseData.errorCode).to.equal(0);
+      });
+
+
+
+      pm.test("Error message should be null when there are no errors", function
+      () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.true;
+          pm.expect(responseData.errorMessage).to.be.null;
+      });
+    language: text/javascript
+examples: ./.resources/Retrieves historical bars based on the specified request
+  parameters..resources/examples
+order: 1000

@@ -1,0 +1,51 @@
+$kind: http-example
+name: External Position Transfer - ACATS
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "EXTERNAL_POSITION_TRANSFER",
+        "instruction": {
+          "clientInstructionId": 7013060,
+          "type": "FULL",
+          "subType": "ACATS",
+          "brokerId": "0226",
+          "brokerName": "Wall Street Financial Group",
+          "accountAtBroker": "SOL12345",
+          "sourceIRAType": "RO",
+          "accountId": "U1225448",
+          "signature": "sample signature"
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 2615,
+        "instructionResult": {
+          "clientInstructionId": 2611,
+          "instructionType": "FOP",
+          "instructionStatus": "REJECTED",
+          "instructionId": 12000763,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 61000

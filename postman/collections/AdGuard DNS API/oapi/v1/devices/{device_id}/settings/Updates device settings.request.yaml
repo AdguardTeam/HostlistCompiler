@@ -1,0 +1,47 @@
+$kind: http-request
+description: >-
+  ### Update Device Settings
+
+
+  This endpoint allows the client to update the settings for a specific device.
+
+
+  #### Request Body Parameters
+
+
+  - `detect_doh_auth_only` (boolean): Indicates whether to detect DNS-over-HTTPS
+  (DoH) authentication only.
+      
+  - `protection_enabled` (boolean): Indicates whether the protection is enabled
+  for the device.
+      
+
+  #### Response
+
+
+  The response for this request is a JSON schema.
+
+
+  ``` csharp
+
+  null
+
+   ```
+url: "{{baseUrl}}/oapi/v1/devices/:device_id/settings"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: device_id
+    value: <string>
+    description: "(Required) "
+body:
+  type: json
+  content: |-
+    {
+      "detect_doh_auth_only": "<boolean>",
+      "protection_enabled": "<boolean>"
+    }
+examples: ./.resources/Updates device settings.resources/examples
+order: 1000

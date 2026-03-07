@@ -1,0 +1,74 @@
+$kind: http-request
+description: >-
+  ### POST /oapi/v1/devices
+
+
+  This endpoint is used to create a new device with the specified type, DNS
+  server ID, and name.
+
+
+  #### Request Body
+
+
+  - `device_type` (string, required): The type of the device (e.g. IOS).
+      
+  - `dns_server_id` (string, required): The ID of the DNS server.
+      
+  - `name` (string, required): The name of the device.
+      
+
+  #### Response
+
+
+  The response will be a JSON object with the following schema:
+
+
+  ``` json
+
+  {
+    "device_type": "",
+    "dns_addresses": {
+      "adguard_dns_over_https_url": "",
+      "adguard_dns_over_quic_url": "",
+      "adguard_dns_over_tls_url": "",
+      "adguard_vpn_dns_over_https_url": "",
+      "adguard_vpn_dns_over_quic_url": "",
+      "adguard_vpn_dns_over_tls_url": "",
+      "dns_over_https_url": "",
+      "dns_over_quic_url": "",
+      "dns_over_tls_url": "",
+      "adguard_dns_over_https_with_auth_url": "",
+      "adguard_vpn_dns_over_https_with_auth_url": "",
+      "dns_over_https_with_auth_url": "",
+      "ip_addresses": [
+        {
+          "ip_address": "",
+          "type": ""
+        }
+      ]
+    },
+    "dns_server_id": "",
+    "id": "",
+    "name": "",
+    "settings": {
+      "detect_doh_auth_only": "",
+      "protection_enabled": ""
+    }
+  }
+
+   ```
+url: "{{baseUrl}}/oapi/v1/devices"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "device_type": "IOS",
+      "dns_server_id": "<string>",
+      "name": "<string>"
+    }
+examples: ./.resources/Creates a new device.resources/examples
+order: 3000

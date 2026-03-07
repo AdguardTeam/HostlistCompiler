@@ -1,0 +1,42 @@
+$kind: http-request
+description: >-
+  This endpoint allows the user to update a specific device by making an HTTP
+  PUT request to the specified URL. The request should include the device type,
+  DNS server ID, and name in the raw request body.
+
+
+  ### Request Body
+
+
+  - `device_type`: (string) The type of the device (e.g., ANDROID).
+      
+  - `dns_server_id`: (string) The DNS server ID.
+      
+  - `name`: (string) The name of the device.
+      
+
+  ### Response
+
+
+  The response for this request is a JSON schema. However, the examples provided
+  are null, so the specific structure of the response cannot be documented
+  without actual response data.
+url: "{{baseUrl}}/oapi/v1/devices/:device_id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: device_id
+    value: <string>
+    description: "(Required) "
+body:
+  type: json
+  content: |-
+    {
+      "device_type": "ANDROID",
+      "dns_server_id": "<string>",
+      "name": "<string>"
+    }
+examples: ./.resources/Updates an existing device.resources/examples
+order: 8000

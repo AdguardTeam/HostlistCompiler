@@ -1,0 +1,54 @@
+$kind: http-example
+name: DWAC - transfer using contractID (conid)
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "DWAC",
+        "instruction": {
+          "clientInstructionId": 7013036,
+          "direction": "IN",
+          "accountId": "U1001095",
+          "contraBrokerAccountId": "12345678A",
+          "contraBrokerTaxId": "123456789",
+          "quantity": 1000,
+          "accountTitle": "Special Company Holding LLC",
+          "referenceId": "refId",
+          "tradingInstrument": {
+            "conid": 12123,
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 2615,
+        "instructionResult": {
+          "clientInstructionId": 2611,
+          "instructionType": "FOP",
+          "instructionStatus": "REJECTED",
+          "instructionId": 12000763,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 23000

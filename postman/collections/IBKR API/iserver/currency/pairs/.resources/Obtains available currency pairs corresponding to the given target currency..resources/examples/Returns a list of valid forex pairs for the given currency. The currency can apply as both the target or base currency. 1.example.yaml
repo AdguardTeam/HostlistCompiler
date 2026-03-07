@@ -1,0 +1,40 @@
+$kind: http-example
+name: Returns a list of valid forex pairs for the given currency. The currency
+  can apply as both the target or base currency.
+request:
+  url: https://api.ibkr.com/v1/api/iserver/currency/pairs?currency=USD
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: currency
+      value: USD
+      description: "(Required) "
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "USD": [
+          {
+            "symbol": "USD.SGD",
+            "conid": 37928772,
+            "ccyPair": "SGD"
+          },
+          {
+            "symbol": "USD.RON",
+            "conid": 38231133,
+            "ccyPair": "RON"
+          },
+          {
+            "symbol": "USD.CZK",
+            "conid": 34838409,
+            "ccyPair": "CZK"
+          }
+        ]
+      }
+order: 9000

@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/oapi/v1/devices/:device_id/dot.mobileconfig?exclude_wifi_netw\
+    orks=<string>&exclude_domain=<string>"
+  method: GET
+  headers:
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: exclude_wifi_networks
+      value: <string>
+      description: List Wi-Fi networks by their SSID in which you want AdGuard DNS to
+        be disabled
+    - key: exclude_domain
+      value: <string>
+      description: List domains that will use default DNS servers instead of AdGuard DNS
+  pathVariables:
+    device_id: ""
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

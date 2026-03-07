@@ -1,0 +1,10 @@
+$kind: http-request
+description: Fetches crypto Symbol Names for all available symbols, i.e.,
+  BTCUSD, ETHUSD, LTCUSD and BCHUSD. Note that while data can be obtained for
+  these symbols, they cannot be traded.
+url: "{{baseUrl}}/v3/marketdata/symbollists/cryptopairs/symbolnames"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Get Crypto Symbol Names.resources/examples
+order: 1000

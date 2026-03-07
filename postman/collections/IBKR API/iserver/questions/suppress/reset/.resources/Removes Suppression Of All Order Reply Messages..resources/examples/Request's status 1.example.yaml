@@ -1,0 +1,19 @@
+$kind: http-example
+name: Request's status
+request:
+  url: "{{baseUrl}}/iserver/questions/suppress/reset"
+  method: POST
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": "submitted"
+      }
+order: 6000

@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "ACH_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "bankInstructionCode": "USACH",
+          "achType": "DEBIT_CREDIT",
+          "bankInstructionName": "TestInstr",
+          "currency": "USD",
+          "accountId": "U223454",
+          "clientAccountInfo": {
+            "bankRoutingNumber": "202012983",
+            "bankAccountNumber": "101267576983",
+            "bankName": "JPM Chase",
+            "bankAccountTypeCode": 0
+          }
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 80009,
+          "instructionType": "ACH_INSTRUCTION",
+          "instructionStatus": "PENDING",
+          "instructionId": 43092478
+        },
+        "instructionSetId": 2487,
+        "status": 202
+      }
+order: 1000

@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alert/activate
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+  body:
+    type: json
+    content: |-
+      {
+        "alertId": 9876543210,
+        "alertActive": 1
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "failed to activate/deactivate alert"
+      }
+order: 5000

@@ -1,0 +1,27 @@
+$kind: http-example
+name: bad request
+request:
+  url: "{{baseUrl}}/pa/performance"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "period": "12M"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 8000

@@ -1,0 +1,22 @@
+$kind: http-example
+name: account-is-not-set
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/summary/margins
+  method: GET
+  headers:
+    Accept: application/json; charset=utf-8
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Bad Request: Please query /accounts first",
+        "statusCode": 400
+      }
+order: 9000

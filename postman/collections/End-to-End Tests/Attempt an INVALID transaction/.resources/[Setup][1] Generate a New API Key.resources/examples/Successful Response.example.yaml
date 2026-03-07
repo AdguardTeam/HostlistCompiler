@@ -1,0 +1,20 @@
+$kind: http-example
+request:
+  url: https://template.postman-echo.com/api/v1/auth
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:09:56 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "43"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "apiKey": "123456789"
+      }
+order: 1000

@@ -1,0 +1,60 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/iserver/scanner/run"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instrument": "STK",
+        "location": "STK.US.MAJOR",
+        "type": "TOP_TRADE_COUNT",
+        "filter": [
+          {
+            "code": "priceAbove",
+            "value": 5
+          }
+        ]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "contracts": [
+          {
+            "server_id": "0",
+            "column_name": "Trades",
+            "symbol": "TSLA",
+            "conidex": "76792991",
+            "con_id": 76792991,
+            "available_chart_periods": "#R|1",
+            "company_name": "TESLA INC",
+            "scan_data": "221.521K",
+            "contract_description_1": "TSLA",
+            "listing_exchange": "NASDAQ.NMS",
+            "sec_type": "STK"
+          },
+          {
+            "server_id": "1",
+            "symbol": "SPY",
+            "conidex": "756733",
+            "con_id": 756733,
+            "available_chart_periods": "#R|1",
+            "company_name": "SPDR S&P 500 ETF TRUST",
+            "scan_data": "123.661K",
+            "contract_description_1": "SPY",
+            "listing_exchange": "ARCA",
+            "sec_type": "STK"
+          }
+        ],
+        "scan_data_column_name": "Trades"
+      }
+order: 1000

@@ -1,0 +1,30 @@
+$kind: http-example
+name: Shares
+request:
+  url: "{{baseUrl}}/iserver/account/allocation/group"
+  method: PUT
+  headers:
+    Content-Type: application/json
+    Accept: text/plain; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "name": "Group_1_Shares",
+        "previous_name": "Group_0_Shares",
+        "amount": 15,
+        "default_method": "S",
+        "accounts": {
+          "name": "U456789",
+          "amount": 3
+        }
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: text/plain; charset=utf-8
+  body:
+    type: text
+    content: pariatur deserunt mollit
+order: 17000

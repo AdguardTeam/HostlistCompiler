@@ -1,0 +1,19 @@
+$kind: http-request
+description: Enable or disable group of notifications by the specific typecode.
+url: https://api.ibkr.com/v1/api/fyi/settings/:typecode
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: typecode
+    value: BA
+    description: "(Required) "
+body:
+  type: json
+  content: |-
+    {
+      "enabled": true
+    }
+examples: ./.resources/Modify FYI Notifications.resources/examples
+order: 1000

@@ -1,0 +1,145 @@
+$kind: http-request
+description: >-
+  ## Query Log
+
+
+  This endpoint retrieves query log data based on the specified query
+  parameters.
+
+
+  ### Request
+
+
+  - Method: GET
+      
+  - Endpoint: `{{baseUrl}}/oapi/v1/query_log`
+      
+  - Query Parameters:
+      
+      - `time_from_millis` (long) - Start time in milliseconds
+          
+      - `time_to_millis` (long) - End time in milliseconds
+          
+      - `devices` (string) - Device IDs
+          
+      - `countries` (string) - Country codes
+          
+      - `companies` (string) - Company IDs
+          
+      - `statuses` (string) - Response statuses (e.g., RESPONSE_ALLOWED, UNKNOWN)
+          
+      - `categories` (string) - Categories (e.g., TRACKERS, OTHERS)
+          
+      - `search` (string) - Search query
+          
+      - `limit` (number) - Maximum number of items to return
+          
+      - `cursor` (string) - Cursor for pagination
+
+          
+
+  ### Response
+
+
+  The response will contain an array of `items` and an array of `pages`.
+
+
+  - `items` (array) - Query log items with details such as category type,
+  company ID, DNS information, time, ASN, client country, device ID, DNS
+  protocol type, network, and response country.
+      
+      - `category_type` (string) - Type of category
+          
+      - `company_id` (string) - Company ID
+          
+      - `dnssec` (string) - DNS security extension
+          
+      - `domain` (string) - Domain
+          
+      - `filtering_info` (object) - Filtering information including blocked service ID, filter ID, filter rule, filtering status, and filtering type
+          
+      - `time_iso` (string) - Time in ISO format
+          
+      - `time_millis` (string) - Time in milliseconds
+          
+      - `asn` (string) - Autonomous System Number
+          
+      - `client_country` (string) - Client country
+          
+      - `device_id` (string) - Device ID
+          
+      - `dns_proto_type` (string) - DNS protocol type
+          
+      - `dns_request_type` (string) - DNS request type
+          
+      - `dns_response_type` (string) - DNS response type
+          
+      - `network` (string) - Network
+          
+      - `response_country` (string) - Response country
+
+          
+  - `pages` (array) - Pagination details including current page, page cursor,
+  and page number.
+      
+      - `current` (string) - Current page
+          
+      - `page_cursor` (string) - Page cursor
+          
+      - `page_number` (string) - Page number
+url: "{{baseUrl}}/oapi/v1/query_log?time_from_millis=<long>&time_to_millis=<lon\
+  g>&devices=<string>&devices=<string>&countries=<string>&countries=<string>&co\
+  mpanies=<string>&companies=<string>&statuses=RESPONSE_ALLOWED&statuses=UNKNOW\
+  N&categories=TRACKERS&categories=OTHERS&search=<string>&limit=20&cursor=<stri\
+  ng>"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  - key: time_from_millis
+    value: <long>
+    description: (Required) Time from in milliseconds (inclusive)
+  - key: time_to_millis
+    value: <long>
+    description: (Required) Time to in milliseconds (inclusive)
+  - key: devices
+    value: <string>
+    description: Filter by devices
+  - key: devices
+    value: <string>
+    description: Filter by devices
+  - key: countries
+    value: <string>
+    description: Filter by countries
+  - key: countries
+    value: <string>
+    description: Filter by countries
+  - key: companies
+    value: <string>
+    description: Filter by companies
+  - key: companies
+    value: <string>
+    description: Filter by companies
+  - key: statuses
+    value: RESPONSE_ALLOWED
+    description: Filter by statuses
+  - key: statuses
+    value: UNKNOWN
+    description: Filter by statuses
+  - key: categories
+    value: TRACKERS
+    description: Filter by categories
+  - key: categories
+    value: OTHERS
+    description: Filter by categories
+  - key: search
+    value: <string>
+    description: Filter by domain name
+  - key: limit
+    value: "20"
+    description: Limit the number of records to be returned
+  - key: cursor
+    value: <string>
+    description: Pagination cursor. Use cursor from response to paginate through the pages.
+examples: ./.resources/Gets query log.resources/examples
+order: 2000

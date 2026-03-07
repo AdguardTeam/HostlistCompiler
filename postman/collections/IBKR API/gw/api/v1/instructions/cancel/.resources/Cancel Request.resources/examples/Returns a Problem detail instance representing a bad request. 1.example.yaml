@@ -1,0 +1,40 @@
+$kind: http-example
+name: Returns a Problem detail instance representing a bad request.
+request:
+  url: "{{baseUrl}}/gw/api/v1/instructions/cancel"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "CANCEL_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 12001810,
+          "instructionId": 43085477,
+          "reason": "Testing"
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/invalid-argument",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Input is not a JSON Object or doesn't contain all expected fields",
+        "invalidArguments": [
+          {
+            "field": "instructionId",
+            "description": "Missing required parameter"
+          }
+        ]
+      }
+order: 6000

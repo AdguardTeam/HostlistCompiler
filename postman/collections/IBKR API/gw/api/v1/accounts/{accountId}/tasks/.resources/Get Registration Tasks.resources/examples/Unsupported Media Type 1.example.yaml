@@ -1,0 +1,25 @@
+$kind: http-example
+name: Unsupported Media Type
+request:
+  url: "{{baseUrl}}/gw/api/v1/accounts/:accountId/tasks?type=registration"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    type: registration
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 415
+  statusText: Unsupported Media Type
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "culpa_5c": {},
+        "Loremf": {},
+        "esse5a": {}
+      }
+order: 11000

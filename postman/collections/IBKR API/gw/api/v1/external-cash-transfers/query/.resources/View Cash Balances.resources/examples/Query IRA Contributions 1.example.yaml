@@ -1,0 +1,40 @@
+$kind: http-example
+name: Query IRA Contributions
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-cash-transfers/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_IRA_CONTRIBUTIONS",
+        "instruction": {
+          "clientInstructionId": 7009007,
+          "accountId": "U68903",
+          "year": "2003"
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/invalid-argument",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Input is not a JSON Object or doesn't contain all expected fields",
+        "invalidArguments": [
+          {
+            "field": "templateName",
+            "description": "Missing required parameter"
+          }
+        ]
+      }
+order: 6000

@@ -1,0 +1,13 @@
+$kind: http-request
+description: Streams Quote changes for one or more symbols.
+url: "{{baseUrl}}/v3/marketdata/stream/quotes/:symbols"
+method: GET
+headers:
+  Accept: application/vnd.tradestation.streams.v2+json
+pathVariables:
+  - key: symbols
+    value: <string>
+    description: (Required) List of valid symbols in comma separated format; for
+      example `"MSFT,BTCUSD"`. No more than 100 symbols per request.
+examples: ./.resources/Stream Quotes.resources/examples
+order: 1000

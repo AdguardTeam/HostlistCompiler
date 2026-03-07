@@ -1,0 +1,51 @@
+$kind: http-request
+description: >-
+  ### OAuth Token Request
+
+
+  This endpoint allows the user to obtain a new access token by providing the
+  necessary credentials and tokens.
+
+
+  **Request Body**
+
+
+  - `mfa_token` (text, required): Two-Factor authentication token
+      
+  - `password` (text, required): Account password
+      
+  - `refresh_token` (text, required): Refresh Token using which a new access
+  token has to be generated
+      
+  - `username` (text, required): Account email
+      
+
+  **Response**
+
+
+  - `expires_in` (string): Expiry duration of the access token
+      
+  - `access_token` (string): New access token
+      
+  - `refresh_token` (string): Refresh token for obtaining new access tokens
+      
+  - `token_type` (string): Type of token (e.g., Bearer)
+url: "{{baseUrl}}/oapi/v1/oauth_token"
+method: POST
+headers:
+  Content-Type: application/x-www-form-urlencoded
+  Accept: "*/*"
+body:
+  type: urlencoded
+  content:
+    - key: mfa_token
+      value: "577672"
+      description: Two-Factor authentication token
+    - key: password
+      value: I grew up on 1308 Hemlock Street
+      description: Account password
+    - key: username
+      value: jayson.knight@jaysonknight.com
+      description: Account email
+examples: ./.resources/Generates Access and Refresh token.resources/examples
+order: 1000

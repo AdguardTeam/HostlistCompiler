@@ -1,0 +1,26 @@
+$kind: http-example
+name: Returns a Problem detail instance representing a not found request.
+request:
+  url: "{{baseUrl}}/gw/api/v1/participating-banks?type=eDDA"
+  method: GET
+  headers:
+    Accept: application/problem+json
+  queryParams:
+    - key: type
+      value: eDDA
+      description: (Required) Parameter for which the list of participating banks is fetched
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Request path does not contain all expected fields, please consult provided documentation, escalate to IB contact if issue persists"
+      }
+order: 5000

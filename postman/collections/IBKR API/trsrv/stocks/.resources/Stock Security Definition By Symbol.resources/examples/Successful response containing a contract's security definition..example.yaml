@@ -1,0 +1,62 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/trsrv/stocks?symbols=AAPL,IBKR
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: symbols
+      value: AAPL,IBKR
+      description: "(Required) "
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "IBM": [
+          {
+            "name": "INTL BUSINESS MACHINES CORP",
+            "chineseName": "&#x56FD;&#x9645;&#x5546;&#x4E1A;&#x673A;&#x5668;",
+            "assetClass": "STK",
+            "contracts": [
+              {
+                "conid": 8314,
+                "exchange": "NYSE",
+                "isUS": true
+              },
+              {
+                "conid": 1411277,
+                "exchange": "IBIS",
+                "isUS": false
+              },
+              {
+                "conid": 38709473,
+                "exchange": "MEXI",
+                "isUS": false
+              },
+              {
+                "conid": 41645598,
+                "exchange": "LSE",
+                "isUS": false
+              }
+            ]
+          },
+          {
+            "name": "INTL BUSINESS MACHINES C-CDR",
+            "chineseName": "&#x56FD;&#x9645;&#x5546;&#x4E1A;&#x673A;&#x5668;",
+            "assetClass": "STK",
+            "contracts": [
+              {
+                "conid": 530091934,
+                "exchange": "AEQLIT",
+                "isUS": false
+              }
+            ]
+          }
+        ]
+      }
+order: 1000

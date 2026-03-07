@@ -1,0 +1,128 @@
+$kind: http-example
+name: An array of objects detailing contract information.
+request:
+  url: https://api.ibkr.com/v1/api/iserver/secdef/search?symbol=AAPL&secType=STK&name=false&more=true&fund=true&fundFamilyConidEx=minim&pattern=true&referrer=minim
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: symbol
+      value: AAPL
+    - key: secType
+      value: STK
+      description: |
+        Available underlying security types:
+          * `STK` - Represents an underlying as a Stock security type.
+          * `IND` - Represents an underlying as an Index security type.
+          * `BOND` - Represents an underlying as a Bond security type.
+    - key: name
+      value: "false"
+    - key: more
+      value: "true"
+    - key: fund
+      value: "true"
+    - key: fundFamilyConidEx
+      value: minim
+    - key: pattern
+      value: "true"
+    - key: referrer
+      value: minim
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      [
+        {
+          "conid": "8314",
+          "companyHeader": "INTL BUSINESS MACHINES CORP - NYSE",
+          "companyName": "INTL BUSINESS MACHINES CORP",
+          "symbol": "IBM",
+          "description": "NYSE",
+          "restricted": null,
+          "fop": null,
+          "opt": "20240315;20240322;20240328;20240405;20240412;20240419;20240426;20240517;20240621;20240719;20240920;20241018;20250117;20250620;20260116",
+          "war": "20240208;20240213;20240214;20240215;20240216;20240222;20240226;20240227;20240228;20240229;20240301;20240304;20240305;20240306;20240307;20240308;20240311;20240312;20240313;20240314;20240315;20240416;20240418;20240514;20240516;20240618;20240619;20240620;20240621;20240718;20240917;20240918;20240919;20240920;20241017;20241217;20241218;20241219;20241220;20250114;20250115;20250116;20250117;20250319;20250320;20250617;20250618;20250619;20250620;20250918;20251216;20251218;20260113;20260115",
+          "sections": [
+            {
+              "secType": "STK"
+            },
+            {
+              "secType": "OPT",
+              "months": "MAR24;APR24;MAY24;JUN24;JUL24;SEP24;OCT24;JAN25;JUN25;JAN26",
+              "exchange": "SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;GEMINI;IBUSOPT;ISE;MEMX;MERCURY;MIAX;NASDAQBX;NASDAQOM;PEARL;PHLX;PSE"
+            },
+            {
+              "secType": "WAR",
+              "months": "FEB24;MAR24;APR24;MAY24;JUN24;JUL24;SEP24;OCT24;DEC24;JAN25;MAR25;JUN25;SEP25;DEC25;JAN26",
+              "exchange": "EBS;FWB;GETTEX;SBF;SWB"
+            },
+            {
+              "secType": "IOPT"
+            },
+            {
+              "secType": "CFD",
+              "exchange": "SMART",
+              "conid": "118239202"
+            },
+            {
+              "secType": "BAG"
+            }
+          ]
+        },
+        {
+          "conid": "41645598",
+          "companyHeader": "INTL BUSINESS MACHINES CORP - LSE",
+          "companyName": "INTL BUSINESS MACHINES CORP",
+          "symbol": "IBM",
+          "description": "LSE",
+          "restricted": null,
+          "fop": null,
+          "opt": null,
+          "war": null,
+          "sections": [
+            {
+              "secType": "STK"
+            }
+          ]
+        },
+        {
+          "issuers": [
+            {
+              "id": "e5499005",
+              "name": "IBM International Capital Pte Ltd"
+            },
+            {
+              "id": "e1580374",
+              "name": "IBM-CALL"
+            },
+            {
+              "id": "e1400789",
+              "name": "International Business Machines Corp"
+            },
+            {
+              "id": "e1658116",
+              "name": "Truven Health Analytics Inc"
+            }
+          ],
+          "bondid": 5,
+          "conid": "2147483647",
+          "companyHeader": "Corporate Fixed Income",
+          "companyName": null,
+          "symbol": null,
+          "description": null,
+          "restricted": null,
+          "fop": null,
+          "opt": null,
+          "war": null,
+          "sections": [
+            {
+              "secType": "BOND"
+            }
+          ]
+        }
+      ]
+order: 9000

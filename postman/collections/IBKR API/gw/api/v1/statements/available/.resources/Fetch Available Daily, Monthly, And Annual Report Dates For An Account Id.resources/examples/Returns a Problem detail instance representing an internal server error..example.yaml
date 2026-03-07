@@ -1,0 +1,24 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/statements/available?accountId=UXXXX"
+  method: GET
+  headers:
+    Accept: application/problem+json
+  queryParams:
+    - key: accountId
+      value: UXXXX
+      description: (Required) Specifies the account id to retrieve information
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "/simple"
+      }
+order: 6000

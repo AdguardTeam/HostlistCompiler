@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/statements"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "accountId": "UXXXX",
+        "startDate": "202301",
+        "endDate": "202301",
+        "mimeType": "application/pdf"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "dataType": "adipisicing",
+          "encoding": "nostrud la",
+          "value": "exercitation elit officia",
+          "mimeType": "sunt consequat",
+          "gzip": false,
+          "accept": "dolor anim laborum voluptate"
+        }
+      }
+order: 2000

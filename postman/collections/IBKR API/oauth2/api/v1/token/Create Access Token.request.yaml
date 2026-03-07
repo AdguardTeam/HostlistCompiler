@@ -1,0 +1,30 @@
+$kind: http-request
+description: Generate OAuth 2.0 access tokens based on request parameters.
+url: "{{baseUrl}}/oauth2/api/v1/token"
+method: POST
+headers:
+  Content-Type: application/x-www-form-urlencoded
+  Accept: application/json
+body:
+  type: urlencoded
+  content:
+    - key: client_assertion
+      value: Excepteur incididunt in labore
+      description: (Required) The compact [client
+        assertion](https://www.rfc-editor.org/rfc/rfc7521.html) token used to
+        authenticate you as a registered client.
+    - key: client_assertion_type
+      value: consequat qui minim aliquip eu
+      description: (Required) The [client assertion
+        type](https://www.rfc-editor.org/rfc/rfc7521.html#section-4.2) that
+        identifies the client assertion.
+    - key: grant_type
+      value: dolor culpa esse sint ut
+      description: (Required) The [authorization grant
+        flow](https://dataetracker.ietf.org/doc/html/rfc6749#section-1.3) for
+        the creation of the tokens.
+    - key: scope
+      value: echo.read echo.write
+      description: (Required) The space-delimited list of scopes
+examples: ./.resources/Create Access Token.resources/examples
+order: 1000

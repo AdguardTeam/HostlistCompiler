@@ -1,0 +1,43 @@
+$kind: http-example
+name: ErrorResponse
+request:
+  url: "{{baseUrl}}/v3/brokerage/accounts/:accounts/positions?symbol=<string>"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: symbol
+      value: <string>
+      description: >-
+        List of valid symbols in comma separated format; for example `MSFT,MSFT
+        *,AAPL`. You can use an * as wildcard to make more complex filters.
+
+
+        Examples of the wildcard being used: 
+
+          * Get all options for MSFT: symbol=`MSFT *`
+          * Get MSFT and all its options: symbol=`MSFT,MSFT *`
+          * Get all MSFT options expiring in 2023: symbol=`MSFT 23*`
+          * Get all MSFT options expiring in March 2023: symbol=`MSFT 2303*`
+          * Get all options expiring in March 2023: symbol=`* 2303*`
+          * Get all call options expiring in March 2023: symbol=`* 2303*C*`
+          * Get BHM*: symbol=`BHM**`
+  pathVariables:
+    accounts: ""
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "Error": "<string>",
+        "Message": "<string>"
+      }
+order: 5000

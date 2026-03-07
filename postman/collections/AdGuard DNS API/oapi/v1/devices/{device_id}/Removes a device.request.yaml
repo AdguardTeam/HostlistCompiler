@@ -1,0 +1,26 @@
+$kind: http-request
+description: >-
+  This endpoint allows the deletion of a specific device by sending an HTTP
+  DELETE request to the provided URL. The `device_id` parameter in the URL
+  should be replaced with the ID of the device to be deleted.
+
+
+  ### Request Body
+
+
+  This request does not require a request body.
+
+
+  ### Response
+
+
+  The response for this request is null, indicating that there is no specific
+  response body returned upon successful deletion of the device.
+url: "{{baseUrl}}/oapi/v1/devices/:device_id"
+method: DELETE
+pathVariables:
+  - key: device_id
+    value: <string>
+    description: "(Required) "
+examples: ./.resources/Removes a device.resources/examples
+order: 6000

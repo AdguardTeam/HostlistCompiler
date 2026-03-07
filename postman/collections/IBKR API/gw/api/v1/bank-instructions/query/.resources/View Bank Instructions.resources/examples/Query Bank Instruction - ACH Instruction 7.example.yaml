@@ -1,0 +1,45 @@
+$kind: http-example
+name: Query Bank Instruction - ACH Instruction
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_BANK_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "accountId": "U46377",
+          "bankInstructionMethod": "ACH"
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 2445,
+        "instructionResult": {
+          "clientInstructionId": 12000610,
+          "instructionType": "QUERY_RECENT_RECURRING_EVENTS",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092429,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 34000

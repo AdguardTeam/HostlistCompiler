@@ -1,0 +1,17 @@
+$kind: http-request
+description: "Get forms<br><br>**Scope**: `accounts.read` OR
+  `forms.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/forms?formNo=77608319,-37811536&getDocs=minim&fromD\
+  ate=minim&toDate=minim&language=minim&projection=NONE"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  formNo: 77608319,-37811536
+  getDocs: minim
+  fromDate: minim
+  toDate: minim
+  language: minim
+  projection: NONE
+examples: ./.resources/Get Forms.resources/examples
+order: 1000

@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/trsrv/all-conids?exchange=AMEX&assetClass=STK
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: exchange
+      value: AMEX
+      description: "(Required) "
+    - key: assetClass
+      value: STK
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "ticker": "BMO",
+          "conid": 5094,
+          "exchange": "NYSE"
+        },
+        {
+          "ticker": "BNS",
+          "conid": 15156975,
+          "exchange": "NYSE"
+        }
+      ]
+order: 1000

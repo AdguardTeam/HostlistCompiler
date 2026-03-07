@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/requests/:requestId/status?type=update"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    - key: type
+      value: update
+      description: "(Required) "
+  pathVariables:
+    requestId: ""
+response:
+  statusCode: 415
+  statusText: Unsupported Media Type
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "culpa_5c": {},
+        "Loremf": {},
+        "esse5a": {}
+      }
+order: 5000

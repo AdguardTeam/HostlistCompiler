@@ -1,0 +1,25 @@
+$kind: http-request
+description: Lists DNS servers that belong to the user. By default there is at
+  least one default server.
+url: "{{baseUrl}}/oapi/v1/dns_servers"
+method: GET
+headers:
+  Accept: "*/*"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Check if default is true for all DNS servers\", () => {\r
+
+      \    let jsonData = pm.response.json();\r
+
+      \    jsonData.forEach(server => {\r
+
+      \        if (server.default === true)\r
+
+      \            pm.environment.set(\"dnsServerId\", server.id);\r
+
+      \    });\r
+
+      });\r\n"
+    language: text/javascript
+examples: ./.resources/Lists DNS servers that belong to the user..resources/examples
+order: 2000

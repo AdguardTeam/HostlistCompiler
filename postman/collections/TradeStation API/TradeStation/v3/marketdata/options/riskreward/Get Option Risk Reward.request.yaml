@@ -1,0 +1,29 @@
+$kind: http-request
+description: Analyze the risk vs. reward of a potential option trade. This
+  endpoint is not applicable for option spread types with different expirations,
+  such as Calendar and Diagonal.
+url: "{{baseUrl}}/v3/marketdata/options/riskreward"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "SpreadPrice": "<double>",
+      "Legs": [
+        {
+          "Symbol": "<string>",
+          "Quantity": "<integer>",
+          "TradeAction": "BUY"
+        },
+        {
+          "Symbol": "<string>",
+          "Quantity": "<integer>",
+          "TradeAction": "BUY"
+        }
+      ]
+    }
+examples: ./.resources/Get Option Risk Reward.resources/examples
+order: 1000

@@ -1,0 +1,109 @@
+$kind: http-example
+name: Order Preview
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/orders/whatif
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "conid": 52872274,
+          "orderType": "ipsum proident aute",
+          "quantity": 46617514.88062245,
+          "side": "BUY",
+          "tif": "GTC",
+          "acctId": "incididunt Ut dolor",
+          "conidex": "ipsum amet labore",
+          "secType": "fugiat nulla cupidatat id ",
+          "cOID": "et sint",
+          "parentId": "amet labore in",
+          "listingExchange": "do consequat elit incididunt",
+          "isSingleGroup": false,
+          "outsideRTH": true,
+          "auxPrice": 60888974.8978028,
+          "ticker": "dolore",
+          "trailingAmt": 94058836.66839269,
+          "trailingType": "%",
+          "referrer": "ut aliqu",
+          "cashQty": -51554460.18161904,
+          "useAdaptive": true,
+          "isCcyConv": false,
+          "price": -55737199.15177837,
+          "strategy": "voluptate consectetur consequat cillum",
+          "strategyParameters": {
+            "PLACEHOLDER": "ut dolor laboris"
+          }
+        },
+        {
+          "conid": 72060179,
+          "orderType": "sit ut culpa elit",
+          "quantity": 7376139.877130285,
+          "side": "SELL",
+          "tif": "DAY",
+          "acctId": "nostrud enim",
+          "conidex": "pariatur culpa Ut",
+          "secType": "elit sint culpa",
+          "cOID": "in culpa aliqua ut",
+          "parentId": "ad tempor reprehenderit",
+          "listingExchange": "ex qui anim reprehenderit",
+          "isSingleGroup": false,
+          "outsideRTH": false,
+          "auxPrice": -4505647.609161839,
+          "ticker": "aliquip adipisicing enim voluptate",
+          "trailingAmt": -19257488.89147827,
+          "trailingType": "amt",
+          "referrer": "nisi nulla",
+          "cashQty": 50628182.043429255,
+          "useAdaptive": false,
+          "isCcyConv": false,
+          "price": 47050335.02453348,
+          "strategy": "aute minim consequat in",
+          "strategyParameters": {
+            "PLACEHOLDER": "incididunt et fugiat"
+          }
+        }
+      ]
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "amount": {
+          "amount": "1,977.60 USD (10 Shares)",
+          "commission": "1 USD",
+          "total": "1,978.60 USD"
+        },
+        "equity": {
+          "current": "123,456",
+          "change": "-1",
+          "after": "123,455"
+        },
+        "initial": {
+          "current": "1000",
+          "change": "652",
+          "after": "1652"
+        },
+        "maintenance": {
+          "current": "900",
+          "change": "590\"\"",
+          "after": "1490"
+        },
+        "position": {
+          "current": "20",
+          "change": "10",
+          "after": "30"
+        },
+        "warn": "21/You are trying to submit an order without having market data for this instrument. \nIB strongly recommends against this kind of blind trading which may result in \nerroreous or unexpected trades.",
+        "error": null
+      }
+order: 8000

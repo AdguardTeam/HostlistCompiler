@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/hmds/scanner/params"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instrument_list": [
+          {
+            "display_name": "display_name",
+            "type": "type",
+            "filters": []
+          }
+        ],
+        "scan_type_list": [
+          {
+            "display_name": "display_name",
+            "code": "code",
+            "instruments": []
+          }
+        ],
+        "location_tree": [
+          {
+            "display_name": "display_name",
+            "type": "type",
+            "locations": [
+              {
+                "display_name": "display_name",
+                "locationCode": "locationCode",
+                "locations": []
+              }
+            ]
+          }
+        ]
+      }
+order: 1000

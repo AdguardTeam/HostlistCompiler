@@ -1,0 +1,26 @@
+$kind: http-example
+name: Unsupported Media Type
+request:
+  url: "{{baseUrl}}/gw/api/v1/accounts/status?accountStatusRequest=endDate,1983-1\
+    1-03,startDate,1995-08-31,offset,94626202,limit,834,status,C"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    - key: accountStatusRequest
+      value: endDate,1983-11-03,startDate,1995-08-31,offset,94626202,limit,834,status,C
+      description: "(Required) "
+response:
+  statusCode: 415
+  statusText: Unsupported Media Type
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "culpa_5c": {},
+        "Loremf": {},
+        "esse5a": {}
+      }
+order: 11000

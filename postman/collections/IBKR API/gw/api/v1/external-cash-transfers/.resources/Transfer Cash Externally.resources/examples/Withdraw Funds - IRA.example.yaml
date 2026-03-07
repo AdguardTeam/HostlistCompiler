@@ -1,0 +1,53 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-cash-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "WITHDRAWAL",
+        "instruction": {
+          "clientInstructionId": 7013049,
+          "accountId": "U399192",
+          "bankInstructionName": "Test Withdrawal",
+          "bankInstructionMethod": "WIRE",
+          "amount": 123.45,
+          "currency": "GBP",
+          "dateTimeToOccur": "2023-11-20T09:12:13Z",
+          "iraWithdrawalDetail": {
+            "fedIncomeTaxPercentage": 10,
+            "stateIncomeTaxPercentage": 12,
+            "stateCd": "TE",
+            "iraWithholdType": "NORMAL"
+          }
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/invalid-argument",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Input is not a JSON Object or doesn't contain all expected fields",
+        "invalidArguments": [
+          {
+            "field": "iraContributionType",
+            "description": "Invalid or Missing required parameter"
+          },
+          {
+            "field": "iraTaxYearType",
+            "description": "Invalid or Missing required parameter"
+          }
+        ]
+      }
+order: 7000

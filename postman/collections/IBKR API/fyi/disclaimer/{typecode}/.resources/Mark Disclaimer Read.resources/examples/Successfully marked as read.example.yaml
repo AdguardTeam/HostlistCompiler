@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/fyi/disclaimer/:typecode
+  method: PUT
+  headers:
+    Accept: application/json
+  pathVariables:
+    typecode: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "V": 1,
+        "T": 10
+      }
+order: 1000

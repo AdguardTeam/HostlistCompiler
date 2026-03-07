@@ -1,0 +1,35 @@
+$kind: http-example
+name: Generate URL address to complete real-time KYC verification using Au10Tix
+request:
+  url: "{{baseUrl}}/gw/api/v1/accounts/:accountId/kyc"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "startDate": "1956-05-08T18:13:13.317Z",
+        "expiryDate": "1986-12-05T10:32:31.444Z",
+        "error": {
+          "error": {
+            "value": "<Circular reference to #/components/schemas/ErrorResponse detected>"
+          },
+          "hasError": false,
+          "errorDescription": "sit"
+        },
+        "hasError": true,
+        "errorDescription": "quis dolore minim enim labore",
+        "url": "officia",
+        "externalId": "dolor culpa",
+        "entityId": 74114241,
+        "state": "quis enim aliquip ullamco"
+      }
+order: 10000

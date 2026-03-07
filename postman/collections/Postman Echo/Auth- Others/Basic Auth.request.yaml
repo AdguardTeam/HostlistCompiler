@@ -1,0 +1,38 @@
+$kind: http-request
+description: |-
+  This endpoint simulates a **basic-auth** protected endpoint. 
+  The endpoint accepts a default username and password and returns a status code of `200 ok` only if the same is provided. 
+  Otherwise it will return a status code `401 unauthorized`.
+
+  > Username: `postman`
+  > 
+  > Password: `password`
+
+  To use this endpoint, send a request with the header `Authorization: Basic cG9zdG1hbjpwYXNzd29yZA==`. 
+  The cryptic latter half of the header value is a base64 encoded concatenation of the default username and password. 
+  Using Postman, to send this request, you can simply fill in the username and password in the "Authorization" tab and Postman will do the rest for you.
+
+  To know more about basic authentication, refer to the [Basic Access Authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) wikipedia article.
+  The article on [authentication helpers](https://www.getpostman.com/docs/helpers#basic-auth?source=echo-collection-app-onboarding) elaborates how to use the same within the Postman app.
+url: https://echo.getpostman.com/basic-auth
+method: GET
+headers:
+  Authorization: Basic cG9zdG1hbjpwYXNzd29yZA==
+body:
+  type: formdata
+  content: []
+auth:
+  type: basic
+  credentials:
+    username: postman
+    password: password
+    saveHelperData: true
+    showPassword: false
+scripts:
+  - type: afterResponse
+    code: |-
+      tests["response code is 200"] = responseCode.code === 200;
+      tests["Body contains authenticated"] = responseBody.has("authenticated");
+    language: text/javascript
+examples: ./.resources/Basic Auth.resources/examples
+order: 1000

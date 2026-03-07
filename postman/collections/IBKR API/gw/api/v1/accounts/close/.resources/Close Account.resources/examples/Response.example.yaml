@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/accounts/close"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "ACCOUNT_CLOSE",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "accountId": "U46377",
+          "closeReason": "Input your reason of closure here",
+          "withdrawalInfo": {
+            "bankInstructionName": "test instruction",
+            "bankInstructionMethod": "WIRE"
+          }
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 1013031,
+          "instructionType": "ACCOUNT_CLOSE",
+          "instructionStatus": "PENDING",
+          "instructionId": 43091814
+        },
+        "instructionSetId": 1703,
+        "status": 202
+      }
+order: 1000

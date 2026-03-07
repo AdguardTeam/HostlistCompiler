@@ -1,0 +1,63 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/v3/marketdata/stream/quotes/:symbols"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/vnd.tradestation.streams.v2+json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    symbols: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/vnd.tradestation.streams.v2+json
+  body:
+    type: json
+    content: |-
+      {
+        "Ask": "<string>",
+        "AskSize": "<string>",
+        "Bid": "<string>",
+        "BidSize": "<string>",
+        "Close": "<string>",
+        "DailyOpenInterest": "<string>",
+        "Error": "<string>",
+        "High": "<string>",
+        "Low": "<string>",
+        "High52Week": "<string>",
+        "High52WeekTimestamp": "<string>",
+        "Last": "<string>",
+        "MinPrice": "<string>",
+        "MaxPrice": "<string>",
+        "FirstNoticeDate": "<string>",
+        "LastTradingDate": "<string>",
+        "Low52Week": "<string>",
+        "Low52WeekTimestamp": "<string>",
+        "MarketFlags": {
+          "IsBats": "<boolean>",
+          "IsDelayed": "<boolean>",
+          "IsHalted": "<boolean>",
+          "IsHardToBorrow": "<boolean>"
+        },
+        "NetChange": "<string>",
+        "NetChangePct": "<string>",
+        "Open": "<string>",
+        "PreviousClose": "<string>",
+        "PreviousVolume": "<string>",
+        "Restrictions": [
+          "<string>",
+          "<string>"
+        ],
+        "Symbol": "<string>",
+        "TickSizeTier": "<string>",
+        "TradeTime": "<string>",
+        "Volume": "<string>",
+        "LastSize": "<string>",
+        "LastVenue": "<string>",
+        "VWAP": "<string>"
+      }
+order: 1000

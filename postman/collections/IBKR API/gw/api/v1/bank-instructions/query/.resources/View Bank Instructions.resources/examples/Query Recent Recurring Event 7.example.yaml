@@ -1,0 +1,45 @@
+$kind: http-example
+name: Query Recent Recurring Event
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_RECENT_RECURRING_EVENTS",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "ibReferenceId": 206603050,
+          "numberOfTransactions": 100
+        }
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Business Error",
+        "status": 422,
+        "detail": "Funds and Banking server cannot process your request because it contains invalid data",
+        "instructionSetId": 2616,
+        "instructionResult": {
+          "clientInstructionId": 7008155,
+          "instructionType": "QUERY_RECENT_RECURRING_EVENTS",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092592,
+          "error": {
+            "errorCode": "CORRUPT_DATA_INVALID_ACCT",
+            "errorMessage": "Account U463756 does not exist"
+          }
+        }
+      }
+order: 31000

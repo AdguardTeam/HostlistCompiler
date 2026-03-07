@@ -1,0 +1,30 @@
+$kind: http-example
+name: Unsupported Media Type
+request:
+  url: "{{baseUrl}}/gw/api/v1/enumerations/:enumerationType?currency=minim&ibEnti\
+    ty=minim&mdStatusNonPro=minim&form-number=minim&language=de"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    currency: minim
+    ibEntity: minim
+    mdStatusNonPro: minim
+    form-number: minim
+    language: de
+  pathVariables:
+    enumerationType: ""
+response:
+  statusCode: 415
+  statusText: Unsupported Media Type
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "culpa_5c": {},
+        "Loremf": {},
+        "esse5a": {}
+      }
+order: 11000

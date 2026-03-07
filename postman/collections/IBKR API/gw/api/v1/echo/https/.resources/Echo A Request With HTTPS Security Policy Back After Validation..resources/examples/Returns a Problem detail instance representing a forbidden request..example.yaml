@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/echo/https"
+  method: GET
+  headers:
+    Accept: application/problem+json
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 403,
+        "title": "Forbidden",
+        "type": "/simple",
+        "detail": "The access token fails to have sufficient scope"
+      }
+order: 3000
