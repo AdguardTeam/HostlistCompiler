@@ -84,13 +84,14 @@ FROM node-base AS builder
 COPY package.json pnpm-lock.yaml ./
 
 # Install all root dependencies including wrangler (a devDependency required
-# to run the worker).  --no-frozen-lockfile is used because the lockfile
-# contains workspace importers that are not present in this single-package
-# context; the root importer's pinned versions are still resolved from the
-# lockfile where possible.  --shamefully-hoist creates a flat node_modules
-# layout (like npm) so that the directory copies cleanly into the runtime stage
-# and `npx wrangler` resolves correctly without pnpm's symlink virtual store.
-RUN pnpm install --no-frozen-lockfile --shamefully-hoist
+# to run the worker).  --frozen-lockfile ensures the lockfile is strictly
+# enforced for reproducible installs, while --ignore-workspace treats this as
+# a standalone package so workspace importers in the lockfile do not cause
+# errors in this single-package context.  --shamefully-hoist creates a flat
+# node_modules layout (like npm) so that the directory copies cleanly into the
+# runtime stage and `npx wrangler` resolves correctly without pnpm's symlink
+# virtual store.
+RUN pnpm install --frozen-lockfile --ignore-workspace --shamefully-hoist
 
 # Copy Deno configuration
 COPY deno.json deno.lock ./
