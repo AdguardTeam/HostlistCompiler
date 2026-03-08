@@ -12,8 +12,20 @@ on:
     branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
+    paths:
+      - 'Dockerfile'
+      - 'src/**'
+      - 'worker/**'
+      - 'deno.json'
+      - 'deno.lock'
+      # NOTE: The paths filter above also applies to tag pushes (v*.*.*). The automated release
+      # flow always modifies deno.json on version bumps, ensuring semver tags trigger this workflow.
+      # If a tag is created on a commit that does not touch any of the listed paths, the Docker
+      # build and publish will be silently skipped for that release.
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'Dockerfile'
 
 env:
   # Use docker.io for Docker Hub if empty
