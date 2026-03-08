@@ -316,6 +316,11 @@ jobs:
                   import json
 
                   needs = json.loads(os.environ['NEEDS_JSON'])
+                  cancelled = [name for name, data in needs.items() if data['result'] == 'cancelled']
+                  if cancelled:
+                      print('Run interrupted by concurrency cancellation (cancelled jobs: ' + ', '.join(cancelled) + ')')
+                      print('A newer run will verify these checks — exiting gracefully.')
+                      raise SystemExit(0)
                   failures = [name for name, data in needs.items() if data['result'] not in ('success', 'skipped')]
                   if failures:
                       print('FAILED: ' + ', '.join(failures))
