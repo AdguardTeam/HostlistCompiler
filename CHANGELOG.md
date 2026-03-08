@@ -87,6 +87,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.46.2] - 2026-03-08
+
+### Added### Fixed
+
+- remove duplicate [[containers]] block in wrangler.toml, use correct Dockerfile.container
+- **ci**: improve D1 migration error message for authentication failures
+- **ci**: address mdbook.yml review feedback
+- **ci**: resolve workflow issues with publish/deploy skip and mdbook failures
+
+
 ## [0.46.1] - 2026-03-08
 
 ### Added### Fixed
