@@ -19,6 +19,7 @@
     "jsr:@std/yaml@^1.0.12": "1.0.12",
     "jsr:@zod/zod@^4.3.6": "4.3.6",
     "npm:@adguard/agtree@^4.0.1": "4.0.1",
+    "npm:@cloudflare/containers@~0.1.1": "0.1.1",
     "npm:@cloudflare/playwright-mcp@^0.0.5": "0.0.5_@cloudflare+workers-types@4.20260301.1_react@19.2.4_zod@4.3.6",
     "npm:@cloudflare/workers-types@^4.20260301.1": "4.20260301.1",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
@@ -213,6 +214,9 @@
     },
     "@chevrotain/utils@10.5.0": {
       "integrity": "sha512-hBzuU5+JjB2cqNZyszkDHZgOSrUUT8V3dhgRl8Q9Gp6dAj/H5+KILGjbhDpc3Iy9qmqlm/akuOI2ut9VUtzJxQ=="
+    },
+    "@cloudflare/containers@0.1.1": {
+      "integrity": "sha512-YTdobRTnTlUOUPMFemufH367A9Z8pDfZ+UboYMLbGpO0VlvEXZDiioSmXPQMHld2vRtkL31mcRii3bcbQU6fdw=="
     },
     "@cloudflare/kv-asset-handler@0.4.2": {
       "integrity": "sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ=="
@@ -647,7 +651,6 @@
         "json-schema-typed",
         "pkce-challenge",
         "raw-body",
-        "zod@3.25.76",
         "zod-to-json-schema@3.25.1_zod@3.25.76"
       ]
     },
@@ -2195,10 +2198,7 @@
       ]
     },
     "zod-to-json-schema@3.25.1_zod@3.25.76": {
-      "integrity": "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==",
-      "dependencies": [
-        "zod@3.25.76"
-      ]
+      "integrity": "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA=="
     },
     "zod-to-json-schema@3.25.1_zod@4.3.6": {
       "integrity": "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==",
@@ -2330,6 +2330,7 @@
       "jsr:@std/yaml@^1.0.12",
       "jsr:@zod/zod@^4.3.6",
       "npm:@adguard/agtree@^4.0.1",
+      "npm:@cloudflare/containers@~0.1.1",
       "npm:@cloudflare/playwright-mcp@^0.0.5",
       "npm:@cloudflare/workers-types@^4.20260301.1",
       "npm:@prisma/adapter-pg@^7.4.2",
@@ -2341,6 +2342,7 @@
     "packageJson": {
       "dependencies": [
         "npm:@adguard/agtree@^4.0.1",
+        "npm:@cloudflare/containers@~0.1.1",
         "npm:@cloudflare/playwright-mcp@^0.0.5",
         "npm:@opentelemetry/api@^1.9.0",
         "npm:agents@~0.7.5",
