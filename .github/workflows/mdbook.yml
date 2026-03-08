@@ -6,12 +6,26 @@ on:
     paths:
       - 'docs/**'
       - 'book.toml'
-      - 'src/**/*.ts'
       - '.github/workflows/mdbook.yml'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if no docs changed'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  CLOUDFLARE_PAGES_PROJECT: adblock-compiler-docs
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -43,12 +57,37 @@ jobs:
         run: mdbook build
 
       - name: Generate TypeScript API reference
+        continue-on-error: true
         run: deno task docs:api
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: adblock-compiler-docs
-          directory: book
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install wrangler
+        run: pnpm install wrangler
+
+      - name: Create Pages project if needed
+        run: |
+          echo "Checking if Pages project exists..."
+          if ! pnpm wrangler pages project list 2>/dev/null | grep -q "${{ env.CLOUDFLARE_PAGES_PROJECT }}"; then
+            echo "Creating Pages project: ${{ env.CLOUDFLARE_PAGES_PROJECT }}"
+            pnpm wrangler pages project create "${{ env.CLOUDFLARE_PAGES_PROJECT }}" --production-branch main 2>/dev/null || echo "Project may already exist"
+          else
+            echo "Pages project already exists"
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        run: |
+          echo "Deploying documentation to Cloudflare Pages..."
+          pnpm wrangler pages deploy book \
+            --project-name="${{ env.CLOUDFLARE_PAGES_PROJECT }}" \
+            --branch=main \
+            --commit-dirty=true
+          echo "✅ Documentation deployed successfully"
+
