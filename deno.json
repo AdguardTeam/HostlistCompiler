@@ -148,7 +148,11 @@
             "MEMORY.md",
             "README.md",
             "issues/",
-            "postman/"
+            "postman/",
+            ".postman/",
+            "index.json",
+            "cloudflare-openapi.json",
+            "openapi.yaml"
         ]
     },
     "test": {
