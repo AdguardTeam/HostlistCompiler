@@ -52,6 +52,16 @@ id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace cr
 binding = "FILTER_STORAGE"
 bucket_name = "adblock-compiler-r2-storage"
 
+# Cloudflare Containers — run Docker images alongside Workers.
+# Wrangler builds the image from Dockerfile.container and pushes it to
+# Cloudflare's Container Registry when you run `wrangler deploy`.
+# Requires Docker to be running locally or in CI.
+# See docs/deployment/cloudflare-containers.md for the full deployment guide.
+[[containers]]
+class_name = "AdblockCompiler"
+image = "./Dockerfile.container"
+max_instances = 5
+
 # Durable Objects bindings
 [[durable_objects.bindings]]
 class_name = "AdblockCompiler"

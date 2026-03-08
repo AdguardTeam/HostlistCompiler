@@ -16,28 +16,53 @@
 // Import shared types
 import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, Priority, QueueMessage, Workflow } from './types.ts';
 
-// NOTE: Container class for Cloudflare Containers deployment
-// This is a stub for local development. When deploying with containers enabled,
-// Cloudflare will use the Container runtime automatically.
+import { Container } from '@cloudflare/containers';
+import type { StopParams } from '@cloudflare/containers';
 
-// Stub class for local development (satisfies Durable Object binding requirement)
-export class AdblockCompiler {
-    defaultPort = 8787;
+/**
+ * AdblockCompiler Cloudflare Container.
+ *
+ * Extends the Container Durable Object so that Wrangler can build and push the
+ * Docker image defined in Dockerfile.container and spawn container instances
+ * on-demand. The Worker proxies heavy compilation requests to the container
+ * via the ADBLOCK_COMPILER Durable Object binding.
+ *
+ * @see https://developers.cloudflare.com/containers/
+ * @see https://github.com/cloudflare/containers
+ */
+export class AdblockCompiler extends Container {
+    /** Port the container server listens on (matches Dockerfile.container EXPOSE). */
+    override defaultPort = 8787;
 
-    constructor(_state: DurableObjectState, _env: Env) {
-        // Stub constructor for local dev
+    /** Stop the container instance after 10 minutes of inactivity. */
+    override sleepAfter = '10m';
+
+    /**
+     * Called when the container starts successfully.
+     * Logs the start event for observability.
+     */
+    override onStart(): void {
+        console.log('[AdblockCompiler] Container started');
     }
 
-    async fetch(_request: Request): Promise<Response> {
-        // Stub fetch for local dev - containers not used in local development
-        return new Response('Container endpoints are only available in production deployment', {
-            status: 501,
-        });
+    /**
+     * Called when the container shuts down.
+     * Logs the stop event including exit code and reason.
+     * @param params - Exit code and reason for the stop
+     */
+    override onStop(params: StopParams): void {
+        console.log(`[AdblockCompiler] Container stopped (exitCode=${params.exitCode}, reason=${params.reason})`);
+    }
+
+    /**
+     * Called when an unrecoverable container error occurs.
+     * Logs the error for debugging; re-throwing is not required.
+     * @param error - The error that occurred
+     */
+    override onError(error: unknown): void {
+        console.error('[AdblockCompiler] Container error:', error);
     }
 }
-
-// When deploying with containers to production, the above stub will be replaced
-// with the actual Container class by extending from cloudflare:workers Container
 
 import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
