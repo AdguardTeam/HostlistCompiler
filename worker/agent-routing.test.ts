@@ -1,80 +1,105 @@
 /**
- * Unit tests for the agent-routing wrapper.
+ * Unit tests for the self-contained DO agent router.
  *
- * The wrapper delegates to `agents` SDK's `routeAgentRequest` and guarantees
- * it always returns `Response | null` (never `undefined`).
- *
- * Non-matching URLs are the primary case we can test without a live Worker
- * runtime: the `agents` SDK short-circuits at URL pattern inspection and
- * returns `undefined` before touching any `env` bindings.
- *
- * Note: The `agents` npm package imports `cloudflare:*` modules at the top
- * level.  Outside the Cloudflare Workers runtime (e.g. `deno test`) those
- * imports fail with ERR_UNSUPPORTED_ESM_URL_SCHEME.  Tests here use a dynamic
- * import and are skipped automatically when the runtime is unavailable.
+ * No Node.js built-ins are imported, so these tests run directly under
+ * `deno test` without any Cloudflare Workers runtime (no skip/ignore needed).
  */
 
-import { assertEquals } from '@std/assert';
+import { assertEquals, assertMatch } from '@std/assert';
+import { agentNameToBindingKey, routeAgentRequest } from './agent-routing.ts';
+import type { Env } from './types.ts';
 
-type RouteAgentFn = (request: Request, env: unknown) => Promise<Response | null>;
+// ---------------------------------------------------------------------------
+// agentNameToBindingKey
+// ---------------------------------------------------------------------------
 
-// Attempt to load the module; it requires the Cloudflare Workers runtime.
-let routeAgentRequest: RouteAgentFn | null = null;
-try {
-    const mod = await import('./agent-routing.ts');
-    routeAgentRequest = mod.routeAgentRequest;
-} catch {
-    // Not in Cloudflare Workers runtime — tests below will be skipped.
-}
-
-const skip = routeAgentRequest === null;
-
-Deno.test({
-    name: 'routeAgentRequest - returns null for a non-agent path',
-    ignore: skip,
-    async fn() {
-        const request = new Request('https://example.com/api/compile', { method: 'GET' });
-        const result = await routeAgentRequest!(request, {});
-        assertEquals(result, null);
-    },
+Deno.test('agentNameToBindingKey - converts single-segment name', () => {
+    assertEquals(agentNameToBindingKey('mcp-agent'), 'MCP_AGENT');
 });
 
-Deno.test({
-    name: 'routeAgentRequest - returns null for root path',
-    ignore: skip,
-    async fn() {
-        const request = new Request('https://example.com/', { method: 'GET' });
-        const result = await routeAgentRequest!(request, {});
-        assertEquals(result, null);
-    },
+Deno.test('agentNameToBindingKey - converts multi-segment name', () => {
+    assertEquals(agentNameToBindingKey('my-cool-agent'), 'MY_COOL_AGENT');
 });
 
-Deno.test({
-    name: 'routeAgentRequest - returns null for a path that starts with "agent" but is not a valid agent route',
-    ignore: skip,
-    async fn() {
-        const request = new Request('https://example.com/agent-tools', { method: 'GET' });
-        const result = await routeAgentRequest!(request, {});
-        assertEquals(result, null);
-    },
+Deno.test('agentNameToBindingKey - already uppercase is preserved', () => {
+    assertEquals(agentNameToBindingKey('AGENT'), 'AGENT');
 });
 
-Deno.test({
-    name: 'routeAgentRequest - returns null for a POST to a non-agent path',
-    ignore: skip,
-    async fn() {
-        const request = new Request('https://example.com/compile', { method: 'POST' });
-        const result = await routeAgentRequest!(request, {});
-        assertEquals(result, null);
-    },
+// ---------------------------------------------------------------------------
+// routeAgentRequest — non-matching paths → null
+// ---------------------------------------------------------------------------
+
+Deno.test('routeAgentRequest - returns null for a non-agent path', async () => {
+    const req = new Request('https://example.com/api/compile');
+    assertEquals(await routeAgentRequest(req, {} as Env), null);
 });
 
-Deno.test({
-    name: 'routeAgentRequest - returns null when env is empty and URL does not match',
-    ignore: skip,
-    async fn() {
-        const request = new Request('https://adblock-compiler.jk-com.workers.dev/api/version', { method: 'GET' });
-        const result = await routeAgentRequest!(request, {});
-        assertEquals(result, null);
-    },
+Deno.test('routeAgentRequest - returns null for root path', async () => {
+    const req = new Request('https://example.com/');
+    assertEquals(await routeAgentRequest(req, {} as Env), null);
+});
+
+Deno.test('routeAgentRequest - returns null for /agents with no further segments', async () => {
+    const req = new Request('https://example.com/agents');
+    assertEquals(await routeAgentRequest(req, {} as Env), null);
+});
+
+Deno.test('routeAgentRequest - returns null for /agents/<name> (no instance ID)', async () => {
+    const req = new Request('https://example.com/agents/mcp-agent');
+    assertEquals(await routeAgentRequest(req, {} as Env), null);
+});
+
+Deno.test('routeAgentRequest - returns null when binding is absent from env', async () => {
+    const req = new Request('https://example.com/agents/mcp-agent/default/sse');
+    assertEquals(await routeAgentRequest(req, {} as Env), null);
+});
+
+// ---------------------------------------------------------------------------
+// routeAgentRequest — matching path with mock DO binding
+// ---------------------------------------------------------------------------
+
+Deno.test('routeAgentRequest - forwards matching request to the DO stub', async () => {
+    const mockBody = 'agent response';
+    const mockResponse = new Response(mockBody, { status: 200 });
+
+    const mockNs = {
+        idFromName: (_name: string) => ({ toString: () => 'mock-id' }),
+        get: (_id: unknown) => ({ fetch: (_req: Request) => Promise.resolve(mockResponse) }),
+    } as unknown as DurableObjectNamespace;
+
+    const env = { MCP_AGENT: mockNs } as unknown as Env;
+    const req = new Request('https://example.com/agents/mcp-agent/default/sse');
+    const result = await routeAgentRequest(req, env);
+
+    assertEquals(result, mockResponse);
+    assertEquals(await result!.text(), mockBody);
+});
+
+Deno.test('routeAgentRequest - uses instanceId from URL as the DO name', async () => {
+    let capturedName = '';
+
+    const mockNs = {
+        idFromName: (name: string) => {
+            capturedName = name;
+            return { toString: () => name };
+        },
+        get: (_id: unknown) => ({ fetch: (_req: Request) => Promise.resolve(new Response('ok')) }),
+    } as unknown as DurableObjectNamespace;
+
+    const env = { MCP_AGENT: mockNs } as unknown as Env;
+    await routeAgentRequest(new Request('https://example.com/agents/mcp-agent/my-session/sse'), env);
+
+    assertEquals(capturedName, 'my-session');
+});
+
+Deno.test('routeAgentRequest - resolves binding key via agentNameToBindingKey', async () => {
+    const mockNs = {
+        idFromName: (_name: string) => ({ toString: () => 'id' }),
+        get: (_id: unknown) => ({ fetch: (_req: Request) => Promise.resolve(new Response('mcp')) }),
+    } as unknown as DurableObjectNamespace;
+
+    const env = { MCP_AGENT: mockNs } as unknown as Env;
+    const result = await routeAgentRequest(new Request('https://example.com/agents/mcp-agent/default'), env);
+
+    assertMatch(await result!.text(), /mcp/);
 });

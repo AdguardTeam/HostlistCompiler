@@ -51,6 +51,7 @@ export class AdblockCompiler extends Container {
     override onError(error: unknown): void {
         console.error('[AdblockCompiler] Container error:', error instanceof Error ? error.message : String(error));
     }
+}
 
 import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
