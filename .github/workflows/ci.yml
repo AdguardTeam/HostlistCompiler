@@ -334,7 +334,13 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 10
         needs: [ci-gate]
-        if: needs.ci-gate.result == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        # Must use always() because ci-gate depends on verify-deploy which is skipped on push.
+        # Without always(), GitHub Actions skips downstream jobs due to transitive skip behavior.
+        if: >-
+            always() &&
+            needs.ci-gate.result == 'success' &&
+            github.event_name == 'push' &&
+            github.ref == 'refs/heads/main'
         permissions:
             contents: read
             id-token: write
@@ -424,7 +430,10 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 30
         needs: [ci-gate]
-        if: |
+        # Must use always() because ci-gate depends on verify-deploy which is skipped on push.
+        # Without always(), GitHub Actions skips downstream jobs due to transitive skip behavior.
+        if: >-
+            always() &&
             needs.ci-gate.result == 'success' &&
             github.event_name == 'push' &&
             github.ref == 'refs/heads/main'
