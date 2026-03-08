@@ -263,8 +263,8 @@ deno run --unstable-otel --allow-net your-script.ts
 You can also create custom spans for fine-grained tracing:
 
 ```typescript
-import { trace } from '@opentelemetry/api';
-import { createOpenTelemetryExporter, WorkerCompiler } from '@jk-com/adblock-compiler';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
+import { createOpenTelemetryExporter, createTracingContext, WorkerCompiler } from '@jk-com/adblock-compiler';
 
 const tracer = trace.getTracer('my-service', '1.0.0');
 
@@ -273,8 +273,9 @@ await tracer.startActiveSpan('compile-filters', async (span) => {
         span.setAttribute('config.name', 'My Config');
         span.setAttribute('sources.count', 3);
 
-        const diagnostics = createOpenTelemetryExporter();
-        const compiler = new WorkerCompiler({ diagnostics });
+        const otelExporter = createOpenTelemetryExporter();
+        const tracingContext = createTracingContext({ diagnostics: otelExporter });
+        const compiler = new WorkerCompiler({ tracingContext });
 
         const result = await compiler.compile(config);
 

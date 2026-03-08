@@ -13,8 +13,10 @@ The adblock-compiler provides centralized error reporting for production monitor
 
 ## Basic Usage
 
+The individual reporter classes live in `src/utils/ErrorReporter.ts` and are not currently re-exported from the package entry point. Import them directly from the source path when working within the repository, or use `createWorkerErrorReporter` (see [Cloudflare Worker Integration](#cloudflare-worker-integration)) for the Cloudflare Workers use case.
+
 ```typescript
-import { CloudflareErrorReporter, CompositeErrorReporter, ConsoleErrorReporter, SentryErrorReporter } from '@jk-com/adblock-compiler';
+import { CloudflareErrorReporter, CompositeErrorReporter, ConsoleErrorReporter, SentryErrorReporter } from '../../src/utils/ErrorReporter.ts';
 
 // Console reporter (development)
 const consoleReporter = new ConsoleErrorReporter(true /* verbose */);
@@ -57,11 +59,11 @@ try {
 
 ## Cloudflare Worker Integration
 
-The worker automatically configures error reporting based on environment variables:
+The worker includes a `createWorkerErrorReporter` helper in `worker/utils/errorReporter.ts` that automatically selects the right reporter based on environment variables:
 
 ```typescript
 // In your Cloudflare Worker
-import { createWorkerErrorReporter } from '@jk-com/adblock-compiler';
+import { createWorkerErrorReporter } from '../utils/errorReporter.ts';
 
 export default {
     async fetch(request: Request, env: Env) {

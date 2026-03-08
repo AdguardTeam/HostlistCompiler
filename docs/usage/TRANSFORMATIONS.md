@@ -5,15 +5,15 @@
 Here is the full list of transformations that are available:
 
 1. `ConvertToAscii`
+1. `TrimLines`
 1. `RemoveComments`
 1. `Compress`
 1. `RemoveModifiers`
+1. `InvertAllow`
 1. `Validate`
 1. `ValidateAllowIp`
 1. `Deduplicate`
-1. `InvertAllow`
 1. `RemoveEmptyLines`
-1. `TrimLines`
 1. `InsertFinalNewLine`
 
 Please note that these transformations are always applied in the order specified here.

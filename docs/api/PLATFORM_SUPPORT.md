@@ -268,11 +268,14 @@ interface WorkerCompilerOptions {
     // Custom content fetcher (for advanced use cases)
     customFetcher?: IContentFetcher;
 
-    // Compilation event handlers
-    events?: ICompilerEvents;
+    // Options for the default HTTP fetcher (timeout, user agent, custom headers)
+    httpOptions?: IHttpFetcherOptions;
 
-    // Logger instance
-    logger?: ILogger;
+    // Tracing context for diagnostics and OpenTelemetry integration
+    tracingContext?: TracingContext;
+
+    // Injectable dependencies (for testing/customization)
+    dependencies?: WorkerCompilerDependencies;
 }
 
 class WorkerCompiler {

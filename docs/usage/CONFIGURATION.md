@@ -56,8 +56,8 @@ Here is an example of this configuration:
 - `transformations` - (optional) a list of transformations to apply to the final list of rules. By default, **no transformations** are applied. Learn more about possible transformations [here](TRANSFORMATIONS.md).
 - `exclusions` - (optional) a list of rules (or wildcards) to exclude from the source.
 - `exclusions_sources` - (optional) a list of files with exclusions.
-- `.inclusions` - (optional) a list of wildcards to include from the source. All rules that don't match these wildcards won't be included.
-- `.inclusions_sources` - (optional) a list of files with inclusions.
+- `inclusions` - (optional) a list of wildcards to include from the source. All rules that don't match these wildcards won't be included.
+- `inclusions_sources` - (optional) a list of files with inclusions.
 
 Here is an example of a minimal configuration:
 
