@@ -18,12 +18,12 @@
 ## Links
 - [GitHub Repository](https://github.com/jaypatrick/adblock-compiler)
 - [Documentation](https://github.com/jaypatrick/adblock-compiler/tree/master/docs)
-- [Web UI](https://adblock-compiler.jk-com.workers.dev/)
+- [Web UI](https://adblock-compiler.jayson-knight.workers.dev/)
 
 
 ## Servers
 
-- **Production server**: `https://adblock-compiler.jk-com.workers.dev`
+- **Production server**: `https://adblock-compiler.jayson-knight.workers.dev`
 - **Local development server**: `http://localhost:8787`
 
 ## Endpoints

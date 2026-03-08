@@ -196,7 +196,7 @@ Maps to legacy `admin-storage.html`.
 |---|---|---|---|
 | GitHub repository | `https://github.com/jaypatrick/adblock-compiler` | `AppComponent` footer | ✅ |
 | JSR package | `@jk-com/adblock-compiler` (via GitHub link) | Footer | ✅ |
-| Live service URL | `https://adblock-compiler.jk-com.workers.dev/` | — (API calls use relative paths) | ✅ |
+| Live service URL | `https://adblock-compiler.jayson-knight.workers.dev/` | — (API calls use relative paths) | ✅ |
 
 ---
 
