@@ -26,6 +26,7 @@ export {
     EtcHostsRuleSchema,
     HttpFetcherOptionsSchema,
     PlatformCompilerOptionsSchema,
+    PrioritySchema,
     SourceSchema,
     ValidationErrorSchema,
     ValidationErrorTypeSchema,
@@ -34,4 +35,4 @@ export {
     ValidationSeveritySchema,
     WorkerCompilationResultSchema,
 } from './schemas.ts';
-export type { AdblockRule, BenchmarkMetrics, CliArguments, CompilationResultOutput, Environment, EtcHostsRule, WorkerCompilationResultOutput } from './schemas.ts';
+export type { AdblockRule, BenchmarkMetrics, CliArguments, CompilationResultOutput, Environment, EtcHostsRule, Priority, WorkerCompilationResultOutput } from './schemas.ts';

@@ -4,26 +4,24 @@
  */
 
 import { z } from 'zod';
-import { ConfigurationSchema } from '../src/configuration/schemas.ts';
+import { ConfigurationSchema, PrioritySchema } from '../src/configuration/schemas.ts';
 
 // ============================================================================
 // Basic Enums and Constants
 // ============================================================================
 
-/**
- * Priority level schema
- */
-export const PrioritySchema = z.enum(['standard', 'high']);
+// PrioritySchema is re-exported from src/configuration/schemas.ts to avoid duplication.
+export { PrioritySchema } from '../src/configuration/schemas.ts';
 
 /**
  * Queue message type schema
  */
-export const QueueMessageTypeSchema = z.enum(['compile', 'batch-compile', 'cache-warm']);
+export const QueueMessageTypeSchema = z.enum(['compile', 'batch-compile', 'cache-warm']).describe('Type of queue message');
 
 /**
  * Workflow status schema
  */
-export const WorkflowStatusSchema = z.enum(['queued', 'running', 'completed', 'failed', 'paused', 'terminated']);
+export const WorkflowStatusSchema = z.enum(['queued', 'running', 'completed', 'failed', 'paused', 'terminated']).describe('Current workflow execution status');
 
 // ============================================================================
 // AST Parse Request Schema
@@ -228,7 +226,7 @@ export const EndpointMetricsDisplaySchema = z.object({
  */
 export const AggregatedMetricsSchema = z.object({
     window: z.string(),
-    timestamp: z.string(),
+    timestamp: z.string().datetime().describe('ISO 8601 timestamp of the metrics window'),
     endpoints: z.record(z.string(), EndpointMetricsDisplaySchema),
 });
 
@@ -240,7 +238,7 @@ export const JobHistoryEntrySchema = z.object({
     configName: z.string(),
     status: z.enum(['completed', 'failed', 'cancelled']),
     duration: z.number().nonnegative(),
-    timestamp: z.string(),
+    timestamp: z.string().datetime().describe('ISO 8601 timestamp when the job completed'),
     error: z.string().optional(),
     ruleCount: z.number().int().nonnegative().optional(),
     cacheKey: z.string().optional(),
@@ -250,7 +248,7 @@ export const JobHistoryEntrySchema = z.object({
  * Schema for queue depth history entry
  */
 export const DepthHistoryEntrySchema = z.object({
-    timestamp: z.string(),
+    timestamp: z.string().datetime().describe('ISO 8601 timestamp of the queue depth measurement'),
     pending: z.number().int().nonnegative(),
 });
 
@@ -335,7 +333,7 @@ export const CompilationMetricsSchema = z.object({
 export const PreviousVersionSchema = z.object({
     rules: z.array(z.string()),
     ruleCount: z.number().int().nonnegative(),
-    compiledAt: z.string(),
+    compiledAt: z.string().datetime().describe('ISO 8601 timestamp when this version was compiled'),
 });
 
 /**
@@ -381,41 +379,75 @@ export const TransformationResultSchema = z.object({
     durationMs: z.number().nonnegative(),
 });
 
+// ============================================================================
+// Workflow Step Sub-Schemas
+// ============================================================================
+
+/**
+ * Schema for the validation step in a workflow compilation result
+ */
+export const WorkflowValidationStepSchema = z.object({
+    durationMs: z.number().nonnegative(),
+    success: z.boolean(),
+});
+
+/**
+ * Schema for the source fetch step in a workflow compilation result
+ */
+export const WorkflowSourceFetchStepSchema = z.object({
+    durationMs: z.number().nonnegative(),
+    sources: z.array(SourceFetchResultSchema),
+});
+
+/**
+ * Schema for the transformation step in a workflow compilation result
+ */
+export const WorkflowTransformationStepSchema = z.object({
+    durationMs: z.number().nonnegative(),
+    transformations: z.array(TransformationResultSchema),
+});
+
+/**
+ * Schema for the header generation step in a workflow compilation result
+ */
+export const WorkflowHeaderGenerationStepSchema = z.object({
+    durationMs: z.number().nonnegative(),
+});
+
+/**
+ * Schema for the caching step in a workflow compilation result
+ */
+export const WorkflowCachingStepSchema = z.object({
+    durationMs: z.number().nonnegative(),
+    compressed: z.boolean(),
+    sizeBytes: z.number().int().nonnegative(),
+});
+
+/**
+ * Schema for all workflow compilation steps (each step is optional)
+ */
+export const WorkflowStepsSchema = z.object({
+    validation: WorkflowValidationStepSchema.optional(),
+    sourceFetch: WorkflowSourceFetchStepSchema.optional(),
+    transformation: WorkflowTransformationStepSchema.optional(),
+    headerGeneration: WorkflowHeaderGenerationStepSchema.optional(),
+    caching: WorkflowCachingStepSchema.optional(),
+});
+
 /**
  * Schema for workflow compilation result
  */
 export const WorkflowCompilationResultSchema = z.object({
-    success: z.boolean(),
-    requestId: z.string(),
-    configName: z.string(),
-    rules: z.array(z.string()).optional(),
-    ruleCount: z.number().int().nonnegative().optional(),
-    cacheKey: z.string().optional(),
-    compiledAt: z.string(),
-    totalDurationMs: z.number().nonnegative(),
-    steps: z.object({
-        validation: z.object({
-            durationMs: z.number().nonnegative(),
-            success: z.boolean(),
-        }).optional(),
-        sourceFetch: z.object({
-            durationMs: z.number().nonnegative(),
-            sources: z.array(SourceFetchResultSchema),
-        }).optional(),
-        transformation: z.object({
-            durationMs: z.number().nonnegative(),
-            transformations: z.array(TransformationResultSchema),
-        }).optional(),
-        headerGeneration: z.object({
-            durationMs: z.number().nonnegative(),
-        }).optional(),
-        caching: z.object({
-            durationMs: z.number().nonnegative(),
-            compressed: z.boolean(),
-            sizeBytes: z.number().int().nonnegative(),
-        }).optional(),
-    }),
-    error: z.string().optional(),
+    success: z.boolean().describe('Whether the compilation succeeded'),
+    requestId: z.string().describe('Unique request identifier'),
+    configName: z.string().describe('Name of the compiled filter list configuration'),
+    rules: z.array(z.string()).optional().describe('Compiled filter rules'),
+    ruleCount: z.number().int().nonnegative().optional().describe('Number of compiled filter rules'),
+    cacheKey: z.string().optional().describe('Cache key under which the result is stored'),
+    compiledAt: z.string().datetime().describe('ISO 8601 timestamp when compilation completed'),
+    totalDurationMs: z.number().nonnegative().describe('Total compilation duration in milliseconds'),
+    steps: WorkflowStepsSchema.describe('Per-step timing and result breakdown'),
+    error: z.string().optional().describe('Error message if compilation failed'),
 });
 
 /**
@@ -441,7 +473,7 @@ export const SourceHealthResultSchema = z.object({
     responseTimeMs: z.number().nonnegative().optional(),
     ruleCount: z.number().int().nonnegative().optional(),
     error: z.string().optional(),
-    lastChecked: z.string(),
+    lastChecked: z.string().datetime().describe('ISO 8601 timestamp of the last health check'),
 });
 
 /**
@@ -522,7 +554,7 @@ export const WorkflowInstanceInfoSchema = z.object({
     id: z.string(),
     workflowName: z.string(),
     status: WorkflowStatusSchema,
-    createdAt: z.string(),
+    createdAt: z.string().datetime().describe('ISO 8601 timestamp when the workflow instance was created'),
     params: z.unknown().optional(),
     output: z.unknown().optional(),
     error: z.string().optional(),

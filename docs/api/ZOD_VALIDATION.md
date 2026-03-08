@@ -39,7 +39,7 @@ if (result.success) {
 ```
 
 **Schema Definition:**
-- `source` (string, required): URL or file path to the filter list source
+- `source` (string, required): URL (e.g. `https://example.com/list.txt`) or file path (`/absolute/path` or `./relative/path`) to the filter list source. Plain strings that are neither a valid URL nor a recognized path are rejected.
 - `name` (string, optional): Human-readable name for the source
 - `type` (enum, optional): Source type - `'adblock'` or `'hosts'`
 - `exclusions` (string[], optional): List of rules or wildcards to exclude
@@ -104,9 +104,9 @@ if (result.success) {
 **Schema Definition:**
 - `name` (string, required): Filter list name
 - `description` (string, optional): Filter list description
-- `homepage` (string, optional): Filter list homepage URL
+- `homepage` (string, optional): Filter list homepage URL — **validated as a URL** (must start with `http://` or `https://`)
 - `license` (string, optional): License identifier (e.g., 'GPL-3.0', 'MIT')
-- `version` (string, optional): Version string
+- `version` (string, optional): Version string — **must follow semver format** (e.g. `1.0.0` or `1.0`)
 - `sources` (ISource[], required): Array of source configurations (must not be empty)
 - Plus all fields from `SourceSchema` (exclusions, inclusions, transformations)
 
@@ -157,11 +157,11 @@ const batchRequest = {
     requests: [
         {
             id: 'request-1',
-            configuration: { name: 'List 1', sources: [{ source: 'url1' }] },
+            configuration: { name: 'List 1', sources: [{ source: 'https://example.com/list1.txt' }] },
         },
         {
             id: 'request-2',
-            configuration: { name: 'List 2', sources: [{ source: 'url2' }] },
+            configuration: { name: 'List 2', sources: [{ source: 'https://example.com/list2.txt' }] },
         },
     ],
     priority: 'standard',
@@ -194,7 +194,7 @@ import { BatchRequestSyncSchema } from '@jk-com/adblock-compiler';
 const syncBatch = {
     requests: Array(10).fill(null).map((_, i) => ({
         id: `req-${i}`,
-        configuration: { name: `List ${i}`, sources: [{ source: `url${i}` }] },
+        configuration: { name: `List ${i}`, sources: [{ source: `https://example.com/list${i}.txt` }] },
     })),
 };
 
@@ -216,7 +216,7 @@ import { BatchRequestAsyncSchema } from '@jk-com/adblock-compiler';
 const asyncBatch = {
     requests: Array(50).fill(null).map((_, i) => ({
         id: `req-${i}`,
-        configuration: { name: `List ${i}`, sources: [{ source: `url${i}` }] },
+        configuration: { name: `List ${i}`, sources: [{ source: `https://example.com/list${i}.txt` }] },
     })),
 };
 
@@ -226,6 +226,27 @@ const result = BatchRequestAsyncSchema.safeParse(asyncBatch);
 
 **Limit:** Maximum 100 requests
 **Error Message:** "Batch request limited to 100 requests maximum"
+
+#### `PrioritySchema`
+
+Validates the priority level for compilation requests. This schema is exported from `@jk-com/adblock-compiler` and re-used in `worker/schemas.ts` to avoid duplication.
+
+```typescript
+import { PrioritySchema } from '@jk-com/adblock-compiler';
+
+PrioritySchema.safeParse('standard'); // { success: true, data: 'standard' }
+PrioritySchema.safeParse('high');     // { success: true, data: 'high' }
+PrioritySchema.safeParse('low');      // { success: false }
+```
+
+**Enum values:** `'standard'` | `'high'`
+
+The exported `Priority` type is inferred directly from this schema:
+
+```typescript
+import type { Priority } from '@jk-com/adblock-compiler';
+// type Priority = 'standard' | 'high'
+```
 
 ### Compilation Output Schemas
 
@@ -401,9 +422,11 @@ if (!result.valid) {
 }
 
 // Validate and throw on error
+// Returns the Zod-parsed (and transformed) configuration object,
+// e.g. with leading/trailing whitespace trimmed from string fields.
 try {
     const validConfig = validator.validateAndGet(configObject);
-    // Use validConfig safely
+    // Use validConfig safely — strings have been trimmed by SourceSchema's transform
 } catch (error) {
     console.error('Invalid configuration:', error.message);
 }
@@ -583,7 +606,36 @@ const CustomSourceSchema = z.object({
 });
 ```
 
-### 5. Document Your Schemas
+### 5. Use `.describe()` for OpenAPI and Documentation
+
+All exported schemas include `.describe()` annotations on their fields. These descriptions serve as machine-readable documentation and can be consumed by tools like `zod-to-openapi` to auto-generate OpenAPI specs:
+
+```typescript
+import { SourceSchema } from '@jk-com/adblock-compiler';
+
+// Access the description of the schema itself
+// (available via the schema's internal _def.description or compatible OpenAPI tools)
+
+// Example: integrate with zod-to-openapi
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import { z } from 'zod';
+
+extendZodWithOpenApi(z);
+
+// Descriptions from .describe() annotations are automatically picked up
+// when generating OpenAPI documentation from the schemas.
+```
+
+To add a description to your own derived schemas:
+
+```typescript
+const CustomRequestSchema = z.object({
+    source: z.string().url().describe('URL of the filter list to compile'),
+    priority: PrioritySchema.optional().describe('Processing priority'),
+});
+```
+
+### 6. Document Your Schemas
 
 Add JSDoc comments to explain validation rules:
 
