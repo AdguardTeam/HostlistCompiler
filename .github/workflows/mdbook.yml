@@ -8,12 +8,6 @@ on:
       - 'book.toml'
       - '.github/workflows/mdbook.yml'
   workflow_dispatch:
-    inputs:
-      force_deploy:
-        description: 'Force deployment even if no docs changed'
-        required: false
-        default: 'false'
-        type: boolean
 
 env:
   CLOUDFLARE_PAGES_PROJECT: adblock-compiler-docs
@@ -60,32 +54,22 @@ jobs:
         continue-on-error: true
         run: deno task docs:api
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install wrangler
-        run: pnpm install wrangler
-
       - name: Create Pages project if needed
         run: |
+          set -euo pipefail
           echo "Checking if Pages project exists..."
-          if ! pnpm wrangler pages project list 2>/dev/null | grep -q "${{ env.CLOUDFLARE_PAGES_PROJECT }}"; then
-            echo "Creating Pages project: ${{ env.CLOUDFLARE_PAGES_PROJECT }}"
-            pnpm wrangler pages project create "${{ env.CLOUDFLARE_PAGES_PROJECT }}" --production-branch main 2>/dev/null || echo "Project may already exist"
-          else
+          if deno task wrangler pages project list | grep -q "${{ env.CLOUDFLARE_PAGES_PROJECT }}"; then
             echo "Pages project already exists"
+          else
+            echo "Creating Pages project: ${{ env.CLOUDFLARE_PAGES_PROJECT }}"
+            deno task wrangler pages project create "${{ env.CLOUDFLARE_PAGES_PROJECT }}" --production-branch main
+            echo "Pages project created"
           fi
 
       - name: Deploy to Cloudflare Pages
         run: |
           echo "Deploying documentation to Cloudflare Pages..."
-          pnpm wrangler pages deploy book \
+          deno task wrangler pages deploy book \
             --project-name="${{ env.CLOUDFLARE_PAGES_PROJECT }}" \
             --branch=main \
             --commit-dirty=true
