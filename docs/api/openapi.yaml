@@ -44,7 +44,7 @@ tags:
     - name: WebSocket
       description: Bidirectional real-time communication
     - name: Admin
-      description: Storage administration endpoints (require X-Admin-Key header)
+      description: Administration endpoints for storage, auth, migration, and backends (require X-Admin-Key header)
     - name: Workflow
       description: Durable execution workflow endpoints
     - name: Health
@@ -852,6 +852,341 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/HealthLatestResponse'
 
+    /health:
+        get:
+            tags: [Health]
+            summary: Basic health check
+            description: Returns current service health status and version
+            operationId: getHealth
+            responses:
+                '200':
+                    description: Service is healthy
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/HealthResponse'
+
+    /admin/auth/users:
+        post:
+            tags: [Admin]
+            summary: Create user
+            description: Creates a new user account. Requires Hyperdrive (PostgreSQL) binding.
+            operationId: createUser
+            security:
+                - AdminKey: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserRequest'
+            responses:
+                '201':
+                    description: User created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequestError'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '409':
+                    description: User with this email already exists
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/auth/api-keys:
+        post:
+            tags: [Admin]
+            summary: Create API key
+            description: |
+                Creates a new API key for a user. Requires Hyperdrive (PostgreSQL) binding.
+
+                **Important:** The raw API key is only returned once. Store it securely.
+            operationId: createApiKey
+            security:
+                - AdminKey: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateApiKeyRequest'
+            responses:
+                '201':
+                    description: API key created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateApiKeyResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequestError'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '404':
+                    description: User not found
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+        get:
+            tags: [Admin]
+            summary: List API keys
+            description: Lists API keys for a user (without key hashes). Requires Hyperdrive (PostgreSQL) binding.
+            operationId: listApiKeys
+            security:
+                - AdminKey: []
+            parameters:
+                - name: userId
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: User ID to list API keys for
+            responses:
+                '200':
+                    description: List of API keys
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListApiKeysResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequestError'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/auth/api-keys/revoke:
+        post:
+            tags: [Admin]
+            summary: Revoke API key
+            description: Revokes an API key by ID or key prefix. Requires Hyperdrive (PostgreSQL) binding.
+            operationId: revokeApiKey
+            security:
+                - AdminKey: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RevokeApiKeyRequest'
+            responses:
+                '200':
+                    description: API key revoked
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RevokeApiKeyResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequestError'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '404':
+                    description: API key not found or already revoked
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/auth/api-keys/validate:
+        post:
+            tags: [Admin]
+            summary: Validate API key
+            description: Validates an API key without authenticating a full request. Useful for the admin UI to test keys.
+            operationId: validateApiKey
+            security:
+                - AdminKey: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ValidateApiKeyRequest'
+            responses:
+                '200':
+                    description: Validation result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidateApiKeyResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequestError'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/migrate/d1-to-pg:
+        post:
+            tags: [Admin]
+            summary: Migrate D1 data to PostgreSQL
+            description: |
+                One-time migration that reads data from Cloudflare D1 (SQLite) and writes it to PostgreSQL via Hyperdrive.
+
+                Migrates the following tables: `storage_entries`, `filter_cache`, `compilation_metadata`.
+
+                The migration is:
+                - **Idempotent**: uses ON CONFLICT DO NOTHING to skip existing rows
+                - **Batched**: processes rows in chunks of 100
+                - **Read-only on D1**: never modifies the source database
+                - **Resumable**: can be re-run safely if interrupted
+            operationId: migrateD1ToPg
+            security:
+                - AdminKey: []
+            parameters:
+                - name: dryRun
+                  in: query
+                  required: false
+                  schema:
+                      type: boolean
+                      default: false
+                  description: Count rows without writing (dry run)
+                - name: tables
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: 'Comma-separated list of tables to migrate (default: all)'
+                  example: storage_entries,filter_cache
+            responses:
+                '200':
+                    description: Migration result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MigrationResult'
+                '400':
+                    $ref: '#/components/responses/BadRequestError'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/backends:
+        get:
+            tags: [Admin]
+            summary: Backend health status
+            description: Returns health and connectivity status of both D1 and PostgreSQL backends
+            operationId: getBackendStatus
+            security:
+                - AdminKey: []
+            responses:
+                '200':
+                    description: Backend status
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BackendStatusResponse'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+
+    /admin/pg/stats:
+        get:
+            tags: [Admin]
+            summary: PostgreSQL storage statistics
+            description: Returns storage statistics from the PostgreSQL backend (mirrors /admin/storage/stats for D1)
+            operationId: getPgStorageStats
+            security:
+                - AdminKey: []
+            responses:
+                '200':
+                    description: PostgreSQL storage statistics
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PgStorageStatsResponse'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/pg/export:
+        get:
+            tags: [Admin]
+            summary: Export PostgreSQL data
+            description: Exports data from the PostgreSQL backend (mirrors /admin/storage/export for D1)
+            operationId: exportPgData
+            security:
+                - AdminKey: []
+            responses:
+                '200':
+                    description: PostgreSQL data export
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminExportResponse'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/pg/clear-expired:
+        post:
+            tags: [Admin]
+            summary: Clear expired PostgreSQL entries
+            description: Deletes all expired entries from PostgreSQL storage and cache tables
+            operationId: clearPgExpiredEntries
+            security:
+                - AdminKey: []
+            responses:
+                '200':
+                    description: Entries cleared
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminOperationResponse'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/pg/clear-cache:
+        post:
+            tags: [Admin]
+            summary: Clear PostgreSQL cache
+            description: Deletes all cache entries from PostgreSQL tables
+            operationId: clearPgCache
+            security:
+                - AdminKey: []
+            responses:
+                '200':
+                    description: Cache cleared
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminOperationResponse'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
+    /admin/pg/query:
+        post:
+            tags: [Admin]
+            summary: Execute read-only PostgreSQL query
+            description: Executes a SELECT-only SQL query against PostgreSQL for debugging (mirrors /admin/storage/query for D1)
+            operationId: queryPg
+            security:
+                - AdminKey: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminQueryRequest'
+            responses:
+                '200':
+                    description: Query results
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminQueryResponse'
+                '400':
+                    description: Invalid or disallowed SQL
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '503':
+                    $ref: '#/components/responses/ServiceUnavailable'
+
 components:
     schemas:
         # Request Schemas
@@ -1614,6 +1949,338 @@ components:
                     nullable: true
                     description: Latest health monitoring results (includes source status, timestamps, error details, rule counts)
                     additionalProperties: true
+
+        HealthResponse:
+            type: object
+            properties:
+                status:
+                    type: string
+                    enum: [healthy]
+                version:
+                    type: string
+                    description: Current service version
+
+        # Auth Admin Schemas
+        CreateUserRequest:
+            type: object
+            required:
+                - email
+            properties:
+                email:
+                    type: string
+                    format: email
+                    description: User email address
+                displayName:
+                    type: string
+                    description: Display name
+                role:
+                    type: string
+                    enum: [admin, user, readonly]
+                    default: user
+                    description: User role
+
+        CreateUserResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    type: object
+                    properties:
+                        user:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    format: uuid
+                                email:
+                                    type: string
+                                    format: email
+                                role:
+                                    type: string
+
+        CreateApiKeyRequest:
+            type: object
+            required:
+                - userId
+                - name
+            properties:
+                userId:
+                    type: string
+                    format: uuid
+                    description: ID of the user to create the key for
+                name:
+                    type: string
+                    description: Descriptive name for the API key
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                    description: Permission scopes for the key
+                rateLimitPerMinute:
+                    type: integer
+                    description: Rate limit override for this key
+                expiresAt:
+                    type: string
+                    format: date-time
+                    description: Expiry date for the key
+
+        CreateApiKeyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    type: object
+                    properties:
+                        id:
+                            type: string
+                            format: uuid
+                        apiKey:
+                            type: string
+                            description: The raw API key (only returned once — store securely)
+                        keyPrefix:
+                            type: string
+                            description: Prefix for identifying the key
+                        name:
+                            type: string
+                        scopes:
+                            type: array
+                            items:
+                                type: string
+                        message:
+                            type: string
+
+        ListApiKeysResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    type: object
+                    properties:
+                        keys:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/ApiKeyInfo'
+                        count:
+                            type: integer
+
+        ApiKeyInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                name:
+                    type: string
+                keyPrefix:
+                    type: string
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                rateLimitPerMinute:
+                    type: integer
+                createdAt:
+                    type: string
+                    format: date-time
+                expiresAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                revokedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                lastUsedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                status:
+                    type: string
+                    enum: [active, expired, revoked]
+
+        RevokeApiKeyRequest:
+            type: object
+            properties:
+                apiKeyId:
+                    type: string
+                    format: uuid
+                    description: ID of the API key to revoke
+                keyPrefix:
+                    type: string
+                    description: Prefix of the API key to revoke
+
+        RevokeApiKeyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    type: object
+                    properties:
+                        revoked:
+                            type: boolean
+
+        ValidateApiKeyRequest:
+            type: object
+            required:
+                - apiKey
+            properties:
+                apiKey:
+                    type: string
+                    description: The API key to validate
+
+        ValidateApiKeyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    type: object
+                    properties:
+                        valid:
+                            type: boolean
+                        keyPrefix:
+                            type: string
+                        name:
+                            type: string
+                        scopes:
+                            type: array
+                            items:
+                                type: string
+                        userEmail:
+                            type: string
+                        status:
+                            type: string
+                            enum: [active, expired, revoked]
+                        error:
+                            type: string
+                            description: Present when valid is false
+
+        # Migration Schemas
+        MigrationResult:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    type: object
+                    properties:
+                        dryRun:
+                            type: boolean
+                        startedAt:
+                            type: string
+                            format: date-time
+                        completedAt:
+                            type: string
+                            format: date-time
+                        totalDurationMs:
+                            type: integer
+                        tables:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/MigrationTableStats'
+                        errors:
+                            type: array
+                            items:
+                                type: string
+                        summary:
+                            type: string
+                            description: Human-readable summary (omitted for dry runs)
+                        message:
+                            type: string
+                            description: Present for dry runs
+
+        MigrationTableStats:
+            type: object
+            properties:
+                table:
+                    type: string
+                sourceCount:
+                    type: integer
+                migratedCount:
+                    type: integer
+                skippedCount:
+                    type: integer
+                errorCount:
+                    type: integer
+                durationMs:
+                    type: integer
+
+        # Backend Status Schemas
+        BackendStatusResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    type: object
+                    properties:
+                        backends:
+                            type: object
+                            properties:
+                                d1:
+                                    $ref: '#/components/schemas/BackendHealth'
+                                postgresql:
+                                    $ref: '#/components/schemas/BackendHealth'
+                        primary:
+                            type: string
+                            enum: [d1, postgresql]
+                            description: Currently active primary backend
+                        timestamp:
+                            type: string
+                            format: date-time
+
+        BackendHealth:
+            type: object
+            properties:
+                available:
+                    type: boolean
+                latencyMs:
+                    type: integer
+                host:
+                    type: string
+                    description: Host name (PostgreSQL only)
+                error:
+                    type: string
+                    description: Error message if unavailable
+
+        # PostgreSQL Admin Schemas
+        PgStorageStatsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    type: object
+                    properties:
+                        stats:
+                            type: object
+                            properties:
+                                storage_entries:
+                                    type: integer
+                                filter_cache:
+                                    type: integer
+                                compilation_metadata:
+                                    type: integer
+                                expired_storage:
+                                    type: integer
+                                expired_cache:
+                                    type: integer
+                                users:
+                                    type: integer
+                                active_api_keys:
+                                    type: integer
+                        backend:
+                            type: string
+                            example: postgresql
+                        host:
+                            type: string
+                        timestamp:
+                            type: string
+                            format: date-time
 
         # WebSocket Message Schemas
         WsCompileRequest:

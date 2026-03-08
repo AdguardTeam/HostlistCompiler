@@ -274,6 +274,9 @@ jobs:
                   restore-keys: |
                       deno-${{ runner.os }}-
 
+            - name: Validate OpenAPI specification
+              run: deno task openapi:validate
+
             - name: Generate Cloudflare schema
               run: deno task schema:cloudflare
 
