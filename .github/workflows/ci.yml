@@ -498,6 +498,13 @@ jobs:
                   echo "Deploying tail worker (adblock-compiler-tail)..."
                   deno task wrangler:tail:deploy
 
+            - name: Verify Docker for container build
+              if: env.CLOUDFLARE_API_TOKEN != ''
+              run: |
+                  echo "Checking Docker availability for Cloudflare Containers build..."
+                  docker info
+                  echo "✅ Docker is available"
+
             - name: Deploy Worker
               id: deploy
               if: env.CLOUDFLARE_API_TOKEN != ''

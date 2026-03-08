@@ -16,28 +16,41 @@
 // Import shared types
 import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, Priority, QueueMessage, Workflow } from './types.ts';
 
-// NOTE: Container class for Cloudflare Containers deployment
-// This is a stub for local development. When deploying with containers enabled,
-// Cloudflare will use the Container runtime automatically.
+// Container class for Cloudflare Containers deployment.
+// Extends the official @cloudflare/containers helper so that Cloudflare's
+// network can spawn container instances on demand. When this Durable Object
+// receives requests, it forwards them to the Docker container running on its
+// defaultPort using the base `Container.fetch` implementation.
+//
+// @deno-types pragma redirects Deno's type checker to local stubs; wrangler
+// uses the real npm package at deploy time.
+// @deno-types="./cloudflare-containers-types.d.ts"
+import { Container } from '@cloudflare/containers';
 
-// Stub class for local development (satisfies Durable Object binding requirement)
-export class AdblockCompiler {
-    defaultPort = 8787;
+/**
+ * Cloudflare Container-enabled Durable Object for the Adblock Compiler.
+ *
+ * Each instance manages a single Docker container running the Wrangler dev
+ * server (or a production-optimized equivalent) on port 8787.
+ * Requests to this Durable Object are proxied to the container via
+ * the `Container.fetch` base-class implementation.
+ */
+export class AdblockCompiler extends Container {
+    override defaultPort = 8787;
+    /** Stop the container after 10 minutes of inactivity to reduce cost. */
+    override sleepAfter = '10m';
 
-    constructor(_state: DurableObjectState, _env: Env) {
-        // Stub constructor for local dev
+    override onStart(): void {
+        console.log('[AdblockCompiler] Container started');
     }
 
-    async fetch(_request: Request): Promise<Response> {
-        // Stub fetch for local dev - containers not used in local development
-        return new Response('Container endpoints are only available in production deployment', {
-            status: 501,
-        });
+    override onStop(_: { exitCode: number; reason: string }): void {
+        console.log('[AdblockCompiler] Container stopped');
     }
-}
 
-// When deploying with containers to production, the above stub will be replaced
-// with the actual Container class by extending from cloudflare:workers Container
+    override onError(error: unknown): void {
+        console.error('[AdblockCompiler] Container error:', error instanceof Error ? error.message : String(error));
+    }
 
 import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
@@ -2934,7 +2947,6 @@ async function handleHealthLatest(env: Env): Promise<Response> {
                 {
                     success: true,
                     message: 'No health check data available. Run a health check first.',
-                    data: null,
                 },
                 { headers: { 'Access-Control-Allow-Origin': '*' } },
             );
@@ -2943,7 +2955,7 @@ async function handleHealthLatest(env: Env): Promise<Response> {
         return Response.json(
             {
                 success: true,
-                data: latest,
+                ...(latest as Record<string, unknown>),
             },
             { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
@@ -3000,10 +3012,10 @@ export default {
                 return Response.json(
                     {
                         success: true,
-                        data: deployment || {
+                        ...(deployment || {
                             version: env.COMPILER_VERSION || VERSION,
                             message: 'No deployment history available',
-                        },
+                        }),
                     },
                     {
                         headers: {
@@ -3053,7 +3065,8 @@ export default {
                 return Response.json(
                     {
                         success: true,
-                        data: deployments,
+                        deployments,
+                        count: deployments.length,
                     },
                     {
                         headers: {
@@ -3089,7 +3102,7 @@ export default {
                 return Response.json(
                     {
                         success: true,
-                        data: stats,
+                        ...stats,
                     },
                     {
                         headers: {

@@ -18,6 +18,9 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@cloudflare/containers':
+        specifier: ^0.1.1
+        version: 0.1.1
       '@cloudflare/playwright-mcp':
         specifier: ^0.0.5
         version: 0.0.5(@cfworker/json-schema@4.1.1)(@cloudflare/workers-types@4.20260307.1)(react@19.2.4)(zod@4.3.6)
@@ -1107,6 +1110,9 @@ packages:
 
   '@cfworker/json-schema@4.1.1':
     resolution: {integrity: sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og==}
+
+  '@cloudflare/containers@0.1.1':
+    resolution: {integrity: sha512-YTdobRTnTlUOUPMFemufH367A9Z8pDfZ+UboYMLbGpO0VlvEXZDiioSmXPQMHld2vRtkL31mcRii3bcbQU6fdw==}
 
   '@cloudflare/kv-asset-handler@0.3.4':
     resolution: {integrity: sha512-YLPHc8yASwjNkmcDMQMY35yiWjoKAKnhUbPRszBRS0YgH+IXtsMp61j+yTcnCE3oO2DgP0U3iejLC8FTtKDC8Q==}
@@ -7614,6 +7620,8 @@ snapshots:
       css-tree: 3.2.1
 
   '@cfworker/json-schema@4.1.1': {}
+
+  '@cloudflare/containers@0.1.1': {}
 
   '@cloudflare/kv-asset-handler@0.3.4':
     dependencies:
