@@ -20,9 +20,23 @@
  */
 
 import { env } from 'cloudflare:workers';
+import type { BrowserWorker } from './cloudflare-workers-shim.ts';
 // @deno-types="./cloudflare-playwright-mcp-types.d.ts"
 import { createMcpAgent } from '@cloudflare/playwright-mcp';
 
-// deno-lint-ignore no-explicit-any
-export const PlaywrightMcpAgent = createMcpAgent((env as any).BROWSER);
+interface IBrowserEnv {
+    readonly BROWSER?: BrowserWorker;
+}
+
+const browserEnv = env as unknown as IBrowserEnv;
+const browserBinding = browserEnv.BROWSER;
+
+if (!browserBinding) {
+    throw new Error(
+        'Cloudflare Browser Rendering binding "BROWSER" is not configured. ' +
+            'Ensure the `BROWSER` binding is defined in your Wrangler configuration for this Worker.',
+    );
+}
+
+export const PlaywrightMcpAgent = createMcpAgent(browserBinding);
 export default PlaywrightMcpAgent;
