@@ -18,9 +18,9 @@ import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessa
 
 // Container class for Cloudflare Containers deployment.
 // Extends the official @cloudflare/containers helper so that Cloudflare's
-// network can spawn container instances on demand.  At runtime the Worker
-// routes requests to this Durable Object which, in turn, forwards them to the
-// Docker container running on its defaultPort.
+// network can spawn container instances on demand. When this Durable Object
+// receives requests, it forwards them to the Docker container running on its
+// defaultPort using the base `Container.fetch` implementation.
 //
 // @deno-types pragma redirects Deno's type checker to local stubs; wrangler
 // uses the real npm package at deploy time.
@@ -32,7 +32,7 @@ import { Container } from '@cloudflare/containers';
  *
  * Each instance manages a single Docker container running the Wrangler dev
  * server (or a production-optimized equivalent) on port 8787.
- * Requests forwarded to this Durable Object are proxied to the container via
+ * Requests to this Durable Object are proxied to the container via
  * the `Container.fetch` base-class implementation.
  */
 export class AdblockCompiler extends Container {
