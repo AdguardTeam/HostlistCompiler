@@ -52,6 +52,9 @@ RUN case ${TARGETARCH} in \
 # Verify Deno installation
 RUN /usr/local/bin/deno --version
 
+# Enable corepack so that pnpm is available in downstream stages
+RUN corepack enable
+
 WORKDIR /app
 
 # Stage 2: Angular frontend build
@@ -74,11 +77,20 @@ RUN npm run build
 # Stage 3: Backend dependencies and build
 FROM node-base AS builder
 
-# Copy package files for npm dependencies
-COPY package.json package-lock.json ./
+# Copy package files for pnpm
+# pnpm-workspace.yaml is intentionally not copied here so only the root
+# package's dependencies (including wrangler from devDependencies) are
+# installed, without pulling in all workspace packages.
+COPY package.json pnpm-lock.yaml ./
 
-# Install npm dependencies (Wrangler)
-RUN npm ci --omit=dev
+# Install all root dependencies including wrangler (a devDependency required
+# to run the worker).  --no-frozen-lockfile is used because the lockfile
+# contains workspace importers that are not present in this single-package
+# context; the root importer's pinned versions are still resolved from the
+# lockfile where possible.  --shamefully-hoist creates a flat node_modules
+# layout (like npm) so that the directory copies cleanly into the runtime stage
+# and `npx wrangler` resolves correctly without pnpm's symlink virtual store.
+RUN pnpm install --no-frozen-lockfile --shamefully-hoist
 
 # Copy Deno configuration
 COPY deno.json deno.lock ./
