@@ -18,7 +18,8 @@ source files using [`deno doc --html`](https://docs.deno.com/runtime/reference/c
 </div>
 
 > **Note:** The `api-reference/index.html` link above is only available after running
-> `deno task docs:build` locally or in a deployed mdBook site. It is not present in
+> `deno task docs:api` (to generate just the API reference) or `deno task docs:build`
+> (to build the full site) locally or in a deployed mdBook site. It is not present in
 > the repository source tree.
 
 ## What is documented

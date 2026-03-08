@@ -4,8 +4,7 @@ Guides for deploying the Adblock Compiler to various platforms.
 
 ## Contents
 
-- [Docker Deployment](DOCKER.md) - Complete Docker guide with Kubernetes examples
-- [Docker Configuration](DOCKER.md) - Docker Compose with layered environment configuration
+- [Docker](DOCKER.md) - Docker Compose deployment guide with Kubernetes examples
 - [Cloudflare Containers](cloudflare-containers.md) - Deploy to Cloudflare edge network
 - [Cloudflare Pages](cloudflare-pages.md) - Deploy to Cloudflare Pages
 - [Cloudflare Workers Architecture](CLOUDFLARE_WORKERS_ARCHITECTURE.md) - Backend vs frontend workers, deployment modes, and their relationship

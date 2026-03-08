@@ -68,8 +68,7 @@ docs/
 
 ### Deployment
 
-- [Docker Deployment](deployment/DOCKER.md) - Complete Docker guide with Kubernetes examples
-- [Docker Configuration](deployment/DOCKER.md) - Docker Compose with layered environment configuration
+- [Docker](deployment/DOCKER.md) - Docker Compose deployment guide with Kubernetes examples
 - [Cloudflare Containers](deployment/cloudflare-containers.md) - Deploy to Cloudflare edge network
 - [Cloudflare Pages](deployment/cloudflare-pages.md) - Deploy to Cloudflare Pages
 - [Cloudflare Workers Architecture](deployment/CLOUDFLARE_WORKERS_ARCHITECTURE.md) - Backend vs frontend workers, deployment modes, and their relationship
