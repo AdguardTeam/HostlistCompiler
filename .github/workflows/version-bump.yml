@@ -47,7 +47,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
-                  fetch-depth: 50
+                  fetch-depth: 0 # full history required: git log --grep searches all commits to find last version bump
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Setup Deno

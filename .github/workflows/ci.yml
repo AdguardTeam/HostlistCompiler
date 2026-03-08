@@ -328,7 +328,7 @@ jobs:
         name: Publish to JSR
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        needs: [ci-gate, frontend-lint-test, frontend-build]
+        needs: [ci-gate]
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         permissions:
             contents: read
@@ -418,7 +418,7 @@ jobs:
         name: Deploy to Cloudflare
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        needs: [ci-gate, frontend-lint-test, frontend-build]
+        needs: [ci-gate]
         if: |
             github.event_name == 'push' &&
             github.ref == 'refs/heads/main'
