@@ -4,9 +4,7 @@ url: https://api.ibkr.com/v1/api/fyi/deliveryoptions/:deviceId
 method: DELETE
 pathVariables:
   - key: deviceId
-    value: >
-      Display the device identifier to delete from IB’s saved list. Can be
-      retrieved from /fyi/deliveryoptions.
-    description: "(Required) "
+    value: "{{deviceId}}"
+    description: "(Required) Display the device identifier to delete from IB's saved list. Can be retrieved from /fyi/deliveryoptions."
 examples: ./.resources/Delete A Device.resources/examples
 order: 1000
