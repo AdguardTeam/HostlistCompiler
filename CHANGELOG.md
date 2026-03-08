@@ -84,6 +84,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.45.1] - 2026-03-08
+
+### Added### Fixed
+
+- narrow `ns` correctly in agent-routing.ts to resolve TS18048 errors
+
+
 ## [0.45.0] - 2026-03-08
 
 ### Added- add OpenAPI specs and Postman workspace configuration
