@@ -16,28 +16,42 @@
 // Import shared types
 import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, Priority, QueueMessage, Workflow } from './types.ts';
 
-// NOTE: Container class for Cloudflare Containers deployment
-// This is a stub for local development. When deploying with containers enabled,
-// Cloudflare will use the Container runtime automatically.
+// Container class for Cloudflare Containers deployment.
+// Extends the official @cloudflare/containers helper so that Cloudflare's
+// network can spawn container instances on demand.  At runtime the Worker
+// routes requests to this Durable Object which, in turn, forwards them to the
+// Docker container running on its defaultPort.
+//
+// @deno-types pragma redirects Deno's type checker to local stubs; wrangler
+// uses the real npm package at deploy time.
+// @deno-types="./cloudflare-containers-types.d.ts"
+import { Container } from '@cloudflare/containers';
 
-// Stub class for local development (satisfies Durable Object binding requirement)
-export class AdblockCompiler {
-    defaultPort = 8787;
+/**
+ * Cloudflare Container-enabled Durable Object for the Adblock Compiler.
+ *
+ * Each instance manages a single Docker container running the Wrangler dev
+ * server (or a production-optimized equivalent) on port 8787.
+ * Requests forwarded to this Durable Object are proxied to the container via
+ * the `Container.fetch` base-class implementation.
+ */
+export class AdblockCompiler extends Container {
+    override defaultPort = 8787;
+    /** Stop the container after 10 minutes of inactivity to reduce cost. */
+    override sleepAfter = '10m';
 
-    constructor(_state: DurableObjectState, _env: Env) {
-        // Stub constructor for local dev
+    override onStart(): void {
+        console.log('[AdblockCompiler] Container started');
     }
 
-    async fetch(_request: Request): Promise<Response> {
-        // Stub fetch for local dev - containers not used in local development
-        return new Response('Container endpoints are only available in production deployment', {
-            status: 501,
-        });
+    override onStop(_: { exitCode: number; reason: string }): void {
+        console.log('[AdblockCompiler] Container stopped');
+    }
+
+    override onError(error: unknown): void {
+        console.error('[AdblockCompiler] Container error:', error instanceof Error ? error.message : String(error));
     }
 }
-
-// When deploying with containers to production, the above stub will be replaced
-// with the actual Container class by extending from cloudflare:workers Container
 
 import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';
