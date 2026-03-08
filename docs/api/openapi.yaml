@@ -2010,24 +2010,66 @@ components:
         # Health Schemas
         HealthLatestResponse:
             type: object
+            required:
+                - success
             properties:
                 success:
                     type: boolean
                 message:
                     type: string
                     description: Present when no health data is available
-                checkedAt:
+                timestamp:
                     type: string
                     format: date-time
-                    description: Timestamp of the latest health check
-                    nullable: true
-                sources:
+                    description: ISO timestamp of when this health check ran
+                runId:
+                    type: string
+                    description: Unique identifier for the health monitoring workflow run
+                results:
                     type: array
-                    description: Per-source health status results
-                    nullable: true
+                    description: Per-source health check results
                     items:
-                        type: object
-                        additionalProperties: true
+                        $ref: '#/components/schemas/SourceHealthResult'
+                summary:
+                    type: object
+                    description: Aggregate counts for the health check run
+                    properties:
+                        total:
+                            type: integer
+                        healthy:
+                            type: integer
+                        unhealthy:
+                            type: integer
+
+        SourceHealthResult:
+            type: object
+            required:
+                - name
+                - url
+                - healthy
+                - lastChecked
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                healthy:
+                    type: boolean
+                statusCode:
+                    type: integer
+                    nullable: true
+                responseTimeMs:
+                    type: number
+                    nullable: true
+                ruleCount:
+                    type: integer
+                    nullable: true
+                error:
+                    type: string
+                    nullable: true
+                lastChecked:
+                    type: string
+                    format: date-time
 
         HealthResponse:
             type: object
