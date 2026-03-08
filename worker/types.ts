@@ -7,6 +7,7 @@
 
 import type { IConfiguration } from '../src/types/index.ts';
 import type { PipelineBinding } from '../src/services/PipelineService.ts';
+import type { BrowserWorker } from './cloudflare-workers-shim.ts';
 
 // ============================================================================
 // Database Types
@@ -143,6 +144,10 @@ export interface Env {
     ERROR_REPORTER_TYPE?: string; // 'console', 'cloudflare', 'sentry', 'composite'
     SENTRY_DSN?: string; // Sentry Data Source Name (required if using Sentry)
     ERROR_REPORTER_VERBOSE?: string; // 'true' or 'false' for verbose console logging
+    // Browser Rendering binding (for Cloudflare Browser Rendering / Playwright MCP)
+    BROWSER?: BrowserWorker;
+    // Playwright MCP Agent Durable Object namespace
+    MCP_AGENT?: DurableObjectNamespace;
 }
 
 // ============================================================================

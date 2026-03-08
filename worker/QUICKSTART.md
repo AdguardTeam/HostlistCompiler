@@ -5,7 +5,7 @@ This guide will help you get the Cloudflare Tail Worker up and running in 5 minu
 ## Prerequisites
 
 - Cloudflare account
-- Wrangler CLI installed (`npm install`)
+- Wrangler CLI installed (`pnpm install`)
 - Main adblock-compiler worker already deployed
 
 ## Step 1: Deploy the Tail Worker
