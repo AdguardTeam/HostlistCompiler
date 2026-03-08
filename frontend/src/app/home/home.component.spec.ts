@@ -107,7 +107,7 @@ describe('HomeComponent', () => {
 
     it('should show default health color when no data', () => {
         // After flushing with healthy status, color reflects healthy state
-        expect(component.healthColor()).toBe('var(--mat-sys-primary)');
+        expect(component.healthColor()).toBe('var(--app-success, #4caf50)');
     });
 
     it('should render the page heading', () => {
