@@ -78,6 +78,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.43.0] - 2026-03-08
+
+### Added- add JSDoc to all undocumented source files and integrate deno doc API reference with mdBook
+- CI pipeline enhancements
+- verify worker build on pull requests (#780)
+
+### Fixed
+
+- add wrangler as root devDependency to fix Cloudflare deployment
+- narrow run_migration() idempotency check to exact D1 message (#790)
+- narrow run_migration() error suppression to exact D1/Wrangler idempotency messages (#789)
+- skip wrangler custom build when frontend dist already exists (#778)
+- exclude pnpm-lock.yaml from deno fmt check
+- clean up wrangler.toml build comment per code review
+- use pnpm run build:worker in wrangler.toml to fix Cloudflare Workers build
+- add --legacy-peer-deps to wrangler.toml frontend npm ci to fix Cloudflare Workers build
+- add pnpm-lock.yaml to fix frontend/worker builds in CI
+
+
 ## [0.42.0] - 2026-03-07
 
 ### Added- replace npm/npx with pnpm/deno-native equivalents in deno.json and CI deploy
