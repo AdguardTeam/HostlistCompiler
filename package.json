@@ -2,6 +2,7 @@
     "name": "adblock-compiler",
     "version": "0.45.1",
     "description": "Compiler-as-a-Service for adblock filter lists",
+    "homepage": "https://adblock-compiler.jk-com.workers.dev/",
     "type": "module",
     "scripts": {
         "ui:build": "pnpm --filter adblock-compiler-frontend run build",
