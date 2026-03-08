@@ -54,6 +54,10 @@ The full project documentation is available at **[adblock-compiler.jk-com.worker
 
 To preview locally:
 ```bash
+# Prerequisites: install mdBook (requires Rust/Cargo or direct binary)
+cargo install mdbook
+# or download binary: https://github.com/rust-lang/mdBook/releases
+
 # Build the full mdBook site + TypeScript API reference, then serve it
 deno task docs:build
 deno task docs:serve
@@ -63,10 +67,6 @@ deno task docs:serve
 deno task docs:api
 
 # Alternatively, use mdBook directly (does not include API reference)
-# Install mdBook (requires Rust/Cargo or direct binary)
-cargo install mdbook
-# or download binary: https://github.com/rust-lang/mdBook/releases
-
 mdbook serve
 # → open http://localhost:3000
 ```
@@ -1353,10 +1353,10 @@ deno task cache
 # Generate the TypeScript API reference (into book/api-reference/)
 deno task docs:api
 
-# Build the full mdBook site + API reference
+# Build the full mdBook site + API reference (requires mdBook CLI installed)
 deno task docs:build
 
-# Live-preview the mdBook (does not include API reference)
+# Live-preview the mdBook (does not include API reference; requires mdBook CLI installed)
 deno task docs:serve
 ```
 
