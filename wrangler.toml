@@ -8,12 +8,12 @@ workers_dev = true
 # Build configuration
 # Builds Angular frontend and generates static assets for deployment.
 # Wrangler calls this command automatically on `wrangler deploy`.
-# npm ci installs root deps (zod, @opentelemetry/api, @adguard/agtree) that the
-# worker's TypeScript imports need for esbuild to resolve them during bundling.
-# --legacy-peer-deps is required because @angular/service-worker has a peer dep
-# on @angular/core that conflicts with the version resolved by npm strict mode.
+# Uses pnpm (declared as packageManager in package.json) because corepack blocks
+# npm when packageManager is set to pnpm.
+# The build:worker script runs `pnpm install && pnpm --filter adblock-compiler-frontend run build`
+# via pnpm's script runner, which handles && correctly in a shell.
 [build]
-command = "npm ci --omit=dev && npm --prefix frontend ci --legacy-peer-deps && npm --prefix frontend run build"
+command = "pnpm run build:worker"
 
 [browser]
 binding = "BROWSER"
