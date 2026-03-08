@@ -1,12 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#667eea"/>
-      <stop offset="100%" stop-color="#764ba2"/>
+    <!-- Amber gradient matching the "Deep Ink + Electric Amber" header design -->
+    <linearGradient id="amber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="55%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fcd34d"/>
     </linearGradient>
+    <!-- Amber gradient for the top accent stripe -->
+    <linearGradient id="stripe" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="40%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fcd34d"/>
+    </linearGradient>
+    <!-- Subtle inner glow for the shield -->
+    <radialGradient id="shieldGlow" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="64" height="64" rx="12" fill="url(#g)"/>
-  <path d="M32 10 L52 22 V42 L32 54 L12 42 V22 Z" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M32 18 L44 25 V39 L32 46 L20 39 V25 Z" fill="rgba(255,255,255,0.15)" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
-  <path d="M26 32 L30 36 L38 28" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Deep ink background (matches app-header-bg: #0d0d0d) -->
+  <rect width="64" height="64" rx="12" fill="#0d0d0d"/>
+  <!-- Amber accent stripe at the top (mirrors the header ::before stripe) -->
+  <rect x="0" y="0" width="64" height="3" rx="2" fill="url(#stripe)"/>
+  <!-- Shield body — amber outline on dark background -->
+  <path d="M32 11 Q32 11 50 20 V37 Q50 50 32 57 Q14 50 14 37 V20 Z"
+        fill="#111111" stroke="url(#amber)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Inner shield ambient glow -->
+  <path d="M32 11 Q32 11 50 20 V37 Q50 50 32 57 Q14 50 14 37 V20 Z"
+        fill="url(#shieldGlow)"/>
+  <!-- Inner shield ring — subtle amber fill -->
+  <path d="M32 18 Q32 18 43 25 V36 Q43 45 32 50 Q21 45 21 36 V25 Z"
+        fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.35)" stroke-width="1" stroke-linejoin="round"/>
+  <!-- Checkmark — amber gradient stroke -->
+  <path d="M25 33.5 L29.5 38 L39 28"
+        fill="none" stroke="url(#amber)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
