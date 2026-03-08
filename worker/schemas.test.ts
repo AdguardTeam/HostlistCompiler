@@ -149,7 +149,7 @@ Deno.test('QueueMessageSchema validates all message types with discriminated uni
         timestamp: Date.now(),
         configuration: {
             name: 'Test',
-            sources: [{ source: 'url' }],
+            sources: [{ source: 'https://example.com/list.txt' }],
         },
     };
     assertEquals(QueueMessageSchema.safeParse(compileMsg).success, true);
@@ -160,7 +160,7 @@ Deno.test('QueueMessageSchema validates all message types with discriminated uni
         requests: [
             {
                 id: 'req-1',
-                configuration: { name: 'Test', sources: [{ source: 'url' }] },
+                configuration: { name: 'Test', sources: [{ source: 'https://example.com/list.txt' }] },
             },
         ],
     };
@@ -180,7 +180,7 @@ Deno.test('CompilationParamsSchema validates compilation parameters', () => {
 
     const invalid = {
         requestId: '', // Empty string
-        configuration: { name: 'Test', sources: [{ source: 'url' }] },
+        configuration: { name: 'Test', sources: [{ source: 'https://example.com/list.txt' }] },
         queuedAt: Date.now(),
     };
     assertEquals(CompilationParamsSchema.safeParse(invalid).success, false);
