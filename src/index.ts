@@ -1,5 +1,42 @@
-// Main entry point for the hostlist compiler library
-
+/**
+ * @module adblock-compiler
+ * Main entry point for the `@jk-com/adblock-compiler` library.
+ *
+ * This module re-exports the complete public API surface of the AdBlock Compiler,
+ * organised into the following logical groups:
+ *
+ * - **Version** – package identity constants (`VERSION`, `USER_AGENT`, …)
+ * - **Configuration** – defaults, enums, and output-format constants
+ * - **Types** – all shared TypeScript interfaces and type aliases
+ * - **Utils** – rule utilities, logging, error helpers, circuit-breaker, boolean
+ *   expression evaluator, and the compiler event system
+ * - **Diagnostics** – OpenTelemetry-compatible tracing and diagnostics collector
+ * - **Downloader** – `FilterDownloader` for fetching remote filter lists
+ * - **Schemas** – Zod validation schemas for all public data shapes
+ * - **Transformations** – the full transformation pipeline and every built-in rule
+ *   transformation (compress, deduplicate, validate, etc.)
+ * - **Services** – `FilterService`, `ASTViewerService`, and analytics service
+ * - **Compiler** – `FilterCompiler`, `SourceCompiler`, `IncrementalCompiler`, and
+ *   the top-level `compile()` convenience function
+ * - **Platform** – cross-runtime abstraction layer with `WorkerCompiler` and
+ *   pluggable content fetchers for Cloudflare Workers / Deno Deploy
+ * - **Formatters** – output formatters for adblock, hosts, dnsmasq, DoH, etc.
+ * - **Diff** – `DiffGenerator` for comparing two compiled filter lists
+ * - **Plugins** – the extensible plugin registry and plugin wrapper API
+ *
+ * @example Install and compile a list
+ * ```ts
+ * import { compile } from '@jk-com/adblock-compiler';
+ *
+ * const result = await compile({
+ *   sources: [{ url: 'https://example.com/list.txt' }],
+ *   transformations: ['RemoveComments', 'Deduplicate'],
+ * });
+ * console.log(result.rules.join('\n'));
+ * ```
+ *
+ * @packageDocumentation
+ */
 // Version information
 export { PACKAGE_INFO, PACKAGE_NAME, USER_AGENT, VERSION } from './version.ts';
 
