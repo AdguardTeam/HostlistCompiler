@@ -82,6 +82,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.44.2] - 2026-03-08
+
+### Added### Fixed
+
+- guard against non-DO bindings and NaN limit in deployment history
+
+
 ## [0.44.1] - 2026-03-08
 
 ### Added### Fixed
