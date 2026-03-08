@@ -40,7 +40,8 @@ cov_profile/
 coverage.lcov
 cov_profile/
 
-# npm credentials — never bake into image layers
+# pnpm configuration — no credentials but kept out of the image because it is
+# only needed at build time and its settings are not relevant inside the container
 frontend/.npmrc
 
 # Wrangler

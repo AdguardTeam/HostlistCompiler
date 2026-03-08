@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.42.0",
+    "version": "0.43.0",
     "exports": "./src/index.ts",
     "nodeModulesDir": "auto",
     "publish": {
@@ -44,6 +44,7 @@
         "wrangler": "deno run -A npm:wrangler",
         "wrangler:dev": "deno run -A npm:wrangler dev",
         "wrangler:deploy": "deno run -A npm:wrangler deploy",
+        "wrangler:verify": "deno run -A npm:wrangler deploy --dry-run",
         "wrangler:tail": "deno run -A npm:wrangler tail",
         "wrangler:tail:deploy": "deno run -A npm:wrangler deploy --config wrangler.tail.toml",
         "wrangler:tail:dev": "deno run -A npm:wrangler dev --config wrangler.tail.toml",
@@ -51,7 +52,10 @@
         "version:sync": "deno run --allow-read --allow-write scripts/sync-version.ts",
         "ui:build:ng": "pnpm --filter adblock-compiler-frontend run build",
         "ui:dev:ng": "pnpm --filter adblock-compiler-frontend run start",
-        "ui:test:ng": "pnpm --filter adblock-compiler-frontend run test"
+        "ui:test:ng": "pnpm --filter adblock-compiler-frontend run test",
+        "docs:api": "deno doc --html --name=\"AdBlock Compiler\" --output=book/api-reference src/index.ts",
+        "docs:build": "mdbook build && deno task docs:api",
+        "docs:serve": "mdbook serve"
     },
     "imports": {
         "@/": "./src/",

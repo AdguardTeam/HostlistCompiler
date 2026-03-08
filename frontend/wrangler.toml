@@ -1,7 +1,7 @@
 # Wrangler configuration for deploying the Angular frontend to Cloudflare Workers
 #
 # Build output layout (produced by `npm run build` / `ng build`):
-#   dist/adblock-compiler-poc/
+#   dist/adblock-compiler/
 #   ├── browser/          ← Static assets (JS bundles, CSS, fonts, pre-rendered HTML)
 #   └── server/
 #       └── server.mjs    ← Workers entry point (compiled from server.ts)
@@ -16,7 +16,7 @@
 name = "adblock-compiler-frontend"
 
 # Compiled server entry point output by `ng build` when ssr.entry = "server.ts"
-main = "dist/adblock-compiler-poc/server/server.mjs"
+main = "dist/adblock-compiler/server/server.mjs"
 
 # Minimum date for Cloudflare Workers compatibility guarantees.
 # Bump this to enable newer platform APIs as they stabilise.
@@ -30,5 +30,5 @@ compatibility_flags = ["nodejs_compat"]
 # before the Worker fetch handler is invoked, so Angular's SSR handler only
 # receives HTML document requests (not JS/CSS/font fetches).
 [assets]
-directory = "dist/adblock-compiler-poc/browser"
+directory = "dist/adblock-compiler/browser"
 binding = "ASSETS"

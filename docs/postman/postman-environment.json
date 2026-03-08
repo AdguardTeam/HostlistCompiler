@@ -9,7 +9,7 @@
         },
         {
             "key": "prodUrl",
-            "value": "https://adblock-compiler-ui.pages.dev",
+            "value": "https://adblock-compiler.jk-com.workers.dev",
             "type": "default",
             "enabled": true
         }

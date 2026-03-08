@@ -1,7 +1,8 @@
 # Summary
 
 - [Introduction](README.md)
-- [API Reference](api/README.md)
+- [API Reference](api-reference.md)
+- [REST / HTTP API](api/README.md)
   - [AGTree Integration](api/AGTREE_INTEGRATION.md)
   - [Batch API Guide](api/BATCH_API_GUIDE.md)
   - [OpenAPI Support](api/OPENAPI_SUPPORT.md)
@@ -37,6 +38,7 @@
   - [Code Review](development/CODE_REVIEW.md)
   - [Diagnostics](development/DIAGNOSTICS.md)
   - [Extensibility](development/EXTENSIBILITY.md)
+  - [Lines of Code Counter](development/COUNT_LOC.md)
 - [Frontend](frontend/README.md)
   - [Angular Frontend](frontend/ANGULAR_FRONTEND.md)
   - [SPA Benefits](frontend/SPA_BENEFITS.md)

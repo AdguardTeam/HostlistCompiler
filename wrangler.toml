@@ -8,11 +8,13 @@ workers_dev = true
 # Build configuration
 # Builds Angular frontend and generates static assets for deployment.
 # Wrangler calls this command automatically on `wrangler deploy`.
-# Uses pnpm (declared as packageManager in package.json) because corepack blocks
-# npm when packageManager is set to pnpm. The build:worker script handles
-# dependency installation and the Angular frontend build.
+# The script skips the build when the dist directory already exists (e.g. in
+# CI, where the frontend artifact is downloaded before wrangler runs). In local
+# dev the directory is typically absent so pnpm builds it. A dedicated script
+# is used instead of inline shell operators because wrangler's execa tokenises
+# the command string, which prevents `||` from being interpreted by the shell.
 [build]
-command = "pnpm run build:worker"
+command = "sh scripts/build-worker.sh"
 
 [browser]
 binding = "BROWSER"
@@ -62,7 +64,7 @@ tag = "v1"
 # IMPORTANT: This version should match the VERSION constant in src/version.ts (single source of truth)
 # To update: change VERSION in src/version.ts, then run `deno task version:sync` to propagate changes
 # The worker will fall back to src/version.ts if this is not set
-COMPILER_VERSION = "0.42.0"
+COMPILER_VERSION = "0.43.0"
 ENVIRONMENT = "production"
 # TURNSTILE_SITE_KEY, ADMIN_KEY, etc. are loaded from .env files via .envrc
 # For local dev: managed by .env.development and .env.local
@@ -77,7 +79,7 @@ database_id = "3e8e7dfe-3213-452a-a671-6c18e6e74ce5"
 # Run `npm --prefix frontend run build` to generate assets before deploying.
 # For local dev: `npm --prefix frontend start` for Angular dev server.
 [assets]
-directory = "./frontend/dist/adblock-compiler-poc/browser"
+directory = "./frontend/dist/adblock-compiler/browser"
 binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 # SPA fallback: serve root index.html for any path that doesn't match a static file.

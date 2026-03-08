@@ -7,16 +7,25 @@ import { z } from 'zod';
 import { type IConfiguration, type ISource, type LogLevelType, SourceType, TransformationType } from '../types/index.ts';
 
 // ============================================================================
-// Output types for schemas without matching public interfaces
+// Public enums and constants (declared early for reuse throughout this file)
 // ============================================================================
 
-type Priority = 'standard' | 'high';
+/**
+ * Schema for request/job priority level.
+ * Shared between CompileRequestSchema, BatchRequestSchema, CliArgumentsSchema, and worker schemas.
+ */
+export const PrioritySchema = z.enum(['standard', 'high']).describe('Request processing priority level');
+export type Priority = z.infer<typeof PrioritySchema>;
+
+// ============================================================================
+// Output types for schemas without matching public interfaces
+// ============================================================================
 
 type CompileRequestOutput = {
     configuration: IConfiguration;
     preFetchedContent?: Record<string, string>;
     benchmark?: boolean;
-    priority?: Priority;
+    priority?: z.infer<typeof PrioritySchema>;
     turnstileToken?: string;
 };
 
@@ -29,7 +38,7 @@ type BatchRequestItem = {
 
 type BatchRequestOutput = {
     requests: BatchRequestItem[];
-    priority?: Priority;
+    priority?: z.infer<typeof PrioritySchema>;
 };
 
 type HttpFetcherOptionsOutput = {
@@ -157,27 +166,36 @@ const transformationOrderingMessage = {
  * Schema for ISource validation
  */
 export const SourceSchema: z.ZodType<ISource> = z.object({
-    source: z.string().trim().min(1, 'source is required and must be a non-empty string'),
-    name: z.string().trim().min(1, 'name must be a non-empty string').optional(),
-    type: SourceTypeSchema.optional(),
+    source: z.string().trim().min(1, 'source is required and must be a non-empty string').refine(
+        (val) => {
+            try {
+                new URL(val);
+                return true;
+            } catch { /* not a URL */ }
+            return val.startsWith('/') || /^\.\.?\//.test(val);
+        },
+        { message: 'source must be a valid URL or file path' },
+    ).describe('URL or file path to the filter list source'),
+    name: z.string().trim().min(1, 'name must be a non-empty string').optional().describe('Human-readable name for the source'),
+    type: SourceTypeSchema.optional().describe('Source format type'),
 }).merge(FilterableSchema).merge(TransformableSchema).strict()
     .refine(hasValidTransformationOrdering, transformationOrderingMessage)
     .transform((data) => ({
         ...data,
         source: data.source.trim(),
-        name: data.name?.trim() || data.name,
+        ...(data.name !== undefined && { name: data.name.trim() }),
     }));
 
 /**
  * Schema for IConfiguration validation
  */
 export const ConfigurationSchema: z.ZodType<IConfiguration> = z.object({
-    name: z.string().min(1, 'name is required and must be a non-empty string'),
-    description: z.string().optional(),
-    homepage: z.string().optional(),
-    license: z.string().optional(),
-    version: z.string().optional(),
-    sources: z.array(SourceSchema).nonempty('sources is required and must be a non-empty array'),
+    name: z.string().min(1, 'name is required and must be a non-empty string').describe('Filter list name'),
+    description: z.string().optional().describe('Human-readable description of the filter list'),
+    homepage: z.string().url('homepage must be a valid URL').optional().describe('Homepage URL for the filter list'),
+    license: z.string().optional().describe('License identifier (e.g. GPL-3.0, MIT)'),
+    version: z.string().regex(/^\d+\.\d+(\.\d+)?/, 'version must follow semver format (e.g. 1.0.0)').optional().describe('Version string following semver format (e.g. 1.0.0)'),
+    sources: z.array(SourceSchema).nonempty('sources is required and must be a non-empty array').describe('Array of source configurations (must not be empty)'),
 }).merge(FilterableSchema).merge(TransformableSchema).strict()
     .refine(hasValidTransformationOrdering, transformationOrderingMessage);
 
@@ -187,9 +205,9 @@ export const ConfigurationSchema: z.ZodType<IConfiguration> = z.object({
 export const CompileRequestSchema: z.ZodType<CompileRequestOutput> = z.object({
     configuration: ConfigurationSchema,
     preFetchedContent: PreFetchedContentSchema,
-    benchmark: z.boolean().optional(),
-    priority: z.enum(['standard', 'high']).optional(),
-    turnstileToken: z.string().optional(),
+    benchmark: z.boolean().optional().describe('Whether to collect benchmark metrics during compilation'),
+    priority: PrioritySchema.optional().describe('Request processing priority level'),
+    turnstileToken: z.string().optional().describe('Cloudflare Turnstile verification token'),
 });
 
 /**
@@ -198,13 +216,13 @@ export const CompileRequestSchema: z.ZodType<CompileRequestOutput> = z.object({
 export const BatchRequestSchema: z.ZodType<BatchRequestOutput> = z.object({
     requests: z.array(
         z.object({
-            id: z.string().min(1, 'id is required and must be a non-empty string'),
+            id: z.string().min(1, 'id is required and must be a non-empty string').describe('Unique identifier for the batch request item'),
             configuration: ConfigurationSchema,
             preFetchedContent: PreFetchedContentSchema,
-            benchmark: z.boolean().optional(),
+            benchmark: z.boolean().optional().describe('Whether to collect benchmark metrics for this item'),
         }),
-    ).nonempty('requests array must not be empty'),
-    priority: z.enum(['standard', 'high']).optional(),
+    ).nonempty('requests array must not be empty').describe('Array of compilation request items'),
+    priority: PrioritySchema.optional().describe('Batch processing priority level'),
 }).refine(
     (data) => {
         // Check for duplicate IDs
@@ -369,7 +387,7 @@ type CliArgumentsOutput = {
     verbose?: boolean;
     benchmark?: boolean;
     useQueue?: boolean;
-    priority?: 'standard' | 'high';
+    priority?: Priority;
     help?: boolean;
     version?: boolean;
 };
@@ -418,16 +436,16 @@ export type CompilationResultOutput = CompilationResultBaseOutput;
  * Present when benchmark mode is enabled during compilation.
  */
 export const BenchmarkMetricsSchema: z.ZodType<BenchmarkMetricsOutput> = z.object({
-    totalDurationMs: z.number().nonnegative(),
+    totalDurationMs: z.number().nonnegative().describe('Total end-to-end compilation duration in milliseconds'),
     stages: z.array(z.object({
-        name: z.string(),
-        durationMs: z.number().nonnegative(),
-        itemCount: z.number().int().nonnegative().optional(),
-        itemsPerSecond: z.number().nonnegative().optional(),
-    })),
-    sourceCount: z.number().int().nonnegative(),
-    ruleCount: z.number().int().nonnegative(),
-    outputRuleCount: z.number().int().nonnegative(),
+        name: z.string().describe('Stage name'),
+        durationMs: z.number().nonnegative().describe('Stage duration in milliseconds'),
+        itemCount: z.number().int().nonnegative().optional().describe('Number of items processed in this stage'),
+        itemsPerSecond: z.number().nonnegative().optional().describe('Processing throughput (items per second)'),
+    })).describe('Per-stage timing breakdown'),
+    sourceCount: z.number().int().nonnegative().describe('Number of sources processed'),
+    ruleCount: z.number().int().nonnegative().describe('Total number of input rules'),
+    outputRuleCount: z.number().int().nonnegative().describe('Number of rules in the final output'),
 });
 export type BenchmarkMetrics = BenchmarkMetricsOutput;
 
@@ -446,16 +464,16 @@ export const WorkerCompilationResultSchema: z.ZodType<WorkerCompilationResultOut
  * Schema for CLI arguments (matches ParsedArguments interface in ArgumentParser.ts)
  */
 export const CliArgumentsSchema: z.ZodType<CliArgumentsOutput> = z.object({
-    config: z.string().optional(),
-    input: z.array(z.string()).optional(),
-    inputType: z.enum(['adblock', 'hosts']).optional(),
-    output: z.string().optional(),
-    verbose: z.boolean().optional(),
-    benchmark: z.boolean().optional(),
-    useQueue: z.boolean().optional(),
-    priority: z.enum(['standard', 'high']).optional(),
-    help: z.boolean().optional(),
-    version: z.boolean().optional(),
+    config: z.string().optional().describe('Path to a configuration file (-c)'),
+    input: z.array(z.string()).optional().describe('Input filter list source URLs or paths (-i)'),
+    inputType: z.enum(['adblock', 'hosts']).optional().describe('Input format type'),
+    output: z.string().optional().describe('Output file path (-o)'),
+    verbose: z.boolean().optional().describe('Enable verbose logging'),
+    benchmark: z.boolean().optional().describe('Enable benchmark metrics collection'),
+    useQueue: z.boolean().optional().describe('Submit compilation job to the queue'),
+    priority: PrioritySchema.optional().describe('Job processing priority level'),
+    help: z.boolean().optional().describe('Show help information'),
+    version: z.boolean().optional().describe('Show version information'),
 }).refine(
     (args) => args.help || args.version || !!(args.input?.length || args.config),
     {
@@ -481,11 +499,11 @@ export type CliArguments = CliArgumentsOutput;
  * Schema for Worker environment bindings and runtime env vars
  */
 export const EnvironmentSchema: z.ZodType<EnvironmentOutput> = z.object({
-    TURNSTILE_SECRET_KEY: z.string().optional(),
-    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().optional(),
-    RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().optional(),
-    CACHE_TTL: z.coerce.number().int().positive().optional(),
-    LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).optional(),
+    TURNSTILE_SECRET_KEY: z.string().optional().describe('Cloudflare Turnstile secret key for bot protection'),
+    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().optional().describe('Maximum requests per rate-limit window'),
+    RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().optional().describe('Rate-limit window duration in milliseconds'),
+    CACHE_TTL: z.coerce.number().int().positive().optional().describe('Cache time-to-live in seconds'),
+    LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).optional().describe('Minimum log level to emit'),
 }).passthrough(); // Allow additional worker bindings
 export type Environment = EnvironmentOutput;
 

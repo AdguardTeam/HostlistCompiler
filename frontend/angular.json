@@ -3,7 +3,7 @@
     "version": 1,
     "newProjectRoot": "projects",
     "projects": {
-        "adblock-compiler-poc": {
+        "adblock-compiler": {
             "projectType": "application",
             "schematics": {
                 "@schematics/angular:component": {
@@ -17,7 +17,7 @@
                 "build": {
                     "builder": "@angular-devkit/build-angular:application",
                     "options": {
-                        "outputPath": "dist/adblock-compiler-poc",
+                        "outputPath": "dist/adblock-compiler",
                         "index": "src/index.html",
                         "browser": "src/main.ts",
                         "server": "src/main.server.ts",
@@ -72,10 +72,10 @@
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "configurations": {
                         "production": {
-                            "buildTarget": "adblock-compiler-poc:build:production"
+                            "buildTarget": "adblock-compiler:build:production"
                         },
                         "development": {
-                            "buildTarget": "adblock-compiler-poc:build:development"
+                            "buildTarget": "adblock-compiler:build:development"
                         }
                     },
                     "defaultConfiguration": "development"
@@ -83,7 +83,7 @@
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",
                     "options": {
-                        "buildTarget": "adblock-compiler-poc:build"
+                        "buildTarget": "adblock-compiler:build"
                     }
                 },
                 "lint": {
