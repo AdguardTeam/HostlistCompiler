@@ -56,7 +56,7 @@ function createPgPool(connectionString: string): {
                 pool = new Pool({ connectionString });
             } catch {
                 throw new Error(
-                    'pg module not available. Install with: npm install pg. ' +
+                    'pg module not available. Install with: pnpm add pg. ' +
                         'Ensure node_compat = true in wrangler.toml.',
                 );
             }

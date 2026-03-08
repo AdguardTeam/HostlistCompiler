@@ -60,19 +60,25 @@ WORKDIR /app
 # Stage 2: Angular frontend build
 FROM node:22-bookworm-slim AS frontend-builder
 
-WORKDIR /app/frontend
+# Enable corepack so that pnpm is available
+RUN corepack enable
 
-# Copy frontend package files
-COPY frontend/package.json frontend/package-lock.json ./
+WORKDIR /app
 
-# Install frontend dependencies (legacy-peer-deps avoids copying .npmrc into the image layer)
-RUN npm ci --legacy-peer-deps
+# Copy workspace manifest files so pnpm can resolve the lockfile
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Copy frontend source
-COPY frontend/ ./
+# Copy frontend package manifest (must exist before install)
+COPY frontend/package.json ./frontend/
+
+# Install only the frontend workspace dependencies using the shared lockfile
+RUN pnpm install --frozen-lockfile --filter adblock-compiler-frontend
+
+# Copy frontend source (node_modules excluded via .dockerignore)
+COPY frontend/ ./frontend/
 
 # Build Angular production bundle (SSR + browser assets)
-RUN npm run build
+RUN pnpm --filter adblock-compiler-frontend run build
 
 # Stage 3: Backend dependencies and build
 FROM node-base AS builder
@@ -154,4 +160,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8787/api || exit 1
 
 # Default command: run Wrangler dev server
-CMD ["npx", "wrangler", "dev", "--ip", "0.0.0.0", "--port", "8787"]
+CMD ["pnpm", "exec", "wrangler", "dev", "--ip", "0.0.0.0", "--port", "8787"]
