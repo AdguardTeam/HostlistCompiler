@@ -1,44 +1,45 @@
 # Adblock Compiler
 
-<!-- Primary Badges -->
+<!-- CI/CD & Build Status -->
+
+[![CI/CD Pipeline](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml)
+[![Docker](https://github.com/jaypatrick/adblock-compiler/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/jaypatrick/adblock-compiler/actions/workflows/docker-publish.yml)
+[![Build & Deploy mdBook](https://github.com/jaypatrick/adblock-compiler/actions/workflows/mdbook.yml/badge.svg)](https://github.com/jaypatrick/adblock-compiler/actions/workflows/mdbook.yml)
+[![codecov](https://codecov.io/gh/jaypatrick/adblock-compiler/branch/main/graph/badge.svg?token=LC5EYHK71O)](https://codecov.io/gh/jaypatrick/adblock-compiler)
+
+<!-- Package & Release -->
 
 [![JSR](https://jsr.io/badges/@jk-com/adblock-compiler)](https://jsr.io/@jk-com/adblock-compiler)
 [![JSR Score](https://jsr.io/badges/@jk-com/adblock-compiler/score)](https://jsr.io/@jk-com/adblock-compiler)
-[![CI/CD Pipeline](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/jaypatrick/adblock-compiler/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/jaypatrick/adblock-compiler/branch/main/graph/badge.svg?token=LC5EYHK71O)](https://codecov.io/gh/jaypatrick/adblock-compiler)
-[![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/releases)
-[![GitHub Tag](https://img.shields.io/github/v/tag/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/tags)
+[![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
-<!-- Platform & Service Badges -->
+<!-- Live Services & Deployment -->
 
 [![Web UI](https://img.shields.io/badge/Web%20UI-Live-brightgreen?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/)
 [![API](https://img.shields.io/badge/API-Live-blue?logo=cloudflare)](https://adblock-compiler.jayson-knight.workers.dev/api)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-6BA539?logo=openapiinitiative&logoColor=white)](docs/api/openapi.yaml)
-[![Deno](https://img.shields.io/badge/Deno-2.0+-black?logo=deno)](https://deno.land)
-[![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](#docker-deployment)
-[![Uptime](https://img.shields.io/website?url=https%3A%2F%2Fadblock-compiler.jayson-knight.workers.dev%2F&label=uptime)](https://adblock-compiler.jayson-knight.workers.dev/)
 [![Deployed on Cloudflare Workers](https://img.shields.io/badge/Deployed%20on-Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white)](https://adblock-compiler.jayson-knight.workers.dev/)
+[![Docker Image](https://img.shields.io/badge/ghcr.io-adblock--compiler-2496ED?logo=docker&logoColor=white)](https://github.com/jaypatrick/adblock-compiler/pkgs/container/adblock-compiler)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-6BA539?logo=openapiinitiative&logoColor=white)](docs/api/openapi.yaml)
 [![mdBook Docs](https://img.shields.io/badge/docs-mdBook-blue?logo=mdBook)](https://adblock-compiler.jayson-knight.workers.dev/docs)
 
-<!-- Security & Quality Badges -->
+<!-- Technology -->
 
-[![Known Vulnerabilities](https://snyk.io/test/github/jaypatrick/adblock-compiler/badge.svg)](https://snyk.io/test/github/jaypatrick/adblock-compiler)
+[![Deno](https://img.shields.io/badge/Deno-2.6.7+-black?logo=deno)](https://deno.land)
+[![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](#docker-deployment)
+
+<!-- Security & Code Quality -->
+
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/jaypatrick/adblock-compiler/badge)](https://scorecard.dev/viewer/?uri=github.com/jaypatrick/adblock-compiler)
 [![Last Commit](https://img.shields.io/github/last-commit/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/commits/main)
-[![Commit Activity](https://img.shields.io/github/commit-activity/m/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/commits/main)
 [![Repo Size](https://img.shields.io/github/repo-size/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler)
-[![Code Size](https://img.shields.io/github/languages/code-size/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler)
 [![Top Language](https://img.shields.io/github/languages/top/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler)
 
-<!-- Community & Stats Badges -->
+<!-- Community -->
 
 [![GitHub Stars](https://img.shields.io/github/stars/jaypatrick/adblock-compiler?style=social)](https://github.com/jaypatrick/adblock-compiler/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/jaypatrick/adblock-compiler?style=social)](https://github.com/jaypatrick/adblock-compiler/network/members)
 [![GitHub Issues](https://img.shields.io/github/issues/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/pulls)
-[![Contributors](https://img.shields.io/github/contributors/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/graphs/contributors)
-[![Watchers](https://img.shields.io/github/watchers/jaypatrick/adblock-compiler?style=social)](https://github.com/jaypatrick/adblock-compiler/watchers)
 [![Discussions](https://img.shields.io/github/discussions/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/discussions)
 [![Changelog](https://img.shields.io/badge/Changelog-CHANGELOG.md-blue)](CHANGELOG.md)
 
