@@ -79,6 +79,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.43.1] - 2026-03-08
+
+### Added### Fixed
+
+- regenerate package-lock.json to include wrangler@4.71.0 and dependencies
+- use --frozen-lockfile --ignore-workspace in Docker pnpm install
+- update Dockerfile and .dockerignore to use pnpm for root dependencies
+
+
 ## [0.43.0] - 2026-03-08
 
 ### Added- add JSDoc to all undocumented source files and integrate deno doc API reference with mdBook
