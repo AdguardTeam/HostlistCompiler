@@ -52,7 +52,10 @@
         "version:sync": "deno run --allow-read --allow-write scripts/sync-version.ts",
         "ui:build:ng": "pnpm --filter adblock-compiler-frontend run build",
         "ui:dev:ng": "pnpm --filter adblock-compiler-frontend run start",
-        "ui:test:ng": "pnpm --filter adblock-compiler-frontend run test"
+        "ui:test:ng": "pnpm --filter adblock-compiler-frontend run test",
+        "docs:api": "deno doc --html --name=\"AdBlock Compiler\" --output=book/api-reference src/index.ts",
+        "docs:build": "mdbook build && deno task docs:api",
+        "docs:serve": "mdbook serve"
     },
     "imports": {
         "@/": "./src/",

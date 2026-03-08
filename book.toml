@@ -7,5 +7,5 @@ src = "docs"
 site-url = "/docs/"
 git-repository-url = "https://github.com/jaypatrick/adblock-compiler"
 edit-url-template = "https://github.com/jaypatrick/adblock-compiler/edit/main/{path}"
-additional-css = ["theme/custom.css"]
-additional-js = ["theme/custom.js"]
+additional-css = ["docs/theme/custom.css"]
+additional-js = ["docs/theme/custom.js"]

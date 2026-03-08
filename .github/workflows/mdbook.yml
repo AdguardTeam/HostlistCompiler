@@ -6,6 +6,7 @@ on:
     paths:
       - 'docs/**'
       - 'book.toml'
+      - 'src/**/*.ts'
       - '.github/workflows/mdbook.yml'
 
 jobs:
@@ -22,8 +23,27 @@ jobs:
           sudo mv mdbook /usr/local/bin/
           rm mdbook.tar.gz
 
-      - name: Build
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Cache Deno dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/deno
+            ~/.deno
+          key: deno-docs-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+          restore-keys: |
+            deno-docs-${{ runner.os }}-
+            deno-${{ runner.os }}-
+
+      - name: Build mdBook
         run: mdbook build
+
+      - name: Generate TypeScript API reference
+        run: deno task docs:api
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1

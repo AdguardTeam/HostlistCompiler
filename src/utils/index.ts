@@ -1,3 +1,31 @@
+/**
+ * @module utils
+ * Utility library for the AdBlock Compiler.
+ *
+ * Provides a wide range of cross-cutting helpers grouped by concern:
+ *
+ * - **Rule utilities** – {@link RuleUtils}: classify, parse, and manipulate
+ *   individual adblock/hosts rule strings.
+ * - **AGTree parser** – {@link AGTreeParser}: full AST parsing of adblock rules via
+ *   `@adguard/agtree`, with re-exported types for every AST node shape.
+ * - **String utilities** – {@link StringUtils}: common string operations (trimming,
+ *   splitting, wildcard matching, punycode conversion, etc.).
+ * - **TLD utilities** – {@link TldUtils}: public-suffix list helpers.
+ * - **Wildcard** – {@link Wildcard}: glob-style pattern matching.
+ * - **Logging** – {@link Logger}, {@link StructuredLogger}, factory functions
+ *   (`createLogger`, `createLoggerFromEnv`), log levels, and module-level overrides.
+ * - **Error utilities** – {@link BaseError}, {@link CompilationError},
+ *   {@link NetworkError}, {@link SourceError}, {@link ValidationError}, and
+ *   {@link ErrorUtils} for extracting messages from unknown error values.
+ * - **Circuit breaker** – {@link CircuitBreaker}: resilience pattern with
+ *   configurable thresholds and half-open recovery.
+ * - **Boolean expression evaluator** – {@link evaluateBooleanExpression},
+ *   {@link getKnownPlatforms}, {@link isKnownPlatform}: evaluates preprocessor
+ *   `!if` directives in filter lists.
+ * - **Event emitter** – {@link CompilerEventEmitter}, {@link NoOpEventEmitter}:
+ *   observable progress/warning/error events during compilation.
+ * - **Benchmarking** – {@link BenchmarkResult} and related types.
+ */
 // Rule utilities
 export { RuleUtils } from './RuleUtils.ts';
 
