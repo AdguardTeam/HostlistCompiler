@@ -8,7 +8,6 @@
  * the rest of the codebase type-check clean.
  */
 
-// deno-lint-ignore-file no-explicit-any
 // @deno-types="./agents-types.d.ts"
 import { routeAgentRequest as _routeAgentRequest } from 'agents';
 
@@ -20,6 +19,6 @@ import { routeAgentRequest as _routeAgentRequest } from 'agents';
  * URL pattern: `/agents/{binding-kebab-case}/{agentId}`
  * Example SSE endpoint: `GET /agents/mcp-agent/default/sse`
  */
-export async function routeAgentRequest(request: Request, env: any): Promise<Response | null> {
+export async function routeAgentRequest(request: Request, env: unknown): Promise<Response | null> {
     return (await _routeAgentRequest(request, env)) ?? null;
 }
