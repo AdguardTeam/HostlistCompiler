@@ -537,7 +537,7 @@ const batchRequest = {
 };
 
 // Send synchronous batch request
-const response = await fetch('https://adblock-compiler.jk-com.workers.dev/compile/batch', {
+const response = await fetch('https://adblock-compiler.jayson-knight.workers.dev/compile/batch', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
@@ -644,7 +644,7 @@ async function compileBatchAsync() {
     };
     
     const queueResponse = await fetch(
-        'https://adblock-compiler.jk-com.workers.dev/compile/batch/async',
+        'https://adblock-compiler.jayson-knight.workers.dev/compile/batch/async',
         {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -666,7 +666,7 @@ async function compileBatchAsync() {
         await new Promise(resolve => setTimeout(resolve, 30000));
         
         const statusResponse = await fetch(
-            `https://adblock-compiler.jk-com.workers.dev/queue/results/${requestId}`
+            `https://adblock-compiler.jayson-knight.workers.dev/queue/results/${requestId}`
         );
         
         const statusData = await statusResponse.json();
@@ -706,7 +706,7 @@ import requests
 import time
 from typing import List, Dict
 
-BASE_URL = 'https://adblock-compiler.jk-com.workers.dev'
+BASE_URL = 'https://adblock-compiler.jayson-knight.workers.dev'
 
 def compile_batch_async(requests_data: List[Dict]) -> List[Dict]:
     """
@@ -802,7 +802,7 @@ if __name__ == '__main__':
 
 ```bash
 # Example: Synchronous batch compilation
-curl -X POST https://adblock-compiler.jk-com.workers.dev/compile/batch \
+curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile/batch \
   -H "Content-Type: application/json" \
   -d '{
     "requests": [
@@ -842,7 +842,7 @@ curl -X POST https://adblock-compiler.jk-com.workers.dev/compile/batch \
 # Example: Asynchronous batch compilation
 
 # Step 1: Queue the batch
-curl -X POST https://adblock-compiler.jk-com.workers.dev/compile/batch/async \
+curl -X POST https://adblock-compiler.jayson-knight.workers.dev/compile/batch/async \
   -H "Content-Type: application/json" \
   -d '{
     "requests": [
@@ -869,7 +869,7 @@ curl -X POST https://adblock-compiler.jk-com.workers.dev/compile/batch/async \
 # }
 
 # Step 2: Check status (wait 30 seconds, then run this)
-curl https://adblock-compiler.jk-com.workers.dev/queue/results/req-1704931200000-abc123
+curl https://adblock-compiler.jayson-knight.workers.dev/queue/results/req-1704931200000-abc123
 
 # If still processing, you'll get:
 # {
@@ -1212,7 +1212,7 @@ graph TB
 - 📖 [Full Documentation](./README.md)
 - 🐛 [GitHub Issues](https://github.com/jaypatrick/adblock-compiler/issues)
 - 💬 [Discussions](https://github.com/jaypatrick/adblock-compiler/discussions)
-- 🌐 [Live Demo](https://adblock-compiler.jk-com.workers.dev/)
+- 🌐 [Live Demo](https://adblock-compiler.jayson-knight.workers.dev/)
 
 ---
 

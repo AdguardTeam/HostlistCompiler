@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api
 
-Sitemap: https://adblock-compiler.jk-com.workers.dev/sitemap.xml
+Sitemap: https://adblock-compiler.jayson-knight.workers.dev/sitemap.xml
