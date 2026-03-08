@@ -35,6 +35,11 @@ docs/
 - [Migration Guide](guides/MIGRATION.md) - Migrating from @adguard/hostlist-compiler
 - [Troubleshooting](guides/TROUBLESHOOTING.md) - Common issues and solutions
 
+### Usage
+
+- [Configuration](usage/CONFIGURATION.md) - Configuration schema reference and examples
+- [Transformations](usage/TRANSFORMATIONS.md) - All 11 available transformations with examples
+
 ### API Reference
 
 - [API Documentation](api/README.md) - REST API reference
@@ -45,6 +50,7 @@ docs/
 - [Batch API Guide](api/BATCH_API_GUIDE.md) - 📊 Comprehensive guide with diagrams
 - [Zod Validation Guide](api/ZOD_VALIDATION.md) - Runtime validation with Zod schemas
 - [AGTree Integration](api/AGTREE_INTEGRATION.md) - AST-based adblock rule parsing with @adguard/agtree
+- [Platform Support](api/PLATFORM_SUPPORT.md) - Edge runtimes, Cloudflare Workers, browsers, and custom fetchers
 
 ### Cloudflare Worker
 
@@ -98,6 +104,8 @@ docs/
 - [Diagnostics](development/DIAGNOSTICS.md) - Event emission and tracing
 - [Benchmarks](development/benchmarks.md) - Performance benchmarking guide
 - [Code Review](development/CODE_REVIEW.md) - Code quality review and recommendations
+- [Structured Logging & OpenTelemetry](development/LOGGING.md) - Structured JSON logs, per-module levels, and distributed tracing
+- [Error Reporting](development/ERROR_REPORTING.md) - Centralized error tracking with Sentry and Cloudflare Analytics Engine
 
 ### Testing
 
