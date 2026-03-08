@@ -58,15 +58,16 @@ To preview locally:
 cargo install mdbook
 # or download binary: https://github.com/rust-lang/mdBook/releases
 
-# Build the full mdBook site + TypeScript API reference, then serve it
+# Build the full mdBook site + TypeScript API reference
 deno task docs:build
+# Then serve the mdBook output (does NOT regenerate the API reference)
 deno task docs:serve
 # → open http://localhost:3000
 
 # Or: generate only the TypeScript API reference (into book/api-reference/)
 deno task docs:api
 
-# Alternatively, use mdBook directly (does not include API reference)
+# Alternatively, use mdBook directly (mdBook-only, does NOT generate/update API reference)
 mdbook serve
 # → open http://localhost:3000
 ```
