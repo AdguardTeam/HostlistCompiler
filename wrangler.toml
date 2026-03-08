@@ -1,6 +1,8 @@
 name = "adblock-compiler"
 main = "worker/worker.ts"
 compatibility_date = "2026-01-01"
+# Enable Node.js compatibility for dependencies that import Node built-ins
+# (e.g. agents and @cloudflare/playwright-mcp use async_hooks and path).
 compatibility_flags = ["nodejs_compat"]
 
 # Enable the Workers runtime
