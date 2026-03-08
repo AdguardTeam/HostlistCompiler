@@ -37,6 +37,7 @@
   - [Code Review](development/CODE_REVIEW.md)
   - [Diagnostics](development/DIAGNOSTICS.md)
   - [Extensibility](development/EXTENSIBILITY.md)
+  - [Lines of Code Counter](development/COUNT_LOC.md)
 - [Frontend](frontend/README.md)
   - [Angular Frontend](frontend/ANGULAR_FRONTEND.md)
   - [SPA Benefits](frontend/SPA_BENEFITS.md)
