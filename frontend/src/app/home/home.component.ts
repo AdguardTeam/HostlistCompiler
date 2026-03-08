@@ -279,7 +279,7 @@ interface EndpointInfo {
     .dashboard-header h1 {
         font-size: 2rem;
         line-height: 1.2;
-        margin-bottom: 4px;
+        margin: 0 0 4px 0;
     }
     .header-actions { display: flex; gap: 8px; align-items: center; }
     .subtitle { color: var(--mat-sys-on-surface-variant); margin-bottom: 0; }
