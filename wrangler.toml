@@ -9,9 +9,8 @@ workers_dev = true
 # Builds Angular frontend and generates static assets for deployment.
 # Wrangler calls this command automatically on `wrangler deploy`.
 # Uses pnpm (declared as packageManager in package.json) because corepack blocks
-# npm when packageManager is set to pnpm.
-# The build:worker script runs `pnpm install && pnpm --filter adblock-compiler-frontend run build`
-# via pnpm's script runner, which handles && correctly in a shell.
+# npm when packageManager is set to pnpm. The build:worker script handles
+# dependency installation and the Angular frontend build.
 [build]
 command = "pnpm run build:worker"
 
