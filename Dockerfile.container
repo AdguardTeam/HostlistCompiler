@@ -1,0 +1,49 @@
+# Cloudflare Container image for AdblockCompiler
+#
+# This image runs inside Cloudflare Containers alongside the Workers runtime.
+# The AdblockCompiler Durable Object (worker/worker.ts) extends Container from
+# @cloudflare/containers and proxies requests to this server on port 8787.
+#
+# Build requirements:
+#   - Must target linux/amd64 (Cloudflare Containers only runs amd64 images)
+#   - Docker is required locally and in CI for `wrangler deploy`
+#
+# See docs/deployment/cloudflare-containers.md for full deployment instructions.
+
+ARG DENO_VERSION=2.6.7
+
+FROM denoland/deno:${DENO_VERSION}
+
+# Install curl for the HEALTHCHECK.
+# The denoland/deno base image does not ship with curl; we install it as root
+# (the image default) and then drop back down to the unprivileged "deno" user.
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy Deno configuration and lock file
+COPY deno.json deno.lock ./
+
+# Copy source code (compiler library and container server)
+COPY src ./src
+COPY worker/container-server.ts ./worker/container-server.ts
+
+# Pre-cache dependencies so the first request isn't slow
+RUN deno cache --allow-import worker/container-server.ts
+
+# Drop privileges - the deno image already provides the "deno" user
+RUN chown -R deno:deno /app
+
+USER deno
+
+# Port the container server listens on (must match AdblockCompiler.defaultPort)
+EXPOSE 8787
+
+ENV PORT=8787
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8787/health || exit 1
+
+CMD ["deno", "run", "--allow-net", "--allow-read", "--allow-env", "worker/container-server.ts"]
