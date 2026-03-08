@@ -50,7 +50,7 @@
 
 ## 📚 Documentation
 
-The full project documentation is available at **[adblock-compiler.jk-com.workers.dev/docs](https://adblock-compiler.jk-com.workers.dev/docs)** (coming soon via Cloudflare Pages).
+The full project documentation is available at **[adblock-compiler.jk-com.workers.dev/docs](https://adblock-compiler.jk-com.workers.dev/docs)**.
 
 To preview locally:
 ```bash
