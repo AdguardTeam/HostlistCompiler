@@ -1,6 +1,7 @@
 name = "adblock-compiler"
 main = "worker/worker.ts"
 compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
 
 # Enable the Workers runtime
 workers_dev = true
