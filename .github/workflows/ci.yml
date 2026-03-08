@@ -483,6 +483,14 @@ jobs:
                       elif echo "$output" | grep -qiE '\balready applied\b'; then
                           echo "⏭️  Already applied: $file"
                           echo "$output"
+                      elif echo "$output" | grep -qiE 'Authentication error'; then
+                          echo "❌ Migration failed: $file"
+                          echo "$output"
+                          echo ""
+                          echo "🔐 CLOUDFLARE_API_TOKEN is missing D1:Edit permission."
+                          echo "   Update your API token at: https://dash.cloudflare.com/profile/api-tokens"
+                          echo "   Required permissions: D1:Edit (for database migrations)"
+                          exit 1
                       else
                           echo "❌ Migration failed: $file"
                           echo "$output"
