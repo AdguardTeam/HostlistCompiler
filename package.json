@@ -20,7 +20,6 @@
     "devDependencies": {
         "@cloudflare/playwright": "^1.1.1",
         "@cloudflare/playwright-mcp": "^0.0.5",
-        "agents": "^0.7.5",
         "wrangler": "^4.71.0"
     }
 }

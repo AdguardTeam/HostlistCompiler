@@ -1,25 +1,43 @@
 /**
- * Thin wrapper around the `agents` SDK's `routeAgentRequest` helper.
+ * Minimal, dependency-free Durable Object agent request router.
  *
- * The `agents` package ships a very large type graph (partyserver, partysocket,
- * ai-sdk, MCP SDK, …) that causes Deno's TypeScript checker to overflow its call
- * stack when the import is resolved together with the rest of worker.ts.
- * The `@deno-types` pragma below redirects Deno to minimal type stubs, keeping
- * the rest of the codebase type-check clean.
+ * Routes requests matching `/agents/{name}/{instanceId}[/…]` to the
+ * corresponding Durable Object binding in `env`, with no Node.js built-in
+ * dependencies (avoids `async_hooks`, `path`, etc. that the `agents` SDK
+ * pulls in and that break wrangler's esbuild bundler).
  */
 
-// deno-lint-ignore-file no-explicit-any
-// @deno-types="./agents-types.d.ts"
-import { routeAgentRequest as _routeAgentRequest } from 'agents';
+import type { Env } from './types.ts';
+
+/** Matches `/agents/<agentName>/<instanceId>[/rest]` */
+const AGENT_PATH_RE = /^\/agents\/([^/]+)\/([^/]+)(\/.*)?$/;
 
 /**
- * Routes incoming requests to the appropriate Durable Object agent (e.g. the
- * Playwright MCP Agent) and returns the agent's Response, or `null` when the
- * URL does not match an agents path.
+ * Converts a kebab-case agent name (from the URL segment) to the
+ * UPPER_SNAKE_CASE Env binding key.
+ * e.g. `mcp-agent` → `MCP_AGENT`
+ */
+export function agentNameToBindingKey(name: string): string {
+    return name.replace(/-/g, '_').toUpperCase();
+}
+
+/**
+ * Routes incoming requests to the appropriate Durable Object agent and returns
+ * the agent's Response, or `null` when the URL does not match an agents path.
  *
- * URL pattern: `/agents/{binding-kebab-case}/{agentId}`
+ * URL pattern: `/agents/{binding-kebab-case}/{agentId}[/*]`
  * Example SSE endpoint: `GET /agents/mcp-agent/default/sse`
  */
-export async function routeAgentRequest(request: Request, env: any): Promise<Response | null> {
-    return (await _routeAgentRequest(request, env)) ?? null;
+export async function routeAgentRequest(request: Request, env: Env): Promise<Response | null> {
+    const url = new URL(request.url);
+    const match = url.pathname.match(AGENT_PATH_RE);
+    if (!match) return null;
+
+    const [, agentName, instanceId] = match;
+    const bindingKey = agentNameToBindingKey(agentName) as keyof Env;
+    const ns = env[bindingKey] as DurableObjectNamespace | undefined;
+    if (!ns) return null;
+
+    const stub = ns.get(ns.idFromName(instanceId));
+    return stub.fetch(request);
 }
