@@ -28,49 +28,29 @@ import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessa
 import { Container } from '@cloudflare/containers';
 
 /**
- * AdblockCompiler Cloudflare Container.
+ * Cloudflare Container-enabled Durable Object for the Adblock Compiler.
  *
- * Extends the Container Durable Object so that Wrangler can build and push the
- * Docker image defined in Dockerfile.container and spawn container instances
- * on-demand. The Worker proxies heavy compilation requests to the container
- * via the ADBLOCK_COMPILER Durable Object binding.
- *
- * @see https://developers.cloudflare.com/containers/
- * @see https://github.com/cloudflare/containers
+ * Each instance manages a single Docker container running the Wrangler dev
+ * server (or a production-optimized equivalent) on port 8787.
+ * Requests to this Durable Object are proxied to the container via
+ * the `Container.fetch` base-class implementation.
  */
 export class AdblockCompiler extends Container {
-    /** Port the container server listens on (matches Dockerfile.container EXPOSE). */
     override defaultPort = 8787;
-
-    /** Stop the container instance after 10 minutes of inactivity. */
+    /** Stop the container after 10 minutes of inactivity to reduce cost. */
     override sleepAfter = '10m';
 
-    /**
-     * Called when the container starts successfully.
-     * Logs the start event for observability.
-     */
     override onStart(): void {
         console.log('[AdblockCompiler] Container started');
     }
 
-    /**
-     * Called when the container shuts down.
-     * Logs the stop event including exit code and reason.
-     * @param _ - Exit code and reason for the stop
-     */
     override onStop(_: { exitCode: number; reason: string }): void {
         console.log('[AdblockCompiler] Container stopped');
     }
 
-    /**
-     * Called when an unrecoverable container error occurs.
-     * Logs the error for debugging; re-throwing is not required.
-     * @param error - The error that occurred
-     */
     override onError(error: unknown): void {
         console.error('[AdblockCompiler] Container error:', error instanceof Error ? error.message : String(error));
     }
-}
 
 import { createTracingContext, type DiagnosticEvent, type ICompilerEvents, type IConfiguration, WorkerCompiler } from '../src/index.ts';
 import { WORKER_DEFAULTS } from '../src/config/defaults.ts';

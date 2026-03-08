@@ -60,6 +60,16 @@ bucket_name = "adblock-compiler-r2-storage"
 [[containers]]
 class_name = "AdblockCompiler"
 image = "./Dockerfile.container"
+# ============================================================================
+# Cloudflare Containers
+# ============================================================================
+# Each AdblockCompiler Durable Object manages a single Docker container.
+# Wrangler builds and pushes the image automatically on `wrangler deploy`.
+# Requires Docker to be running locally or in CI.
+# See: https://developers.cloudflare.com/containers/
+[[containers]]
+class_name = "AdblockCompiler"
+image = "./Dockerfile"
 max_instances = 5
 instance_type = "basic"
 
