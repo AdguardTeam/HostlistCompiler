@@ -102,12 +102,11 @@ Deno.test({
 
         const data = (await response.json()) as any;
 
-        // API contract: { success, data: DeploymentInfo | { version, message } }
+        // API contract: { success, version, ... } - data is spread at top level
         assertExists(data.success);
-        assertExists(data.data);
 
         if (data.success === true) {
-            assertExists(data.data.version);
+            assertExists(data.version);
             // deployedAt may not exist if no deployment history available
         }
     },

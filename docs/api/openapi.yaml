@@ -1244,33 +1244,71 @@ components:
         # Version and Deployment Schemas
         VersionResponse:
             type: object
+            required:
+                - success
+                - version
             properties:
                 success:
                     type: boolean
-                data:
-                    type: object
-                    description: Latest deployment record from history, or fallback version information if no deployment history exists
-                    additionalProperties: true
+                version:
+                    type: string
+                    description: Semantic version string
+                buildNumber:
+                    type: integer
+                fullVersion:
+                    type: string
+                    description: Full version string including build number
+                gitCommit:
+                    type: string
+                gitBranch:
+                    type: string
+                deployedAt:
+                    type: string
+                    format: date-time
+                deployedBy:
+                    type: string
+                status:
+                    type: string
+                message:
+                    type: string
+                    description: Present when no deployment history is available
 
         DeploymentHistoryResponse:
             type: object
+            required:
+                - success
+                - deployments
+                - count
             properties:
                 success:
                     type: boolean
-                data:
+                deployments:
                     type: array
                     items:
-                        type: object
+                        $ref: '#/components/schemas/DeploymentInfo'
+                count:
+                    type: integer
+                    description: Total number of deployments returned
 
         DeploymentStatsResponse:
             type: object
+            required:
+                - success
+                - totalDeployments
+                - successfulDeployments
+                - failedDeployments
             properties:
                 success:
                     type: boolean
-                data:
-                    type: object
-                    description: Aggregated deployment statistics (structure varies by implementation)
-                    additionalProperties: true
+                totalDeployments:
+                    type: integer
+                successfulDeployments:
+                    type: integer
+                failedDeployments:
+                    type: integer
+                latestVersion:
+                    type: string
+                    nullable: true
 
         TurnstileConfigResponse:
             type: object
@@ -1282,6 +1320,40 @@ components:
                 enabled:
                     type: boolean
                     description: Whether Turnstile verification is enabled
+
+        DeploymentInfo:
+            type: object
+            required:
+                - version
+                - buildNumber
+                - fullVersion
+                - gitCommit
+                - gitBranch
+                - deployedAt
+                - deployedBy
+                - status
+            properties:
+                version:
+                    type: string
+                buildNumber:
+                    type: integer
+                fullVersion:
+                    type: string
+                gitCommit:
+                    type: string
+                gitBranch:
+                    type: string
+                deployedAt:
+                    type: string
+                    format: date-time
+                deployedBy:
+                    type: string
+                status:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties: true
+                    nullable: true
 
         # Queue History Schemas
         QueueHistoryResponse:
@@ -1609,11 +1681,18 @@ components:
                 message:
                     type: string
                     description: Present when no health data is available
-                data:
-                    type: object
+                checkedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp of the latest health check
                     nullable: true
-                    description: Latest health monitoring results (includes source status, timestamps, error details, rule counts)
-                    additionalProperties: true
+                sources:
+                    type: array
+                    description: Per-source health status results
+                    nullable: true
+                    items:
+                        type: object
+                        additionalProperties: true
 
         # WebSocket Message Schemas
         WsCompileRequest:
