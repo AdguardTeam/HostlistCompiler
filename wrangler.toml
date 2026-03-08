@@ -49,7 +49,7 @@ id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace cr
 binding = "FILTER_STORAGE"
 bucket_name = "adblock-compiler-r2-storage"
 
-# Durable Objects - uncomment if using DO for state management
+# Durable Objects bindings
 [[durable_objects.bindings]]
 class_name = "AdblockCompiler"
 name = "ADBLOCK_COMPILER"
