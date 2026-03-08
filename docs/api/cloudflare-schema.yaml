@@ -1621,33 +1621,69 @@ components:
                     type: object
         VersionResponse:
             type: object
+            required:
+                - success
+                - version
             properties:
                 success:
                     type: boolean
-                data:
-                    type: object
-                    description: >-
-                        Latest deployment record from history, or fallback version information if no deployment history
-                        exists
-                    additionalProperties: true
+                version:
+                    type: string
+                    description: Semantic version string
+                buildNumber:
+                    type: integer
+                fullVersion:
+                    type: string
+                    description: Full version string including build number
+                gitCommit:
+                    type: string
+                gitBranch:
+                    type: string
+                deployedAt:
+                    type: string
+                    description: 'Deployment timestamp as stored by SQLite datetime(''now'') in ''YYYY-MM-DD HH:MM:SS'' format'
+                deployedBy:
+                    type: string
+                status:
+                    type: string
+                message:
+                    type: string
+                    description: Present when no deployment history is available
         DeploymentHistoryResponse:
             type: object
+            required:
+                - success
+                - deployments
+                - count
             properties:
                 success:
                     type: boolean
-                data:
+                deployments:
                     type: array
                     items:
-                        type: object
+                        $ref: '#/components/schemas/DeploymentInfo'
+                count:
+                    type: integer
+                    description: Total number of deployments returned
         DeploymentStatsResponse:
             type: object
+            required:
+                - success
+                - totalDeployments
+                - successfulDeployments
+                - failedDeployments
             properties:
                 success:
                     type: boolean
-                data:
-                    type: object
-                    description: Aggregated deployment statistics (structure varies by implementation)
-                    additionalProperties: true
+                totalDeployments:
+                    type: integer
+                successfulDeployments:
+                    type: integer
+                failedDeployments:
+                    type: integer
+                latestVersion:
+                    type: string
+                    nullable: true
         TurnstileConfigResponse:
             type: object
             properties:
@@ -1658,6 +1694,39 @@ components:
                 enabled:
                     type: boolean
                     description: Whether Turnstile verification is enabled
+        DeploymentInfo:
+            type: object
+            required:
+                - version
+                - buildNumber
+                - fullVersion
+                - gitCommit
+                - gitBranch
+                - deployedAt
+                - deployedBy
+                - status
+            properties:
+                version:
+                    type: string
+                buildNumber:
+                    type: integer
+                fullVersion:
+                    type: string
+                gitCommit:
+                    type: string
+                gitBranch:
+                    type: string
+                deployedAt:
+                    type: string
+                    description: 'Deployment timestamp as stored by SQLite datetime(''now'') in ''YYYY-MM-DD HH:MM:SS'' format'
+                deployedBy:
+                    type: string
+                status:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties: true
+                    nullable: true
         QueueHistoryResponse:
             type: object
             properties:
@@ -1968,19 +2037,65 @@ components:
                     additionalProperties: true
         HealthLatestResponse:
             type: object
+            required:
+                - success
             properties:
                 success:
                     type: boolean
                 message:
                     type: string
                     description: Present when no health data is available
-                data:
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: ISO timestamp of when this health check ran
+                runId:
+                    type: string
+                    description: Unique identifier for the health monitoring workflow run
+                results:
+                    type: array
+                    description: Per-source health check results
+                    items:
+                        $ref: '#/components/schemas/SourceHealthResult'
+                summary:
                     type: object
+                    description: Aggregate counts for the health check run
+                    properties:
+                        total:
+                            type: integer
+                        healthy:
+                            type: integer
+                        unhealthy:
+                            type: integer
+        SourceHealthResult:
+            type: object
+            required:
+                - name
+                - url
+                - healthy
+                - lastChecked
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                healthy:
+                    type: boolean
+                statusCode:
+                    type: integer
                     nullable: true
-                    description: >-
-                        Latest health monitoring results (includes source status, timestamps, error details, rule
-                        counts)
-                    additionalProperties: true
+                responseTimeMs:
+                    type: number
+                    nullable: true
+                ruleCount:
+                    type: integer
+                    nullable: true
+                error:
+                    type: string
+                    nullable: true
+                lastChecked:
+                    type: string
+                    format: date-time
         HealthResponse:
             type: object
             properties:
