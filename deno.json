@@ -44,6 +44,7 @@
         "wrangler": "deno run -A npm:wrangler",
         "wrangler:dev": "deno run -A npm:wrangler dev",
         "wrangler:deploy": "deno run -A npm:wrangler deploy",
+        "wrangler:verify": "deno run -A npm:wrangler deploy --dry-run",
         "wrangler:tail": "deno run -A npm:wrangler tail",
         "wrangler:tail:deploy": "deno run -A npm:wrangler deploy --config wrangler.tail.toml",
         "wrangler:tail:dev": "deno run -A npm:wrangler dev --config wrangler.tail.toml",

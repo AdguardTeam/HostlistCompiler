@@ -433,6 +433,52 @@ jobs:
                   fi
                   echo "Successfully published to JSR"
 
+    # Verify the worker builds correctly on every PR — catches build failures
+    # before they reach main. No secrets required; --dry-run bundles without
+    # uploading to Cloudflare.
+    verify-deploy:
+        name: Verify Worker Build
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        needs: [ci-gate, frontend-build]
+        if: github.event_name == 'pull_request'
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Load environment variables
+              uses: ./.github/actions/setup-env
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
+            - name: Install Deno dependencies
+              run: |
+                  for i in 1 2 3; do
+                      deno install && break
+                      if [ "$i" -lt 3 ]; then
+                          echo "Attempt $i failed, retrying in 10s..."
+                          sleep 10
+                      else
+                          echo "All 3 attempts failed."
+                          exit 1
+                      fi
+                  done
+              env:
+                  DENO_TLS_CA_STORE: system
+
+            - name: Download frontend build artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-dist
+                  path: frontend/dist/
+
+            - name: Verify worker build (dry run)
+              run: deno task wrangler:verify
+
     # Deploy jobs only run on main pushes
     deploy:
         name: Deploy to Cloudflare
