@@ -80,6 +80,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.44.0] - 2026-03-08
+
+### Added- validate openapi.yaml in CI and update Postman collection with new endpoints
+- update Cloudflare container integration with @cloudflare/containers
+- **worker**: add Playwright MCP agent via @cloudflare/playwright-mcp (#760)
+
+### Fixed
+
+- replace agents SDK with native DO routing to avoid Node built-ins
+- remove incorrect format: date-time from SQLite deployedAt fields in VersionResponse and DeploymentInfo schemas
+- update AdblockCompiler comment to accurately describe DO request forwarding
+- **review**: apply PR review feedback - type safety, pinned deps, wrangler cleanup
+- **wrangler**: add nodejs_compat flag to fix CI worker build errors
+
+
 ## [0.43.1] - 2026-03-08
 
 ### Added### Fixed
