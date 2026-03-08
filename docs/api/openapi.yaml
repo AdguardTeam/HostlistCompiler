@@ -1599,7 +1599,7 @@ components:
                     type: string
                 deployedAt:
                     type: string
-                    format: date-time
+                    description: "Deployment timestamp as stored by SQLite datetime('now') in 'YYYY-MM-DD HH:MM:SS' format"
                 deployedBy:
                     type: string
                 status:
@@ -1680,7 +1680,7 @@ components:
                     type: string
                 deployedAt:
                     type: string
-                    format: date-time
+                    description: "Deployment timestamp as stored by SQLite datetime('now') in 'YYYY-MM-DD HH:MM:SS' format"
                 deployedBy:
                     type: string
                 status:
