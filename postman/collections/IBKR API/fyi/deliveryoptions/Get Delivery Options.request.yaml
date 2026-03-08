@@ -4,5 +4,5 @@ url: "{{baseUrl}}/fyi/deliveryoptions"
 method: GET
 headers:
   Accept: application/json
-examples: ./.resources/Get Delivery OptionsCopy Location.resources/examples
+examples: ./.resources/Get Delivery Options.resources/examples
 order: 4000

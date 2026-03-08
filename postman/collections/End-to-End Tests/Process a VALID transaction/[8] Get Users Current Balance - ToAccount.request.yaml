@@ -7,9 +7,6 @@ headers:
   Content-Type: application/json
 pathVariables:
   accountId: "{{e2e_user_account_id_to}}"
-body:
-  type: text
-  content: ""
 scripts:
   - type: afterResponse
     code: >+
@@ -17,7 +14,7 @@ scripts:
           account_id = parseInt(pm.collectionVariables.get("e2e_user_account_id_to")),
           owner = pm.collectionVariables.get("e2e_user_name_to");
 
-      pm.test("Should contain a account 'object' in the response", function () {
+      pm.test("Should contain an account 'object' in the response", function () {
           pm.expect(response.account).to.be.an('object');
       });
 
