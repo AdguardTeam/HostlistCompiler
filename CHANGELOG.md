@@ -77,6 +77,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.42.0] - 2026-03-07
+
+### Added- replace npm/npx with pnpm/deno-native equivalents in deno.json and CI deploy
+
+### Fixed
+
+- address PR review - lockfile, duplicate CI jobs, Pages deploy, and docs
+- resolve pnpm version conflict and deno fmt failures in CI
+- derive curl example URL from request origin in fallback HTML pages
+
+
 ## [0.41.0] - 2026-03-07
 
 ### Added- integrate Cloudflare Tail Worker (adblock-compiler-tail) into CI deploy pipeline
