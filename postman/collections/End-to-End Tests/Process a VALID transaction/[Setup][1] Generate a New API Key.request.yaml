@@ -11,7 +11,7 @@ scripts:
       let response = pm.response.json();
 
 
-      pm.test("Should return a object", function () {
+      pm.test("Should return an object", function () {
           pm.expect(response, 'The response is not an object').to.be.an('object');
       });
 
