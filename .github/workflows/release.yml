@@ -37,7 +37,6 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
@@ -49,10 +48,10 @@ jobs:
               env:
                   DENO_TLS_CA_STORE: system
 
+            # fmt and lint are already enforced by ci.yml before any tag reaches here;
+            # only type-check and test are needed as a safety net at release time.
             - name: Run validation
               run: |
-                  deno fmt --check
-                  deno lint
                   deno check src/index.ts src/cli.ts
                   deno test --allow-read --allow-write --allow-net --allow-env
 
@@ -93,7 +92,6 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                      node_modules
                   key: deno-${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-${{ matrix.target }}-

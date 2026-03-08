@@ -12,8 +12,16 @@ on:
     branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
+    paths:
+      - 'Dockerfile'
+      - 'src/**'
+      - 'worker/**'
+      - 'deno.json'
+      - 'deno.lock'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'Dockerfile'
 
 env:
   # Use docker.io for Docker Hub if empty

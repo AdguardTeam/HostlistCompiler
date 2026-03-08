@@ -15,9 +15,10 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    lint:
-        name: Lint
+    lint-format:
+        name: Lint & Format Check
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         permissions:
             contents: read
         steps:
@@ -34,7 +35,6 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
@@ -42,35 +42,13 @@ jobs:
             - name: Lint
               run: deno lint
 
-    format:
-        name: Format Check
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
-              with:
-                  deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
-
             - name: Format check
               run: deno fmt --check
 
     typecheck:
         name: Type Check
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         permissions:
             contents: read
         steps:
@@ -87,7 +65,6 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
@@ -105,6 +82,7 @@ jobs:
     test:
         name: Test
         runs-on: ubuntu-latest
+        timeout-minutes: 20
         permissions:
             contents: read
         steps:
@@ -124,7 +102,6 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
@@ -149,6 +126,7 @@ jobs:
     upload-coverage:
         name: Upload Coverage
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         needs: [test]
         if: >-
             (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
@@ -174,6 +152,7 @@ jobs:
     security:
         name: Security Scan
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         # Security scan should not block deployments
         continue-on-error: true
         permissions:
@@ -199,12 +178,10 @@ jobs:
               with:
                   sarif_file: trivy-results.sarif
 
-    # Merged from the former separate `frontend` (lint+test) and `frontend-build`
-    # jobs. A single pnpm install now covers lint, test, and build, eliminating
-    # the duplicate install that previously ran in parallel jobs.
-    frontend-build:
-        name: Frontend (lint, test, build)
+    frontend-lint-test:
+        name: Frontend (lint, test)
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         permissions:
             contents: read
         steps:
@@ -228,16 +205,6 @@ jobs:
             - name: Test frontend with coverage
               run: pnpm --filter adblock-compiler-frontend run test:coverage
 
-            - name: Build Angular frontend
-              run: pnpm --filter adblock-compiler-frontend run build
-
-            - name: Upload frontend build artifact
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-              with:
-                  name: frontend-dist
-                  path: frontend/dist/
-                  retention-days: 1
-
             - name: Upload frontend coverage to Codecov
               if: >-
                   (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
@@ -251,9 +218,41 @@ jobs:
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+    frontend-build:
+        name: Frontend (build)
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build Angular frontend
+              run: pnpm --filter adblock-compiler-frontend run build
+
+            - name: Upload frontend build artifact
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: frontend-dist
+                  path: frontend/dist/
+                  retention-days: 1
+
     validate-cloudflare-schema:
         name: Validate Cloudflare Schema
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         permissions:
             contents: read
         steps:
@@ -296,12 +295,13 @@ jobs:
     ci-gate:
         name: CI Gate
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         needs:
-            - lint
-            - format
+            - lint-format
             - typecheck
             - test
             - validate-cloudflare-schema
+            - frontend-lint-test
             - frontend-build
             - verify-deploy
         if: ${{ always() && !cancelled() }}
@@ -327,7 +327,8 @@ jobs:
     publish:
         name: Publish to JSR
         runs-on: ubuntu-latest
-        needs: [ci-gate, frontend-build]
+        timeout-minutes: 10
+        needs: [ci-gate, frontend-lint-test, frontend-build]
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         permissions:
             contents: read
@@ -346,7 +347,6 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
@@ -397,7 +397,6 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
@@ -419,7 +418,7 @@ jobs:
         name: Deploy to Cloudflare
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        needs: [ci-gate, frontend-build]
+        needs: [ci-gate, frontend-lint-test, frontend-build]
         if: |
             github.event_name == 'push' &&
             github.ref == 'refs/heads/main'
@@ -445,7 +444,6 @@ jobs:
                   path: |
                       ~/.cache/deno
                       ~/.deno
-                      node_modules
                   key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
                   restore-keys: |
                       deno-${{ runner.os }}-
