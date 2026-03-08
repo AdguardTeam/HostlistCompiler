@@ -22,22 +22,43 @@ The repository uses four main workflows:
 1. **Lint** - Code linting with Deno
 2. **Format** - Code formatting check with Deno
 3. **Type Check** - TypeScript type checking for all entry points
-4. **Test** - Run test suite with coverage
+4. **Test** - Run test suite with coverage; coverage artifact uploaded on both PRs and main push
 5. **Security** - Trivy vulnerability scanning
+6. **Frontend Build** - Angular frontend lint, test, build, and artifact upload (single merged job)
+7. **Validate Cloudflare Schema** - Validates `wrangler.toml` schema
 
 #### Sequential Jobs (run after quality checks pass)
 
-6. **Publish** - Publish to JSR (main only, after all checks pass)
-7. **Deploy** - Deploy to Cloudflare (main only, when enabled, after all checks pass)
+8. **Verify Deploy** - Cloudflare Worker build dry-run (`wrangler deploy --dry-run`); runs on PRs only, uses the frontend artifact from `frontend-build`
+9. **CI Gate** - Python script verifying all upstream jobs passed or were acceptably skipped; blocks publish and deploy
+10. **Publish** - Publish to JSR (main only, after CI gate passes)
+11. **Deploy** - Deploy to Cloudflare (main only, when enabled, after CI gate passes)
+
+### Composite Actions
+
+A reusable composite action handles Deno dependency installation with a 3-attempt retry loop and `DENO_TLS_CA_STORE=system`:
+
+```yaml
+# Used in all jobs that require Deno deps
+- uses: ./.github/actions/deno-install
+```
+
+The action is defined in `.github/actions/deno-install/action.yml` and is used by the `typecheck`, `test`, `publish`, `verify-deploy`, and `deploy` jobs.
 
 ### Key Improvements
 
 - ✅ **Parallelization**: Lint, format, typecheck, test, and security scans run simultaneously
-- ✅ **Proper Gating**: Publish and deploy only happen after ALL checks pass
+- ✅ **Proper Gating**: `ci-gate` blocks publish/deploy until lint, format, typecheck, test, security, frontend-build, and verify-deploy all pass
+- ✅ **Worker Build Verified on PRs**: `verify-deploy` runs a Cloudflare Worker dry-run on every PR so Worker build failures are caught before merge
+- ✅ **Composite Action**: `deno install` retry logic extracted to `.github/actions/deno-install` — no duplication across jobs
+- ✅ **Merged Frontend Jobs**: `frontend` (lint+test) and `frontend-build` (build+artifact) are now a single `frontend-build` job — one `pnpm install` per run
+- ✅ **Frozen Lockfile**: `pnpm install --frozen-lockfile` enforced — CI fails if `pnpm-lock.yaml` drifts from `package.json`
+- ✅ **Coverage on PRs**: Test coverage artifact uploaded on pull requests, not just main push
+- ✅ **SHA-Pinned Actions**: All third-party actions pinned to full commit SHAs with version comments (supply-chain hardening)
 - ✅ **Better Caching**: Includes `deno.lock` in cache key for more precise invalidation
 - ✅ **Comprehensive Type Checking**: Checks all entry points (index.ts, cli.ts, worker.ts, tail.ts)
 - ✅ **Consolidated Deployment**: Combined Worker and Pages deployment into single job
-- ✅ **Cleaner Resource Setup**: Improved Cloudflare resource creation with better error messages
+- ✅ **Migration Error Handling**: `run_migration()` shell function distinguishes real errors from "already applied" idempotency messages
 
 ### Performance Gains
 
@@ -237,3 +258,4 @@ Potential areas for further optimization:
 - [ ] Consider splitting test job by test type (unit vs integration)
 - [ ] Add benchmark tracking over time
 - [ ] Add automatic changelog generation
+- [ ] Add path-based filtering to skip frontend-build on backend-only PRs (currently blocked by verify-deploy's artifact dependency)

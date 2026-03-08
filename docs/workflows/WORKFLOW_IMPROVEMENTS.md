@@ -11,7 +11,59 @@ The workflows have been rewritten to:
 - ✅ **Be more maintainable** with clearer structure
 - ✅ **Follow best practices** with proper gating and permissions
 
-## CI Workflow Improvements
+## CI Workflow Improvements (Round 2)
+
+Eight additional enhancements landed in [PR #788](https://github.com/jaypatrick/adblock-compiler/pull/788):
+
+### Before → After Comparison
+
+| Aspect | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| **deno install** | 12-line retry block duplicated in 5 jobs | Composite action `.github/actions/deno-install` | **No duplication** |
+| **Worker build on PRs** | Not verified until deploy to main | `verify-deploy` dry-run on every PR | **Catch failures before merge** |
+| **Frontend jobs** | Two separate jobs (`frontend` + `frontend-build`) | Single `frontend-build` job | **One `pnpm install` per run** |
+| **pnpm lockfile** | `--no-frozen-lockfile` (silent drift) | `--frozen-lockfile` (fails on drift) | **Enforced consistency** |
+| **Coverage upload** | Main push only | PRs and main push | **Coverage visible on PRs** |
+| **Action versions** | Floating tags (`@v4`) | Full commit SHAs + comments | **Supply-chain hardened** |
+| **Migration errors** | `\|\| echo "already applied or failed"` silenced real errors | `run_migration()` function parses output | **Real errors fail the step** |
+| **Dead code** | `detect-changes` job (always returned true) | Removed | **Cleaner pipeline** |
+
+### New Job: `verify-deploy`
+
+Runs a Cloudflare Worker build dry-run on every pull request:
+
+```yaml
+# Runs on PRs only — uses the frontend artifact from frontend-build
+verify-deploy:
+    needs: [frontend-build]
+    if: github.event_name == 'pull_request'
+    steps:
+        - uses: ./.github/actions/deno-install
+        - run: deno task wrangler:deploy:dry-run
+```
+
+The `ci-gate` job includes `verify-deploy` in its `needs` list, so a failing Worker build blocks merge.
+
+### Composite Action: `deno-install`
+
+Extracted the 3-attempt `deno install` retry loop into a reusable composite action:
+
+```yaml
+# .github/actions/deno-install/action.yml
+steps:
+    - name: Install dependencies
+      env:
+          DENO_TLS_CA_STORE: system
+      run: |
+          for attempt in 1 2 3; do
+              deno install && break || [ $attempt -lt 3 ] || exit 1
+              sleep $((attempt * 5))
+          done
+```
+
+---
+
+## CI Workflow Improvements (Round 1)
 
 ### Before → After Comparison
 
@@ -191,6 +243,9 @@ restore-keys: |
 ✅ **Idempotency**: Workflows can be safely re-run
 ✅ **Clear Naming**: Job names clearly indicate purpose
 ✅ **Efficient Caching**: Smart cache keys and restore strategies
+✅ **Supply-Chain Hardening**: Third-party actions pinned to full commit SHAs
+✅ **DRY Composite Actions**: Shared retry logic extracted to `.github/actions/`
+✅ **PR Build Verification**: Worker dry-run validates deployability on every PR
 
 ## Breaking Changes
 
