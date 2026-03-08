@@ -7,7 +7,8 @@
         "ui:build": "pnpm --filter adblock-compiler-frontend run build",
         "ui:dev": "pnpm --filter adblock-compiler-frontend run start",
         "ui:test": "pnpm --filter adblock-compiler-frontend run test",
-        "ui:lint": "pnpm --filter adblock-compiler-frontend run lint"
+        "ui:lint": "pnpm --filter adblock-compiler-frontend run lint",
+        "build:worker": "pnpm install && pnpm --filter adblock-compiler-frontend run build"
     },
     "packageManager": "pnpm@9.15.0",
     "_syncNote": "Dependency versions here must match those pinned in deno.json's import map; keep them in sync (for example via the existing version:sync-style task).",

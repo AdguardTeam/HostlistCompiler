@@ -24,6 +24,7 @@
     "npm:@prisma/adapter-pg@^7.4.2": "7.4.2",
     "npm:@prisma/client@^7.4.2": "7.4.2_prisma@7.4.2",
     "npm:prisma@^7.4.2": "7.4.2",
+    "npm:wrangler@*": "4.71.0_@cloudflare+workers-types@4.20260301.1",
     "npm:wrangler@^4.71.0": "4.71.0_@cloudflare+workers-types@4.20260301.1",
     "npm:zod@^4.3.6": "4.3.6"
   },
@@ -1960,10 +1961,7 @@
       ]
     },
     "zod-to-json-schema@3.25.1_zod@3.25.76": {
-      "integrity": "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==",
-      "dependencies": [
-        "zod@3.25.76"
-      ]
+      "integrity": "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA=="
     },
     "zod-to-json-schema@3.25.1_zod@4.3.6": {
       "integrity": "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==",
