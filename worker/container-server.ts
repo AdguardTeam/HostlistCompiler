@@ -9,6 +9,10 @@
  * Endpoints:
  *   GET  /health   — liveness probe used by Cloudflare and the Docker HEALTHCHECK
  *   POST /compile  — compile a filter list and return the result as plain text
+ *
+ * The `handler` function is exported for use in tests. The `Deno.serve()`
+ * startup is guarded by `import.meta.main` so that importing this module
+ * in tests does not start a live HTTP server.
  */
 
 import { WorkerCompiler } from '../src/platform/index.ts';
@@ -25,7 +29,21 @@ interface ContainerCompileRequest {
     preFetchedContent?: Record<string, string>;
 }
 
-async function handler(request: Request): Promise<Response> {
+/**
+ * HTTP handler for the container server.
+ *
+ * Routes:
+ * - `GET /health`  – returns `{ status: "ok", version }` as JSON
+ * - `POST /compile` – compiles the provided configuration and returns rules as plain text
+ * - anything else  – 404
+ *
+ * Exported so that it can be imported and tested independently without
+ * starting a live server.
+ *
+ * @param request - The incoming HTTP request
+ * @returns A {@link Response} with the appropriate status code and body
+ */
+export async function handler(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === 'GET' && url.pathname === '/health') {
@@ -64,5 +82,7 @@ async function handler(request: Request): Promise<Response> {
     return new Response('Not Found', { status: 404 });
 }
 
-console.log(`[container-server] Listening on port ${PORT}`);
-Deno.serve({ port: PORT, hostname: '0.0.0.0' }, handler);
+if (import.meta.main) {
+    console.log(`[container-server] Listening on port ${PORT}`);
+    Deno.serve({ port: PORT, hostname: '0.0.0.0' }, handler);
+}

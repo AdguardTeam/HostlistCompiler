@@ -499,6 +499,7 @@ jobs:
                   deno task wrangler:tail:deploy
 
             - name: Verify Docker for container build
+              if: env.CLOUDFLARE_API_TOKEN != ''
               run: |
                   echo "Checking Docker availability for Cloudflare Containers build..."
                   docker info
