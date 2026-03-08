@@ -25,7 +25,7 @@
 
 <!-- Technology -->
 
-[![Deno](https://img.shields.io/badge/Deno-2.6+-black?logo=deno)](https://deno.land)
+[![Deno](https://img.shields.io/badge/Deno-2.6.7+-black?logo=deno)](https://deno.land)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](#docker-deployment)
 
 <!-- Security & Code Quality -->
