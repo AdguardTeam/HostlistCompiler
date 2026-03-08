@@ -8,11 +8,12 @@ workers_dev = true
 # Build configuration
 # Builds Angular frontend and generates static assets for deployment.
 # Wrangler calls this command automatically on `wrangler deploy`.
-# Uses pnpm (declared as packageManager in package.json) because corepack blocks
-# npm when packageManager is set to pnpm. The build:worker script handles
-# dependency installation and the Angular frontend build.
+# The check skips the build when the dist directory already exists (e.g. in CI,
+# where the frontend is pre-built and downloaded as an artifact). In local dev
+# the directory is typically absent so pnpm builds it. Uses pnpm because
+# corepack (triggered by packageManager in package.json) blocks npm.
 [build]
-command = "pnpm run build:worker"
+command = "test -d frontend/dist/adblock-compiler/browser || pnpm run build:worker"
 
 [browser]
 binding = "BROWSER"
