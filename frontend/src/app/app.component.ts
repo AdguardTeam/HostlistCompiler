@@ -103,7 +103,10 @@ interface NavItem {
               >
                 <mat-icon aria-hidden="true">menu</mat-icon>
               </button>
-              <p class="app-brand-title"><span aria-hidden="true">🛡️</span> Adblock Compiler</p>
+              <p class="app-brand-title">
+                <img class="app-brand-logo" src="favicon.svg" alt="" aria-hidden="true" width="28" height="28">
+                Adblock Compiler
+              </p>
               <div class="header-actions">
                 <button
                   mat-icon-button
