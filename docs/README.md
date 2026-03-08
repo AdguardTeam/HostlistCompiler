@@ -62,7 +62,7 @@ docs/
 
 ### Deployment
 
-- [Docker Deployment](deployment/docker.md) - Complete Docker guide with Kubernetes examples
+- [Docker Deployment](deployment/DOCKER.md) - Complete Docker guide with Kubernetes examples
 - [Docker Configuration](deployment/DOCKER.md) - Docker Compose with layered environment configuration
 - [Cloudflare Containers](deployment/cloudflare-containers.md) - Deploy to Cloudflare edge network
 - [Cloudflare Pages](deployment/cloudflare-pages.md) - Deploy to Cloudflare Pages
