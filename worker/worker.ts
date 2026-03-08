@@ -16,8 +16,16 @@
 // Import shared types
 import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, Priority, QueueMessage, Workflow } from './types.ts';
 
+// Container class for Cloudflare Containers deployment.
+// Extends the official @cloudflare/containers helper so that Cloudflare's
+// network can spawn container instances on demand. When this Durable Object
+// receives requests, it forwards them to the Docker container running on its
+// defaultPort using the base `Container.fetch` implementation.
+//
+// @deno-types pragma redirects Deno's type checker to local stubs; wrangler
+// uses the real npm package at deploy time.
+// @deno-types="./cloudflare-containers-types.d.ts"
 import { Container } from '@cloudflare/containers';
-import type { StopParams } from '@cloudflare/containers';
 
 /**
  * AdblockCompiler Cloudflare Container.
@@ -48,10 +56,10 @@ export class AdblockCompiler extends Container {
     /**
      * Called when the container shuts down.
      * Logs the stop event including exit code and reason.
-     * @param params - Exit code and reason for the stop
+     * @param _ - Exit code and reason for the stop
      */
-    override onStop(params: StopParams): void {
-        console.log(`[AdblockCompiler] Container stopped (exitCode=${params.exitCode}, reason=${params.reason})`);
+    override onStop(_: { exitCode: number; reason: string }): void {
+        console.log('[AdblockCompiler] Container stopped');
     }
 
     /**
@@ -60,7 +68,7 @@ export class AdblockCompiler extends Container {
      * @param error - The error that occurred
      */
     override onError(error: unknown): void {
-        console.error('[AdblockCompiler] Container error:', error);
+        console.error('[AdblockCompiler] Container error:', error instanceof Error ? error.message : String(error));
     }
 }
 

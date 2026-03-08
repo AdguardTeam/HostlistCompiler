@@ -119,9 +119,20 @@ Visit http://localhost:8787 to access:
 - `/compile/stream` — Streaming compilation with SSE
 - `/metrics` — Request metrics
 
-**Note:** Container endpoints return a fallback response in local development when `enable_containers = false`.
+**Note:** The `ADBLOCK_COMPILER` Durable Object binding is available in local dev, but containers are disabled via `enable_containers = false` in the `[dev]` section of `wrangler.toml`.
 
 ## Container Architecture
+
+The `AdblockCompiler` class in `worker/worker.ts` extends the `Container` base class from `@cloudflare/containers`, which handles container lifecycle, request proxying, and automatic restart:
+
+```typescript
+import { Container } from '@cloudflare/containers';
+
+export class AdblockCompiler extends Container {
+    defaultPort = 8787;
+    sleepAfter = '10m';
+}
+```
 
 ### How It Works
 

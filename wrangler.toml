@@ -61,6 +61,7 @@ bucket_name = "adblock-compiler-r2-storage"
 class_name = "AdblockCompiler"
 image = "./Dockerfile.container"
 max_instances = 5
+instance_type = "basic"
 
 # Durable Objects bindings
 [[durable_objects.bindings]]

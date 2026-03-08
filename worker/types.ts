@@ -148,6 +148,8 @@ export interface Env {
     BROWSER?: BrowserWorker;
     // Playwright MCP Agent Durable Object namespace
     MCP_AGENT?: DurableObjectNamespace;
+    // Adblock Compiler container Durable Object namespace
+    ADBLOCK_COMPILER?: DurableObjectNamespace;
 }
 
 // ============================================================================
