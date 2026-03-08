@@ -135,6 +135,7 @@
             ".yarn/",
             ".pnp.*",
             "*.lock",
+            "pnpm-lock.yaml",
             "*.lcov",
             "*.d.ts",
             "CHANGELOG.md",
