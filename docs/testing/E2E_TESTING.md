@@ -25,7 +25,7 @@ deno task dev
 open http://localhost:8787/e2e-tests.html
 
 # Or in production
-open https://adblock-compiler-ui.pages.dev/e2e-tests.html
+open https://adblock-compiler.jk-com.workers.dev/e2e-tests.html
 ```
 
 ### Run Tests
@@ -392,7 +392,7 @@ document.getElementById('apiUrl').value = 'http://localhost:8787';
 document.getElementById('apiUrl').value = 'https://staging.example.com';
 
 // Production
-document.getElementById('apiUrl').value = 'https://adblock-compiler-ui.pages.dev';
+document.getElementById('apiUrl').value = 'https://adblock-compiler.jk-com.workers.dev';
 ```
 
 ### Custom Test Timeout

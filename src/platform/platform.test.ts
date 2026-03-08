@@ -221,13 +221,13 @@ Deno.test('PlatformDownloader - should respect max include depth', async () => {
 // WorkerCompiler Tests
 Deno.test('WorkerCompiler - should compile with pre-fetched content', async () => {
     const preFetchedContent = new Map([
-        ['source-1', '||ads.example.com^\n||tracking.example.com^'],
+        ['https://example.com/source-1.txt', '||ads.example.com^\n||tracking.example.com^'],
     ]);
 
     const configuration: IConfiguration = {
         name: 'Test List',
         sources: [
-            { name: 'Test Source', source: 'source-1' },
+            { name: 'Test Source', source: 'https://example.com/source-1.txt' },
         ],
         transformations: [TransformationType.RemoveEmptyLines],
     };
@@ -243,13 +243,13 @@ Deno.test('WorkerCompiler - should compile with pre-fetched content', async () =
 
 Deno.test('WorkerCompiler - should compile with metrics when benchmarking enabled', async () => {
     const preFetchedContent = new Map([
-        ['source-1', 'rule1\nrule2\nrule3'],
+        ['https://example.com/source-1.txt', 'rule1\nrule2\nrule3'],
     ]);
 
     const configuration: IConfiguration = {
         name: 'Test List',
         sources: [
-            { source: 'source-1' },
+            { source: 'https://example.com/source-1.txt' },
         ],
     };
 
@@ -264,7 +264,7 @@ Deno.test('WorkerCompiler - should compile with metrics when benchmarking enable
 
 Deno.test('WorkerCompiler - should emit events during compilation', async () => {
     const preFetchedContent = new Map([
-        ['source-1', 'rule1\nrule2'],
+        ['https://example.com/source-1.txt', 'rule1\nrule2'],
     ]);
 
     const events: string[] = [];
@@ -272,7 +272,7 @@ Deno.test('WorkerCompiler - should emit events during compilation', async () => 
     const configuration: IConfiguration = {
         name: 'Test List',
         sources: [
-            { source: 'source-1' },
+            { source: 'https://example.com/source-1.txt' },
         ],
         transformations: [TransformationType.RemoveEmptyLines],
     };
@@ -316,14 +316,14 @@ Deno.test('WorkerCompiler - should throw on invalid configuration', async () => 
 
 Deno.test('WorkerCompiler - should apply source-level transformations', async () => {
     const preFetchedContent = new Map([
-        ['source-1', '  rule1  \n\n  rule2  \n'],
+        ['https://example.com/source-1.txt', '  rule1  \n\n  rule2  \n'],
     ]);
 
     const configuration: IConfiguration = {
         name: 'Test List',
         sources: [
             {
-                source: 'source-1',
+                source: 'https://example.com/source-1.txt',
                 transformations: [TransformationType.TrimLines, TransformationType.RemoveEmptyLines],
             },
         ],
@@ -350,7 +350,7 @@ Deno.test('WorkerCompiler - should use custom fetcher when provided', async () =
 
     const configuration: IConfiguration = {
         name: 'Test List',
-        sources: [{ source: 'any-source' }],
+        sources: [{ source: 'https://example.com/any-source.txt' }],
     };
 
     const compiler = new WorkerCompiler({ customFetcher });

@@ -18,6 +18,7 @@
         "zod": "^4.3.6"
     },
     "devDependencies": {
-        "@cloudflare/playwright-mcp": "^0.0.5"
+        "@cloudflare/playwright-mcp": "^0.0.5",
+        "wrangler": "^4.71.0"
     }
 }

@@ -9,7 +9,7 @@
  * The Angular browser output directory is resolved in this priority order:
  *   1. CLI argument:              node scripts/postbuild.js <browser-output-dir>
  *   2. Environment variable:      ANGULAR_BROWSER_OUTPUT_PATH=<browser-output-dir>
- *   3. Default (this project):    dist/adblock-compiler-poc/browser
+ *   3. Default (this project):    dist/adblock-compiler/browser
  */
 
 const fs = require('fs');
@@ -23,7 +23,7 @@ const browserDir = cliBrowserDir
     ? path.resolve(cliBrowserDir)
     : envBrowserDir
         ? path.resolve(envBrowserDir)
-        : path.join(__dirname, '..', 'dist', 'adblock-compiler-poc', 'browser');
+        : path.join(__dirname, '..', 'dist', 'adblock-compiler', 'browser');
 
 if (!fs.existsSync(browserDir)) {
     console.error(

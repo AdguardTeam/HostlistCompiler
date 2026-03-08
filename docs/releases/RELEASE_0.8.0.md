@@ -222,7 +222,7 @@ const DashboardState = {
 
 The admin dashboard is production-ready and deployed to:
 
-**Live URL:** https://adblock-compiler-ui.pages.dev/
+**Live URL:** https://adblock-compiler.jk-com.workers.dev/
 
 **Features:**
 - Cloudflare Workers edge deployment
