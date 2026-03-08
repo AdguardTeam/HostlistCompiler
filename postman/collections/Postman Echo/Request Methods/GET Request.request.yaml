@@ -1,0 +1,52 @@
+$kind: http-request
+description: >-
+  The HTTP `GET` request method is meant to retrieve data from a server. The
+  data
+
+  is identified by a unique URI (Uniform Resource Identifier). 
+
+
+  A `GET` request can pass parameters to the server using "Query String 
+
+  Parameters". For example, in the following request,
+
+
+  > http://example.com/hi/there?hand=wave
+
+
+  The parameter "hand" has the value "wave".
+
+
+  This endpoint echoes the HTTP headers, request parameters and the complete
+
+  URI requested.
+url: https://echo.getpostman.com/get?test=123
+method: GET
+queryParams:
+  test: "123"
+body:
+  type: formdata
+  content: []
+scripts:
+  - type: afterResponse
+    code: >-
+      tests["Body contains headers"] = responseBody.has("headers");
+
+      tests["Body contains args"] = responseBody.has("args");
+
+      tests["Body contains url"] = responseBody.has("url");
+
+
+      var responseJSON;
+
+
+      try { responseJSON = JSON.parse(responseBody); }
+
+      catch (e) { }
+
+
+
+      tests["Args key contains argument passed as url parameter"] = 'test' in
+      responseJSON.args
+    language: text/javascript
+order: 1000

@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/oapi/v1/devices/:device_id/dedicated_addresses/ipv4"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    device_id: ""
+  body:
+    type: json
+    content: |-
+      {
+        "ip": "<string>"
+      }
+response:
+  statusCode: 429
+  statusText: Too Many Requests
+  body:
+    type: text
+    content: ""
+order: 4000

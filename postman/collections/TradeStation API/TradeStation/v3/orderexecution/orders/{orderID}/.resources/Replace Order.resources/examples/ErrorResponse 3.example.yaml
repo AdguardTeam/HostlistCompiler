@@ -1,0 +1,76 @@
+$kind: http-example
+name: ErrorResponse
+request:
+  url: "{{baseUrl}}/v3/orderexecution/orders/:orderID"
+  method: PUT
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    orderID: ""
+  body:
+    type: json
+    content: |-
+      {
+        "LimitPrice": "<string>",
+        "StopPrice": "<string>",
+        "OrderType": "<string>",
+        "Quantity": "<string>",
+        "AdvancedOptions": {
+          "ShowOnlyQuantity": "<string>",
+          "TrailingStop": {
+            "Amount": "<string>",
+            "Percent": "<string>"
+          },
+          "MarketActivationRules": {
+            "ClearAll": "<boolean>",
+            "Rules": [
+              {
+                "RuleType": "<string>",
+                "Symbol": "<string>",
+                "Predicate": "<string>",
+                "TriggerKey": "DTTN",
+                "Price": "<string>",
+                "LogicOperator": "Or"
+              },
+              {
+                "RuleType": "<string>",
+                "Symbol": "<string>",
+                "Predicate": "<string>",
+                "TriggerKey": "DAB",
+                "Price": "<string>",
+                "LogicOperator": "Or"
+              }
+            ]
+          },
+          "TimeActivationRules": {
+            "ClearAll": "<boolean>",
+            "Rules": [
+              {
+                "TimeUtc": {}
+              },
+              {
+                "TimeUtc": {}
+              }
+            ]
+          }
+        }
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "Error": "<string>",
+        "Message": "<string>"
+      }
+order: 5000

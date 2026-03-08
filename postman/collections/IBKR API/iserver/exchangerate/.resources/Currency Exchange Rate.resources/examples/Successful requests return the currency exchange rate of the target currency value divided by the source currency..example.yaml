@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/exchangerate?target=EUR&source=USD
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: target
+      value: EUR
+      description: "(Required) "
+    - key: source
+      value: USD
+      description: "(Required) "
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "rate": 0.91324199
+      }
+order: 1000

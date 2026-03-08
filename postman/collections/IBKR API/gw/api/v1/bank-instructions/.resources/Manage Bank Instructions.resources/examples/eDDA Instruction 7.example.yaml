@@ -1,0 +1,61 @@
+$kind: http-example
+name: eDDA Instruction
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "EDDA_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 7012743,
+          "bankInstructionName": "{instrution-name}",
+          "currency": "CNH",
+          "accountId": "U8072517",
+          "bankBranchCode": "003",
+          "bankAccountNumber": "132456",
+          "bankClearingCode": "003",
+          "debtorIdentificationDocumentType": "hkId"
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/invalid-argument",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Input is not a JSON Object or doesn't contain all expected fields",
+        "invalidArguments": [
+          {
+            "field": "accountId",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "bankInstructionCode",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "achType",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "bankInstructionName",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "clientAccountInfo",
+            "description": "Missing required parameter"
+          }
+        ]
+      }
+order: 42000

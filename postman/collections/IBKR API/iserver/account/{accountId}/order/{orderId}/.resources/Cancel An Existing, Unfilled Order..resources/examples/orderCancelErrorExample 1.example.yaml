@@ -1,0 +1,22 @@
+$kind: http-example
+name: orderCancelErrorExample
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/order/:orderId
+  method: DELETE
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+    orderId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "OrderID 123456 doesn't exist"
+      }
+order: 12000

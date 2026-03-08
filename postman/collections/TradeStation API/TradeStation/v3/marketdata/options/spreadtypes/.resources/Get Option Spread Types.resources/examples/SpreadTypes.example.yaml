@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/v3/marketdata/options/spreadtypes"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "SpreadTypes": [
+          {
+            "Name": "<string>",
+            "StrikeInterval": "<boolean>",
+            "ExpirationInterval": "<boolean>"
+          },
+          {
+            "Name": "<string>",
+            "StrikeInterval": "<boolean>",
+            "ExpirationInterval": "<boolean>"
+          }
+        ]
+      }
+order: 1000

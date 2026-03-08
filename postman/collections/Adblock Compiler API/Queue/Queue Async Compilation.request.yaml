@@ -1,0 +1,38 @@
+$kind: http-request
+description: Queue an async compilation job
+url: "{{baseUrl}}/compile/async"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "configuration": {
+        "name": "Async Queue Test",
+        "sources": [
+          {
+            "source": "async-test"
+          }
+        ]
+      },
+      "preFetchedContent": {
+        "async-test": "||async.example.com^"
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 202 or 500', function () {
+          pm.expect(pm.response.code).to.be.oneOf([202, 500]);
+      });
+
+      if (pm.response.code === 202) {
+          pm.test('Response has requestId', function () {
+              const jsonData = pm.response.json();
+              pm.expect(jsonData).to.have.property('requestId');
+              pm.collectionVariables.set('requestId', jsonData.requestId);
+          });
+      }
+    language: text/javascript
+order: 1000

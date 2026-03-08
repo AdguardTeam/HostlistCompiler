@@ -1,0 +1,53 @@
+$kind: http-request
+description: Get more information about the `fromAccount`, and confirm the
+  balance of the `toAccount` remains unchanged after the failed transaction.
+url: "{{baseUrl}}/api/v1/accounts/:accountId"
+method: GET
+headers:
+  Content-Type: application/json
+pathVariables:
+  accountId: "{{e2e_user_account_id_from}}"
+body:
+  type: text
+  content: ""
+scripts:
+  - type: afterResponse
+    code: >-
+      let response = pm.response.json(),
+          account_id = parseInt(pm.collectionVariables.get("e2e_user_account_id_from")),
+          owner = pm.collectionVariables.get("e2e_user_name_from");
+
+      pm.test("Status check", function () {
+          pm.response.to.have.status(200);
+      });
+
+
+      pm.test("Should contain a account 'object' in the response", function () {
+          pm.expect(response.account).to.be.an('object');
+      });
+
+
+      pm.test("Should contain the correct account id in the response", function
+      () {
+          pm.expect(response.account.id).to.eql(account_id);
+      });
+
+
+      pm.test("Should contain the correct owner in the response", function () {
+          pm.expect(response.account.owner).to.eql(owner);
+      });
+
+
+      pm.test("Should contain the correct balance in the response", function ()
+      {
+          pm.expect(response.account.balance).to.eql(0);
+      });
+
+
+      pm.test("Should contain the correct currency in the response", function ()
+      {
+          pm.expect(response.account.currency).to.eql("COSMIC_COINS");
+      });
+    language: text/javascript
+examples: ./.resources/[8] Check FromAccount Balance Unchanged.resources/examples
+order: 8000

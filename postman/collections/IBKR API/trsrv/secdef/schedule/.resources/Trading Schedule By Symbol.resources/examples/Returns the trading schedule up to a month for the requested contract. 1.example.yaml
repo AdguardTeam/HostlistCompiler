@@ -1,0 +1,139 @@
+$kind: http-example
+name: Returns the trading schedule up to a month for the requested contract.
+request:
+  url: https://api.ibkr.com/v1/api/trsrv/secdef/schedule?assetClass=OPT&symbol=AAPL&exchange=NASDAQ&exchangeFilter=AMEX,NASDAQ,NYSE
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: assetClass
+      value: OPT
+      description: "(Required) "
+    - key: symbol
+      value: AAPL
+      description: "(Required) "
+    - key: exchange
+      value: NASDAQ
+    - key: exchangeFilter
+      value: AMEX,NASDAQ,NYSE
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "p101781",
+          "tradeVenueId": "v13038",
+          "exchange": "NYSE",
+          "description": "New York Stock Exchange",
+          "timezone": "America/New_York",
+          "schedules": [
+            {
+              "clearingCycleEndTime": "0000",
+              "tradingScheduleDate": "20000101",
+              "sessions": [],
+              "tradingtimes": [
+                {
+                  "openingTime": "0035",
+                  "closingTime": "2330",
+                  "cancelDayOrders": "Y"
+                }
+              ]
+            },
+            {
+              "clearingCycleEndTime": "0000",
+              "tradingScheduleDate": "20000102",
+              "sessions": [],
+              "tradingtimes": [
+                {
+                  "openingTime": "0035",
+                  "closingTime": "2330",
+                  "cancelDayOrders": "Y"
+                }
+              ]
+            },
+            {
+              "clearingCycleEndTime": "1700",
+              "tradingScheduleDate": "20000103",
+              "sessions": [],
+              "tradingtimes": [
+                {
+                  "openingTime": "0035",
+                  "closingTime": "2330",
+                  "prop": "LIQUID",
+                  "cancelDayOrders": "Y"
+                }
+              ]
+            },
+            {
+              "clearingCycleEndTime": "1700",
+              "tradingScheduleDate": "20000104",
+              "sessions": [],
+              "tradingtimes": [
+                {
+                  "openingTime": "0035",
+                  "closingTime": "2330",
+                  "prop": "LIQUID",
+                  "cancelDayOrders": "Y"
+                }
+              ]
+            },
+            {
+              "clearingCycleEndTime": "1700",
+              "tradingScheduleDate": "20000105",
+              "sessions": [],
+              "tradingtimes": [
+                {
+                  "openingTime": "0035",
+                  "closingTime": "2330",
+                  "prop": "LIQUID",
+                  "cancelDayOrders": "Y"
+                }
+              ]
+            },
+            {
+              "clearingCycleEndTime": "1700",
+              "tradingScheduleDate": "20000106",
+              "sessions": [],
+              "tradingtimes": [
+                {
+                  "openingTime": "0035",
+                  "closingTime": "2330",
+                  "prop": "LIQUID",
+                  "cancelDayOrders": "Y"
+                }
+              ]
+            },
+            {
+              "clearingCycleEndTime": "1700",
+              "tradingScheduleDate": "20000107",
+              "sessions": [],
+              "tradingtimes": [
+                {
+                  "openingTime": "0035",
+                  "closingTime": "2330",
+                  "prop": "LIQUID",
+                  "cancelDayOrders": "Y"
+                }
+              ]
+            },
+            {
+              "clearingCycleEndTime": "0000",
+              "tradingScheduleDate": "20240329",
+              "sessions": [],
+              "tradingtimes": [
+                {
+                  "openingTime": "0035",
+                  "closingTime": "2330",
+                  "cancelDayOrders": "Y"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+order: 6000

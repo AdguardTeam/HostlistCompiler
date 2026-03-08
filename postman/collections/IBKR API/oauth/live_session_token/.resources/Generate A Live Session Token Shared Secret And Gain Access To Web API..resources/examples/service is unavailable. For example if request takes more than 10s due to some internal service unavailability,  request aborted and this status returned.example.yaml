@@ -1,0 +1,19 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/oauth/live_session_token
+  method: POST
+  headers:
+    Accept: application/json; charset=utf-8
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 3000

@@ -1,0 +1,24 @@
+$kind: http-request
+description: "Used to query list of enumerations for attributes included within
+  extPositionsTransfers, occupation, employerBusiness, financialInformation,
+  affiliationDetails, tradingPermissions, etc.<br><br>**Scope**: `accounts.read`
+  OR `enumerations.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/enumerations/:enumerationType?currency=minim&ibEnti\
+  ty=minim&mdStatusNonPro=minim&form-number=minim&language=de"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  currency: minim
+  ibEntity: minim
+  mdStatusNonPro: minim
+  form-number: minim
+  language: de
+pathVariables:
+  - key: enumerationType
+    value: ""
+  - key: type
+    value: employee-plans
+    description: "(Required) "
+examples: ./.resources/Get Enumerations.resources/examples
+order: 1000

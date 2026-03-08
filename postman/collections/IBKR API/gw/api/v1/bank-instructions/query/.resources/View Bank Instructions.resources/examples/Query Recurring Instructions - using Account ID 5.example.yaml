@@ -1,0 +1,52 @@
+$kind: http-example
+name: Query Recurring Instructions - using Account ID
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_RECURRING_INSTRUCTIONS",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "accountId": "U399192"
+        }
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 201,
+        "instructionSetId": 14258,
+        "instructionResult": {
+          "accountId": "U399192",
+          "recurringInstructions": [
+            {
+              "requestId": 206611807,
+              "bankInstructionName": "Recurring Test- cpereira",
+              "transactionType": "DEPOSIT",
+              "bankInstructionMethod": "ACH",
+              "amount": 1,
+              "currency": "USD",
+              "frequency": "MONTHLY",
+              "startDate": "2024-06-12 00:00:00.0",
+              "endDate": "2024-12-12 00:00:00.0"
+            }
+          ],
+          "ibReferenceId": 0,
+          "clientInstructionId": 12008027,
+          "instructionType": "QUERY_RECENT_INSTRUCTIONS",
+          "instructionStatus": "PROCESSED",
+          "instructionId": 43104628
+        }
+      }
+order: 22000

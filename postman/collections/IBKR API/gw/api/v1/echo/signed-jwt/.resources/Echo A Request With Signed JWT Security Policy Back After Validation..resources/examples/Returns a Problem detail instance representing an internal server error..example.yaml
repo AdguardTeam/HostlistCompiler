@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/echo/signed-jwt"
+  method: POST
+  headers:
+    Content-Type: application/jwt
+    Accept: application/problem+json
+  body:
+    type: text
+    content: |-
+      {
+        "iss": "prodtester"
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "/simple"
+      }
+order: 4000

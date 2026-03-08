@@ -1,0 +1,39 @@
+$kind: http-example
+name: An object containing valid accounts and the account properties regarding
+  trading access. This endpoint is also used to confirm account validation.
+request:
+  url: https://api.ibkr.com/v1/api/acesws/:accountId/signatures-and-owners
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "accountId": "U1234567",
+        "users": [
+          {
+            "roleId": "OWNER",
+            "hasRightCodeInd": true,
+            "entity": {
+              "entityType": "INDIVIDUAL",
+              "entityName": "John Smith",
+              "firstName": "John",
+              "lastName": "Smith"
+            }
+          }
+        ],
+        "applicant": {
+          "signatures": [
+            "John Smith"
+          ]
+        }
+      }
+order: 8000

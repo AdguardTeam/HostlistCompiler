@@ -1,0 +1,35 @@
+$kind: http-request
+description: "Create or delete bank instructions by accountId. Only ACH and EDDA
+  are supported for 'Create'.<br><br>**Scope**:
+  `bank-instructions.write`<br>**Security Policy**: `Signed JWT`"
+url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: client-id
+    value: abc123
+    description: (Required) The client's clientId
+body:
+  type: json
+  content: |-
+    {
+      "instructionType": "ACH_INSTRUCTION",
+      "instruction": {
+        "clientInstructionId": 1012983,
+        "bankInstructionCode": "USACH",
+        "achType": "DEBIT_CREDIT",
+        "bankInstructionName": "TestInstr",
+        "currency": "USD",
+        "accountId": "U223454",
+        "clientAccountInfo": {
+          "bankRoutingNumber": "202012983",
+          "bankAccountNumber": "101267576983",
+          "bankName": "JPM Chase",
+          "bankAccountTypeCode": 0
+        }
+      }
+    }
+examples: ./.resources/Manage Bank Instructions.resources/examples
+order: 2000

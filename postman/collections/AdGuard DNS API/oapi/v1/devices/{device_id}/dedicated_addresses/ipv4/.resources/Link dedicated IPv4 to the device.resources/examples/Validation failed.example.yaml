@@ -1,0 +1,45 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/oapi/v1/devices/:device_id/dedicated_addresses/ipv4"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    device_id: ""
+  body:
+    type: json
+    content: |-
+      {
+        "ip": "<string>"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error_code": "FIELD_WRONG_VALUE",
+        "fields": [
+          {
+            "error_code": "UNKNOWN",
+            "field": "<string>",
+            "message": "<string>"
+          },
+          {
+            "error_code": "FIELD_REQUIRED",
+            "field": "<string>",
+            "message": "<string>"
+          }
+        ],
+        "message": "<string>"
+      }
+order: 2000

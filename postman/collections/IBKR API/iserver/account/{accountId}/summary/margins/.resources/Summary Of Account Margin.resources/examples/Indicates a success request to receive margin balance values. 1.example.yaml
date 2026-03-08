@@ -1,0 +1,58 @@
+$kind: http-example
+name: Indicates a success request to receive margin balance values.
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/summary/margins
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "total": {
+          "RegT Margin": "896,255 USD",
+          "current_initial": "468,562 USD",
+          "Prdctd Pst-xpry Mrgn @ Opn": "0 USD",
+          "current_maint": "467,308 USD",
+          "projected_liquidity_inital_margin": "468,562 USD",
+          "Prjctd Lk Ahd Mntnnc Mrgn": "467,308 USD",
+          "projected_overnight_initial_margin": "468,562 USD",
+          "Prjctd Ovrnght Mntnnc Mrgn": "467,308 USD"
+        },
+        "Crypto at Paxos": {
+          "current_initial": "0 USD",
+          "Prdctd Pst-xpry Mrgn @ Opn": "0 USD",
+          "current_maint": "0 USD",
+          "projected_liquidity_inital_margin": "0 USD",
+          "Prjctd Lk Ahd Mntnnc Mrgn": "0 USD",
+          "projected_overnight_initial_margin": "0 USD",
+          "Prjctd Ovrnght Mntnnc Mrgn": "0 USD"
+        },
+        "commodities": {
+          "current_initial": "13,794 USD",
+          "Prdctd Pst-xpry Mrgn @ Opn": "0 USD",
+          "current_maint": "12,540 USD",
+          "projected_liquidity_inital_margin": "13,794 USD",
+          "Prjctd Lk Ahd Mntnnc Mrgn": "12,540 USD",
+          "projected_overnight_initial_margin": "13,794 USD",
+          "Prjctd Ovrnght Mntnnc Mrgn": "12,540 USD"
+        },
+        "securities": {
+          "RegT Margin": "896,255 USD",
+          "current_initial": "454,768 USD",
+          "Prdctd Pst-xpry Mrgn @ Opn": "0 USD",
+          "current_maint": "454,768 USD",
+          "projected_liquidity_inital_margin": "454,768 USD",
+          "Prjctd Lk Ahd Mntnnc Mrgn": "454,768 USD",
+          "projected_overnight_initial_margin": "454,768 USD",
+          "Prjctd Ovrnght Mntnnc Mrgn": "454,768 USD"
+        }
+      }
+order: 10000

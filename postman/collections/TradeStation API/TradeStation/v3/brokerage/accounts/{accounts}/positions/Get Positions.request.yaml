@@ -1,0 +1,32 @@
+$kind: http-request
+description: Fetches positions for the given Accounts. Request valid for `Cash`,
+  `Margin`, `Futures`, and `DVP` account types.
+url: "{{baseUrl}}/v3/brokerage/accounts/:accounts/positions?symbol=<string>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: symbol
+    value: <string>
+    description: >-
+      List of valid symbols in comma separated format; for example `MSFT,MSFT
+      *,AAPL`. You can use an * as wildcard to make more complex filters.
+
+
+      Examples of the wildcard being used: 
+
+        * Get all options for MSFT: symbol=`MSFT *`
+        * Get MSFT and all its options: symbol=`MSFT,MSFT *`
+        * Get all MSFT options expiring in 2023: symbol=`MSFT 23*`
+        * Get all MSFT options expiring in March 2023: symbol=`MSFT 2303*`
+        * Get all options expiring in March 2023: symbol=`* 2303*`
+        * Get all call options expiring in March 2023: symbol=`* 2303*C*`
+        * Get BHM*: symbol=`BHM**`
+pathVariables:
+  - key: accounts
+    value: <string>
+    description: (Required) List of valid Account IDs for the authenticated user in
+      comma separated format; for example `"61999124,68910124"`. 1 to 25 Account
+      IDs can be specified, comma separated. Recommended batch size is 10.
+examples: ./.resources/Get Positions.resources/examples
+order: 1000

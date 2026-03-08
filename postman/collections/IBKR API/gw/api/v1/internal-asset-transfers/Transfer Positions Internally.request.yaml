@@ -1,0 +1,35 @@
+$kind: http-request
+description: "Transfer positions internally between two accounts with
+  Interactive Brokers<br><br>**Scope**: `transfers.write`<br>**Security
+  Policy**: `Signed JWT`"
+url: "{{baseUrl}}/gw/api/v1/internal-asset-transfers"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: client-id
+    value: abc123
+    description: (Required) The client's clientId
+body:
+  type: json
+  content: |-
+    {
+      "instructionType": "INTERNAL_POSITION_TRANSFER",
+      "instruction": {
+        "clientInstructionId": 7013044,
+        "sourceAccountId": "U399192",
+        "targetAccountId": "U87440",
+        "transferQuantity": 6,
+        "tradingInstrument": {
+          "tradingInstrumentDescription": {
+            "securityIdType": "ISIN",
+            "securityId": "459200101",
+            "assetType": "STK"
+          },
+          "currency": "USD"
+        }
+      }
+    }
+examples: ./.resources/Transfer Positions Internally.resources/examples
+order: 1000

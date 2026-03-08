@@ -1,0 +1,59 @@
+$kind: http-example
+name: Polling Status Query Recent Instruction
+request:
+  url: "{{baseUrl}}/gw/api/v1/client-instructions/:clientInstructionId"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    clientInstructionId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 200,
+        "instructionSetId": 4206,
+        "instructionResult": {
+          "instructionHistory": {
+            "historyMaxDepthNumberOfDays": 30,
+            "historyMaxDepthNumberOfInstruction": 100000,
+            "result": [
+              {
+                "clientInstructionId": 0,
+                "ibInstructionId": 11383366,
+                "instructionType": "ACH_INSTRUCTION",
+                "requestDate": "2024-02-06T07:35:36-05",
+                "status": "PENDING_VERIFICATION",
+                "instructionSetId": 0
+              },
+              {
+                "clientInstructionId": 0,
+                "ibInstructionId": 11383356,
+                "instructionType": "ACH_INSTRUCTION",
+                "requestDate": "2024-02-06T07:00:34-05",
+                "status": "REJECTED",
+                "instructionSetId": 0
+              },
+              {
+                "clientInstructionId": 0,
+                "ibInstructionId": 11383355,
+                "instructionType": "ACH_INSTRUCTION",
+                "requestDate": "2024-02-06T06:58:22-05",
+                "status": "PENDING",
+                "instructionSetId": 0
+              }
+            ]
+          },
+          "ibReferenceId": 0,
+          "clientInstructionId": 12003152,
+          "instructionType": "QUERY_RECENT_INSTRUCTIONS",
+          "instructionStatus": "PROCESSED",
+          "instructionId": 11383402
+        }
+      }
+order: 14000

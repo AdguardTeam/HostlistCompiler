@@ -1,0 +1,27 @@
+$kind: http-example
+name: NetLiq
+request:
+  url: "{{baseUrl}}/iserver/account/allocation/group"
+  method: PUT
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "name": "Group_1_NetLiq",
+        "default_method": "N"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true
+      }
+order: 13000

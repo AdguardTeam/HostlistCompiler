@@ -1,0 +1,80 @@
+$kind: http-request
+description: >-
+  # Get Stats Categories
+
+
+  This endpoint retrieves statistics for different categories based on the
+  specified time range, devices, and countries.
+
+
+  ## Request
+
+
+  ### Query Parameters
+
+
+  - `time_from_millis` (long, required): The start time for the statistics in
+  milliseconds.
+      
+  - `time_to_millis` (long, required): The end time for the statistics in
+  milliseconds.
+      
+  - `devices` (string, required): The device(s) for which the statistics are to
+  be retrieved.
+      
+  - `countries` (string, required): The country or countries for which the
+  statistics are to be retrieved.
+      
+
+  ## Response
+
+
+  The response for this request is a JSON object with the following schema:
+
+
+  ``` json
+
+  {
+      "stats": [
+          {
+              "category_type": "",
+              "queries": ""
+          }
+      ]
+  }
+
+   ```
+
+  - `stats` (array): An array of objects containing the statistics for each
+  category.
+      
+      - `category_type` (string): The type of category.
+          
+      - `queries` (string): The number of queries for the category.
+url: "{{baseUrl}}/oapi/v1/stats/categories?time_from_millis=<long>&time_to_mill\
+  is=<long>&devices=<string>&devices=<string>&countries=<string>&countries=<str\
+  ing>"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  - key: time_from_millis
+    value: <long>
+    description: (Required) Time from in milliseconds (inclusive)
+  - key: time_to_millis
+    value: <long>
+    description: (Required) Time to in milliseconds (inclusive)
+  - key: devices
+    value: <string>
+    description: Filter by devices
+  - key: devices
+    value: <string>
+    description: Filter by devices
+  - key: countries
+    value: <string>
+    description: Filter by countries
+  - key: countries
+    value: <string>
+    description: Filter by countries
+examples: ./.resources/Gets categories statistics.resources/examples
+order: 1000

@@ -1,0 +1,26 @@
+$kind: http-example
+name: deactivate-request
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alert/activate
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: text/plain; charset=utf-8
+  pathVariables:
+    accountId: ""
+  body:
+    type: json
+    content: |-
+      {
+        "alertId": 9876543210,
+        "alertActive": 0
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: text/plain; charset=utf-8
+  body:
+    type: text
+    content: pariatur deserunt mollit
+order: 4000

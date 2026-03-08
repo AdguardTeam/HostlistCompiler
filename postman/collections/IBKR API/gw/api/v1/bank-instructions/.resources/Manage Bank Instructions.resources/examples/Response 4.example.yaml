@@ -1,0 +1,65 @@
+$kind: http-example
+name: Response
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "ACH_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "bankInstructionCode": "USACH",
+          "achType": "DEBIT_CREDIT",
+          "bankInstructionName": "TestInstr",
+          "currency": "USD",
+          "accountId": "U223454",
+          "clientAccountInfo": {
+            "bankRoutingNumber": "202012983",
+            "bankAccountNumber": "101267576983",
+            "bankName": "JPM Chase",
+            "bankAccountTypeCode": 0
+          }
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/invalid-argument",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Input is not a JSON Object or doesn't contain all expected fields",
+        "invalidArguments": [
+          {
+            "field": "accountId",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "bankInstructionCode",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "achType",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "bankInstructionName",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "clientAccountInfo",
+            "description": "Missing required parameter"
+          }
+        ]
+      }
+order: 38000

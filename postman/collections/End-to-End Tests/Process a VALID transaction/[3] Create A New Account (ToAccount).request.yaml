@@ -1,0 +1,74 @@
+$kind: http-request
+description: >-
+  Generates another new account (`toAccount`), that the funds will be
+  transferred to, and saves the following information if the request is
+  successful:
+
+
+  - Account owner from the request body (saved as collection variable
+  `e2e_user_name_to`)
+
+  - Account id from the response body (saved as collection variable
+  `e2e_user_account_id_to`)
+url: "{{baseUrl}}/api/v1/accounts"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: "{{payload}}"
+scripts:
+  - type: afterResponse
+    code: >-
+      const response = pm.response.json();
+
+
+
+      pm.test("Should have a valid JSON format response body", function () {
+          pm.expect(response).to.not.be.undefined;
+      });
+
+
+      pm.test("Should have the required 'account' object in the response",
+      function () {
+          pm.expect(response).to.be.an('object');
+          pm.expect(response.account).to.exist;
+      });
+
+
+      pm.test("Should have the `id` property in the account object and is a
+      non-negative integer", function () {
+          pm.expect(response).to.be.an('object');
+          pm.expect(response.account.id).to.be.a('number').and.to.be.at.least(0);
+      });
+
+
+      // Only set the variable if the response is successful 
+
+      if (pm.response.code === 200) {
+          pm.collectionVariables.set("e2e_user_name_to", JSON.parse(pm.request.body.raw).owner);
+          pm.collectionVariables.set("e2e_user_account_id_to", response.account.id)
+      }
+    language: text/javascript
+  - type: beforeRequest
+    code: >-
+      // Generate the payload data for the create user request
+
+
+      let fullName = `${pm.variables.replaceIn("{{$randomFirstName}}")}
+      ${pm.variables.replaceIn("{{$randomLastName}}")}`;
+
+
+      let payload = {
+          "owner": `${fullName} - ToAccount`,
+          "balance": 0,
+          "currency": "COSMIC_COINS"
+      }
+
+
+      // Store the payload in a runtime-only variable 
+
+      pm.variables.set('payload', JSON.stringify(payload));
+    language: text/javascript
+examples: ./.resources/[3] Create A New Account (ToAccount).resources/examples
+order: 3000

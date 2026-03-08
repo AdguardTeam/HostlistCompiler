@@ -1,0 +1,29 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/fyi/deliveryoptions/device"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "deviceName": "tempor Duis mollit",
+        "deviceId": "aliquip ut do",
+        "uiName": "tempor nulla Duis",
+        "enabled": true
+      }
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 5000

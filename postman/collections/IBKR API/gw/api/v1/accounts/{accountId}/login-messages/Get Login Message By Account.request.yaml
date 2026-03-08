@@ -1,0 +1,15 @@
+$kind: http-request
+description: "Query login messages assigned by accountId<br><br>**Scope**:
+  `accounts.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/accounts/:accountId/login-messages?type=minim"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  type: minim
+pathVariables:
+  - key: accountId
+    value: minim
+    description: "(Required) "
+examples: ./.resources/Get Login Message By Account.resources/examples
+order: 1000

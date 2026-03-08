@@ -1,0 +1,14 @@
+$kind: http-request
+description: Fetches a full snapshot of the latest Quote for the given Symbols.
+  For realtime Quote updates, users should use the Quote Stream endpoint.
+url: "{{baseUrl}}/v3/marketdata/quotes/:symbols"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: symbols
+    value: <string>
+    description: (Required) List of valid symbols in comma separated format; for
+      example `"MSFT,BTCUSD"`. No more than 100 symbols per request.
+examples: ./.resources/Get Quote Snapshots.resources/examples
+order: 1000

@@ -1,0 +1,61 @@
+$kind: http-example
+name: An object containing all unique details of the specified alert.
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/alert/:alertId?type=Q
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: type
+      value: Q
+      description: "(Required) "
+  pathVariables:
+    alertId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "account": "U1234567",
+        "order_id": 833967258,
+        "alert_name": "IBM",
+        "tif": "GTC",
+        "expire_time": null,
+        "alert_active": 1,
+        "alert_repeatable": 0,
+        "alert_email": "john.smith@example.com",
+        "alert_send_message": 1,
+        "alert_message": "alert message",
+        "alert_show_popup": 1,
+        "alert_play_audio": null,
+        "order_status": "Submitted",
+        "alert_triggered": false,
+        "fg_color": "#FFFFFF",
+        "bg_color": "#0000CC",
+        "order_not_editable": false,
+        "itws_orders_only": 0,
+        "alert_mta_currency": null,
+        "alert_mta_defaults": null,
+        "tool_id": null,
+        "time_zone": null,
+        "alert_default_type": null,
+        "condition_size": 1,
+        "condition_outside_rth": 1,
+        "conditions": [
+          {
+            "condition_type": 1,
+            "conidex": "8314@NYSE",
+            "contract_description_1": "IBM",
+            "condition_operator": ">=",
+            "condition_trigger_method": "0",
+            "condition_value": "500.00",
+            "condition_logic_bind": "n",
+            "condition_time_zone": null
+          }
+        ]
+      }
+order: 10000

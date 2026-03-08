@@ -1,0 +1,29 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/iserver/account/allocation/presets"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "group_auto_close_positions": true,
+        "default_method_for_all": "AvailableEquity",
+        "profiles_auto_close_positions": false,
+        "strict_credit_check": true,
+        "group_proportional_allocation": false
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true
+      }
+order: 1000

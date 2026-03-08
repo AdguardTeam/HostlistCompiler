@@ -1,0 +1,10 @@
+$kind: http-request
+description: Request an access token for the IB username that has granted
+  authorization to the consumer.
+url: https://api.ibkr.com/v1/api/oauth/access_token
+method: POST
+headers:
+  Accept: application/json
+examples: ./.resources/Request An Access Token For The IB Username That Has
+  Granted Authorization To The Consumer..resources/examples
+order: 1000

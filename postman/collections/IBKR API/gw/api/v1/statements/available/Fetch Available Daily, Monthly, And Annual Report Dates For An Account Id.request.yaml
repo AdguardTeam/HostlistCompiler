@@ -1,0 +1,14 @@
+$kind: http-request
+description: "<br>**Scope**: `statements.read` OR `reports.read`<br>**Security
+  Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/statements/available?accountId=UXXXX"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: accountId
+    value: UXXXX
+    description: (Required) Specifies the account id to retrieve information
+examples: ./.resources/Fetch Available Daily, Monthly, And Annual Report Dates
+  For An Account Id.resources/examples
+order: 1000

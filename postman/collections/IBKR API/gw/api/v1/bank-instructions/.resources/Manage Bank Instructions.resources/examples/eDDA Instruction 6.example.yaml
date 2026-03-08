@@ -1,0 +1,50 @@
+$kind: http-example
+name: eDDA Instruction
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "EDDA_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 7012743,
+          "bankInstructionName": "{instrution-name}",
+          "currency": "CNH",
+          "accountId": "U8072517",
+          "bankBranchCode": "003",
+          "bankAccountNumber": "132456",
+          "bankClearingCode": "003",
+          "debtorIdentificationDocumentType": "hkId"
+        }
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Business Error",
+        "status": 422,
+        "detail": "Funds and Banking server cannot process your request because it contains invalid data",
+        "instructionSetId": 2602,
+        "instructionResult": {
+          "clientInstructionId": 80139,
+          "instructionType": "ACH_INSTRUCTION",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092578,
+          "error": {
+            "errorCode": "ERROR_ACCOUNT_CP_NOT_RELATED",
+            "errorMessage": "Account U223454 not related to counterparty qatester"
+          }
+        }
+      }
+order: 29000

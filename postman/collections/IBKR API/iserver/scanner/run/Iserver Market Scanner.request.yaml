@@ -1,0 +1,24 @@
+$kind: http-request
+description: Searches for contracts according to the filters specified in
+  /iserver/scanner/params endpoint.
+url: "{{baseUrl}}/iserver/scanner/run"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "instrument": "STK",
+      "location": "STK.US.MAJOR",
+      "type": "TOP_TRADE_COUNT",
+      "filter": [
+        {
+          "code": "priceAbove",
+          "value": 5
+        }
+      ]
+    }
+examples: ./.resources/Iserver Market Scanner.resources/examples
+order: 1000

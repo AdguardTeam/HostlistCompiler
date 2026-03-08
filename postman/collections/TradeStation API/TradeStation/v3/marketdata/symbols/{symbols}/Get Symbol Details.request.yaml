@@ -1,0 +1,53 @@
+$kind: http-request
+description: >-
+  Fetches symbol details and formatting information for one or more symbols and
+  relevant errors, if any. Use provided formatting objects to display provided
+  prices and quantities from other API endpoints.
+
+
+  * **Decimal** prices should be displayed as decimals. For instance, for a
+  given price of `123.2` the price should be displayed as `123.20`.
+
+
+  * **Fraction** price display formatting should be displayed with the
+  `PriceFormat.Fraction` in the denominator of the fraction part of the given
+  number. For instance, given a price of `534.5` and a `PriceFormat.Fraction` of
+  `8`, the number should be shown as `534 4/8`.
+
+
+  * For **SubFractional** price display formatting, the following equations can
+  be used to derive the display format of `a'b.c` for a given price. For
+  instance, given a price of `125.92969`, a `PriceFormat.Fraction` of `32` and a
+  `PriceFormat.Subfraction` of `4`, the number should be displayed as
+  `125'29.7`.
+
+  ```
+
+  x (Price)                   = 125.92969
+
+  y (PriceFormat.Fraction)    = 32
+
+  z (PriceFormat.SubFraction) = 4
+
+  ```
+
+  ```
+
+  a = trunc(x)
+
+  b = trunc(frac(x) * y)
+
+  c = trunc(((frac(x) - (b/y)) * z * y) / (z/10))
+
+  ```
+url: "{{baseUrl}}/v3/marketdata/symbols/:symbols"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: symbols
+    value: <string>
+    description: (Required) List of valid symbols in comma separated format; for
+      example `"MSFT,BTCUSD"`, no more than 50 symbols per request.
+examples: ./.resources/Get Symbol Details.resources/examples
+order: 1000

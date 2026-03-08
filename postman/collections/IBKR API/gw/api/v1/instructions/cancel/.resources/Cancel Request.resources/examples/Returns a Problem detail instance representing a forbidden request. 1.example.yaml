@@ -1,0 +1,45 @@
+$kind: http-example
+name: Returns a Problem detail instance representing a forbidden request.
+request:
+  url: "{{baseUrl}}/gw/api/v1/instructions/cancel"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "CANCEL_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 12001810,
+          "instructionId": 43085477,
+          "reason": "Testing"
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 3766,
+        "instructionResult": {
+          "clientInstructionId": 12001813,
+          "instructionType": "CANCEL_INSTRUCTION",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43094182,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 10000

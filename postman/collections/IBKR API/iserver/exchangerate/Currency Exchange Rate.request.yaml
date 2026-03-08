@@ -1,0 +1,15 @@
+$kind: http-request
+description: Obtains the exchange rates of the currency pair.
+url: https://api.ibkr.com/v1/api/iserver/exchangerate?target=EUR&source=USD
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: target
+    value: EUR
+    description: "(Required) "
+  - key: source
+    value: USD
+    description: "(Required) "
+examples: ./.resources/Currency Exchange Rate.resources/examples
+order: 1000

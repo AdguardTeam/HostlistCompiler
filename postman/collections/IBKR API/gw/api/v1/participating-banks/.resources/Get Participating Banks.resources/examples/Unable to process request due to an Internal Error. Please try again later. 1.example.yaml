@@ -1,0 +1,25 @@
+$kind: http-example
+name: Unable to process request due to an Internal Error. Please try again later.
+request:
+  url: "{{baseUrl}}/gw/api/v1/participating-banks?type=eDDA"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: type
+      value: eDDA
+      description: (Required) Parameter for which the list of participating banks is fetched
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "/simple"
+      }
+order: 4000

@@ -1,0 +1,31 @@
+$kind: http-example
+name: Returns the "data" array, which contains all allocation groups under the
+  advisor account.
+request:
+  url: "{{baseUrl}}/iserver/account/allocation/group"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": [
+          {
+            "allocation_method": "E",
+            "size": 16,
+            "name": "group_1"
+          },
+          {
+            "allocation_method": "N",
+            "size": 3,
+            "name": "group_2"
+          }
+        ]
+      }
+order: 1000

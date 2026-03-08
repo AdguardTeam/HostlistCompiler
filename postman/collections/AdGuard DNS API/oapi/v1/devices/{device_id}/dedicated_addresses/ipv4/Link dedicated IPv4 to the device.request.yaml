@@ -1,0 +1,36 @@
+$kind: http-request
+description: >-
+  ### Add Dedicated IPv4 Address
+
+
+  This endpoint allows the addition of a dedicated IPv4 address to a specific
+  device.
+
+
+  #### Request Body
+
+
+  - `ip` (string, required): The IPv4 address to be assigned to the device.
+      
+
+  #### Response
+
+
+  - If successful, the response will be `null`.
+url: "{{baseUrl}}/oapi/v1/devices/:device_id/dedicated_addresses/ipv4"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: device_id
+    value: <string>
+    description: "(Required) "
+body:
+  type: json
+  content: |-
+    {
+      "ip": "<string>"
+    }
+examples: ./.resources/Link dedicated IPv4 to the device.resources/examples
+order: 2000

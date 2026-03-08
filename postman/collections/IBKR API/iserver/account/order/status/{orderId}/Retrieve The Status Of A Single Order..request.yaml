@@ -1,0 +1,12 @@
+$kind: http-request
+description: Retrieve the status of a single order.
+url: https://api.ibkr.com/v1/api/iserver/account/order/status/:orderId
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: orderId
+    value: "1799796559"
+    description: "(Required) "
+examples: ./.resources/Retrieve The Status Of A Single Order..resources/examples
+order: 1000

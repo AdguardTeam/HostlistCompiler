@@ -1,0 +1,54 @@
+$kind: http-example
+name: Response
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "ACH_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "bankInstructionCode": "USACH",
+          "achType": "DEBIT_CREDIT",
+          "bankInstructionName": "TestInstr",
+          "currency": "USD",
+          "accountId": "U223454",
+          "clientAccountInfo": {
+            "bankRoutingNumber": "202012983",
+            "bankAccountNumber": "101267576983",
+            "bankName": "JPM Chase",
+            "bankAccountTypeCode": 0
+          }
+        }
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Business Error",
+        "status": 422,
+        "detail": "Funds and Banking server cannot process your request because it contains invalid data",
+        "instructionSetId": 2602,
+        "instructionResult": {
+          "clientInstructionId": 80139,
+          "instructionType": "ACH_INSTRUCTION",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092578,
+          "error": {
+            "errorCode": "ERROR_ACCOUNT_CP_NOT_RELATED",
+            "errorMessage": "Account U223454 not related to counterparty qatester"
+          }
+        }
+      }
+order: 48000

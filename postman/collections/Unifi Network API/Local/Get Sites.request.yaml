@@ -1,0 +1,69 @@
+$kind: http-request
+description: >-
+  This endpoint makes an HTTP GET request to retrieve information about sites
+  within a specific network integration and version.
+
+
+  ### Request
+
+
+  The request does not require any specific parameters to be provided in the
+  URL.
+
+
+  ### Response
+
+
+  Upon a successful request, the API returns a JSON response with a status code
+  of 200 and a content type of application/json. The response body includes the
+  following fields:
+
+
+  - `offset` (number): The offset of the returned data.
+      
+  - `limit` (number): The limit of the returned data.
+      
+  - `count` (number): The count of the returned data.
+      
+  - `totalCount` (number): The total count of available data.
+      
+  - `data` (array): An array containing objects with the following fields:
+      
+      - `id` (string): The unique identifier of the site.
+          
+      - `name` (string): The name of the site.
+
+          
+
+  #### Response Example
+
+
+  ``` json
+
+  {
+    "offset": 0,
+    "limit": 0,
+    "count": 0,
+    "totalCount": 0,
+    "data": [
+      {
+        "id": "example_id",
+        "name": "example_name"
+      }
+    ]
+  }
+
+   ```
+url: "{{https}}{{local-base-url}}/{{proxy}}/{{network}}/{{integration}}/{{versi\
+  on}}/{{sites}}"
+method: GET
+headers:
+  X-API-KEY: xbtpA1tAietowYGMXi_8PJ-L8okpTlFd
+settings:
+  protocolVersion: http2
+  followAuthorizationHeader: true
+  tlsPreferServerCiphers: false
+  tlsDisabledProtocols:
+    - TLSv1
+examples: ./.resources/Get Sites.resources/examples
+order: 1000

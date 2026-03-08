@@ -1,0 +1,29 @@
+$kind: http-example
+name: Unsupported Media Type
+request:
+  url: "{{baseUrl}}/gw/api/v1/forms?formNo=77608319,-37811536&getDocs=minim&fromD\
+    ate=minim&toDate=minim&language=minim&projection=NONE"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    formNo: 77608319,-37811536
+    getDocs: minim
+    fromDate: minim
+    toDate: minim
+    language: minim
+    projection: NONE
+response:
+  statusCode: 415
+  statusText: Unsupported Media Type
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "culpa_5c": {},
+        "Loremf": {},
+        "esse5a": {}
+      }
+order: 10000

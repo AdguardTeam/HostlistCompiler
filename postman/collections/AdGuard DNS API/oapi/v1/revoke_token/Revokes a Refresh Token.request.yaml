@@ -1,0 +1,28 @@
+$kind: http-request
+description: >-
+  The endpoint allows the user to revoke a token by making an HTTP POST request
+  to the specified URL. The request includes the refresh token as a query
+  parameter. Upon successful revocation, the response will be null.
+
+
+  ### Response
+
+
+  The response for this request can be documented as a JSON schema:
+
+
+  ``` json
+
+  {
+    "type": "null"
+  }
+
+   ```
+url: "{{baseUrl}}/oapi/v1/revoke_token?refresh_token={{vault:adguard-refresh_token}}"
+method: POST
+queryParams:
+  - key: refresh_token
+    value: "{{vault:adguard-refresh_token}}"
+    description: (Required) Refresh Token
+examples: ./.resources/Revokes a Refresh Token.resources/examples
+order: 1000

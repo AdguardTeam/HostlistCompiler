@@ -1,0 +1,21 @@
+$kind: http-request
+description: "<br>**Scope**: `statements.write` OR `reports.write`<br>**Security
+  Policy**: `Signed JWT`"
+url: "{{baseUrl}}/gw/api/v1/tax-documents"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "accountId": "UXXXX",
+      "format": "HTML,CSV,PDF",
+      "type": "ALL,1099,1099R,1042S,8949",
+      "year": 2023,
+      "gzip": false
+    }
+examples: ./.resources/Fetch Tax Forms In Supported Formats Based On Request
+  Parameters..resources/examples
+order: 2000

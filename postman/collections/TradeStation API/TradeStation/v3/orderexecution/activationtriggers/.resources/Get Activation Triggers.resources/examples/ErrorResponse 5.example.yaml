@@ -1,0 +1,24 @@
+$kind: http-example
+name: ErrorResponse
+request:
+  url: "{{baseUrl}}/v3/orderexecution/activationtriggers"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "Error": "<string>",
+        "Message": "<string>"
+      }
+order: 7000

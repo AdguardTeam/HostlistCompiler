@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/accounts/:accountId"
+  method: GET
+  headers:
+    Content-Type: application/json
+  pathVariables:
+    accountId: "{{e2e_user_account_id_from}}"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:08:45 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "136"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "account": {
+              "id": 151,
+              "owner": "Ford Paucek - FromAccount",
+              "balance": 30,
+              "currency": "COSMIC_COINS",
+              "createdAt": "2024-03-11T01:07:48.000Z"
+          }
+      }
+order: 1000

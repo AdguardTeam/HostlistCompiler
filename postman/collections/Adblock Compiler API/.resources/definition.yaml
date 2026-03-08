@@ -1,0 +1,6 @@
+$kind: collection
+description: Comprehensive test collection for the Adblock Compiler OpenAPI specification
+variables:
+  baseUrl: http://localhost:8787
+  prodUrl: https://adblock-compiler.jayson-knight.workers.dev
+  requestId: ""

@@ -1,0 +1,21 @@
+$kind: http-request
+description: >-
+  If a response of an endpoint requires to send data beyond the basic English /
+  ASCII character set, the `charset` parameter in the `Content-Type` response
+  header defines the character encoding policy.
+
+
+  This endpoint returns an `UTF8` character encoded response body with text in
+  various languages such as Greek, Latin, East Asian, etc. Postman can interpret
+  the character encoding and use appropriate methods to display the character
+  set in responses.
+url: https://echo.getpostman.com/encoding/utf8
+method: GET
+body:
+  type: formdata
+  content: []
+scripts:
+  - type: afterResponse
+    code: tests["response code is 200"] = responseCode.code === 200;
+    language: text/javascript
+order: 4000

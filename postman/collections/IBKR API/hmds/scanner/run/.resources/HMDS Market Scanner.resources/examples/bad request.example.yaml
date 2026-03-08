@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/hmds/scanner/run"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "instrument": "BOND",
+        "locations": "BOND.US",
+        "scanCode": "HIGH_BOND_ASK_YIELD_ALL",
+        "secType": "BOND",
+        "delayedLocations": "SMART",
+        "maxItems": 25,
+        "filters": [
+          {
+            "bondAskYieldBelow": 15.819
+          }
+        ]
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 3000

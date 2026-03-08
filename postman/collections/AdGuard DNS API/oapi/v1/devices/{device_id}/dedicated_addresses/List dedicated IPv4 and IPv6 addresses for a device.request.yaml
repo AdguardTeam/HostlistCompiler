@@ -1,0 +1,32 @@
+$kind: http-request
+description: >-
+  This endpoint retrieves the dedicated addresses for a specific device by
+  making an HTTP GET request to
+  {{baseUrl}}/oapi/v1/devices/:device_id/dedicated_addresses.
+
+
+  ### Request
+
+
+  No request body is required for this endpoint.
+
+
+  ### Response
+
+
+  The response will include the dedicated IPv4 and IPv6 addresses for the
+  specified device. The "ipv4" key contains an array of IPv4 addresses, while
+  the "ipv6" key contains an array of IPv6 addresses. Additionally, the
+  "ipv4_limit" object provides information about the limit and usage of IPv4
+  addresses, with "limit" and "used" as the respective keys.
+url: "{{baseUrl}}/oapi/v1/devices/:device_id/dedicated_addresses"
+method: GET
+headers:
+  Accept: "*/*"
+pathVariables:
+  - key: device_id
+    value: <string>
+    description: "(Required) "
+examples: ./.resources/List dedicated IPv4 and IPv6 addresses for a
+  device.resources/examples
+order: 2000

@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/echo/signed-jwt"
+  method: POST
+  headers:
+    Content-Type: application/jwt
+    Accept: application/json
+  body:
+    type: text
+    content: |-
+      {
+        "iss": "prodtester"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "requestMethod": "GET",
+        "securityPolicy": "HTTPS",
+        "queryParameters": {}
+      }
+order: 1000

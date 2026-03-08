@@ -1,0 +1,8 @@
+$kind: http-request
+description: Fetches the list of Brokerage Accounts available for the current user.
+url: "{{baseUrl}}/v3/brokerage/accounts"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Get Accounts.resources/examples
+order: 2000

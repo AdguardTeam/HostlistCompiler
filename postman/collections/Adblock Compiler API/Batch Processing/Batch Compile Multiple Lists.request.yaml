@@ -1,0 +1,69 @@
+$kind: http-request
+description: Batch compile multiple filter lists
+url: "{{baseUrl}}/compile/batch"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "requests": [
+        {
+          "id": "list1",
+          "configuration": {
+            "name": "Batch List 1",
+            "sources": [
+              {
+                "source": "batch1"
+              }
+            ]
+          },
+          "preFetchedContent": {
+            "batch1": "||ads1.com^"
+          }
+        },
+        {
+          "id": "list2",
+          "configuration": {
+            "name": "Batch List 2",
+            "sources": [
+              {
+                "source": "batch2"
+              }
+            ]
+          },
+          "preFetchedContent": {
+            "batch2": "||ads2.com^"
+          }
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Response is successful', function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.success).to.be.true;
+      });
+
+      pm.test('Has results array', function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.results).to.be.an('array');
+          pm.expect(jsonData.results).to.have.lengthOf(2);
+      });
+
+      pm.test('Each result has id and rules', function () {
+          const jsonData = pm.response.json();
+          jsonData.results.forEach(result => {
+              pm.expect(result).to.have.property('id');
+              pm.expect(result).to.have.property('rules');
+              pm.expect(result.rules).to.be.an('array');
+          });
+      });
+    language: text/javascript
+order: 1000

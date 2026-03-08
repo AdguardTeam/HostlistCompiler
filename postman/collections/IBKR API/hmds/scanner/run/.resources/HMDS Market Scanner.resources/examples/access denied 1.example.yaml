@@ -1,0 +1,33 @@
+$kind: http-example
+name: access denied
+request:
+  url: "{{baseUrl}}/hmds/scanner/run"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: text/plain; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "instrument": "BOND",
+        "locations": "BOND.US",
+        "scanCode": "HIGH_BOND_ASK_YIELD_ALL",
+        "secType": "BOND",
+        "delayedLocations": "SMART",
+        "maxItems": 25,
+        "filters": [
+          {
+            "bondAskYieldBelow": 15.819
+          }
+        ]
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: text/plain; charset=utf-8
+  body:
+    type: text
+    content: pariatur deserunt mollit
+order: 12000

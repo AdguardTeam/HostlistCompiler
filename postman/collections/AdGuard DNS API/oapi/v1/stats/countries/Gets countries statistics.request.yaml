@@ -1,0 +1,60 @@
+$kind: http-request
+description: >-
+  This endpoint retrieves statistics for countries based on the specified time
+  range, devices, and countries. The request parameters include time_from_millis
+  (start time in milliseconds), time_to_millis (end time in milliseconds),
+  devices (array of device names), and countries (array of country names).
+
+
+  ### Response
+
+
+  The response for this request is a JSON object with a "stats" array containing
+  objects for each country. Each country object includes the country name and
+  the "value" object with statistics for that country, including the number of
+  blocked items, companies, and queries.
+
+
+  ``` json
+
+  {
+    "stats": [
+      {
+        "country": "",
+        "value": {
+          "blocked": "",
+          "companies": "",
+          "queries": ""
+        }
+      }
+    ]
+  }
+
+   ```
+url: "{{baseUrl}}/oapi/v1/stats/countries?time_from_millis=<long>&time_to_milli\
+  s=<long>&devices=<string>&devices=<string>&countries=<string>&countries=<stri\
+  ng>"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  - key: time_from_millis
+    value: <long>
+    description: (Required) Time from in milliseconds (inclusive)
+  - key: time_to_millis
+    value: <long>
+    description: (Required) Time to in milliseconds (inclusive)
+  - key: devices
+    value: <string>
+    description: Filter by devices
+  - key: devices
+    value: <string>
+    description: Filter by devices
+  - key: countries
+    value: <string>
+    description: Filter by countries
+  - key: countries
+    value: <string>
+    description: Filter by countries
+examples: ./.resources/Gets countries statistics.resources/examples
+order: 1000

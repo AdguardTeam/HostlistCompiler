@@ -1,0 +1,53 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alert
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+  body:
+    type: json
+    content: |-
+      {
+        "orderId": "1408549184",
+        "alertName": "AAPL_Price",
+        "alertMessage": "AAPL Price Drop! Modified message",
+        "alertRepeatable": 0,
+        "email": "jonh.smith@example.com",
+        "expireTime": "20231231-12:00:00",
+        "iTWSOrdersOnly": 0,
+        "outsideRth": 0,
+        "sendMessage": 1,
+        "showPopup": 1,
+        "tif": "GTC",
+        "conditions": [
+          {
+            "conidex": "265598@NYSE",
+            "logicBind": "a",
+            "operator": ">=",
+            "timeZone": "US/Eastern",
+            "triggerMethod": "0",
+            "type": 1,
+            "value": "500"
+          }
+        ]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "request_id": null,
+        "order_id": 1408549184,
+        "success": true,
+        "text": "Submitted",
+        "order_status": null,
+        "warning_message": null
+      }
+order: 2000

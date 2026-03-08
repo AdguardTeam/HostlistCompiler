@@ -1,0 +1,22 @@
+$kind: http-request
+description: Delete the `fromAccount` account and clear out the collection
+  variables we created during this test case.
+url: "{{baseUrl}}/api/v1/accounts/:accountId"
+method: DELETE
+headers:
+  Content-Type: application/json
+pathVariables:
+  accountId: "{{e2e_user_account_id_from}}"
+scripts:
+  - type: afterResponse
+    code: |
+      //clean up all variables now that the folder's run is over
+      pm.collectionVariables.unset("e2e_transaction_id_to")
+      pm.collectionVariables.unset("e2e_user_account_id_from")
+      pm.collectionVariables.unset("e2e_user_account_id_to")
+      pm.collectionVariables.unset("e2e_user_name_from")
+      pm.collectionVariables.unset("e2e_user_name_to")
+    language: text/javascript
+examples: ./.resources/[Teardown][11] Delete The User Account -
+  FromAccount.resources/examples
+order: 11000

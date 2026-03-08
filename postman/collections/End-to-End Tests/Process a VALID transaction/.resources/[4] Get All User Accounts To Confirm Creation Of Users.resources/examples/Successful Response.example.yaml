@@ -1,0 +1,40 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/accounts"
+  method: GET
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:08:07 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "263"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "accounts": [
+              {
+                  "id": 151,
+                  "owner": "Ford Paucek - FromAccount",
+                  "balance": 50,
+                  "currency": "COSMIC_COINS",
+                  "createdAt": "2024-03-11T01:07:48.000Z"
+              },
+              {
+                  "id": 152,
+                  "owner": "Micah Kovacek - ToAccount",
+                  "balance": 0,
+                  "currency": "COSMIC_COINS",
+                  "createdAt": "2024-03-11T01:07:54.000Z"
+              }
+          ]
+      }
+order: 1000

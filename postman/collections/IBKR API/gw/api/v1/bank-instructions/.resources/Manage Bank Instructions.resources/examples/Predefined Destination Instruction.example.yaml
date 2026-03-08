@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "PREDEFINED_DESTINATION_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 7013053,
+          "bankInstructionName": "Test-ACH-Instr",
+          "bankInstructionMethod": "ACH",
+          "accountId": "U399192",
+          "currency": "USD",
+          "financialInstitution": {
+            "name": "SBI Bank",
+            "branchCode": "",
+            "branchCodeType": "BSB_AUD",
+            "identifier": "SBIN001000",
+            "identifierType": "IFSC",
+            "clientAccountId": "132456789"
+          }
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 7008152,
+          "instructionType": "PREDEFINED_DESTINATION_INSTRUCTION",
+          "instructionStatus": "PENDING",
+          "instructionId": 43092590
+        },
+        "instructionSetId": 2614,
+        "status": 202
+      }
+order: 4000

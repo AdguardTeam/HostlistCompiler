@@ -1,0 +1,6 @@
+name: Adblock Compiler - Cloud
+values:
+  - key: baseUrl
+    value: http://localhost:8787
+    enabled: true
+color: null

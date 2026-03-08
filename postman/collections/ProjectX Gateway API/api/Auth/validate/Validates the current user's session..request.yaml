@@ -1,0 +1,67 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Auth/validate"
+method: POST
+headers:
+  Accept: text/plain
+scripts:
+  - type: afterResponse
+    code: >
+      // Check if the response status code is 200
+
+      pm.test("Status code is 200", function () {
+          pm.expect(pm.response.code).to.equal(200);
+      });
+
+
+      // Check if the response time is less than 200ms
+
+      pm.test("Response time is less than 200ms", function () {
+          pm.expect(pm.response.responseTime).to.be.below(200);
+      });
+
+
+      // Parse the JSON response
+
+      const response = pm.response.json();
+
+
+      // Validate the structure of the response
+
+      pm.test("Response has required properties", function () {
+          pm.expect(response).to.have.all.keys('newToken', 'success', 'errorCode', 'errorMessage');
+      });
+
+
+      // Check that 'newToken' is a string
+
+      pm.test("newToken is a string", function () {
+          pm.expect(response.newToken).to.be.a('string');
+      });
+
+
+      // Check that 'success' is true
+
+      pm.test("success is true", function () {
+          pm.expect(response.success).to.equal(true);
+      });
+
+
+      // Check that 'errorCode' is 0
+
+      pm.test("errorCode is 0", function () {
+          pm.expect(response.errorCode).to.equal(0);
+      });
+
+
+      // Check that 'errorMessage' is null
+
+      pm.test("errorMessage is null", function () {
+          pm.expect(response.errorMessage).to.be.null;
+      });
+
+      let json = pm.response.json();
+
+      pm.environment.set("bearerToken", json.newToken);
+    language: text/javascript
+examples: ./.resources/Validates the current user's session..resources/examples
+order: 1000

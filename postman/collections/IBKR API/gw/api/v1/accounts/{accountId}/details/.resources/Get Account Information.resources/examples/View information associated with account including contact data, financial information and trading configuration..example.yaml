@@ -1,0 +1,763 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/accounts/:accountId/details"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "error": {
+          "error": {
+            "value": "<Circular reference to #/components/schemas/ErrorResponse detected>"
+          },
+          "hasError": true,
+          "errorDescription": "labore"
+        },
+        "hasError": false,
+        "errorDescription": "minim fugiat",
+        "account": {
+          "accountId": "anim nostrud cupidatat est",
+          "masterAccountId": "consequat adipisicing",
+          "mainAccount": "ullamco cillum",
+          "sourceAccountId": "voluptate enim quis ea",
+          "primaryUser": "nisi ut",
+          "clearingStatus": "consequat velit",
+          "clearingStatusDescription": "ullamco sed occaecat ad ut",
+          "stateCode": "non laboris dolore culpa voluptate",
+          "baseCurrency": "Excepteur Lore",
+          "dateBegun": "ex",
+          "dateApproved": "aute sit reprehenderit",
+          "dateOpened": "ullamco ipsu",
+          "dateFunded": "sunt labore sit",
+          "dateClosed": "irure ipsum incididunt occaecat pariatur",
+          "dateLinked": "qui minim sed laborum labore",
+          "dateDelinked": "Lorem fugiat",
+          "accountTitle": "officia commodo quis deserunt",
+          "officialTitle": "ut magna",
+          "accountAlias": "sint dolor sunt nulla",
+          "emailAddress": "ex Duis",
+          "margin": "fugiat quis sint adipisicing",
+          "applicantType": "sed cupidatat id minim in",
+          "subType": "tempor cillum",
+          "stockYieldProgram": {
+            "proident_9": "Excepteur officia Ut labore",
+            "proidentb1b": "nisi in fugiat laboru",
+            "non98f": "dolor"
+          },
+          "feeTemplate": {
+            "ad_bd0": "sunt non"
+          },
+          "capabilities": {
+            "aliquip_1b": [
+              "anim laboris exercitation esse",
+              "incididunt nisi"
+            ]
+          },
+          "limitedOptionTrading": "exercitation sit dolore",
+          "investmentObjectives": [
+            "dolor ut et exercitation",
+            "nostrud ullamco sed ex"
+          ],
+          "externalId": "pariatur",
+          "mifidCategory": "minim",
+          "mifirStatus": "eu aliquip",
+          "equity": -47201017.71786735,
+          "household": "",
+          "propertyProfile": "incididunt veniam",
+          "processType": "et cillum consequat eiusmod",
+          "riskScore": 73515457,
+          "class_action_program": "consequat sunt eu commodo",
+          "trustType": "veniam sit",
+          "orgType": "aute sit",
+          "businessDescription": "enim",
+          "usTaxPurposeType": "sint n",
+          "tradeIntentionType": "in",
+          "registeredAddress": {
+            "proident_19": "velit in",
+            "eadc": "adipisicing laborum Duis reprehenderit in"
+          },
+          "mailing": {
+            "ipsum_c40": "amet enim do minim"
+          },
+          "countryOfCorporation": "labo",
+          "taxIds": [
+            {
+              "officia_8": "incididunt proident consectetur",
+              "aute5": "ad veniam irure in fugiat"
+            },
+            {
+              "Lorem_62": "Lorem",
+              "dolore_c3c": "aliquip sint"
+            }
+          ],
+          "taxTreatyDetails": [
+            {
+              "irure__3": "esse "
+            },
+            {
+              "proident1": "quis Excepteur ullamco enim ipsum",
+              "labore5_": "sunt enim incididunt"
+            }
+          ]
+        },
+        "associatedPersons": [
+          {
+            "entityId": 97258552,
+            "externalCode": "consequat qui",
+            "firstName": "aliqua do dolore in minim",
+            "middleName": "velit est proident",
+            "middleInitial": "in",
+            "lastName": "in anim irure ut",
+            "suffix": "pariatur quis",
+            "username": "incididunt consectetur aliquip",
+            "passwordDate": "in ut sed dolor",
+            "userStatus": "irure consequat sunt",
+            "userStatusTrading": "do al",
+            "lastLogin": "non amet",
+            "gender": "sed ipsum anim",
+            "maritalStatus": "exercitation sint nisi fugiat",
+            "salutation": "aliqua dolor in dolor exercitation",
+            "email": "laborum",
+            "countryOfCitizenship": "irure adipisicing",
+            "countryOfBirth": "velit enim officia ad esse",
+            "dateOfBirth": "magna aliqua ea",
+            "motersMaidenName": "in in veniam paria",
+            "numberOfDependents": 56636681,
+            "securityDevice": "nulla id fug",
+            "commercial": "ut veniam",
+            "phones": {
+              "veniamde": "do ut dolor in"
+            },
+            "residence": {
+              "in4": "enim",
+              "exercitation_9": "nostrud eu qui"
+            },
+            "mailing": {
+              "in28e": "in ut labore"
+            },
+            "associations": [
+              "sed voluptate",
+              "dolor voluptate irure incididunt"
+            ],
+            "identityDocuments": [
+              {
+                "dolore_27": "aliqua exercitation"
+              },
+              {
+                "eiusmod4": "tempor irure"
+              }
+            ],
+            "employmentType": "et cillum ut",
+            "employmentDetails": {
+              "id_9_a": {}
+            },
+            "subscribedServices": [
+              {
+                "enim_7da": {}
+              },
+              {
+                "fugiat_e": {},
+                "velit9db": {},
+                "idfe": {},
+                "ametf06": {}
+              }
+            ],
+            "taxTreatyDetails": [
+              {
+                "dolor_7": "deserunt ad"
+              },
+              {
+                "ipsum_7ca": "sit eiusmod"
+              }
+            ]
+          },
+          {
+            "entityId": -88142554,
+            "externalCode": "elit labore laboris proident",
+            "firstName": "ex velit consequat et id",
+            "middleName": "pariatur dolor",
+            "middleInitial": "des",
+            "lastName": "esse Lorem m",
+            "suffix": "Excepteur pariatur cupidatat",
+            "username": "labore Ut incididunt est",
+            "passwordDate": "et dolore deserunt elit",
+            "userStatus": "culpa deserunt fugiat",
+            "userStatusTrading": "ut",
+            "lastLogin": "Lorem minim",
+            "gender": "deserunt ut",
+            "maritalStatus": "irure",
+            "salutation": "cillum reprehenderit nostrud",
+            "email": "ex cupidatat anim laborum",
+            "countryOfCitizenship": "dolore irure",
+            "countryOfBirth": "in aliqua Duis velit",
+            "dateOfBirth": "non ut",
+            "motersMaidenName": "cillum pariatur nulla",
+            "numberOfDependents": -68290291,
+            "securityDevice": "exercitation irure aliquip",
+            "commercial": "magna ut",
+            "phones": {
+              "mollit_fa": "dolor exercitation aliquip"
+            },
+            "residence": {
+              "consequat_5a8": "fugiat aliqua ut"
+            },
+            "mailing": {
+              "aute__39": "Excepteur et non"
+            },
+            "associations": [
+              "adipisicing",
+              "anim proident"
+            ],
+            "identityDocuments": [
+              {
+                "laboris_a9": "occaecat dolor officia aliquip",
+                "elit57": "Excepteur id magna Duis aliqua",
+                "ex_002": "adipisicing"
+              },
+              {
+                "ade3": "sit laborum aliqua laboris",
+                "nostrud_7b6": "do sint ut reprehenderit sit",
+                "dod": "officia proident dolor",
+                "sint5be": "tempor labore nisi esse ullamco"
+              }
+            ],
+            "employmentType": "adipisicing dolore minim anim",
+            "employmentDetails": {
+              "dolor_8": {}
+            },
+            "subscribedServices": [
+              {
+                "aliquipe": {}
+              },
+              {
+                "consequate5": {},
+                "exe": {}
+              }
+            ],
+            "taxTreatyDetails": [
+              {
+                "amet_dc": "deserunt laboris"
+              },
+              {
+                "in_9f": "ipsum enim"
+              }
+            ]
+          }
+        ],
+        "associatedEntities": [
+          {
+            "entityId": -20279352,
+            "externalCode": "laboris",
+            "name": "dolor sint",
+            "email": "ullamco adipisicing dolore Ut",
+            "organizationCountry": "enim Ut consequat cillum",
+            "phones": {
+              "dolorf5": "ad et in",
+              "pariatur_40": "dolore incididunt",
+              "non_9a": "fugiat sit officia"
+            },
+            "residence": {
+              "aliquab": "adipisicing consequat",
+              "veniam8e": "ex officia aute",
+              "do7": "fugiat sunt voluptate magna",
+              "sedee4": "voluptate irure mollit pariatur"
+            },
+            "mailing": {
+              "consequata9": "veniam Duis qui ut et",
+              "eiusmod50": "dolore Lorem dolor"
+            },
+            "associations": [
+              "sint cupidatat irure",
+              "incididunt ad sunt"
+            ],
+            "identityDocuments": [
+              {
+                "in_8": "et consectetur",
+                "laborum_33": "sit dolor do Lorem",
+                "magna9b9": "anim laboris"
+              },
+              {
+                "Ut3": "nulla",
+                "labore_bd6": "qui in",
+                "dolore_b": "eu"
+              }
+            ],
+            "taxTreatyDetails": [
+              {
+                "ipsum3da": "nisi sint ex labore id",
+                "sunt_8": "reprehenderit eiusmod vel",
+                "ex_02e": "ipsum dolore"
+              },
+              {
+                "tempor_": "enim",
+                "aute_8": "fugiat enim in"
+              }
+            ],
+            "AssociatedPersons": [
+              {
+                "entityId": 90062767,
+                "externalCode": "inci",
+                "firstName": "ullamco non in",
+                "middleName": "irure e",
+                "middleInitial": "nisi",
+                "lastName": "id aute eiusmod cons",
+                "suffix": "ipsum laboris ut dolore",
+                "username": "occaecat eu tempor elit",
+                "passwordDate": "",
+                "userStatus": "anim non",
+                "userStatusTrading": "aliqua in cupidatat",
+                "lastLogin": "quis est",
+                "gender": "cillum nisi do",
+                "maritalStatus": "sed reprehe",
+                "salutation": "de",
+                "email": "culpa qui et repre",
+                "countryOfCitizenship": "labore",
+                "countryOfBirth": "commodo minim aute",
+                "dateOfBirth": "in qui aliquip sed laborum",
+                "motersMaidenName": "et",
+                "numberOfDependents": -64107415,
+                "securityDevice": "consectetur pariatur aute",
+                "commercial": "sint ",
+                "phones": {
+                  "occaecat_dd": "commodo cillum",
+                  "quise9c": "amet minim aliquip"
+                },
+                "residence": {
+                  "ea_e": "exercitation culpa "
+                },
+                "mailing": {
+                  "dolore_9": "fugiat ea do",
+                  "anim_552": "velit",
+                  "consectetur_9": "esse eu"
+                },
+                "associations": [
+                  "in eiusmod ut Duis",
+                  "ipsum aliquip"
+                ],
+                "identityDocuments": [
+                  {
+                    "nulla_ab": "Excepteur nisi id ullamco sint",
+                    "dolor_6": "sed est ut"
+                  },
+                  {
+                    "exercitation2": "sit culpa adipisicing sed offi",
+                    "mollit0": "eu nostrud",
+                    "exercitation_eb": "adipisicing tempor minim ipsum sunt"
+                  }
+                ],
+                "employmentType": "Excepteur sed",
+                "employmentDetails": {
+                  "anim3_": {}
+                },
+                "subscribedServices": [
+                  {
+                    "laboris_83": {}
+                  },
+                  {
+                    "velit_9": {}
+                  }
+                ],
+                "taxTreatyDetails": [
+                  {
+                    "aliqua_5b": "Lorem quis",
+                    "voluptatec6": "esse magna aliquip c",
+                    "adipisicing_a49": "sunt"
+                  },
+                  {
+                    "ullamco_b_0": "i",
+                    "cupidatat_e_7": "nisi Ut tempor veniam",
+                    "sintc2": "sed dolor mollit",
+                    "commodo__d": "exercitation cillum"
+                  }
+                ]
+              },
+              {
+                "entityId": -87590672,
+                "externalCode": "minim",
+                "firstName": "ut",
+                "middleName": "Duis sed",
+                "middleInitial": "enim in ea",
+                "lastName": "aliquip mollit Excepteur culpa officia",
+                "suffix": "magna occaecat reprehenderit culpa",
+                "username": "nulla sint qui elit",
+                "passwordDate": "cillum esse",
+                "userStatus": "con",
+                "userStatusTrading": "commod",
+                "lastLogin": "anim nisi aute",
+                "gender": "ut",
+                "maritalStatus": "in dolore id sed aliquip",
+                "salutation": "tempor esse in",
+                "email": "culpa dolore in et",
+                "countryOfCitizenship": "Excepteur in laborum",
+                "countryOfBirth": "dolo",
+                "dateOfBirth": "dolore ex id proident",
+                "motersMaidenName": "dolor est sit",
+                "numberOfDependents": 30011170,
+                "securityDevice": "cillum laborum irure id",
+                "commercial": "pariatur",
+                "phones": {
+                  "in_72": "enim consequat laborum"
+                },
+                "residence": {
+                  "nullac0": "laboris culpa"
+                },
+                "mailing": {
+                  "velit___": "enim occaecat"
+                },
+                "associations": [
+                  "est fugiat in proi",
+                  "pariatur occaecat laboris aliquip"
+                ],
+                "identityDocuments": [
+                  {
+                    "cupidatat9": "ullamco lab"
+                  },
+                  {
+                    "officia6": "nostrud Ut dolor",
+                    "amet_107": "reprehenderit deserunt enim tempor",
+                    "Lorem_9": "ea consequat tempor"
+                  }
+                ],
+                "employmentType": "quis irure dolor tempor",
+                "employmentDetails": {
+                  "non_3": {}
+                },
+                "subscribedServices": [
+                  {
+                    "magnaa": {},
+                    "eu_0": {}
+                  },
+                  {
+                    "mollit_dc_": {},
+                    "ex_5": {},
+                    "velitcc": {}
+                  }
+                ],
+                "taxTreatyDetails": [
+                  {
+                    "dolore_5d": "non nisi"
+                  },
+                  {
+                    "et0a": "in proident",
+                    "ut_29": "dolor labore aute"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "entityId": -60439961,
+            "externalCode": "veniam nulla",
+            "name": "eiusmod cillum ex dolore",
+            "email": "voluptate sint ex",
+            "organizationCountry": "cillum",
+            "phones": {
+              "magnab19": "D",
+              "nostrude43": "reprehenderit et anim"
+            },
+            "residence": {
+              "sed_47": "cupidatat minim",
+              "Excepteur_8_": "minim voluptate ad"
+            },
+            "mailing": {
+              "cupidatat6db": "cupidatat reprehenderit",
+              "commodo6aa": "voluptate incididunt nulla irure"
+            },
+            "associations": [
+              "aliqua veniam",
+              "incididunt nost"
+            ],
+            "identityDocuments": [
+              {
+                "utcb": "Lorem ullamco"
+              },
+              {
+                "proidente4": "sunt",
+                "mollit_f4": "dolore voluptate nostrud",
+                "consectetur5c": "in laborum ullamco nisi",
+                "commodo2": "sit voluptate consequat irure cupidatat"
+              }
+            ],
+            "taxTreatyDetails": [
+              {
+                "cillum8_c": "pariatur enim",
+                "qui6_": "consectetur mollit Ut"
+              },
+              {
+                "Excepteur24": "esse enim magna ad",
+                "proident76b": "adipisicing mollit"
+              }
+            ],
+            "AssociatedPersons": [
+              {
+                "entityId": 59954265,
+                "externalCode": "consectetur l",
+                "firstName": "Ut velit ad in",
+                "middleName": "ad anim fugiat",
+                "middleInitial": "sint est laboris adipisicing dolore",
+                "lastName": "nostrud in commodo sunt",
+                "suffix": "officia minim Ut consequat",
+                "username": "do in",
+                "passwordDate": "esse sit cupidatat proident do",
+                "userStatus": "L",
+                "userStatusTrading": "qui ut reprehenderit i",
+                "lastLogin": "mollit consectetur esse",
+                "gender": "magna",
+                "maritalStatus": "Ut min",
+                "salutation": "ex in aute",
+                "email": "reprehenderit cupidatat id eu enim",
+                "countryOfCitizenship": "irure nulla Duis aliqua nisi",
+                "countryOfBirth": "ex sit exercitation",
+                "dateOfBirth": "sed dolore commodo",
+                "motersMaidenName": "in amet ullamco sit al",
+                "numberOfDependents": -69750881,
+                "securityDevice": "nulla ",
+                "commercial": "voluptate id consequat la",
+                "phones": {
+                  "ex_": "ad do",
+                  "elit_c56": "des"
+                },
+                "residence": {
+                  "officia_1": "cupidatat et",
+                  "dolora1": "do sed sint deserunt",
+                  "qui_fe": "nulla commodo veniam eu ex"
+                },
+                "mailing": {
+                  "do_020": "sunt ipsum elit",
+                  "enimbf1": "exercitation nisi in"
+                },
+                "associations": [
+                  "sed culpa",
+                  "id ipsum eiusmod nostrud anim"
+                ],
+                "identityDocuments": [
+                  {
+                    "nulla6e7": "ullamco dolor in amet"
+                  },
+                  {
+                    "voluptate_e": "ut deserunt pariatur"
+                  }
+                ],
+                "employmentType": "aliquip ea irure consequat",
+                "employmentDetails": {
+                  "labore_c2": {},
+                  "Utdff": {},
+                  "eiusmodcb": {}
+                },
+                "subscribedServices": [
+                  {
+                    "adipisicing477": {},
+                    "dolor__1a": {}
+                  },
+                  {
+                    "proident_7bb": {}
+                  }
+                ],
+                "taxTreatyDetails": [
+                  {
+                    "Duis76_": "nisi irure dolore occaecat"
+                  },
+                  {
+                    "sit89e": "ullamco exercitation Ex",
+                    "qui_53": "Lorem v"
+                  }
+                ]
+              },
+              {
+                "entityId": 87230440,
+                "externalCode": "commodo consecte",
+                "firstName": "fugiat",
+                "middleName": "est ad culpa aliqua exercitation",
+                "middleInitial": "ea Ut",
+                "lastName": "Excepteur veniam aute sed",
+                "suffix": "fugiat",
+                "username": "aliqua amet proident",
+                "passwordDate": "reprehenderit esse amet",
+                "userStatus": "culpa in Duis ipsum off",
+                "userStatusTrading": "in veniam",
+                "lastLogin": "aute culpa",
+                "gender": "in culpa ad commodo",
+                "maritalStatus": "laborum occaecat",
+                "salutation": "consectetur eiusmod occaecat voluptate",
+                "email": "Ut esse",
+                "countryOfCitizenship": "culpa aute",
+                "countryOfBirth": "commodo cillum proident cupidatat sunt",
+                "dateOfBirth": "aute et voluptate consequat",
+                "motersMaidenName": "consectetur culpa ut Excepteur",
+                "numberOfDependents": -20164555,
+                "securityDevice": "dolor id adipisic",
+                "commercial": "esse magna",
+                "phones": {
+                  "voluptate_0": "off",
+                  "utfe5": "irure est"
+                },
+                "residence": {
+                  "esse_f79": "cillum"
+                },
+                "mailing": {
+                  "Excepteur13": "ullamco "
+                },
+                "associations": [
+                  "ad officia id",
+                  "in consequat in Excepteur laborum"
+                ],
+                "identityDocuments": [
+                  {
+                    "aliquip_3": "commodo aliquip",
+                    "fugiat20": "ut Lorem"
+                  },
+                  {
+                    "elit_2b": "in officia minim",
+                    "proident_6": "mollit id nostrud pariatu"
+                  }
+                ],
+                "employmentType": "deserunt dolor sed",
+                "employmentDetails": {
+                  "pariaturc": {}
+                },
+                "subscribedServices": [
+                  {
+                    "do61": {},
+                    "in3": {}
+                  },
+                  {
+                    "in_25": {},
+                    "nona": {}
+                  }
+                ],
+                "taxTreatyDetails": [
+                  {
+                    "adipisicing2c5": "exercitation sint",
+                    "pariatur_7": "magn"
+                  },
+                  {
+                    "Excepteur_b": "aute in esse",
+                    "sintbe": "elit cillum occaecat",
+                    "consequat_1d8": "commodo"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "withHoldingStatement": {
+          "autece": "Duis esse labore"
+        },
+        "marketData": [
+          {
+            "commodo_0": "dolore ut nulla",
+            "deserunt9": "est amet",
+            "sint_c": "Ut"
+          },
+          {
+            "cillum_": "ullamco in tempor minim",
+            "in_b9": "ex magna mollit Lorem"
+          }
+        ],
+        "financialInformation": {
+          "Lorem69": {}
+        },
+        "sourcesOfWealth": [
+          {
+            "sed_": {},
+            "elit_d": {},
+            "proident6": {},
+            "sint_e3": {}
+          },
+          {
+            "veniam_43": {},
+            "irure_58": {}
+          }
+        ],
+        "tradeBundles": [
+          "in in magna esse Excepteur",
+          "dolore velit veniam esse sunt"
+        ],
+        "individualIRABeneficiaries": [
+          {
+            "firstName": "reprehenderit",
+            "lastName": "anim sed",
+            "dateOfBirth": "ea labore exercitation",
+            "type": "consectetur ipsum enim",
+            "identification": {
+              "in___": "sunt cupidatat"
+            },
+            "location": {
+              "non_eea": "enim consequat laboris est"
+            },
+            "relationship": "nulla labore nisi",
+            "ownership": -39431445,
+            "perStripes": "culpa in eu anim"
+          },
+          {
+            "firstName": "magna eiusmod mollit nulla",
+            "lastName": "ut ad officia et adipisicing",
+            "dateOfBirth": "laboris ad",
+            "type": "commodo anim consectetur ipsum",
+            "identification": {
+              "Excepteur_c6": "ipsum ad est occaecat consectetur",
+              "esse_a": "qui Duis nulla veniam"
+            },
+            "location": {
+              "magna_f0c": "Duis fugiat aliqua"
+            },
+            "relationship": "ea aute Lorem velit consectetur",
+            "ownership": -39376791,
+            "perStripes": "id Lorem"
+          }
+        ],
+        "entityIRABeneficiaries": [
+          {
+            "name": "ex amet est nisi Lorem",
+            "entityType": "ea culpa occaecat",
+            "type": "voluptate in nostrud",
+            "location": {
+              "ut2fb": "officia cupidatat voluptate amet",
+              "fugiat_6a": "sint enim culpa qui",
+              "est9": "eu Lorem elit"
+            },
+            "articleOfWill": "eu Excepteur"
+          },
+          {
+            "name": "amet",
+            "entityType": "dolor voluptate magna ut",
+            "type": "exercitation consec",
+            "location": {
+              "Ut_22": "ullamco in occaecat cillum dolore"
+            },
+            "articleOfWill": "ut ipsum dolor"
+          }
+        ],
+        "decedents": [
+          {
+            "exercitation__cc": "ex",
+            "dolore_9c1": "velit minim eu",
+            "eiusmod_57d": "sint ex nisi in cillum"
+          },
+          {
+            "minim_27": "tem"
+          }
+        ],
+        "restrictions": [
+          {
+            "id": -13233655,
+            "byIB": false,
+            "name": "dolore consequat officia"
+          },
+          {
+            "id": -75214157,
+            "byIB": true,
+            "name": "deserunt eiusmod proident"
+          }
+        ]
+      }
+order: 1000

@@ -1,0 +1,142 @@
+$kind: http-request
+description: >-
+  The endpoint retrieves the details of a specific DNS server based on the
+  provided DNS server ID.
+
+
+  The response for this request can be documented as a JSON schema as follows:
+
+
+  ``` json
+
+  {
+    "type": "object",
+    "properties": {
+      "default": { "type": "string" },
+      "device_ids": { "type": "array", "items": { "type": "string" } },
+      "id": { "type": "string" },
+      "name": { "type": "string" },
+      "settings": {
+        "type": "object",
+        "properties": {
+          "access_settings": {
+            "type": "object",
+            "properties": {
+              "allowed_clients": { "type": "array", "items": { "type": "string" } },
+              "block_known_scanners": { "type": "string" },
+              "blocked_clients": { "type": "array", "items": { "type": "string" } },
+              "blocked_domain_rules": { "type": "array", "items": { "type": "string" } },
+              "enabled": { "type": "string" }
+            }
+          },
+          "auto_connect_devices_enabled": { "type": "string" },
+          "block_chrome_prefetch": { "type": "string" },
+          "block_firefox_canary": { "type": "string" },
+          "block_private_relay": { "type": "string" },
+          "block_ttl_seconds": { "type": "string" },
+          "blocking_mode_settings": {
+            "type": "object",
+            "properties": {
+              "blocking_mode": { "type": "string" },
+              "ipv4_blocking_address": { "type": "string" },
+              "ipv6_blocking_address": { "type": "string" }
+            }
+          },
+          "filter_lists_settings": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "string" },
+              "filter_list": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": { "type": "string" },
+                    "filter_id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "ip_log_enabled": { "type": "string" },
+          "parental_control_settings": {
+            "type": "object",
+            "properties": {
+              "block_adult_websites_enabled": { "type": "string" },
+              "blocked_services": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": { "type": "string" },
+                    "id": { "type": "string" }
+                  }
+                }
+              },
+              "enabled": { "type": "string" },
+              "engines_safe_search_enabled": { "type": "string" },
+              "screen_time_schedule": {
+                "type": "object",
+                "properties": {
+                  "daily_schedule": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "day_of_week": { "type": "string" },
+                        "enabled": { "type": "string" },
+                        "from_time": {
+                          "type": "object",
+                          "properties": {
+                            "hours": { "type": "string" },
+                            "minutes": { "type": "string" }
+                          }
+                        },
+                        "to_time": {
+                          "type": "object",
+                          "properties": {
+                            "hours": { "type": "string" },
+                            "minutes": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "youtube_safe_search_enabled": { "type": "string" }
+            }
+          },
+          "protection_enabled": { "type": "string" },
+          "safebrowsing_settings": {
+            "type": "object",
+            "properties": {
+              "block_dangerous_domains": { "type": "string" },
+              "block_nrd": { "type": "string" },
+              "enabled": { "type": "string" }
+            }
+          },
+          "user_rules_settings": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "string" },
+              "rules": { "type": "array", "items": { "type": "string" } },
+              "rules_count": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+
+   ```
+url: "{{baseUrl}}/oapi/v1/dns_servers/:dns_server_id"
+method: GET
+headers:
+  Accept: "*/*"
+pathVariables:
+  - key: dns_server_id
+    value: "{{dnsServerId}}"
+    description: AdGuard DNS server instance ID (DEV, PROD)
+examples: ./.resources/Gets an existing DNS server by ID.resources/examples
+order: 3000

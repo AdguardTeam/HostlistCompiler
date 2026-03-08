@@ -1,0 +1,46 @@
+$kind: http-example
+name: opt-contract-info
+request:
+  url: https://api.ibkr.com/v1/api/iserver/contract/:conid/info
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    conid: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "cfi_code": "OCXXXS",
+        "symbol": "IBM",
+        "cusip": null,
+        "expiry_full": "20240315",
+        "con_id": 685302909,
+        "maturity_date": "20240315",
+        "instrument_type": "OPT",
+        "trading_class": "IBM",
+        "valid_exchanges": "SMART,AMEX,CBOE,PHLX,PSE,ISE,BOX,BATS,NASDAQOM,CBOE2,NASDAQBX,MIAX,GEMINI,EDGX,MERCURY,PEARL,EMERALD,MEMX,IBUSOPT",
+        "allow_sell_long": false,
+        "is_zero_commission_security": false,
+        "local_symbol": "IBM   240315C00187500",
+        "contract_clarification_type": null,
+        "classifier": null,
+        "currency": "USD",
+        "text": "MAR 15 '24 187.5 Call",
+        "underlying_con_id": 8314,
+        "r_t_h": false,
+        "multiplier": "100",
+        "strike": "187.5",
+        "right": "CALL",
+        "underlying_issuer": null,
+        "contract_month": "202403",
+        "company_name": "INTL BUSINESS MACHINES CORP",
+        "smart_available": true,
+        "exchange": "SMART"
+      }
+order: 10000

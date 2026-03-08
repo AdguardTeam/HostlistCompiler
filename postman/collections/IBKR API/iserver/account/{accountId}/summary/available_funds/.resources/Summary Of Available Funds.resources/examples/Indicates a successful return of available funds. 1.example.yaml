@@ -1,0 +1,63 @@
+$kind: http-example
+name: Indicates a successful return of available funds.
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/summary/available_funds
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "total": {
+          "current_available": "825,208 USD",
+          "current_excess": "826,089 USD",
+          "Prdctd Pst-xpry Excss": "0 USD",
+          "SMA": "368,538 USD",
+          "Lk Ahd Avlbl Fnds": "821,067 USD",
+          "Lk Ahd Excss Lqdty": "822,324 USD",
+          "overnight_available": "821,067 USD",
+          "overnight_excess": "822,324 USD",
+          "buying_power": "3,304,346 USD",
+          "leverage": "n/a",
+          "Lk Ahd Nxt Chng": "@ 16:00:00",
+          "day_trades_left": "Unlimited"
+        },
+        "Crypto at Paxos": {
+          "current_available": "0 USD",
+          "current_excess": "0 USD",
+          "Prdctd Pst-xpry Excss": "0 USD",
+          "Lk Ahd Avlbl Fnds": "0 USD",
+          "Lk Ahd Excss Lqdty": "0 USD",
+          "overnight_available": "0 USD",
+          "overnight_excess": "0 USD"
+        },
+        "commodities": {
+          "current_available": "22,483 USD",
+          "current_excess": "23,361 USD",
+          "Prdctd Pst-xpry Excss": "0 USD",
+          "Lk Ahd Avlbl Fnds": "18,342 USD",
+          "Lk Ahd Excss Lqdty": "19,597 USD",
+          "overnight_available": "18,342 USD",
+          "overnight_excess": "19,597 USD"
+        },
+        "securities": {
+          "current_available": "802,725 USD",
+          "current_excess": "802,727 USD",
+          "Prdctd Pst-xpry Excss": "0 USD",
+          "SMA": "368,538 USD",
+          "Lk Ahd Avlbl Fnds": "802,725 USD",
+          "Lk Ahd Excss Lqdty": "802,727 USD",
+          "overnight_available": "802,725 USD",
+          "overnight_excess": "802,727 USD",
+          "leverage": "1.43"
+        }
+      }
+order: 7000

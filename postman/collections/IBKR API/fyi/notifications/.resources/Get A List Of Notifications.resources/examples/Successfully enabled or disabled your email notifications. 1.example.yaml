@@ -1,0 +1,56 @@
+$kind: http-example
+name: Successfully enabled or disabled your email notifications.
+request:
+  url: "https://api.ibkr.com/v1/api/fyi/notifications?max=10&include=include&exclude=exclude&id={{notificationId}}"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: max
+      value: "10"
+      description: "(Required) "
+    - key: include
+      value: include
+    - key: exclude
+      value: exclude
+    - key: id
+      value: "{{notificationId}}"
+      description: "(Required) If more required, notificationId of last notification should be used to define next batch border"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      [
+        {
+          "R": 0,
+          "D": "1710847062.0",
+          "MS": "FYI: Changes in Analyst Ratings",
+          "MD": "<html>Some investors use analysts ratings to stay informed about their investments. Analysts have changed their ratings for one or more companies in which you hold positions.    <br />The following summary displays the affected companies, the current number of analysts by rating category and, in parentheses, the recent change in the number of analysts rating the company within each rating category.  <br /> - JWN@NYSE: Buy: 1(0), Outperform: 1(0), Hold: 12(-1), Underperform: 5(0), Sell: 0(0). Held in: D****000 <br /> - RF@NYSE: Buy: 4(+1), Outperform: 5(0), Hold: 17(-1), Underperform: 1(0), Sell: 0(0). Held in: D****000 <br /> <br />   Note: Current ratings are from Reuters and may not reflect all rating changes from other sources such as Street Insider and Briefing.</html>",
+          "ID": "2024031947509444",
+          "HT": 0,
+          "FC": "PF"
+        },
+        {
+          "R": 1,
+          "D": "1710761985.0",
+          "MS": "FYI: Changes in Analyst Ratings",
+          "MD": "<html>Some investors use analysts ratings to stay informed about their investments. Analysts have changed their ratings for one or more companies in which you hold positions.    <br />The following summary displays the affected companies, the current number of analysts by rating category and, in parentheses, the recent change in the number of analysts rating the company within each rating category.  <br /> - F@NYSE: Buy: 4(0), Outperform: 4(0), Hold: 15(+1), Underperform: 3(-1), Sell: 1(0). Held in: D****000 <br /> - RF@NYSE: Buy: 4(+1), Outperform: 5(0), Hold: 17(-1), Underperform: 1(0), Sell: 0(0). Held in: D****000 <br /> - TSLA@NASDAQ: Buy: 5(0), Outperform: 12(0), Hold: 21(0), Underperform: 7(+1), Sell: 4(0). Held in: D****000 <br /> - UAA@NYSE: Buy: 6(0), Outperform: 2(-1), Hold: 17(+1), Underperform: 2(0), Sell: 0(0). Held in: D****000 <br /> <br />   Note: Current ratings are from Reuters and may not reflect all rating changes from other sources such as Street Insider and Briefing.</html>",
+          "ID": "2024031843829868",
+          "HT": 0,
+          "FC": "PF"
+        },
+        {
+          "R": 1,
+          "D": "1710501829.0",
+          "MS": "FYI: Changes in Analyst Ratings",
+          "MD": "<html>Some investors use analysts ratings to stay informed about their investments. Analysts have changed their ratings for one or more companies in which you hold positions.    <br />The following summary displays the affected companies, the current number of analysts by rating category and, in parentheses, the recent change in the number of analysts rating the company within each rating category.  <br /> - F@NYSE: Buy: 4(0), Outperform: 4(0), Hold: 14(+1), Underperform: 4(0), Sell: 1(0). Held in: D****000 <br /> - UAA@NYSE: Buy: 6(0), Outperform: 3(-1), Hold: 16(-1), Underperform: 2(+1), Sell: 0(0). Held in: D****000 <br /> <br />   Note: Current ratings are from Reuters and may not reflect all rating changes from other sources such as Street Insider and Briefing.</html>",
+          "ID": "2024031537589663",
+          "HT": 0,
+          "FC": "PF"
+        }
+      ]
+order: 6000

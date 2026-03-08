@@ -1,0 +1,5 @@
+$kind: collection
+description: Note that because we are expecting one of the requests in this
+  folder to be invalid, we are moving the status check from the folder level (as
+  we did in the previous folder) to the request level.
+order: 2000

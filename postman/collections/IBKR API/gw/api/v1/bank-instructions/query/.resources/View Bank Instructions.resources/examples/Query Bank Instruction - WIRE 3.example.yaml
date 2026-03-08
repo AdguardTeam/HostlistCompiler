@@ -1,0 +1,68 @@
+$kind: http-example
+name: Query Bank Instruction - WIRE
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_BANK_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "accountId": "U46377",
+          "bankInstructionMethod": "WIRE"
+        }
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "accountId": "U46377",
+          "bankInstructionMethod": "WIRE",
+          "instructionDetails": [
+            {
+              "bankInstructionName": "testCitadele",
+              "type": "FOREIGN_BANK",
+              "currency": "USD"
+            },
+            {
+              "bankInstructionName": "testChase1",
+              "type": "LOCAL_BANK",
+              "currency": "USD"
+            },
+            {
+              "bankInstructionName": "testee",
+              "type": "FOREIGN_BANK",
+              "currency": "USD"
+            },
+            {
+              "bankInstructionName": "test multiple",
+              "type": "FOREIGN_BANK",
+              "currency": "CHF"
+            },
+            {
+              "bankInstructionName": "farawayBroker",
+              "type": "FOREIGN_BROKER",
+              "currency": "CHF"
+            }
+          ],
+          "ibReferenceId": 0,
+          "clientInstructionId": 12001819,
+          "instructionType": "QUERY_BANK_INSTRUCTION",
+          "instructionStatus": "PROCESSED",
+          "instructionId": 43094187
+        },
+        "instructionSetId": 3771,
+        "status": 201
+      }
+order: 36000

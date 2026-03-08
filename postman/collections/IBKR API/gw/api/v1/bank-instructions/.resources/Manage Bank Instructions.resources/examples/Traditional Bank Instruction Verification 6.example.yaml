@@ -1,0 +1,37 @@
+$kind: http-example
+name: Traditional Bank Instruction Verification
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "TRADITIONAL_BANK_INSTRUCTION_VERIFICATION",
+        "instruction": {
+          "clientInstructionId": 7013057,
+          "bankInstructionCode": "USACH",
+          "bankInstructionName": "ACH-Tst1Random172",
+          "accountId": "U117717",
+          "pendingInstructionId": 43086786,
+          "creditAmount1": 0.32,
+          "creditAmount2": 0.46
+        }
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "/simple"
+      }
+order: 35000

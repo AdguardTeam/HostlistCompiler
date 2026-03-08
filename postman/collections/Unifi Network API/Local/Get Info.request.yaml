@@ -1,0 +1,59 @@
+$kind: http-request
+description: >-
+  ## Endpoint Description
+
+
+  This endpoint retrieves information about a specific network integration and
+  version.
+
+
+  ## Request
+
+
+  - Path Parameters:
+      
+      - `network` (string): The network for which information is being retrieved.
+          
+      - `integration` (string): The integration for which information is being retrieved.
+          
+      - `version` (string): The version for which information is being retrieved.
+          
+      - `info` (string): The type of information being retrieved.
+
+          
+
+  ## Response
+
+
+  The response for this request is a JSON object conforming to the specified
+  schema.
+
+
+  This endpoint retrieves information about the specified network integration
+  version.
+
+
+  ## Request
+
+
+  - Path Parameters
+      
+      - `network` (string): The network for which the information is being retrieved.
+          
+      - `integration` (string): The integration for which the information is being retrieved.
+          
+      - `version` (string): The version for which the information is being retrieved.
+          
+      - `info` (string): The type of information being retrieved.
+
+          
+
+  ## Response
+
+
+  The response for this request is a JSON schema that contains the details of
+  the specified network integration version.
+url: "{{https}}{{local-base-url}}/{{proxy}}/{{network}}/{{integration}}/{{versi\
+  on}}/{{info}}"
+method: GET
+order: 3000

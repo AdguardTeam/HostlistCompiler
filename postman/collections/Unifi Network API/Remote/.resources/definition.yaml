@@ -1,0 +1,6 @@
+$kind: collection
+auth:
+  - id: ""
+    type: apikey
+    name: apikey auth
+order: 2000

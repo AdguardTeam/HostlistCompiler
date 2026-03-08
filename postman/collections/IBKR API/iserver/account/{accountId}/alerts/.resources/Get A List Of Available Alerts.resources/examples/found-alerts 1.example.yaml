@@ -1,0 +1,27 @@
+$kind: http-example
+name: found-alerts
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alerts
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "order_id": 9876543210,
+        "account": "U1234567",
+        "alert_name": "AAPL",
+        "alert_active": 1,
+        "order_time": "20240308-17:08:38",
+        "alert_triggered": false,
+        "alert_repeatable": 0
+      }
+order: 5000

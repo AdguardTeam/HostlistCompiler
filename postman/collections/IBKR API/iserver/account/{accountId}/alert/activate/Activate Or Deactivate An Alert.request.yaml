@@ -1,0 +1,21 @@
+$kind: http-request
+description: Activate or Deactivate existing alerts created for this account.
+  This does not delete alerts, but disables notifications until reactivated.
+url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alert/activate
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: accountId
+    value: U1234567
+    description: "(Required) "
+body:
+  type: json
+  content: |-
+    {
+      "alertId": 9876543210,
+      "alertActive": 1
+    }
+examples: ./.resources/Activate Or Deactivate An Alert.resources/examples
+order: 1000

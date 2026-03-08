@@ -1,0 +1,14 @@
+$kind: http-request
+description: Returns a list of non-expired future contracts for given symbol(s)
+url: https://api.ibkr.com/v1/api/trsrv/futures?symbols=ES,MES&exchange=exchange
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: symbols
+    value: ES,MES
+    description: "(Required) "
+  - key: exchange
+    value: exchange
+examples: ./.resources/Future  Security Definition By Symbol.resources/examples
+order: 1000

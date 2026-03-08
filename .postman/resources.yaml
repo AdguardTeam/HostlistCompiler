@@ -1,0 +1,13 @@
+# Use this workspace to collaborate
+workspace:
+  id: 6809cf41-0615-4c6e-8412-9d429d92db62
+
+localResources:
+  collections:
+    - ../docs/postman/postman-collection.json
+  environments:
+    - ../docs/postman/postman-environment.json
+  specs:
+    - ../cloudflare-openapi.json
+    - ../index.json
+    - ../openapi.yaml

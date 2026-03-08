@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/sso-sessions"
+  method: POST
+  headers:
+    Content-Type: application/jwt
+    Accept: application/problem+json
+  body:
+    type: text
+    content: |-
+      {
+        "credential": "ddowney2",
+        "ip": "10.10.10.10",
+        "service": "officia dolore amet",
+        "alternativeIps": [
+          "10.10.10.11",
+          "10.10.10.12"
+        ]
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 401,
+        "title": "Unauthorized",
+        "type": "/simple",
+        "detail": "The access token request is invalid"
+      }
+order: 3000

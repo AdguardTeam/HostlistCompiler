@@ -1,0 +1,68 @@
+$kind: http-example
+name: Historical data query successfully returned data.
+request:
+  url: https://api.ibkr.com/v1/api/hmds/history?conid=265598&barType=Bid&startTime=20231018-16:00:00&period=6d&direction=-1&bar=5mins&outsideRth=false
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: conid
+      value: "265598"
+      description: (Required) IB contract ID of the requested instrument.
+    - key: barType
+      value: Bid
+      description: The requested historical data type. If omitted, Last Trade data is
+        queried.
+    - key: startTime
+      value: 20231018-16:00:00
+      description: A fixed UTC date-time reference point for the historical data
+        request, from which the specified period extends, as governed by the
+        direction parameter. Format is YYYYMMDD-hh:mm:ss. If omitted, the
+        current time is used, and direction must be omitted or 1.
+    - key: period
+      value: 6d
+      description: (Required) A time duration away from startTime, as governed by the
+        direction parameter, to be divided into bars of the specified width.
+    - key: direction
+      value: "-1"
+      description: The requested period's direction in time away from the startTime.
+        -1 queries bars from startTime forward into the future for the span of
+        the requested period, 1 queries bars from startTime backward into the
+        past for the span of the request period. Default behavior is 1, from
+        startTime backward.
+    - key: bar
+      value: 5mins
+      description: (Required) The width of the bars into which the interval determined
+        by period and startTime will be divided. It is not required that bar
+        evenly divide period; partial bars can be returned.
+    - key: outsideRth
+      value: "false"
+      description: Indicates whether data outside of regular trading hours should be
+        included in response.
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "startTime": "20231211-04:00:00",
+        "startTimeVal": 1702285200000,
+        "endTime": "20231211-17:51:20",
+        "endTimeVal": 1702335080000,
+        "data": [
+          {
+            "t": 1702285200000,
+            "o": 195.01,
+            "c": 194.8,
+            "h": 195.01,
+            "l": 194.8,
+            "v": 1723
+          }
+        ],
+        "points": 1,
+        "mktDataDelay": 0
+      }
+order: 7000

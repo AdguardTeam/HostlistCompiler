@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/fee-templates/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_FEE_TEMPLATE",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "accountId": "U46377"
+        }
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "templateDetails": {
+            "accountId": "U46377",
+            "templateName": "Test Template"
+          },
+          "ibReferenceId": 0,
+          "clientInstructionId": 12001818,
+          "instructionType": "QUERY_FEE_TEMPLATE",
+          "instructionStatus": "PROCESSED",
+          "instructionId": 43094186
+        },
+        "instructionSetId": 3770,
+        "status": 201
+      }
+order: 1000

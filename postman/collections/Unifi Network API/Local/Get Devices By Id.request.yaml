@@ -1,0 +1,22 @@
+$kind: http-request
+description: >-
+  This endpoint makes an HTTP GET request to retrieve information about a
+  specific device at a particular site. The request should include the site ID
+  and device ID in the URL path.
+
+
+  ### Request Body
+
+
+  This request does not require a request body.
+
+
+  ### Response Body
+
+
+  The response will include the details of the device at the specified site,
+  such as its configuration, status, and other relevant information.
+url: "{{https}}{{local-base-url}}/{{proxy}}/{{network}}/{{integration}}/{{versi\
+  on}}/{{sites}}/{{site-id}}/{{devices}}/{{device-id}}"
+method: GET
+order: 5000

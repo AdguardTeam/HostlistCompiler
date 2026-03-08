@@ -1,0 +1,26 @@
+$kind: http-request
+description: "Apply predefined fee template to existing
+  account.<br><br>**Scope**: `fee-templates.write`<br>**Security Policy**:
+  `Signed JWT`"
+url: "{{baseUrl}}/gw/api/v1/fee-templates"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: client-id
+    value: abc123
+    description: (Required) The client's clientId
+body:
+  type: json
+  content: |-
+    {
+      "instructionType": "APPLY_FEE_TEMPLATE",
+      "instruction": {
+        "clientInstructionId": 1012983,
+        "accountId": "U46377",
+        "templateName": "Test template"
+      }
+    }
+examples: ./.resources/Set Fees For Account.resources/examples
+order: 2000

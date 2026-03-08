@@ -1,0 +1,32 @@
+$kind: http-example
+name: orderSubmitSuccessExample
+request:
+  url: https://api.ibkr.com/v1/api/iserver/reply/:replyId
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    replyId: ""
+  body:
+    type: json
+    content: |-
+      {
+        "confirmed": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "order_id": "1370093239",
+          "order_status": "PreSubmitted",
+          "encrypt_message": "1"
+        }
+      ]
+order: 9000

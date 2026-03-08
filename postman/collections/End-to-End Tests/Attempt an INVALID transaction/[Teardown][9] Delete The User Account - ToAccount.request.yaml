@@ -1,0 +1,22 @@
+$kind: http-request
+description: Delete the `toAccount` account to clean up after this test case.
+url: "{{baseUrl}}/api/v1/accounts/:accountId"
+method: DELETE
+headers:
+  Content-Type: application/json
+pathVariables:
+  accountId: "{{e2e_user_account_id_to}}"
+body:
+  type: text
+  content: "{}"
+scripts:
+  - type: afterResponse
+    code: |+
+      pm.test("Status check", function () {
+          pm.response.to.have.status(200);
+      });
+
+    language: text/javascript
+examples: ./.resources/[Teardown][9] Delete The User Account -
+  ToAccount.resources/examples
+order: 9000

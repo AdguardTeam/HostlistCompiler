@@ -1,0 +1,70 @@
+$kind: http-example
+name: Successful response containing a contract's security definition.
+request:
+  url: https://api.ibkr.com/v1/api/trsrv/secdef?conids=265598,8314&criteria=&bondp=
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: conids
+      value: 265598,8314
+      description: "(Required) "
+    - key: criteria
+      value: ""
+    - key: bondp
+      value: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "secdef": [
+          {
+            "incrementRules": [
+              {
+                "lowerEdge": 0,
+                "increment": 0.01
+              }
+            ],
+            "displayRule": {
+              "magnification": 0,
+              "displayRuleStep": [
+                {
+                  "decimalDigits": 2,
+                  "lowerEdge": 0,
+                  "wholeDigits": 4
+                }
+              ]
+            },
+            "conid": 8314,
+            "currency": "USD",
+            "time": 770,
+            "chineseName": "&#x56FD;&#x9645;&#x5546;&#x4E1A;&#x673A;&#x5668;",
+            "allExchanges": "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0",
+            "listingExchange": "NYSE",
+            "countryCode": "US",
+            "name": "INTL BUSINESS MACHINES CORP",
+            "assetClass": "STK",
+            "expiry": null,
+            "lastTradingDay": null,
+            "group": "Computers",
+            "putOrCall": null,
+            "sector": "Technology",
+            "sectorGroup": "Computer Services",
+            "strike": "0",
+            "ticker": "IBM",
+            "undConid": 0,
+            "multiplier": 0,
+            "type": "COMMON",
+            "hasOptions": true,
+            "fullName": "IBM",
+            "isUS": true,
+            "isEventContract": false
+          }
+        ]
+      }
+order: 12000

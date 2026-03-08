@@ -1,0 +1,42 @@
+$kind: http-request
+description: >-
+  This endpoint retrieves a mobile configuration file for a specific device,
+  with options to exclude specific Wi-Fi networks and domains. The request
+  parameters include the device ID, and optional parameters to exclude Wi-Fi
+  networks and domains. The response for this request is expected to be null.
+
+
+  ``` json
+
+  {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": true
+  }
+
+   ```
+url: "{{baseUrl}}/oapi/v1/devices/:device_id/doh.mobileconfig?exclude_wifi_netw\
+  orks=<string>&exclude_wifi_networks=<string>&exclude_domain=<string>&exclude_\
+  domain=<string>"
+method: GET
+queryParams:
+  - key: exclude_wifi_networks
+    value: <string>
+    description: List Wi-Fi networks by their SSID in which you want AdGuard DNS to
+      be disabled
+  - key: exclude_wifi_networks
+    value: <string>
+    description: List Wi-Fi networks by their SSID in which you want AdGuard DNS to
+      be disabled
+  - key: exclude_domain
+    value: <string>
+    description: List domains that will use default DNS servers instead of AdGuard DNS
+  - key: exclude_domain
+    value: <string>
+    description: List domains that will use default DNS servers instead of AdGuard DNS
+pathVariables:
+  - key: device_id
+    value: <string>
+    description: "(Required) "
+examples: ./.resources/Gets DNS-over-HTTPS .mobileconfig file..resources/examples
+order: 1000

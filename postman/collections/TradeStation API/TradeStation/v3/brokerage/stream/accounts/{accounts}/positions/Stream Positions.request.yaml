@@ -1,0 +1,23 @@
+$kind: http-request
+description: Stream positions for the given accounts. Request valid for `Cash`,
+  `Margin`, `Futures`, and `DVP` account types.
+url: "{{baseUrl}}/v3/brokerage/stream/accounts/:accounts/positions?changes=false"
+method: GET
+headers:
+  Accept: application/vnd.tradestation.streams.v3+json
+queryParams:
+  - key: changes
+    value: "false"
+    description: A boolean value that specifies whether or not position updates are
+      streamed as changes. When a stream is first opened with `"changes=true"`,
+      streaming positions will return the full snapshot first for all positions,
+      and then any changes after that. When `"changes=true"`, the PositionID
+      field is returned with each change, along with the fields that changed.
+pathVariables:
+  - key: accounts
+    value: <string>
+    description: (Required) List of valid Account IDs for the authenticated user in
+      comma separated format; for example `"61999124,68910124"`. 1 to 25 Account
+      IDs can be specified, comma separated.
+examples: ./.resources/Stream Positions.resources/examples
+order: 1000

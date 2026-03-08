@@ -1,0 +1,42 @@
+$kind: http-example
+name: Query IRA Contributions
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-cash-transfers/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_IRA_CONTRIBUTIONS",
+        "instruction": {
+          "clientInstructionId": 7009007,
+          "accountId": "U68903",
+          "year": "2003"
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "status": 202,
+        "instructionSetId": 18640,
+        "instructionResult": {
+          "accountId": "U1032333",
+          "year": "2022",
+          "ibReferenceId": 0,
+          "clientInstructionId": 7013306,
+          "instructionType": "QUERY_IRA_CONTRIBUTIONS",
+          "instructionStatus": "PENDING",
+          "instructionId": 43134474,
+          "description": "Query is being processed. Please poll for status 1 minutes later using FB status endpoint. No new queries will be allowed before this one is processed "
+        }
+      }
+order: 20000

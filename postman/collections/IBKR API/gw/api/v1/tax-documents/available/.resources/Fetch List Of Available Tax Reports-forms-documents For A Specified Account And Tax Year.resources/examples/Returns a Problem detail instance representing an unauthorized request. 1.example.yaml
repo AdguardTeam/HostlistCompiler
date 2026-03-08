@@ -1,0 +1,29 @@
+$kind: http-example
+name: Returns a Problem detail instance representing an unauthorized request.
+request:
+  url: "{{baseUrl}}/gw/api/v1/tax-documents/available?accountId=UXXXX&year=2024"
+  method: GET
+  headers:
+    Accept: application/problem+json
+  queryParams:
+    - key: accountId
+      value: UXXXX
+      description: (Required) Specifies the account id to retrieve information
+    - key: year
+      value: "2024"
+      description: (Required) Specifies the tax year to retrieve information
+response:
+  statusCode: 402
+  statusText: Payment Required
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 402,
+        "title": "Unauthorized",
+        "type": "/simple",
+        "detail": "The request cannot be fulfilled for the account"
+      }
+order: 4000

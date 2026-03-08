@@ -1,0 +1,45 @@
+$kind: http-example
+name: Returns a Problem detail instance representing a forbidden request.
+request:
+  url: "{{baseUrl}}/gw/api/v1/fee-templates"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "APPLY_FEE_TEMPLATE",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "accountId": "U46377",
+          "templateName": "Test template"
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 2445,
+        "instructionResult": {
+          "clientInstructionId": 12000610,
+          "instructionType": "APPLY_FEE_TEMPLATE",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092429,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 9000

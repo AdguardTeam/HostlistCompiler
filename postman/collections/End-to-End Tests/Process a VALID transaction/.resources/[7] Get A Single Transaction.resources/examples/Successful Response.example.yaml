@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/transactions/:transactionId"
+  method: GET
+  headers:
+    Content-Type: application/json
+  pathVariables:
+    transactionId: "{{e2e_transaction_id_to}}"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:08:30 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "140"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "transaction": {
+              "id": 67,
+              "createdAt": "2024-03-11T01:08:15.000Z",
+              "fromAccountId": 151,
+              "toAccountId": 152,
+              "currency": "COSMIC_COINS",
+              "amount": 20
+          }
+      }
+order: 1000

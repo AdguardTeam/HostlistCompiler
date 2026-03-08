@@ -1,0 +1,45 @@
+$kind: http-example
+name: Deposit Funds - Recurring
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-cash-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "DEPOSIT",
+        "instruction": {
+          "clientInstructionId": 7013047,
+          "accountId": "U46377",
+          "currency": "USD",
+          "amount": 100,
+          "bankInstructionMethod": "WIRE",
+          "sendingInstitution": "Sending Institution name",
+          "identifier": "indentifier",
+          "specialInstruction": "U46377",
+          "bankInstructionName": "Instruction",
+          "senderInstitutionName": "Senders Institution name",
+          "recurringInstructionDetail": {
+            "instructionName": "Arkansas-Test-Instr",
+            "startDate": "2023-10-16",
+            "frequency": "MONTHLY"
+          }
+        }
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "/simple"
+      }
+order: 42000

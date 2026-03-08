@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: http://
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: text/plain
+  body:
+    type: text
+    content: |-
+      {
+        "live": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "errorCode": 0,
+        "errorMessage": "string",
+        "contracts": [
+          {
+            "id": "string",
+            "name": "string",
+            "description": "string",
+            "tickSize": 2332.9648834676987,
+            "tickValue": 9961.90984719834,
+            "activeContract": false,
+            "symbolId": "string"
+          },
+          {
+            "id": "string",
+            "name": "string",
+            "description": "string",
+            "tickSize": 4488.595510016442,
+            "tickValue": 1692.1406916710225,
+            "activeContract": true,
+            "symbolId": "string"
+          }
+        ]
+      }
+order: 1000

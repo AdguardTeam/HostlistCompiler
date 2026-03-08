@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/accounts/login-messages?loginMessageRequest=endDate\
+    ,1983-03-13,startDate,1988-11-18,offset,99028613,limit,113,status,Q,type,in"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    - key: loginMessageRequest
+      value: endDate,1983-03-13,startDate,1988-11-18,offset,99028613,limit,113,status,Q,type,in
+      description: "(Required) "
+response:
+  statusCode: 415
+  statusText: Unsupported Media Type
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "culpa_5c": {},
+        "Loremf": {},
+        "esse5a": {}
+      }
+order: 5000

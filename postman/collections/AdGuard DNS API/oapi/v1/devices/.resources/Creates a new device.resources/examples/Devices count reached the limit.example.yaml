@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/oapi/v1/devices"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "device_type": "IOS",
+        "dns_server_id": "<string>",
+        "name": "<string>"
+      }
+response:
+  statusCode: 429
+  statusText: Too Many Requests
+  body:
+    type: text
+    content: ""
+order: 3000

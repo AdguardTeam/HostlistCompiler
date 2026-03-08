@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/reply/:replyId
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    replyId: ""
+  body:
+    type: json
+    content: |-
+      {
+        "confirmed": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      [
+        {
+          "id": "99097238-9824-4830-84ef-46979aa22593",
+          "isSuppressed": false,
+          "message": [
+            "You are submitting an order without market data. We strongly recommend against this as it may result in erroneous and unexpected trades.\nAre you sure you want to submit this order?"
+          ],
+          "messageIds": [
+            "o354"
+          ]
+        }
+      ]
+order: 2000

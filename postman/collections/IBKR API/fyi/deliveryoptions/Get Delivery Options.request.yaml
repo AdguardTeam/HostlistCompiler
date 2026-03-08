@@ -1,0 +1,8 @@
+$kind: http-request
+description: Options for sending fyis to email and other devices.
+url: "{{baseUrl}}/fyi/deliveryoptions"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Get Delivery Options.resources/examples
+order: 4000

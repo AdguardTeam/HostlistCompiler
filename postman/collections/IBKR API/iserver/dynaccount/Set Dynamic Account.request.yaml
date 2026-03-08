@@ -1,0 +1,15 @@
+$kind: http-request
+description: Set the active dynamic account.
+url: "{{baseUrl}}/iserver/dynaccount"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "acctId": "U1234567"
+    }
+examples: ./.resources/Set Dynamic Account.resources/examples
+order: 1000

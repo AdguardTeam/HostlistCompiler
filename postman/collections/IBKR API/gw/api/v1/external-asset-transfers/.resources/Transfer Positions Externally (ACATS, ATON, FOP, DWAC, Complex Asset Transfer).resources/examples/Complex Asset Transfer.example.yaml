@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "DWAC",
+        "instruction": {
+          "clientInstructionId": 7013036,
+          "direction": "IN",
+          "accountId": "U1001095",
+          "contraBrokerAccountId": "12345678A",
+          "contraBrokerTaxId": "123456789",
+          "quantity": 1000,
+          "accountTitle": "Special Company Holding LLC",
+          "referenceId": "refId",
+          "tradingInstrument": {
+            "conid": 12123,
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 80188,
+          "instructionType": "COMPLEX_ASSET_TRANSFER",
+          "instructionStatus": "PENDING",
+          "instructionId": 43093833
+        },
+        "instructionSetId": 3549,
+        "status": 202
+      }
+order: 3000

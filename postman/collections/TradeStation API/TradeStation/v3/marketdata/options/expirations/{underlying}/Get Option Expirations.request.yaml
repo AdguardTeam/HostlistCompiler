@@ -1,0 +1,20 @@
+$kind: http-request
+description: Get the available option contract expiration dates for the underlying symbol.
+url: "{{baseUrl}}/v3/marketdata/options/expirations/:underlying?strikePrice=<do\
+  uble>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: strikePrice
+    value: <double>
+    description: Strike price. If provided, only expirations for that strike price
+      will be returned.
+pathVariables:
+  - key: underlying
+    value: <string>
+    description: (Required) The symbol for the underlying security on which the
+      option contracts are based. The underlying symbol must be an equity or
+      index.
+examples: ./.resources/Get Option Expirations.resources/examples
+order: 1000

@@ -1,0 +1,139 @@
+$kind: http-example
+name: An object containing valid accounts and the account properties regarding
+  trading access. This endpoint is also used to confirm account validation.
+request:
+  url: "{{baseUrl}}/iserver/accounts"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "accounts": [
+          "All",
+          "U1234567",
+          "U2234567",
+          "U3234567"
+        ],
+        "acctProps": {
+          "All": {
+            "hasChildAccounts": false,
+            "supportsCashQty": false,
+            "supportsFractions": false
+          },
+          "U1234567": {
+            "hasChildAccounts": false,
+            "supportsCashQty": true,
+            "supportsFractions": true
+          },
+          "U2234567": {
+            "hasChildAccounts": false,
+            "supportsCashQty": true,
+            "supportsFractions": true
+          },
+          "U3234567": {
+            "hasChildAccounts": false,
+            "supportsCashQty": true,
+            "supportsFractions": true
+          }
+        },
+        "aliases": {
+          "All": "All",
+          "U1234567": "U1234567",
+          "U2234567": "U2234567",
+          "U3234567": "U3234567"
+        },
+        "allowFeatures": {
+          "showGFIS": true,
+          "showEUCostReport": false,
+          "allowEventContract": true,
+          "allowFXConv": true,
+          "allowFinancialLens": true,
+          "allowMTA": false,
+          "allowTypeAhead": true,
+          "allowEventTrading": true,
+          "snapshotRefreshTimeout": 30,
+          "liteUser": false,
+          "showWebNews": true,
+          "research": true,
+          "debugPnl": true,
+          "showTaxOpt": true,
+          "showImpactDashboard": true,
+          "allowDynAccount": false,
+          "allowCrypto": false,
+          "allowFA": false,
+          "allowLiteUnderPro": false,
+          "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO"
+        },
+        "chartPeriods": {
+          "STK": [
+            "*"
+          ],
+          "CFD": [
+            "*"
+          ],
+          "OPT": [
+            "2h",
+            "1d",
+            "2d",
+            "1w",
+            "1m"
+          ],
+          "FOP": [
+            "2h",
+            "1d",
+            "2d",
+            "1w",
+            "1m"
+          ],
+          "WAR": [
+            "*"
+          ],
+          "IOPT": [
+            "*"
+          ],
+          "FUT": [
+            "*"
+          ],
+          "CASH": [
+            "*"
+          ],
+          "IND": [
+            "*"
+          ],
+          "BOND": [
+            "*"
+          ],
+          "FUND": [
+            "*"
+          ],
+          "CMDTY": [
+            "*"
+          ],
+          "PHYSS": [
+            "*"
+          ],
+          "CRYPTO": [
+            "*"
+          ]
+        },
+        "groups": [
+          "All"
+        ],
+        "profiles": [],
+        "selectedAccount": "U1234567",
+        "serverInfo": {
+          "serverName": "server",
+          "serverVersion": "Build 99.99.9, May 22, 2020 4:19:22 PM"
+        },
+        "sessionId": "65ee8a41.0000001e",
+        "isFT": false,
+        "isPaper": true
+      }
+order: 4000

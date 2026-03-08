@@ -1,0 +1,24 @@
+$kind: http-example
+request:
+  url: https://template.postman-echo.com/api/v1/transactions?toAccountId={{e2e_user_account_id_to}}
+  method: GET
+  headers:
+    Content-Type: application/json
+  queryParams:
+    toAccountId: "{{e2e_user_account_id_to}}"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:11:01 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "19"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "transactions": []
+      }
+order: 1000

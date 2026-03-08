@@ -1,0 +1,45 @@
+$kind: http-example
+name: Returns the list of participating banks.
+request:
+  url: "{{baseUrl}}/gw/api/v1/participating-banks?type=eDDA"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: type
+      value: eDDA
+      description: (Required) Parameter for which the list of participating banks is fetched
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "eDDA",
+        "participatingBanks": [
+          {
+            "institutionName": "WELAB BANK LIMITED",
+            "clearingCode": "390",
+            "BIC": "WEDIHKHHXXX"
+          },
+          {
+            "institutionName": "INDUSTRIAL AND COMMERCIAL BANK OF CHINA (ASIA) LIMITED",
+            "clearingCode": "072",
+            "BIC": "UBHKHKHHXXX"
+          },
+          {
+            "institutionName": "FUSION BANK LIMITED",
+            "clearingCode": "391",
+            "BIC": "IFFUHKHHXXX"
+          },
+          {
+            "institutionName": "CITIBANK (HONG KONG) LIMITED",
+            "clearingCode": "250",
+            "BIC": "CITIHKAXXXX"
+          }
+        ]
+      }
+order: 6000

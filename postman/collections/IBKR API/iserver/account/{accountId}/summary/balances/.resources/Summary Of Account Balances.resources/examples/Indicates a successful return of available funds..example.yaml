@@ -1,0 +1,54 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/summary/balances
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "total": {
+          "net_liquidation": "1,288,301 USD",
+          "Nt Lqdtn Uncrtnty": "0 USD",
+          "equity_with_loan": "1,279,520 USD",
+          "Prvs Dy Eqty Wth Ln Vl": "1,275,902 USD",
+          "Rg T Eqty Wth Ln Vl": "1,256,229 USD",
+          "sec_gross_pos_val": "1,791,096 USD",
+          "cash": "-401,693 USD",
+          "MTD Interest": "-549 USD",
+          "Pndng Dbt Crd Chrgs": "0 USD"
+        },
+        "Crypto at Paxos": {
+          "net_liquidation": "0 USD",
+          "equity_with_loan": "0 USD",
+          "cash": "0 USD",
+          "MTD Interest": "0 USD",
+          "Pndng Dbt Crd Chrgs": "0 USD"
+        },
+        "commodities": {
+          "net_liquidation": "32,072 USD",
+          "equity_with_loan": "23,291 USD",
+          "cash": "32,072 USD",
+          "MTD Interest": "0 USD",
+          "Pndng Dbt Crd Chrgs": "0 USD"
+        },
+        "securities": {
+          "net_liquidation": "1,256,229 USD",
+          "equity_with_loan": "1,256,229 USD",
+          "Prvs Dy Eqty Wth Ln Vl": "1,275,902 USD",
+          "Rg T Eqty Wth Ln Vl": "1,256,229 USD",
+          "sec_gross_pos_val": "1,791,096 USD",
+          "cash": "-433,765 USD",
+          "MTD Interest": "-549 USD",
+          "Pndng Dbt Crd Chrgs": "0 USD"
+        }
+      }
+order: 1000

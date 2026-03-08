@@ -1,0 +1,21 @@
+$kind: http-request
+description: Returns the performance (MTM) for the given accounts, if more than
+  one account is passed, the result is consolidated.
+url: https://api.ibkr.com/v1/api/pa/allperiods
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  param0: officia reprehenderit Lorem Excepteur exercitation
+body:
+  type: json
+  content: |-
+    {
+      "acctIds": [
+        "eu voluptate dolore ut",
+        "repreh"
+      ]
+    }
+examples: ./.resources/Account Performance (All Time Periods).resources/examples
+order: 1000

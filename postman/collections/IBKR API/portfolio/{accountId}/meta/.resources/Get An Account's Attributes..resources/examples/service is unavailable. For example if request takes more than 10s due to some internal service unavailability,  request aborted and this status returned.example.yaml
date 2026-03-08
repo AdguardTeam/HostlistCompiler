@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/portfolio/:accountId/meta
+  method: GET
+  headers:
+    Accept: application/json; charset=utf-8
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 4000

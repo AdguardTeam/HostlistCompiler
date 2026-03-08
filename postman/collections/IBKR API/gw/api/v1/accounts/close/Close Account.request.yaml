@@ -1,0 +1,29 @@
+$kind: http-request
+description: "Submit request to close account that is opened.<br><br>**Scope**:
+  `accounts.write`<br>**Security Policy**: `Signed JWT`"
+url: "{{baseUrl}}/gw/api/v1/accounts/close"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: client-id
+    value: abc123
+    description: (Required) The client's clientId
+body:
+  type: json
+  content: |-
+    {
+      "instructionType": "ACCOUNT_CLOSE",
+      "instruction": {
+        "clientInstructionId": 1012983,
+        "accountId": "U46377",
+        "closeReason": "Input your reason of closure here",
+        "withdrawalInfo": {
+          "bankInstructionName": "test instruction",
+          "bankInstructionMethod": "WIRE"
+        }
+      }
+    }
+examples: ./.resources/Close Account.resources/examples
+order: 1000

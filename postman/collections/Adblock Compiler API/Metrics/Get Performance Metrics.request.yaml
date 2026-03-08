@@ -1,0 +1,19 @@
+$kind: http-request
+description: Get performance metrics aggregated over the last 30 minutes
+url: "{{baseUrl}}/metrics"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Response contains metrics', function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('window');
+          pm.expect(jsonData).to.have.property('timestamp');
+          pm.expect(jsonData).to.have.property('endpoints');
+      });
+    language: text/javascript
+order: 2000

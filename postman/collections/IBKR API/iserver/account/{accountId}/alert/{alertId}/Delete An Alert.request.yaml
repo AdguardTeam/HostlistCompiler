@@ -1,0 +1,20 @@
+$kind: http-request
+description: Permanently delete an existing alert. Deleting an MTA alert will
+  reset it to the default state.
+url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alert/:alertId
+method: DELETE
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: accountId
+    value: U1234567
+    description: "(Required) "
+  - key: alertId
+    value: "9876543210"
+    description: "(Required) "
+body:
+  type: json
+  content: "{}"
+examples: ./.resources/Delete An Alert.resources/examples
+order: 1000

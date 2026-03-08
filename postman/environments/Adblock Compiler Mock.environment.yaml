@@ -1,0 +1,6 @@
+name: Adblock Compiler Mock
+values:
+  - key: baseUrl
+    value: https://8d886095-2ddb-460c-b116-0efbebd64484.mock.pstmn.io
+    enabled: true
+color: null

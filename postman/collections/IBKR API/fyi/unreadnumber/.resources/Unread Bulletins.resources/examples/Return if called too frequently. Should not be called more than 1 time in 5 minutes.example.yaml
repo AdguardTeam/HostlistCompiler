@@ -1,0 +1,18 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/fyi/unreadnumber"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 423
+  statusText: Locked (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": "occaecat "
+      }
+order: 3000

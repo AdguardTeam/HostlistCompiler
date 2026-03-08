@@ -1,0 +1,9 @@
+$kind: http-request
+description: Retrieve attributes of the subaccounts in the account structure.
+url: "{{baseUrl}}/portfolio/subaccounts"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Get Attributes Of Subaccounts In Account
+  Structure.resources/examples
+order: 1000

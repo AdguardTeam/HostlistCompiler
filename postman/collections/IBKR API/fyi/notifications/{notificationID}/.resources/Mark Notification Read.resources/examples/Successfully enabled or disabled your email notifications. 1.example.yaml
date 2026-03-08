@@ -1,0 +1,26 @@
+$kind: http-example
+name: Successfully enabled or disabled your email notifications.
+request:
+  url: https://api.ibkr.com/v1/api/fyi/notifications/:notificationID
+  method: PUT
+  headers:
+    Accept: application/json
+  pathVariables:
+    notificationID: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "V": 1,
+        "T": 5,
+        "P": {
+          "R": 1,
+          "ID": "2024031947509444"
+        }
+      }
+order: 6000

@@ -1,0 +1,52 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "DWAC",
+        "instruction": {
+          "clientInstructionId": 7013037,
+          "direction": "IN",
+          "accountId": "U1001095",
+          "contraBrokerAccountId": "12345678A",
+          "contraBrokerTaxId": "123456789",
+          "quantity": 1000,
+          "accountTitle": "Special Company Holding LLC",
+          "referenceId": "refId",
+          "tradingInstrument": {
+            "tradingInstrumentDescription": {
+              "securityIdType": "ISIN",
+              "securityId": "459200101",
+              "assetType": "STK"
+            },
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/invalid-argument",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Input is not a JSON Object or doesn't contain all expected fields",
+        "invalidArguments": [
+          {
+            "field": "assetType",
+            "description": "Missing required parameter"
+          }
+        ]
+      }
+order: 14000

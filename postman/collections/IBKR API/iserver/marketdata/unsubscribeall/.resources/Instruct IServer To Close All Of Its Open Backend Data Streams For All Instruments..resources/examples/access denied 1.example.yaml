@@ -1,0 +1,16 @@
+$kind: http-example
+name: access denied
+request:
+  url: "{{baseUrl}}/iserver/marketdata/unsubscribeall"
+  method: GET
+  headers:
+    Accept: text/plain; charset=utf-8
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: text/plain; charset=utf-8
+  body:
+    type: text
+    content: pariatur deserunt mollit
+order: 8000

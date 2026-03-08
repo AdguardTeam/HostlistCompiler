@@ -1,0 +1,23 @@
+$kind: http-example
+request:
+  url: "https://api.ibkr.com/v1/api/fyi/deliveryoptions/email?enabled=true"
+  method: PUT
+  headers:
+    Accept: application/json; charset=utf-8
+  queryParams:
+    - key: enabled
+      value: "true"
+      description: "(Required) Enable or disable your email. Value format: true: Enable; false: Disable"
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 4000

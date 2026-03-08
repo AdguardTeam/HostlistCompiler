@@ -1,0 +1,135 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/portfolio/positions/:conid
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    conid: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "DU123457": [
+          {
+            "acctId": "DU123457",
+            "conid": 8314,
+            "contractDesc": "IBM",
+            "position": 1412,
+            "mktPrice": 166.7599945,
+            "mktValue": 235465.11,
+            "currency": "USD",
+            "avgCost": 144.46141,
+            "avgPrice": 144.46141,
+            "realizedPnl": 0,
+            "unrealizedPnl": 31485.6,
+            "exchs": null,
+            "expiry": null,
+            "putOrCall": null,
+            "multiplier": 0,
+            "strike": "0",
+            "exerciseStyle": null,
+            "conExchMap": [],
+            "assetClass": "STK",
+            "undConid": 0,
+            "model": "",
+            "incrementRules": [
+              {
+                "lowerEdge": 0,
+                "increment": 0.01
+              }
+            ],
+            "displayRule": {
+              "magnification": 0,
+              "displayRuleStep": [
+                {
+                  "decimalDigits": 2,
+                  "lowerEdge": 0,
+                  "wholeDigits": 4
+                }
+              ]
+            },
+            "time": 64,
+            "chineseName": "&#x56FD;&#x9645;&#x5546;&#x4E1A;&#x673A;&#x5668;",
+            "allExchanges": "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0",
+            "listingExchange": "NYSE",
+            "countryCode": "US",
+            "name": "INTL BUSINESS MACHINES CORP",
+            "lastTradingDay": null,
+            "group": "Computers",
+            "sector": "Technology",
+            "sectorGroup": "Computer Services",
+            "ticker": "IBM",
+            "type": "COMMON",
+            "hasOptions": true,
+            "fullName": "IBM",
+            "isUS": true,
+            "isEventContract": false,
+            "pageSize": 100
+          }
+        ],
+        "DU123456": [
+          {
+            "acctId": "DU123456",
+            "conid": 8314,
+            "contractDesc": "IBM",
+            "position": 1412,
+            "mktPrice": 166.7599945,
+            "mktValue": 235465.11,
+            "currency": "USD",
+            "avgCost": 144.46141,
+            "avgPrice": 144.46141,
+            "realizedPnl": 0,
+            "unrealizedPnl": 31485.6,
+            "exchs": null,
+            "expiry": null,
+            "putOrCall": null,
+            "multiplier": 0,
+            "strike": "0",
+            "exerciseStyle": null,
+            "conExchMap": [],
+            "assetClass": "STK",
+            "undConid": 0,
+            "model": "",
+            "incrementRules": [
+              {
+                "lowerEdge": 0,
+                "increment": 0.01
+              }
+            ],
+            "displayRule": {
+              "magnification": 0,
+              "displayRuleStep": [
+                {
+                  "decimalDigits": 2,
+                  "lowerEdge": 0,
+                  "wholeDigits": 4
+                }
+              ]
+            },
+            "time": 64,
+            "chineseName": "&#x56FD;&#x9645;&#x5546;&#x4E1A;&#x673A;&#x5668;",
+            "allExchanges": "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0",
+            "listingExchange": "NYSE",
+            "countryCode": "US",
+            "name": "INTL BUSINESS MACHINES CORP",
+            "lastTradingDay": null,
+            "group": "Computers",
+            "sector": "Technology",
+            "sectorGroup": "Computer Services",
+            "ticker": "IBM",
+            "type": "COMMON",
+            "hasOptions": true,
+            "fullName": "IBM",
+            "isUS": true,
+            "isEventContract": false,
+            "pageSize": 100
+          }
+        ]
+      }
+order: 2000

@@ -1,0 +1,32 @@
+$kind: http-example
+name: ErrorResponse
+request:
+  url: "{{baseUrl}}/v3/marketdata/stream/marketdepth/aggregates/:symbol?maxlevels\
+    =20"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: maxlevels
+      value: "20"
+      description: The maximum number of market depth levels to return. Must be a
+        positive integer. If omitted it defaults to 20.
+  pathVariables:
+    symbol: ""
+response:
+  statusCode: 504
+  statusText: Gateway Timeout
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "Error": "<string>",
+        "Message": "<string>"
+      }
+order: 7000
