@@ -11,7 +11,7 @@ The Adblock Compiler is deployed as **two separate Cloudflare Workers** from a s
 | | `adblock-compiler-backend` | `adblock-compiler-frontend` |
 |---|---|---|
 | **Wrangler config** | [`wrangler.toml`](../../wrangler.toml) | [`frontend/wrangler.toml`](../../frontend/wrangler.toml) |
-| **Entry point** | `worker/worker.ts` | `dist/adblock-compiler-poc/server/server.mjs` |
+| **Entry point** | `worker/worker.ts` | `dist/adblock-compiler/server/server.mjs` |
 | **Role** | REST API + compilation engine | Angular 21 SSR UI |
 | **Source path** | `worker/` + `src/` | `frontend/` |
 | **Deploy command** | `wrangler deploy` (repo root) | `npm run deploy` (from `frontend/`) |
@@ -154,7 +154,7 @@ The root `wrangler.toml` includes an `[assets]` block pointing to the Angular bu
 
 ```toml
 [assets]
-directory = "./frontend/dist/adblock-compiler-poc/browser"
+directory = "./frontend/dist/adblock-compiler/browser"
 binding = "ASSETS"
 ```
 
