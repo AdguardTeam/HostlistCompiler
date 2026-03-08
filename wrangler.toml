@@ -1,6 +1,6 @@
 name = "adblock-compiler"
 main = "worker/worker.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-01-01"
 
 # Enable the Workers runtime
 workers_dev = true
@@ -8,10 +8,11 @@ workers_dev = true
 # Build configuration
 # Builds Angular frontend and generates static assets for deployment.
 # Wrangler calls this command automatically on `wrangler deploy`.
-# npm ci installs root deps (zod, @opentelemetry/api, @adguard/agtree) that the
-# worker's TypeScript imports need for esbuild to resolve them during bundling.
+# Uses pnpm (declared as packageManager in package.json) because corepack blocks
+# npm when packageManager is set to pnpm. The build:worker script handles
+# dependency installation and the Angular frontend build.
 [build]
-command = "npm ci --omit=dev && npm --prefix frontend ci && npm --prefix frontend run build"
+command = "pnpm run build:worker"
 
 [browser]
 binding = "BROWSER"
@@ -61,7 +62,7 @@ tag = "v1"
 # IMPORTANT: This version should match the VERSION constant in src/version.ts (single source of truth)
 # To update: change VERSION in src/version.ts, then run `deno task version:sync` to propagate changes
 # The worker will fall back to src/version.ts if this is not set
-COMPILER_VERSION = "0.41.0"
+COMPILER_VERSION = "0.42.0"
 ENVIRONMENT = "production"
 # TURNSTILE_SITE_KEY, ADMIN_KEY, etc. are loaded from .env files via .envrc
 # For local dev: managed by .env.development and .env.local

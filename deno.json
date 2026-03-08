@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.41.0",
+    "version": "0.42.0",
     "exports": "./src/index.ts",
     "nodeModulesDir": "auto",
     "publish": {
@@ -135,6 +135,7 @@
             ".yarn/",
             ".pnp.*",
             "*.lock",
+            "pnpm-lock.yaml",
             "*.lcov",
             "*.d.ts",
             "CHANGELOG.md",
