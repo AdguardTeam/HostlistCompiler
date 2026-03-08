@@ -85,3 +85,4 @@ playwright-report/
 
 # Generated CSS (Tailwind build output)
 public/tailwind.css
+frontend/package-lock.json
