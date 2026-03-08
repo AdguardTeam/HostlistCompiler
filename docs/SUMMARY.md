@@ -41,6 +41,7 @@
   - [Lines of Code Counter](development/COUNT_LOC.md)
 - [Frontend](frontend/README.md)
   - [Angular Frontend](frontend/ANGULAR_FRONTEND.md)
+  - [Angular Parity Checklist](frontend/ANGULAR_PARITY_CHECKLIST.md)
   - [SPA Benefits](frontend/SPA_BENEFITS.md)
   - [Tailwind CSS](frontend/TAILWIND_CSS.md)
   - [Validation UI](frontend/VALIDATION_UI.md)
