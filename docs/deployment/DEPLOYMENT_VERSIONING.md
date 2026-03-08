@@ -117,16 +117,14 @@ Returns the current deployed version.
 ```json
 {
   "success": true,
-  "data": {
-    "version": "0.11.3",
-    "buildNumber": 42,
-    "fullVersion": "0.11.3+build.42",
-    "gitCommit": "abc123def456",
-    "gitBranch": "main",
-    "deployedAt": "2026-01-31T07:00:00.000Z",
-    "deployedBy": "github-actions[user]",
-    "status": "success"
-  }
+  "version": "0.11.3",
+  "buildNumber": 42,
+  "fullVersion": "0.11.3+build.42",
+  "gitCommit": "abc123def456",
+  "gitBranch": "main",
+  "deployedAt": "2026-01-31 07:00:00",
+  "deployedBy": "github-actions[user]",
+  "status": "success"
 }
 ```
 
@@ -149,14 +147,14 @@ curl "https://your-worker.dev/api/deployments?limit=10&version=0.11.3"
 ```json
 {
   "success": true,
-  "data": [
+  "deployments": [
     {
       "version": "0.11.3",
       "buildNumber": 42,
       "fullVersion": "0.11.3+build.42",
       "gitCommit": "abc123def456",
       "gitBranch": "main",
-      "deployedAt": "2026-01-31T07:00:00.000Z",
+      "deployedAt": "2026-01-31 07:00:00",
       "deployedBy": "github-actions[user]",
       "status": "success",
       "metadata": {
@@ -165,7 +163,8 @@ curl "https://your-worker.dev/api/deployments?limit=10&version=0.11.3"
         "workflow_run_url": "https://github.com/..."
       }
     }
-  ]
+  ],
+  "count": 1
 }
 ```
 
@@ -177,12 +176,10 @@ Returns deployment statistics.
 ```json
 {
   "success": true,
-  "data": {
-    "totalDeployments": 150,
-    "successfulDeployments": 145,
-    "failedDeployments": 5,
-    "latestVersion": "0.11.3+build.42"
-  }
+  "totalDeployments": 150,
+  "successfulDeployments": 145,
+  "failedDeployments": 5,
+  "latestVersion": "0.11.3+build.42"
 }
 ```
 
