@@ -147,7 +147,8 @@
             "CHANGELOG.md",
             "MEMORY.md",
             "README.md",
-            "issues/"
+            "issues/",
+            "postman/"
         ]
     },
     "test": {
