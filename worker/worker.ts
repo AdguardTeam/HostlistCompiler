@@ -3051,7 +3051,8 @@ export default {
                     );
                 }
 
-                const limit = parseInt(url.searchParams.get('limit') || '50');
+                const rawLimit = parseInt(url.searchParams.get('limit') || '50', 10);
+                const limit = isNaN(rawLimit) || rawLimit < 1 ? 50 : rawLimit;
                 const version = url.searchParams.get('version') || undefined;
                 const status = url.searchParams.get('status') || undefined;
                 const branch = url.searchParams.get('branch') || undefined;
