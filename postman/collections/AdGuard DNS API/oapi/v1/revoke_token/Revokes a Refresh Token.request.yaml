@@ -18,8 +18,7 @@ description: >-
   }
 
    ```
-url: "{{baseUrl}}/oapi/v1/revoke_token?refresh_token={{vault:adguard-refresh_to\
-  ken}}"
+url: "{{baseUrl}}/oapi/v1/revoke_token?refresh_token={{vault:adguard-refresh_token}}"
 method: POST
 queryParams:
   - key: refresh_token

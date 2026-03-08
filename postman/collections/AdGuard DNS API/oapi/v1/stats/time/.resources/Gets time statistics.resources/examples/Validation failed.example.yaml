@@ -1,7 +1,6 @@
 $kind: http-example
 request:
-  url: "{{baseUrl}}/oapi/v1/stats/time?time_from_millis=<long>&time_to_millis=<lo\
-    ng>&devices=<string>&countries=<string>"
+  url: "{{baseUrl}}/oapi/v1/stats/time?time_from_millis=<long>&time_to_millis=<long>&devices=<string>&countries=<string>"
   method: GET
   headers:
     - key: Accept
