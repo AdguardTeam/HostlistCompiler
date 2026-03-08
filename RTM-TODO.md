@@ -167,7 +167,7 @@
   - [ ] Run full manual smoke test against production
   - [ ] Confirm automated version-bump and release workflow fires correctly
   - [ ] Write v1.0.0 release notes (features, breaking changes, migration from beta)
-  - [ ] Update homepage (adblock-compiler.jk-com.workers.dev) with GA announcement
+  - [ ] Update homepage (adblock-compiler.jayson-knight.workers.dev) with GA announcement
   - [ ] Merge and lock `v1.0.0` tag
 - **Acceptance Criteria:**
   - `v1.0.0` tag exists

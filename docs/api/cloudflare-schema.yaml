@@ -6,7 +6,7 @@
 openapi: 3.0.3
 info:
     title: Adblock Compiler API
-    description: "**Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.\n\n## Features\n- \U0001F3AF Multi-Source Compilation\n- ⚡ Performance (Gzip compression, caching, request deduplication)\n- \U0001F504 Circuit Breaker with retry logic\n- \U0001F4CA Visual Diff between compilations\n- \U0001F4E1 Real-time progress via SSE and WebSocket\n- \U0001F3AA Batch Processing\n- \U0001F30D Universal (Deno, Node.js, Cloudflare Workers, browsers)\n\n## Links\n- [GitHub Repository](https://github.com/jaypatrick/adblock-compiler)\n- [Documentation](https://github.com/jaypatrick/adblock-compiler/tree/master/docs)\n- [Web UI](https://adblock-compiler.jk-com.workers.dev/)\n"
+    description: "**Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.\n\n## Features\n- \U0001F3AF Multi-Source Compilation\n- ⚡ Performance (Gzip compression, caching, request deduplication)\n- \U0001F504 Circuit Breaker with retry logic\n- \U0001F4CA Visual Diff between compilations\n- \U0001F4E1 Real-time progress via SSE and WebSocket\n- \U0001F3AA Batch Processing\n- \U0001F30D Universal (Deno, Node.js, Cloudflare Workers, browsers)\n\n## Links\n- [GitHub Repository](https://github.com/jaypatrick/adblock-compiler)\n- [Documentation](https://github.com/jaypatrick/adblock-compiler/tree/master/docs)\n- [Web UI](https://adblock-compiler.jayson-knight.workers.dev/)\n"
     version: 2.0.0
     license:
         name: GPL-3.0
@@ -16,7 +16,7 @@ info:
         url: 'https://github.com/jaypatrick/adblock-compiler'
 servers:
     -
-        url: 'https://adblock-compiler.jk-com.workers.dev'
+        url: 'https://adblock-compiler.jayson-knight.workers.dev'
         description: Production server
 tags:
     -
