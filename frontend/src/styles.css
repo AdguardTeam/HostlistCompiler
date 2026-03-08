@@ -592,8 +592,9 @@ html[data-theme='dark'] .page-wrapper {
     font-size: 0.9rem;
     font-weight: 300;
     margin: 0 0 16px 0;
-    color: rgba(240, 236, 228, 0.55);
+    color: rgba(240, 236, 228, 0.85);
     letter-spacing: 0.02em;
+    text-align: center;
 }
 
 .app-header-shell .header-actions {
