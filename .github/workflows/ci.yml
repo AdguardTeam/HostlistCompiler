@@ -464,7 +464,7 @@ jobs:
                       local output
                       if output=$(deno task wrangler d1 execute adblock-compiler-d1-database --file="$file" --remote 2>&1); then
                           echo "✅ Applied: $file"
-                      elif echo "$output" | grep -qiE 'already (applied|exists)|duplicate|unique constraint'; then
+                      elif echo "$output" | grep -qiE 'already (applied|exists)'; then
                           echo "⏭️  Already applied: $file"
                       else
                           echo "❌ Migration failed: $file"
