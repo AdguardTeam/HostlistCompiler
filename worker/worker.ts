@@ -2947,7 +2947,6 @@ async function handleHealthLatest(env: Env): Promise<Response> {
                 {
                     success: true,
                     message: 'No health check data available. Run a health check first.',
-                    data: null,
                 },
                 { headers: { 'Access-Control-Allow-Origin': '*' } },
             );
@@ -2956,7 +2955,7 @@ async function handleHealthLatest(env: Env): Promise<Response> {
         return Response.json(
             {
                 success: true,
-                data: latest,
+                ...(latest as Record<string, unknown>),
             },
             { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
@@ -3013,10 +3012,10 @@ export default {
                 return Response.json(
                     {
                         success: true,
-                        data: deployment || {
+                        ...(deployment || {
                             version: env.COMPILER_VERSION || VERSION,
                             message: 'No deployment history available',
-                        },
+                        }),
                     },
                     {
                         headers: {
@@ -3066,7 +3065,8 @@ export default {
                 return Response.json(
                     {
                         success: true,
-                        data: deployments,
+                        deployments,
+                        count: deployments.length,
                     },
                     {
                         headers: {
@@ -3102,7 +3102,7 @@ export default {
                 return Response.json(
                     {
                         success: true,
-                        data: stats,
+                        ...stats,
                     },
                     {
                         headers: {
