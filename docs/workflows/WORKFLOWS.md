@@ -25,11 +25,14 @@ The repository uses four main workflows:
 4. **Test** - Run test suite with coverage; coverage artifact uploaded on both PRs and main push
 5. **Security** - Trivy vulnerability scanning
 6. **Frontend Build** - Angular frontend lint, test, build, and artifact upload (single merged job)
-7. **Validate Cloudflare Schema** - Validates `wrangler.toml` schema
+7. **Validate Cloudflare Schema** - Runs `deno task schema:cloudflare` and verifies that `docs/api/cloudflare-schema.yaml` (Cloudflare API Shield schema generated from the OpenAPI spec) is up to date
 
-#### Sequential Jobs (run after quality checks pass)
+#### PR-Only Parallel Job (needs `frontend-build` artifact)
 
-8. **Verify Deploy** - Cloudflare Worker build dry-run (`wrangler deploy --dry-run`); runs on PRs only, uses the frontend artifact from `frontend-build`
+8. **Verify Deploy** - Cloudflare Worker build dry-run (`deno task wrangler:verify`); runs on PRs only, waits for the `frontend-build` artifact but otherwise runs in parallel with the quality checks above
+
+#### Sequential Jobs (run after all checks pass)
+
 9. **CI Gate** - Python script verifying all upstream jobs passed or were acceptably skipped; blocks publish and deploy
 10. **Publish** - Publish to JSR (main only, after CI gate passes)
 11. **Deploy** - Deploy to Cloudflare (main only, when enabled, after CI gate passes)
@@ -57,7 +60,7 @@ The action is defined in `.github/actions/deno-install/action.yml` and is used b
 - ✅ **SHA-Pinned Actions**: All third-party actions pinned to full commit SHAs with version comments (supply-chain hardening)
 - ✅ **Better Caching**: Includes `deno.lock` in cache key for more precise invalidation
 - ✅ **Comprehensive Type Checking**: Checks all entry points (index.ts, cli.ts, worker.ts, tail.ts)
-- ✅ **Consolidated Deployment**: Combined Worker and Pages deployment into single job
+- ✅ **Consolidated Worker Deployment**: Main and tail Cloudflare Workers deployed from a single CI deploy job (no separate Pages deployment)
 - ✅ **Migration Error Handling**: `run_migration()` shell function distinguishes real errors from "already applied" idempotency messages
 
 ### Performance Gains

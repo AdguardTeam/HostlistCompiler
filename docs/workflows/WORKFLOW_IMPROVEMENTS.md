@@ -39,7 +39,7 @@ verify-deploy:
     if: github.event_name == 'pull_request'
     steps:
         - uses: ./.github/actions/deno-install
-        - run: deno task wrangler:deploy:dry-run
+        - run: deno task wrangler:verify
 ```
 
 The `ci-gate` job includes `verify-deploy` in its `needs` list, so a failing Worker build blocks merge.
@@ -55,9 +55,15 @@ steps:
       env:
           DENO_TLS_CA_STORE: system
       run: |
-          for attempt in 1 2 3; do
-              deno install && break || [ $attempt -lt 3 ] || exit 1
-              sleep $((attempt * 5))
+          for i in 1 2 3; do
+              deno install && break
+              if [ "$i" -lt 3 ]; then
+                  echo "Attempt $i failed, retrying in 10s..."
+                  sleep 10
+              else
+                  echo "All 3 attempts failed."
+                  exit 1
+              fi
           done
 ```
 
