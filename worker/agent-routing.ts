@@ -36,7 +36,7 @@ export async function routeAgentRequest(request: Request, env: Env): Promise<Res
     const [, agentName, instanceId] = match;
     const bindingKey = agentNameToBindingKey(agentName) as keyof Env;
     const ns = env[bindingKey] as DurableObjectNamespace | undefined;
-    if (typeof (ns as DurableObjectNamespace | undefined)?.idFromName !== 'function') return null;
+    if (!ns || typeof ns.idFromName !== 'function') return null;
 
     const stub = ns.get(ns.idFromName(instanceId));
     return stub.fetch(request);
