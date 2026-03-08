@@ -77,7 +77,7 @@ interface EndpointInfo {
         <!-- ─── Header ─── -->
         <div class="dashboard-header">
             <div>
-                <h1 class="mat-headline-4">Adblock Compiler Dashboard</h1>
+                <h1 class="mat-headline-3">Adblock Compiler Dashboard</h1>
                 <p class="mat-body-1 subtitle">
                     Manage, compile, and monitor adblock filter lists.
                 </p>
@@ -215,7 +215,7 @@ interface EndpointInfo {
         <h2 class="mat-headline-6 section-title">Tools &amp; Pages</h2>
         <div class="nav-grid">
             @for (card of navCards; track card.path) {
-                @defer (on viewport; prefetch on hover) {
+                @defer (on idle; prefetch on hover) {
                     <mat-card appearance="outlined" class="nav-card" (click)="navigateTo(card.path)">
                         <mat-card-header>
                             <mat-icon mat-card-avatar [style.color]="'var(--mat-sys-primary)'" aria-hidden="true">{{ card.icon }}</mat-icon>
@@ -275,6 +275,11 @@ interface EndpointInfo {
         flex-wrap: wrap;
         gap: 16px;
         margin-bottom: 16px;
+    }
+    .dashboard-header h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+        margin-bottom: 4px;
     }
     .header-actions { display: flex; gap: 8px; align-items: center; }
     .subtitle { color: var(--mat-sys-on-surface-variant); margin-bottom: 0; }
@@ -467,11 +472,11 @@ export class HomeComponent {
         const m = this.store.metrics();
         const q = this.store.queueStats();
         return [
-            { label: 'Total Requests',    value: m ? m.totalRequests.toLocaleString() : '--',       icon: 'api',           color: 'var(--mat-sys-primary)' },
-            { label: 'Avg Response Time', value: m ? `${Math.round(m.averageDuration)}ms` : '--ms', icon: 'timer',         color: 'var(--mat-sys-tertiary)' },
-            { label: 'Cache Hit Rate',    value: m ? `${m.cacheHitRate}%` : '--%',                  icon: 'cached',        color: 'var(--mat-sys-secondary)' },
-            { label: 'Success Rate',      value: m ? `${m.successRate}%` : '--%',                   icon: 'check_circle',  color: 'var(--mat-sys-primary)' },
-            { label: 'Queue Depth',       value: q ? q.currentDepth.toString() : '--',              icon: 'queue',         color: 'var(--app-warning, #ff9800)' },
+            { label: 'Total Requests',    value: m?.totalRequests != null ? m.totalRequests.toLocaleString() : '--',         icon: 'api',           color: 'var(--mat-sys-primary)' },
+            { label: 'Avg Response Time', value: m?.averageDuration != null ? `${Math.round(m.averageDuration)}ms` : '--ms', icon: 'timer',         color: 'var(--mat-sys-tertiary)' },
+            { label: 'Cache Hit Rate',    value: m?.cacheHitRate != null ? `${m.cacheHitRate}%` : '--%',                     icon: 'cached',        color: 'var(--mat-sys-secondary)' },
+            { label: 'Success Rate',      value: m?.successRate != null ? `${m.successRate}%` : '--%',                       icon: 'check_circle',  color: 'var(--mat-sys-primary)' },
+            { label: 'Queue Depth',       value: q?.currentDepth != null ? q.currentDepth.toString() : '--',                 icon: 'queue',         color: 'var(--app-warning, #ff9800)' },
         ];
     });
 
@@ -490,7 +495,9 @@ export class HomeComponent {
     readonly healthColor = computed(() => {
         const h = this.store.health();
         if (!h) return 'var(--mat-sys-on-surface-variant)';
-        return h.status === 'healthy' ? 'var(--mat-sys-primary)' : 'var(--mat-sys-error)';
+        return h.status === 'healthy'
+            ? 'var(--app-success, #4caf50)'
+            : 'var(--mat-sys-error)';
     });
 
     readonly healthIcon = computed(() => {
