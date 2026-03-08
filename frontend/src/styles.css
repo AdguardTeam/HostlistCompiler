@@ -576,6 +576,15 @@ html[data-theme='dark'] .page-wrapper {
     margin: 0;
     color: var(--app-header-accent);
     letter-spacing: -0.03em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-brand-logo {
+    flex-shrink: 0;
+    border-radius: 6px;
+    vertical-align: middle;
 }
 
 .app-header-shell .app-subtitle {
