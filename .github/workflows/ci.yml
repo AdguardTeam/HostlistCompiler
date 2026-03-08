@@ -15,22 +15,21 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    # Run quick checks in parallel
     lint:
         name: Lint
         runs-on: ubuntu-latest
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Setup Deno
-              uses: denoland/setup-deno@v2
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
             - name: Cache Deno dependencies
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
               with:
                   path: |
                       ~/.cache/deno
@@ -49,15 +48,15 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Setup Deno
-              uses: denoland/setup-deno@v2
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
             - name: Cache Deno dependencies
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
               with:
                   path: |
                       ~/.cache/deno
@@ -75,15 +74,15 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Setup Deno
-              uses: denoland/setup-deno@v2
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
             - name: Cache Deno dependencies
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
               with:
                   path: |
                       ~/.cache/deno
@@ -93,20 +92,8 @@ jobs:
                   restore-keys: |
                       deno-${{ runner.os }}-
 
-            - name: Install dependencies
-              run: |
-                  for i in 1 2 3; do
-                      deno install && break
-                      if [ "$i" -lt 3 ]; then
-                          echo "Attempt $i failed, retrying in 10s..."
-                          sleep 10
-                      else
-                          echo "All 3 attempts failed."
-                          exit 1
-                      fi
-                  done
-              env:
-                  DENO_TLS_CA_STORE: system
+            - name: Install Deno dependencies
+              uses: ./.github/actions/deno-install
 
             - name: Type check all entry points
               run: |
@@ -121,18 +108,18 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Load environment variables
               uses: ./.github/actions/setup-env
 
             - name: Setup Deno
-              uses: denoland/setup-deno@v2
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
             - name: Cache Deno dependencies
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
               with:
                   path: |
                       ~/.cache/deno
@@ -142,20 +129,8 @@ jobs:
                   restore-keys: |
                       deno-${{ runner.os }}-
 
-            - name: Install dependencies
-              run: |
-                  for i in 1 2 3; do
-                      deno install && break
-                      if [ "$i" -lt 3 ]; then
-                          echo "Attempt $i failed, retrying in 10s..."
-                          sleep 10
-                      else
-                          echo "All 3 attempts failed."
-                          exit 1
-                      fi
-                  done
-              env:
-                  DENO_TLS_CA_STORE: system
+            - name: Install Deno dependencies
+              uses: ./.github/actions/deno-install
 
             - name: Run tests with coverage
               run: |
@@ -165,8 +140,7 @@ jobs:
                   DENO_TLS_CA_STORE: system
 
             - name: Upload coverage artifact
-              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: coverage
                   path: coverage.lcov
@@ -176,17 +150,19 @@ jobs:
         name: Upload Coverage
         runs-on: ubuntu-latest
         needs: [test]
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: >-
+            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            github.event_name == 'pull_request'
         permissions:
             contents: read
         steps:
             - name: Download coverage artifact
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: coverage
 
             - name: Upload to Codecov
-              uses: codecov/codecov-action@v5
+              uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
               continue-on-error: true
               with:
                   files: ./coverage.lcov
@@ -204,10 +180,10 @@ jobs:
             contents: read
             security-events: write
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Run Trivy vulnerability scanner
-              uses: aquasecurity/trivy-action@0.33.1
+              uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
               continue-on-error: true
               with:
                   scan-type: fs
@@ -218,30 +194,33 @@ jobs:
 
             - name: Upload Trivy results to GitHub Security
               if: always() && hashFiles('trivy-results.sarif') != ''
-              uses: github/codeql-action/upload-sarif@v4
+              uses: github/codeql-action/upload-sarif@dd677812177e0c29f9c970a6c58d8607ae1bfefd # v4
               continue-on-error: true
               with:
                   sarif_file: trivy-results.sarif
 
-    frontend:
-        name: Frontend (lint + test)
+    # Merged from the former separate `frontend` (lint+test) and `frontend-build`
+    # jobs. A single pnpm install now covers lint, test, and build, eliminating
+    # the duplicate install that previously ran in parallel jobs.
+    frontend-build:
+        name: Frontend (lint, test, build)
         runs-on: ubuntu-latest
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+              uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: '22'
                   cache: 'pnpm'
 
             - name: Install dependencies
-              run: pnpm install --no-frozen-lockfile
+              run: pnpm install --frozen-lockfile
 
             - name: Lint frontend
               run: pnpm --filter adblock-compiler-frontend run lint
@@ -249,9 +228,21 @@ jobs:
             - name: Test frontend with coverage
               run: pnpm --filter adblock-compiler-frontend run test:coverage
 
+            - name: Build Angular frontend
+              run: pnpm --filter adblock-compiler-frontend run build
+
+            - name: Upload frontend build artifact
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: frontend-dist
+                  path: frontend/dist/
+                  retention-days: 1
+
             - name: Upload frontend coverage to Codecov
-              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-              uses: codecov/codecov-action@v5
+              if: >-
+                  (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+                  github.event_name == 'pull_request'
+              uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
               continue-on-error: true
               with:
                   files: ./frontend/coverage/lcov.info
@@ -260,51 +251,21 @@ jobs:
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-    frontend-build:
-        name: Frontend Build
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '22'
-                  cache: 'pnpm'
-
-            - name: Install frontend dependencies
-              run: pnpm install --no-frozen-lockfile
-
-            - name: Build Angular frontend
-              run: pnpm --filter adblock-compiler-frontend run build
-
-            - name: Upload frontend build artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: frontend-dist
-                  path: frontend/dist/
-                  retention-days: 1
-
     validate-cloudflare-schema:
         name: Validate Cloudflare Schema
         runs-on: ubuntu-latest
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Setup Deno
-              uses: denoland/setup-deno@v2
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
             - name: Cache Deno dependencies
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
               with:
                   path: |
                       ~/.cache/deno
@@ -329,23 +290,6 @@ jobs:
                   fi
                   echo "✅ Cloudflare schema is up to date"
 
-    detect-changes:
-        name: Detect Changes
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        outputs:
-            frontend: ${{ steps.filter.outputs.frontend }}
-            backend: ${{ steps.filter.outputs.backend }}
-        steps:
-            - name: Detect changed paths
-              id: filter
-              run: |
-                  # Currently, always run both frontend and backend jobs.
-                  # If you later want conditional execution, reintroduce real detection logic here.
-                  echo "frontend=true" >> "$GITHUB_OUTPUT"
-                  echo "backend=true" >> "$GITHUB_OUTPUT"
-
     ci-gate:
         name: CI Gate
         runs-on: ubuntu-latest
@@ -355,8 +299,8 @@ jobs:
             - typecheck
             - test
             - validate-cloudflare-schema
-            - frontend
             - frontend-build
+            - verify-deploy
         if: always()
         steps:
             - name: Check all jobs passed
@@ -386,15 +330,15 @@ jobs:
             contents: read
             id-token: write
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Setup Deno
-              uses: denoland/setup-deno@v2
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
             - name: Cache Deno dependencies
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
               with:
                   path: |
                       ~/.cache/deno
@@ -404,20 +348,8 @@ jobs:
                   restore-keys: |
                       deno-${{ runner.os }}-
 
-            - name: Install dependencies
-              run: |
-                  for i in 1 2 3; do
-                      deno install && break
-                      if [ "$i" -lt 3 ]; then
-                          echo "Attempt $i failed, retrying in 10s..."
-                          sleep 10
-                      else
-                          echo "All 3 attempts failed."
-                          exit 1
-                      fi
-                  done
-              env:
-                  DENO_TLS_CA_STORE: system
+            - name: Install Deno dependencies
+              uses: ./.github/actions/deno-install
 
             - name: Publish to JSR
               run: |
@@ -433,45 +365,45 @@ jobs:
                   fi
                   echo "Successfully published to JSR"
 
-    # Verify the worker builds correctly on every PR — catches build failures
+    # Verify the worker bundles correctly on every PR — catches build failures
     # before they reach main. No secrets required; --dry-run bundles without
-    # uploading to Cloudflare.
+    # uploading to Cloudflare. Runs in parallel with other checks (only waits
+    # for frontend-build to produce the artifact) so failures are surfaced fast.
     verify-deploy:
         name: Verify Worker Build
         runs-on: ubuntu-latest
         timeout-minutes: 15
-        needs: [ci-gate, frontend-build]
+        needs: [frontend-build]
         if: github.event_name == 'pull_request'
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Load environment variables
               uses: ./.github/actions/setup-env
 
             - name: Setup Deno
-              uses: denoland/setup-deno@v2
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
+            - name: Cache Deno dependencies
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                      node_modules
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
             - name: Install Deno dependencies
-              run: |
-                  for i in 1 2 3; do
-                      deno install && break
-                      if [ "$i" -lt 3 ]; then
-                          echo "Attempt $i failed, retrying in 10s..."
-                          sleep 10
-                      else
-                          echo "All 3 attempts failed."
-                          exit 1
-                      fi
-                  done
-              env:
-                  DENO_TLS_CA_STORE: system
+              uses: ./.github/actions/deno-install
 
             - name: Download frontend build artifact
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: frontend-dist
                   path: frontend/dist/
@@ -494,33 +426,32 @@ jobs:
             CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
             CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Load environment variables
               uses: ./.github/actions/setup-env
 
             - name: Setup Deno
-              uses: denoland/setup-deno@v2
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
+            - name: Cache Deno dependencies
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                      node_modules
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
             - name: Install Deno dependencies
-              run: |
-                  for i in 1 2 3; do
-                      deno install && break
-                      if [ "$i" -lt 3 ]; then
-                          echo "Attempt $i failed, retrying in 10s..."
-                          sleep 10
-                      else
-                          echo "All 3 attempts failed."
-                          exit 1
-                      fi
-                  done
-              env:
-                  DENO_TLS_CA_STORE: system
+              uses: ./.github/actions/deno-install
 
             - name: Download frontend build artifact
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: frontend-dist
                   path: frontend/dist/
@@ -528,8 +459,22 @@ jobs:
             - name: Run database migrations
               run: |
                   echo "Running D1 migrations..."
-                  deno task wrangler d1 execute adblock-compiler-d1-database --file=migrations/0001_init.sql --remote || echo "Migration 0001 already applied or failed"
-                  deno task wrangler d1 execute adblock-compiler-d1-database --file=migrations/0002_deployment_history.sql --remote || echo "Migration 0002 already applied or failed"
+                  run_migration() {
+                      local file="$1"
+                      local output
+                      if output=$(deno task wrangler d1 execute adblock-compiler-d1-database --file="$file" --remote 2>&1); then
+                          echo "✅ Applied: $file"
+                      elif echo "$output" | grep -qiE '\balready applied\b'; then
+                          echo "⏭️  Already applied: $file"
+                          echo "$output"
+                      else
+                          echo "❌ Migration failed: $file"
+                          echo "$output"
+                          exit 1
+                      fi
+                  }
+                  run_migration migrations/0001_init.sql
+                  run_migration migrations/0002_deployment_history.sql
 
             - name: Generate deployment version
               id: version

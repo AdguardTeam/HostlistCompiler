@@ -1,0 +1,21 @@
+name: Install Deno dependencies
+description: Installs Deno dependencies with a 3-attempt retry loop and system TLS CA store.
+
+runs:
+    using: composite
+    steps:
+        - name: Install Deno dependencies
+          shell: bash
+          env:
+              DENO_TLS_CA_STORE: system
+          run: |
+              for i in 1 2 3; do
+                  deno install && break
+                  if [ "$i" -lt 3 ]; then
+                      echo "Attempt $i failed, retrying in 10s..."
+                      sleep 10
+                  else
+                      echo "All 3 attempts failed."
+                      exit 1
+                  fi
+              done
