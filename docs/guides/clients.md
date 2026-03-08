@@ -41,7 +41,7 @@ class AdblockCompilerError(Exception):
 class AdblockCompiler:
     """Modern async/sync Python client for Adblock Compiler API."""
 
-    DEFAULT_URL = "https://adblock-compiler.jk-com.workers.dev"
+    DEFAULT_URL = "https://adblock-compiler.jayson-knight.workers.dev"
     DEFAULT_TRANSFORMS = ["Deduplicate", "RemoveEmptyLines"]
 
     def __init__(
@@ -286,7 +286,7 @@ class AdblockCompiler {
     private readonly maxRetries: number;
     private readonly retryDelayMs: number;
 
-    static readonly DEFAULT_URL = 'https://adblock-compiler.jk-com.workers.dev';
+    static readonly DEFAULT_URL = 'https://adblock-compiler.jayson-knight.workers.dev';
     static readonly DEFAULT_TRANSFORMS = ['Deduplicate', 'RemoveEmptyLines'];
 
     constructor(options: {
@@ -489,7 +489,7 @@ import (
 )
 
 const (
-	DefaultBaseURL    = "https://adblock-compiler.jk-com.workers.dev"
+	DefaultBaseURL    = "https://adblock-compiler.jayson-knight.workers.dev"
 	DefaultTimeout    = 30 * time.Second
 	DefaultMaxRetries = 3
 )
@@ -813,7 +813,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use thiserror::Error;
 
-const DEFAULT_BASE_URL: &str = "https://adblock-compiler.jk-com.workers.dev";
+const DEFAULT_BASE_URL: &str = "https://adblock-compiler.jayson-knight.workers.dev";
 
 #[derive(Error, Debug)]
 pub enum AdblockError {
@@ -1082,7 +1082,7 @@ public class RateLimitException : AdblockCompilerException
 
 public sealed class AdblockCompilerClient : IDisposable
 {
-    private const string DefaultBaseUrl = "https://adblock-compiler.jk-com.workers.dev";
+    private const string DefaultBaseUrl = "https://adblock-compiler.jayson-knight.workers.dev";
     private static readonly string[] DefaultTransformations = ["Deduplicate", "RemoveEmptyLines"];
 
     private readonly HttpClient _httpClient;

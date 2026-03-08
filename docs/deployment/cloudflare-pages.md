@@ -67,7 +67,7 @@ The postbuild step is handled by `frontend/scripts/postbuild.js`. If you skip th
 
 #### Pages Deployment (Legacy static UI — Retired)
 
-> **⚠️ Retired:** The `adblock-compiler-ui` Cloudflare Pages project has been retired. The Angular SPA is now served exclusively via the Worker's `[assets]` binding at `https://adblock-compiler.jk-com.workers.dev`. The CI steps that deployed to Pages have been removed.
+> **⚠️ Retired:** The `adblock-compiler-ui` Cloudflare Pages project has been retired. The Angular SPA is now served exclusively via the Worker's `[assets]` binding at `https://adblock-compiler.jayson-knight.workers.dev`. The CI steps that deployed to Pages have been removed.
 
 The command below is kept for historical reference only and should **not** be used:
 
