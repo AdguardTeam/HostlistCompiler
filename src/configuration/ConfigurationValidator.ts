@@ -98,16 +98,18 @@ export class ConfigurationValidator {
     /**
      * Validates and returns a typed configuration.
      * @param configuration - Configuration object to validate
-     * @returns Validated configuration
+     * @returns Validated and transformed configuration (Zod-coerced values, e.g. trimmed strings)
      * @throws Error if validation fails
      */
     public validateAndGet(configuration: unknown): IConfiguration {
-        const result = this.validate(configuration);
-
-        if (!result.valid) {
-            throw new Error(`Configuration validation failed:\n${result.errorsText}`);
+        if (!configuration || typeof configuration !== 'object') {
+            throw new Error('Configuration must be an object');
         }
-
-        return configuration as IConfiguration;
+        const result = ConfigurationSchema.safeParse(configuration);
+        if (!result.success) {
+            const errors = this.formatZodErrors(result.error);
+            throw new Error(`Configuration validation failed:\n${errors.map((e) => `${e.path}: ${e.message}`).join('\n')}`);
+        }
+        return result.data;
     }
 }
