@@ -81,6 +81,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.44.1] - 2026-03-08
+
+### Added### Fixed
+
+- regenerate cloudflare-schema.yaml to match updated VersionResponse/DeploymentHistoryResponse schemas (#828)
+
+
 ## [0.44.0] - 2026-03-08
 
 ### Added- validate openapi.yaml in CI and update Postman collection with new endpoints
