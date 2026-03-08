@@ -54,10 +54,18 @@ bucket_name = "adblock-compiler-r2-storage"
 class_name = "AdblockCompiler"
 name = "ADBLOCK_COMPILER"
 
+[[durable_objects.bindings]]
+class_name = "PlaywrightMcpAgent"
+name = "MCP_AGENT"
+
 # Database migrations - each must have a unique tag
 [[migrations]]
 new_sqlite_classes = ["AdblockCompiler"]
 tag = "v1"
+
+[[migrations]]
+new_sqlite_classes = ["PlaywrightMcpAgent"]
+tag = "v2"
 
 # Environment variables (base - overridden by env.* sections)
 [vars]

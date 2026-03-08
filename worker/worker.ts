@@ -60,6 +60,10 @@ import {
     HealthMonitoringWorkflow,
 } from './workflows/index.ts';
 
+// Import MCP agent and agents routing
+import { routeAgentRequest } from './agent-routing.ts';
+import { PlaywrightMcpAgent } from './mcp-agent.ts';
+
 // Re-export Env for compatibility with existing imports
 export type { Env };
 
@@ -2969,7 +2973,10 @@ export default {
             return handleCors();
         }
 
-        // Handle API routes
+        // Route MCP Agent requests (Playwright Browser Rendering MCP server).
+        // Must run before other routing so /agents/* URLs are intercepted correctly.
+        const agentResponse = await routeAgentRequest(request, env);
+        if (agentResponse) return agentResponse;
         if (pathname === '/api' && request.method === 'GET') {
             return handleInfo(request, env);
         }
@@ -3763,4 +3770,4 @@ export default {
 // These exports allow Cloudflare to instantiate the workflow classes
 // as defined in wrangler.toml [[workflows]] bindings.
 
-export { BatchCompilationWorkflow, CacheWarmingWorkflow, CompilationWorkflow, HealthMonitoringWorkflow };
+export { BatchCompilationWorkflow, CacheWarmingWorkflow, CompilationWorkflow, HealthMonitoringWorkflow, PlaywrightMcpAgent };
