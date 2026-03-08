@@ -10,8 +10,10 @@ workers_dev = true
 # Wrangler calls this command automatically on `wrangler deploy`.
 # npm ci installs root deps (zod, @opentelemetry/api, @adguard/agtree) that the
 # worker's TypeScript imports need for esbuild to resolve them during bundling.
+# --legacy-peer-deps is required because @angular/service-worker has a peer dep
+# on @angular/core that conflicts with the version resolved by npm strict mode.
 [build]
-command = "npm ci --omit=dev && npm --prefix frontend ci && npm --prefix frontend run build"
+command = "npm ci --omit=dev && npm --prefix frontend ci --legacy-peer-deps && npm --prefix frontend run build"
 
 [browser]
 binding = "BROWSER"
