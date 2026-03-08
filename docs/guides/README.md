@@ -13,4 +13,4 @@ User guides for getting started, migration, troubleshooting, and client librarie
 ## Related
 
 - [API Documentation](../api/README.md) - REST API reference
-- [Docker Deployment](../deployment/docker.md) - Complete Docker deployment guide
+- [Docker Deployment](../deployment/DOCKER.md) - Complete Docker deployment guide

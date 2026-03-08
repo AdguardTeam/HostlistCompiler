@@ -17,6 +17,11 @@ source files using [`deno doc --html`](https://docs.deno.com/runtime/reference/c
   </a>
 </div>
 
+> **Note:** The `api-reference/index.html` link above is only available after running
+> `deno task docs:api` (to generate just the API reference) or `deno task docs:build`
+> (to build the full site) locally or in a deployed mdBook site. It is not present in
+> the repository source tree.
+
 ## What is documented
 
 Every symbol exported from the library's main entry point (`src/index.ts`) is covered,
