@@ -85,6 +85,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.46.0] - 2026-03-08
+
+### Added- create enhanced favicon matching header branding (Deep Ink + Electric Amber)
+
+### Fixed
+
+- update Docker action SHA pins to fix CI timeout on BuildKit pull
+- update home.component.spec.ts to expect new healthColor value
+- exclude postman/ from deno fmt to fix slow Format Check CI job
+- ci-gate condition to always() && !cancelled()
+- ci-gate - handle cancelled workflow runs gracefully
+
+
 ## [0.45.1] - 2026-03-08
 
 ### Added### Fixed
