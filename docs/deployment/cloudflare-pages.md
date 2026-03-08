@@ -65,13 +65,15 @@ The postbuild step is handled by `frontend/scripts/postbuild.js`. If you skip th
 
 **SPA Routing (Worker):** The Cloudflare Worker already handles SPA fallback — extensionless paths not matched by API routes are served the Angular shell (`index.html`) via the `ASSETS` binding. **SPA Routing (Pages-only):** If you deploy the Angular `dist/` output directly to **Cloudflare Pages** instead of serving it via the Worker `ASSETS` binding, you can use a `_redirects` file for SPA routing. In that setup, `frontend/src/_redirects` should contain `/* /index.html 200`, and this file is copied into the browser output root during the Angular build via `angular.json`'s `assets` configuration.
 
-#### Pages Deployment (Legacy static UI)
+#### Pages Deployment (Legacy static UI — Retired)
 
-For deploying the static UI in `public/` to Cloudflare Pages:
+> **⚠️ Retired:** The `adblock-compiler-ui` Cloudflare Pages project has been retired. The Angular SPA is now served exclusively via the Worker's `[assets]` binding at `https://adblock-compiler.jk-com.workers.dev`. The CI steps that deployed to Pages have been removed.
+
+The command below is kept for historical reference only and should **not** be used:
 
 ```bash
-# Deploy public directory to Pages
-wrangler pages deploy public --project-name=adblock-compiler-ui
+# RETIRED — do not use
+# wrangler pages deploy public --project-name=adblock-compiler-ui
 ```
 
 ## Cloudflare Pages Dashboard Configuration
