@@ -94,6 +94,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.49.1] - 2026-03-09
+
+### Added### Fixed
+
+- **ci**: move 2>&1 outside retry_command to properly capture stderr
+- **ci**: add retry logic for transient Cloudflare API errors in mdbook workflow
+- handle transient Cloudflare API 503 errors in mdbook Pages project check
+
+
 ## [0.49.0] - 2026-03-09
 
 ### Added- wrap QueueChartComponent and toasts in mat-card for Material Design consistency
