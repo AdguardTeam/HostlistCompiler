@@ -712,6 +712,98 @@ Deno.test('CliArgumentsSchema - should fail when both config and input are provi
     }
 });
 
+Deno.test('CliArgumentsSchema - should validate with --stdout instead of --output', () => {
+    const args = { input: ['https://example.com/list.txt'], stdout: true };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, true);
+});
+
+Deno.test('CliArgumentsSchema - should fail when both --stdout and --output are provided', () => {
+    const args = { input: ['https://example.com/list.txt'], output: 'out.txt', stdout: true };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, false);
+    if (!result.success) {
+        const messages = result.error.issues.map((i) => i.message);
+        assertEquals(messages.includes('Cannot specify both --stdout and --output'), true);
+    }
+});
+
+Deno.test('CliArgumentsSchema - should validate with all transformation control flags', () => {
+    const args = {
+        input: ['https://example.com/list.txt'],
+        output: 'out.txt',
+        noDeduplicate: true,
+        noValidate: true,
+        noCompress: true,
+        noComments: true,
+        invertAllow: true,
+        removeModifiers: true,
+        allowIp: true,
+        convertToAscii: true,
+    };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, true);
+});
+
+Deno.test('CliArgumentsSchema - should validate with --transformation list', () => {
+    const args = {
+        input: ['https://example.com/list.txt'],
+        output: 'out.txt',
+        transformation: ['RemoveComments', 'Deduplicate'],
+    };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, true);
+});
+
+Deno.test('CliArgumentsSchema - should validate with filtering flags', () => {
+    const args = {
+        input: ['https://example.com/list.txt'],
+        output: 'out.txt',
+        exclude: ['*.example.com'],
+        excludeFrom: ['exclusions.txt'],
+        include: ['inclusions.txt'],
+    };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, true);
+});
+
+Deno.test('CliArgumentsSchema - should validate with networking flags', () => {
+    const args = {
+        input: ['https://example.com/list.txt'],
+        output: 'out.txt',
+        timeout: 5000,
+        retries: 3,
+        userAgent: 'MyBot/1.0',
+    };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, true);
+});
+
+Deno.test('CliArgumentsSchema - should validate with max-rules and name flags', () => {
+    const args = {
+        input: ['https://example.com/list.txt'],
+        output: 'out.txt',
+        maxRules: 1000,
+        name: 'existing.txt',
+        append: true,
+        format: 'adblock',
+    };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, true);
+});
+
+Deno.test('CliArgumentsSchema - should fail when maxRules is not a positive integer', () => {
+    const args = { input: ['https://example.com/list.txt'], output: 'out.txt', maxRules: -1 };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, false);
+});
+
+Deno.test('CliArgumentsSchema - should fail when timeout is not positive', () => {
+    const args = { input: ['https://example.com/list.txt'], output: 'out.txt', timeout: 0 };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, false);
+});
+
 // EnvironmentSchema tests
 Deno.test('EnvironmentSchema - should validate empty environment', () => {
     const result = EnvironmentSchema.safeParse({});

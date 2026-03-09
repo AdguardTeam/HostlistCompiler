@@ -349,6 +349,23 @@ Examples:
     }
 
     /**
+     * Returns true if any transformation-modifying CLI flag is present.
+     */
+    private hasAnyTransformationFlags(): boolean {
+        return !!(
+            this.args.transformation?.length ||
+            this.args['no-deduplicate'] ||
+            this.args['no-validate'] ||
+            this.args['no-compress'] ||
+            this.args['no-comments'] ||
+            this.args['invert-allow'] ||
+            this.args['remove-modifiers'] ||
+            this.args['allow-ip'] ||
+            this.args['convert-to-ascii']
+        );
+    }
+
+    /**
      * Reads the configuration file using Deno's file system API.
      */
     private async readConfig(): Promise<IConfiguration> {
@@ -367,13 +384,7 @@ Examples:
             const config = result.data;
 
             // Apply CLI transformation overrides when any transformation flag is provided
-            const hasTransformationFlags = !!(
-                this.args.transformation?.length ||
-                this.args['no-deduplicate'] || this.args['no-validate'] || this.args['no-compress'] ||
-                this.args['no-comments'] || this.args['invert-allow'] || this.args['remove-modifiers'] ||
-                this.args['allow-ip'] || this.args['convert-to-ascii']
-            );
-            if (hasTransformationFlags) {
+            if (this.hasAnyTransformationFlags()) {
                 config.transformations = this.buildTransformations(config.transformations);
             }
 
@@ -399,8 +410,24 @@ Examples:
 
     /**
      * Builds the transformation list from CLI flags.
-     * When --transformation is provided, it is used directly (overrides all other flags).
-     * Otherwise the default list is built and modified by the boolean flags.
+     *
+     * When `--transformation` values are provided, they are used as-is and all other
+     * transformation flags (`--no-*`, `--invert-allow`, etc.) are ignored.
+     *
+     * Otherwise the `existingTransformations` list (or the built-in default pipeline) is
+     * used as a starting point and modified by the boolean flags:
+     * - `--no-comments`   removes `RemoveComments`
+     * - `--no-deduplicate` removes `Deduplicate`
+     * - `--no-compress`   removes `Compress`
+     * - `--no-validate`   removes `Validate`
+     * - `--allow-ip`      removes `Validate` and adds `ValidateAllowIp`
+     * - `--invert-allow`  appends `InvertAllow`
+     * - `--remove-modifiers` appends `RemoveModifiers`
+     * - `--convert-to-ascii` appends `ConvertToAscii`
+     *
+     * @param existingTransformations - Optional list from a config file to use as the base.
+     *   When omitted the default pipeline is used.
+     * @returns Resolved transformation list.
      */
     private buildTransformations(existingTransformations?: TransformationType[]): TransformationType[] {
         // Explicit pipeline overrides everything
@@ -540,8 +567,14 @@ Examples:
                     const existingContent = await Deno.readTextFile(this.args.name);
                     const existingRulesSet = new Set(existingContent.split('\n').filter((r) => r.trim() !== ''));
                     const newRulesSet = new Set(outputRules);
-                    const added = outputRules.filter((r) => !existingRulesSet.has(r)).length;
-                    const removed = [...existingRulesSet].filter((r) => !newRulesSet.has(r)).length;
+                    let added = 0;
+                    let removed = 0;
+                    for (const rule of newRulesSet) {
+                        if (!existingRulesSet.has(rule)) added++;
+                    }
+                    for (const rule of existingRulesSet) {
+                        if (!newRulesSet.has(rule)) removed++;
+                    }
                     console.log(`\nComparison with ${this.args.name}:`);
                     console.log(`  Added:   +${added} rules`);
                     console.log(`  Removed: -${removed} rules`);

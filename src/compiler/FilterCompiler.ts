@@ -120,7 +120,7 @@ export class FilterCompiler {
             pipeline: this.pipeline,
             logger: this.logger,
             eventEmitter: this.eventEmitter,
-            ...(downloaderOptions ? { downloaderOptions } : {}),
+            downloaderOptions,
         });
         this.headerGenerator = deps?.headerGenerator ?? new HeaderGenerator();
     }
