@@ -3713,8 +3713,10 @@ export default {
         // The mdBook is deployed to a separate Pages project and is not served from this worker.
         // Handles both GET and HEAD so crawlers and clients get a consistent response.
         // Uses 302 (temporary) to avoid browsers/CDNs caching the target URL long-term.
-        if ((request.method === 'GET' || request.method === 'HEAD') &&
-            (pathname === '/docs' || pathname.startsWith('/docs/'))) {
+        if (
+            (request.method === 'GET' || request.method === 'HEAD') &&
+            (pathname === '/docs' || pathname.startsWith('/docs/'))
+        ) {
             const docsSubpath = pathname.startsWith('/docs/') ? pathname.slice('/docs'.length) : '/';
             const target = new URL(docsSubpath, DOCS_SITE_URL);
             if (url.search) {
