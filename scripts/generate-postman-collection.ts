@@ -109,7 +109,7 @@ interface PostmanUrl {
     host: string[];
     path: string[];
     variable?: Array<{ key: string; value: string; description?: string }>;
-    query?: Array<{ key: string; value: string; disabled?: boolean }>;
+    query?: Array<{ key: string; value: string; disabled?: boolean; description?: string }>;
 }
 
 interface PostmanHeader {
@@ -191,7 +191,7 @@ function schemaToExample(schema: Record<string, unknown> | undefined, spec: OASp
     if (!schema || depth > 4) return {};
     if ('$ref' in schema && typeof schema['$ref'] === 'string') {
         const resolved = resolveRef(schema['$ref'] as string, spec);
-        return schemaToExample(resolved as Record<string, unknown> | undefined, spec, depth);
+        return schemaToExample(resolved as Record<string, unknown> | undefined, spec, depth + 1);
     }
     if ('example' in schema) return schema['example'];
     const type = schema['type'];
@@ -235,8 +235,16 @@ function extractBodyExample(mediaType: OAMediaType | undefined, spec: OASpec): u
  *
  * /queue/results/{requestId}  →  path: ["queue","results",":requestId"]
  *                                variable: [{key:"requestId", value:"{{requestId}}"}]
+ *
+ * Query parameters (in: 'query') are appended to url.query.
+ * Required query params appear in url.raw with their placeholder value;
+ * optional ones are included but disabled so they are easy to enable.
  */
-function buildPostmanUrl(rawPath: string, baseVarName: string): PostmanUrl {
+function buildPostmanUrl(
+    rawPath: string,
+    baseVarName: string,
+    queryParams: Array<{ name: string; required?: boolean; schema?: Record<string, unknown>; description?: string }> = [],
+): PostmanUrl {
     const segments = rawPath.split('/').filter(Boolean);
     const pathParts: string[] = [];
     const variables: Array<{ key: string; value: string; description?: string }> = [];
@@ -251,13 +259,27 @@ function buildPostmanUrl(rawPath: string, baseVarName: string): PostmanUrl {
         }
     }
 
-    const rawUrl = `{{${baseVarName}}}/${pathParts.join('/')}`;
+    // Build query string entries. The schema field is used only locally for type inference and
+    // is intentionally omitted from the Postman output (Postman does not need schema metadata).
+    const query: Array<{ key: string; value: string; disabled?: boolean; description?: string }> = queryParams.map((p) => ({
+        key: p.name,
+        value: `{{${p.name}}}`,
+        ...(p.description ? { description: p.description } : {}),
+        ...(p.required ? {} : { disabled: true }),
+    }));
+
+    // raw URL: include required query params inline so the URL is immediately usable
+    const requiredQueryParts = queryParams.filter((p) => p.required).map((p) => `${p.name}={{${p.name}}}`);
+    const rawQuery = requiredQueryParts.length > 0 ? `?${requiredQueryParts.join('&')}` : '';
+    const rawUrl = `{{${baseVarName}}}/${pathParts.join('/')}${rawQuery}`;
+
     const url: PostmanUrl = {
         raw: rawUrl,
         host: [`{{${baseVarName}}}`],
         path: pathParts,
     };
     if (variables.length > 0) url.variable = variables;
+    if (query.length > 0) url.query = query;
     return url;
 }
 
@@ -333,7 +355,11 @@ function buildRequestItem(path: string, method: HttpMethod, operation: OAOperati
         }
     }
 
-    const url = buildPostmanUrl(path, 'baseUrl');
+    const url = buildPostmanUrl(
+        path,
+        'baseUrl',
+        (operation.parameters ?? []).filter((p) => p.in === 'query'),
+    );
 
     const item: PostmanItem = {
         name,

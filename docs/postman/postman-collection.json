@@ -137,7 +137,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"requests\": [\n        {\n            \"id\": \"string\",\n            \"configuration\": {},\n            \"preFetchedContent\": {},\n            \"benchmark\": false\n        }\n    ]\n}",
+              "raw": "{\n    \"requests\": [\n        {}\n    ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -245,7 +245,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"configuration\": {\n        \"name\": \"string\",\n        \"description\": \"string\",\n        \"homepage\": \"string\",\n        \"license\": \"string\",\n        \"version\": \"string\",\n        \"sources\": [\n            {}\n        ],\n        \"transformations\": [\n            \"ConvertToAscii\"\n        ],\n        \"exclusions\": [\n            \"string\"\n        ],\n        \"exclusions_sources\": [\n            \"string\"\n        ],\n        \"inclusions\": [\n            \"string\"\n        ],\n        \"inclusions_sources\": [\n            \"string\"\n        ]\n    },\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
+              "raw": "{\n    \"configuration\": {},\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -302,7 +302,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"configuration\": {\n        \"name\": \"string\",\n        \"description\": \"string\",\n        \"homepage\": \"string\",\n        \"license\": \"string\",\n        \"version\": \"string\",\n        \"sources\": [\n            {}\n        ],\n        \"transformations\": [\n            \"ConvertToAscii\"\n        ],\n        \"exclusions\": [\n            \"string\"\n        ],\n        \"exclusions_sources\": [\n            \"string\"\n        ],\n        \"inclusions\": [\n            \"string\"\n        ],\n        \"inclusions_sources\": [\n            \"string\"\n        ]\n    },\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
+              "raw": "{\n    \"configuration\": {},\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -354,7 +354,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"requests\": [\n        {\n            \"id\": \"string\",\n            \"configuration\": {},\n            \"preFetchedContent\": {},\n            \"benchmark\": false\n        }\n    ]\n}",
+              "raw": "{\n    \"requests\": [\n        {}\n    ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -667,6 +667,32 @@
               "path": [
                 "api",
                 "deployments"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Maximum number of records to return",
+                  "disabled": true
+                },
+                {
+                  "key": "version",
+                  "value": "{{version}}",
+                  "description": "Filter by version",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "description": "Filter by deployment status",
+                  "disabled": true
+                },
+                {
+                  "key": "branch",
+                  "value": "{{branch}}",
+                  "description": "Filter by branch name",
+                  "disabled": true
+                }
               ]
             },
             "description": "Returns deployment history records"
@@ -1200,7 +1226,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/auth/api-keys",
+              "raw": "{{baseUrl}}/admin/auth/api-keys?userId={{userId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1208,6 +1234,13 @@
                 "admin",
                 "auth",
                 "api-keys"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "description": "User ID to list API keys for"
+                }
               ]
             },
             "description": "Lists API keys for a user (without key hashes). Requires Hyperdrive (PostgreSQL) binding."
@@ -1428,6 +1461,20 @@
                 "admin",
                 "migrate",
                 "d1-to-pg"
+              ],
+              "query": [
+                {
+                  "key": "dryRun",
+                  "value": "{{dryRun}}",
+                  "description": "Count rows without writing (dry run)",
+                  "disabled": true
+                },
+                {
+                  "key": "tables",
+                  "value": "{{tables}}",
+                  "description": "Comma-separated list of tables to migrate (default: all)",
+                  "disabled": true
+                }
               ]
             },
             "description": "One-time migration that reads data from Cloudflare D1 (SQLite) and writes it to PostgreSQL via Hyperdrive.\n\nMigrates the following tables: `storage_entries`, `filter_cache`, `compilation_metadata`.\n\nThe migration is:\n- **Idempotent**: uses ON CONFLICT DO NOTHING to skip existing rows\n- **Batched**: processes rows in chunks of 100\n- **Read-only on D1**: never modifies the source database\n- **Resumable**: can be re-run safely if interrupted\n"
@@ -1757,7 +1804,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"configuration\": {\n        \"name\": \"string\",\n        \"description\": \"string\",\n        \"homepage\": \"string\",\n        \"license\": \"string\",\n        \"version\": \"string\",\n        \"sources\": [\n            {}\n        ],\n        \"transformations\": [\n            \"ConvertToAscii\"\n        ],\n        \"exclusions\": [\n            \"string\"\n        ],\n        \"exclusions_sources\": [\n            \"string\"\n        ],\n        \"inclusions\": [\n            \"string\"\n        ],\n        \"inclusions_sources\": [\n            \"string\"\n        ]\n    },\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
+              "raw": "{\n    \"configuration\": {},\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1808,7 +1855,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"requests\": [\n        {\n            \"id\": \"string\",\n            \"configuration\": {},\n            \"preFetchedContent\": {},\n            \"benchmark\": false\n        }\n    ]\n}",
+              "raw": "{\n    \"requests\": [\n        {}\n    ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1859,7 +1906,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"configurations\": [\n        {\n            \"name\": \"string\",\n            \"description\": \"string\",\n            \"homepage\": \"string\",\n            \"license\": \"string\",\n            \"version\": \"string\",\n            \"sources\": [\n                {}\n            ],\n            \"transformations\": [\n                \"ConvertToAscii\"\n            ],\n            \"exclusions\": [\n                \"string\"\n            ],\n            \"exclusions_sources\": [\n                \"string\"\n            ],\n            \"inclusions\": [\n                \"string\"\n            ],\n            \"inclusions_sources\": [\n                \"string\"\n            ]\n        }\n    ]\n}",
+              "raw": "{\n    \"configurations\": [\n        {}\n    ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1910,7 +1957,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"sources\": [\n        {\n            \"name\": \"string\",\n            \"url\": \"string\",\n            \"expectedMinRules\": 0\n        }\n    ],\n    \"alertOnFailure\": false\n}",
+              "raw": "{\n    \"sources\": [\n        {}\n    ],\n    \"alertOnFailure\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2044,6 +2091,14 @@
                   "key": "workflowId",
                   "value": "{{workflowId}}",
                   "description": "Path parameter: workflowId"
+                }
+              ],
+              "query": [
+                {
+                  "key": "since",
+                  "value": "{{since}}",
+                  "description": "Return only events after this timestamp",
+                  "disabled": true
                 }
               ]
             },
