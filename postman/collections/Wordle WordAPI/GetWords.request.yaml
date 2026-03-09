@@ -1,9 +1,0 @@
-$kind: http-request
-url: https://wordsapiv1.p.rapidapi.com/words/?letters=6
-method: GET
-headers:
-  x-rapidapi-host: wordsapiv1.p.rapidapi.com
-  x-rapidapi-key: 86a1f1d1fcmsh4f33c754faf8f09p18eb71jsn7603d942544b
-queryParams:
-  letters: "6"
-order: 1000

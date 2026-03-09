@@ -1,8 +1,0 @@
-$kind: http-request
-description: Get the available spread types for option chains.
-url: "{{baseUrl}}/v3/marketdata/options/spreadtypes"
-method: GET
-headers:
-  Accept: application/json
-examples: ./.resources/Get Option Spread Types.resources/examples
-order: 1000

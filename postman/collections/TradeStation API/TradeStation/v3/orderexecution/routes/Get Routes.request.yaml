@@ -1,8 +1,0 @@
-$kind: http-request
-description: Returns a list of valid routes that a client can specify when posting an order.
-url: "{{baseUrl}}/v3/orderexecution/routes"
-method: GET
-headers:
-  Accept: application/json
-examples: ./.resources/Get Routes.resources/examples
-order: 1000

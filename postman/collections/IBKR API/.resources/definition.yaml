@@ -1,9 +1,0 @@
-$kind: collection
-description: |-
-  The IB REST API reference documentation
-
-  Contact Support:
-   Name: API support
-   Email: api@interactivebrokers.com
-variables:
-  baseUrl: https://api.ibkr.com

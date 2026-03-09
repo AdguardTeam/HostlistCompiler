@@ -1,7 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/iserver/account/pnl/partitioned"
-method: GET
-headers:
-  Accept: application/json
-examples: ./.resources/Account Profit And Loss.resources/examples
-order: 1000

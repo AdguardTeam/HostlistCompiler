@@ -1,8 +1,0 @@
-$kind: http-request
-description: return accounts
-url: "{{baseUrl}}/portfolio/accounts"
-method: GET
-headers:
-  Accept: application/json
-examples: ./.resources/Accounts.resources/examples
-order: 1000
