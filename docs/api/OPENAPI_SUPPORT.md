@@ -8,7 +8,7 @@ The Adblock Compiler includes comprehensive OpenAPI documentation and tooling fo
 
 ## What's Included
 
-### 1. OpenAPI Specification (`openapi.yaml`)
+### 1. OpenAPI Specification (`docs/api/openapi.yaml`)
 
 A complete OpenAPI 3.0.3 specification documenting:
 
@@ -113,13 +113,13 @@ Use the OpenAPI spec to generate client libraries in multiple languages:
 
 ```bash
 # TypeScript/JavaScript
-openapi-generator-cli generate -i openapi.yaml -g typescript-fetch -o ./client
+openapi-generator-cli generate -i docs/api/openapi.yaml -g typescript-fetch -o ./client
 
 # Python
-openapi-generator-cli generate -i openapi.yaml -g python -o ./client
+openapi-generator-cli generate -i docs/api/openapi.yaml -g python -o ./client
 
 # Go
-openapi-generator-cli generate -i openapi.yaml -g go -o ./client
+openapi-generator-cli generate -i docs/api/openapi.yaml -g go -o ./client
 
 # And many more languages...
 ```
@@ -129,17 +129,17 @@ openapi-generator-cli generate -i openapi.yaml -g go -o ./client
 **Postman:**
 
 ```
-File → Import → openapi.yaml
+File → Import → docs/api/openapi.yaml
 ```
 
 **Insomnia:**
 
 ```
-Create → Import From → File → openapi.yaml
+Create → Import From → File → docs/api/openapi.yaml
 ```
 
 **Swagger UI:**
-Host the `openapi.yaml` file and point Swagger UI to it.
+Host the `docs/api/openapi.yaml` file and point Swagger UI to it.
 
 ### 3. API Client Testing
 

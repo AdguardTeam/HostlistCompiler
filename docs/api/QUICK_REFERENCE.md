@@ -201,7 +201,7 @@ curl http://localhost:8787/metrics
 ```bash
 ❌ Missing "operationId" for POST /compile
 ```
-→ Add `operationId` to endpoint in openapi.yaml
+→ Add `operationId` to endpoint in `docs/api/openapi.yaml`
 
 ### Contract Test Failures
 
@@ -227,7 +227,7 @@ curl http://localhost:8787/metrics
 ## 📚 File Locations
 
 ```
-openapi.yaml                      # OpenAPI specification
+docs/api/openapi.yaml             # OpenAPI specification (canonical source)
 postman-collection.json           # Postman test collection
 postman-environment.json          # Postman environment config
 scripts/validate-openapi.ts       # Validation script
@@ -263,7 +263,7 @@ docs/testing/POSTMAN_TESTING.md          # Postman guide
 
 3. **Update docs when changing endpoints:**
    ```bash
-   # Edit openapi.yaml
+   # Edit docs/api/openapi.yaml
    deno task openapi:docs
    git add docs/api/
    ```

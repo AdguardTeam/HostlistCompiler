@@ -14,7 +14,7 @@ Complete guide to validating, testing, and documenting the Adblock Compiler API 
 
 ## Overview
 
-The Adblock Compiler API is fully documented using the OpenAPI 3.0.3 specification (`openapi.yaml`). This specification serves as the single source of truth for:
+The Adblock Compiler API is fully documented using the OpenAPI 3.0.3 specification (`docs/api/openapi.yaml`). This specification serves as the single source of truth for:
 
 - API endpoint definitions
 - Request/response schemas
@@ -26,7 +26,7 @@ The Adblock Compiler API is fully documented using the OpenAPI 3.0.3 specificati
 
 ### Validate OpenAPI Spec
 
-Ensure your `openapi.yaml` conforms to the OpenAPI specification:
+Ensure your `docs/api/openapi.yaml` conforms to the OpenAPI specification:
 
 ```bash
 # Run validation
@@ -423,11 +423,11 @@ deno task test:contract
 
 ### 2. Version Your API
 
-**Current version:** `2.0.0` in `openapi.yaml`
+**Current version:** `2.0.0` in `docs/api/openapi.yaml`
 
 When making breaking changes:
 1. Increment major version (2.0.0 → 3.0.0)
-2. Update `info.version` in openapi.yaml
+2. Update `info.version` in `docs/api/openapi.yaml`
 3. Document changes in CHANGELOG.md
 4. Consider API versioning in URLs
 
@@ -536,7 +536,7 @@ validateResponseStatus(response, [202, 500]); // Both OK
 ❌ Missing "operationId" for POST /compile
 ```
 
-**Fix:** Add unique `operationId` to all operations in openapi.yaml
+**Fix:** Add unique `operationId` to all operations in `docs/api/openapi.yaml`
 
 ### Contract Tests Fail
 

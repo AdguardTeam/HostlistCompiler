@@ -239,7 +239,7 @@ If you hit rate limits (429 responses), wait for the rate limit window to reset 
 
 ## Related Documentation
 
-- [OpenAPI Specification](../../openapi.yaml)
+- [OpenAPI Specification](../api/openapi.yaml)
 - [API Documentation](../api/README.md)
 - [Queue Support](../cloudflare/QUEUE_SUPPORT.md)
 - [WebSocket Documentation](../../worker/websocket.ts)
@@ -248,5 +248,5 @@ If you hit rate limits (429 responses), wait for the rate limit window to reset 
 
 For issues or questions:
 - Check the [main README](../../README.md)
-- Review the [OpenAPI spec](../../openapi.yaml)
+- Review the [OpenAPI spec](../api/openapi.yaml)
 - Open an issue on GitHub
