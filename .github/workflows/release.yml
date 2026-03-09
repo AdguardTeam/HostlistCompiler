@@ -82,7 +82,6 @@ jobs:
             - name: Configure git for long paths (Windows)
               if: runner.os == 'Windows'
               run: git config --global core.longpaths true
-              shell: bash
 
             - uses: actions/checkout@v4
 
