@@ -1,6 +1,7 @@
 import { ICompilerEvents, IConfiguration, ILogger, ISource, TransformationType } from '../types/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
+import { createEventBridgeHook, NoOpHookManager, TransformationHookManager } from '../transformations/TransformationHooks.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
 import { HeaderGenerator } from './HeaderGenerator.ts';
 import {
@@ -53,6 +54,8 @@ export interface FilterCompilerOptions {
     logger?: ILogger;
     /** Event handlers for observability */
     events?: ICompilerEvents;
+    /** Transformation lifecycle hooks */
+    hookManager?: TransformationHookManager;
     /** Tracing context for diagnostics */
     tracingContext?: TracingContext;
     /** Injectable dependencies (for testing/customization) */
@@ -97,12 +100,14 @@ export class FilterCompiler {
         // Support both modern options object and legacy logger parameter
         let deps: FilterCompilerDependencies | undefined;
         let downloaderOptions: DownloaderOptions | undefined;
+        let resolvedHookManager: TransformationHookManager;
 
         if (optionsOrLogger && 'info' in optionsOrLogger) {
             // Legacy: ILogger passed directly
             this.logger = optionsOrLogger;
             this.eventEmitter = createEventEmitter();
             this.tracingContext = createNoOpContext();
+            resolvedHookManager = new NoOpHookManager();
         } else {
             // Modern: options object
             const options = optionsOrLogger as FilterCompilerOptions | undefined;
@@ -111,11 +116,32 @@ export class FilterCompiler {
             this.tracingContext = options?.tracingContext ?? createNoOpContext();
             deps = options?.dependencies;
             downloaderOptions = options?.downloaderOptions;
+
+            if (options?.hookManager) {
+                resolvedHookManager = options.hookManager;
+                // Also bridge to ICompilerEvents if the event emitter has listeners,
+                // since the direct emitTransformationStart/Complete calls were moved to hooks.
+                if (this.eventEmitter.hasListeners()) {
+                    const bridge = createEventBridgeHook(this.eventEmitter);
+                    for (const hook of bridge.beforeTransform ?? []) {
+                        resolvedHookManager.onBeforeTransform(hook);
+                    }
+                    for (const hook of bridge.afterTransform ?? []) {
+                        resolvedHookManager.onAfterTransform(hook);
+                    }
+                }
+            } else if (this.eventEmitter.hasListeners()) {
+                // No custom hook manager but events are registered — wire the bridge hook
+                // so ICompilerEvents.onTransformationStart/Complete still fire correctly.
+                resolvedHookManager = new TransformationHookManager(createEventBridgeHook(this.eventEmitter));
+            } else {
+                resolvedHookManager = new NoOpHookManager();
+            }
         }
 
         // Use injected dependencies or create defaults
         this.validator = deps?.validator ?? new ConfigurationValidator();
-        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter, resolvedHookManager);
         this.sourceCompiler = deps?.sourceCompiler ?? new SourceCompiler({
             pipeline: this.pipeline,
             logger: this.logger,
@@ -188,6 +214,14 @@ export class FilterCompiler {
             this.logger.info(`Configuration: ${JSON.stringify(configuration, null, 4)}`);
 
             const totalSources = configuration.sources.length;
+
+            // Emit compilation start event (after validation, before source fetching)
+            this.eventEmitter.emitCompilationStart({
+                configName,
+                sourceCount: totalSources,
+                transformationCount: (configuration.transformations ?? []).length,
+                timestamp: Date.now(),
+            });
 
             // Trace source compilation
             const sourcesEventId = this.tracingContext.diagnostics.operationStart(

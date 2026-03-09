@@ -411,9 +411,25 @@ export interface ICompilationCompleteEvent {
 }
 
 /**
+ * Event emitted when compilation begins (before any sources are downloaded).
+ */
+export interface ICompilationStartEvent {
+    /** Name of the configuration being compiled */
+    configName: string;
+    /** Number of sources to be processed */
+    sourceCount: number;
+    /** Number of global transformations configured */
+    transformationCount: number;
+    /** Timestamp when compilation started */
+    timestamp: number;
+}
+
+/**
  * Callback function types for compiler events
  */
 export interface ICompilerEvents {
+    /** Called when compilation starts, before any sources are fetched */
+    onCompilationStart?: (event: ICompilationStartEvent) => void;
     /** Called when a source starts downloading */
     onSourceStart?: (event: ISourceStartEvent) => void;
     /** Called when a source completes successfully */

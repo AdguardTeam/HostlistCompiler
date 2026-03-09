@@ -9,6 +9,7 @@ import type { IContentFetcher, IPlatformCompilerOptions } from './types.ts';
 import type { DiagnosticEvent, TracingContext } from '../diagnostics/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
+import { createEventBridgeHook, NoOpHookManager, TransformationHookManager } from '../transformations/TransformationHooks.ts';
 import { HeaderGenerator } from '../compiler/HeaderGenerator.ts';
 import { addChecksumToHeader, BenchmarkCollector, CompilationMetrics, CompilerEventEmitter, createEventEmitter, silentLogger, stripUpstreamHeaders } from '../utils/index.ts';
 import { createNoOpContext } from '../diagnostics/index.ts';
@@ -82,9 +83,15 @@ export class WorkerCompiler {
 
         const deps = options?.dependencies;
 
+        // Resolve hook manager: if event emitter has listeners, wire in the bridge hook
+        // so ICompilerEvents.onTransformationStart/Complete still fire via the hook system.
+        const hookManager: TransformationHookManager = this.eventEmitter.hasListeners()
+            ? new TransformationHookManager(createEventBridgeHook(this.eventEmitter))
+            : new NoOpHookManager();
+
         // Use injected dependencies or create defaults
         this.validator = deps?.validator ?? new ConfigurationValidator();
-        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter, hookManager);
         this.headerGenerator = deps?.headerGenerator ?? new HeaderGenerator();
 
         // Fetcher: use injected, then custom from options, then build default chain

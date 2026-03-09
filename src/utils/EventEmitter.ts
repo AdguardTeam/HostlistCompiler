@@ -7,6 +7,7 @@
 import type {
     IBasicLogger,
     ICompilationCompleteEvent,
+    ICompilationStartEvent,
     ICompilerEvents,
     IProgressEvent,
     ISourceCompleteEvent,
@@ -21,6 +22,7 @@ import { silentLogger } from './logger.ts';
  * Type-safe event name to event data mapping
  */
 type EventMap = {
+    onCompilationStart: ICompilationStartEvent;
     onSourceStart: ISourceStartEvent;
     onSourceComplete: ISourceCompleteEvent;
     onSourceError: ISourceErrorEvent;
@@ -59,6 +61,13 @@ export class CompilerEventEmitter {
      */
     public hasListeners(): boolean {
         return Object.values(this.events).some((handler) => handler !== undefined);
+    }
+
+    /**
+     * Emit compilation start event
+     */
+    public emitCompilationStart(event: ICompilationStartEvent): void {
+        this.safeEmit('onCompilationStart', event);
     }
 
     /**

@@ -12,6 +12,7 @@ import { DeduplicateTransformation } from './DeduplicateTransformation.ts';
 import { ValidateAllowIpTransformation, ValidateTransformation } from './ValidateTransformation.ts';
 import { CompressTransformation } from './CompressTransformation.ts';
 import { FilterService } from '../services/FilterService.ts';
+import { NoOpHookManager, TransformationHookManager } from './TransformationHooks.ts';
 
 /**
  * Registry for transformation classes.
@@ -85,18 +86,26 @@ export class TransformationPipeline {
     private readonly logger: ILogger;
     private readonly filterService: FilterService;
     private readonly eventEmitter: CompilerEventEmitter;
+    private readonly hookManager: TransformationHookManager;
 
     /**
      * Creates a new TransformationPipeline
      * @param registry - Optional transformation registry
      * @param logger - Optional logger instance
      * @param eventEmitter - Optional event emitter
+     * @param hookManager - Optional transformation hook manager
      */
-    constructor(registry?: TransformationRegistry, logger?: ILogger, eventEmitter?: CompilerEventEmitter) {
+    constructor(
+        registry?: TransformationRegistry,
+        logger?: ILogger,
+        eventEmitter?: CompilerEventEmitter,
+        hookManager?: TransformationHookManager,
+    ) {
         this.logger = logger || defaultLogger;
         this.registry = registry || new TransformationRegistry(this.logger);
         this.filterService = new FilterService();
         this.eventEmitter = eventEmitter || createEventEmitter();
+        this.hookManager = hookManager || new NoOpHookManager();
     }
 
     /**
@@ -130,12 +139,6 @@ export class TransformationPipeline {
                 const inputCount = readonlyTransformed.length;
                 const startTime = performance.now();
 
-                // Emit transformation start event
-                this.eventEmitter.emitTransformationStart({
-                    name: type,
-                    inputCount,
-                });
-
                 // Emit progress event
                 this.eventEmitter.emitProgress({
                     phase: 'transformations',
@@ -144,21 +147,46 @@ export class TransformationPipeline {
                     message: `Applying transformation: ${type}`,
                 });
 
-                // Reuse the readonly array result for the next iteration to avoid unnecessary copies
-                readonlyTransformed = await transformation.execute(readonlyTransformed, {
-                    configuration,
-                    logger: this.logger,
-                });
+                const beforeContext = {
+                    name: type,
+                    type,
+                    ruleCount: inputCount,
+                    timestamp: Date.now(),
+                };
+
+                if (this.hookManager.hasHooks()) {
+                    await this.hookManager.executeBeforeHooks(beforeContext);
+                }
+
+                try {
+                    // Reuse the readonly array result for the next iteration to avoid unnecessary copies
+                    readonlyTransformed = await transformation.execute(readonlyTransformed, {
+                        configuration,
+                        logger: this.logger,
+                    });
+                } catch (error) {
+                    if (this.hookManager.hasHooks()) {
+                        await this.hookManager.executeErrorHooks({
+                            ...beforeContext,
+                            error: error instanceof Error ? error : new Error(String(error)),
+                        });
+                    }
+                    throw error;
+                }
 
                 const durationMs = performance.now() - startTime;
 
-                // Emit transformation complete event
-                this.eventEmitter.emitTransformationComplete({
-                    name: type,
-                    inputCount,
-                    outputCount: readonlyTransformed.length,
-                    durationMs,
-                });
+                if (this.hookManager.hasHooks()) {
+                    await this.hookManager.executeAfterHooks({
+                        name: type,
+                        type,
+                        ruleCount: readonlyTransformed.length,
+                        timestamp: Date.now(),
+                        inputCount,
+                        outputCount: readonlyTransformed.length,
+                        durationMs,
+                    });
+                }
             }
         }
 

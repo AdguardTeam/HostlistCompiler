@@ -169,6 +169,10 @@ export {
     ValidateTransformation,
 } from './transformations/index.ts';
 
+// Transformation hooks
+export { createEventBridgeHook, createLoggingHook, createMetricsHook, NoOpHookManager, TransformationHookManager } from './transformations/index.ts';
+export type { AfterTransformHook, BeforeTransformHook, TransformationHookConfig, TransformationHookContext, TransformErrorHook } from './transformations/index.ts';
+
 // Services
 export { ASTViewerService, FilterService, type ParsedRuleInfo, type RuleSummary } from './services/index.ts';
 

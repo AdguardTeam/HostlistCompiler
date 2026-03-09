@@ -237,3 +237,47 @@ export function createMetricsHook(
         ],
     };
 }
+
+/**
+ * Create a hook that bridges transformation lifecycle events into the
+ * {@link ICompilerEvents} / {@link CompilerEventEmitter} system.
+ *
+ * This unifies the two observability layers so that callers only need to
+ * register hooks once via a `TransformationHookManager` while still receiving
+ * `onTransformationStart` / `onTransformationComplete` events through the
+ * standard compiler event bus.
+ *
+ * @param eventEmitter - Object that exposes `emitTransformationStart` and
+ *   `emitTransformationComplete` methods (matches `CompilerEventEmitter`).
+ * @returns A `TransformationHookConfig` ready to pass to `TransformationHookManager`.
+ *
+ * @example
+ * ```ts
+ * const bridge = createEventBridgeHook(eventEmitter);
+ * const hookManager = new TransformationHookManager(bridge);
+ * ```
+ */
+export function createEventBridgeHook(
+    eventEmitter: {
+        emitTransformationStart: (event: { name: string; inputCount: number }) => void;
+        emitTransformationComplete: (event: { name: string; inputCount: number; outputCount: number; durationMs: number }) => void;
+    },
+): TransformationHookConfig {
+    return {
+        beforeTransform: [
+            (ctx) => {
+                eventEmitter.emitTransformationStart({ name: ctx.name, inputCount: ctx.ruleCount });
+            },
+        ],
+        afterTransform: [
+            (ctx) => {
+                eventEmitter.emitTransformationComplete({
+                    name: ctx.name,
+                    inputCount: ctx.inputCount,
+                    outputCount: ctx.outputCount,
+                    durationMs: ctx.durationMs,
+                });
+            },
+        ],
+    };
+}
