@@ -1,6 +1,7 @@
 import { ICompilerEvents, IConfiguration, ILogger, ISource, TransformationType } from '../types/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
+import { createEventBridgeHook, NoOpHookManager, TransformationHookManager } from '../transformations/TransformationHooks.ts';
 import { SourceCompiler } from './SourceCompiler.ts';
 import { HeaderGenerator } from './HeaderGenerator.ts';
 import {
@@ -47,12 +48,62 @@ export interface FilterCompilerDependencies {
 
 /**
  * Options for configuring the FilterCompiler.
+ *
+ * All fields are optional. The most commonly used fields are:
+ * - `logger` — route compilation messages to your own logger
+ * - `events` — subscribe to source/transformation/compilation lifecycle events
+ * - `hookManager` — attach fine-grained before/after/error hooks around each
+ *   individual transformation in the pipeline
+ *
+ * ## Hook manager vs events
+ *
+ * `events` (via `ICompilerEvents`) and `hookManager` (via
+ * `TransformationHookManager`) are two complementary observability layers:
+ *
+ * | Feature | `ICompilerEvents` | `TransformationHookManager` |
+ * |---|---|---|
+ * | Granularity | compiler-level (source start/complete, progress, etc.) | per-transformation (before/after/error) |
+ * | Async support | callbacks are synchronous | hooks can be async |
+ * | Error hooks | none for transformations | yes — `onTransformError` |
+ * | Timing data | `durationMs` in complete event | `durationMs` in after hook |
+ *
+ * When you provide **both** `events` and `hookManager`, the compiler
+ * automatically bridges `onTransformationStart`/`onTransformationComplete`
+ * events through the hook manager so both systems fire.
+ *
+ * When you provide only `events` (the common case), the compiler internally
+ * creates a `TransformationHookManager` wired to a bridge hook — no change to
+ * existing usage is required.
  */
 export interface FilterCompilerOptions {
-    /** Logger for output messages */
+    /** Logger for compilation messages — defaults to the module default logger */
     logger?: ILogger;
-    /** Event handlers for observability */
+    /**
+     * Compiler-level event handlers for observability.
+     *
+     * These fire at source and compilation boundaries. For per-transformation
+     * hooks (including async hooks and error hooks) use `hookManager` instead.
+     *
+     * @see {@link ICompilerEvents}
+     */
     events?: ICompilerEvents;
+    /**
+     * Transformation lifecycle hooks.
+     *
+     * Attach `beforeTransform`, `afterTransform`, and `onError` callbacks to
+     * individual transformations in the pipeline. When omitted, a
+     * {@link NoOpHookManager} is used (zero overhead).
+     *
+     * If `events` are also provided, the compiler automatically registers a
+     * bridge hook that forwards `onTransformationStart` /
+     * `onTransformationComplete` events — so both systems fire without
+     * double-registration.
+     *
+     * @see {@link TransformationHookManager}
+     * @see {@link createLoggingHook}
+     * @see {@link createMetricsHook}
+     */
+    hookManager?: TransformationHookManager;
     /** Tracing context for diagnostics */
     tracingContext?: TracingContext;
     /** Injectable dependencies (for testing/customization) */
@@ -79,14 +130,39 @@ export class FilterCompiler {
      *
      * @param optionsOrLogger - Compiler configuration options or legacy logger
      *
+     * ## Hook manager resolution
+     *
+     * The constructor resolves which `TransformationHookManager` to use
+     * according to the following rules (evaluated in order):
+     *
+     * 1. **Legacy path** (`ILogger` passed directly): no hooks, uses
+     *    `NoOpHookManager`.
+     * 2. **`hookManager` + `events` both provided**: uses the supplied
+     *    `hookManager` and automatically appends the bridge hook so
+     *    `ICompilerEvents.onTransformationStart` / `onTransformationComplete`
+     *    still fire.
+     * 3. **Only `events` provided** (most common): creates a
+     *    `TransformationHookManager` pre-wired with `createEventBridgeHook` so
+     *    transformation events arrive at `ICompilerEvents` as before.
+     * 4. **Neither provided**: uses `NoOpHookManager` (zero overhead).
+     *
      * @example
      * ```ts
-     * // Modern API
+     * // Modern API — hooks + events together
      * const compiler = new FilterCompiler({
      *   logger: customLogger,
      *   events: {
-     *     onProgress: (e) => console.log(`Progress: ${e.message}`),
-     *   }
+     *     onCompilationStart: (e) => console.log('Starting', e.configName),
+     *     onCompilationComplete: (e) => console.log('Done in', e.totalDurationMs, 'ms'),
+     *   },
+     *   hookManager: new TransformationHookManager(createLoggingHook(customLogger)),
+     * });
+     *
+     * // Modern API — events only (backward-compatible)
+     * const compiler = new FilterCompiler({
+     *   events: {
+     *     onTransformationComplete: (e) => console.log(e.name, e.durationMs),
+     *   },
      * });
      *
      * // Legacy API (still supported)
@@ -97,25 +173,79 @@ export class FilterCompiler {
         // Support both modern options object and legacy logger parameter
         let deps: FilterCompilerDependencies | undefined;
         let downloaderOptions: DownloaderOptions | undefined;
+        let resolvedHookManager: TransformationHookManager;
 
         if (optionsOrLogger && 'info' in optionsOrLogger) {
-            // Legacy: ILogger passed directly
+            // ── Legacy path ──────────────────────────────────────────────────
+            // Caller passed an ILogger directly (pre-options-object API).
+            // No events and no hook manager, so use the cheapest defaults.
             this.logger = optionsOrLogger;
             this.eventEmitter = createEventEmitter();
             this.tracingContext = createNoOpContext();
+            resolvedHookManager = new NoOpHookManager();
         } else {
-            // Modern: options object
+            // ── Modern path ───────────────────────────────────────────────────
             const options = optionsOrLogger as FilterCompilerOptions | undefined;
             this.logger = options?.logger ?? defaultLogger;
             this.eventEmitter = createEventEmitter(options?.events);
             this.tracingContext = options?.tracingContext ?? createNoOpContext();
             deps = options?.dependencies;
             downloaderOptions = options?.downloaderOptions;
+
+            if (options?.hookManager) {
+                // Case A: caller supplied a custom hook manager.
+                //
+                // We never mutate the caller's instance because:
+                //  1. The same manager might be reused across multiple compiler
+                //     instances, causing duplicate bridge-hook registrations.
+                //  2. If the caller passes a NoOpHookManager, its hasHooks()
+                //     always returns false, so any hooks appended to it would
+                //     never execute in the pipeline.
+                //
+                // Instead we compose an internal manager that (a) includes the
+                // bridge hook when transformation events are registered, and
+                // (b) delegates to the caller's manager when it has hooks.
+                const userManager = options.hookManager;
+                // Only bridge for transformation-specific events, not any listener
+                // (e.g. onProgress alone must not cause hook overhead per-transformation).
+                const hasTransformListeners = !!(
+                    options.events?.onTransformationStart ||
+                    options.events?.onTransformationComplete
+                );
+
+                if (!hasTransformListeners && !userManager.hasHooks()) {
+                    // Neither side needs hooks — zero-cost default
+                    resolvedHookManager = new NoOpHookManager();
+                } else {
+                    const composed = new TransformationHookManager();
+                    if (hasTransformListeners) {
+                        // Inject bridge so ICompilerEvents still fires
+                        const bridge = createEventBridgeHook(this.eventEmitter);
+                        for (const h of bridge.beforeTransform ?? []) composed.onBeforeTransform(h);
+                        for (const h of bridge.afterTransform ?? []) composed.onAfterTransform(h);
+                    }
+                    if (userManager.hasHooks()) {
+                        // Delegate to the user's manager without touching its internals
+                        composed.onBeforeTransform((ctx) => userManager.executeBeforeHooks(ctx));
+                        composed.onAfterTransform((ctx) => userManager.executeAfterHooks(ctx));
+                        composed.onTransformError((ctx) => userManager.executeErrorHooks(ctx));
+                    }
+                    resolvedHookManager = composed;
+                }
+            } else if (options?.events?.onTransformationStart || options?.events?.onTransformationComplete) {
+                // Case B: no custom hook manager, but transformation event listeners are present.
+                // We only check for transformation-specific listeners here — not hasListeners() —
+                // to avoid hook overhead when only unrelated events (e.g. onProgress) are registered.
+                resolvedHookManager = new TransformationHookManager(createEventBridgeHook(this.eventEmitter));
+            } else {
+                // Case C: no hooks and no transformation events — zero-cost no-op.
+                resolvedHookManager = new NoOpHookManager();
+            }
         }
 
         // Use injected dependencies or create defaults
         this.validator = deps?.validator ?? new ConfigurationValidator();
-        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter, resolvedHookManager);
         this.sourceCompiler = deps?.sourceCompiler ?? new SourceCompiler({
             pipeline: this.pipeline,
             logger: this.logger,
@@ -188,6 +318,19 @@ export class FilterCompiler {
             this.logger.info(`Configuration: ${JSON.stringify(configuration, null, 4)}`);
 
             const totalSources = configuration.sources.length;
+
+            // Emit compilation start event: fires after configuration validation
+            // has passed but before any source is fetched or downloaded.
+            // This is the earliest point at which we have authoritative values for
+            // sourceCount and transformationCount (validation guarantees they're
+            // well-formed), making it useful for pre-compilation logging and
+            // cache-warming decisions.
+            this.eventEmitter.emitCompilationStart({
+                configName,
+                sourceCount: totalSources,
+                transformationCount: (configuration.transformations ?? []).length,
+                timestamp: Date.now(),
+            });
 
             // Trace source compilation
             const sourcesEventId = this.tracingContext.diagnostics.operationStart(

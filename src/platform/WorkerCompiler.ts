@@ -9,6 +9,7 @@ import type { IContentFetcher, IPlatformCompilerOptions } from './types.ts';
 import type { DiagnosticEvent, TracingContext } from '../diagnostics/index.ts';
 import { ConfigurationValidator } from '../configuration/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
+import { createEventBridgeHook, NoOpHookManager, TransformationHookManager } from '../transformations/TransformationHooks.ts';
 import { HeaderGenerator } from '../compiler/HeaderGenerator.ts';
 import { addChecksumToHeader, BenchmarkCollector, CompilationMetrics, CompilerEventEmitter, createEventEmitter, silentLogger, stripUpstreamHeaders } from '../utils/index.ts';
 import { createNoOpContext } from '../diagnostics/index.ts';
@@ -82,9 +83,22 @@ export class WorkerCompiler {
 
         const deps = options?.dependencies;
 
+        // Resolve hook manager for the pipeline.
+        // WorkerCompiler does not expose a hookManager option (edge runtimes
+        // keep a minimal API surface), but we still need onTransformationStart /
+        // onTransformationComplete to fire when those specific listeners are
+        // registered. We only check for those two events — not hasListeners() —
+        // so that unrelated listeners such as onProgress do not cause
+        // hook execution overhead on every transformation.
+        const hasTransformListeners = !!(
+            options?.events?.onTransformationStart ||
+            options?.events?.onTransformationComplete
+        );
+        const hookManager: TransformationHookManager = hasTransformListeners ? new TransformationHookManager(createEventBridgeHook(this.eventEmitter)) : new NoOpHookManager();
+
         // Use injected dependencies or create defaults
         this.validator = deps?.validator ?? new ConfigurationValidator();
-        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+        this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter, hookManager);
         this.headerGenerator = deps?.headerGenerator ?? new HeaderGenerator();
 
         // Fetcher: use injected, then custom from options, then build default chain
@@ -177,6 +191,17 @@ export class WorkerCompiler {
             this.tracingContext.diagnostics.operationComplete(validationEventId, { valid: true });
 
             const totalSources = configuration.sources.length;
+
+            // Emit compilation start event: fires after validation passes but before
+            // any source is fetched — mirrors FilterCompiler.compileWithMetrics() so
+            // consumers of ICompilerEvents.onCompilationStart receive the event from
+            // both compiler implementations.
+            this.eventEmitter.emitCompilationStart({
+                configName: (configuration as { name?: string })?.name ?? 'unknown',
+                sourceCount: totalSources,
+                transformationCount: (configuration.transformations ?? []).length,
+                timestamp: Date.now(),
+            });
 
             // Download and compile all sources in parallel
             const downloader = new PlatformDownloader(

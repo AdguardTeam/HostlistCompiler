@@ -273,3 +273,151 @@ Deno.test('FilterCompiler - should pass downloaderOptions to FilterDownloader.do
         downloadStub.restore();
     }
 });
+
+// ---------------------------------------------------------------------------
+// Hook manager tests
+// ---------------------------------------------------------------------------
+
+Deno.test('FilterCompiler - hookManager hooks fire during compile', async () => {
+    const { TransformationHookManager } = await import('../transformations/TransformationHooks.ts');
+
+    const beforeNames: string[] = [];
+    const afterNames: string[] = [];
+    const mgr = new TransformationHookManager();
+    mgr.onBeforeTransform((ctx) => {
+        beforeNames.push(ctx.name);
+    });
+    mgr.onAfterTransform((ctx) => {
+        afterNames.push(ctx.name);
+    });
+
+    const compiler = new FilterCompiler({ logger: silentLogger, hookManager: mgr });
+    const config = createTestConfig({
+        transformations: [TransformationType.RemoveEmptyLines],
+    });
+
+    await compiler.compile(config);
+
+    assertEquals(beforeNames.includes(TransformationType.RemoveEmptyLines), true);
+    assertEquals(afterNames.includes(TransformationType.RemoveEmptyLines), true);
+});
+
+Deno.test('FilterCompiler - NoOpHookManager is default when no hookManager is provided', async () => {
+    // No errors should occur without a hookManager
+    const compiler = new FilterCompiler({ logger: silentLogger });
+    const config = createTestConfig({
+        transformations: [TransformationType.Deduplicate],
+    });
+
+    const result = await compiler.compile(config);
+    assertExists(result);
+    assertEquals(Array.isArray(result), true);
+});
+
+Deno.test('FilterCompiler - ICompilerEvents.onTransformationStart fires via bridge hook', async () => {
+    const startNames: string[] = [];
+    const compiler = new FilterCompiler({
+        logger: silentLogger,
+        events: {
+            onTransformationStart: (e) => {
+                startNames.push(e.name);
+            },
+        },
+    });
+
+    const config = createTestConfig({
+        transformations: [TransformationType.TrimLines],
+    });
+
+    await compiler.compile(config);
+
+    assertEquals(startNames.includes(TransformationType.TrimLines), true);
+});
+
+Deno.test('FilterCompiler - ICompilerEvents.onTransformationComplete fires via bridge hook', async () => {
+    const completeNames: string[] = [];
+    const compiler = new FilterCompiler({
+        logger: silentLogger,
+        events: {
+            onTransformationComplete: (e) => {
+                completeNames.push(e.name);
+            },
+        },
+    });
+
+    const config = createTestConfig({
+        transformations: [TransformationType.TrimLines],
+    });
+
+    await compiler.compile(config);
+
+    assertEquals(completeNames.includes(TransformationType.TrimLines), true);
+});
+
+// ---------------------------------------------------------------------------
+// onCompilationStart event tests
+// ---------------------------------------------------------------------------
+
+Deno.test('FilterCompiler - onCompilationStart fires with correct configName', async () => {
+    const startEvents: Array<{ configName: string; sourceCount: number; transformationCount: number; timestamp: number }> = [];
+    const compiler = new FilterCompiler({
+        logger: silentLogger,
+        events: {
+            onCompilationStart: (e) => {
+                startEvents.push(e);
+            },
+        },
+    });
+
+    const config = createTestConfig({
+        transformations: [TransformationType.Deduplicate],
+    });
+
+    await compiler.compile(config);
+
+    assertEquals(startEvents.length, 1);
+    assertEquals(startEvents[0].configName, 'Test Filter List');
+    assertEquals(startEvents[0].sourceCount, 1);
+    assertEquals(startEvents[0].transformationCount, 1);
+    assertEquals(startEvents[0].timestamp > 0, true);
+});
+
+Deno.test('FilterCompiler - onCompilationStart fires before any source events', async () => {
+    const eventOrder: string[] = [];
+    const compiler = new FilterCompiler({
+        logger: silentLogger,
+        events: {
+            onCompilationStart: () => {
+                eventOrder.push('compilationStart');
+            },
+            onSourceStart: () => {
+                eventOrder.push('sourceStart');
+            },
+        },
+    });
+
+    await compiler.compile(createTestConfig());
+
+    const startIdx = eventOrder.indexOf('compilationStart');
+    const sourceIdx = eventOrder.indexOf('sourceStart');
+    assertEquals(startIdx !== -1, true);
+    assertEquals(sourceIdx !== -1, true);
+    assertEquals(startIdx < sourceIdx, true);
+});
+
+Deno.test('FilterCompiler - onCompilationStart does not fire when configuration is invalid', async () => {
+    const startEvents: string[] = [];
+    const compiler = new FilterCompiler({
+        logger: silentLogger,
+        events: {
+            onCompilationStart: () => {
+                startEvents.push('fired');
+            },
+        },
+    });
+
+    const invalidConfig = { name: 'Bad', sources: [] } as unknown as IConfiguration;
+
+    await assertRejects(() => compiler.compile(invalidConfig));
+    assertEquals(startEvents.length, 0);
+});

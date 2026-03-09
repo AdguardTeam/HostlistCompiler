@@ -2,11 +2,30 @@
  * Lightweight event emitter for compiler observability.
  * Provides a type-safe callback-based event system without external dependencies.
  * Uses modern TypeScript patterns for better type inference and IDE support.
+ *
+ * ## Architecture note: emitter vs hooks
+ *
+ * This module implements the *compiler-level* event bus (`ICompilerEvents`).
+ * Individual transformation lifecycle events (`beforeTransform`,
+ * `afterTransform`, `onError`) are handled by `TransformationHookManager` in
+ * `TransformationHooks.ts`.
+ *
+ * The two systems are connected by `createEventBridgeHook`: when
+ * `ICompilerEvents` listeners for `onTransformationStart` /
+ * `onTransformationComplete` are present, the compilers automatically register
+ * the bridge hook so those callbacks continue to fire through the hook system.
+ *
+ * ## Safety
+ *
+ * All `emit*` methods delegate to `safeEmit()`, which wraps the user-supplied
+ * handler in a try-catch. A throwing handler is logged but never allowed to
+ * propagate into the compilation process.
  */
 
 import type {
     IBasicLogger,
     ICompilationCompleteEvent,
+    ICompilationStartEvent,
     ICompilerEvents,
     IProgressEvent,
     ISourceCompleteEvent,
@@ -21,6 +40,7 @@ import { silentLogger } from './logger.ts';
  * Type-safe event name to event data mapping
  */
 type EventMap = {
+    onCompilationStart: ICompilationStartEvent;
     onSourceStart: ISourceStartEvent;
     onSourceComplete: ISourceCompleteEvent;
     onSourceError: ISourceErrorEvent;
@@ -59,6 +79,32 @@ export class CompilerEventEmitter {
      */
     public hasListeners(): boolean {
         return Object.values(this.events).some((handler) => handler !== undefined);
+    }
+
+    /**
+     * Check if transformation-specific event handlers are registered.
+     *
+     * Used by `TransformationPipeline` to decide whether to auto-wire the
+     * event-bridge hook. We check only `onTransformationStart` and
+     * `onTransformationComplete` rather than the broad `hasListeners()` to
+     * avoid registering hook overhead for unrelated listeners such as
+     * `onProgress` or `onCompilationComplete`.
+     *
+     * @returns true if `onTransformationStart` or `onTransformationComplete` is set
+     */
+    public hasTransformationListeners(): boolean {
+        return !!(this.events.onTransformationStart || this.events.onTransformationComplete);
+    }
+
+    /**
+     * Emit compilation start event.
+     *
+     * Fires after configuration validation passes but before any source is
+     * fetched. This is the earliest point at which `sourceCount` and
+     * `transformationCount` are guaranteed to be correct.
+     */
+    public emitCompilationStart(event: ICompilationStartEvent): void {
+        this.safeEmit('onCompilationStart', event);
     }
 
     /**

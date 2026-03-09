@@ -43,3 +43,7 @@ export { IncludeTransformation } from './IncludeTransformation.ts';
 
 // Registry and Pipeline
 export { TransformationPipeline, TransformationRegistry } from './TransformationRegistry.ts';
+
+// Hooks
+export { createEventBridgeHook, createLoggingHook, createMetricsHook, NoOpHookManager, TransformationHookManager } from './TransformationHooks.ts';
+export type { AfterTransformHook, BeforeTransformHook, TransformationHookConfig, TransformationHookContext, TransformErrorHook } from './TransformationHooks.ts';
