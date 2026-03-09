@@ -64,9 +64,11 @@ jobs:
       - name: Create Pages project if needed
         run: |
           set -euo pipefail
+          # shellcheck source=.github/scripts/retry.sh
+          source .github/scripts/retry.sh
           echo "Checking if Pages project exists..."
-          PROJECT_LIST=$(deno task wrangler pages project list 2>&1) || {
-            echo "Warning: Could not list Pages projects (API may be temporarily unavailable)."
+          PROJECT_LIST=$(retry_command 3 15 deno task wrangler pages project list 2>&1) || {
+            echo "Warning: Could not list Pages projects after retries (API may be temporarily unavailable)."
             echo "Skipping project creation check - will attempt deployment directly."
             exit 0
           }
@@ -74,14 +76,20 @@ jobs:
             echo "Pages project already exists"
           else
             echo "Creating Pages project: ${{ env.CLOUDFLARE_PAGES_PROJECT }}"
-            deno task wrangler pages project create "${{ env.CLOUDFLARE_PAGES_PROJECT }}" --production-branch main
+            retry_command 3 15 deno task wrangler pages project create "${{ env.CLOUDFLARE_PAGES_PROJECT }}" --production-branch main || {
+              echo "Warning: Could not create Pages project after retries. Attempting deployment anyway."
+              exit 0
+            }
             echo "Pages project created"
           fi
 
       - name: Deploy to Cloudflare Pages
         run: |
+          set -euo pipefail
+          # shellcheck source=.github/scripts/retry.sh
+          source .github/scripts/retry.sh
           echo "Deploying documentation to Cloudflare Pages..."
-          deno task wrangler pages deploy book \
+          retry_command 3 15 deno task wrangler pages deploy book \
             --project-name="${{ env.CLOUDFLARE_PAGES_PROJECT }}" \
             --branch=main \
             --commit-dirty=true
