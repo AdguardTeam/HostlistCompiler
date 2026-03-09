@@ -35,6 +35,8 @@ interface NavItem {
     readonly path: string;
     readonly label: string;
     readonly icon: string;
+    /** When true the link opens an external URL in a new tab instead of using routerLink. */
+    readonly external?: true;
 }
 
 /**
@@ -72,16 +74,29 @@ interface NavItem {
         <div class="sidenav-brand">⚡ Adblock Compiler</div>
         <mat-nav-list>
           @for (item of navItems; track item.path) {
-            <a
-              mat-list-item
-              [routerLink]="item.path"
-              routerLinkActive="active-nav-item"
-              [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
-              (click)="sidenavOpen.set(false)"
-            >
-              <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
-              <span matListItemTitle>{{ item.label }}</span>
-            </a>
+            @if (item.external) {
+              <a
+                mat-list-item
+                [href]="item.path"
+                target="_blank"
+                rel="noopener noreferrer"
+                (click)="sidenavOpen.set(false)"
+              >
+                <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
+                <span matListItemTitle>{{ item.label }}</span>
+              </a>
+            } @else {
+              <a
+                mat-list-item
+                [routerLink]="item.path"
+                routerLinkActive="active-nav-item"
+                [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
+                (click)="sidenavOpen.set(false)"
+              >
+                <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
+                <span matListItemTitle>{{ item.label }}</span>
+              </a>
+            }
           }
         </mat-nav-list>
       </mat-sidenav>
@@ -123,11 +138,19 @@ interface NavItem {
             <!-- Horizontal navigation tabs -->
             <nav class="app-nav-tabs" aria-label="Main navigation">
               @for (item of navItems; track item.path) {
-                <a
-                  [routerLink]="item.path"
-                  routerLinkActive="active-tab"
-                  [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
-                >{{ item.label }}</a>
+                @if (item.external) {
+                  <a
+                    [href]="item.path"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >{{ item.label }}</a>
+                } @else {
+                  <a
+                    [routerLink]="item.path"
+                    routerLinkActive="active-tab"
+                    [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
+                  >{{ item.label }}</a>
+                }
               }
             </nav>
           </header>
@@ -178,6 +201,7 @@ export class AppComponent {
         { path: '/validation',  label: 'Validation',  icon: 'check_circle'      },
         { path: '/api-docs',    label: 'API Docs',    icon: 'description'       },
         { path: '/admin',       label: 'Admin',       icon: 'admin_panel_settings' },
+        { path: '/docs',        label: 'Docs',        icon: 'menu_book',         external: true },
     ];
 
     /**
