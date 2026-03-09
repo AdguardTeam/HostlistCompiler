@@ -35,6 +35,16 @@ This issue proposes enhancements to the existing API to expand its functionality
 - Extend the API documentation to include examples for all new endpoints.
 - Create Postman collections to simplify onboarding for developers.
 
+- Further Potential Features / Enhancements
+
+Some potential improvements to the API may include:
+
+- More robust APIs around rule verification (e.g., /validate-rule) or management (e.g., /rule/update).
+
+- Enhanced webhooks for error tracking (e.g., integration with third-party logging like Sentry).
+
+- Support for exporting rules in different formats via APIs.
+
 ## Outcome
 Implementing the above changes will:
 1. Broaden the API capabilities of the compiler.
