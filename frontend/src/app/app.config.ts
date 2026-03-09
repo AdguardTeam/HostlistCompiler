@@ -22,7 +22,7 @@
 
 import { ApplicationConfig, ErrorHandler, provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withViewTransitions, withPreloading, PreloadAllModules, TitleStrategy } from '@angular/router';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
@@ -31,7 +31,9 @@ import { routes } from './app.routes';
 import { AppTitleStrategy } from './title-strategy';
 import { ThemeService } from './services/theme.service';
 import { GlobalErrorHandler } from './error/global-error-handler';
+import { TurnstileService } from './services/turnstile.service';
 import { API_BASE_URL } from './tokens';
+import { firstValueFrom } from 'rxjs';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -75,9 +77,23 @@ export const appConfig: ApplicationConfig = {
         // MatIconRegistry: switches mat-icon from the legacy 'Material Icons' ligature font
         // (not in npm) to the 'material-symbols' npm package which is already imported in
         // styles.css via `@import 'material-symbols/outlined.css'`.
-        provideAppInitializer(() => {
+        // TurnstileService: fetches the Turnstile site key from /api/turnstile-config so
+        // the widget renders with the correct key without hardcoding it in the source.
+        provideAppInitializer(async () => {
             inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
             inject(ThemeService).loadPreferences();
+            // Fetch Turnstile site key from worker and configure the service
+            try {
+                const http = inject(HttpClient);
+                const config = await firstValueFrom(
+                    http.get<{ siteKey: string | null; enabled: boolean }>('/api/turnstile-config'),
+                );
+                if (config.siteKey) {
+                    inject(TurnstileService).setSiteKey(config.siteKey);
+                }
+            } catch {
+                // Non-fatal: Turnstile will be disabled if config can't be fetched
+            }
         }),
     ],
 };

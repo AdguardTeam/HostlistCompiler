@@ -38,7 +38,6 @@ import { SseService, SseConnection } from '../services/sse.service';
 import { TurnstileComponent } from '../turnstile/turnstile.component';
 import { TurnstileService } from '../services/turnstile.service';
 import { FilterParserService } from '../services/filter-parser.service';
-import { TURNSTILE_SITE_KEY } from '../tokens';
 import { MetricsStore } from '../store/metrics.store';
 import { NotificationService } from '../services/notification.service';
 import { LogService } from '../services/log.service';
@@ -251,7 +250,7 @@ interface Preset {
             </mat-card>
 
             <!-- Item 1: Turnstile bot protection -->
-            <app-turnstile [siteKey]="turnstileSiteKey" />
+            <app-turnstile [siteKey]="turnstileSiteKey()" />
 
             <!-- Submit -->
             <div class="submit-row">
@@ -485,6 +484,7 @@ export class CompilerComponent {
         stream: ({ params }) => params ? this.compilerService.compile(
             params.configuration.sources.map((s) => s.source),
             params.configuration.transformations,
+            params.turnstileToken,
         ) : EMPTY,
     });
 
@@ -505,7 +505,7 @@ export class CompilerComponent {
     private readonly notifications   = inject(NotificationService);
     private readonly log             = inject(LogService);
 
-    readonly turnstileSiteKey = inject(TURNSTILE_SITE_KEY);
+    readonly turnstileSiteKey = inject(TurnstileService).siteKey;
 
     /** Active compilation mode */
     compileMode: CompileMode = 'json';
@@ -677,6 +677,7 @@ export class CompilerComponent {
                 transformations: selectedTransformations,
             },
             benchmark: true,
+            turnstileToken: this.turnstileService.token() || undefined,
         };
 
         this.log.info(`Compilation started: mode=${this.compileMode}, urls=${urls.length}`, 'compiler');
@@ -720,7 +721,7 @@ export class CompilerComponent {
     private async submitAsync(urls: string[], transformations: string[]): Promise<void> {
         this.asyncLoading.set(true);
         try {
-            const result = await firstValueFrom(this.compilerService.compileAsync(urls, transformations));
+            const result = await firstValueFrom(this.compilerService.compileAsync(urls, transformations, this.turnstileService.token() || undefined));
             this.asyncResult.set(result);
             this.notifications.trackJob(result.requestId, 'Async Compilation');
             this.notifications.showToast('info', 'Job Queued', `Request ${result.requestId} queued for processing`);
@@ -741,7 +742,7 @@ export class CompilerComponent {
     ): Promise<void> {
         this.asyncLoading.set(true);
         try {
-            const result = await firstValueFrom(this.compilerService.compileBatchAsync(configurations));
+            const result = await firstValueFrom(this.compilerService.compileBatchAsync(configurations, this.turnstileService.token() || undefined));
             this.asyncResult.set(result);
             this.notifications.trackJob(result.requestId, 'Batch Async Compilation');
             this.notifications.showToast('info', 'Batch Queued', `Batch request ${result.requestId} queued`);

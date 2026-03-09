@@ -123,6 +123,8 @@ export interface Env {
     // Turnstile configuration
     TURNSTILE_SITE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
+    // Cloudflare Web Analytics token (injected into index.html at build time)
+    CF_WEB_ANALYTICS_TOKEN?: string;
     // D1 Database binding (optional - for SQLite admin features)
     DB?: D1Database;
     // Hyperdrive binding (optional - for PlanetScale PostgreSQL via Hyperdrive)

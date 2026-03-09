@@ -40,11 +40,11 @@ export class TurnstileService {
     private widgetId: string | null = null;
 
     /** Site key — should be provided via environment/config in production */
-    private siteKey = '';
+    readonly siteKey = signal('');
 
     /** Configure the site key (call once at app init or from environment) */
     setSiteKey(key: string): void {
-        this.siteKey = key;
+        this.siteKey.set(key);
     }
 
     /**
@@ -53,7 +53,7 @@ export class TurnstileService {
      */
     render(container: HTMLElement, theme: 'light' | 'dark' | 'auto' = 'auto'): string | null {
         if (!isPlatformBrowser(this.platformId)) return null;
-        if (!this.siteKey) {
+        if (!this.siteKey()) {
             console.warn('[Turnstile] No site key configured — skipping render');
             return null;
         }
@@ -63,7 +63,7 @@ export class TurnstileService {
 
         try {
             this.widgetId = turnstile.render(container, {
-                sitekey: this.siteKey,
+                sitekey: this.siteKey(),
                 theme,
                 callback: (token: string) => this.token.set(token),
                 'expired-callback': () => this.token.set(''),
