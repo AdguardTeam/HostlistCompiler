@@ -45,7 +45,6 @@ import { LogService } from '../services/log.service';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { FormsModule } from '@angular/forms';
 
 /** Compilation mode */
 type CompileMode = 'json' | 'stream' | 'async' | 'batch' | 'batch-async';
@@ -61,7 +60,6 @@ interface Preset {
     selector: 'app-compiler',
     imports: [
         ReactiveFormsModule,
-        FormsModule,
         JsonPipe,
         MatFormFieldModule,
         MatInputModule,
@@ -93,7 +91,7 @@ interface Preset {
                 <mat-card-subtitle>Choose how the compilation request is processed</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
-                <mat-button-toggle-group [(ngModel)]="compileMode" class="mode-toggle">
+                <mat-button-toggle-group [value]="compileMode" (change)="compileMode = $event.value" class="mode-toggle">
                     <mat-button-toggle value="json" matTooltip="Synchronous JSON response">
                         <mat-icon>code</mat-icon> JSON
                     </mat-button-toggle>
