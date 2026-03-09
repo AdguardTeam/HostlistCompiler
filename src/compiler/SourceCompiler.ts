@@ -1,4 +1,5 @@
 import { FilterDownloader } from '../downloader/index.ts';
+import type { DownloaderOptions } from '../downloader/index.ts';
 import { ILogger, ISource, TransformationType } from '../types/index.ts';
 import { TransformationPipeline } from '../transformations/index.ts';
 import { CompilerEventEmitter, createEventEmitter, ErrorUtils, logger as defaultLogger, SourceError, stripUpstreamHeaders } from '../utils/index.ts';
@@ -17,6 +18,8 @@ export interface SourceCompilerOptions {
     eventEmitter?: CompilerEventEmitter;
     /** Diagnostics collector for tracing */
     diagnostics?: IDiagnosticsCollector;
+    /** Options for the HTTP downloader (timeout, retries, user-agent) */
+    downloaderOptions?: DownloaderOptions;
 }
 
 /**
@@ -28,6 +31,7 @@ export class SourceCompiler {
     private readonly pipeline: TransformationPipeline;
     private readonly eventEmitter: CompilerEventEmitter;
     private readonly diagnostics: IDiagnosticsCollector;
+    private readonly downloaderOptions: DownloaderOptions;
 
     /**
      * Creates a new SourceCompiler with options
@@ -58,6 +62,7 @@ export class SourceCompiler {
             this.diagnostics = NoOpDiagnosticsCollector.getInstance();
             this.pipeline = (pipelineOrOptions as TransformationPipeline | undefined) ??
                 new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+            this.downloaderOptions = {};
         } else {
             // New options object signature: (options?: SourceCompilerOptions)
             const options: SourceCompilerOptions = (pipelineOrOptions ?? {}) as SourceCompilerOptions;
@@ -65,6 +70,7 @@ export class SourceCompiler {
             this.eventEmitter = options.eventEmitter ?? createEventEmitter();
             this.diagnostics = options.diagnostics ?? NoOpDiagnosticsCollector.getInstance();
             this.pipeline = options.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
+            this.downloaderOptions = options.downloaderOptions ?? {};
         }
     }
 
@@ -114,7 +120,7 @@ export class SourceCompiler {
             try {
                 rules = await FilterDownloader.download(
                     source.source,
-                    {},
+                    this.downloaderOptions,
                     { allowEmptyResponse: true },
                 );
                 this.diagnostics.operationComplete(downloadEventId, {

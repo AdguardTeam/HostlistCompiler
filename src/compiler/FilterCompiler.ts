@@ -16,6 +16,7 @@ import {
 } from '../utils/index.ts';
 import type { DiagnosticEvent, TracingContext } from '../diagnostics/index.ts';
 import { createNoOpContext } from '../diagnostics/index.ts';
+import type { DownloaderOptions } from '../downloader/index.ts';
 
 /**
  * Result of compilation with optional metrics and diagnostics.
@@ -56,6 +57,8 @@ export interface FilterCompilerOptions {
     tracingContext?: TracingContext;
     /** Injectable dependencies (for testing/customization) */
     dependencies?: FilterCompilerDependencies;
+    /** Options for the HTTP downloader (timeout, retries, user-agent) */
+    downloaderOptions?: DownloaderOptions;
 }
 
 /**
@@ -93,6 +96,7 @@ export class FilterCompiler {
     constructor(optionsOrLogger?: FilterCompilerOptions | ILogger) {
         // Support both modern options object and legacy logger parameter
         let deps: FilterCompilerDependencies | undefined;
+        let downloaderOptions: DownloaderOptions | undefined;
 
         if (optionsOrLogger && 'info' in optionsOrLogger) {
             // Legacy: ILogger passed directly
@@ -106,12 +110,18 @@ export class FilterCompiler {
             this.eventEmitter = createEventEmitter(options?.events);
             this.tracingContext = options?.tracingContext ?? createNoOpContext();
             deps = options?.dependencies;
+            downloaderOptions = options?.downloaderOptions;
         }
 
         // Use injected dependencies or create defaults
         this.validator = deps?.validator ?? new ConfigurationValidator();
         this.pipeline = deps?.pipeline ?? new TransformationPipeline(undefined, this.logger, this.eventEmitter);
-        this.sourceCompiler = deps?.sourceCompiler ?? new SourceCompiler(this.pipeline, this.logger, this.eventEmitter);
+        this.sourceCompiler = deps?.sourceCompiler ?? new SourceCompiler({
+            pipeline: this.pipeline,
+            logger: this.logger,
+            eventEmitter: this.eventEmitter,
+            ...(downloaderOptions ? { downloaderOptions } : {}),
+        });
         this.headerGenerator = deps?.headerGenerator ?? new HeaderGenerator();
     }
 

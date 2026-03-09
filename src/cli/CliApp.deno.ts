@@ -17,6 +17,7 @@ import {
     TransformationType,
 } from '../types/index.ts';
 import { FilterCompiler, FilterCompilerOptions } from '../compiler/index.ts';
+import type { DownloaderOptions } from '../downloader/index.ts';
 import { ConfigurationSchema } from '../configuration/index.ts';
 import { formatDuration } from '../utils/index.ts';
 
@@ -49,11 +50,34 @@ interface ICliArgs {
     input?: string[];
     'input-type'?: string;
     output?: string;
+    stdout?: boolean;
+    append?: boolean;
+    format?: string;
+    name?: string;
+    'max-rules'?: number;
     verbose?: boolean;
     benchmark?: boolean;
     progress?: boolean;
     help?: boolean;
     version?: boolean;
+    // Transformation control
+    'no-deduplicate'?: boolean;
+    'no-validate'?: boolean;
+    'no-compress'?: boolean;
+    'no-comments'?: boolean;
+    'invert-allow'?: boolean;
+    'remove-modifiers'?: boolean;
+    'allow-ip'?: boolean;
+    'convert-to-ascii'?: boolean;
+    transformation?: string[];
+    // Filtering
+    exclude?: string[];
+    'exclude-from'?: string[];
+    include?: string[];
+    // Networking
+    timeout?: number;
+    retries?: number;
+    'user-agent'?: string;
 }
 
 /**
@@ -160,6 +184,15 @@ export class CliApp {
             options.events = this.createEventHandlers();
         }
 
+        // Pass HTTP options when any networking flag is provided
+        if (this.args.timeout !== undefined || this.args.retries !== undefined || this.args['user-agent'] !== undefined) {
+            const downloaderOptions: DownloaderOptions = {};
+            if (this.args.timeout !== undefined) downloaderOptions.timeout = this.args.timeout;
+            if (this.args.retries !== undefined) downloaderOptions.maxRetries = this.args.retries;
+            if (this.args['user-agent'] !== undefined) downloaderOptions.userAgent = this.args['user-agent'];
+            options.downloaderOptions = downloaderOptions;
+        }
+
         this.compiler = new FilterCompiler(options);
     }
 
@@ -170,17 +203,50 @@ export class CliApp {
         console.log(`
 Usage: adblock-compiler [options]
 
-Options:
-  -c, --config <file>      Path to the compiler configuration file
-  -i, --input <source>     URL (or path to a file) to convert to an AdGuard-syntax
-                           blocklist. Can be specified multiple times.
-  -t, --input-type <type>  Type of the input file (hosts|adblock) [default: hosts]
-  -o, --output <file>      Path to the output file [required]
-  -v, --verbose            Run with verbose logging
-  -b, --benchmark          Show performance benchmark report
-  -p, --progress           Show real-time progress events during compilation
-  --version                Show version number
-  -h, --help               Show help
+General:
+  -c, --config <file>          Path to the compiler configuration file
+  -i, --input <source>         URL (or path to a file) to convert to an AdGuard-syntax
+                               blocklist. Can be specified multiple times.
+  -t, --input-type <type>      Input format: hosts|adblock [default: hosts]
+  -v, --verbose                Enable verbose logging
+  -b, --benchmark              Show performance benchmark report
+  -p, --progress               Show real-time progress events during compilation
+      --version                Show version number
+  -h, --help                   Show this help
+
+Output:
+  -o, --output <file>          Path to the output file [required unless --stdout]
+      --stdout                 Write output to stdout instead of a file
+      --append                 Append to output file instead of overwriting
+      --format <format>        Output format
+      --name <file>            Compare output against an existing file and print a
+                               summary of added/removed rules
+      --max-rules <n>          Truncate output to at most <n> rules
+
+Transformations:
+      --no-deduplicate         Skip the Deduplicate transformation
+      --no-validate            Skip the Validate transformation
+      --no-compress            Skip the Compress transformation
+      --no-comments            Skip the RemoveComments transformation
+      --invert-allow           Apply the InvertAllow transformation
+      --remove-modifiers       Apply the RemoveModifiers transformation
+      --allow-ip               Use ValidateAllowIp instead of Validate
+      --convert-to-ascii       Apply the ConvertToAscii transformation
+      --transformation <name>  Specify transformation pipeline explicitly (repeatable).
+                               Overrides all other transformation flags.
+                               Values: RemoveComments, Deduplicate, Compress, Validate,
+                                       ValidateAllowIp, InvertAllow, RemoveModifiers,
+                                       TrimLines, InsertFinalNewLine, ConvertToAscii
+
+Filtering:
+      --exclude <pattern>      Exclude rules matching pattern (repeatable)
+      --exclude-from <file>    Load exclusions from file (repeatable)
+      --include <file>         Load inclusions from file (repeatable)
+
+Networking:
+      --timeout <ms>           HTTP request timeout in milliseconds
+      --retries <n>            Number of HTTP retry attempts
+      --user-agent <string>    Custom HTTP User-Agent header
 
 Examples:
   adblock-compiler -c config.json -o output.txt
@@ -188,6 +254,12 @@ Examples:
 
   adblock-compiler -i https://example.org/hosts.txt -o output.txt
       compile a blocklist from the URL and write the output to output.txt
+
+  adblock-compiler -i https://example.org/hosts.txt --stdout
+      compile a blocklist and write rules to stdout
+
+  adblock-compiler -i https://example.org/hosts.txt -o output.txt --no-deduplicate
+      compile without deduplication
 
   adblock-compiler -c config.json -o output.txt --benchmark
       compile and show performance metrics
@@ -199,9 +271,25 @@ Examples:
      */
     private parseArgs(argv: string[]): ICliArgs {
         const parsed = parseArgs(argv, {
-            string: ['config', 'input-type', 'output'],
-            boolean: ['verbose', 'benchmark', 'help', 'version'],
-            collect: ['input'],
+            string: ['config', 'input-type', 'output', 'format', 'name', 'user-agent'],
+            boolean: [
+                'verbose',
+                'benchmark',
+                'help',
+                'version',
+                'progress',
+                'stdout',
+                'append',
+                'no-deduplicate',
+                'no-validate',
+                'no-compress',
+                'no-comments',
+                'invert-allow',
+                'remove-modifiers',
+                'allow-ip',
+                'convert-to-ascii',
+            ],
+            collect: ['input', 'transformation', 'exclude', 'exclude-from', 'include'],
             alias: {
                 c: 'config',
                 i: 'input',
@@ -209,19 +297,54 @@ Examples:
                 o: 'output',
                 v: 'verbose',
                 b: 'benchmark',
+                p: 'progress',
                 h: 'help',
             },
         });
 
+        const toArr = (v: unknown): string[] => (Array.isArray(v) ? (v as string[]) : []);
+        const toNum = (v: unknown): number | undefined => {
+            if (v === undefined || v === null || v === '') return undefined;
+            const n = Number(v);
+            return Number.isNaN(n) ? undefined : n;
+        };
+
+        const inputArr = toArr(parsed.input);
+        const transformationArr = toArr(parsed.transformation);
+        const excludeArr = toArr(parsed.exclude);
+        const excludeFromArr = toArr(parsed['exclude-from']);
+        const includeArr = toArr(parsed.include);
+
         return {
             config: parsed.config,
-            input: parsed.input as string[] | undefined,
+            input: inputArr.length > 0 ? inputArr : undefined,
             'input-type': parsed['input-type'],
             output: parsed.output,
+            stdout: parsed.stdout,
+            append: parsed.append,
+            format: parsed.format,
+            name: parsed.name,
+            'max-rules': toNum(parsed['max-rules']),
             verbose: parsed.verbose,
             benchmark: parsed.benchmark,
+            progress: parsed.progress,
             help: parsed.help,
             version: parsed.version,
+            'no-deduplicate': parsed['no-deduplicate'],
+            'no-validate': parsed['no-validate'],
+            'no-compress': parsed['no-compress'],
+            'no-comments': parsed['no-comments'],
+            'invert-allow': parsed['invert-allow'],
+            'remove-modifiers': parsed['remove-modifiers'],
+            'allow-ip': parsed['allow-ip'],
+            'convert-to-ascii': parsed['convert-to-ascii'],
+            transformation: transformationArr.length > 0 ? transformationArr : undefined,
+            exclude: excludeArr.length > 0 ? excludeArr : undefined,
+            'exclude-from': excludeFromArr.length > 0 ? excludeFromArr : undefined,
+            include: includeArr.length > 0 ? includeArr : undefined,
+            timeout: toNum(parsed.timeout),
+            retries: toNum(parsed.retries),
+            'user-agent': parsed['user-agent'],
         };
     }
 
@@ -241,13 +364,89 @@ Examples:
                 throw new Error(`Invalid configuration file:\n${issues}`);
             }
 
-            return result.data;
+            const config = result.data;
+
+            // Apply CLI transformation overrides when any transformation flag is provided
+            const hasTransformationFlags = !!(
+                this.args.transformation?.length ||
+                this.args['no-deduplicate'] || this.args['no-validate'] || this.args['no-compress'] ||
+                this.args['no-comments'] || this.args['invert-allow'] || this.args['remove-modifiers'] ||
+                this.args['allow-ip'] || this.args['convert-to-ascii']
+            );
+            if (hasTransformationFlags) {
+                config.transformations = this.buildTransformations(config.transformations);
+            }
+
+            // Apply CLI filtering overlays
+            if (this.args.exclude?.length) {
+                config.exclusions = [...(config.exclusions ?? []), ...this.args.exclude];
+            }
+            if (this.args['exclude-from']?.length) {
+                config.exclusions_sources = [...(config.exclusions_sources ?? []), ...this.args['exclude-from']];
+            }
+            if (this.args.include?.length) {
+                config.inclusions_sources = [...(config.inclusions_sources ?? []), ...this.args.include];
+            }
+
+            return config;
         } catch (error) {
             if (error instanceof Deno.errors.NotFound) {
                 throw new Error(`Configuration file not found: ${this.args.config}`);
             }
             throw error;
         }
+    }
+
+    /**
+     * Builds the transformation list from CLI flags.
+     * When --transformation is provided, it is used directly (overrides all other flags).
+     * Otherwise the default list is built and modified by the boolean flags.
+     */
+    private buildTransformations(existingTransformations?: TransformationType[]): TransformationType[] {
+        // Explicit pipeline overrides everything
+        if (this.args.transformation && this.args.transformation.length > 0) {
+            return this.args.transformation as TransformationType[];
+        }
+
+        // Start from the provided list or the default list
+        let transformations: TransformationType[] = existingTransformations ? [...existingTransformations] : [
+            TransformationType.RemoveComments,
+            TransformationType.Deduplicate,
+            TransformationType.Compress,
+            TransformationType.Validate,
+            TransformationType.TrimLines,
+            TransformationType.InsertFinalNewLine,
+        ];
+
+        // Apply removal flags
+        if (this.args['no-comments']) {
+            transformations = transformations.filter((t) => t !== TransformationType.RemoveComments);
+        }
+        if (this.args['no-deduplicate']) {
+            transformations = transformations.filter((t) => t !== TransformationType.Deduplicate);
+        }
+        if (this.args['no-compress']) {
+            transformations = transformations.filter((t) => t !== TransformationType.Compress);
+        }
+        if (this.args['no-validate'] || this.args['allow-ip']) {
+            transformations = transformations.filter((t) => t !== TransformationType.Validate);
+        }
+
+        // Apply addition flags
+        if (this.args['allow-ip'] && !transformations.includes(TransformationType.ValidateAllowIp)) {
+            transformations.push(TransformationType.ValidateAllowIp);
+        }
+        if (this.args['invert-allow'] && !transformations.includes(TransformationType.InvertAllow)) {
+            transformations.push(TransformationType.InvertAllow);
+        }
+        if (this.args['remove-modifiers'] && !transformations.includes(TransformationType.RemoveModifiers)) {
+            transformations.push(TransformationType.RemoveModifiers);
+        }
+        if (this.args['convert-to-ascii'] && !transformations.includes(TransformationType.ConvertToAscii)) {
+            transformations.push(TransformationType.ConvertToAscii);
+        }
+
+        return transformations;
     }
 
     /**
@@ -263,17 +462,15 @@ Examples:
             type: inputType === 'adblock' ? SourceType.Adblock : SourceType.Hosts,
         }));
 
+        const transformations = this.buildTransformations();
+
         const config: IConfiguration = {
             name: 'Blocklist',
             sources,
-            transformations: [
-                TransformationType.RemoveComments,
-                TransformationType.Deduplicate,
-                TransformationType.Compress,
-                TransformationType.Validate,
-                TransformationType.TrimLines,
-                TransformationType.InsertFinalNewLine,
-            ],
+            transformations,
+            ...(this.args.exclude?.length && { exclusions: this.args.exclude }),
+            ...(this.args['exclude-from']?.length && { exclusions_sources: this.args['exclude-from'] }),
+            ...(this.args.include?.length && { inclusions_sources: this.args.include }),
         };
 
         return config;
@@ -310,8 +507,12 @@ Examples:
                 throw new Error('Either --input or --config must be specified');
             }
 
-            if (!this.args.output) {
-                throw new Error('--output is required');
+            if (!this.args.output && !this.args.stdout) {
+                throw new Error('--output is required (or use --stdout)');
+            }
+
+            if (this.args.output && this.args.stdout) {
+                throw new Error('Cannot specify both --output and --stdout');
             }
 
             // Initialize compiler with optional event handlers
@@ -325,10 +526,44 @@ Examples:
             // Compile with optional benchmarking
             const result = await this.compiler.compileWithMetrics(config, this.args.benchmark || false);
 
-            // Write output using Deno's file system API
-            this.logger.info(`Writing output to ${this.args.output}`);
-            await Deno.writeTextFile(this.args.output, result.rules.join('\n'));
-            this.logger.info('Finished compiling');
+            // Apply max-rules limit
+            let outputRules = result.rules;
+            const maxRules = this.args['max-rules'];
+            if (maxRules !== undefined && outputRules.length > maxRules) {
+                this.logger.warn(`Rule count ${outputRules.length} exceeds --max-rules ${maxRules}, truncating`);
+                outputRules = outputRules.slice(0, maxRules);
+            }
+
+            // Print comparison summary if --name was provided
+            if (this.args.name) {
+                try {
+                    const existingContent = await Deno.readTextFile(this.args.name);
+                    const existingRulesSet = new Set(existingContent.split('\n').filter((r) => r.trim() !== ''));
+                    const newRulesSet = new Set(outputRules);
+                    const added = outputRules.filter((r) => !existingRulesSet.has(r)).length;
+                    const removed = [...existingRulesSet].filter((r) => !newRulesSet.has(r)).length;
+                    console.log(`\nComparison with ${this.args.name}:`);
+                    console.log(`  Added:   +${added} rules`);
+                    console.log(`  Removed: -${removed} rules`);
+                    console.log(`  Net:     ${added - removed >= 0 ? '+' : ''}${added - removed} rules`);
+                } catch {
+                    this.logger.warn(`Could not read comparison file: ${this.args.name}`);
+                }
+            }
+
+            // Write output
+            if (this.args.stdout) {
+                await Deno.stdout.write(new TextEncoder().encode(outputRules.join('\n') + '\n'));
+                this.logger.info('Finished compiling (output written to stdout)');
+            } else {
+                this.logger.info(`Writing output to ${this.args.output}`);
+                await Deno.writeTextFile(
+                    this.args.output!,
+                    outputRules.join('\n'),
+                    this.args.append ? { append: true } : undefined,
+                );
+                this.logger.info('Finished compiling');
+            }
         } catch (error) {
             this.logger.error(error instanceof Error ? error.message : String(error));
             Deno.exit(1);
