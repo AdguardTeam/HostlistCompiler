@@ -68,7 +68,7 @@
         "@std/testing": "jsr:@std/testing@^1.0.17",
         "@std/async": "jsr:@std/async@^1.2.0",
         "@std/yaml": "jsr:@std/yaml@^1.0.12",
-        "@cloudflare/workers-types": "npm:@cloudflare/workers-types@^4.20260301.1",
+        "@cloudflare/workers-types": "npm:@cloudflare/workers-types@^4.20260307.1",
         "@cloudflare/containers": "npm:@cloudflare/containers@^0.1.1",
         "@cloudflare/playwright-mcp": "npm:@cloudflare/playwright-mcp@^0.0.5",
         "cloudflare:workers": "./worker/cloudflare-workers-shim.ts",

@@ -8,7 +8,7 @@
     },
     "imports": {
         "@jk-com/adblock-compiler": "../../src/index.ts",
-        "@cloudflare/workers-types": "npm:@cloudflare/workers-types@^4.20260301.1",
+        "@cloudflare/workers-types": "npm:@cloudflare/workers-types@^4.20260307.1",
         "@luca/cases": "jsr:@luca/cases@^1.0.0",
         "@std/path": "jsr:@std/path@^1.1.4",
         "@std/fs": "jsr:@std/fs@^1.0.23",
