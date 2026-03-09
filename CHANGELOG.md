@@ -89,6 +89,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.47.1] - 2026-03-09
+
+### Added### Fixed
+
+- regenerate pnpm-lock.yaml to match updated dependency versions
+- remove unnecessary shell: bash from Windows longpaths step
+- enable Git long path support on Windows in release workflow
+
+
 ## [0.47.0] - 2026-03-09
 
 ### Added- add comprehensive CLI switches for transformation control, filtering, output, and networking
