@@ -11,7 +11,7 @@
         "ui:lint": "pnpm --filter adblock-compiler-frontend run lint",
         "build:worker": "pnpm install && pnpm --filter adblock-compiler-frontend run build"
     },
-    "packageManager": "pnpm@9.15.0",
+    "packageManager": "pnpm@10.31.0",
     "_syncNote": "Dependency versions here must match those pinned in deno.json's import map; keep them in sync (for example via the existing version:sync-style task).",
     "dependencies": {
         "@adguard/agtree": "^4.0.1",
