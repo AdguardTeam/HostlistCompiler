@@ -92,6 +92,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.48.1] - 2026-03-09
+
+### Added### Fixed
+
+- rename scorecard workflow to lowercase, add contents:read, pin action SHAs
+- remove slow types and enforce via CI (#880)
+
+
 ## [0.48.0] - 2026-03-09
 
 ### Added- wire TransformationHookManager into pipeline, add onCompilationStart event, and expose hooks as public API
