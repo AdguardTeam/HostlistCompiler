@@ -386,7 +386,7 @@ Features:
 
 A comprehensive OpenAPI 3.0 specification is available at:
 ```
-/openapi.yaml
+docs/api/openapi.yaml
 ```
 
 This includes:
@@ -460,7 +460,7 @@ WebSocket connections:
 
 ## See Also
 
-- [OpenAPI Specification](../openapi.yaml)
+- [OpenAPI Specification](openapi.yaml)
 - [API Documentation](../docs/api/README.md)
 - [WebSocket Test Page](http://localhost:8787/websocket-test.html)
 - [GitHub Repository](https://github.com/jaypatrick/adblock-compiler)
