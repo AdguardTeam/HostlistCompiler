@@ -198,10 +198,27 @@ await compiler.compile(config);
 // → Done in 847ms
 ```
 
-When both `hookManager` and `events` are provided, `FilterCompiler`
-automatically appends the bridge hook to the manager so
-`ICompilerEvents.onTransformationStart` / `onTransformationComplete` also fire.
-You do not need to wire this manually.
+### Hook manager resolution rules
+
+`FilterCompiler` resolves the internal hook manager in the following order:
+
+| Condition | Result |
+|---|---|
+| `hookManager` provided, transformation events registered | Internal composed manager: bridge hook + delegate to user's manager |
+| `hookManager` provided, no transformation events | Internal composed manager: delegate to user's manager only |
+| No `hookManager`, `onTransformationStart`/`Complete` registered | Bridge-only manager |
+| Neither | `NoOpHookManager` (zero overhead) |
+
+**Important**: `FilterCompiler` never mutates the caller's `hookManager` instance. An
+internal composed manager is always created, so the same `hookManager` can safely
+be shared across multiple `FilterCompiler` instances. This also means that passing a
+`NoOpHookManager` as `hookManager` works correctly — user hooks are skipped, but
+the bridge fires if transformation events are registered.
+
+**Targeted listener check**: the bridge hook is installed only when
+`onTransformationStart` or `onTransformationComplete` is registered. Providing
+other listeners such as `onProgress` alone does **not** cause hook overhead on
+every transformation.
 
 ---
 
@@ -275,14 +292,36 @@ const pipeline = new TransformationPipeline(undefined, logger, eventEmitter, hoo
 
 `ICompilerEvents.onTransformationStart` and `onTransformationComplete` were
 previously fired by direct calls inside the `TransformationPipeline` loop.
-Those calls were removed when the hook system was wired in to avoid
-double-firing. The bridge hook re-implements that forwarding inside the hook
-system:
+Those calls were removed when the hook system was wired in. The bridge hook
+re-implements that forwarding inside the hook system:
 
 ```
 before hook fires → bridge hook → emitTransformationStart → onTransformationStart
 after hook fires  → bridge hook → emitTransformationComplete → onTransformationComplete
 ```
+
+### Auto-wiring in TransformationPipeline
+
+`TransformationPipeline` itself auto-wires the bridge hook in its constructor
+when an `eventEmitter` with transformation listeners is passed but no
+`hookManager` is provided:
+
+```typescript
+// TransformationPipeline auto-detects this and wires the bridge:
+new TransformationPipeline(undefined, logger, eventEmitterWithTransformListeners)
+//                                            ↑ has onTransformationStart/Complete
+```
+
+This covers call sites like `SourceCompiler` that construct the pipeline
+without knowing about the hook system — they only pass an `eventEmitter`.
+
+### Targeted listener check
+
+Both `FilterCompiler`, `WorkerCompiler`, and `TransformationPipeline` check
+specifically for `onTransformationStart` / `onTransformationComplete` rather
+than the general `hasListeners()` before installing a bridge hook. This means
+registering only `onProgress` or `onCompilationComplete` does not cause any
+hook execution overhead per transformation.
 
 This means existing code that uses `ICompilerEvents` continues to work with no
 changes.
@@ -416,6 +455,38 @@ could be undefined or wrong (the configuration hasn't been validated yet).
 Firing after validation guarantees that when `onCompilationStart` arrives at
 your handler, the numbers are accurate and the compilation will proceed — only
 fetch/download errors can still fail at that point.
+
+Both `FilterCompiler` and `WorkerCompiler` fire this event at the equivalent
+point (after their respective validation passes), keeping the `ICompilerEvents`
+lifecycle consistent across both compiler implementations.
+
+### Why compose an internal manager instead of mutating the caller's hookManager?
+
+The original code appended bridge hooks directly to the caller-supplied
+`hookManager`. This caused two problems:
+
+1. **Duplicate events on reuse**: if the same `hookManager` instance was passed
+   to multiple `FilterCompiler` instances, each one would append another set of
+   bridge hooks, causing `onTransformationStart`/`Complete` to fire multiple
+   times per transformation.
+2. **Broken for `NoOpHookManager`**: `NoOpHookManager.hasHooks()` always returns
+   `false`, so any hooks appended to it would never execute in the pipeline.
+
+The fix: always compose a fresh internal manager. The bridge hook (if needed)
+and a delegation wrapper (if the user's manager has hooks) are both registered
+on the new internal manager, which is then passed to the pipeline. The caller's
+instance is never touched.
+
+### Why check only for transformation-specific listeners?
+
+`hasListeners()` returns `true` if *any* `ICompilerEvents` handler is registered
+— including `onProgress`, `onCompilationComplete`, etc. Installing the bridge
+hook whenever any event is registered would add `await` overhead on every
+transformation iteration even when `onTransformationStart`/`Complete` are not
+subscribed.
+
+The fix: check `options?.events?.onTransformationStart || onTransformationComplete`
+directly. Only when one of these two is present does a bridge hook get installed.
 
 ### Why does `createEventBridgeHook` exist?
 

@@ -84,15 +84,17 @@ export class WorkerCompiler {
         const deps = options?.dependencies;
 
         // Resolve hook manager for the pipeline.
-        // WorkerCompiler does not expose a hookManager option (it targets edge
-        // runtimes where the API surface is intentionally minimal), but we still
-        // need onTransformationStart/Complete to fire when ICompilerEvents
-        // listeners are present. We achieve this by creating a bridge hook
-        // manager when the event emitter has listeners — identical to the
-        // FilterCompiler approach, but always automatic here.
-        const hookManager: TransformationHookManager = this.eventEmitter.hasListeners()
-            ? new TransformationHookManager(createEventBridgeHook(this.eventEmitter))
-            : new NoOpHookManager();
+        // WorkerCompiler does not expose a hookManager option (edge runtimes
+        // keep a minimal API surface), but we still need onTransformationStart /
+        // onTransformationComplete to fire when those specific listeners are
+        // registered. We only check for those two events — not hasListeners() —
+        // so that unrelated listeners such as onProgress do not cause
+        // hook execution overhead on every transformation.
+        const hasTransformListeners = !!(
+            options?.events?.onTransformationStart ||
+            options?.events?.onTransformationComplete
+        );
+        const hookManager: TransformationHookManager = hasTransformListeners ? new TransformationHookManager(createEventBridgeHook(this.eventEmitter)) : new NoOpHookManager();
 
         // Use injected dependencies or create defaults
         this.validator = deps?.validator ?? new ConfigurationValidator();
@@ -189,6 +191,17 @@ export class WorkerCompiler {
             this.tracingContext.diagnostics.operationComplete(validationEventId, { valid: true });
 
             const totalSources = configuration.sources.length;
+
+            // Emit compilation start event: fires after validation passes but before
+            // any source is fetched — mirrors FilterCompiler.compileWithMetrics() so
+            // consumers of ICompilerEvents.onCompilationStart receive the event from
+            // both compiler implementations.
+            this.eventEmitter.emitCompilationStart({
+                configName: (configuration as { name?: string })?.name ?? 'unknown',
+                sourceCount: totalSources,
+                transformationCount: (configuration.transformations ?? []).length,
+                timestamp: Date.now(),
+            });
 
             // Download and compile all sources in parallel
             const downloader = new PlatformDownloader(

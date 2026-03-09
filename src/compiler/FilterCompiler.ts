@@ -194,26 +194,51 @@ export class FilterCompiler {
 
             if (options?.hookManager) {
                 // Case A: caller supplied a custom hook manager.
-                // Use it directly, but if they also supplied ICompilerEvents
-                // listeners we append the bridge hook so both systems fire.
-                resolvedHookManager = options.hookManager;
-                if (this.eventEmitter.hasListeners()) {
-                    const bridge = createEventBridgeHook(this.eventEmitter);
-                    for (const hook of bridge.beforeTransform ?? []) {
-                        resolvedHookManager.onBeforeTransform(hook);
+                //
+                // We never mutate the caller's instance because:
+                //  1. The same manager might be reused across multiple compiler
+                //     instances, causing duplicate bridge-hook registrations.
+                //  2. If the caller passes a NoOpHookManager, its hasHooks()
+                //     always returns false, so any hooks appended to it would
+                //     never execute in the pipeline.
+                //
+                // Instead we compose an internal manager that (a) includes the
+                // bridge hook when transformation events are registered, and
+                // (b) delegates to the caller's manager when it has hooks.
+                const userManager = options.hookManager;
+                // Only bridge for transformation-specific events, not any listener
+                // (e.g. onProgress alone must not cause hook overhead per-transformation).
+                const hasTransformListeners = !!(
+                    options.events?.onTransformationStart ||
+                    options.events?.onTransformationComplete
+                );
+
+                if (!hasTransformListeners && !userManager.hasHooks()) {
+                    // Neither side needs hooks — zero-cost default
+                    resolvedHookManager = new NoOpHookManager();
+                } else {
+                    const composed = new TransformationHookManager();
+                    if (hasTransformListeners) {
+                        // Inject bridge so ICompilerEvents still fires
+                        const bridge = createEventBridgeHook(this.eventEmitter);
+                        for (const h of bridge.beforeTransform ?? []) composed.onBeforeTransform(h);
+                        for (const h of bridge.afterTransform ?? []) composed.onAfterTransform(h);
                     }
-                    for (const hook of bridge.afterTransform ?? []) {
-                        resolvedHookManager.onAfterTransform(hook);
+                    if (userManager.hasHooks()) {
+                        // Delegate to the user's manager without touching its internals
+                        composed.onBeforeTransform((ctx) => userManager.executeBeforeHooks(ctx));
+                        composed.onAfterTransform((ctx) => userManager.executeAfterHooks(ctx));
+                        composed.onTransformError((ctx) => userManager.executeErrorHooks(ctx));
                     }
+                    resolvedHookManager = composed;
                 }
-            } else if (this.eventEmitter.hasListeners()) {
-                // Case B: no custom hook manager, but ICompilerEvents listeners
-                // are present. Create a hook manager whose only job is to
-                // forward onTransformationStart/Complete to the event bus.
-                // This preserves the pre-hooks behaviour for existing callers.
+            } else if (options?.events?.onTransformationStart || options?.events?.onTransformationComplete) {
+                // Case B: no custom hook manager, but transformation event listeners are present.
+                // We only check for transformation-specific listeners here — not hasListeners() —
+                // to avoid hook overhead when only unrelated events (e.g. onProgress) are registered.
                 resolvedHookManager = new TransformationHookManager(createEventBridgeHook(this.eventEmitter));
             } else {
-                // Case C: nothing — use the zero-cost no-op.
+                // Case C: no hooks and no transformation events — zero-cost no-op.
                 resolvedHookManager = new NoOpHookManager();
             }
         }

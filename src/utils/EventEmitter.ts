@@ -82,6 +82,21 @@ export class CompilerEventEmitter {
     }
 
     /**
+     * Check if transformation-specific event handlers are registered.
+     *
+     * Used by `TransformationPipeline` to decide whether to auto-wire the
+     * event-bridge hook. We check only `onTransformationStart` and
+     * `onTransformationComplete` rather than the broad `hasListeners()` to
+     * avoid registering hook overhead for unrelated listeners such as
+     * `onProgress` or `onCompilationComplete`.
+     *
+     * @returns true if `onTransformationStart` or `onTransformationComplete` is set
+     */
+    public hasTransformationListeners(): boolean {
+        return !!(this.events.onTransformationStart || this.events.onTransformationComplete);
+    }
+
+    /**
      * Emit compilation start event.
      *
      * Fires after configuration validation passes but before any source is

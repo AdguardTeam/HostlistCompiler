@@ -12,7 +12,7 @@ import { DeduplicateTransformation } from './DeduplicateTransformation.ts';
 import { ValidateAllowIpTransformation, ValidateTransformation } from './ValidateTransformation.ts';
 import { CompressTransformation } from './CompressTransformation.ts';
 import { FilterService } from '../services/FilterService.ts';
-import { NoOpHookManager, TransformationHookManager } from './TransformationHooks.ts';
+import { createEventBridgeHook, NoOpHookManager, TransformationHookManager } from './TransformationHooks.ts';
 
 /**
  * Registry for transformation classes.
@@ -156,7 +156,16 @@ export class TransformationPipeline {
         this.registry = registry || new TransformationRegistry(this.logger);
         this.filterService = new FilterService();
         this.eventEmitter = eventEmitter || createEventEmitter();
-        this.hookManager = hookManager || new NoOpHookManager();
+
+        // Auto-wire the event bridge when no explicit hookManager is provided
+        // but the event emitter has onTransformationStart/Complete listeners.
+        // This covers call sites like SourceCompiler that construct the pipeline
+        // without knowing about the hook system (they only pass an eventEmitter).
+        // We check specifically for transformation listeners — not the broader
+        // hasListeners() — to avoid hook overhead for unrelated event types.
+        this.hookManager = hookManager ?? (
+            this.eventEmitter.hasTransformationListeners() ? new TransformationHookManager(createEventBridgeHook(this.eventEmitter)) : new NoOpHookManager()
+        );
     }
 
     /**
@@ -201,14 +210,16 @@ export class TransformationPipeline {
         // Use readonly array during transformation pipeline to avoid unnecessary copies
         let readonlyTransformed: readonly string[] = transformed;
 
+        // Cache once so the hot loop never calls hasHooks() more than once per invocation.
+        // When NoOpHookManager is in use this is always false, giving the else-branch
+        // a true zero-overhead fast path (no context objects, no await, no timestamps).
+        const hooksActive = this.hookManager.hasHooks();
+
         for (let i = 0; i < orderedTransformations.length; i++) {
             const type = orderedTransformations[i];
             const transformation = this.registry.get(type);
             if (transformation) {
-                const inputCount = readonlyTransformed.length;
-                const startTime = performance.now();
-
-                // Emit progress event
+                // Emit progress event (always, regardless of hook state)
                 this.eventEmitter.emitProgress({
                     phase: 'transformations',
                     current: i + 1,
@@ -216,41 +227,38 @@ export class TransformationPipeline {
                     message: `Applying transformation: ${type}`,
                 });
 
-                const beforeContext = {
-                    name: type,
-                    type,
-                    ruleCount: inputCount,
-                    timestamp: Date.now(),
-                };
+                if (hooksActive) {
+                    // ── Hook path ─────────────────────────────────────────────
+                    // inputCount and startTime are only needed here; keeping them
+                    // inside the guard avoids their allocation on the fast path.
+                    const inputCount = readonlyTransformed.length;
+                    const startTime = performance.now();
+                    const beforeContext = {
+                        name: type,
+                        type,
+                        ruleCount: inputCount,
+                        timestamp: Date.now(),
+                    };
 
-                // hasHooks() is a fast-path guard: when no hooks are registered
-                // (NoOpHookManager returns false) we skip building context
-                // objects and awaiting async calls entirely.
-                if (this.hookManager.hasHooks()) {
                     await this.hookManager.executeBeforeHooks(beforeContext);
-                }
 
-                try {
-                    // Reuse the readonly array result for the next iteration to avoid unnecessary copies
-                    readonlyTransformed = await transformation.execute(readonlyTransformed, {
-                        configuration,
-                        logger: this.logger,
-                    });
-                } catch (error) {
-                    // Error hooks are observers only — we await them then re-throw
-                    // the original error so the caller's error-handling is unaffected.
-                    if (this.hookManager.hasHooks()) {
+                    try {
+                        // Reuse the readonly array result for the next iteration to avoid unnecessary copies
+                        readonlyTransformed = await transformation.execute(readonlyTransformed, {
+                            configuration,
+                            logger: this.logger,
+                        });
+                    } catch (error) {
+                        // Error hooks are observers only — we await them then re-throw
+                        // the original error so the caller's error-handling is unaffected.
                         await this.hookManager.executeErrorHooks({
                             ...beforeContext,
                             error: error instanceof Error ? error : new Error(String(error)),
                         });
+                        throw error;
                     }
-                    throw error;
-                }
 
-                const durationMs = performance.now() - startTime;
-
-                if (this.hookManager.hasHooks()) {
+                    const durationMs = performance.now() - startTime;
                     await this.hookManager.executeAfterHooks({
                         name: type,
                         type,
@@ -259,6 +267,13 @@ export class TransformationPipeline {
                         inputCount,
                         outputCount: readonlyTransformed.length,
                         durationMs,
+                    });
+                } else {
+                    // ── Fast path (no hooks) ──────────────────────────────────
+                    // Reuse the readonly array result for the next iteration to avoid unnecessary copies
+                    readonlyTransformed = await transformation.execute(readonlyTransformed, {
+                        configuration,
+                        logger: this.logger,
                     });
                 }
             }
