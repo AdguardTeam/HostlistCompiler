@@ -88,6 +88,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.47.0] - 2026-03-09
+
+### Added- add comprehensive CLI switches for transformation control, filtering, output, and networking
+
+### Fixed
+
+- apply code review feedback - toNum validation, include/include-from symmetry, stdout stderr routing, transformation validation, format warning, downloaderOptions test
+
+
 ## [0.46.2] - 2026-03-08
 
 ### Added### Fixed
