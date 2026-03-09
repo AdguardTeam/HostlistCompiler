@@ -541,10 +541,12 @@ Command-line interface for local compilation.
 
 | Component | Description |
 |-----------|-------------|
-| **CliApp** | Main CLI application; parses args, loads config, runs `FilterCompiler`, writes output. |
-| **ArgumentParser** | Parses command-line flags (input, output, verbose, etc.). |
+| **CliApp** | Main CLI application; parses args, builds/overlays config, runs `FilterCompiler`, writes output (file, stdout, append). |
+| **ArgumentParser** | Parses all CLI flags — transformation control, filtering, output modes, networking, and queue options. Validates via `CliArgumentsSchema`. |
 | **ConfigurationLoader** | Loads and parses JSON configuration files. |
 | **OutputWriter** | Writes compiled rules to the file system. |
+
+See the [CLI Reference](../usage/CLI.md) for the full flag list and examples.
 
 ### Deployment (`src/deployment/`)
 
