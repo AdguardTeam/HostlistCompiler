@@ -5,8 +5,7 @@
  *
  *   RenderMode.Prerender  — rendered once at build time (SSG).
  *     Best for static content that never changes between requests.
- *     The Home dashboard has no user-specific or request-specific data,
- *     so it qualifies for prerendering. The HTML is cached in CDN/edge.
+ *     Routes prerendered here are served from the CDN with zero Worker invocations.
  *
  *   RenderMode.Server     — rendered on each request (SSR).
  *     Required when content is dynamic or user-specific (Compiler, Benchmark).
@@ -22,18 +21,32 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
     {
-        // Home and Compiler use client-side rendering: they contain MatSlideToggle
-        // bound via ngModel/FormControl, which calls writeValue during SSR and
-        // crashes the server renderer (Angular Material DOM access in Node.js).
+        // Home dashboard: no request-specific data — prerender once at build time (SSG).
+        // mat-slide-toggle bindings converted from ngModel to [checked]/(change),
+        // removing the FormsModule writeValue() SSR crash.
         path: '',
-        renderMode: RenderMode.Client,
+        renderMode: RenderMode.Prerender,
     },
     {
+        // Compiler: dynamic (form state, SSE connections, query params) — SSR per request.
+        // mat-button-toggle-group converted from [(ngModel)] to [value]/(change).
         path: 'compiler',
-        renderMode: RenderMode.Client,
+        renderMode: RenderMode.Server,
     },
     {
-        // All other routes use server-side rendering (rendered per request).
+        // API docs: serves static OpenAPI documentation — never changes between deploys.
+        // Prerender once at build time; serve from CDN with zero Worker invocations.
+        path: 'api-docs',
+        renderMode: RenderMode.Prerender,
+    },
+    {
+        // Validation: static UI shell — AGTree parser runs entirely client-side.
+        // Prerender the shell at build time.
+        path: 'validation',
+        renderMode: RenderMode.Prerender,
+    },
+    {
+        // All other routes (performance, admin, etc.) — SSR per request.
         path: '**',
         renderMode: RenderMode.Server,
     },
