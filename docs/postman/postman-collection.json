@@ -1,9 +1,9 @@
 {
   "info": {
     "name": "Adblock Compiler API",
-    "description": "Comprehensive test collection for the Adblock Compiler OpenAPI specification",
+    "description": "Auto-generated from docs/api/openapi.yaml. Run 'deno task postman:collection' to regenerate.\n\n**Compiler-as-a-Service** for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.\n\n## Features\n- 🎯 Multi-Source Compilation\n- ⚡ Performance (Gzip compression, caching, request deduplication)\n- 🔄 Circuit Breaker with retry logic\n- 📊 Visual Diff between compilations\n- 📡 Real-time progress via SSE and WebSocket\n- 🎪 Batch Processing\n- 🌍 Universal (Deno, Node.js, Cloudflare Workers, browsers)\n\n## Links\n- [GitHub Repository](https://github.com/jaypatrick/adblock-compiler)\n- [Documentation](https://github.com/jaypatrick/adblock-compiler/tree/master/docs)\n- [Web UI](https://adblock-compiler.jayson-knight.workers.dev/)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_postman_id": "adblock-compiler-api-tests",
+    "_postman_id": "adblock-compiler-api",
     "version": "2.0.0"
   },
   "variable": [
@@ -43,14 +43,17 @@
   ],
   "item": [
     {
-      "name": "Metrics",
+      "name": "Compilation",
+      "description": "Filter list compilation endpoints",
       "item": [
         {
-          "name": "Get API Info",
+          "name": "Compile filter list (JSON)",
+          "description": "Compile filter lists and return results as JSON. Results are cached for 1 hour.",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
@@ -58,105 +61,6 @@
                   "",
                   "pm.test('Response is JSON', function () {",
                   "    pm.response.to.be.json;",
-                  "});",
-                  "",
-                  "pm.test('Has required fields', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('name');",
-                  "    pm.expect(jsonData).to.have.property('version');",
-                  "    pm.expect(jsonData).to.have.property('endpoints');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api"
-              ]
-            },
-            "description": "Get API information including version and available endpoints"
-          }
-        },
-        {
-          "name": "Get Performance Metrics",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Response contains metrics', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('window');",
-                  "    pm.expect(jsonData).to.have.property('timestamp');",
-                  "    pm.expect(jsonData).to.have.property('endpoints');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/metrics",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "metrics"
-              ]
-            },
-            "description": "Get performance metrics aggregated over the last 30 minutes"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Compilation",
-      "item": [
-        {
-          "name": "Compile Simple Filter List",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Response is successful', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "});",
-                  "",
-                  "pm.test('Has rules array', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('rules');",
-                  "    pm.expect(jsonData.rules).to.be.an('array');",
-                  "});",
-                  "",
-                  "pm.test('Has ruleCount', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('ruleCount');",
-                  "    pm.expect(jsonData.ruleCount).to.be.a('number');",
-                  "});",
-                  "",
-                  "pm.test('Has compiledAt timestamp', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('compiledAt');",
                   "});"
                 ]
               }
@@ -167,13 +71,10 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"configuration\": {\n    \"name\": \"Test Filter List\",\n    \"sources\": [\n      {\n        \"source\": \"test-rules\"\n      }\n    ],\n    \"transformations\": [\"Deduplicate\"]\n  },\n  \"preFetchedContent\": {\n    \"test-rules\": \"||ads.example.com^\\n||tracking.example.com^\\n||ads.example.com^\"\n  }\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/compile",
               "host": [
@@ -183,29 +84,33 @@
                 "compile"
               ]
             },
-            "description": "Compile a simple filter list with pre-fetched content"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"configuration\": {\n        \"name\": \"My Filter List\",\n        \"sources\": [\n            {\n                \"source\": \"https://example.com/filters.txt\",\n                \"transformations\": [\n                    \"RemoveComments\",\n                    \"Validate\"\n                ]\n            }\n        ],\n        \"transformations\": [\n            \"Deduplicate\"\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Compile filter lists and return results as JSON. Results are cached for 1 hour.\nSupports request deduplication for concurrent identical requests.\n"
           }
         },
         {
-          "name": "Compile with Transformations",
+          "name": "Batch compile multiple lists",
+          "description": "Compile multiple filter lists in parallel (max 10 per batch)",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Response is successful', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "});",
-                  "",
-                  "pm.test('Rules are deduplicated', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    const uniqueRules = new Set(jsonData.rules.filter(r => !r.startsWith('!')));",
-                  "    pm.expect(uniqueRules.size).to.equal(jsonData.rules.filter(r => !r.startsWith('!')).length);",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
                   "});"
                 ]
               }
@@ -216,38 +121,47 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"configuration\": {\n    \"name\": \"Advanced Filter List\",\n    \"description\": \"Test with multiple transformations\",\n    \"sources\": [\n      {\n        \"source\": \"rules1\",\n        \"transformations\": [\"RemoveComments\", \"Validate\"]\n      }\n    ],\n    \"transformations\": [\"Deduplicate\", \"RemoveEmptyLines\"]\n  },\n  \"preFetchedContent\": {\n    \"rules1\": \"! Comment line\\n||example.com^\\n||ads.example.com^\\n\\n||tracking.com^\"\n  },\n  \"benchmark\": true\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/compile",
+              "raw": "{{baseUrl}}/compile/batch",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "compile"
+                "compile",
+                "batch"
               ]
             },
-            "description": "Test multiple transformations with benchmarking"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"requests\": [\n        {\n            \"id\": \"string\",\n            \"configuration\": {},\n            \"preFetchedContent\": {},\n            \"benchmark\": false\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Compile multiple filter lists in parallel (max 10 per batch)"
           }
         },
         {
-          "name": "Compile with Cache Check",
+          "name": "Parse filter rules into AST",
+          "description": "Parses adblock filter rules into an Abstract Syntax Tree representation",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Check cache headers', function () {",
-                  "    pm.expect(pm.response.headers.get('X-Cache')).to.be.oneOf(['HIT', 'MISS']);",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
                   "});"
                 ]
               }
@@ -258,93 +172,53 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"configuration\": {\n    \"name\": \"Cache Test List\",\n    \"sources\": [\n      {\n        \"source\": \"cache-test\"\n      }\n    ]\n  },\n  \"preFetchedContent\": {\n    \"cache-test\": \"||ads.test.com^\"\n  }\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/compile",
+              "raw": "{{baseUrl}}/ast/parse",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "compile"
+                "ast",
+                "parse"
               ]
             },
-            "description": "Test caching behavior"
-          }
-        },
-        {
-          "name": "Compile Invalid Configuration",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 500', function () {",
-                  "    pm.response.to.have.status(500);",
-                  "});",
-                  "",
-                  "pm.test('Response indicates failure', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "    pm.expect(jsonData).to.have.property('error');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"configuration\": {\n    \"sources\": []\n  }\n}"
+              "raw": "{\n    \"rules\": [\n        \"string\"\n    ],\n    \"text\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "url": {
-              "raw": "{{baseUrl}}/compile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "compile"
-              ]
-            },
-            "description": "Test error handling with invalid configuration"
+            "description": "Parses adblock filter rules into an Abstract Syntax Tree representation"
           }
         }
       ]
     },
     {
       "name": "Streaming",
+      "description": "Real-time event streaming endpoints",
       "item": [
         {
-          "name": "Compile with SSE Stream",
+          "name": "Compile with real-time progress (SSE)",
+          "description": "Compile filter lists with real-time progress updates via Server-Sent Events.",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Content-Type is event-stream', function () {",
+                  "pm.test('Response is SSE stream', function () {",
                   "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/event-stream');",
-                  "});",
-                  "",
-                  "pm.test('Response contains SSE events', function () {",
-                  "    const responseText = pm.response.text();",
-                  "    pm.expect(responseText).to.include('event:');",
-                  "    pm.expect(responseText).to.include('data:');",
                   "});"
                 ]
               }
@@ -355,13 +229,10 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"configuration\": {\n    \"name\": \"Streaming Test\",\n    \"sources\": [\n      {\n        \"source\": \"stream-test\"\n      }\n    ]\n  },\n  \"preFetchedContent\": {\n    \"stream-test\": \"||ads.stream.com^\\n||tracking.stream.com^\"\n  }\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/compile/stream",
               "host": [
@@ -372,135 +243,40 @@
                 "stream"
               ]
             },
-            "description": "Test Server-Sent Events streaming"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Batch Processing",
-      "item": [
-        {
-          "name": "Batch Compile Multiple Lists",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Response is successful', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "});",
-                  "",
-                  "pm.test('Has results array', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.results).to.be.an('array');",
-                  "    pm.expect(jsonData.results).to.have.lengthOf(2);",
-                  "});",
-                  "",
-                  "pm.test('Each result has id and rules', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    jsonData.results.forEach(result => {",
-                  "        pm.expect(result).to.have.property('id');",
-                  "        pm.expect(result).to.have.property('rules');",
-                  "        pm.expect(result.rules).to.be.an('array');",
-                  "    });",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"requests\": [\n    {\n      \"id\": \"list1\",\n      \"configuration\": {\n        \"name\": \"Batch List 1\",\n        \"sources\": [\n          {\n            \"source\": \"batch1\"\n          }\n        ]\n      },\n      \"preFetchedContent\": {\n        \"batch1\": \"||ads1.com^\"\n      }\n    },\n    {\n      \"id\": \"list2\",\n      \"configuration\": {\n        \"name\": \"Batch List 2\",\n        \"sources\": [\n          {\n            \"source\": \"batch2\"\n          }\n        ]\n      },\n      \"preFetchedContent\": {\n        \"batch2\": \"||ads2.com^\"\n      }\n    }\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/compile/batch",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "compile",
-                "batch"
-              ]
-            },
-            "description": "Batch compile multiple filter lists"
-          }
-        },
-        {
-          "name": "Batch Compile - Max Limit Test",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200 or 400', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
-                  "});"
-                ]
+              "raw": "{\n    \"configuration\": {\n        \"name\": \"string\",\n        \"description\": \"string\",\n        \"homepage\": \"string\",\n        \"license\": \"string\",\n        \"version\": \"string\",\n        \"sources\": [\n            {}\n        ],\n        \"transformations\": [\n            \"ConvertToAscii\"\n        ],\n        \"exclusions\": [\n            \"string\"\n        ],\n        \"exclusions_sources\": [\n            \"string\"\n        ],\n        \"inclusions\": [\n            \"string\"\n        ],\n        \"inclusions_sources\": [\n            \"string\"\n        ]\n    },\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"requests\": [\n    {\"id\": \"1\", \"configuration\": {\"name\": \"L1\", \"sources\": [{\"source\": \"s1\"}]}, \"preFetchedContent\": {\"s1\": \"||a.com^\"}},\n    {\"id\": \"2\", \"configuration\": {\"name\": \"L2\", \"sources\": [{\"source\": \"s2\"}]}, \"preFetchedContent\": {\"s2\": \"||b.com^\"}},\n    {\"id\": \"3\", \"configuration\": {\"name\": \"L3\", \"sources\": [{\"source\": \"s3\"}]}, \"preFetchedContent\": {\"s3\": \"||c.com^\"}},\n    {\"id\": \"4\", \"configuration\": {\"name\": \"L4\", \"sources\": [{\"source\": \"s4\"}]}, \"preFetchedContent\": {\"s4\": \"||d.com^\"}},\n    {\"id\": \"5\", \"configuration\": {\"name\": \"L5\", \"sources\": [{\"source\": \"s5\"}]}, \"preFetchedContent\": {\"s5\": \"||e.com^\"}},\n    {\"id\": \"6\", \"configuration\": {\"name\": \"L6\", \"sources\": [{\"source\": \"s6\"}]}, \"preFetchedContent\": {\"s6\": \"||f.com^\"}},\n    {\"id\": \"7\", \"configuration\": {\"name\": \"L7\", \"sources\": [{\"source\": \"s7\"}]}, \"preFetchedContent\": {\"s7\": \"||g.com^\"}},\n    {\"id\": \"8\", \"configuration\": {\"name\": \"L8\", \"sources\": [{\"source\": \"s8\"}]}, \"preFetchedContent\": {\"s8\": \"||h.com^\"}},\n    {\"id\": \"9\", \"configuration\": {\"name\": \"L9\", \"sources\": [{\"source\": \"s9\"}]}, \"preFetchedContent\": {\"s9\": \"||i.com^\"}},\n    {\"id\": \"10\", \"configuration\": {\"name\": \"L10\", \"sources\": [{\"source\": \"s10\"}]}, \"preFetchedContent\": {\"s10\": \"||j.com^\"}}\n  ]\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/compile/batch",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "compile",
-                "batch"
-              ]
-            },
-            "description": "Test batch limit of 10 requests"
+            "description": "Compile filter lists with real-time progress updates via Server-Sent Events.\nStreams events including source downloads, transformations, diagnostics, cache operations, network events, and metrics.\n"
           }
         }
       ]
     },
     {
       "name": "Queue",
+      "description": "Async job queue management",
       "item": [
         {
-          "name": "Queue Async Compilation",
+          "name": "Queue async compilation job",
+          "description": "Queue a compilation job for asynchronous processing. Returns immediately with a request ID.",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 202 or 500', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([202, 500]);",
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
                   "});",
                   "",
-                  "if (pm.response.code === 202) {",
-                  "    pm.test('Response has requestId', function () {",
-                  "        const jsonData = pm.response.json();",
-                  "        pm.expect(jsonData).to.have.property('requestId');",
-                  "        pm.collectionVariables.set('requestId', jsonData.requestId);",
-                  "    });",
-                  "}"
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
                 ]
               }
             }
@@ -510,13 +286,10 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"configuration\": {\n    \"name\": \"Async Queue Test\",\n    \"sources\": [\n      {\n        \"source\": \"async-test\"\n      }\n    ]\n  },\n  \"preFetchedContent\": {\n    \"async-test\": \"||async.example.com^\"\n  }\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/compile/async",
               "host": [
@@ -527,18 +300,33 @@
                 "async"
               ]
             },
-            "description": "Queue an async compilation job"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"configuration\": {\n        \"name\": \"string\",\n        \"description\": \"string\",\n        \"homepage\": \"string\",\n        \"license\": \"string\",\n        \"version\": \"string\",\n        \"sources\": [\n            {}\n        ],\n        \"transformations\": [\n            \"ConvertToAscii\"\n        ],\n        \"exclusions\": [\n            \"string\"\n        ],\n        \"exclusions_sources\": [\n            \"string\"\n        ],\n        \"inclusions\": [\n            \"string\"\n        ],\n        \"inclusions_sources\": [\n            \"string\"\n        ]\n    },\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Queue a compilation job for asynchronous processing. Returns immediately with a request ID.\nUse GET /queue/results/{requestId} to retrieve results when complete.\n"
           }
         },
         {
-          "name": "Queue Batch Async Compilation",
+          "name": "Queue batch async compilation",
+          "description": "Queue multiple compilations for async processing",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 202 or 500', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([202, 500]);",
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
                   "});"
                 ]
               }
@@ -549,13 +337,10 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"requests\": [\n    {\n      \"id\": \"async-batch-1\",\n      \"configuration\": {\n        \"name\": \"Async Batch 1\",\n        \"sources\": [{\"source\": \"ab1\"}]\n      },\n      \"preFetchedContent\": {\"ab1\": \"||async1.com^\"}\n    }\n  ]\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/compile/batch/async",
               "host": [
@@ -567,25 +352,33 @@
                 "async"
               ]
             },
-            "description": "Queue a batch async compilation"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"requests\": [\n        {\n            \"id\": \"string\",\n            \"configuration\": {},\n            \"preFetchedContent\": {},\n            \"benchmark\": false\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Queue multiple compilations for async processing"
           }
         },
         {
-          "name": "Get Queue Stats",
+          "name": "Get queue statistics",
+          "description": "Returns queue health metrics and job statistics",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Has queue metrics', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('pending');",
-                  "    pm.expect(jsonData).to.have.property('completed');",
-                  "    pm.expect(jsonData).to.have.property('failed');",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
                   "});"
                 ]
               }
@@ -604,18 +397,24 @@
                 "stats"
               ]
             },
-            "description": "Get queue statistics"
+            "description": "Returns queue health metrics and job statistics"
           }
         },
         {
-          "name": "Get Queue Results",
+          "name": "Get async job results",
+          "description": "Retrieve results for a completed async compilation job",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 200 or 404', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
                   "});"
                 ]
               }
@@ -625,169 +424,41 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/queue/results/{{requestId}}",
+              "raw": "{{baseUrl}}/queue/results/:requestId",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "queue",
                 "results",
-                "{{requestId}}"
-              ]
-            },
-            "description": "Retrieve results from queued job"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Edge Cases",
-      "item": [
-        {
-          "name": "Empty Configuration",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 500', function () {",
-                  "    pm.response.to.have.status(500);",
-                  "});",
-                  "",
-                  "pm.test('Response contains error', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "    pm.expect(jsonData).to.have.property('error');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/compile",
-              "host": [
-                "{{baseUrl}}"
+                ":requestId"
               ],
-              "path": [
-                "compile"
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "{{requestId}}",
+                  "description": "Path parameter: requestId"
+                }
               ]
             },
-            "description": "Test with empty request body"
+            "description": "Retrieve results for a completed async compilation job"
           }
         },
         {
-          "name": "Missing Required Fields",
+          "name": "Get queue job history",
+          "description": "Returns job history and queue depth over time",
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "pm.test('Status code is 500', function () {",
-                  "    pm.response.to.have.status(500);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"configuration\": {\n    \"name\": \"Missing Sources\"\n  }\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/compile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "compile"
-              ]
-            },
-            "description": "Test with missing required sources field"
-          }
-        },
-        {
-          "name": "Large Batch Request (>10)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 400', function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"requests\": [\n    {\"id\": \"1\", \"configuration\": {\"name\": \"L1\", \"sources\": [{\"source\": \"s1\"}]}, \"preFetchedContent\": {\"s1\": \"||a.com^\"}},\n    {\"id\": \"2\", \"configuration\": {\"name\": \"L2\", \"sources\": [{\"source\": \"s2\"}]}, \"preFetchedContent\": {\"s2\": \"||b.com^\"}},\n    {\"id\": \"3\", \"configuration\": {\"name\": \"L3\", \"sources\": [{\"source\": \"s3\"}]}, \"preFetchedContent\": {\"s3\": \"||c.com^\"}},\n    {\"id\": \"4\", \"configuration\": {\"name\": \"L4\", \"sources\": [{\"source\": \"s4\"}]}, \"preFetchedContent\": {\"s4\": \"||d.com^\"}},\n    {\"id\": \"5\", \"configuration\": {\"name\": \"L5\", \"sources\": [{\"source\": \"s5\"}]}, \"preFetchedContent\": {\"s5\": \"||e.com^\"}},\n    {\"id\": \"6\", \"configuration\": {\"name\": \"L6\", \"sources\": [{\"source\": \"s6\"}]}, \"preFetchedContent\": {\"s6\": \"||f.com^\"}},\n    {\"id\": \"7\", \"configuration\": {\"name\": \"L7\", \"sources\": [{\"source\": \"s7\"}]}, \"preFetchedContent\": {\"s7\": \"||g.com^\"}},\n    {\"id\": \"8\", \"configuration\": {\"name\": \"L8\", \"sources\": [{\"source\": \"s8\"}]}, \"preFetchedContent\": {\"s8\": \"||h.com^\"}},\n    {\"id\": \"9\", \"configuration\": {\"name\": \"L9\", \"sources\": [{\"source\": \"s9\"}]}, \"preFetchedContent\": {\"s9\": \"||i.com^\"}},\n    {\"id\": \"10\", \"configuration\": {\"name\": \"L10\", \"sources\": [{\"source\": \"s10\"}]}, \"preFetchedContent\": {\"s10\": \"||j.com^\"}},\n    {\"id\": \"11\", \"configuration\": {\"name\": \"L11\", \"sources\": [{\"source\": \"s11\"}]}, \"preFetchedContent\": {\"s11\": \"||k.com^\"}}\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/compile/batch",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "compile",
-                "batch"
-              ]
-            },
-            "description": "Test batch request exceeding 10 item limit"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Health",
-      "item": [
-        {
-          "name": "Health Check",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Response has status healthy', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.status).to.eql('healthy');",
-                  "});",
-                  "",
-                  "pm.test('Response has version', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('version');",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
                   "});"
                 ]
               }
@@ -797,31 +468,1609 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/health",
+              "raw": "{{baseUrl}}/queue/history",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "health"
+                "queue",
+                "history"
               ]
             },
-            "description": "Basic health check \u2014 returns service status and version"
+            "description": "Returns job history and queue depth over time"
           }
         },
         {
-          "name": "Latest Health Check Results",
+          "name": "Cancel a queued job",
+          "description": "Marks a pending queue job as cancelled",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Response has success field', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('success');",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/queue/cancel/:requestId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queue",
+                "cancel",
+                ":requestId"
+              ],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "{{requestId}}",
+                  "description": "Path parameter: requestId"
+                }
+              ]
+            },
+            "description": "Marks a pending queue job as cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metrics",
+      "description": "Performance metrics and statistics",
+      "item": [
+        {
+          "name": "Get API information",
+          "description": "Returns API version, available endpoints, and usage examples",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api"
+              ]
+            },
+            "description": "Returns API version, available endpoints, and usage examples"
+          }
+        },
+        {
+          "name": "Get performance metrics",
+          "description": "Returns aggregated metrics for the last 30 minutes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metrics"
+              ]
+            },
+            "description": "Returns aggregated metrics for the last 30 minutes"
+          }
+        },
+        {
+          "name": "Get latest deployment version",
+          "description": "Returns the current version from deployment history",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/version",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "version"
+              ]
+            },
+            "description": "Returns the current version from deployment history"
+          }
+        },
+        {
+          "name": "Get deployment history",
+          "description": "Returns deployment history records",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/deployments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "deployments"
+              ]
+            },
+            "description": "Returns deployment history records"
+          }
+        },
+        {
+          "name": "Get deployment statistics",
+          "description": "Returns aggregated deployment statistics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/deployments/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "deployments",
+                "stats"
+              ]
+            },
+            "description": "Returns aggregated deployment statistics"
+          }
+        },
+        {
+          "name": "Get Turnstile configuration",
+          "description": "Returns the Cloudflare Turnstile site key and whether it is enabled",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/turnstile-config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "turnstile-config"
+              ]
+            },
+            "description": "Returns the Cloudflare Turnstile site key and whether it is enabled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "WebSocket",
+      "description": "Bidirectional real-time communication",
+      "item": [
+        {
+          "name": "WebSocket endpoint for real-time compilation",
+          "description": "Bidirectional WebSocket connection for real-time compilation with event streaming.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ws/compile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ws",
+                "compile"
+              ]
+            },
+            "description": "Bidirectional WebSocket connection for real-time compilation with event streaming.\n\n**Client → Server Messages:**\n- `compile` - Start compilation\n- `cancel` - Cancel running compilation\n- `ping` - Heartbeat ping\n\n**Server → Client Messages:**\n- `welcome` - Connection established\n- `pong` - Heartbeat response\n- `compile:started` - Compilation started\n- `event` - Compilation event (source, transformation, progress, diagnostic, cache, network, metric)\n- `compile:complete` - Compilation finished successfully\n- `compile:error` - Compilation failed\n- `compile:cancelled` - Compilation cancelled\n- `error` - Error message\n\n**Features:**\n- Up to 3 concurrent compilations per connection\n- Automatic heartbeat (30s interval)\n- Connection timeout (5 minutes idle)\n- Session-based compilation tracking\n- Cancellation support\n"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Administration endpoints for storage, auth, migration, and backends (require X-Admin-Key header)",
+      "item": [
+        {
+          "name": "Get storage statistics",
+          "description": "Returns database table counts and expired entry counts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/storage/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "storage",
+                "stats"
+              ]
+            },
+            "description": "Returns database table counts and expired entry counts"
+          }
+        },
+        {
+          "name": "Clear expired entries",
+          "description": "Deletes all expired entries from storage tables",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/storage/clear-expired",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "storage",
+                "clear-expired"
+              ]
+            },
+            "description": "Deletes all expired entries from storage tables"
+          }
+        },
+        {
+          "name": "Clear cache entries",
+          "description": "Deletes all cache entries from storage tables",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/storage/clear-cache",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "storage",
+                "clear-cache"
+              ]
+            },
+            "description": "Deletes all cache entries from storage tables"
+          }
+        },
+        {
+          "name": "Export storage data",
+          "description": "Exports storage entries as JSON (includes storage entries, filter cache, and compilation metadata; returned amounts subject to implementation limits)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/storage/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "storage",
+                "export"
+              ]
+            },
+            "description": "Exports storage entries as JSON (includes storage entries, filter cache, and compilation metadata; returned amounts subject to implementation limits)"
+          }
+        },
+        {
+          "name": "Vacuum database",
+          "description": "Runs VACUUM on the D1 database to reclaim space",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/storage/vacuum",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "storage",
+                "vacuum"
+              ]
+            },
+            "description": "Runs VACUUM on the D1 database to reclaim space"
+          }
+        },
+        {
+          "name": "List database tables",
+          "description": "Returns all tables and indexes in the D1 database",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/storage/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "storage",
+                "tables"
+              ]
+            },
+            "description": "Returns all tables and indexes in the D1 database"
+          }
+        },
+        {
+          "name": "Execute read-only SQL query",
+          "description": "Executes a SELECT-only SQL query against the D1 database for debugging",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/storage/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "storage",
+                "query"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"sql\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Executes a SELECT-only SQL query against the D1 database for debugging"
+          }
+        },
+        {
+          "name": "Create user",
+          "description": "Creates a new user account. Requires Hyperdrive (PostgreSQL) binding.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/auth/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "auth",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"string\",\n    \"displayName\": \"string\",\n    \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a new user account. Requires Hyperdrive (PostgreSQL) binding."
+          }
+        },
+        {
+          "name": "List API keys",
+          "description": "Lists API keys for a user (without key hashes). Requires Hyperdrive (PostgreSQL) binding.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/auth/api-keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "auth",
+                "api-keys"
+              ]
+            },
+            "description": "Lists API keys for a user (without key hashes). Requires Hyperdrive (PostgreSQL) binding."
+          }
+        },
+        {
+          "name": "Create API key",
+          "description": "Creates a new API key for a user. Requires Hyperdrive (PostgreSQL) binding.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/auth/api-keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "auth",
+                "api-keys"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": \"string\",\n    \"name\": \"string\",\n    \"scopes\": [\n        \"string\"\n    ],\n    \"rateLimitPerMinute\": 0,\n    \"expiresAt\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a new API key for a user. Requires Hyperdrive (PostgreSQL) binding.\n\n**Important:** The raw API key is only returned once. Store it securely.\n"
+          }
+        },
+        {
+          "name": "Revoke API key",
+          "description": "Revokes an API key by ID or key prefix. Requires Hyperdrive (PostgreSQL) binding.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/auth/api-keys/revoke",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "auth",
+                "api-keys",
+                "revoke"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"apiKeyId\": \"string\",\n    \"keyPrefix\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Revokes an API key by ID or key prefix. Requires Hyperdrive (PostgreSQL) binding."
+          }
+        },
+        {
+          "name": "Validate API key",
+          "description": "Validates an API key without authenticating a full request. Useful for the admin UI to test keys.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/auth/api-keys/validate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "auth",
+                "api-keys",
+                "validate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"apiKey\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Validates an API key without authenticating a full request. Useful for the admin UI to test keys."
+          }
+        },
+        {
+          "name": "Migrate D1 data to PostgreSQL",
+          "description": "One-time migration that reads data from Cloudflare D1 (SQLite) and writes it to PostgreSQL via Hyperdrive.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/migrate/d1-to-pg",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "migrate",
+                "d1-to-pg"
+              ]
+            },
+            "description": "One-time migration that reads data from Cloudflare D1 (SQLite) and writes it to PostgreSQL via Hyperdrive.\n\nMigrates the following tables: `storage_entries`, `filter_cache`, `compilation_metadata`.\n\nThe migration is:\n- **Idempotent**: uses ON CONFLICT DO NOTHING to skip existing rows\n- **Batched**: processes rows in chunks of 100\n- **Read-only on D1**: never modifies the source database\n- **Resumable**: can be re-run safely if interrupted\n"
+          }
+        },
+        {
+          "name": "Backend health status",
+          "description": "Returns health and connectivity status of both D1 and PostgreSQL backends",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/backends",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "backends"
+              ]
+            },
+            "description": "Returns health and connectivity status of both D1 and PostgreSQL backends"
+          }
+        },
+        {
+          "name": "PostgreSQL storage statistics",
+          "description": "Returns storage statistics from the PostgreSQL backend (mirrors /admin/storage/stats for D1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pg/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pg",
+                "stats"
+              ]
+            },
+            "description": "Returns storage statistics from the PostgreSQL backend (mirrors /admin/storage/stats for D1)"
+          }
+        },
+        {
+          "name": "Export PostgreSQL data",
+          "description": "Exports data from the PostgreSQL backend (mirrors /admin/storage/export for D1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pg/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pg",
+                "export"
+              ]
+            },
+            "description": "Exports data from the PostgreSQL backend (mirrors /admin/storage/export for D1)"
+          }
+        },
+        {
+          "name": "Clear expired PostgreSQL entries",
+          "description": "Deletes all expired entries from PostgreSQL storage and cache tables",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pg/clear-expired",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pg",
+                "clear-expired"
+              ]
+            },
+            "description": "Deletes all expired entries from PostgreSQL storage and cache tables"
+          }
+        },
+        {
+          "name": "Clear PostgreSQL cache",
+          "description": "Deletes all cache entries from PostgreSQL tables",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pg/clear-cache",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pg",
+                "clear-cache"
+              ]
+            },
+            "description": "Deletes all cache entries from PostgreSQL tables"
+          }
+        },
+        {
+          "name": "Execute read-only PostgreSQL query",
+          "description": "Executes a SELECT-only SQL query against PostgreSQL for debugging (mirrors /admin/storage/query for D1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Admin-Key",
+                "value": "{{adminKey}}",
+                "type": "text",
+                "description": "Admin API key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pg/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pg",
+                "query"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"sql\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Executes a SELECT-only SQL query against PostgreSQL for debugging (mirrors /admin/storage/query for D1)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workflow",
+      "description": "Durable execution workflow endpoints",
+      "item": [
+        {
+          "name": "Start async compilation workflow",
+          "description": "Creates a durable Cloudflare Workflow instance for compilation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workflow/compile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workflow",
+                "compile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"configuration\": {\n        \"name\": \"string\",\n        \"description\": \"string\",\n        \"homepage\": \"string\",\n        \"license\": \"string\",\n        \"version\": \"string\",\n        \"sources\": [\n            {}\n        ],\n        \"transformations\": [\n            \"ConvertToAscii\"\n        ],\n        \"exclusions\": [\n            \"string\"\n        ],\n        \"exclusions_sources\": [\n            \"string\"\n        ],\n        \"inclusions\": [\n            \"string\"\n        ],\n        \"inclusions_sources\": [\n            \"string\"\n        ]\n    },\n    \"preFetchedContent\": {},\n    \"benchmark\": false,\n    \"turnstileToken\": \"string\",\n    \"priority\": \"standard\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a durable Cloudflare Workflow instance for compilation"
+          }
+        },
+        {
+          "name": "Start async batch compilation workflow",
+          "description": "Creates a durable Cloudflare Workflow instance for batch compilation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workflow/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workflow",
+                "batch"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"requests\": [\n        {\n            \"id\": \"string\",\n            \"configuration\": {},\n            \"preFetchedContent\": {},\n            \"benchmark\": false\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a durable Cloudflare Workflow instance for batch compilation"
+          }
+        },
+        {
+          "name": "Start cache warming workflow",
+          "description": "Triggers manual cache warming for specified configurations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workflow/cache-warm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workflow",
+                "cache-warm"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"configurations\": [\n        {\n            \"name\": \"string\",\n            \"description\": \"string\",\n            \"homepage\": \"string\",\n            \"license\": \"string\",\n            \"version\": \"string\",\n            \"sources\": [\n                {}\n            ],\n            \"transformations\": [\n                \"ConvertToAscii\"\n            ],\n            \"exclusions\": [\n                \"string\"\n            ],\n            \"exclusions_sources\": [\n                \"string\"\n            ],\n            \"inclusions\": [\n                \"string\"\n            ],\n            \"inclusions_sources\": [\n                \"string\"\n            ]\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Triggers manual cache warming for specified configurations"
+          }
+        },
+        {
+          "name": "Start health monitoring workflow",
+          "description": "Triggers manual health check for specified filter list sources",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workflow/health-check",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workflow",
+                "health-check"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"sources\": [\n        {\n            \"name\": \"string\",\n            \"url\": \"string\",\n            \"expectedMinRules\": 0\n        }\n    ],\n    \"alertOnFailure\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Triggers manual health check for specified filter list sources"
+          }
+        },
+        {
+          "name": "Get workflow instance status",
+          "description": "Returns the current status and output of a workflow instance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workflow/status/:workflowType/:instanceId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workflow",
+                "status",
+                ":workflowType",
+                ":instanceId"
+              ],
+              "variable": [
+                {
+                  "key": "workflowType",
+                  "value": "{{workflowType}}",
+                  "description": "Path parameter: workflowType"
+                },
+                {
+                  "key": "instanceId",
+                  "value": "{{instanceId}}",
+                  "description": "Path parameter: instanceId"
+                }
+              ]
+            },
+            "description": "Returns the current status and output of a workflow instance"
+          }
+        },
+        {
+          "name": "Get workflow metrics",
+          "description": "Returns aggregated metrics for all workflow types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workflow/metrics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workflow",
+                "metrics"
+              ]
+            },
+            "description": "Returns aggregated metrics for all workflow types"
+          }
+        },
+        {
+          "name": "Get workflow events",
+          "description": "Returns progress events for a specific workflow instance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workflow/events/:workflowId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workflow",
+                "events",
+                ":workflowId"
+              ],
+              "variable": [
+                {
+                  "key": "workflowId",
+                  "value": "{{workflowId}}",
+                  "description": "Path parameter: workflowId"
+                }
+              ]
+            },
+            "description": "Returns progress events for a specific workflow instance"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "description": "Health monitoring endpoints",
+      "item": [
+        {
+          "name": "Get latest health check results",
+          "description": "Returns the results of the most recent health monitoring workflow run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
                   "});"
                 ]
               }
@@ -840,287 +2089,24 @@
                 "latest"
               ]
             },
-            "description": "Returns results from the most recent health monitoring workflow run"
+            "description": "Returns the results of the most recent health monitoring workflow run"
           }
-        }
-      ]
-    },
-    {
-      "name": "Admin",
-      "item": [
-        {
-          "name": "Auth",
-          "item": [
-            {
-              "name": "Create User",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 201 or 409', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
-                      "});",
-                      "",
-                      "if (pm.response.code === 201) {",
-                      "    pm.test('Response has user data', function () {",
-                      "        const jsonData = pm.response.json();",
-                      "        pm.expect(jsonData.data).to.have.property('user');",
-                      "        pm.expect(jsonData.data.user).to.have.property('id');",
-                      "        pm.collectionVariables.set('userId', jsonData.data.user.id);",
-                      "    });",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"email\": \"test@example.com\",\n  \"displayName\": \"Test User\",\n  \"role\": \"user\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/auth/users",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "auth",
-                    "users"
-                  ]
-                },
-                "description": "Create a new user. Requires Hyperdrive (PostgreSQL) binding."
-              }
-            },
-            {
-              "name": "Create API Key",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 201', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([201, 404, 503]);",
-                      "});",
-                      "",
-                      "if (pm.response.code === 201) {",
-                      "    pm.test('Response has API key', function () {",
-                      "        const jsonData = pm.response.json();",
-                      "        pm.expect(jsonData.data).to.have.property('apiKey');",
-                      "        pm.expect(jsonData.data).to.have.property('keyPrefix');",
-                      "        pm.collectionVariables.set('apiKeyPrefix', jsonData.data.keyPrefix);",
-                      "    });",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"name\": \"Test API Key\",\n  \"scopes\": [\n    \"compile\"\n  ],\n  \"rateLimitPerMinute\": 60\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/auth/api-keys",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "auth",
-                    "api-keys"
-                  ]
-                },
-                "description": "Create a new API key for a user. The raw key is returned only once \u2014 store it securely. Requires Hyperdrive."
-              }
-            },
-            {
-              "name": "List API Keys",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 400 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 503]);",
-                      "});",
-                      "",
-                      "if (pm.response.code === 200) {",
-                      "    pm.test('Response has keys array', function () {",
-                      "        const jsonData = pm.response.json();",
-                      "        pm.expect(jsonData.data).to.have.property('keys');",
-                      "        pm.expect(jsonData.data.keys).to.be.an('array');",
-                      "    });",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/auth/api-keys?userId={{userId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "auth",
-                    "api-keys"
-                  ],
-                  "query": [
-                    {
-                      "key": "userId",
-                      "value": "{{userId}}"
-                    }
-                  ]
-                },
-                "description": "List all API keys for a user (key hashes are not returned). Requires Hyperdrive."
-              }
-            },
-            {
-              "name": "Revoke API Key",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 404 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 404, 503]);",
-                      "});"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"keyPrefix\": \"{{apiKeyPrefix}}\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/auth/api-keys/revoke",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "auth",
-                    "api-keys",
-                    "revoke"
-                  ]
-                },
-                "description": "Revoke an API key by ID or key prefix. Requires Hyperdrive."
-              }
-            },
-            {
-              "name": "Validate API Key",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 503]);",
-                      "});",
-                      "",
-                      "if (pm.response.code === 200) {",
-                      "    pm.test('Response has valid field', function () {",
-                      "        const jsonData = pm.response.json();",
-                      "        pm.expect(jsonData.data).to.have.property('valid');",
-                      "    });",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"apiKey\": \"replace-with-actual-api-key\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/auth/api-keys/validate",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "auth",
-                    "api-keys",
-                    "validate"
-                  ]
-                },
-                "description": "Validate an API key without authenticating a full request. Useful for the admin UI to test keys. Requires Hyperdrive."
-              }
-            }
-          ]
         },
         {
-          "name": "Backend Health Status",
+          "name": "Basic health check",
+          "description": "Returns current service health status and version",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Response has backends', function () {",
-                  "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data).to.have.property('backends');",
-                  "    pm.expect(jsonData.data.backends).to.have.property('d1');",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
                   "});"
                 ]
               }
@@ -1128,329 +2114,18 @@
           ],
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "X-Admin-Key",
-                "value": "{{adminKey}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/backends",
+              "raw": "{{baseUrl}}/health",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin",
-                "backends"
+                "health"
               ]
             },
-            "description": "Returns health and connectivity status of both D1 (SQLite) and PostgreSQL backends."
+            "description": "Returns current service health status and version"
           }
-        },
-        {
-          "name": "Migration",
-          "item": [
-            {
-              "name": "Migrate D1 to PostgreSQL (Dry Run)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
-                      "});",
-                      "",
-                      "if (pm.response.code === 200) {",
-                      "    pm.test('Response has dryRun flag', function () {",
-                      "        const jsonData = pm.response.json();",
-                      "        pm.expect(jsonData.data.dryRun).to.be.true;",
-                      "    });",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/migrate/d1-to-pg?dryRun=true",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "migrate",
-                    "d1-to-pg"
-                  ],
-                  "query": [
-                    {
-                      "key": "dryRun",
-                      "value": "true"
-                    }
-                  ]
-                },
-                "description": "Dry-run migration: counts D1 rows without writing to PostgreSQL. Requires both D1 and Hyperdrive bindings."
-              }
-            },
-            {
-              "name": "Migrate D1 to PostgreSQL",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
-                      "});",
-                      "",
-                      "if (pm.response.code === 200) {",
-                      "    pm.test('Response has migration tables', function () {",
-                      "        const jsonData = pm.response.json();",
-                      "        pm.expect(jsonData.data).to.have.property('tables');",
-                      "        pm.expect(jsonData.data.tables).to.be.an('array');",
-                      "    });",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/migrate/d1-to-pg",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "migrate",
-                    "d1-to-pg"
-                  ]
-                },
-                "description": "Migrate data from D1 (SQLite) to PostgreSQL via Hyperdrive. Idempotent and resumable. Requires both D1 and Hyperdrive bindings."
-              }
-            }
-          ]
-        },
-        {
-          "name": "PostgreSQL",
-          "item": [
-            {
-              "name": "PG Storage Stats",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
-                      "});",
-                      "",
-                      "if (pm.response.code === 200) {",
-                      "    pm.test('Response has stats', function () {",
-                      "        const jsonData = pm.response.json();",
-                      "        pm.expect(jsonData.data).to.have.property('stats');",
-                      "    });",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/pg/stats",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "pg",
-                    "stats"
-                  ]
-                },
-                "description": "Storage statistics from the PostgreSQL backend (mirrors /admin/storage/stats for D1). Requires Hyperdrive."
-              }
-            },
-            {
-              "name": "PG Export Data",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
-                      "});"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/pg/export",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "pg",
-                    "export"
-                  ]
-                },
-                "description": "Export storage data from PostgreSQL as JSON. Returns a downloadable attachment. Requires Hyperdrive."
-              }
-            },
-            {
-              "name": "PG Clear Expired Entries",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
-                      "});"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/pg/clear-expired",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "pg",
-                    "clear-expired"
-                  ]
-                },
-                "description": "Delete all expired entries from PostgreSQL storage and cache tables. Requires Hyperdrive."
-              }
-            },
-            {
-              "name": "PG Clear Cache",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
-                      "});"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/pg/clear-cache",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "pg",
-                    "clear-cache"
-                  ]
-                },
-                "description": "Delete all cache entries from PostgreSQL tables. Requires Hyperdrive."
-              }
-            },
-            {
-              "name": "PG Read-Only SQL Query",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status code is 200 or 400 or 503', function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 503]);",
-                      "});",
-                      "",
-                      "if (pm.response.code === 200) {",
-                      "    pm.test('Response has rows', function () {",
-                      "        const jsonData = pm.response.json();",
-                      "        pm.expect(jsonData.data).to.have.property('rows');",
-                      "    });",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "X-Admin-Key",
-                    "value": "{{adminKey}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"sql\": \"SELECT COUNT(*) FROM storage_entries\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/admin/pg/query",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "pg",
-                    "query"
-                  ]
-                },
-                "description": "Execute a read-only SELECT query against PostgreSQL for debugging. Only SELECT statements are allowed. Requires Hyperdrive."
-              }
-            }
-          ]
         }
       ]
     }

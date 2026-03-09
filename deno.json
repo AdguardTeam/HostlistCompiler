@@ -36,6 +36,7 @@
         "openapi:validate": "deno run --allow-read --allow-net scripts/validate-openapi.ts",
         "openapi:docs": "deno run --allow-read --allow-write --allow-net scripts/generate-docs.ts",
         "schema:cloudflare": "deno run --allow-read --allow-write scripts/generate-cloudflare-schema.ts",
+        "postman:collection": "deno run --allow-read --allow-write scripts/generate-postman-collection.ts",
         "test:contract": "SKIP_CONTRACT_TESTS=false deno test --allow-read --allow-write --allow-net --allow-env worker/openapi-contract.test.ts",
         "db:generate": "deno run -A --env=.envrc npm:prisma generate",
         "db:push": "deno run -A --env=.envrc npm:prisma db push",
