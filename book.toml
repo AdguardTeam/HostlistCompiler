@@ -3,9 +3,12 @@ title = "AdBlock Compiler"
 authors = ["jaypatrick"]
 src = "docs"
 
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+
 [output.html]
 site-url = "/docs/"
 git-repository-url = "https://github.com/jaypatrick/adblock-compiler"
 edit-url-template = "https://github.com/jaypatrick/adblock-compiler/edit/main/{path}"
 additional-css = ["docs/theme/custom.css"]
-additional-js = ["docs/theme/custom.js"]
+additional-js = ["docs/theme/mermaid.min.js", "docs/theme/custom.js"]
