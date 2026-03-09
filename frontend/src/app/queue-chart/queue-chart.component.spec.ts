@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { QueueChartComponent } from './queue-chart.component';
 
 describe('QueueChartComponent', () => {
@@ -8,7 +9,7 @@ describe('QueueChartComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [QueueChartComponent],
+            imports: [QueueChartComponent, NoopAnimationsModule],
             providers: [provideZonelessChangeDetection()],
         }).compileComponents();
 
@@ -25,8 +26,8 @@ describe('QueueChartComponent', () => {
         expect(component.width()).toBe(400);
     });
 
-    it('should have default color', () => {
-        expect(component.color()).toContain('--app-primary');
+    it('should have default color referencing Material system token', () => {
+        expect(component.color()).toContain('--mat-sys-primary');
     });
 
     it('should compute viewBox from dimensions', () => {
@@ -94,6 +95,12 @@ describe('QueueChartComponent', () => {
         const points = component.polylinePoints();
         expect(points.length).toBe(1);
         expect(points[0].value).toBe(42);
+    });
+
+    it('should render mat-card wrapper', () => {
+        fixture.detectChanges();
+        const card = fixture.nativeElement.querySelector('mat-card');
+        expect(card).toBeTruthy();
     });
 
     it('should render SVG element', () => {

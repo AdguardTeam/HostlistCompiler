@@ -8,17 +8,18 @@
  */
 
 import { Component, inject } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NotificationService } from '../services/notification.service';
 
 @Component({
     selector: 'app-notification-container',
-    imports: [MatIconModule, MatButtonModule],
+    imports: [MatCardModule, MatIconModule, MatButtonModule],
     template: `
         <div class="toast-container" aria-live="polite" role="status" aria-atomic="false">
             @for (toast of notificationService.toasts(); track toast.id) {
-                <div class="toast" [class]="toast.type">
+                <mat-card class="toast" [class]="toast.type" appearance="outlined">
                     <mat-icon class="toast-icon" aria-hidden="true">{{ iconFor(toast.type) }}</mat-icon>
                     <div class="toast-body">
                         <div class="toast-title">{{ toast.title }}</div>
@@ -28,7 +29,7 @@ import { NotificationService } from '../services/notification.service';
                         aria-label="Dismiss notification">
                         <mat-icon aria-hidden="true">close</mat-icon>
                     </button>
-                </div>
+                </mat-card>
             }
         </div>
     `,

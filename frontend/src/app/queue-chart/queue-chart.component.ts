@@ -15,16 +15,22 @@
  */
 
 import { Component, computed, input } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
     selector: 'app-queue-chart',
+    imports: [MatCardModule],
     template: `
-        <div class="chart-container">
+        <mat-card appearance="outlined" class="queue-chart-card">
             @if (label()) {
-                <span class="chart-label">{{ label() }}</span>
+                <mat-card-header>
+                    <mat-card-title class="chart-label">{{ label() }}</mat-card-title>
+                </mat-card-header>
             }
+            <mat-card-content>
             <svg [attr.viewBox]="viewBox()" preserveAspectRatio="xMidYMid meet"
-                class="chart-svg" [style.max-height.px]="height()">
+                class="chart-svg" [style.max-height.px]="height()"
+                [attr.aria-label]="label() || 'Queue depth chart'">
                 <!-- Grid lines -->
                 @for (y of gridLines(); track y) {
                     <line [attr.x1]="padding" [attr.x2]="innerWidth()"
@@ -58,18 +64,18 @@ import { Component, computed, input } from '@angular/core';
                         text-anchor="middle" class="empty-label">No data</text>
                 }
             </svg>
-        </div>
+            </mat-card-content>
+        </mat-card>
     `,
     styles: [`
-        .chart-container {
+        .queue-chart-card {
             display: flex;
             flex-direction: column;
-            gap: 8px;
         }
         .chart-label {
             font-size: 0.85rem;
             font-weight: 600;
-            color: var(--app-text-secondary, #666);
+            color: var(--mat-sys-secondary, #625b71);
         }
         .chart-svg {
             width: 100%;
@@ -109,7 +115,7 @@ import { Component, computed, input } from '@angular/core';
 export class QueueChartComponent {
     readonly dataPoints = input<number[]>([]);
     readonly label = input('');
-    readonly color = input('var(--app-primary, #6750a4)');
+    readonly color = input('var(--mat-sys-primary, #6750a4)');
     readonly height = input(180);
     readonly width = input(400);
 
