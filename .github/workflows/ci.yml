@@ -332,6 +332,36 @@ jobs:
                   fi
                   echo "✅ Postman collection is up to date"
 
+    check-slow-types:
+        name: Check Slow Types
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
+            - name: Cache Deno dependencies
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
+            - name: Install Deno dependencies
+              uses: ./.github/actions/deno-install
+
+            - name: Check for slow types
+              run: deno publish --dry-run
+
     ci-gate:
         name: CI Gate
         runs-on: ubuntu-latest
@@ -344,6 +374,7 @@ jobs:
             - validate-postman-collection
             - frontend-lint-test
             - frontend-build
+            - check-slow-types
             - verify-deploy
         if: ${{ always() && !cancelled() }}
         steps:
@@ -409,7 +440,7 @@ jobs:
             - name: Publish to JSR
               run: |
                   set -euo pipefail
-                  if ! OUTPUT="$(deno publish --allow-dirty --allow-slow-types 2>&1)"; then
+                  if ! OUTPUT="$(deno publish --allow-dirty 2>&1)"; then
                     echo "${OUTPUT}"
                     if echo "${OUTPUT}" | grep -qiE 'version .*already (exists|published)'; then
                       echo "Version already published, skipping."

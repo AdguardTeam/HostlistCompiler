@@ -14,7 +14,7 @@ import { type IConfiguration, type ISource, type LogLevelType, SourceType, Trans
  * Schema for request/job priority level.
  * Shared between CompileRequestSchema, BatchRequestSchema, CliArgumentsSchema, and worker schemas.
  */
-export const PrioritySchema = z.enum(['standard', 'high']).describe('Request processing priority level');
+export const PrioritySchema: z.ZodEnum<{ standard: 'standard'; high: 'high' }> = z.enum(['standard', 'high']).describe('Request processing priority level');
 export type Priority = z.infer<typeof PrioritySchema>;
 
 // ============================================================================
