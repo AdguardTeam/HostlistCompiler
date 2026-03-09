@@ -1,9 +1,0 @@
-$kind: http-request
-description: Logs the user out of the gateway session. Any further activity
-  requires re-authentication.
-url: "{{baseUrl}}/logout"
-method: POST
-headers:
-  Accept: application/json
-examples: ./.resources/Logout Of The Current Session..resources/examples
-order: 1000

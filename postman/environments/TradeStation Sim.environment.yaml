@@ -1,6 +1,0 @@
-name: TradeStation Sim
-values:
-  - key: baseUrl
-    value: https://sim-api.tradestation.com
-    enabled: true
-color: null

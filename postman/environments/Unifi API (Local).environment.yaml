@@ -1,9 +1,0 @@
-name: Unifi API (Local)
-values:
-  - key: X-API-KEY
-    value: xbtpA1tAietowYGMXi_8PJ-L8okpTlFd
-    enabled: true
-  - key: base-url
-    value: unifi.jaysonknight.com
-    enabled: true
-color: null

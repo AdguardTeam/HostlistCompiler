@@ -1,8 +1,0 @@
-$kind: http-request
-description: This endpoint allows the deletion of query logs. The request should
-  not contain a request body, and upon successful deletion, the response will be
-  null.
-url: "{{baseUrl}}/oapi/v1/query_log"
-method: DELETE
-examples: ./.resources/Clears query log.resources/examples
-order: 1000

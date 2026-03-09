@@ -1,9 +1,0 @@
-$kind: http-request
-description: Returns an xml file containing all available parameters to be sent
-  for the Iserver scanner request.
-url: "{{baseUrl}}/iserver/scanner/params"
-method: GET
-headers:
-  Accept: application/json
-examples: ./.resources/Iserver Scanner Parameters.resources/examples
-order: 1000

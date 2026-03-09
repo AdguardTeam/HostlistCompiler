@@ -1,6 +1,0 @@
-name: NinjaTrader Dev
-values:
-  - key: baseUrl
-    value: https://demo.tradovateapi.com/v1
-    enabled: true
-color: null

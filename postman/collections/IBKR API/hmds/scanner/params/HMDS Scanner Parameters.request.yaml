@@ -1,8 +1,0 @@
-$kind: http-request
-description: Query the parameter list for the HMDS market scanner.
-url: "{{baseUrl}}/hmds/scanner/params"
-method: GET
-headers:
-  Accept: application/json
-examples: ./.resources/HMDS Scanner Parameters.resources/examples
-order: 1000

@@ -1,8 +1,0 @@
-$kind: http-request
-description: Returns the total number of unread notifications
-url: "{{baseUrl}}/fyi/unreadnumber"
-method: GET
-headers:
-  Accept: application/json
-examples: ./.resources/Unread Bulletins.resources/examples
-order: 1000

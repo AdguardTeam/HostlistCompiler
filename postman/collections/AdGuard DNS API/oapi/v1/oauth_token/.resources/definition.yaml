@@ -1,6 +1,0 @@
-$kind: collection
-auth:
-  - id: ""
-    type: noauth
-    name: No Auth
-order: 6000

@@ -1,9 +1,0 @@
-name: Unifi API (Remote)
-values:
-  - key: X-API-KEY
-    value: 3wGLEhKuo243R40mUMhQYj7mZqb0M80g
-    enabled: true
-  - key: base-url
-    value: unifi.ui.com
-    enabled: true
-color: null

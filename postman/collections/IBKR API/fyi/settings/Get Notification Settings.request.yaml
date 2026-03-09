@@ -1,8 +1,0 @@
-$kind: http-request
-description: Return the current choices of subscriptions for notifications.
-url: "{{baseUrl}}/fyi/settings"
-method: GET
-headers:
-  Accept: application/json
-examples: ./.resources/Get Notification Settings.resources/examples
-order: 2000
