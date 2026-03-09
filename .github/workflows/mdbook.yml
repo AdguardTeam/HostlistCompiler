@@ -32,10 +32,11 @@ jobs:
           rm mdbook.tar.gz
 
           MERMAID_VERSION=0.14.0
-          curl -sSL "https://github.com/badboy/mdbook-mermaid/releases/download/v${MERMAID_VERSION}/mdbook-mermaid-v${MERMAID_VERSION}-x86_64-unknown-linux-gnu.tar.gz" -o mdbook-mermaid.tar.gz
-          tar xzf mdbook-mermaid.tar.gz
-          sudo mv mdbook-mermaid /usr/local/bin/
-          rm mdbook-mermaid.tar.gz
+          curl -fsSL "https://github.com/badboy/mdbook-mermaid/releases/download/v${MERMAID_VERSION}/mdbook-mermaid-v${MERMAID_VERSION}-x86_64-unknown-linux-gnu.tar.gz" -o mdbook-mermaid.tar.gz
+          mkdir -p /tmp/mdbook-mermaid-install
+          tar xzf mdbook-mermaid.tar.gz -C /tmp/mdbook-mermaid-install
+          sudo mv /tmp/mdbook-mermaid-install/mdbook-mermaid /usr/local/bin/
+          rm -rf mdbook-mermaid.tar.gz /tmp/mdbook-mermaid-install
 
       - name: Set up Deno
         uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
