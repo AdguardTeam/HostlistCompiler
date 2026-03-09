@@ -58,6 +58,8 @@ interface ICliArgs {
     verbose?: boolean;
     benchmark?: boolean;
     progress?: boolean;
+    'use-queue'?: boolean;
+    priority?: 'standard' | 'high';
     help?: boolean;
     version?: boolean;
     // Transformation control
@@ -250,7 +252,8 @@ Transformations:
                                Overrides all other transformation flags.
                                Values: RemoveComments, Deduplicate, Compress, Validate,
                                        ValidateAllowIp, InvertAllow, RemoveModifiers,
-                                       TrimLines, InsertFinalNewLine, ConvertToAscii
+                                       TrimLines, InsertFinalNewLine, RemoveEmptyLines,
+                                       ConvertToAscii, ConflictDetection, RuleOptimizer
 
 Filtering:
       --exclude <pattern>      Exclude rules matching pattern (repeatable)
@@ -286,7 +289,7 @@ Examples:
      */
     private parseArgs(argv: string[]): ICliArgs {
         const parsed = parseArgs(argv, {
-            string: ['config', 'input-type', 'output', 'format', 'name', 'user-agent'],
+            string: ['config', 'input-type', 'output', 'format', 'name', 'user-agent', 'priority'],
             boolean: [
                 'verbose',
                 'benchmark',
@@ -295,6 +298,7 @@ Examples:
                 'progress',
                 'stdout',
                 'append',
+                'use-queue',
                 'no-deduplicate',
                 'no-validate',
                 'no-compress',
@@ -313,6 +317,7 @@ Examples:
                 v: 'verbose',
                 b: 'benchmark',
                 p: 'progress',
+                q: 'use-queue',
                 h: 'help',
             },
         });
@@ -347,6 +352,8 @@ Examples:
             verbose: parsed.verbose,
             benchmark: parsed.benchmark,
             progress: parsed.progress,
+            'use-queue': parsed['use-queue'],
+            priority: parsed.priority as 'standard' | 'high' | undefined,
             help: parsed.help,
             version: parsed.version,
             'no-deduplicate': parsed['no-deduplicate'],
@@ -567,6 +574,14 @@ Examples:
             // Warn about flags that are parsed but not yet fully implemented
             if (this.args.format) {
                 this.logger.warn('--format is not yet supported and will be ignored');
+            }
+
+            if (this.args['use-queue']) {
+                this.logger.warn('--use-queue is only supported via the worker API and will be ignored in standalone CLI mode');
+            }
+
+            if (this.args.priority) {
+                this.logger.warn('--priority is only supported via the worker API and will be ignored in standalone CLI mode');
             }
 
             this.logger.info(`Starting @jk-com/adblock-compiler v${VERSION}`);

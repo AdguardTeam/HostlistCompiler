@@ -48,7 +48,7 @@ export interface RuleOptimizerOptions {
  */
 export class RuleOptimizerTransformation extends SyncTransformation {
     /** The transformation type identifier */
-    public readonly type: TransformationType = TransformationType.Deduplicate; // Reuse type
+    public readonly type: TransformationType = TransformationType.RuleOptimizer;
     /** Human-readable name of the transformation */
     public readonly name = 'RuleOptimizer';
 
