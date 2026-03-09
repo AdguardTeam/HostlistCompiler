@@ -23,6 +23,10 @@
  * - **Formatters** – output formatters for adblock, hosts, dnsmasq, DoH, etc.
  * - **Diff** – `DiffGenerator` for comparing two compiled filter lists
  * - **Plugins** – the extensible plugin registry and plugin wrapper API
+ * - **Conflict Detection** – `ConflictDetectionTransformation` and `detectConflicts()` for
+ *   finding and resolving conflicting block/allow rules
+ * - **Rule Optimizer** – `RuleOptimizerTransformation` and `optimizeRules()` for reducing
+ *   file size and improving matching performance
  *
  * @example Install and compile a list
  * ```ts
