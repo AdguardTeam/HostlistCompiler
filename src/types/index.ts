@@ -17,6 +17,8 @@ export enum TransformationType {
     TrimLines = 'TrimLines',
     InsertFinalNewLine = 'InsertFinalNewLine',
     ConvertToAscii = 'ConvertToAscii',
+    ConflictDetection = 'ConflictDetection',
+    RuleOptimizer = 'RuleOptimizer',
 }
 
 /**

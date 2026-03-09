@@ -58,7 +58,7 @@ export interface ConflictDetectionResult {
  */
 export class ConflictDetectionTransformation extends SyncTransformation {
     /** The transformation type identifier */
-    public readonly type: TransformationType = TransformationType.Validate; // Reuse Validate type
+    public readonly type: TransformationType = TransformationType.ConflictDetection;
     /** Human-readable name of the transformation */
     public readonly name = 'ConflictDetection';
 
