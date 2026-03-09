@@ -28,7 +28,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { FormsModule } from '@angular/forms';
 import { StatCardComponent } from '../stat-card/stat-card.component';
 import { SkeletonCardComponent } from '../skeleton/skeleton-card.component';
 import { QueueChartComponent } from '../queue-chart/queue-chart.component';
@@ -58,7 +57,6 @@ interface EndpointInfo {
 @Component({
     selector: 'app-home',
     imports: [
-        FormsModule,
         MatCardModule,
         MatButtonModule,
         MatIconModule,
@@ -122,14 +120,14 @@ interface EndpointInfo {
         <!-- ─── Settings Bar (auto-refresh + notifications) ─── -->
         <div class="settings-bar">
             <div class="setting-item">
-                <mat-slide-toggle [(ngModel)]="autoRefreshEnabled"
-                    (ngModelChange)="onAutoRefreshToggle($event)">
+                <mat-slide-toggle [checked]="autoRefreshEnabled"
+                    (change)="onAutoRefreshToggle($event.checked)">
                     Auto-refresh ({{ autoRefreshInterval / 1000 }}s)
                 </mat-slide-toggle>
             </div>
             <div class="setting-item">
-                <mat-slide-toggle [ngModel]="notifications.isEnabled()"
-                    (ngModelChange)="notifications.toggleNotifications()">
+                <mat-slide-toggle [checked]="notifications.isEnabled()"
+                    (change)="notifications.toggleNotifications()">
                     Browser notifications
                 </mat-slide-toggle>
             </div>
