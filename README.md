@@ -11,7 +11,7 @@
 
 [![JSR](https://jsr.io/badges/@jk-com/adblock-compiler)](https://jsr.io/@jk-com/adblock-compiler)
 [![JSR Score](https://jsr.io/badges/@jk-com/adblock-compiler/score)](https://jsr.io/@jk-com/adblock-compiler)
-[![GitHub Release](https://img.shields.io/github/v/release/jaypatrick/adblock-compiler)](https://github.com/jaypatrick/adblock-compiler/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/jaypatrick/adblock-compiler?include_prereleases)](https://github.com/jaypatrick/adblock-compiler/releases)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
 <!-- Live Services & Deployment -->
