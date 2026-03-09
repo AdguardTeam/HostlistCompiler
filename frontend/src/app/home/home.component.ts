@@ -432,7 +432,7 @@ export class HomeComponent {
             tagColor: 'warn',
         },
         {
-            path: '/docs',
+            path: 'https://adblock-compiler-docs.pages.dev/',
             icon: 'menu_book',
             title: 'Documentation',
             description: 'Full documentation, guides, and API reference hosted on Cloudflare Pages.',
