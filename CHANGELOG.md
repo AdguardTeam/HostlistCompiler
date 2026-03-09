@@ -93,6 +93,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.49.0] - 2026-03-09
+
+### Added- wrap QueueChartComponent and toasts in mat-card for Material Design consistency
+- add mdbook-mermaid preprocessor for Mermaid diagram rendering
+- add mdbook docs link and fix /docs unthemed page issue
+
+### Fixed
+
+- address review comments on mdbook-mermaid integration
+- apply deno fmt formatting to worker.ts if-condition at line 3716
+- address PR review feedback on /docs redirect and docs URL coupling
+- sync autoRefreshEnabled state and convert validation ngModel bindings for SSR safety
+- enable SSR/SSG for home and compiler routes (#914)
+- address reviewer feedback on CLI gaps and transformation ordering
+- reconcile CLI args, transformation types, and API documentation gaps
+
+
 ## [0.48.1] - 2026-03-09
 
 ### Added### Fixed
