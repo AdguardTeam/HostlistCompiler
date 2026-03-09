@@ -22,6 +22,8 @@ Deno.test('TransformationRegistry - should have all default transformations regi
     assertEquals(registry.has(TransformationType.Validate), true);
     assertEquals(registry.has(TransformationType.ValidateAllowIp), true);
     assertEquals(registry.has(TransformationType.Compress), true);
+    assertEquals(registry.has(TransformationType.ConflictDetection), true);
+    assertEquals(registry.has(TransformationType.RuleOptimizer), true);
 });
 
 Deno.test('TransformationRegistry - should get transformation by type', () => {
@@ -42,7 +44,7 @@ Deno.test('TransformationRegistry - should get all registered types', () => {
     const registry = new TransformationRegistry();
 
     const types = registry.getRegisteredTypes();
-    assertEquals(types.length, 11); // All default transformations
+    assertEquals(types.length, 13); // All default transformations
     assertEquals(types.includes(TransformationType.RemoveComments), true);
     assertEquals(types.includes(TransformationType.Deduplicate), true);
 });

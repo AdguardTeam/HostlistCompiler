@@ -33,6 +33,7 @@ adblock-compiler [options]
 | `--input-type <type>` | `-t` | `hosts`\|`adblock` | Input format [default: `hosts`] |
 | `--verbose` | `-v` | boolean | Enable verbose logging |
 | `--benchmark` | `-b` | boolean | Show performance benchmark report |
+| `--progress` | `-p` | boolean | Show real-time progress events during compilation |
 | `--use-queue` | `-q` | boolean | Submit job to async queue (requires worker API) |
 | `--priority <level>` | | `standard`\|`high` | Queue priority [default: `standard`] |
 | `--version` | | boolean | Show version number |
@@ -49,11 +50,11 @@ adblock-compiler [options]
 | `--output <file>` | `-o` | string | Output file path [required unless `--stdout`] |
 | `--stdout` | | boolean | Write output to stdout instead of a file |
 | `--append` | | boolean | Append to output file instead of overwriting |
-| `--format <format>` | | string | Output format |
+| `--format <format>` | | string | Output format. When specified, the compiled rules are passed through the formatter before writing. Supported values: `adblock`, `hosts`, `dnsmasq`, `doh`, `json`, `pihole`, `unbound`. [not yet wired in CLI — use the programmatic API's `createFormatter` / `formatOutput` for now] |
 | `--name <file>` | | string | Compare output against an existing file and print a summary of added/removed rules |
 | `--max-rules <n>` | | number | Truncate output to at most `n` rules |
 
-> `--stdout` and `--output` are mutually exclusive.
+> `--stdout` and `--output` are mutually exclusive. `--format` is parsed but not yet wired into the CLI output path; use the programmatic `createFormatter` / `formatOutput` API instead.
 
 ---
 
@@ -89,6 +90,8 @@ When no transformation flags are specified, the default pipeline is used:
 | `InsertFinalNewLine` | Ensure the output ends with a newline |
 | `RemoveEmptyLines` | Remove blank lines |
 | `ConvertToAscii` | Convert non-ASCII hostnames to Punycode |
+| `ConflictDetection` | Detect and optionally auto-resolve conflicting block/allow rules for the same domain |
+| `RuleOptimizer` | Optimize rules for smaller file size and better matching performance |
 
 > See [TRANSFORMATIONS.md](TRANSFORMATIONS.md) for detailed descriptions of each transformation.
 
