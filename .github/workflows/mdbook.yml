@@ -67,7 +67,11 @@ jobs:
           # shellcheck source=.github/scripts/retry.sh
           source .github/scripts/retry.sh
           echo "Checking if Pages project exists..."
-          PROJECT_LIST=$(retry_command 3 15 deno task wrangler pages project list 2>&1) || {
+          PROJECT_LIST=$(
+            {
+              retry_command 3 15 deno task wrangler pages project list
+            } 2>&1
+          ) || {
             echo "Warning: Could not list Pages projects after retries (API may be temporarily unavailable)."
             echo "Skipping project creation check - will attempt deployment directly."
             exit 0
