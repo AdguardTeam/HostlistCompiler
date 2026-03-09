@@ -32,6 +32,7 @@
         "fmt": "deno fmt",
         "fmt:check": "deno fmt --check",
         "check": "deno check src/index.ts",
+        "check:slow-types": "deno publish --dry-run",
         "cache": "deno cache src/index.ts",
         "openapi:validate": "deno run --allow-read --allow-net scripts/validate-openapi.ts",
         "openapi:docs": "deno run --allow-read --allow-write --allow-net scripts/generate-docs.ts",
