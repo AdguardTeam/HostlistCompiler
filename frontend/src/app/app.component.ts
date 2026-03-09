@@ -29,7 +29,6 @@ import { ThemeService } from './services/theme.service';
 import { routeAnimation } from './route-animations';
 import { ErrorBoundaryComponent } from './error/error-boundary.component';
 import { NotificationContainerComponent } from './notification/notification-container.component';
-import { DOCS_SITE_URL } from './constants';
 
 /** Navigation item interface */
 interface NavItem {
@@ -202,7 +201,7 @@ export class AppComponent {
         { path: '/validation',  label: 'Validation',  icon: 'check_circle'      },
         { path: '/api-docs',    label: 'API Docs',    icon: 'description'       },
         { path: '/admin',       label: 'Admin',       icon: 'admin_panel_settings' },
-        { path: DOCS_SITE_URL, label: 'Docs', icon: 'menu_book', external: true },
+        { path: '/docs',        label: 'Docs',        icon: 'menu_book',         external: true },
     ];
 
     /**

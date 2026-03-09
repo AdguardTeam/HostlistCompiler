@@ -3711,9 +3711,16 @@ export default {
 
         // Redirect /docs and /docs/* to the mdBook documentation site on Cloudflare Pages.
         // The mdBook is deployed to a separate Pages project and is not served from this worker.
-        if (request.method === 'GET' && (pathname === '/docs' || pathname.startsWith('/docs/'))) {
+        // Handles both GET and HEAD so crawlers and clients get a consistent response.
+        // Uses 302 (temporary) to avoid browsers/CDNs caching the target URL long-term.
+        if ((request.method === 'GET' || request.method === 'HEAD') &&
+            (pathname === '/docs' || pathname.startsWith('/docs/'))) {
             const docsSubpath = pathname.startsWith('/docs/') ? pathname.slice('/docs'.length) : '/';
-            return Response.redirect(new URL(docsSubpath, DOCS_SITE_URL).toString(), 301);
+            const target = new URL(docsSubpath, DOCS_SITE_URL);
+            if (url.search) {
+                target.search = url.search;
+            }
+            return Response.redirect(target.toString(), 302);
         }
 
         // Serve web UI and static assets (including Angular SPA routes)
