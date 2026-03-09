@@ -386,7 +386,7 @@ Features:
 
 A comprehensive OpenAPI 3.0 specification is available at:
 ```
-/openapi.yaml
+docs/api/openapi.yaml
 ```
 
 This includes:

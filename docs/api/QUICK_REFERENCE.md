@@ -150,14 +150,17 @@ Contract tests verify:
 ## 🧪 Postman Testing
 
 ```bash
+# Regenerate collection from OpenAPI spec
+deno task postman:collection
+
 # Run all Postman tests
-newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json
+newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json
 
 # Run specific folder
-newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json --folder "Compilation"
+newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json --folder "Compilation"
 
 # With detailed reporting
-newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json --reporters cli,json,html
+newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json --reporters cli,json,html
 ```
 
 ## 📈 Monitoring
@@ -227,16 +230,19 @@ curl http://localhost:8787/metrics
 ## 📚 File Locations
 
 ```
-docs/api/openapi.yaml             # OpenAPI specification (canonical source)
-postman-collection.json           # Postman test collection
-postman-environment.json          # Postman environment config
-scripts/validate-openapi.ts       # Validation script
-scripts/generate-docs.ts          # Documentation generator
-worker/openapi-contract.test.ts   # Contract tests
-docs/api/index.html              # Generated HTML docs
-docs/api/README.md               # Generated markdown docs
-docs/api/OPENAPI_TOOLING.md          # Complete guide
-docs/testing/POSTMAN_TESTING.md          # Postman guide
+docs/api/openapi.yaml                 # OpenAPI specification (canonical source — edit this)
+docs/api/cloudflare-schema.yaml       # Auto-generated (deno task schema:cloudflare)
+docs/postman/postman-collection.json  # Auto-generated (deno task postman:collection)
+docs/postman/postman-environment.json # Auto-generated (deno task postman:collection)
+scripts/validate-openapi.ts           # Validation script
+scripts/generate-docs.ts              # Documentation generator
+scripts/generate-postman-collection.ts # Postman generator
+worker/openapi-contract.test.ts       # Contract tests
+docs/api/index.html                   # Generated HTML docs
+docs/api/README.md                    # Generated markdown docs
+docs/api/OPENAPI_TOOLING.md           # Complete guide
+docs/postman/README.md                # Postman collection guide
+docs/testing/POSTMAN_TESTING.md       # Postman testing guide
 ```
 
 ## 🔗 Links

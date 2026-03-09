@@ -271,16 +271,40 @@ jobs:
 
 See [POSTMAN_TESTING.md](../testing/POSTMAN_TESTING.md) for complete Postman documentation.
 
+### Generate / Regenerate the Postman Collection
+
+The Postman collection and environment files are **auto-generated** from `docs/api/openapi.yaml`. Do not edit them directly.
+
+```bash
+# Regenerate from the canonical OpenAPI spec
+deno task postman:collection
+```
+
+This creates / updates:
+- `docs/postman/postman-collection.json` — all API requests with automated test assertions
+- `docs/postman/postman-environment.json` — local and production environment variables
+
+The CI `validate-postman-collection` job regenerates the files and fails the build if the committed copies are out of sync with `docs/api/openapi.yaml`. Always run `deno task postman:collection` and commit the result whenever you change the spec.
+
+### Schema Hierarchy
+
+```
+docs/api/openapi.yaml                 ← canonical source of truth (edit this)
+docs/api/cloudflare-schema.yaml       ← auto-generated (deno task schema:cloudflare)
+docs/postman/postman-collection.json  ← auto-generated (deno task postman:collection)
+docs/postman/postman-environment.json ← auto-generated (deno task postman:collection)
+```
+
 ### Quick Start
 
 ```bash
-# Import collection and environment
-# - postman-collection.json
-# - postman-environment.json
+# Import collection and environment into Postman
+# - docs/postman/postman-collection.json
+# - docs/postman/postman-environment.json
 
 # Or use Newman CLI
 npm install -g newman
-newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json
+newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json
 ```
 
 ### Postman Features
@@ -374,7 +398,7 @@ jobs:
         run: npm install -g newman
         
       - name: Run Postman tests
-        run: newman run docs/tools/postman-collection.json -e docs/tools/postman-environment.json --reporters cli,json
+        run: newman run docs/postman/postman-collection.json -e docs/postman/postman-environment.json --reporters cli,json
         
       - name: Upload results
         uses: actions/upload-artifact@v3
@@ -583,8 +607,17 @@ The OpenAPI tooling provides:
 1. **Validation** - Ensure spec quality (`openapi:validate`)
 2. **Documentation** - Generate beautiful docs (`openapi:docs`)
 3. **Cloudflare Schema** - Generate API Shield schema (`schema:cloudflare`)
-4. **Contract Tests** - Verify API compliance (`test:contract`)
-5. **Postman** - Interactive testing (`postman-collection.json`)
+4. **Postman Collection** - Regenerate from spec (`postman:collection`)
+5. **Contract Tests** - Verify API compliance (`test:contract`)
 6. **Queue Support** - Async operations via Cloudflare Queues
+
+### Schema Hierarchy
+
+```
+docs/api/openapi.yaml                 ← canonical source of truth (edit this)
+docs/api/cloudflare-schema.yaml       ← auto-generated (deno task schema:cloudflare)
+docs/postman/postman-collection.json  ← auto-generated (deno task postman:collection)
+docs/postman/postman-environment.json ← auto-generated (deno task postman:collection)
+```
 
 All tools are designed to work together in a continuous integration pipeline, ensuring your API stays consistent, well-documented, and reliable.
