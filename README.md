@@ -126,23 +126,70 @@ adblock-compiler -c configuration.json -o output.txt
 ```
 Usage: adblock-compiler [options]
 
-Options:
-  --version      Show version number                                   [boolean]
-  --config, -c   Path to the compiler configuration file               [string]
-  --input, -i    URL or path to input file (can be repeated)            [array]
-  --output, -o   Path to the output file                     [string] [required]
-  --verbose, -v  Run with verbose logging                              [boolean]
-  -h, --help     Show help                                             [boolean]
+General:
+  -c, --config <file>          Path to the compiler configuration file
+  -i, --input <source>         URL or file path to convert (repeatable)
+  -t, --input-type <type>      Input format: hosts|adblock [default: hosts]
+  -v, --verbose                Enable verbose logging
+  -b, --benchmark              Show performance benchmark report
+  -q, --use-queue              Use asynchronous queue-based compilation
+      --priority <level>       Queue priority: standard|high [default: standard]
+      --version                Show version number
+  -h, --help                   Show help
+
+Output:
+  -o, --output <file>          Path to the output file [required unless --stdout]
+      --stdout                 Write output to stdout instead of a file
+      --append                 Append to output file instead of overwriting
+      --format <format>        Output format
+      --name <file>            Compare output against existing file and print diff
+      --max-rules <n>          Truncate output to at most <n> rules
+
+Transformations:
+      --no-deduplicate         Skip the Deduplicate transformation
+      --no-validate            Skip the Validate transformation
+      --no-compress            Skip the Compress transformation
+      --no-comments            Skip the RemoveComments transformation
+      --invert-allow           Apply the InvertAllow transformation
+      --remove-modifiers       Apply the RemoveModifiers transformation
+      --allow-ip               Use ValidateAllowIp instead of Validate
+      --convert-to-ascii       Apply the ConvertToAscii transformation
+      --transformation <name>  Explicit transformation pipeline (repeatable,
+                               overrides all other transformation flags)
+
+Filtering:
+      --exclude <pattern>      Exclude rules matching pattern (repeatable)
+      --exclude-from <file>    Load exclusions from file (repeatable)
+      --include <pattern>      Include only rules matching pattern (repeatable)
+      --include-from <file>    Load inclusions from file (repeatable)
+
+Networking:
+      --timeout <ms>           HTTP request timeout in milliseconds
+      --retries <n>            Number of HTTP retry attempts
+      --user-agent <string>    Custom HTTP User-Agent header
 
 Examples:
-  adblock-compiler -c config.json -o       compile a blocklist and write the
-  output.txt                                output to output.txt
+  adblock-compiler -c config.json -o output.txt
+      compile a blocklist and write the output to output.txt
+
+  adblock-compiler -i hosts.txt -i hosts2.txt --stdout
+      compile from multiple inputs and stream to stdout
+
+  adblock-compiler -c config.json -o output.txt --no-compress --allow-ip
+      compile without compression, keeping IP-address rules
+
+  adblock-compiler -i https://example.org/hosts.txt -o output.txt \
+      --transformation RemoveComments --transformation Deduplicate
+      compile with an explicit transformation pipeline
 ```
+
+> 📚 See the [CLI Reference](docs/usage/CLI.md) for the full flag reference and advanced examples.
 
 ## 📖 Further Reading
 
 | Topic | Doc |
 |---|---|
+| CLI reference | [docs/usage/CLI.md](docs/usage/CLI.md) |
 | Configuration reference | [docs/usage/CONFIGURATION.md](docs/usage/CONFIGURATION.md) |
 | Transformations reference | [docs/usage/TRANSFORMATIONS.md](docs/usage/TRANSFORMATIONS.md) |
 | TypeScript API & Zod validation | [docs/api/README.md](docs/api/README.md) |

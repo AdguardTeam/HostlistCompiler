@@ -323,13 +323,16 @@ const args = CliArgumentsSchema.safeParse({
     config: 'myconfig.json',
     output: 'output.txt',
     verbose: true,
+    noDeduplicate: true,
+    exclude: ['*.cdn.example.com'],
+    timeout: 10000,
 });
 ```
 
-**Schema Definition:**
+**General fields:**
 - `config` (string, optional): Path to configuration file
 - `input` (string[], optional): Input source URLs or file paths
-- `inputType` (enum, optional): Input type — `'adblock'` or `'hosts'`
+- `inputType` (enum, optional): Input format — `'adblock'` or `'hosts'`
 - `output` (string, optional): Output file path
 - `verbose` (boolean, optional): Enable verbose logging
 - `benchmark` (boolean, optional): Enable benchmark reporting
@@ -338,10 +341,40 @@ const args = CliArgumentsSchema.safeParse({
 - `help` (boolean, optional): Show help message
 - `version` (boolean, optional): Show version information
 
+**Output fields:**
+- `stdout` (boolean, optional): Write output to stdout instead of a file
+- `append` (boolean, optional): Append to the output file instead of overwriting
+- `format` (string, optional): Output format
+- `name` (string, optional): Path to an existing file to compare output against
+- `maxRules` (number, optional, positive integer): Truncate output to at most this many rules
+
+**Transformation control fields:**
+- `noDeduplicate` (boolean, optional): Skip the `Deduplicate` transformation
+- `noValidate` (boolean, optional): Skip the `Validate` transformation
+- `noCompress` (boolean, optional): Skip the `Compress` transformation
+- `noComments` (boolean, optional): Skip the `RemoveComments` transformation
+- `invertAllow` (boolean, optional): Apply the `InvertAllow` transformation
+- `removeModifiers` (boolean, optional): Apply the `RemoveModifiers` transformation
+- `allowIp` (boolean, optional): Replace `Validate` with `ValidateAllowIp`
+- `convertToAscii` (boolean, optional): Apply the `ConvertToAscii` transformation
+- `transformation` (TransformationType[], optional): Explicit transformation pipeline (overrides all other transformation flags). Values must be valid `TransformationType` enum members — invalid names are caught by Zod validation.
+
+**Filtering fields:**
+- `exclude` (string[], optional): Exclusion rules or wildcard patterns
+- `excludeFrom` (string[], optional): Files containing exclusion rules
+- `include` (string[], optional): Inclusion rules or wildcard patterns
+- `includeFrom` (string[], optional): Files containing inclusion rules
+
+**Networking fields:**
+- `timeout` (number, optional, positive integer): HTTP request timeout in milliseconds
+- `retries` (number, optional, non-negative integer): Number of HTTP retry attempts
+- `userAgent` (string, optional): Custom HTTP `User-Agent` header
+
 **Refinements:**
 1. Either `--input` or `--config` must be specified (unless `--help` or `--version`)
-2. `--output` is required (unless `--help` or `--version`)
+2. `--output` is required (unless `--help`, `--version`, or `--stdout`)
 3. Cannot specify both `--config` and `--input` simultaneously
+4. Cannot specify both `--stdout` and `--output` simultaneously
 
 ### Environment Schema
 

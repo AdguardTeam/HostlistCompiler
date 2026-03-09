@@ -1,7 +1,10 @@
 import { assertEquals, assertExists, assertRejects } from '@std/assert';
+import { stub } from '@std/testing/mock';
 import { compile, FilterCompiler } from './FilterCompiler.ts';
 import { IConfiguration, SourceType, TransformationType } from '../types/index.ts';
 import { silentLogger } from '../utils/index.ts';
+import { FilterDownloader } from '../downloader/index.ts';
+import type { DownloaderOptions } from '../downloader/index.ts';
 import { fromFileUrl } from '@std/path';
 
 // Get the test resource file path in a cross-platform way
@@ -237,5 +240,36 @@ Deno.test('FilterCompiler - should add checksum to compiled output', async () =>
     // If there's a source header, checksum should be before it
     if (firstSourceIndex > 0) {
         assertEquals(checksumIndex < firstSourceIndex, true);
+    }
+});
+
+// Test downloaderOptions plumbing: FilterCompiler → SourceCompiler → FilterDownloader
+Deno.test('FilterCompiler - should pass downloaderOptions to FilterDownloader.download', async () => {
+    const capturedOptions: (DownloaderOptions | undefined)[] = [];
+
+    const downloadStub = stub(
+        FilterDownloader,
+        'download',
+        (_source: string, options?: DownloaderOptions, _additional?: { allowEmptyResponse?: boolean }) => {
+            capturedOptions.push(options);
+            return Promise.resolve(['||example.com^']);
+        },
+    );
+
+    try {
+        const downloaderOptions: DownloaderOptions = { timeout: 9876, maxRetries: 7, userAgent: 'TestBot/42' };
+        const compiler = new FilterCompiler({ logger: silentLogger, downloaderOptions });
+        const config = createTestConfig({
+            sources: [{ source: 'https://example.com/fake.txt', type: SourceType.Adblock }],
+        });
+
+        await compiler.compile(config);
+
+        assertEquals(capturedOptions.length > 0, true);
+        assertEquals(capturedOptions[0]?.timeout, 9876);
+        assertEquals(capturedOptions[0]?.maxRetries, 7);
+        assertEquals(capturedOptions[0]?.userAgent, 'TestBot/42');
+    } finally {
+        downloadStub.restore();
     }
 });

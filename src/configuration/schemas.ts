@@ -384,12 +384,36 @@ type CliArgumentsOutput = {
     input?: string[];
     inputType?: 'adblock' | 'hosts';
     output?: string;
+    stdout?: boolean;
+    append?: boolean;
+    format?: string;
+    name?: string;
+    maxRules?: number;
     verbose?: boolean;
     benchmark?: boolean;
     useQueue?: boolean;
     priority?: Priority;
     help?: boolean;
     version?: boolean;
+    // Transformation control
+    noDeduplicate?: boolean;
+    noValidate?: boolean;
+    noCompress?: boolean;
+    noComments?: boolean;
+    invertAllow?: boolean;
+    removeModifiers?: boolean;
+    allowIp?: boolean;
+    convertToAscii?: boolean;
+    transformation?: TransformationType[];
+    // Filtering
+    exclude?: string[];
+    excludeFrom?: string[];
+    include?: string[];
+    includeFrom?: string[];
+    // Networking
+    timeout?: number;
+    retries?: number;
+    userAgent?: string;
 };
 
 type EnvironmentOutput = {
@@ -468,12 +492,36 @@ export const CliArgumentsSchema: z.ZodType<CliArgumentsOutput> = z.object({
     input: z.array(z.string()).optional().describe('Input filter list source URLs or paths (-i)'),
     inputType: z.enum(['adblock', 'hosts']).optional().describe('Input format type'),
     output: z.string().optional().describe('Output file path (-o)'),
+    stdout: z.boolean().optional().describe('Write output to stdout instead of a file'),
+    append: z.boolean().optional().describe('Append to output file instead of overwriting'),
+    format: z.string().optional().describe('Output format'),
+    name: z.string().optional().describe('Path to an existing file to compare output against'),
+    maxRules: z.number().int().positive().optional().describe('Truncate output to at most this many rules'),
     verbose: z.boolean().optional().describe('Enable verbose logging'),
     benchmark: z.boolean().optional().describe('Enable benchmark metrics collection'),
     useQueue: z.boolean().optional().describe('Submit compilation job to the queue'),
     priority: PrioritySchema.optional().describe('Job processing priority level'),
     help: z.boolean().optional().describe('Show help information'),
     version: z.boolean().optional().describe('Show version information'),
+    // Transformation control
+    noDeduplicate: z.boolean().optional().describe('Skip the Deduplicate transformation'),
+    noValidate: z.boolean().optional().describe('Skip the Validate transformation'),
+    noCompress: z.boolean().optional().describe('Skip the Compress transformation'),
+    noComments: z.boolean().optional().describe('Skip the RemoveComments transformation'),
+    invertAllow: z.boolean().optional().describe('Apply the InvertAllow transformation'),
+    removeModifiers: z.boolean().optional().describe('Apply the RemoveModifiers transformation'),
+    allowIp: z.boolean().optional().describe('Use ValidateAllowIp instead of Validate'),
+    convertToAscii: z.boolean().optional().describe('Apply the ConvertToAscii transformation'),
+    transformation: z.array(z.nativeEnum(TransformationType)).optional().describe('Explicit transformation pipeline (overrides all other transformation flags)'),
+    // Filtering
+    exclude: z.array(z.string()).optional().describe('Exclusion rules or wildcards'),
+    excludeFrom: z.array(z.string()).optional().describe('Files containing exclusion rules'),
+    include: z.array(z.string()).optional().describe('Inclusion rules or wildcards'),
+    includeFrom: z.array(z.string()).optional().describe('Files containing inclusion rules'),
+    // Networking
+    timeout: z.number().int().positive().optional().describe('HTTP request timeout in milliseconds'),
+    retries: z.number().int().nonnegative().optional().describe('Number of HTTP retry attempts'),
+    userAgent: z.string().optional().describe('Custom HTTP User-Agent header'),
 }).refine(
     (args) => args.help || args.version || !!(args.input?.length || args.config),
     {
@@ -481,7 +529,7 @@ export const CliArgumentsSchema: z.ZodType<CliArgumentsOutput> = z.object({
         path: ['input'],
     },
 ).refine(
-    (args) => args.help || args.version || !!args.output,
+    (args) => args.help || args.version || !!args.output || !!args.stdout,
     {
         message: '--output is required',
         path: ['output'],
@@ -491,6 +539,12 @@ export const CliArgumentsSchema: z.ZodType<CliArgumentsOutput> = z.object({
     {
         message: 'Cannot specify both config file (-c) and input sources (-i)',
         path: ['config'],
+    },
+).refine(
+    (args) => !(args.stdout && args.output),
+    {
+        message: 'Cannot specify both --stdout and --output',
+        path: ['stdout'],
     },
 );
 export type CliArguments = CliArgumentsOutput;

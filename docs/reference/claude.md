@@ -240,9 +240,14 @@ Minimal external dependencies:
 
 ### Adding CLI Options
 
-1. Edit `src/cli/ArgumentParser.ts`
-2. Update `parseArguments()` function
-3. Handle in `src/cli/CliApp.deno.ts`
+1. Add to `ParsedArguments` interface in `src/cli/ArgumentParser.ts`
+2. Update `parseArgs()` in `src/cli/ArgumentParser.ts` (add to `boolean`, `string`, or `collect` arrays)
+3. Add to `ICliArgs` interface in `src/cli/CliApp.deno.ts`
+4. Update `parseArgs()` in `src/cli/CliApp.deno.ts`
+5. Handle the new flag in `buildTransformations()`, `createConfig()`, `readConfig()`, or `run()` as appropriate
+6. Add the field to `CliArgumentsOutput` type and `CliArgumentsSchema` in `src/configuration/schemas.ts`
+7. Update `showHelp()` in both `ArgumentParser.ts` and `CliApp.deno.ts`
+8. Update `docs/usage/CLI.md`
 
 ## CI/CD Pipeline
 
