@@ -47,6 +47,26 @@ Deno.test('TransformationRegistry - should get all registered types', () => {
     assertEquals(types.length, 13); // All default transformations
     assertEquals(types.includes(TransformationType.RemoveComments), true);
     assertEquals(types.includes(TransformationType.Deduplicate), true);
+    assertEquals(types.includes(TransformationType.ConflictDetection), true);
+    assertEquals(types.includes(TransformationType.RuleOptimizer), true);
+});
+
+Deno.test('TransformationPipeline - should execute ConflictDetection and RuleOptimizer when requested', async () => {
+    const pipeline = new TransformationPipeline(undefined, silentLogger);
+    const rules = ['||example.org^', '@@||example.org^', '||test.com^'];
+
+    const config = {
+        name: 'Test',
+        sources: [],
+    };
+
+    // ConflictDetection should run without error and return rules unchanged (no autoResolve)
+    const resultConflict = await pipeline.transform(rules, config, [TransformationType.ConflictDetection]);
+    assertEquals(resultConflict.length, rules.length);
+
+    // RuleOptimizer should run without error
+    const resultOptimizer = await pipeline.transform(rules, config, [TransformationType.RuleOptimizer]);
+    assertEquals(Array.isArray(resultOptimizer), true);
 });
 
 Deno.test('TransformationPipeline - should create pipeline with default registry', () => {

@@ -302,6 +302,8 @@ export class TransformationPipeline {
             TransformationType.Validate,
             TransformationType.ValidateAllowIp,
             TransformationType.Deduplicate,
+            TransformationType.ConflictDetection,
+            TransformationType.RuleOptimizer,
             TransformationType.RemoveEmptyLines,
             TransformationType.InsertFinalNewLine,
         ];

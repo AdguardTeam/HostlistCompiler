@@ -173,14 +173,19 @@ const collector = new DiagnosticsCollector();
 
 ### `OpenTelemetryExporter`
 
-Exports collected spans in OpenTelemetry-compatible format.
+Implements `IDiagnosticsCollector` and exports events as OpenTelemetry spans. Construct it with options and pass it wherever a `IDiagnosticsCollector` is accepted.
 
 ```typescript
-import { DiagnosticsCollector, OpenTelemetryExporter } from '@jk-com/adblock-compiler';
+import { OpenTelemetryExporter } from '@jk-com/adblock-compiler';
 
-const collector = new DiagnosticsCollector();
-const exporter = new OpenTelemetryExporter(collector);
-await exporter.export();
+const otelExporter = new OpenTelemetryExporter({
+    serviceName: 'my-blocklist-builder',
+    serviceVersion: '1.0.0',
+    enableConsoleLogging: true,
+});
+
+// Pass as the diagnostics collector in FilterCompiler options
+const compiler = new FilterCompiler({ diagnostics: otelExporter });
 ```
 
 ### Tracing helpers

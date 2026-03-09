@@ -252,8 +252,8 @@ Transformations:
                                Overrides all other transformation flags.
                                Values: RemoveComments, Deduplicate, Compress, Validate,
                                        ValidateAllowIp, InvertAllow, RemoveModifiers,
-                                       TrimLines, InsertFinalNewLine, ConvertToAscii,
-                                       ConflictDetection, RuleOptimizer
+                                       TrimLines, InsertFinalNewLine, RemoveEmptyLines,
+                                       ConvertToAscii, ConflictDetection, RuleOptimizer
 
 Filtering:
       --exclude <pattern>      Exclude rules matching pattern (repeatable)
@@ -578,6 +578,10 @@ Examples:
 
             if (this.args['use-queue']) {
                 this.logger.warn('--use-queue is only supported via the worker API and will be ignored in standalone CLI mode');
+            }
+
+            if (this.args.priority) {
+                this.logger.warn('--priority is only supported via the worker API and will be ignored in standalone CLI mode');
             }
 
             this.logger.info(`Starting @jk-com/adblock-compiler v${VERSION}`);

@@ -50,7 +50,7 @@ adblock-compiler [options]
 | `--output <file>` | `-o` | string | Output file path [required unless `--stdout`] |
 | `--stdout` | | boolean | Write output to stdout instead of a file |
 | `--append` | | boolean | Append to output file instead of overwriting |
-| `--format <format>` | | string | Output format. When specified, the compiled rules are passed through the formatter before writing. Supported values: `adblock`, `hosts`, `dnsmasq`, `doh`, `json`, `pihole`, `unbound`. [not yet wired in CLI — use the programmatic API's `createFormatter` / `formatOutput` for now] |
+| `--format <format>` | | string | Output format. Supported values: `adblock`, `hosts`, `dnsmasq`, `doh`, `json`, `pihole`, `unbound`. [not yet wired in CLI — use the programmatic API's `createFormatter` / `formatOutput` for now] |
 | `--name <file>` | | string | Compare output against an existing file and print a summary of added/removed rules |
 | `--max-rules <n>` | | number | Truncate output to at most `n` rules |
 

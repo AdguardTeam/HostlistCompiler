@@ -192,8 +192,8 @@ Transformations:
                                Overrides all other transformation flags.
                                Values: RemoveComments, Deduplicate, Compress, Validate,
                                        ValidateAllowIp, InvertAllow, RemoveModifiers,
-                                       TrimLines, InsertFinalNewLine, ConvertToAscii,
-                                       ConflictDetection, RuleOptimizer
+                                       TrimLines, InsertFinalNewLine, RemoveEmptyLines,
+                                       ConvertToAscii, ConflictDetection, RuleOptimizer
 
 Filtering:
       --exclude <pattern>      Exclude rules matching pattern (repeatable)
