@@ -36,6 +36,7 @@ import { ApiTesterComponent } from '../api-tester/api-tester.component';
 import { MetricsStore } from '../store/metrics.store';
 import { NotificationService } from '../services/notification.service';
 import { LogService } from '../services/log.service';
+import { DOCS_SITE_URL } from '../constants';
 
 /** Navigation card for the dashboard grid */
 interface NavCard {
@@ -45,6 +46,8 @@ interface NavCard {
     readonly description: string;
     readonly tag: string;
     readonly tagColor: 'primary' | 'accent' | 'warn';
+    /** When true the card opens an external URL in a new tab. */
+    readonly external?: true;
 }
 
 /** Endpoint comparison entry */
@@ -431,6 +434,15 @@ export class HomeComponent {
             tag: 'Admin',
             tagColor: 'warn',
         },
+        {
+            path: DOCS_SITE_URL,
+            icon: 'menu_book',
+            title: 'Documentation',
+            description: 'Full documentation, guides, and API reference hosted on Cloudflare Pages.',
+            tag: 'Docs',
+            tagColor: 'accent',
+            external: true,
+        },
     ];
 
     /** Endpoint comparison data for the reference table */
@@ -517,7 +529,13 @@ export class HomeComponent {
     }
 
     navigateTo(path: string): void {
-        this.router.navigate([path]);
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+            if (isPlatformBrowser(this.platformId)) {
+                window.open(path, '_blank', 'noopener,noreferrer');
+            }
+        } else {
+            this.router.navigate([path]);
+        }
     }
 
     onStatCardClicked(label: string): void {

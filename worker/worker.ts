@@ -114,6 +114,7 @@ const QUEUE_BINDINGS_NOT_AVAILABLE_ERROR = 'Queue bindings are not available. ' 
  */
 const SPA_SERVER_PREFIXES: readonly string[] = [
     '/api',
+    '/docs',
     '/metrics',
     '/queue',
     '/admin/storage',
@@ -123,6 +124,9 @@ const SPA_SERVER_PREFIXES: readonly string[] = [
     '/compile',
     '/ast',
 ];
+
+/** URL of the mdBook documentation site hosted on Cloudflare Pages. */
+const DOCS_SITE_URL = 'https://adblock-compiler-docs.pages.dev/';
 
 /** Base URL used when constructing asset fetch requests to the ASSETS binding. */
 const ASSETS_BASE_URL = 'http://assets';
@@ -3703,6 +3707,13 @@ export default {
         // Health: Get latest health check results
         if (routePath === '/health/latest' && request.method === 'GET') {
             return handleHealthLatest(env);
+        }
+
+        // Redirect /docs and /docs/* to the mdBook documentation site on Cloudflare Pages.
+        // The mdBook is deployed to a separate Pages project and is not served from this worker.
+        if (request.method === 'GET' && (pathname === '/docs' || pathname.startsWith('/docs/'))) {
+            const docsSubpath = pathname.startsWith('/docs/') ? pathname.slice('/docs'.length) : '/';
+            return Response.redirect(new URL(docsSubpath, DOCS_SITE_URL).toString(), 301);
         }
 
         // Serve web UI and static assets (including Angular SPA routes)

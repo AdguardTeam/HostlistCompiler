@@ -52,8 +52,8 @@ describe('HomeComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('should have 5 navigation cards', () => {
-        expect(component.navCards.length).toBe(5);
+    it('should have 6 navigation cards', () => {
+        expect(component.navCards.length).toBe(6);
     });
 
     it('should include Compiler card', () => {
