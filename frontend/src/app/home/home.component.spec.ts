@@ -46,14 +46,15 @@ describe('HomeComponent', () => {
     afterEach(() => {
         httpTesting.match(() => true).forEach(req => req.flush({}));
         httpTesting.verify();
+        vi.restoreAllMocks();
     });
 
     it('should create', () => {
         expect(component).toBeTruthy();
     });
 
-    it('should have 5 navigation cards', () => {
-        expect(component.navCards.length).toBe(5);
+    it('should have 6 navigation cards', () => {
+        expect(component.navCards.length).toBe(6);
     });
 
     it('should include Compiler card', () => {
@@ -79,6 +80,28 @@ describe('HomeComponent', () => {
     it('should navigate when navigateTo is called', () => {
         const navigateSpy = vi.spyOn(router, 'navigate');
         component.navigateTo('/compiler');
+        expect(navigateSpy).toHaveBeenCalledWith(['/compiler']);
+    });
+
+    it('should open absolute external URLs in a new tab via window.open', () => {
+        const openSpy = vi.spyOn(window, 'open');
+        component.navigateTo('https://example.com');
+        expect(openSpy).toHaveBeenCalledWith('https://example.com', '_blank', 'noopener,noreferrer');
+    });
+
+    it('should open worker-handled relative paths in a new tab when external flag is true', () => {
+        const openSpy = vi.spyOn(window, 'open');
+        const navigateSpy = vi.spyOn(router, 'navigate');
+        component.navigateTo('/docs', true);
+        expect(openSpy).toHaveBeenCalledWith('/docs', '_blank', 'noopener,noreferrer');
+        expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT call window.open for internal paths without external flag', () => {
+        const openSpy = vi.spyOn(window, 'open');
+        const navigateSpy = vi.spyOn(router, 'navigate');
+        component.navigateTo('/compiler', false);
+        expect(openSpy).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledWith(['/compiler']);
     });
 

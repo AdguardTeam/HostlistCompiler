@@ -45,6 +45,8 @@ interface NavCard {
     readonly description: string;
     readonly tag: string;
     readonly tagColor: 'primary' | 'accent' | 'warn';
+    /** When true the card opens an external URL in a new tab. */
+    readonly external?: true;
 }
 
 /** Endpoint comparison entry */
@@ -216,7 +218,7 @@ interface EndpointInfo {
         <div class="nav-grid">
             @for (card of navCards; track card.path) {
                 @defer (on idle; prefetch on hover) {
-                    <mat-card appearance="outlined" class="nav-card" (click)="navigateTo(card.path)">
+                    <mat-card appearance="outlined" class="nav-card" (click)="navigateTo(card.path, card.external)">
                         <mat-card-header>
                             <mat-icon mat-card-avatar [style.color]="'var(--mat-sys-primary)'" aria-hidden="true">{{ card.icon }}</mat-icon>
                             <mat-card-title>{{ card.title }}</mat-card-title>
@@ -431,6 +433,15 @@ export class HomeComponent {
             tag: 'Admin',
             tagColor: 'warn',
         },
+        {
+            path: '/docs',
+            icon: 'menu_book',
+            title: 'Documentation',
+            description: 'Full documentation, guides, and API reference hosted on Cloudflare Pages.',
+            tag: 'Docs',
+            tagColor: 'accent',
+            external: true,
+        },
     ];
 
     /** Endpoint comparison data for the reference table */
@@ -516,8 +527,14 @@ export class HomeComponent {
         }
     }
 
-    navigateTo(path: string): void {
-        this.router.navigate([path]);
+    navigateTo(path: string, external = false): void {
+        if (external || path.startsWith('http://') || path.startsWith('https://')) {
+            if (isPlatformBrowser(this.platformId)) {
+                window.open(path, '_blank', 'noopener,noreferrer');
+            }
+        } else {
+            this.router.navigate([path]);
+        }
     }
 
     onStatCardClicked(label: string): void {
