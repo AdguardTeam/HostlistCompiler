@@ -6,7 +6,6 @@
 
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { EMPTY } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,7 +21,6 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
 @Component({
     selector: 'app-validation',
     imports: [
-        FormsModule,
         MatCardModule,
         MatButtonModule,
         MatIconModule,
@@ -51,8 +49,8 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
                 <mat-form-field appearance="outline" class="rules-field">
                     <mat-label>Filter rules</mat-label>
                     <textarea matInput
-                        [ngModel]="rulesText()"
-                        (ngModelChange)="rulesText.set($event)"
+                        [value]="rulesText()"
+                        (input)="rulesText.set($any($event.target).value)"
                         rows="10"
                         placeholder="||example.com^&#10;@@||trusted.com^&#10;/ads/*"
                     ></textarea>
@@ -60,7 +58,7 @@ import { ValidationService, ValidationResult } from '../services/validation.serv
                 </mat-form-field>
 
                 <div class="flex items-center gap-4 mt-2">
-                    <mat-checkbox [(ngModel)]="strictMode">Strict mode</mat-checkbox>
+                    <mat-checkbox [checked]="strictMode" (change)="strictMode = $event.checked">Strict mode</mat-checkbox>
                     <button mat-raised-button color="primary"
                         [disabled]="validationResource.isLoading() || ruleCount() === 0"
                         (click)="validate()">

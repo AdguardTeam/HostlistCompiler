@@ -505,6 +505,7 @@ export class HomeComponent {
     });
 
     onAutoRefreshToggle(enabled: boolean): void {
+        this.autoRefreshEnabled = enabled;
         if (enabled) {
             this.startAutoRefresh();
             this.log.info('Auto-refresh enabled', 'dashboard', { interval: this.autoRefreshInterval });
