@@ -1,0 +1,18 @@
+$kind: http-example
+name: not-found
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alerts
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: "[]"
+order: 8000

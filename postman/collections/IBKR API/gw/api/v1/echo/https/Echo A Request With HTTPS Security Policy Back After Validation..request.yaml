@@ -1,0 +1,9 @@
+$kind: http-request
+description: "<br>**Scope**: `echo.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/echo/https"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Echo A Request With HTTPS Security Policy Back After
+  Validation..resources/examples
+order: 1000

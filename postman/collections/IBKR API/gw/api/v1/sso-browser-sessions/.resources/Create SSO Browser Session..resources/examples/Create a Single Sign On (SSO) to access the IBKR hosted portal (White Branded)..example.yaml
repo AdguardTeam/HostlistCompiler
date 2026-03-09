@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/sso-browser-sessions"
+  method: POST
+  headers:
+    Content-Type: application/jwt
+    Accept: application/json
+  body:
+    type: text
+    content: |-
+      {
+        "credential": "ddowney2",
+        "ip": "10.10.10.10"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "active": true,
+        "url": "https://www.interactivebrokers.com/sso/..."
+      }
+order: 1000

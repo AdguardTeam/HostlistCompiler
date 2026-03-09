@@ -1,0 +1,13 @@
+$kind: http-request
+description: Delete a specified watchlist from the username's settings.
+url: https://api.ibkr.com/v1/api/iserver/watchlist?id=1234
+method: DELETE
+headers:
+  Accept: application/json
+queryParams:
+  - key: id
+    value: "1234"
+    description: (Required) Watchlist ID of the watchlist to be deleted.
+examples: ./.resources/Delete A Specified Watchlist From The Username's
+  Settings..resources/examples
+order: 3000

@@ -1,0 +1,34 @@
+$kind: http-example
+name: >
+  service is unavailable. For example if request takes more than 10s due to some
+  internal service unavailability,  request aborted and this status returned
+request:
+  url: https://api.ibkr.com/v1/api/iserver/secdef/strikes?conid=265598&sectype=OPT&month=JAN24&exchange=NASDAQ
+  method: GET
+  headers:
+    Accept: application/json; charset=utf-8
+  queryParams:
+    - key: conid
+      value: "265598"
+      description: "(Required) "
+    - key: sectype
+      value: OPT
+      description: "(Required) "
+    - key: month
+      value: JAN24
+      description: "(Required) "
+    - key: exchange
+      value: NASDAQ
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 9000

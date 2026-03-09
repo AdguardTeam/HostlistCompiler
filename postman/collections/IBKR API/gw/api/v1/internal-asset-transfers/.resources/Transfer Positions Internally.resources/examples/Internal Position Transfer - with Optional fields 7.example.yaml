@@ -1,0 +1,48 @@
+$kind: http-example
+name: Internal Position Transfer - with Optional fields
+request:
+  url: "{{baseUrl}}/gw/api/v1/internal-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "INTERNAL_POSITION_TRANSFER",
+        "instruction": {
+          "clientInstructionId": 7013043,
+          "sourceAccountId": "U399192",
+          "targetAccountId": "U87440",
+          "transferQuantity": 6,
+          "tradingInstrument": {
+            "conid": 21323,
+            "currency": "USD"
+          },
+          "tradeDate": "2025-02-17",
+          "settleDate": "2025-02-25",
+          "transferPrice": 100.3456789
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/invalid-argument",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Input is not a JSON Object or doesn't contain all expected fields",
+        "invalidArguments": [
+          {
+            "field": "conid/tradingInstrumentDescription",
+            "description": "For internal position transfer either con_id or trading_product must be present"
+          }
+        ]
+      }
+order: 24000

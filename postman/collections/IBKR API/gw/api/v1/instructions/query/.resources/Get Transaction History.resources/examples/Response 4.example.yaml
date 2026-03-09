@@ -1,0 +1,48 @@
+$kind: http-example
+name: Response
+request:
+  url: "{{baseUrl}}/gw/api/v1/instructions/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_RECENT_INSTRUCTIONS",
+        "instruction": {
+          "clientInstructionId": 7009001,
+          "accountId": "U139838",
+          "transactionHistory": {
+            "daysToGoBack": 3,
+            "transactionType": "ACH_INSTRUCTION"
+          }
+        }
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Business Error",
+        "status": 422,
+        "detail": "Funds and Banking server cannot process your request because it contains invalid data",
+        "instructionSetId": 2616,
+        "instructionResult": {
+          "clientInstructionId": 7008155,
+          "instructionType": "QUERY_RECENT_INSTRUCTIONS",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092592,
+          "error": {
+            "errorCode": "CORRUPT_DATA_INVALID_ACCT",
+            "errorMessage": "Account U1 does not exist"
+          }
+        }
+      }
+order: 15000

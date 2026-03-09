@@ -1,0 +1,22 @@
+$kind: http-request
+description: Fetches today's orders and open orders for the given Accounts,
+  filtered by given Order IDs, sorted in descending order of time placed for
+  open and time executed for closed. Request valid for all account types.
+url: "{{baseUrl}}/v3/brokerage/accounts/:accounts/orders/:orderIds"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: accounts
+    value: <string>
+    description: (Required) List of valid Account IDs for the authenticated user in
+      comma separated format; for example `"61999124,68910124"`. 1 to 25 Account
+      IDs can be specified, comma separated. Recommended batch size is 10.
+  - key: orderIds
+    value: <string>
+    description: (Required) List of valid Order IDs for the authenticated user for
+      given accounts in comma separated format; for example
+      `"123456789,286179863"`. 1 to 50 Order IDs can be specified, comma
+      separated.
+examples: ./.resources/Get Orders By Order ID.resources/examples
+order: 1000

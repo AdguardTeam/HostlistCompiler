@@ -1,0 +1,39 @@
+$kind: http-example
+name: Returns a Problem detail instance representing a bad request.
+request:
+  url: "{{baseUrl}}/gw/api/v1/sso-browser-sessions"
+  method: POST
+  headers:
+    Content-Type: application/jwt
+    Accept: application/problem+json
+  body:
+    type: text
+    content: |-
+      {
+        "credential": "ddowney2",
+        "ip": "10.10.10.10"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 400,
+        "title": "Bad Request",
+        "type": "/invalid-argument",
+        "invalidArguments": [
+          {
+            "field": "accountId",
+            "description": "Missing required parameter"
+          },
+          {
+            "field": "accountId",
+            "description": "Missing required parameter"
+          }
+        ]
+      }
+order: 8000

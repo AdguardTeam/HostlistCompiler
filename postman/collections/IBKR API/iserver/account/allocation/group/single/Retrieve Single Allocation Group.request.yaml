@@ -1,0 +1,18 @@
+$kind: http-request
+description: Retrieves the configuration of a single account group. This
+  describes the name of the allocation group, the specific accounts contained in
+  the group, and the allocation method in use along with any relevant
+  quantities.
+url: "{{baseUrl}}/iserver/account/allocation/group/single"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Group_1_NetLiq"
+    }
+examples: ./.resources/Retrieve Single Allocation Group.resources/examples
+order: 1000

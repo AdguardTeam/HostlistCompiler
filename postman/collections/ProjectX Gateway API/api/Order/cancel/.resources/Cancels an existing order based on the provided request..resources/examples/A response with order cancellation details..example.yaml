@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: http://
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: text/plain
+  body:
+    type: text
+    content: |-
+      {
+        "accountId": 3169,
+        "orderId": 8931
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "errorCode": 2,
+        "errorMessage": "string"
+      }
+order: 1000

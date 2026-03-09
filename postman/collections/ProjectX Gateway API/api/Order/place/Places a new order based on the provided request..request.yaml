@@ -1,0 +1,71 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Order/place"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/plain
+body:
+  type: text
+  content: |-
+    {
+      "accountId": 6402,
+      "contractId": "string",
+      "type": 6,
+      "side": 0,
+      "size": 6148,
+      "limitPrice": 3349.2749672695245,
+      "stopPrice": 9671.258882766333,
+      "trailPrice": 1473.8550577499243,
+      "customTag": "string",
+      "linkedOrderId": 5235
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Response status code is 200", function () {
+          pm.expect(pm.response.code).to.equal(200);
+      });
+
+
+
+      pm.test("Response has the required fields", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData).to.have.all.keys('orderId', 'success', 'errorCode', 'errorMessage');
+      });
+
+
+
+      pm.test("OrderId should be null when the order is successfully placed",
+      function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.true;
+          pm.expect(responseData.orderId).to.be.null;
+      });
+
+
+
+      pm.test("Success field indicates order was placed successfully", function
+      () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.true;
+      });
+
+
+
+      pm.test("ErrorCode should be 0 indicating no errors occurred", function ()
+      {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData).to.have.property('errorCode', 0);
+      });
+    language: text/javascript
+examples: ./.resources/Places a new order based on the provided
+  request..resources/examples
+order: 1000

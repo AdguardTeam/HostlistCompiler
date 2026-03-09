@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Auth/loginKey"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/plain
+body:
+  type: text
+  content: |-
+    {
+      "userName": "{{authName}}",
+      "apiKey": "{{apiKey}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test("Response has bearer token value", function(){
+          pm.response.to.have.jsonBody("token");
+      });
+
+      let response = pm.response.json();
+      pm.environment.unset("bearerToken");
+      pm.environment.set("bearerToken", response.token);
+    language: text/javascript
+examples: ./.resources/Login as the specified user using the specified API
+  key..resources/examples
+order: 1000

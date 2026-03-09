@@ -1,0 +1,39 @@
+$kind: http-example
+name: Market Data reg. snapshot
+request:
+  url: https://api.ibkr.com/v1/api/md/regsnapshot?conid=265598
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: conid
+      value: "265598"
+      description: (Required) An IB contract ID.
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "31": "174.59",
+        "84": "174.58",
+        "85": 3,
+        "86": "174.59",
+        "88": 1,
+        "7057": "Q",
+        "7058": "D",
+        "7059": 2,
+        "7068": "Q",
+        "conid": 265598,
+        "conidEx": "265598",
+        "sizeMinTick": 1,
+        "BboExchange": "9c",
+        "HasDelayed": false,
+        "BestBidExch": 512,
+        "BestAskExch": 512,
+        "LastExch": 8
+      }
+order: 10000

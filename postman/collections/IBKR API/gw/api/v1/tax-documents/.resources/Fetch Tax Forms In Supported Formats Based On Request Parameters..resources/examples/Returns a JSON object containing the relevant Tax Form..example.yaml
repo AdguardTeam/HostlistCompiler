@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/tax-documents"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "accountId": "UXXXX",
+        "format": "HTML,CSV,PDF",
+        "type": "ALL,1099,1099R,1042S,8949",
+        "year": 2023,
+        "gzip": false
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "dataType": "adipisicing",
+          "encoding": "nostrud la",
+          "value": "exercitation elit officia",
+          "mimeType": "sunt consequat",
+          "gzip": false,
+          "accept": "dolor anim laborum voluptate"
+        }
+      }
+order: 1000

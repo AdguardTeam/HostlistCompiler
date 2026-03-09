@@ -1,0 +1,52 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/hmds/scanner/run"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instrument": "BOND",
+        "locations": "BOND.US",
+        "scanCode": "HIGH_BOND_ASK_YIELD_ALL",
+        "secType": "BOND",
+        "delayedLocations": "SMART",
+        "maxItems": 25,
+        "filters": [
+          {
+            "bondAskYieldBelow": 15.819
+          }
+        ]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "total": 17616,
+        "size": 250,
+        "offset": 0,
+        "scanTime": "20240403-20:31:48",
+        "id": "scanner20",
+        "position": "v1:AAAAAQABG3gAAAAAAAAA+g==",
+        "Contracts": {
+          "Contract": [
+            {
+              "inScanTime": "20240403-20:31:48",
+              "contractID": 403154854
+            },
+            {
+              "inScanTime": "20240403-20:31:48",
+              "contractID": 460655952
+            }
+          ]
+        }
+      }
+order: 1000

@@ -1,0 +1,28 @@
+$kind: http-example
+name: orderReplyNotFoundExample
+request:
+  url: https://api.ibkr.com/v1/api/iserver/reply/:replyId
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    replyId: ""
+  body:
+    type: json
+    content: |-
+      {
+        "confirmed": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "reply id not found: '99097238-9824-4830-84ef-46979aa22593'"
+      }
+order: 14000

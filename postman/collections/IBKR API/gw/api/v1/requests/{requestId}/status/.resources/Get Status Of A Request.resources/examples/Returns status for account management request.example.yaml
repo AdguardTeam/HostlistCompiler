@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/requests/:requestId/status?type=update"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: type
+      value: update
+      description: "(Required) "
+  pathVariables:
+    requestId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "requestId": "est et",
+        "requestType": "dolor",
+        "status": "in velit Ut in",
+        "message": "Ut dolor",
+        "acctId": "Excepteur cillum magna cupidatat"
+      }
+order: 1000

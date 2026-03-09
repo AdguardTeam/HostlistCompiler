@@ -1,0 +1,48 @@
+$kind: http-example
+name: Successful response containing a contract's security definition.
+request:
+  url: https://api.ibkr.com/v1/api/iserver/secdef/strikes?conid=265598&sectype=OPT&month=JAN24&exchange=NASDAQ
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: conid
+      value: "265598"
+      description: "(Required) "
+    - key: sectype
+      value: OPT
+      description: "(Required) "
+    - key: month
+      value: JAN24
+      description: "(Required) "
+    - key: exchange
+      value: NASDAQ
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "call": [
+          70,
+          75,
+          80,
+          85,
+          90,
+          95,
+          100
+        ],
+        "put": [
+          70,
+          75,
+          80,
+          85,
+          90,
+          95,
+          100
+        ]
+      }
+order: 6000

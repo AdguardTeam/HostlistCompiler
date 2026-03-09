@@ -1,0 +1,26 @@
+$kind: http-example
+name: Returns error description representing access issue
+request:
+  url: "{{baseUrl}}/gw/api/v1/accounts?accountId=minim&externalId=minim"
+  method: GET
+  headers:
+    Accept: application/problem+json
+  queryParams:
+    accountId: minim
+    externalId: minim
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "https://bxzwFvWsJ.xtRN+pKcexmh7QNDaNigtcgCuChP4Wtfu1G6lZ0WU1m8gPlQ7rMzAWH8RZ9dx4U32h6Vqtcb5gntJTip6GX6AlU-d8F",
+        "title": "elit dol",
+        "status": 69889419,
+        "detail": "Excepteur",
+        "instance": "https://HaqSd.iihzm5nWitAvJjXYdrSCEwilyEUkOBzlnsTXDf9-YZXfUHnYajAO0c.4zNV7876Bdvxprn"
+      }
+order: 7000

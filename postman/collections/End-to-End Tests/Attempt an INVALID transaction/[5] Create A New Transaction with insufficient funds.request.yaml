@@ -1,0 +1,40 @@
+$kind: http-request
+description: Create a new transaction between the `fromAccount` and `toAccount`.
+  We are expecting this to fail as there are insufficient funds in the
+  `fromAccount`.
+url: "{{baseUrl}}/api/v1/transactions"
+method: POST
+headers:
+  Content-Type: application/json
+  api-key: "1234"
+body:
+  type: text
+  content: |-
+    {
+        "fromAccountId": {{e2e_user_account_id_from}},
+        "toAccountId": {{e2e_user_account_id_to}},
+        "amount": 20,
+        "currency": "COSMIC_COINS"
+    }
+scripts:
+  - type: afterResponse
+    code: |
+      const response = pm.response.json();
+
+      pm.test("Status code is 400", function () {
+          pm.response.to.have.status(400);
+      });
+
+      pm.test("Should return an error: invalidBody", function () {
+          pm.expect(response.name).to.equal("invalidBody");
+      });
+
+      pm.test("Response has the required fields", function () {
+          pm.expect(response).to.be.an('object');
+          pm.expect(response.name).to.exist;
+          pm.expect(response.message).to.exist;
+      });
+    language: text/javascript
+examples: ./.resources/[5] Create A New Transaction with insufficient
+  funds.resources/examples
+order: 5000

@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/fyi/deliveryoptions/device"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: text/plain; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "deviceName": "tempor Duis mollit",
+        "deviceId": "aliquip ut do",
+        "uiName": "tempor nulla Duis",
+        "enabled": true
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: text/plain; charset=utf-8
+  body:
+    type: text
+    content: pariatur deserunt mollit
+order: 3000

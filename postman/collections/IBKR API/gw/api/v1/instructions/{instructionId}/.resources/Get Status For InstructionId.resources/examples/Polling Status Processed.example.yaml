@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/instructions/:instructionId"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    instructionId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 200,
+        "instructionResult": {
+          "clientInstructionId": 7008157,
+          "instructionType": "INTERNAL_CASH_TRANSFER",
+          "instructionStatus": "PROCESSED",
+          "instructionId": 43092596
+        },
+        "instructionSetId": 2651
+      }
+order: 2000

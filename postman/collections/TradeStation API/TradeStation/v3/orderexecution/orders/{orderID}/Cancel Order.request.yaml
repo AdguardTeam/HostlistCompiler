@@ -1,0 +1,15 @@
+$kind: http-request
+description: Sends a cancellation request to the relevant exchange. Request
+  valid for all account types.
+url: "{{baseUrl}}/v3/orderexecution/orders/:orderID"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: orderID
+    value: <string>
+    description: (Required) Order ID for cancellation request. Equity, option or
+      future orderIDs should not include dashes (E.g. `1-2345-6789`). Valid
+      format orderId=`123456789`
+examples: ./.resources/Cancel Order.resources/examples
+order: 2000

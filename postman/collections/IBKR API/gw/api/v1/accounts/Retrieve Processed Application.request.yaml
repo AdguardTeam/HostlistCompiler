@@ -1,0 +1,13 @@
+$kind: http-request
+description: "Retrieve the application request and IBKR response data based on
+  IBKR accountId or externalId. Only available for accounts that originate via
+  API<br><br>**Scope**: `accounts.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/accounts?accountId=minim&externalId=minim"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  accountId: minim
+  externalId: minim
+examples: ./.resources/Retrieve Processed Application.resources/examples
+order: 6000

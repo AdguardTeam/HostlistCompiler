@@ -1,0 +1,56 @@
+$kind: http-example
+name: FOP - transfer using tradingInstrument.detail
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "FOP",
+        "instruction": {
+          "clientInstructionId": 7013039,
+          "direction": "IN",
+          "accountId": "U46377",
+          "contraBrokerAccountId": "12345678A",
+          "contraBrokerDtcCode": "534",
+          "quantity": 1000,
+          "tradingInstrument": {
+            "tradingInstrumentDescription": {
+              "securityIdType": "ISIN",
+              "securityId": "459200101",
+              "assetType": "STK"
+            },
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Business Error",
+        "status": 422,
+        "detail": "Funds and Banking server cannot process your request because it contains invalid data",
+        "instructionSetId": 2616,
+        "instructionResult": {
+          "clientInstructionId": 7008155,
+          "instructionType": "FOP",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092592,
+          "error": {
+            "errorCode": "CORRUPT_DATA_INVALID_ACCT",
+            "errorMessage": "Account U1969557 does not exist"
+          }
+        }
+      }
+order: 85000

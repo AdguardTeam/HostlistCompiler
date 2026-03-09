@@ -1,0 +1,34 @@
+$kind: http-request
+description: Get the details of an individual transaction, using the first
+  transaction id from the list of transactions obtained in step \[6\].
+url: "{{baseUrl}}/api/v1/transactions/:transactionId"
+method: GET
+headers:
+  Content-Type: application/json
+pathVariables:
+  transactionId: "{{e2e_transaction_id_to}}"
+scripts:
+  - type: afterResponse
+    code: >-
+      const response = pm.response.json();
+
+
+      pm.test("Should contain a transaction 'object' in the response", function
+      () {
+          pm.expect(response.transaction).to.be.an('object');
+      });
+
+
+      pm.test("Should return the correct transaction data for the `toAccount`
+      user", function () {
+          pm.expect(response.transaction).to.be.an("object");
+          pm.expect(response.transaction.id).to.be.an("number");
+          pm.expect(response.transaction.createdAt).to.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}).(\d{3})Z/);
+          pm.expect(response.transaction.fromAccountId).to.eql(pm.collectionVariables.get("e2e_user_account_id_from"));
+          pm.expect(response.transaction.toAccountId).to.eql(pm.collectionVariables.get("e2e_user_account_id_to"));
+          pm.expect(response.transaction.currency).to.eql("COSMIC_COINS");
+          pm.expect(response.transaction.amount).to.eql(20);
+      });
+    language: text/javascript
+examples: ./.resources/[7] Get A Single Transaction.resources/examples
+order: 7000

@@ -1,0 +1,43 @@
+$kind: http-example
+name: Withdraw Funds
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-cash-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "WITHDRAWAL",
+        "instruction": {
+          "clientInstructionId": 7013048,
+          "accountId": "U46377",
+          "bankInstructionName": "Test Withdrawal",
+          "bankInstructionMethod": "WIRE",
+          "amount": 123.45,
+          "currency": "GBP",
+          "dateTimeToOccur": "2023-11-20T09:12:13Z"
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 12000862,
+          "instructionType": "WITHDRAWAL",
+          "instructionStatus": "PROCESSED",
+          "instructionId": 43092641,
+          "ibReferenceId": 132123
+        },
+        "instructionSetId": 2719,
+        "status": 202
+      }
+order: 47000

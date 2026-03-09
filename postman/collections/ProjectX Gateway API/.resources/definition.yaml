@@ -1,0 +1,12 @@
+$kind: collection
+description: ProjectX Gateway API Documentation and specification.
+variables:
+  baseUrl: https://api.topstepx.com
+  userHubUrl: https://rtc.topstepx.com/hubs/user
+  marketHubUrl: https://rtc.topstepx.com/hubs/market
+auth:
+  - id: ""
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{bearerToken}}"

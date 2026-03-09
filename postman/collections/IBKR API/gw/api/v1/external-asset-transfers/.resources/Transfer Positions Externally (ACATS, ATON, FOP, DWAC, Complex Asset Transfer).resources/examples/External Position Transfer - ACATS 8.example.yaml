@@ -1,0 +1,51 @@
+$kind: http-example
+name: External Position Transfer - ACATS
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "EXTERNAL_POSITION_TRANSFER",
+        "instruction": {
+          "clientInstructionId": 7013060,
+          "type": "FULL",
+          "subType": "ACATS",
+          "brokerId": "0226",
+          "brokerName": "Wall Street Financial Group",
+          "accountAtBroker": "SOL12345",
+          "sourceIRAType": "RO",
+          "accountId": "U1225448",
+          "signature": "sample signature"
+        }
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Business Error",
+        "status": 422,
+        "detail": "Funds and Banking server cannot process your request because it contains invalid data",
+        "instructionSetId": 2616,
+        "instructionResult": {
+          "clientInstructionId": 7008155,
+          "instructionType": "FOP",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092592,
+          "error": {
+            "errorCode": "CORRUPT_DATA_INVALID_ACCT",
+            "errorMessage": "Account U1969557 does not exist"
+          }
+        }
+      }
+order: 86000

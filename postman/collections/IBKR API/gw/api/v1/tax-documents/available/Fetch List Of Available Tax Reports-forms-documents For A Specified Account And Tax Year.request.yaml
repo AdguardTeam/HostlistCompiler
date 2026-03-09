@@ -1,0 +1,19 @@
+$kind: http-request
+name: Fetch List Of Available Tax Reports/forms/documents For A Specified
+  Account And Tax Year
+description: "<br>**Scope**: `statements.read` OR `reports.read`<br>**Security
+  Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/tax-documents/available?accountId=UXXXX&year=2024"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: accountId
+    value: UXXXX
+    description: (Required) Specifies the account id to retrieve information
+  - key: year
+    value: "2024"
+    description: (Required) Specifies the tax year to retrieve information
+examples: ./.resources/Fetch List Of Available Tax Reports-forms-documents For A
+  Specified Account And Tax Year.resources/examples
+order: 1000

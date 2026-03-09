@@ -1,0 +1,17 @@
+$kind: collection
+description: >-
+  This folder tests a commonly used workflow of creating new accounts and
+  transferring funds between the two.
+
+
+  Because we expect all requests to succeed in this workflow, we have a **status
+  check test** in the **folder-level Scripts tab**.
+scripts:
+  - type: http:afterResponse
+    code: |-
+      //all requests in this folder should be valid
+      pm.test("Folder-level status check", function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 1000

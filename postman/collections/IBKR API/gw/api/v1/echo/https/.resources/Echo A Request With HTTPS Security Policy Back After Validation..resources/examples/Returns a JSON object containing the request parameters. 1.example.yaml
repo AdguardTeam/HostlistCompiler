@@ -1,0 +1,21 @@
+$kind: http-example
+name: Returns a JSON object containing the request parameters.
+request:
+  url: "{{baseUrl}}/gw/api/v1/echo/https"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "requestMethod": "GET",
+        "securityPolicy": "HTTPS",
+        "queryParameters": {}
+      }
+order: 6000

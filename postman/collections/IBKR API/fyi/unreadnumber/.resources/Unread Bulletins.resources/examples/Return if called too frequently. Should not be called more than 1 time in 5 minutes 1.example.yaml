@@ -1,0 +1,20 @@
+$kind: http-example
+name: Return if called too frequently. Should not be called more than 1 time in
+  5 minutes
+request:
+  url: "{{baseUrl}}/fyi/unreadnumber"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 423
+  statusText: Locked (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": "occaecat "
+      }
+order: 8000

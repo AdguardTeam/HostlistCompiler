@@ -1,0 +1,58 @@
+$kind: http-example
+name: Deposit Funds - IRA
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-cash-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "DEPOSIT",
+        "instruction": {
+          "clientInstructionId": 7013046,
+          "accountId": "U399192",
+          "currency": "USD",
+          "amount": 1,
+          "bankInstructionMethod": "WIRE",
+          "sendingInstitution": "Sending Institution name",
+          "identifier": "indentifier",
+          "specialInstruction": "U399192",
+          "bankInstructionName": "Instruction",
+          "fromAccountNumber": "U399192",
+          "senderInstitutionName": "Senders Institution name",
+          "iraDepositDetail": {
+            "iraContributionType": "ROLLOVER",
+            "iraTaxYearType": "CURRENT",
+            "fromIraType": "TRADITIONAL"
+          }
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 2452,
+        "instructionResult": {
+          "clientInstructionId": 7008120,
+          "instructionType": "DEPOSIT",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092438,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 36000

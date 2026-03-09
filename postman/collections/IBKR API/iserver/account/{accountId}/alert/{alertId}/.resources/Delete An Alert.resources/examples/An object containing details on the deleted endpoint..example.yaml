@@ -1,0 +1,29 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alert/:alertId
+  method: DELETE
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+    alertId: ""
+  body:
+    type: json
+    content: "{}"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "request_id": null,
+        "order_id": 833967258,
+        "success": true,
+        "text": "Request was submitted",
+        "failure_list": null
+      }
+order: 1000

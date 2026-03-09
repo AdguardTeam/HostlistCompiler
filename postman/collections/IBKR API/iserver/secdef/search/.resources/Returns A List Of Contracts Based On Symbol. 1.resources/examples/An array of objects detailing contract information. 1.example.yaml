@@ -1,0 +1,100 @@
+$kind: http-example
+name: An array of objects detailing contract information.
+request:
+  url: "{{baseUrl}}/iserver/secdef/search"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "symbol": "AAPL",
+        "secType": "STK",
+        "name": true,
+        "more": true,
+        "fund": false,
+        "fundFamilyConidEx": "n",
+        "pattern": true,
+        "referrer": "eiusmod"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "bondid": 18644235,
+          "conid": "quis eu",
+          "companyHeader": "incididunt quis",
+          "companyName": "nisi aliqua dolore magn",
+          "symbol": "dolor veniam",
+          "description": "do eiusmod adipisicing nisi",
+          "restricted": false,
+          "fop": "officia Ut eiusmod ipsum",
+          "opt": "officia aliquip",
+          "war": "pariatur esse dolor nulla in",
+          "sections": [
+            {
+              "secType": "",
+              "months": "Lorem quis qui occaecat",
+              "exchange": "Lorem"
+            },
+            {
+              "secType": "ipsum ad qui",
+              "months": "aliquip aute elit incididunt fugiat",
+              "exchange": "sit in"
+            }
+          ],
+          "issuers": [
+            {
+              "id": "veniam",
+              "name": "anim do Duis pariatur"
+            },
+            {
+              "id": "veniam eiusmod dolore voluptate",
+              "name": "dolore et dolore"
+            }
+          ]
+        },
+        {
+          "bondid": 81318137,
+          "conid": "magna est dolore veniam",
+          "companyHeader": "est mollit qui Lorem eiusmod",
+          "companyName": "mollit cupidatat ip",
+          "symbol": "in laboris",
+          "description": "dolore laboris amet",
+          "restricted": true,
+          "fop": "in ulla",
+          "opt": "ex reprehenderit nisi",
+          "war": "ullamco irure ipsum",
+          "sections": [
+            {
+              "secType": "non esse nisi sunt",
+              "months": "sint ad nisi mollit",
+              "exchange": "labore voluptate occaecat"
+            },
+            {
+              "secType": "voluptate sit",
+              "months": "culpa do ut dolor",
+              "exchange": "ullamco minim exercitation sunt"
+            }
+          ],
+          "issuers": [
+            {
+              "id": "ex amet",
+              "name": "ipsum cupidatat ex"
+            },
+            {
+              "id": "irure",
+              "name": "dolor"
+            }
+          ]
+        }
+      ]
+order: 8000

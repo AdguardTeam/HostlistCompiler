@@ -1,0 +1,12 @@
+$kind: http-request
+description: >
+  Retrieve information about your MTA alert. Each login user only has one mobile
+  trading assistant (MTA) alert with it’s own unique tool id that cannot be
+  changed. MTA alerts can not be created or deleted, only modified. When
+  modified a new order Id is generated.
+url: "{{baseUrl}}/iserver/account/mta"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Get MTA Alert.resources/examples
+order: 1000

@@ -1,0 +1,72 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/portfolio/:accountId/allocation?model=model
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    model: model
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "assetClass": {
+          "long": {
+            "CRYPTO": 255.17,
+            "OPT": 44352.82,
+            "STK": 1564447.6240790943,
+            "BOND": 380106.54,
+            "CASH": 72425.68706744915
+          },
+          "short": {
+            "OPT": -80.53,
+            "STK": -103716.11109948158,
+            "CASH": -508096.16629793524
+          }
+        },
+        "sector": {
+          "long": {
+            "Others": 704313.8907064605,
+            "Industrial": 380106.54,
+            "Technology": 309264.47000000003,
+            "Consumer, Cyclical": 18213.43337263364,
+            "Communications": 164576.99,
+            "Financial": 412637.11,
+            "Consumer, Non-cyclical": 49.72
+          },
+          "short": {
+            "Technology": -87162,
+            "Consumer, Cyclical": -11763,
+            "Communications": -189.53,
+            "Financial": -4682.111099481583
+          }
+        },
+        "group": {
+          "long": {
+            "Computers": 279285.37,
+            "Others": 704313.8907064605,
+            "Biotechnology": 49.72,
+            "Aerospace/Defense": 380106.54,
+            "Semiconductors": 371.9,
+            "Auto Manufacturers": 18213.43337263364,
+            "Banks": 366666.31,
+            "Diversified Finan Serv": 45970.8,
+            "Software": 29607.2,
+            "Internet": 164576.99
+          },
+          "short": {
+            "Semiconductors": -87162,
+            "Auto Manufacturers": -11763,
+            "Insurance": -4682.111099481583,
+            "Internet": -189.53
+          }
+        }
+      }
+order: 1000

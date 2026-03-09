@@ -1,0 +1,24 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/accounts/:accountId"
+  method: DELETE
+  headers:
+    Content-Type: application/json
+  pathVariables:
+    accountId: "{{e2e_user_account_id_from}}"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Mon, 11 Mar 2024 01:11:37 GMT
+    Content-Type: application/json; charset=utf-8
+    Content-Length: "16"
+    Connection: keep-alive
+    uWebSockets: "20"
+  body:
+    type: json
+    content: |-
+      {
+          "success": true
+      }
+order: 1000

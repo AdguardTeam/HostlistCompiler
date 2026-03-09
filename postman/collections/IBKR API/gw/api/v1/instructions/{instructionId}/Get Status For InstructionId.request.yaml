@@ -1,0 +1,16 @@
+$kind: http-request
+description: "Retrieve status of request by instructionId<br><br>**Scope**:
+  `instructions.read`<br>**Security Policy**: `HTTPS`"
+url: "{{baseUrl}}/gw/api/v1/instructions/:instructionId"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: instructionId
+    value: "-1988905739"
+    description: (Required) The target instruction id.
+  - key: client-id
+    value: abc123
+    description: (Required) The client's clientId
+examples: ./.resources/Get Status For InstructionId.resources/examples
+order: 1000

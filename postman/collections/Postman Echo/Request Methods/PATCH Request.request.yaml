@@ -1,0 +1,45 @@
+$kind: http-request
+description: |-
+  The HTTP `PATCH` method is used to update resources on a server. The exact
+  use of `PATCH` requests depends on the server in question. There are a number
+  of server implementations which handle `PATCH` differently. Technically, 
+  `PATCH` supports both Query String parameters and a Request Body.
+
+  This endpoint accepts an HTTP `PATCH` request and provides debug information
+  such as the HTTP headers, Query String arguments, and the Request Body.
+url: https://echo.getpostman.com/patch
+method: PATCH
+body:
+  type: text
+  content: >-
+    Curabitur auctor, elit nec pulvinar porttitor, ex augue condimentum enim,
+    eget suscipit urna felis quis neque.
+
+    Suspendisse sit amet luctus massa, nec venenatis mi. Suspendisse tincidunt
+    massa at nibh efficitur fringilla. Nam quis congue mi. Etiam volutpat.
+scripts:
+  - type: afterResponse
+    code: >-
+      tests["Body contains files"] = responseBody.has("files");
+
+      tests["Body contains args"] = responseBody.has("args");
+
+      tests["Body contains form"] = responseBody.has("form");
+
+      tests["Body contains headers"] = responseBody.has("headers");
+
+      tests["Body contains url"] = responseBody.has("url");
+
+
+      var responseJSON;
+
+
+      try { responseJSON = JSON.parse(responseBody); }
+
+      catch (e) { }
+
+
+      tests["Data has been passed"] = (responseJSON && responseJSON.data &&
+      responseJSON.data.length)
+    language: text/javascript
+order: 4000

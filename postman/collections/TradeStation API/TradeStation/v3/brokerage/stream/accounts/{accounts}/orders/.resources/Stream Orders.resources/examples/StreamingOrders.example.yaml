@@ -1,0 +1,116 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/v3/brokerage/stream/accounts/:accounts/orders"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/vnd.tradestation.streams.v3+json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    accounts: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/vnd.tradestation.streams.v3+json
+  body:
+    type: json
+    content: |-
+      {
+        "AccountID": "<string>",
+        "AdvancedOptions": "<string>",
+        "ClosedDateTime": "<dateTime>",
+        "CommissionFee": "<string>",
+        "ConditionalOrders": [
+          {
+            "OrderID": "<string>",
+            "Relationship": "<string>"
+          },
+          {
+            "OrderID": "<string>",
+            "Relationship": "<string>"
+          }
+        ],
+        "ConversionRate": "<string>",
+        "Currency": "<string>",
+        "Duration": "<string>",
+        "FilledPrice": "<string>",
+        "GoodTillDate": "<dateTime>",
+        "GroupName": "<string>",
+        "Legs": [
+          {
+            "AssetType": "STOCKOPTION",
+            "BuyOrSell": "<string>",
+            "ExecQuantity": "<string>",
+            "ExecutionPrice": "<string>",
+            "ExpirationDate": {},
+            "OpenOrClose": "<string>",
+            "OptionType": "<string>",
+            "QuantityOrdered": "<string>",
+            "QuantityRemaining": "<string>",
+            "StrikePrice": "<string>",
+            "Symbol": "<string>",
+            "Underlying": "<string>"
+          },
+          {
+            "AssetType": "STOCK",
+            "BuyOrSell": "<string>",
+            "ExecQuantity": "<string>",
+            "ExecutionPrice": "<string>",
+            "ExpirationDate": {},
+            "OpenOrClose": "<string>",
+            "OptionType": "<string>",
+            "QuantityOrdered": "<string>",
+            "QuantityRemaining": "<string>",
+            "StrikePrice": "<string>",
+            "Symbol": "<string>",
+            "Underlying": "<string>"
+          }
+        ],
+        "MarketActivationRules": [
+          {
+            "RuleType": "<string>",
+            "Symbol": "<string>",
+            "Predicate": "<string>",
+            "TriggerKey": "STTN",
+            "Price": "<string>",
+            "LogicOperator": "Or"
+          },
+          {
+            "RuleType": "<string>",
+            "Symbol": "<string>",
+            "Predicate": "<string>",
+            "TriggerKey": "DTT",
+            "Price": "<string>",
+            "LogicOperator": "And"
+          }
+        ],
+        "TimeActivationRules": [
+          {
+            "TimeUtc": {}
+          },
+          {
+            "TimeUtc": {}
+          }
+        ],
+        "LimitPrice": "<string>",
+        "OpenedDateTime": "<dateTime>",
+        "OrderID": "<string>",
+        "OrderType": "Market",
+        "PriceUsedForBuyingPower": "<string>",
+        "RejectReason": "<string>",
+        "Routing": "<string>",
+        "ShowOnlyQuantity": "<string>",
+        "Spread": "<string>",
+        "Status": "CND",
+        "StatusDescription": "<string>",
+        "StopPrice": "<string>",
+        "TrailingStop": {
+          "Amount": "<string>",
+          "Percent": "<string>"
+        },
+        "UnbundledRouteFee": "<string>"
+      }
+order: 1000

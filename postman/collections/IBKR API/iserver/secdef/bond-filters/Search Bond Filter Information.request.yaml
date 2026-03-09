@@ -1,0 +1,17 @@
+$kind: http-request
+description: Request a list of filters relating to a given Bond issuerID. The
+  issuerId is retrieved from /iserver/secdef/search and can be used in
+  /iserver/secdef/info?issuerId={issuerId} for retrieving conIds.
+url: https://api.ibkr.com/v1/api/iserver/secdef/bond-filters?symbol=BOND&issueId=e1400715
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: symbol
+    value: BOND
+    description: "(Required) "
+  - key: issueId
+    value: e1400715
+    description: "(Required) "
+examples: ./.resources/Search Bond Filter Information.resources/examples
+order: 1000

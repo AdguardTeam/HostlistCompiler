@@ -1,0 +1,40 @@
+$kind: http-example
+name: Delete Bank Instruction
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "DELETE_BANK_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 7013055,
+          "accountId": "U46377",
+          "bankInstructionName": "Test Delete",
+          "bankInstructionMethod": "WIRE",
+          "currency": "USD"
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 80009,
+          "instructionType": "DELETE_BANK_INSTRUCTION",
+          "instructionStatus": "PENDING",
+          "instructionId": 43092478
+        },
+        "instructionSetId": 2487,
+        "status": 202
+      }
+order: 31000

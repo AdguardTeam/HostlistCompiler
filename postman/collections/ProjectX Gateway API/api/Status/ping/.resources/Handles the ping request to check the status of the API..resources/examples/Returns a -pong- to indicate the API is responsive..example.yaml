@@ -1,0 +1,16 @@
+$kind: http-example
+name: Returns a "pong" to indicate the API is responsive.
+request:
+  url: http://
+  method: GET
+  headers:
+    Accept: text/plain
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: string
+order: 1000

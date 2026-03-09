@@ -1,0 +1,13 @@
+$kind: http-request
+description: Provides a summary specific for avilable funds giving more depth
+  than the standard /summary endpoint.
+url: https://api.ibkr.com/v1/api/iserver/account/:accountId/summary/available_funds
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: accountId
+    value: U1234567
+    description: "(Required) "
+examples: ./.resources/Summary Of Available Funds.resources/examples
+order: 1000

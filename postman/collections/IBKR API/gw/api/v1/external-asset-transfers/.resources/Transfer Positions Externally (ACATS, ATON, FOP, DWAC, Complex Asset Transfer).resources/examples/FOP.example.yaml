@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "FOP",
+        "instruction": {
+          "clientInstructionId": 7013038,
+          "direction": "IN",
+          "accountId": "U46377",
+          "contraBrokerAccountId": "12345678A",
+          "contraBrokerDtcCode": "534",
+          "quantity": 1000,
+          "tradingInstrument": {
+            "conid": 12123,
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 1013031,
+          "instructionType": "FOP",
+          "instructionStatus": "PENDING",
+          "instructionId": 43091814
+        },
+        "instructionSetId": 1703,
+        "status": 202
+      }
+order: 1000

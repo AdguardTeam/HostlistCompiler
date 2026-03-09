@@ -1,0 +1,28 @@
+$kind: http-example
+name: success
+request:
+  url: "{{baseUrl}}/iserver/account/pnl/partitioned"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "upnl": {
+          "U1234567.Core": {
+            "rowType": 1,
+            "dpl": -12510,
+            "nl": 1290000,
+            "upl": 256000,
+            "el": 824600,
+            "mv": 1700000
+          }
+        }
+      }
+order: 11000

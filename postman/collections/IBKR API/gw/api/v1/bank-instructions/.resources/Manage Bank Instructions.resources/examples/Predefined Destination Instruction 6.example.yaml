@@ -1,0 +1,55 @@
+$kind: http-example
+name: Predefined Destination Instruction
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "PREDEFINED_DESTINATION_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 7013053,
+          "bankInstructionName": "Test-ACH-Instr",
+          "bankInstructionMethod": "ACH",
+          "accountId": "U399192",
+          "currency": "USD",
+          "financialInstitution": {
+            "name": "SBI Bank",
+            "branchCode": "",
+            "branchCodeType": "BSB_AUD",
+            "identifier": "SBIN001000",
+            "identifierType": "IFSC",
+            "clientAccountId": "132456789"
+          }
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 2603,
+        "instructionResult": {
+          "clientInstructionId": 80140,
+          "instructionType": "ACH_INSTRUCTION",
+          "instructionStatus": "REJECTED",
+          "instructionId": 43092579,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 33000

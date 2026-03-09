@@ -1,0 +1,38 @@
+$kind: http-request
+description: Get a list of all transactions to and from the `toAccount`
+url: "{{baseUrl}}/api/v1/transactions?toAccountId={{e2e_user_account_id_to}}"
+method: GET
+headers:
+  Content-Type: application/json
+queryParams:
+  toAccountId: "{{e2e_user_account_id_to}}"
+scripts:
+  - type: afterResponse
+    code: >-
+      const response = pm.response.json();
+
+
+      pm.test("Should contain a transactions 'array' in the response", function
+      () {
+          pm.expect(response.transactions).to.be.an('array');
+      });
+
+
+      pm.test("Should return the correct transaction data for the `toAccount`
+      user", function () {
+          pm.expect(response.transactions[0]).to.be.an("object");
+          pm.expect(response.transactions[0].id).to.be.an("number");
+          pm.expect(response.transactions[0].createdAt).to.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}).(\d{3})Z/);
+          pm.expect(response.transactions[0].fromAccountId).to.eql(pm.collectionVariables.get("e2e_user_account_id_from"));
+          pm.expect(response.transactions[0].toAccountId).to.eql(pm.collectionVariables.get("e2e_user_account_id_to"));
+          pm.expect(response.transactions[0].currency).to.eql("COSMIC_COINS");
+          pm.expect(response.transactions[0].amount).to.eql(20);
+      });
+
+
+      if(pm.response.code === 200) {
+          pm.collectionVariables.set("e2e_transaction_id_to", response.transactions[0].id)
+      }
+    language: text/javascript
+examples: ./.resources/[6] Get All Transactions To The ToAccount.resources/examples
+order: 6000

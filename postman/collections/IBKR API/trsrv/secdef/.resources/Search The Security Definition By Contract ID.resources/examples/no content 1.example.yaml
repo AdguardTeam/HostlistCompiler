@@ -1,0 +1,20 @@
+$kind: http-example
+name: no content
+request:
+  url: https://api.ibkr.com/v1/api/trsrv/secdef?conids=265598,8314&criteria=&bondp=
+  method: GET
+  queryParams:
+    - key: conids
+      value: 265598,8314
+      description: "(Required) "
+    - key: criteria
+      value: ""
+    - key: bondp
+      value: ""
+response:
+  statusCode: 204
+  statusText: No Content
+  body:
+    type: text
+    content: ""
+order: 7000

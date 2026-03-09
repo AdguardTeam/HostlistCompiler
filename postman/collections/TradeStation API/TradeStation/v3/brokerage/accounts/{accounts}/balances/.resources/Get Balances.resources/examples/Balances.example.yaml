@@ -1,0 +1,151 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/v3/brokerage/accounts/:accounts/balances"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    accounts: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "Balances": [
+          {
+            "AccountID": "<string>",
+            "AccountType": "<string>",
+            "BalanceDetail": {
+              "CostOfPositions": "<string>",
+              "DayTradeExcess": "<string>",
+              "DayTradeMargin": "<string>",
+              "DayTradeOpenOrderMargin": "<string>",
+              "DayTrades": "<string>",
+              "InitialMargin": "<string>",
+              "MaintenanceMargin": "<string>",
+              "MaintenanceRate": "<string>",
+              "MarginRequirement": "<string>",
+              "OpenOrderMargin": "<string>",
+              "OptionBuyingPower": "<string>",
+              "OptionsMarketValue": "<string>",
+              "OvernightBuyingPower": "<string>",
+              "RealizedProfitLoss": "<string>",
+              "RequiredMargin": "<string>",
+              "SecurityOnDeposit": "<string>",
+              "TodayRealTimeTradeEquity": "<string>",
+              "TradeEquity": "<string>",
+              "UnrealizedProfitLoss": "<string>",
+              "UnsettledFunds": "<string>"
+            },
+            "BuyingPower": "<string>",
+            "CashBalance": "<string>",
+            "Commission": "<string>",
+            "CurrencyDetails": [
+              {
+                "AccountConversionRate": "<string>",
+                "AccountMarginRequirement": "<string>",
+                "CashBalance": "<string>",
+                "Commission": "<string>",
+                "Currency": "<string>",
+                "InitialMargin": "<string>",
+                "MaintenanceMargin": "<string>",
+                "RealizedProfitLoss": "<string>",
+                "UnrealizedProfitLoss": "<string>"
+              },
+              {
+                "AccountConversionRate": "<string>",
+                "AccountMarginRequirement": "<string>",
+                "CashBalance": "<string>",
+                "Commission": "<string>",
+                "Currency": "<string>",
+                "InitialMargin": "<string>",
+                "MaintenanceMargin": "<string>",
+                "RealizedProfitLoss": "<string>",
+                "UnrealizedProfitLoss": "<string>"
+              }
+            ],
+            "Equity": "<string>",
+            "MarketValue": "<string>",
+            "TodaysProfitLoss": "<string>",
+            "UnclearedDeposit": "<string>"
+          },
+          {
+            "AccountID": "<string>",
+            "AccountType": "<string>",
+            "BalanceDetail": {
+              "CostOfPositions": "<string>",
+              "DayTradeExcess": "<string>",
+              "DayTradeMargin": "<string>",
+              "DayTradeOpenOrderMargin": "<string>",
+              "DayTrades": "<string>",
+              "InitialMargin": "<string>",
+              "MaintenanceMargin": "<string>",
+              "MaintenanceRate": "<string>",
+              "MarginRequirement": "<string>",
+              "OpenOrderMargin": "<string>",
+              "OptionBuyingPower": "<string>",
+              "OptionsMarketValue": "<string>",
+              "OvernightBuyingPower": "<string>",
+              "RealizedProfitLoss": "<string>",
+              "RequiredMargin": "<string>",
+              "SecurityOnDeposit": "<string>",
+              "TodayRealTimeTradeEquity": "<string>",
+              "TradeEquity": "<string>",
+              "UnrealizedProfitLoss": "<string>",
+              "UnsettledFunds": "<string>"
+            },
+            "BuyingPower": "<string>",
+            "CashBalance": "<string>",
+            "Commission": "<string>",
+            "CurrencyDetails": [
+              {
+                "AccountConversionRate": "<string>",
+                "AccountMarginRequirement": "<string>",
+                "CashBalance": "<string>",
+                "Commission": "<string>",
+                "Currency": "<string>",
+                "InitialMargin": "<string>",
+                "MaintenanceMargin": "<string>",
+                "RealizedProfitLoss": "<string>",
+                "UnrealizedProfitLoss": "<string>"
+              },
+              {
+                "AccountConversionRate": "<string>",
+                "AccountMarginRequirement": "<string>",
+                "CashBalance": "<string>",
+                "Commission": "<string>",
+                "Currency": "<string>",
+                "InitialMargin": "<string>",
+                "MaintenanceMargin": "<string>",
+                "RealizedProfitLoss": "<string>",
+                "UnrealizedProfitLoss": "<string>"
+              }
+            ],
+            "Equity": "<string>",
+            "MarketValue": "<string>",
+            "TodaysProfitLoss": "<string>",
+            "UnclearedDeposit": "<string>"
+          }
+        ],
+        "Errors": [
+          {
+            "AccountID": "<string>",
+            "Error": "<string>",
+            "Message": "<string>"
+          },
+          {
+            "AccountID": "<string>",
+            "Error": "<string>",
+            "Message": "<string>"
+          }
+        ]
+      }
+order: 1000

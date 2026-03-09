@@ -1,0 +1,117 @@
+$kind: http-example
+name: ledger
+request:
+  url: https://api.ibkr.com/v1/api/portfolio/:accountId/ledger
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "CAD": {
+          "commoditymarketvalue": 0,
+          "futuremarketvalue": 0,
+          "settledcash": 3899.42,
+          "exchangerate": 0.73095405,
+          "sessionid": 1,
+          "cashbalance": 3899.42,
+          "corporatebondsmarketvalue": 0,
+          "warrantsmarketvalue": 0,
+          "netliquidationvalue": 3899.42,
+          "interest": 0,
+          "unrealizedpnl": 0,
+          "stockmarketvalue": 0,
+          "moneyfunds": 0,
+          "currency": "CAD",
+          "realizedpnl": 0,
+          "funds": 0,
+          "acctcode": "DU123456",
+          "issueroptionsmarketvalue": 0,
+          "key": "LedgerList",
+          "timestamp": 1712784785,
+          "severity": 0,
+          "stockoptionmarketvalue": 0,
+          "futuresonlypnl": 0,
+          "tbondsmarketvalue": 0,
+          "futureoptionmarketvalue": 0,
+          "cashbalancefxsegment": 0,
+          "secondkey": "CAD",
+          "tbillsmarketvalue": 0,
+          "dividends": 0,
+          "cryptocurrencyvalue": 0
+        },
+        "USD": {
+          "commoditymarketvalue": 0,
+          "futuremarketvalue": -5650,
+          "settledcash": -494573.5,
+          "exchangerate": 1,
+          "sessionid": 1,
+          "cashbalance": -494573.5,
+          "corporatebondsmarketvalue": 387538.2,
+          "warrantsmarketvalue": 0,
+          "netliquidationvalue": 1388598.1,
+          "interest": -742.84,
+          "unrealizedpnl": 342011.97,
+          "stockmarketvalue": 1451848.9,
+          "moneyfunds": 0,
+          "currency": "USD",
+          "realizedpnl": 0,
+          "funds": 0,
+          "acctcode": "DU123456",
+          "issueroptionsmarketvalue": 0,
+          "key": "LedgerList",
+          "timestamp": 1712784785,
+          "severity": 0,
+          "stockoptionmarketvalue": 44272.29,
+          "futuresonlypnl": -5650,
+          "tbondsmarketvalue": 0,
+          "futureoptionmarketvalue": 0,
+          "cashbalancefxsegment": 0,
+          "secondkey": "USD",
+          "tbillsmarketvalue": 0,
+          "endofbundle": 1,
+          "dividends": 0,
+          "cryptocurrencyvalue": 255.1348
+        },
+        "BASE": {
+          "commoditymarketvalue": 0,
+          "futuremarketvalue": -5650,
+          "settledcash": -435667.94,
+          "exchangerate": 1,
+          "sessionid": 1,
+          "cashbalance": -435667.94,
+          "corporatebondsmarketvalue": 387538.2,
+          "warrantsmarketvalue": 0,
+          "netliquidationvalue": 1456360.9,
+          "interest": -742.84,
+          "unrealizedpnl": 342383.1,
+          "stockmarketvalue": 1460706,
+          "moneyfunds": 0,
+          "currency": "BASE",
+          "realizedpnl": 0,
+          "funds": 0,
+          "acctcode": "DU123456",
+          "issueroptionsmarketvalue": 0,
+          "key": "LedgerList",
+          "timestamp": 1712784785,
+          "severity": 0,
+          "stockoptionmarketvalue": 44272.29,
+          "futuresonlypnl": -5650,
+          "tbondsmarketvalue": 0,
+          "futureoptionmarketvalue": 0,
+          "cashbalancefxsegment": 0,
+          "secondkey": "BASE",
+          "tbillsmarketvalue": 0,
+          "dividends": 0,
+          "cryptocurrencyvalue": 255.1348
+        }
+      }
+order: 8000

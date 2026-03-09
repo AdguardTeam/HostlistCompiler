@@ -1,0 +1,27 @@
+$kind: http-example
+name: Internal Server Error; Unable to delete alert in case when provided alert
+  id doesn't exist
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/alert/:alertId
+  method: DELETE
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+    alertId: ""
+  body:
+    type: json
+    content: "{}"
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "failed to delete alert: Alert 83396732432423258 doesn't exist"
+      }
+order: 4000

@@ -1,0 +1,64 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Order/modify"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/plain
+body:
+  type: text
+  content: |-
+    {
+      "accountId": 1023,
+      "orderId": 7496,
+      "size": 2829,
+      "limitPrice": 7755.682268424784,
+      "stopPrice": 3992.2435829250257,
+      "trailPrice": 4236.6945633458845
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Response status code is 200", function () {
+          pm.expect(pm.response.code).to.equal(200);
+      });
+
+
+
+      pm.test("Response has success field that is true", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.equal(true);
+      });
+
+
+
+      pm.test("Error code should be 0 indicating no errors occurred", function
+      () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.errorCode).to.exist.and.to.equal(0);
+      });
+
+
+
+      pm.test("Error message should be null when there are no errors", function
+      () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.exist;
+          pm.expect(responseData.errorCode).to.exist;
+          pm.expect(responseData.errorMessage).to.be.null;
+      });
+
+
+
+      pm.test("Response time is less than 200ms", function () {
+          pm.expect(pm.response.responseTime).to.be.below(200);
+      });
+    language: text/javascript
+examples: ./.resources/Modifies an existing order based on the provided
+  request..resources/examples
+order: 1000

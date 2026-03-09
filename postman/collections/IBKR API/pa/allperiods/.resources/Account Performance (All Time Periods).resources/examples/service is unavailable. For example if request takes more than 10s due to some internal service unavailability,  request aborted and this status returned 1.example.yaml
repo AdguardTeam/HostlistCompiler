@@ -1,0 +1,32 @@
+$kind: http-example
+name: >
+  service is unavailable. For example if request takes more than 10s due to some
+  internal service unavailability,  request aborted and this status returned
+request:
+  url: https://api.ibkr.com/v1/api/pa/allperiods
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "acctIds": [
+          "eu voluptate dolore ut",
+          "repreh"
+        ]
+      }
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "aliqua cupidatat",
+        "statusCode": "magna reprehenderit veniam"
+      }
+order: 8000

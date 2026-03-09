@@ -1,0 +1,23 @@
+$kind: http-request
+description: SecDef info
+url: https://api.ibkr.com/v1/api/iserver/secdef/info?conid=265598&sectype=Security
+  type of the requested contract of interest.&month=Expiration month for the
+  given derivative.&exchange=Designate the exchange you wish to receive
+  information for in relation to the contract.&strike=Set the strike price for
+  the requested contract details&right=P&issuerId=“e1234567”&filters=comma
+  separted list of additional filters. Applicable when SecTyp is BOND
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  conid: "265598"
+  sectype: Security type of the requested contract of interest.
+  month: Expiration month for the given derivative.
+  exchange: Designate the exchange you wish to receive information for in relation
+    to the contract.
+  strike: Set the strike price for the requested contract details
+  right: P
+  issuerId: “e1234567”
+  filters: comma separted list of additional filters. Applicable when SecTyp is BOND
+examples: ./.resources/SecDef Info.resources/examples
+order: 1000

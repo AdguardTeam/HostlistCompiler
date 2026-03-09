@@ -1,0 +1,60 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/pa/transactions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "currency": "USD",
+        "days": 90
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "rc": 0,
+        "nd": 4,
+        "rpnl": {
+          "data": [
+            {
+              "date": "20231211",
+              "cur": "USD",
+              "fxRate": 1,
+              "side": "L",
+              "acctid": "U1234567",
+              "amt": "12.2516",
+              "conid": "265598"
+            }
+          ],
+          "amt": "12.2516"
+        },
+        "currency": "USD",
+        "from": 1702270800000,
+        "id": "getTransactions",
+        "to": 1702530000000,
+        "includesRealTime": true,
+        "transactions": [
+          {
+            "date": "Mon Dec 11 00:00:00 EST 2023",
+            "cur": "USD",
+            "fxRate": 1,
+            "pr": 192.26,
+            "qty": -5,
+            "acctid": "U1234567",
+            "amt": 961.3,
+            "conid": 265598,
+            "type": "Sell",
+            "desc": "Apple Inc"
+          }
+        ]
+      }
+order: 1000

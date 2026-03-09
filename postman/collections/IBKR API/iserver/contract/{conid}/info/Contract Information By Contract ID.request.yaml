@@ -1,0 +1,12 @@
+$kind: http-request
+description: Requests full contract details for the given conid.
+url: https://api.ibkr.com/v1/api/iserver/contract/:conid/info
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: conid
+    value: "265598"
+    description: "(Required) "
+examples: ./.resources/Contract Information By Contract ID.resources/examples
+order: 1000

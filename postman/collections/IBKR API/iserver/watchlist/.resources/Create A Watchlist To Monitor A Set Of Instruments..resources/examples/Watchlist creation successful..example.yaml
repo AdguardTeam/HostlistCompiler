@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/iserver/watchlist"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: "null"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "mollit cupidatat in",
+        "hash": "nisi dolore dolore ea",
+        "name": "occaecat Duis in",
+        "readOnly": false
+      }
+order: 1000

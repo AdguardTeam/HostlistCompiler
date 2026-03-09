@@ -1,0 +1,32 @@
+$kind: http-example
+name: Daily html
+request:
+  url: "{{baseUrl}}/gw/api/v1/statements"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "accountId": "UXXXX",
+        "startDate": "20230102",
+        "endDate": "20230102",
+        "mimeType": "text/html"
+      }
+response:
+  statusCode: 402
+  statusText: Payment Required
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 402,
+        "title": "Unauthorized",
+        "type": "/simple",
+        "detail": "The request cannot be fulfilled for the account"
+      }
+order: 10000

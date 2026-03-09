@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Status/ping"
+method: GET
+headers:
+  Accept: text/plain
+examples: ./.resources/Handles the ping request to check the status of the
+  API..resources/examples
+order: 1000

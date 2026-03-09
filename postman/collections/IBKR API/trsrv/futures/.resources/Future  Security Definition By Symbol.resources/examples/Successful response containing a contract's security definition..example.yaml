@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/trsrv/futures?symbols=ES,MES&exchange=exchange
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: symbols
+      value: ES,MES
+      description: "(Required) "
+    - key: exchange
+      value: exchange
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "ES": [
+          {
+            "symbol": "ES",
+            "conid": 495512557,
+            "underlyingConid": 11004968,
+            "expirationDate": 20241220,
+            "ltd": 20241219,
+            "shortFuturesCutOff": 20241219,
+            "longFuturesCutOff": 20241219
+          },
+          {
+            "symbol": "ES",
+            "conid": 495512563,
+            "underlyingConid": 11004968,
+            "expirationDate": 20251219,
+            "ltd": 20251218,
+            "shortFuturesCutOff": 20251218,
+            "longFuturesCutOff": 20251218
+          }
+        ]
+      }
+order: 1000

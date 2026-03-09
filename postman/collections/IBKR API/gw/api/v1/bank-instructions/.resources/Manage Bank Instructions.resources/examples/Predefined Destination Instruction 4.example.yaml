@@ -1,0 +1,43 @@
+$kind: http-example
+name: Predefined Destination Instruction
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "PREDEFINED_DESTINATION_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 7013053,
+          "bankInstructionName": "Test-ACH-Instr",
+          "bankInstructionMethod": "ACH",
+          "accountId": "U399192",
+          "currency": "USD",
+          "financialInstitution": {
+            "name": "SBI Bank",
+            "branchCode": "",
+            "branchCodeType": "BSB_AUD",
+            "identifier": "SBIN001000",
+            "identifierType": "IFSC",
+            "clientAccountId": "132456789"
+          }
+        }
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "status": 500,
+        "title": "Internal Server Error",
+        "type": "/simple"
+      }
+order: 24000

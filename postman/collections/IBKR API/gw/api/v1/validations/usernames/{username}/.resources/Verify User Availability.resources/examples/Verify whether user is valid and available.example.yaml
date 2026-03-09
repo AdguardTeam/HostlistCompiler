@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/validations/usernames/:username"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    username: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "error": {
+          "error": {
+            "value": "<Circular reference to #/components/schemas/ErrorResponse detected>"
+          },
+          "hasError": false,
+          "errorDescription": "proident commodo ut id"
+        },
+        "hasError": true,
+        "errorDescription": "ex",
+        "isValid": false,
+        "isAvailable": false,
+        "suggestedUserName": [
+          "cillum ut nostrud et in",
+          "exercitation nulla laborum ea"
+        ]
+      }
+order: 1000

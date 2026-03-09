@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/reply/:replyId
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    replyId: ""
+  body:
+    type: json
+    content: |-
+      {
+        "confirmed": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Order not confirmed "
+      }
+order: 3000

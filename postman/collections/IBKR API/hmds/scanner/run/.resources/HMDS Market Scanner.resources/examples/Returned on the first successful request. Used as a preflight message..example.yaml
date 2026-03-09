@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/hmds/scanner/run"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: text/html
+  body:
+    type: json
+    content: |-
+      {
+        "instrument": "BOND",
+        "locations": "BOND.US",
+        "scanCode": "HIGH_BOND_ASK_YIELD_ALL",
+        "secType": "BOND",
+        "delayedLocations": "SMART",
+        "maxItems": 25,
+        "filters": [
+          {
+            "bondAskYieldBelow": 15.819
+          }
+        ]
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: text/html
+  body:
+    type: text
+    content: |-
+      {
+        "success": "<html><body><h1>Resource not found</h1></body></html>"
+      }
+order: 5000

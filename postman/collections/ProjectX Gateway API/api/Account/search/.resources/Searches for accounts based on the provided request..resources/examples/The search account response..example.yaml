@@ -1,0 +1,45 @@
+$kind: http-example
+request:
+  url: http://
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: text/plain
+  body:
+    type: text
+    content: |-
+      {
+        "onlyActiveAccounts": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "errorCode": 0,
+        "errorMessage": "string",
+        "accounts": [
+          {
+            "id": 4916,
+            "name": "string",
+            "balance": 6088.960755971173,
+            "canTrade": false,
+            "isVisible": true,
+            "simulated": true
+          },
+          {
+            "id": 5061,
+            "name": "string",
+            "balance": 8579.376085145099,
+            "canTrade": true,
+            "isVisible": true,
+            "simulated": false
+          }
+        ]
+      }
+order: 1000

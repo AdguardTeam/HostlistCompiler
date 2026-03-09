@@ -1,0 +1,52 @@
+$kind: http-example
+name: Response
+request:
+  url: "{{baseUrl}}/gw/api/v1/external-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "FOP",
+        "instruction": {
+          "clientInstructionId": 7013038,
+          "direction": "IN",
+          "accountId": "U46377",
+          "contraBrokerAccountId": "12345678A",
+          "contraBrokerDtcCode": "534",
+          "quantity": 1000,
+          "tradingInstrument": {
+            "conid": 12123,
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/simple",
+        "title": "Forbidden",
+        "status": 403,
+        "detail": "Permission denied- Insufficient rights for using resource",
+        "instructionSetId": 2615,
+        "instructionResult": {
+          "clientInstructionId": 2611,
+          "instructionType": "FOP",
+          "instructionStatus": "REJECTED",
+          "instructionId": 12000763,
+          "error": {
+            "errorCode": "ERROR_PERMISSION_DENIED",
+            "errorMessage": "Permission denied- Insufficient rights for using resource"
+          }
+        }
+      }
+order: 98000

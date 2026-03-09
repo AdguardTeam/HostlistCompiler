@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/requests?requestDetails=endDate,1983-11-03,startDat\
+    e,1995-08-31,offset,94626202,limit,834,status,C"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: requestDetails
+      value: endDate,1983-11-03,startDate,1995-08-31,offset,94626202,limit,834,status,C
+      description: "(Required) "
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "requestDetails": [
+          {
+            "requestId": -31017320,
+            "dateSubmitted": "eu",
+            "status": "ut occaecat dolore",
+            "accountID": "ex laborum veniam in nulla",
+            "requestType": "velit laboris"
+          },
+          {
+            "requestId": 3661772,
+            "dateSubmitted": "Lorem est nisi",
+            "status": "aute in",
+            "accountID": "mollit commo",
+            "requestType": "aliquip adipisicing pariatur nulla"
+          }
+        ],
+        "offset": -87656417,
+        "limit": -1349514,
+        "total": 55548045
+      }
+order: 1000

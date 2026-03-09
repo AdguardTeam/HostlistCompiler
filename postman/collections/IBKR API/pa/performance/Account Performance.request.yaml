@@ -1,0 +1,16 @@
+$kind: http-request
+description: Returns the performance (MTM) for the given accounts, if more than
+  one account is passed, the result is consolidated.
+url: "{{baseUrl}}/pa/performance"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "period": "12M"
+    }
+examples: ./.resources/Account Performance.resources/examples
+order: 1000

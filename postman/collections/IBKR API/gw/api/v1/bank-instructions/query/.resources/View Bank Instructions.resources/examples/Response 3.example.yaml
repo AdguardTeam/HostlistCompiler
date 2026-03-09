@@ -1,0 +1,40 @@
+$kind: http-example
+name: Response
+request:
+  url: "{{baseUrl}}/gw/api/v1/bank-instructions/query"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/problem+json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "QUERY_BANK_INSTRUCTION",
+        "instruction": {
+          "clientInstructionId": 1012983,
+          "accountId": "U46377",
+          "bankInstructionMethod": "WIRE"
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/problem+json
+  body:
+    type: json
+    content: >-
+      {
+        "type": "/invalid-argument",
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Input is not a JSON Object or doesn't contain all expected fields",
+        "invalidArguments": [
+          {
+            "field": "ibReferenceId",
+            "description": "Missing required parameter"
+          }
+        ]
+      }
+order: 20000

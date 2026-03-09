@@ -1,0 +1,10 @@
+$kind: http-request
+description: To place orders with activation triggers, a valid TriggerKey must
+  be sent with the order. This resource provides the available trigger methods
+  with their corresponding key.
+url: "{{baseUrl}}/v3/orderexecution/activationtriggers"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/Get Activation Triggers.resources/examples
+order: 1000

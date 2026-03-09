@@ -1,0 +1,9 @@
+$kind: http-request
+description: Current Authentication status to the Brokerage system. Market Data
+  and Trading is not possible if not authenticated.
+url: "{{baseUrl}}/iserver/auth/status"
+method: POST
+headers:
+  Accept: application/json
+examples: ./.resources/Brokerage Session Auth Status.resources/examples
+order: 1000

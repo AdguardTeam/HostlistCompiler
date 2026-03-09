@@ -1,0 +1,29 @@
+$kind: http-example
+name: access denied
+request:
+  url: https://api.ibkr.com/v1/api/fyi/notifications?max=10&include=include&exclude=exclude&id=if
+    more required, notifcationId of last notification should be used to define
+    next batch border
+  method: GET
+  headers:
+    Accept: text/plain; charset=utf-8
+  queryParams:
+    - key: max
+      value: "10"
+      description: "(Required) "
+    - key: include
+      value: include
+    - key: exclude
+      value: exclude
+    - key: id
+      value: if more required, notifcationId of last notification should be used to
+        define next batch border
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: text/plain; charset=utf-8
+  body:
+    type: text
+    content: pariatur deserunt mollit
+order: 9000

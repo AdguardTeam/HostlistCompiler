@@ -1,0 +1,29 @@
+$kind: http-request
+description: Get a list of transactions to and from the `toAccount`, and ensure
+  there are no transactions.
+url: "{{baseUrl}}/api/v1/transactions?toAccountId={{e2e_user_account_id_to}}"
+method: GET
+headers:
+  Content-Type: application/json
+queryParams:
+  toAccountId: "{{e2e_user_account_id_to}}"
+scripts:
+  - type: afterResponse
+    code: >+
+      const response = pm.response.json();
+
+      pm.test("Status check", function () {
+          pm.response.to.have.status(200);
+      });
+
+
+      pm.test("Should contain an empty transactions 'array' in the response",
+      function () {
+          pm.expect(response.transactions).to.be.an('array');
+          pm.expect(response.transactions.length).to.equal(0);
+      });
+
+
+    language: text/javascript
+examples: ./.resources/[6] Get All Transactions To The ToAccount.resources/examples
+order: 6000

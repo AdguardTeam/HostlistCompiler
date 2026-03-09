@@ -1,0 +1,62 @@
+$kind: http-example
+request:
+  url: https://api.ibkr.com/v1/api/iserver/account/:accountId/summary
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    accountId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "accountType": "",
+        "status": "",
+        "balance": 825903,
+        "SMA": 368538,
+        "buyingPower": 3307124,
+        "availableFunds": 825903,
+        "excessLiquidity": 826781,
+        "netLiquidationValue": 1290490,
+        "equityWithLoanValue": 1281714,
+        "regTLoan": 0,
+        "securitiesGVP": 1793178,
+        "totalCashValue": -401846,
+        "accruedInterest": 0,
+        "regTMargin": 0,
+        "initialMargin": 464586,
+        "maintenanceMargin": 463709,
+        "cashBalances": [
+          {
+            "currency": "EUR",
+            "balance": 194,
+            "settledCash": 194
+          },
+          {
+            "currency": "HKD",
+            "balance": 0,
+            "settledCash": 0
+          },
+          {
+            "currency": "JPY",
+            "balance": 14781,
+            "settledCash": 14781
+          },
+          {
+            "currency": "USD",
+            "balance": -402158,
+            "settledCash": -402158
+          },
+          {
+            "currency": "Total (in USD)",
+            "balance": -401846,
+            "settledCash": -401846
+          }
+        ]
+      }
+order: 1000

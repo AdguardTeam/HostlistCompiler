@@ -1,0 +1,59 @@
+$kind: http-request
+url: "{{baseUrl}}/api/Contract/available"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/plain
+body:
+  type: text
+  content: |-
+    {
+      "live": true
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Response status code is 200", function () {
+          pm.expect(pm.response.code).to.equal(200);
+      });
+
+
+
+      pm.test("Response has required fields", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData).to.have.all.keys('contracts', 'success', 'errorCode', 'errorMessage');
+      });
+
+
+
+      pm.test("Success field is true", function () {
+          const responseData = pm.response.json();
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.success).to.be.true;
+      });
+
+
+
+      pm.test("Error code is a non-negative integer", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.errorCode).to.be.a('number').and.to.be.at.least(0);
+      });
+
+
+
+      pm.test("Error message is null or a non-empty string", function () {
+          const responseData = pm.response.json();
+          
+          pm.expect(responseData).to.be.an('object');
+          pm.expect(responseData.errorMessage).to.satisfy(function(value) {
+              return value === null || (typeof value === 'string' && value.length > 0);
+          });
+      });
+    language: text/javascript
+examples: ./.resources/Lists available contracts based on the provided request
+  parameters..resources/examples
+order: 1000

@@ -1,0 +1,49 @@
+$kind: http-example
+name: returned array with user account
+request:
+  url: "{{baseUrl}}/portfolio/accounts"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "DU123456",
+          "PrepaidCrypto-Z": false,
+          "PrepaidCrypto-P": false,
+          "brokerageAccess": true,
+          "accountId": "DU123456",
+          "accountVan": "DU123456",
+          "accountTitle": "John Smith, LLC",
+          "displayName": "John Smith, LLC",
+          "accountAlias": null,
+          "accountStatus": 1590724800000,
+          "currency": "USD",
+          "type": "DEMO",
+          "tradingType": "STKNOPT",
+          "businessType": "IB_SALES",
+          "ibEntity": "IBLLC-US",
+          "faclient": false,
+          "clearingStatus": "O",
+          "covestor": false,
+          "noClientTrading": false,
+          "trackVirtualFXPortfolio": true,
+          "acctCustType": "LLC",
+          "parent": {
+            "mmc": [],
+            "accountId": "",
+            "isMParent": false,
+            "isMChild": false,
+            "isMultiplex": false
+          },
+          "desc": "DU123456"
+        }
+      ]
+order: 7000

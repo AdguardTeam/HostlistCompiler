@@ -1,0 +1,32 @@
+$kind: http-example
+name: ErrorResponse
+request:
+  url: "{{baseUrl}}/v3/marketdata/options/expirations/:underlying?strikePrice=<do\
+    uble>"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: strikePrice
+      value: <double>
+      description: Strike price. If provided, only expirations for that strike price
+        will be returned.
+  pathVariables:
+    underlying: ""
+response:
+  statusCode: 429
+  statusText: Too Many Requests
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "Error": "<string>",
+        "Message": "<string>"
+      }
+order: 5000

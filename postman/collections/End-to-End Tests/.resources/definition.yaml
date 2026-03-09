@@ -1,0 +1,62 @@
+$kind: collection
+description: |-
+  > This collection features end-to-end tests that ensure the Intergalactic Bank API components function in an expected sequence. Check out the [Functional testing collection](https://www.postman.com/templates/f26ad070-d626-4d75-b151-7cbf1a48ed11/Functional-testing) and [Integration testing collection](https://www.postman.com/templates/6f788c17-067a-4074-a528-d07df1df9529/Integration-testing-%23example) for other test cases for this API. 
+    
+
+  ## **🪐 Get started**
+
+  The fictional Intergalactic Bank Services team is responsible for testing the end-to-end workflows in this collection. You can use this collection to validate specific workflows for your team or figure out ways to increase your test coverage and make your applications more resilient.
+
+  To test the Intergalactic Bank API, you can:
+
+  1. **Review tests and scripts:** Check out the [tests](https://learning.postman.com/docs/writing-scripts/test-scripts/) in the Scripts tab of a collection, folder, or request. You’ll also find additional steps in the Pre-request Script, such as for passing data between requests or building up POST request payloads.
+      
+  2. **Run tests:** To run the collection, select Run collection from the collection menu. If you are interested in testing one of the use cases, select Run folder from the use case folder menu. Keep in mind that many of these tests contain logic that passes information between requests, and they are meant to be run in order from top to bottom. If you send the requests manually or out of order, your results may vary.
+      
+  3. **Review test results:** Many of the test cases contain error messages to help debug service errors. If you’re using this collection as a pre-merge check, ensure that all tests are passing before submitting (and no, deleting the failing test cases isn’t an option 😉).
+      
+
+  Check out the additional sections below or select View complete documentation. For context-sensitive help with a folder or request, look for the documentation icon.
+
+  ## 🧑‍💻How your team can use this collection
+
+  - **Add a mock server to speed up development:** Adding functionality to this service? Since this collection has example responses, you can add a mock server that will return the expected results. Start writing tests against the mock, and once your additions are live, you can swap out the URLs and have a live test suite.
+      
+  - **Integrate tests with your CI/CD pipeline:** This comprehensive test suite is a great addition to your existing CI/CD pipeline. Generate the Postman CLI command from the Collection Runner and add this step to your existing checks each time you make a commit affecting this service.
+      
+  - **Add a monitor:** If your team is contributing to or relying on this service, it’s a good idea to keep tabs on the status. Adding a monitor to this collection can give you confidence that the service is up and running and alert you to any breaking changes that may have occurred.
+      
+
+  ## 🔍 What we’re testing
+
+  - A very common workflow is the transfer of funds between accounts. We have two scenarios: one which creates all resources and successfully transfers funds, and one which tries the transfer with insufficient funds.
+      
+  - During these workflows, we are testing for data correctness, data types, and that data is successfully passed through the system during creation and retrieval.
+      
+
+  ## 🔒A note on authorization
+
+  This API uses an API key-based authorization. In this collection, we set the authorization at the collection level and generate a new API Key for each test run.
+
+  ## 👀 View and share run results
+
+  Interested in seeing previous run results? We’re happy to share, and have a few ways for you to stay in the loop:
+
+  - **Runs tab:** View past collection runs in the `Runs` tab of this collection. Here, you can see the results of past runs, including who ran them and whether it was via the Collection Runner or the CLI. You can also share individual run reports from this page.
+      
+  - **Monitors:** If you have a monitor set up for this collection, you can see historical run information when you select the Monitors tab in the left sidebar. You can also have the results sent to Slack or other services when you set up a corresponding integration.
+      
+
+  ### 🤝Increase test coverage
+
+  The Intergalactic Bank Services team wants your team to have everything they need to successfully test our services with their applications. Is your team utilizing this API in a use case not represented here? Reach out to us on our internal Slack by tagging `@bank-services`. Or add an [inline comment](https://learning.postman.com/docs/collaborating-in-postman/working-with-your-team/discussing-your-work/) to this collection with your test case suggestions.
+variables:
+  baseUrl: https://template.postman-echo.com
+  apiKey: OMpqVWAH.UC80wyXTtPwhDgAUdCTx6
+auth:
+  - id: ""
+    type: apikey
+    name: apikey auth
+    credentials:
+      key: api-key
+      value: "{{apiKey}}"

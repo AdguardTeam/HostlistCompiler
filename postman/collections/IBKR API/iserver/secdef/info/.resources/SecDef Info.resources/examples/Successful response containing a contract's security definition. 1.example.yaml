@@ -1,0 +1,45 @@
+$kind: http-example
+name: Successful response containing a contract's security definition.
+request:
+  url: https://api.ibkr.com/v1/api/iserver/secdef/info?conid=265598&sectype=Security
+    type of the requested contract of interest.&month=Expiration month for the
+    given derivative.&exchange=Designate the exchange you wish to receive
+    information for in relation to the contract.&strike=Set the strike price for
+    the requested contract details&right=P&issuerId=“e1234567”&filters=comma
+    separted list of additional filters. Applicable when SecTyp is BOND
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    conid: "265598"
+    sectype: Security type of the requested contract of interest.
+    month: Expiration month for the given derivative.
+    exchange: Designate the exchange you wish to receive information for in relation
+      to the contract.
+    strike: Set the strike price for the requested contract details
+    right: P
+    issuerId: “e1234567”
+    filters: comma separted list of additional filters. Applicable when SecTyp is BOND
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "conid": 8314,
+        "ticker": "IBM",
+        "secType": "STK",
+        "listingExchange": "NYSE",
+        "exchange": "SMART",
+        "companyName": "INTL BUSINESS MACHINES CORP",
+        "currency": "USD",
+        "validExchanges": "SMART,AMEX,NYSE,CBOE,PHLX,ISE,CHX,ARCA,NASDAQ,DRCTEDGE,BEX,BATS,EDGEA,BYX,NYSEDARK,NASDDARK,IEX,EDGX,FOXRIVER,PEARL,NYSENAT,IEXMID,JANELP,IMCLP,LTSE,MEMX,JUMPLP,OLDMCLP,RBCCMALP,IBEOS,GSLP,BLUEOCEAN,OVERNIGHT,JANEMID,G1XLP,PSX",
+        "priceRendering": null,
+        "maturityDate": null,
+        "right": "?",
+        "strike": 0
+      }
+order: 7000

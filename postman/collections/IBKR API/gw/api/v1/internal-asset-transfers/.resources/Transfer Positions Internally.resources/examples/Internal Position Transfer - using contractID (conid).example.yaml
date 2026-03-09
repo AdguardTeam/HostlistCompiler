@@ -1,0 +1,42 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/gw/api/v1/internal-asset-transfers"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionType": "INTERNAL_POSITION_TRANSFER",
+        "instruction": {
+          "clientInstructionId": 7013043,
+          "sourceAccountId": "U399192",
+          "targetAccountId": "U87440",
+          "transferQuantity": 6,
+          "tradingInstrument": {
+            "conid": 21323,
+            "currency": "USD"
+          }
+        }
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionResult": {
+          "clientInstructionId": 7008152,
+          "instructionType": "INTERNAL_POSITION_TRANSFER",
+          "instructionStatus": "PENDING",
+          "instructionId": 43092590
+        },
+        "instructionSetId": 2614,
+        "status": 202
+      }
+order: 2000

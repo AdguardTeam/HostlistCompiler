@@ -1,0 +1,21 @@
+$kind: http-example
+name: Success response with permanent OAuth access token
+request:
+  url: https://api.ibkr.com/v1/api/oauth/access_token
+  method: POST
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "is_paper": true,
+        "oauth_token": "a1b2c3d4e5f6a7b8c9d0",
+        "oauth_token_secret": "coPZc+YOyFy7IdMg6is+etf9HASi3Um3SIhZvILcaifG6zhzZygYafYZx4XTFsrefRV/qrsy4sMAMwyPVp07VgkfQJPJkxYA7Sjhwz/Q76vuVN2YZNsRirNyL63Q3t+EHkjKA5HJEFY2PiIgqO4EWZ4etZUl3iZjCStiahhD+BNv7zgrlxS0bB4lL4vKw9AGcUiUnIQrqzTGJPj0/P2Zc3fMqCbXVWRcoYRcwUkk9ZYtMaIwPPVgvJ0c76rle5O5m4R4ZoFgrjfXpNiXC1F8MRS0fc7T6pgyyMvV+vI2C9XZbl7cNIEuCvtz3XYLNlUi+svyeZJh4RzjB824qH/fJQ=="
+      }
+order: 5000

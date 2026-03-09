@@ -1,0 +1,22 @@
+$kind: http-example
+name: Returns the status multiple instructions.
+request:
+  url: "{{baseUrl}}/gw/api/v1/instruction-sets/:instructionSetId"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    instructionSetId: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "instructionSetId": -1988905739,
+        "status": 207
+      }
+order: 6000

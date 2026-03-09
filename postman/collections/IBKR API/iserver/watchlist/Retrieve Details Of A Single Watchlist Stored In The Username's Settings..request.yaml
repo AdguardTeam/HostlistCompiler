@@ -1,0 +1,13 @@
+$kind: http-request
+description: Retrieve details of a single watchlist stored in the username's settings.
+url: https://api.ibkr.com/v1/api/iserver/watchlist?id=1234
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: id
+    value: "1234"
+    description: (Required) Watchlist ID of the requested watchlist.
+examples: ./.resources/Retrieve Details Of A Single Watchlist Stored In The
+  Username's Settings..resources/examples
+order: 1000

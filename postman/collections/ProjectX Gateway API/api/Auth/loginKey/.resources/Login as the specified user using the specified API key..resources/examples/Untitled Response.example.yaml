@@ -1,0 +1,29 @@
+$kind: http-example
+request:
+  url: http://
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: text/plain
+  body:
+    type: text
+    content: |-
+      {
+        "userName": "string",
+        "apiKey": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "errorCode": 8,
+        "errorMessage": "string",
+        "token": "string"
+      }
+order: 1000
