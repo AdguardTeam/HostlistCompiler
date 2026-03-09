@@ -10,6 +10,7 @@ AdBlock Compiler is designed to be fully extensible. This guide shows you how to
 - [Custom Loggers](#custom-loggers)
 - [Extending the Compiler](#extending-the-compiler)
 - [Plugin System](#plugin-system)
+- [Transformation Hooks](HOOKS.md) — per-transformation before/after/error lifecycle hooks
 
 ## Custom Transformations
 

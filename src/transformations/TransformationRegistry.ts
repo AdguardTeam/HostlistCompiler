@@ -79,7 +79,45 @@ export class TransformationRegistry {
 }
 
 /**
- * Pipeline for executing transformations in order.
+ * Executes an ordered sequence of named transformations over a rule array,
+ * with optional lifecycle hooks, exclusion/inclusion pattern filtering, and
+ * event emission.
+ *
+ * ## Execution order
+ *
+ * Requested transformation types are always sorted into a fixed canonical
+ * order (see `getOrderedTransformations`) regardless of the order in which
+ * they appear in the configuration. This guarantees consistent, reproducible
+ * output.
+ *
+ * ## Hook integration
+ *
+ * The pipeline holds an optional {@link TransformationHookManager}. On each
+ * iteration the following sequence occurs:
+ *
+ * ```
+ * emitProgress(…)
+ * hookManager.executeBeforeHooks(beforeContext)   ← before transformation
+ * try {
+ *   rules = await transformation.execute(rules, ctx)
+ * } catch (e) {
+ *   await hookManager.executeErrorHooks(errorContext)
+ *   throw e
+ * }
+ * hookManager.executeAfterHooks(afterContext)     ← after transformation
+ * ```
+ *
+ * When no hooks are registered (`hookManager.hasHooks() === false`) the three
+ * execute calls are skipped entirely. The default is a {@link NoOpHookManager}
+ * so hook overhead is zero unless you pass a real hook manager.
+ *
+ * ## Event emission
+ *
+ * `ICompilerEvents.onTransformationStart` / `onTransformationComplete` events
+ * are now emitted **through the hook system** rather than by direct calls
+ * inside the loop. `FilterCompiler` and `WorkerCompiler` achieve this by
+ * automatically registering a {@link createEventBridgeHook} on the hook
+ * manager when `ICompilerEvents` listeners are present.
  */
 export class TransformationPipeline {
     private readonly registry: TransformationRegistry;
@@ -89,11 +127,24 @@ export class TransformationPipeline {
     private readonly hookManager: TransformationHookManager;
 
     /**
-     * Creates a new TransformationPipeline
-     * @param registry - Optional transformation registry
-     * @param logger - Optional logger instance
-     * @param eventEmitter - Optional event emitter
-     * @param hookManager - Optional transformation hook manager
+     * Creates a new `TransformationPipeline`.
+     *
+     * All parameters are optional; sane defaults are used when omitted:
+     * - `registry` defaults to a new `TransformationRegistry` with all
+     *   built-in transformations pre-registered.
+     * - `logger` defaults to the module-level default logger.
+     * - `eventEmitter` defaults to a `NoOpEventEmitter` (no-overhead singleton).
+     * - `hookManager` defaults to a `NoOpHookManager` (no-overhead, skips all
+     *   hook code paths).
+     *
+     * In practice you will rarely construct this directly — `FilterCompiler`
+     * and `WorkerCompiler` build and configure the pipeline for you.
+     *
+     * @param registry - Transformation registry to look up transformations from
+     * @param logger - Logger passed through to transformations during execution
+     * @param eventEmitter - Emitter used for progress events (not transformation
+     *   start/complete — those go through the hook manager)
+     * @param hookManager - Lifecycle hook manager; defaults to `NoOpHookManager`
      */
     constructor(
         registry?: TransformationRegistry,
@@ -109,7 +160,25 @@ export class TransformationPipeline {
     }
 
     /**
-     * Transforms rules using the specified transformations.
+     * Apply exclusion/inclusion pattern filters and then execute the requested
+     * transformations in canonical order.
+     *
+     * The method follows a three-phase approach:
+     * 1. **Exclusions** — rules matching any exclusion pattern are removed.
+     * 2. **Inclusions** — if inclusion patterns are configured, only rules
+     *    matching at least one pattern are kept.
+     * 3. **Transformations** — each requested transformation is executed in
+     *    the fixed canonical order, with before/after/error hooks invoked
+     *    around each execution.
+     *
+     * The method uses a `readonly string[]` internally during the
+     * transformation loop to avoid unnecessary array copies; it only
+     * materialises a mutable copy at the very end.
+     *
+     * @param rules - Input rule strings to transform
+     * @param configuration - Source or global configuration (supplies exclusion/inclusion patterns)
+     * @param transformations - Transformation types to apply (subset of `TransformationType`)
+     * @returns A new mutable array of transformed rules
      */
     public async transform(
         rules: string[],
@@ -154,6 +223,9 @@ export class TransformationPipeline {
                     timestamp: Date.now(),
                 };
 
+                // hasHooks() is a fast-path guard: when no hooks are registered
+                // (NoOpHookManager returns false) we skip building context
+                // objects and awaiting async calls entirely.
                 if (this.hookManager.hasHooks()) {
                     await this.hookManager.executeBeforeHooks(beforeContext);
                 }
@@ -165,6 +237,8 @@ export class TransformationPipeline {
                         logger: this.logger,
                     });
                 } catch (error) {
+                    // Error hooks are observers only — we await them then re-throw
+                    // the original error so the caller's error-handling is unaffected.
                     if (this.hookManager.hasHooks()) {
                         await this.hookManager.executeErrorHooks({
                             ...beforeContext,

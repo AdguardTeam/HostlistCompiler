@@ -411,24 +411,87 @@ export interface ICompilationCompleteEvent {
 }
 
 /**
- * Event emitted when compilation begins (before any sources are downloaded).
+ * Event emitted when compilation begins, after configuration validation has
+ * passed but before any source is downloaded or processed.
+ *
+ * ## Why this event was added
+ *
+ * The existing `ICompilerEvents` had `onCompilationComplete` but no
+ * corresponding start event. The gap meant you could not measure total
+ * end-to-end latency from inside an event handler alone, nor could you
+ * implement pre-fetch cache-warming based on the upcoming compilation.
+ *
+ * Firing **after validation** (not at the very start of `compile()`) is an
+ * intentional design choice: by this point we know the configuration is valid
+ * and `sourceCount` / `transformationCount` are trustworthy.
+ *
+ * @example
+ * ```ts
+ * const compiler = new FilterCompiler({
+ *   events: {
+ *     onCompilationStart: (e) => {
+ *       console.log(
+ *         `Compiling "${e.configName}": ` +
+ *         `${e.sourceCount} sources, ${e.transformationCount} transformations`
+ *       );
+ *     },
+ *   },
+ * });
+ * ```
  */
 export interface ICompilationStartEvent {
-    /** Name of the configuration being compiled */
+    /** Name of the configuration being compiled (from `IConfiguration.name`) */
     configName: string;
-    /** Number of sources to be processed */
+    /** Number of sources that will be fetched and compiled */
     sourceCount: number;
-    /** Number of global transformations configured */
+    /** Number of global transformations that will be applied after merging sources */
     transformationCount: number;
-    /** Timestamp when compilation started */
+    /** `Date.now()` timestamp captured just before source fetching begins */
     timestamp: number;
 }
 
 /**
- * Callback function types for compiler events
+ * Callback function types for compiler events.
+ *
+ * Pass an object implementing any subset of these callbacks to
+ * `FilterCompilerOptions.events` or `WorkerCompilerOptions.events`.
+ * All handlers are optional; you only need to implement the events you care about.
+ *
+ * ## Lifecycle order
+ *
+ * ```
+ * onCompilationStart
+ *   for each source:
+ *     onSourceStart
+ *     onSourceComplete  (or onSourceError)
+ *   for each transformation (via bridge hook):
+ *     onTransformationStart
+ *     onTransformationComplete
+ *   onProgress  (emitted throughout)
+ * onCompilationComplete
+ * ```
+ *
+ * ## Relationship to TransformationHookManager
+ *
+ * `onTransformationStart` and `onTransformationComplete` are now routed
+ * through the hook system via a bridge hook rather than direct emitter calls.
+ * This is an implementation detail that is transparent to callers — the events
+ * still arrive at the same callbacks as before.
+ *
+ * For async hooks or error hooks on individual transformations, use
+ * `FilterCompilerOptions.hookManager` with a `TransformationHookManager`.
+ *
+ * ## Error safety
+ *
+ * All handlers are wrapped in try-catch by `CompilerEventEmitter.safeEmit()`.
+ * Throwing inside a handler logs the error but does **not** abort compilation.
  */
 export interface ICompilerEvents {
-    /** Called when compilation starts, before any sources are fetched */
+    /**
+     * Called after validation passes, before any source is fetched.
+     *
+     * Useful for: pre-flight logging, latency measurement, cache-warming.
+     */
     onCompilationStart?: (event: ICompilationStartEvent) => void;
     /** Called when a source starts downloading */
     onSourceStart?: (event: ISourceStartEvent) => void;

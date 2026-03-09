@@ -83,8 +83,13 @@ export class WorkerCompiler {
 
         const deps = options?.dependencies;
 
-        // Resolve hook manager: if event emitter has listeners, wire in the bridge hook
-        // so ICompilerEvents.onTransformationStart/Complete still fire via the hook system.
+        // Resolve hook manager for the pipeline.
+        // WorkerCompiler does not expose a hookManager option (it targets edge
+        // runtimes where the API surface is intentionally minimal), but we still
+        // need onTransformationStart/Complete to fire when ICompilerEvents
+        // listeners are present. We achieve this by creating a bridge hook
+        // manager when the event emitter has listeners — identical to the
+        // FilterCompiler approach, but always automatic here.
         const hookManager: TransformationHookManager = this.eventEmitter.hasListeners()
             ? new TransformationHookManager(createEventBridgeHook(this.eventEmitter))
             : new NoOpHookManager();
