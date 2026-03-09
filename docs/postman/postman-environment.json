@@ -1,5 +1,5 @@
 {
-    "name": "Adblock Compiler - Local",
+    "name": "Adblock Compiler API - Local",
     "values": [
         {
             "key": "baseUrl",
@@ -15,6 +15,5 @@
         }
     ],
     "_postman_variable_scope": "environment",
-    "_postman_exported_at": "2026-01-14T05:52:00.000Z",
-    "_postman_exported_using": "Postman/10.0.0"
+    "_postman_exported_using": "deno task postman:collection"
 }

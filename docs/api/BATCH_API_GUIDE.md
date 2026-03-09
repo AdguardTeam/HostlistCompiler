@@ -1203,7 +1203,7 @@ graph TB
 - [Queue Support Documentation](./QUEUE_SUPPORT.md) - Detailed queue configuration
 - [Workflow Diagrams](./WORKFLOW_DIAGRAMS.md) - Additional system diagrams
 - [API Quick Reference](./api/QUICK_REFERENCE.md) - API endpoints overview
-- [OpenAPI Specification](../../openapi.yaml) - Complete API schema
+- [OpenAPI Specification](openapi.yaml) - Complete API schema
 
 ---
 

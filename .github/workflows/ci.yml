@@ -292,6 +292,46 @@ jobs:
                   fi
                   echo "✅ Cloudflare schema is up to date"
 
+    validate-postman-collection:
+        name: Validate Postman Collection
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - name: Setup Deno
+              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+
+            - name: Cache Deno dependencies
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+                  restore-keys: |
+                      deno-${{ runner.os }}-
+
+            - name: Generate Postman collection
+              run: deno task postman:collection
+
+            - name: Check Postman collection is up to date
+              run: |
+                  if ! git diff --quiet docs/postman/postman-collection.json docs/postman/postman-environment.json; then
+                      echo "❌ Postman collection is out of date!"
+                      echo "The generated collection does not match the committed files."
+                      echo "Run 'deno task postman:collection' locally and commit the updated docs/postman/ files."
+                      echo ""
+                      echo "Diff:"
+                      git diff docs/postman/postman-collection.json docs/postman/postman-environment.json
+                      exit 1
+                  fi
+                  echo "✅ Postman collection is up to date"
+
     ci-gate:
         name: CI Gate
         runs-on: ubuntu-latest
@@ -301,6 +341,7 @@ jobs:
             - typecheck
             - test
             - validate-cloudflare-schema
+            - validate-postman-collection
             - frontend-lint-test
             - frontend-build
             - verify-deploy
