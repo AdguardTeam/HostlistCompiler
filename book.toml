@@ -12,3 +12,16 @@ git-repository-url = "https://github.com/jaypatrick/adblock-compiler"
 edit-url-template = "https://github.com/jaypatrick/adblock-compiler/edit/main/{path}"
 additional-css = ["docs/theme/custom.css"]
 additional-js = ["docs/theme/mermaid.min.js", "docs/theme/mermaid-init.js", "docs/theme/custom.js"]
+head = """
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Adblock Compiler">
+<meta property="og:title" content="Adblock Compiler — Documentation">
+<meta property="og:description" content="Compiler-as-a-Service for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.">
+<meta property="og:image" content="https://og.tailgraph.com/og?fontFamily=IBM+Plex+Sans&amp;title=Adblock+Compiler&amp;titleTailwind=text-white+font-bold+text-6xl&amp;text=Compiler-as-a-Service+for+adblock+filter+lists&amp;textTailwind=text-amber-400+text-2xl+mt-4&amp;logoTailwind=h-8&amp;bgTailwind=bg-gray-950&amp;footer=adblock-compiler-docs.pages.dev&amp;footerTailwind=text-gray-400">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Adblock Compiler — Documentation">
+<meta name="twitter:description" content="Compiler-as-a-Service for adblock filter lists. Transform, optimize, and combine filter lists from multiple sources with real-time progress tracking.">
+<meta name="twitter:image" content="https://og.tailgraph.com/og?fontFamily=IBM+Plex+Sans&amp;title=Adblock+Compiler&amp;titleTailwind=text-white+font-bold+text-6xl&amp;text=Compiler-as-a-Service+for+adblock+filter+lists&amp;textTailwind=text-amber-400+text-2xl+mt-4&amp;logoTailwind=h-8&amp;bgTailwind=bg-gray-950&amp;footer=adblock-compiler-docs.pages.dev&amp;footerTailwind=text-gray-400">
+"""
