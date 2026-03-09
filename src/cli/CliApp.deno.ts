@@ -74,6 +74,7 @@ interface ICliArgs {
     exclude?: string[];
     'exclude-from'?: string[];
     include?: string[];
+    'include-from'?: string[];
     // Networking
     timeout?: number;
     retries?: number;
@@ -86,21 +87,34 @@ interface ICliArgs {
  */
 class ConsoleLogger implements ILogger {
     private level: number = LOG_LEVEL_INFO; // info level by default
+    private useStderr: boolean = false;
 
     setLevel(level: number): void {
         this.level = level;
     }
 
+    setUseStderr(useStderr: boolean): void {
+        this.useStderr = useStderr;
+    }
+
+    private emit(message: string): void {
+        if (this.useStderr) {
+            console.error(message);
+        } else {
+            console.log(message);
+        }
+    }
+
     trace(message: string): void {
-        if (this.level >= LOG_LEVEL_TRACE) console.log('[TRACE]', message);
+        if (this.level >= LOG_LEVEL_TRACE) this.emit(`[TRACE] ${message}`);
     }
 
     debug(message: string): void {
-        if (this.level >= LOG_LEVEL_DEBUG) console.log('[DEBUG]', message);
+        if (this.level >= LOG_LEVEL_DEBUG) this.emit(`[DEBUG] ${message}`);
     }
 
     info(message: string): void {
-        if (this.level >= LOG_LEVEL_INFO) console.log('[INFO]', message);
+        if (this.level >= LOG_LEVEL_INFO) this.emit(`[INFO] ${message}`);
     }
 
     warn(message: string): void {
@@ -117,11 +131,11 @@ class ConsoleLogger implements ILogger {
     }
 
     success(message: string): void {
-        if (this.level >= LOG_LEVEL_INFO) console.log('[SUCCESS]', message);
+        if (this.level >= LOG_LEVEL_INFO) this.emit(`[SUCCESS] ${message}`);
     }
 
     log(message: string): void {
-        console.log(message);
+        this.emit(message);
     }
 }
 
@@ -218,7 +232,7 @@ Output:
   -o, --output <file>          Path to the output file [required unless --stdout]
       --stdout                 Write output to stdout instead of a file
       --append                 Append to output file instead of overwriting
-      --format <format>        Output format
+      --format <format>        Output format [not yet supported]
       --name <file>            Compare output against an existing file and print a
                                summary of added/removed rules
       --max-rules <n>          Truncate output to at most <n> rules
@@ -241,7 +255,8 @@ Transformations:
 Filtering:
       --exclude <pattern>      Exclude rules matching pattern (repeatable)
       --exclude-from <file>    Load exclusions from file (repeatable)
-      --include <file>         Load inclusions from file (repeatable)
+      --include <pattern>      Include only rules matching pattern (repeatable)
+      --include-from <file>    Load inclusions from file (repeatable)
 
 Networking:
       --timeout <ms>           HTTP request timeout in milliseconds
@@ -289,7 +304,7 @@ Examples:
                 'allow-ip',
                 'convert-to-ascii',
             ],
-            collect: ['input', 'transformation', 'exclude', 'exclude-from', 'include'],
+            collect: ['input', 'transformation', 'exclude', 'exclude-from', 'include', 'include-from'],
             alias: {
                 c: 'config',
                 i: 'input',
@@ -303,10 +318,13 @@ Examples:
         });
 
         const toArr = (v: unknown): string[] => (Array.isArray(v) ? (v as string[]) : []);
-        const toNum = (v: unknown): number | undefined => {
+        const toNum = (v: unknown, flagName: string): number | undefined => {
             if (v === undefined || v === null || v === '') return undefined;
             const n = Number(v);
-            return Number.isNaN(n) ? undefined : n;
+            if (!Number.isFinite(n) || !Number.isInteger(n)) {
+                throw new Error(`Invalid value for --${flagName}: expected a finite integer, got: ${String(v)}`);
+            }
+            return n;
         };
 
         const inputArr = toArr(parsed.input);
@@ -314,6 +332,7 @@ Examples:
         const excludeArr = toArr(parsed.exclude);
         const excludeFromArr = toArr(parsed['exclude-from']);
         const includeArr = toArr(parsed.include);
+        const includeFromArr = toArr(parsed['include-from']);
 
         return {
             config: parsed.config,
@@ -324,7 +343,7 @@ Examples:
             append: parsed.append,
             format: parsed.format,
             name: parsed.name,
-            'max-rules': toNum(parsed['max-rules']),
+            'max-rules': toNum(parsed['max-rules'], 'max-rules'),
             verbose: parsed.verbose,
             benchmark: parsed.benchmark,
             progress: parsed.progress,
@@ -342,8 +361,9 @@ Examples:
             exclude: excludeArr.length > 0 ? excludeArr : undefined,
             'exclude-from': excludeFromArr.length > 0 ? excludeFromArr : undefined,
             include: includeArr.length > 0 ? includeArr : undefined,
-            timeout: toNum(parsed.timeout),
-            retries: toNum(parsed.retries),
+            'include-from': includeFromArr.length > 0 ? includeFromArr : undefined,
+            timeout: toNum(parsed.timeout, 'timeout'),
+            retries: toNum(parsed.retries, 'retries'),
             'user-agent': parsed['user-agent'],
         };
     }
@@ -396,7 +416,10 @@ Examples:
                 config.exclusions_sources = [...(config.exclusions_sources ?? []), ...this.args['exclude-from']];
             }
             if (this.args.include?.length) {
-                config.inclusions_sources = [...(config.inclusions_sources ?? []), ...this.args.include];
+                config.inclusions = [...(config.inclusions ?? []), ...this.args.include];
+            }
+            if (this.args['include-from']?.length) {
+                config.inclusions_sources = [...(config.inclusions_sources ?? []), ...this.args['include-from']];
             }
 
             return config;
@@ -432,6 +455,13 @@ Examples:
     private buildTransformations(existingTransformations?: TransformationType[]): TransformationType[] {
         // Explicit pipeline overrides everything
         if (this.args.transformation && this.args.transformation.length > 0) {
+            const validValues = new Set(Object.values(TransformationType) as string[]);
+            const invalid = this.args.transformation.filter((name) => !validValues.has(name));
+            if (invalid.length > 0) {
+                throw new Error(
+                    `Unknown transformation value(s): ${invalid.join(', ')}. Valid values are: ${[...validValues].join(', ')}`,
+                );
+            }
             return this.args.transformation as TransformationType[];
         }
 
@@ -497,7 +527,8 @@ Examples:
             transformations,
             ...(this.args.exclude?.length && { exclusions: this.args.exclude }),
             ...(this.args['exclude-from']?.length && { exclusions_sources: this.args['exclude-from'] }),
-            ...(this.args.include?.length && { inclusions_sources: this.args.include }),
+            ...(this.args.include?.length && { inclusions: this.args.include }),
+            ...(this.args['include-from']?.length && { inclusions_sources: this.args['include-from'] }),
         };
 
         return config;
@@ -522,9 +553,20 @@ Examples:
                 return;
             }
 
+            // When writing rules to stdout, route all log/info output to stderr so that
+            // the rule stream is clean and pipeable without interleaving log messages.
+            if (this.args.stdout && this.logger instanceof ConsoleLogger) {
+                this.logger.setUseStderr(true);
+            }
+
             // Set verbose logging
             if (this.args.verbose && this.logger instanceof ConsoleLogger) {
                 this.logger.setLevel(LOG_LEVEL_TRACE);
+            }
+
+            // Warn about flags that are parsed but not yet fully implemented
+            if (this.args.format) {
+                this.logger.warn('--format is not yet supported and will be ignored');
             }
 
             this.logger.info(`Starting @jk-com/adblock-compiler v${VERSION}`);
@@ -561,8 +603,10 @@ Examples:
                 outputRules = outputRules.slice(0, maxRules);
             }
 
-            // Print comparison summary if --name was provided
+            // Print comparison summary if --name was provided.
+            // Route to stderr when in --stdout mode so the rule stream is not contaminated.
             if (this.args.name) {
+                const printSummary = this.args.stdout ? console.error : console.log;
                 try {
                     const existingContent = await Deno.readTextFile(this.args.name);
                     const existingRulesSet = new Set(existingContent.split('\n').filter((r) => r.trim() !== ''));
@@ -575,10 +619,10 @@ Examples:
                     for (const rule of existingRulesSet) {
                         if (!newRulesSet.has(rule)) removed++;
                     }
-                    console.log(`\nComparison with ${this.args.name}:`);
-                    console.log(`  Added:   +${added} rules`);
-                    console.log(`  Removed: -${removed} rules`);
-                    console.log(`  Net:     ${added - removed >= 0 ? '+' : ''}${added - removed} rules`);
+                    printSummary(`\nComparison with ${this.args.name}:`);
+                    printSummary(`  Added:   +${added} rules`);
+                    printSummary(`  Removed: -${removed} rules`);
+                    printSummary(`  Net:     ${added - removed >= 0 ? '+' : ''}${added - removed} rules`);
                 } catch {
                     this.logger.warn(`Could not read comparison file: ${this.args.name}`);
                 }

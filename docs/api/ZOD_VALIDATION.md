@@ -357,12 +357,13 @@ const args = CliArgumentsSchema.safeParse({
 - `removeModifiers` (boolean, optional): Apply the `RemoveModifiers` transformation
 - `allowIp` (boolean, optional): Replace `Validate` with `ValidateAllowIp`
 - `convertToAscii` (boolean, optional): Apply the `ConvertToAscii` transformation
-- `transformation` (string[], optional): Explicit transformation pipeline (overrides all other transformation flags)
+- `transformation` (TransformationType[], optional): Explicit transformation pipeline (overrides all other transformation flags). Values must be valid `TransformationType` enum members — invalid names are caught by Zod validation.
 
 **Filtering fields:**
 - `exclude` (string[], optional): Exclusion rules or wildcard patterns
 - `excludeFrom` (string[], optional): Files containing exclusion rules
-- `include` (string[], optional): Files containing inclusion rules
+- `include` (string[], optional): Inclusion rules or wildcard patterns
+- `includeFrom` (string[], optional): Files containing inclusion rules
 
 **Networking fields:**
 - `timeout` (number, optional, positive integer): HTTP request timeout in milliseconds

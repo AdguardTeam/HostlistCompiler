@@ -35,6 +35,7 @@ export interface ParsedArguments {
     exclude?: string[];
     excludeFrom?: string[];
     include?: string[];
+    includeFrom?: string[];
     // Networking
     timeout?: number;
     retries?: number;
@@ -71,7 +72,7 @@ export class ArgumentParser {
                 'allow-ip',
                 'convert-to-ascii',
             ],
-            collect: ['input', 'transformation', 'exclude', 'exclude-from', 'include'],
+            collect: ['input', 'transformation', 'exclude', 'exclude-from', 'include', 'include-from'],
             alias: {
                 c: 'config',
                 i: 'input',
@@ -85,10 +86,13 @@ export class ArgumentParser {
         });
 
         const toArr = (v: unknown): string[] => (Array.isArray(v) ? (v as string[]) : []);
-        const toNum = (v: unknown): number | undefined => {
+        const toNum = (v: unknown, flagName: string): number | undefined => {
             if (v === undefined || v === null || v === '') return undefined;
             const n = Number(v);
-            return Number.isNaN(n) ? undefined : n;
+            if (!Number.isFinite(n) || !Number.isInteger(n)) {
+                throw new Error(`Invalid value for --${flagName}: expected a finite integer, got: ${String(v)}`);
+            }
+            return n;
         };
 
         const inputArr = toArr(parsed.input);
@@ -96,6 +100,7 @@ export class ArgumentParser {
         const excludeArr = toArr(parsed.exclude);
         const excludeFromArr = toArr(parsed['exclude-from']);
         const includeArr = toArr(parsed.include);
+        const includeFromArr = toArr(parsed['include-from']);
 
         return {
             config: parsed.config as string | undefined,
@@ -106,7 +111,7 @@ export class ArgumentParser {
             append: parsed.append as boolean | undefined,
             format: parsed.format as string | undefined,
             name: parsed.name as string | undefined,
-            maxRules: toNum(parsed['max-rules']),
+            maxRules: toNum(parsed['max-rules'], 'max-rules'),
             verbose: parsed.verbose as boolean | undefined,
             benchmark: parsed.benchmark as boolean | undefined,
             useQueue: parsed['use-queue'] as boolean | undefined,
@@ -125,8 +130,9 @@ export class ArgumentParser {
             exclude: excludeArr.length > 0 ? excludeArr : undefined,
             excludeFrom: excludeFromArr.length > 0 ? excludeFromArr : undefined,
             include: includeArr.length > 0 ? includeArr : undefined,
-            timeout: toNum(parsed.timeout),
-            retries: toNum(parsed.retries),
+            includeFrom: includeFromArr.length > 0 ? includeFromArr : undefined,
+            timeout: toNum(parsed.timeout, 'timeout'),
+            retries: toNum(parsed.retries, 'retries'),
             userAgent: parsed['user-agent'] as string | undefined,
         };
     }
@@ -168,7 +174,7 @@ Output:
   -o, --output <file>          Path to the output file [required unless --stdout]
       --stdout                 Write output to stdout instead of a file
       --append                 Append to output file instead of overwriting
-      --format <format>        Output format
+      --format <format>        Output format [not yet supported]
       --name <file>            Compare output against an existing file and print a
                                summary of added/removed rules
       --max-rules <n>          Truncate output to at most <n> rules
@@ -191,7 +197,8 @@ Transformations:
 Filtering:
       --exclude <pattern>      Exclude rules matching pattern (repeatable)
       --exclude-from <file>    Load exclusions from file (repeatable)
-      --include <file>         Load inclusions from file (repeatable)
+      --include <pattern>      Include only rules matching pattern (repeatable)
+      --include-from <file>    Load inclusions from file (repeatable)
 
 Networking:
       --timeout <ms>           HTTP request timeout in milliseconds

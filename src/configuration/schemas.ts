@@ -404,11 +404,12 @@ type CliArgumentsOutput = {
     removeModifiers?: boolean;
     allowIp?: boolean;
     convertToAscii?: boolean;
-    transformation?: string[];
+    transformation?: TransformationType[];
     // Filtering
     exclude?: string[];
     excludeFrom?: string[];
     include?: string[];
+    includeFrom?: string[];
     // Networking
     timeout?: number;
     retries?: number;
@@ -511,11 +512,12 @@ export const CliArgumentsSchema: z.ZodType<CliArgumentsOutput> = z.object({
     removeModifiers: z.boolean().optional().describe('Apply the RemoveModifiers transformation'),
     allowIp: z.boolean().optional().describe('Use ValidateAllowIp instead of Validate'),
     convertToAscii: z.boolean().optional().describe('Apply the ConvertToAscii transformation'),
-    transformation: z.array(z.string()).optional().describe('Explicit transformation pipeline (overrides all other transformation flags)'),
+    transformation: z.array(z.nativeEnum(TransformationType)).optional().describe('Explicit transformation pipeline (overrides all other transformation flags)'),
     // Filtering
     exclude: z.array(z.string()).optional().describe('Exclusion rules or wildcards'),
     excludeFrom: z.array(z.string()).optional().describe('Files containing exclusion rules'),
-    include: z.array(z.string()).optional().describe('Files containing inclusion rules'),
+    include: z.array(z.string()).optional().describe('Inclusion rules or wildcards'),
+    includeFrom: z.array(z.string()).optional().describe('Files containing inclusion rules'),
     // Networking
     timeout: z.number().int().positive().optional().describe('HTTP request timeout in milliseconds'),
     retries: z.number().int().nonnegative().optional().describe('Number of HTTP retry attempts'),

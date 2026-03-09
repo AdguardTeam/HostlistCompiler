@@ -102,7 +102,8 @@ These flags apply globally to the compiled output (equivalent to `IConfiguration
 |---|---|---|
 | `--exclude <pattern>` | string[] | Exclude rules matching the pattern (repeatable). Supports exact strings, `*` wildcards, and `/regex/` patterns. Maps to `exclusions[]`. |
 | `--exclude-from <file>` | string[] | Load exclusion patterns from a file (repeatable). Maps to `exclusions_sources[]`. |
-| `--include <file>` | string[] | Load inclusion patterns from a file (repeatable). Maps to `inclusions_sources[]`. |
+| `--include <pattern>` | string[] | Include only rules matching the pattern (repeatable). Maps to `inclusions[]`. |
+| `--include-from <file>` | string[] | Load inclusion patterns from a file (repeatable). Maps to `inclusions_sources[]`. |
 
 When used with `--config`, these flags are overlaid on top of any `exclusions` / `inclusions` already defined in the config file.
 
@@ -173,6 +174,14 @@ adblock-compiler -c config.json -o output.txt \
 # Load exclusion list from a file
 adblock-compiler -c config.json -o output.txt \
   --exclude-from my-whitelist.txt
+
+# Include only rules matching a pattern
+adblock-compiler -c config.json -o output.txt \
+  --include "*.example.com"
+
+# Load inclusion list from a file
+adblock-compiler -c config.json -o output.txt \
+  --include-from my-allowlist.txt
 ```
 
 ### Limit output size

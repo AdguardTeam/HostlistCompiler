@@ -749,10 +749,25 @@ Deno.test('CliArgumentsSchema - should validate with --transformation list', () 
     const args = {
         input: ['https://example.com/list.txt'],
         output: 'out.txt',
-        transformation: ['RemoveComments', 'Deduplicate'],
+        transformation: [TransformationType.RemoveComments, TransformationType.Deduplicate],
     };
     const result = CliArgumentsSchema.safeParse(args);
     assertEquals(result.success, true);
+});
+
+Deno.test('CliArgumentsSchema - should reject invalid --transformation name', () => {
+    const args = {
+        input: ['https://example.com/list.txt'],
+        output: 'out.txt',
+        transformation: ['RemoveComments', 'NotARealTransformation'],
+    };
+    const result = CliArgumentsSchema.safeParse(args);
+    assertEquals(result.success, false);
+    if (!result.success) {
+        // Zod v4 reports invalid enum values with code 'invalid_value'
+        const hasEnumError = result.error.issues.some((i) => i.code === 'invalid_value');
+        assertEquals(hasEnumError, true);
+    }
 });
 
 Deno.test('CliArgumentsSchema - should validate with filtering flags', () => {
@@ -761,7 +776,8 @@ Deno.test('CliArgumentsSchema - should validate with filtering flags', () => {
         output: 'out.txt',
         exclude: ['*.example.com'],
         excludeFrom: ['exclusions.txt'],
-        include: ['inclusions.txt'],
+        include: ['*.good.example.com'],
+        includeFrom: ['inclusions.txt'],
     };
     const result = CliArgumentsSchema.safeParse(args);
     assertEquals(result.success, true);

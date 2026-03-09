@@ -160,7 +160,8 @@ Transformations:
 Filtering:
       --exclude <pattern>      Exclude rules matching pattern (repeatable)
       --exclude-from <file>    Load exclusions from file (repeatable)
-      --include <file>         Load inclusions from file (repeatable)
+      --include <pattern>      Include only rules matching pattern (repeatable)
+      --include-from <file>    Load inclusions from file (repeatable)
 
 Networking:
       --timeout <ms>           HTTP request timeout in milliseconds

@@ -245,8 +245,69 @@ Deno.test('ArgumentParser - should parse --exclude-from flag', () => {
 
 Deno.test('ArgumentParser - should parse --include flag', () => {
     const parser = new ArgumentParser();
-    const result = parser.parse(['--include', 'inclusions.txt']);
-    assertEquals(result.include, ['inclusions.txt']);
+    const result = parser.parse(['--include', '*.good.example.com']);
+    assertEquals(result.include, ['*.good.example.com']);
+});
+
+Deno.test('ArgumentParser - should parse --include-from flag', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse(['--include-from', 'inclusions.txt']);
+    assertEquals(result.includeFrom, ['inclusions.txt']);
+});
+
+Deno.test('ArgumentParser - should return undefined for --include when not provided', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse(['-c', 'config.json']);
+    assertEquals(result.include, undefined);
+    assertEquals(result.includeFrom, undefined);
+});
+
+// Numeric flag validation tests
+Deno.test('ArgumentParser - should throw on non-integer --timeout value', () => {
+    const parser = new ArgumentParser();
+    let threw = false;
+    try {
+        parser.parse(['--timeout', 'abc']);
+    } catch (e) {
+        threw = true;
+        assertEquals(e instanceof Error, true);
+        assertEquals((e as Error).message.includes('--timeout'), true);
+    }
+    assertEquals(threw, true);
+});
+
+Deno.test('ArgumentParser - should throw on non-integer --retries value', () => {
+    const parser = new ArgumentParser();
+    let threw = false;
+    try {
+        parser.parse(['--retries', 'foo']);
+    } catch (e) {
+        threw = true;
+        assertEquals(e instanceof Error, true);
+        assertEquals((e as Error).message.includes('--retries'), true);
+    }
+    assertEquals(threw, true);
+});
+
+Deno.test('ArgumentParser - should throw on non-integer --max-rules value', () => {
+    const parser = new ArgumentParser();
+    let threw = false;
+    try {
+        parser.parse(['--max-rules', '3.5']);
+    } catch (e) {
+        threw = true;
+        assertEquals(e instanceof Error, true);
+        assertEquals((e as Error).message.includes('--max-rules'), true);
+    }
+    assertEquals(threw, true);
+});
+
+Deno.test('ArgumentParser - should return undefined for absent numeric flags', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse(['-c', 'config.json', '-o', 'out.txt']);
+    assertEquals(result.timeout, undefined);
+    assertEquals(result.retries, undefined);
+    assertEquals(result.maxRules, undefined);
 });
 
 // Output flags
