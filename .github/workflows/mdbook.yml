@@ -65,7 +65,12 @@ jobs:
         run: |
           set -euo pipefail
           echo "Checking if Pages project exists..."
-          if deno task wrangler pages project list | grep -q "${{ env.CLOUDFLARE_PAGES_PROJECT }}"; then
+          PROJECT_LIST=$(deno task wrangler pages project list 2>&1) || {
+            echo "Warning: Could not list Pages projects (API may be temporarily unavailable)."
+            echo "Skipping project creation check - will attempt deployment directly."
+            exit 0
+          }
+          if echo "$PROJECT_LIST" | grep -q "${{ env.CLOUDFLARE_PAGES_PROJECT }}"; then
             echo "Pages project already exists"
           else
             echo "Creating Pages project: ${{ env.CLOUDFLARE_PAGES_PROJECT }}"
