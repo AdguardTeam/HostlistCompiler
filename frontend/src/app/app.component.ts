@@ -201,7 +201,7 @@ export class AppComponent {
         { path: '/validation',  label: 'Validation',  icon: 'check_circle'      },
         { path: '/api-docs',    label: 'API Docs',    icon: 'description'       },
         { path: '/admin',       label: 'Admin',       icon: 'admin_panel_settings' },
-        { path: '/docs',        label: 'Docs',        icon: 'menu_book',         external: true },
+        { path: 'https://adblock-compiler-docs.pages.dev/', label: 'Docs', icon: 'menu_book', external: true },
     ];
 
     /**
