@@ -61,6 +61,7 @@ import { AnalyticsService } from '../src/services/AnalyticsService.ts';
 import { getDeploymentHistory, getDeploymentStats, getLatestDeployment } from '../src/deployment/version.ts';
 import { validateRequestSize } from './middleware/index.ts';
 import { API_DOCS_REDIRECT } from './utils/constants.ts';
+import { JsonResponse } from './utils/response.ts';
 import { handleValidateRule } from './handlers/validate-rule.ts';
 import { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, handleRulesUpdate } from './handlers/rules.ts';
 import { handleNotify } from './handlers/webhook.ts';
@@ -3582,6 +3583,10 @@ export default {
                 if (!sizeValidation.valid) {
                     return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
                 }
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+                }
                 return handleRulesCreate(request, env);
             }
         }
@@ -3598,9 +3603,17 @@ export default {
                 if (!sizeValidation.valid) {
                     return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
                 }
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+                }
                 return handleRulesUpdate(ruleId, request, env);
             }
             if (request.method === 'DELETE') {
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+                }
                 return handleRulesDelete(ruleId, env);
             }
         }
@@ -3610,6 +3623,10 @@ export default {
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
                 return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
+            }
+            const allowed = await checkRateLimit(env, ip);
+            if (!allowed) {
+                return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
             }
             return handleNotify(request, env);
         }

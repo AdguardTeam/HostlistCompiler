@@ -8,9 +8,12 @@
  *   - Datadog                → env.DATADOG_API_KEY (uses Events v1 API)
  *
  * Returns a delivery report for each configured target.
+ * Returns 503 when no targets are configured.
+ * Returns 502 when all configured targets fail.
  */
 
 import { type WebhookNotifyRequest, WebhookNotifyRequestSchema } from '../schemas.ts';
+import { JsonResponse } from '../utils/response.ts';
 import type { Env } from '../types.ts';
 
 interface DeliveryResult {
@@ -107,18 +110,12 @@ export async function handleNotify(request: Request, env: Env): Promise<Response
     try {
         body = await request.json();
     } catch {
-        return Response.json(
-            { success: false, error: 'Invalid JSON body' },
-            { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
-        );
+        return JsonResponse.badRequest('Invalid JSON body');
     }
 
     const parsed = WebhookNotifyRequestSchema.safeParse(body);
     if (!parsed.success) {
-        return Response.json(
-            { success: false, error: parsed.error.issues.map((i) => i.message).join('; ') },
-            { status: 422, headers: { 'Access-Control-Allow-Origin': '*' } },
-        );
+        return JsonResponse.error(parsed.error.issues.map((i) => i.message).join('; '), 422);
     }
 
     const payload = parsed.data;
@@ -139,15 +136,8 @@ export async function handleNotify(request: Request, env: Env): Promise<Response
     }
 
     if (tasks.length === 0) {
-        return Response.json(
-            {
-                success: true,
-                event: payload.event,
-                deliveries: [],
-                message: 'No webhook targets configured (set WEBHOOK_URL, SENTRY_DSN, or DATADOG_API_KEY)',
-                duration: `${Date.now() - startTime}ms`,
-            },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
+        return JsonResponse.serviceUnavailable(
+            'No webhook targets configured (set WEBHOOK_URL, SENTRY_DSN, or DATADOG_API_KEY)',
         );
     }
 
@@ -163,8 +153,9 @@ export async function handleNotify(request: Request, env: Env): Promise<Response
     const overallSuccess = deliveries.some((d) => d.success);
     const duration = `${Date.now() - startTime}ms`;
 
+    const status = overallSuccess ? 200 : 502;
     return Response.json(
         { success: overallSuccess, event: payload.event, deliveries, duration },
-        { headers: { 'Access-Control-Allow-Origin': '*' } },
+        { status, headers: { 'Access-Control-Allow-Origin': '*' } },
     );
 }

@@ -126,7 +126,10 @@ export interface ValidateRuleResponse {
     success: boolean;
     valid: boolean;
     rule: string;
-    parsed?: Record<string, unknown>;
+    ruleType?: string;
+    category?: string;
+    syntax?: string;
+    ast?: Record<string, unknown>;
     error?: string;
     testUrl?: string;
     matchResult?: boolean;
@@ -162,9 +165,20 @@ export interface RuleSet {
     updatedAt: string;
 }
 
+/** Rule set metadata returned in list responses (no `rules` array). */
+export interface RuleSetMeta {
+    id: string;
+    name: string;
+    description?: string;
+    ruleCount: number;
+    tags?: string[];
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface RuleSetListResponse {
     success: boolean;
-    items: RuleSet[];
+    items: RuleSetMeta[];
     total: number;
 }
 
