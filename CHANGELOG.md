@@ -96,6 +96,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.50.0] - 2026-03-10
+
+### Added- **ui**: add browser rendering visual cues to compiler UI
+- browser rendering integration
+
+### Fixed
+
+- update compiler component spec for FormGroup-based URL array
+- resolve CI failures in browser rendering integration
+- resolve CI failures in browser rendering integration
+- align browser rendering docs, schemas, and worker handlers with implementation
+- throw on useBrowser without browser deps; sanitize screenshotPrefix
+
+
 ## [0.49.2] - 2026-03-10
 
 ### Added### Fixed
