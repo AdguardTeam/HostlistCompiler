@@ -10,7 +10,9 @@ whether a rule would block a specific hostname.
 
 **`POST /api/validate-rule`**
 
-All requests require a Bearer token in the `Authorization` header.
+By default, this endpoint is unauthenticated in the public Cloudflare Worker. In
+self-hosted or secured deployments, your API gateway or reverse proxy may require a
+Bearer token in the `Authorization` header.
 
 ### Body
 
@@ -84,11 +86,15 @@ The HTTP status is still `200`; the `valid` field indicates the outcome.
 
 ### Schema validation error — `422`
 
+Returned when the request body fails schema validation. The `error` field contains the
+actual Zod validation message(s) joined by `; `.
+
 ```jsonc
-{
-    "success": false,
-    "error": "String must contain at least 1 character(s)"
-}
+// Empty rule string
+{ "success": false, "error": "Rule must not be empty" }
+
+// Invalid testUrl
+{ "success": false, "error": "testUrl must be a valid URL" }
 ```
 
 ---
@@ -100,19 +106,16 @@ The HTTP status is still `200`; the `valid` field indicates the outcome.
 ```bash
 # Basic validation
 curl -X POST https://adblock-compiler.jayson-knight.workers.dev/api/validate-rule \
-  -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"rule":"||ads.example.com^"}'
 
 # With URL match test
 curl -X POST https://adblock-compiler.jayson-knight.workers.dev/api/validate-rule \
-  -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"rule":"||ads.example.com^","testUrl":"https://ads.example.com/banner.png"}'
 
 # Strict mode
 curl -X POST https://adblock-compiler.jayson-knight.workers.dev/api/validate-rule \
-  -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"rule":"||ads.example.com^$important","strict":true}'
 ```
@@ -122,10 +125,7 @@ curl -X POST https://adblock-compiler.jayson-knight.workers.dev/api/validate-rul
 ```typescript
 const res = await fetch('/api/validate-rule', {
     method: 'POST',
-    headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ rule: '||ads.example.com^', testUrl: 'https://ads.example.com/' }),
 });
 
