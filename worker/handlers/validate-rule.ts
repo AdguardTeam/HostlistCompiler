@@ -54,9 +54,10 @@ export async function handleValidateRule(request: Request, _env: Env): Promise<R
     try {
         const { ASTViewerService } = await import('../../src/services/ASTViewerService.ts');
 
-        // When strict mode is requested, use the throwing parser first so that
-        // rules which the tolerant parser would silently accept are flagged as
-        // invalid (e.g. rules with unknown modifiers in strict mode).
+        // When strict mode is requested, run the non-tolerant parser first.
+        // The strict parser (tolerant: false) rejects rules that would otherwise
+        // be silently accepted, such as those with unrecognised modifiers or
+        // malformed patterns that the tolerant parser falls back on.
         if (strict) {
             const { AGTreeParser } = await import('../../src/utils/AGTreeParser.ts');
             try {

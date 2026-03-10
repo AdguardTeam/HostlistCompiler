@@ -61,6 +61,7 @@ import { AnalyticsService } from '../src/services/AnalyticsService.ts';
 import { getDeploymentHistory, getDeploymentStats, getLatestDeployment } from '../src/deployment/version.ts';
 import { validateRequestSize } from './middleware/index.ts';
 import { API_DOCS_REDIRECT } from './utils/constants.ts';
+import { JsonResponse } from './utils/response.ts';
 import { handleValidateRule } from './handlers/validate-rule.ts';
 import { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, handleRulesUpdate } from './handlers/rules.ts';
 import { handleNotify } from './handlers/webhook.ts';
@@ -3584,10 +3585,7 @@ export default {
                 }
                 const allowed = await checkRateLimit(env, ip);
                 if (!allowed) {
-                    return Response.json(
-                        { success: false, error: `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX_REQUESTS} requests per minute.` },
-                        { status: 429, headers: { 'Retry-After': '60', 'Access-Control-Allow-Origin': '*' } },
-                    );
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesCreate(request, env);
             }
@@ -3607,20 +3605,14 @@ export default {
                 }
                 const allowed = await checkRateLimit(env, ip);
                 if (!allowed) {
-                    return Response.json(
-                        { success: false, error: `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX_REQUESTS} requests per minute.` },
-                        { status: 429, headers: { 'Retry-After': '60', 'Access-Control-Allow-Origin': '*' } },
-                    );
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesUpdate(ruleId, request, env);
             }
             if (request.method === 'DELETE') {
                 const allowed = await checkRateLimit(env, ip);
                 if (!allowed) {
-                    return Response.json(
-                        { success: false, error: `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX_REQUESTS} requests per minute.` },
-                        { status: 429, headers: { 'Retry-After': '60', 'Access-Control-Allow-Origin': '*' } },
-                    );
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesDelete(ruleId, env);
             }
@@ -3634,10 +3626,7 @@ export default {
             }
             const allowed = await checkRateLimit(env, ip);
             if (!allowed) {
-                return Response.json(
-                    { success: false, error: `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX_REQUESTS} requests per minute.` },
-                    { status: 429, headers: { 'Retry-After': '60', 'Access-Control-Allow-Origin': '*' } },
-                );
+                return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
             }
             return handleNotify(request, env);
         }

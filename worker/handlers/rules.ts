@@ -77,19 +77,33 @@ export async function handleRulesCreate(request: Request, env: Env): Promise<Res
 // GET /api/rules
 // ============================================================================
 
+/** Maximum total rule sets to enumerate when computing the list total. */
+const MAX_TOTAL_RULES = 1_000;
+
 export async function handleRulesList(_request: Request, env: Env): Promise<Response> {
     const kv = getRulesKv(env);
 
-    // Use kv.list() to enumerate rule sets; avoids the read-modify-write race
-    // condition of a centralised mutable index.
-    const listResult = await kv.list({ prefix: RULES_PREFIX, limit: MAX_LIST_RESULTS });
-    const keys = listResult.keys.map((k) => k.name);
-    const total = keys.length;
+    // Paginate through all keys to obtain an accurate total count, then
+    // fetch full metadata only for the first MAX_LIST_RESULTS items.
+    // This avoids the read-modify-write race condition of a centralised index
+    // while still reporting an accurate (or near-accurate) total.
+    const allKeys: string[] = [];
+    let cursor: string | undefined;
+    let listComplete = false;
 
+    while (!listComplete && allKeys.length < MAX_TOTAL_RULES) {
+        const page = await kv.list({ prefix: RULES_PREFIX, limit: 100, ...(cursor ? { cursor } : {}) });
+        allKeys.push(...page.keys.map((k) => k.name));
+        listComplete = page.list_complete;
+        cursor = page.list_complete ? undefined : page.cursor;
+    }
+
+    const total = allKeys.length;
+    const pageKeys = allKeys.slice(0, MAX_LIST_RESULTS);
     const items: Array<Omit<RuleSet, 'rules'> & { ruleCount: number }> = [];
 
     await Promise.all(
-        keys.map(async (key) => {
+        pageKeys.map(async (key) => {
             const raw = await kv.get<RuleSet>(key, 'json');
             if (raw) {
                 // Return metadata without the full rules array for list responses.
