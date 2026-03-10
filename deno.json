@@ -72,6 +72,7 @@
         "@std/yaml": "jsr:@std/yaml@^1.0.12",
         "@cloudflare/workers-types": "npm:@cloudflare/workers-types@^4.20260307.1",
         "@cloudflare/containers": "npm:@cloudflare/containers@^0.1.1",
+        "@cloudflare/playwright": "npm:@cloudflare/playwright@^0.0.11",
         "@cloudflare/playwright-mcp": "npm:@cloudflare/playwright-mcp@^0.0.5",
         "cloudflare:workers": "./worker/cloudflare-workers-shim.ts",
         "@prisma/adapter-pg": "npm:@prisma/adapter-pg@^7.4.2",

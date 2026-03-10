@@ -1,0 +1,33 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/admin/storage/tables'
+order: 6000
+description: Returns all tables and indexes in the D1 database. Requires X-Admin-Key header.
+auth:
+  type: apikey
+  credentials:
+    - key: key
+      value: X-Admin-Key
+    - key: value
+      value: '{{adminKey}}'
+    - key: in
+      value: header
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200 or 401", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Response has tables array", function () {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("tables");
+              pm.expect(json.tables).to.be.an("array");
+          });
+      }

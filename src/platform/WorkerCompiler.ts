@@ -17,6 +17,7 @@ import { HttpFetcher } from './HttpFetcher.ts';
 import { PreFetchedContentFetcher } from './PreFetchedContentFetcher.ts';
 import { CompositeFetcher } from './CompositeFetcher.ts';
 import { PlatformDownloader } from './PlatformDownloader.ts';
+import { BrowserFetcher } from './BrowserFetcher.ts';
 
 /**
  * Result of compilation with optional metrics and diagnostics.
@@ -43,6 +44,24 @@ export interface WorkerCompilerDependencies {
     headerGenerator?: HeaderGenerator;
     /** Content fetcher (overrides default fetcher chain) */
     fetcher?: IContentFetcher;
+    /**
+     * Factory that opens a headless browser against a Cloudflare Browser
+     * Rendering binding.  Required to use per-source `useBrowser: true`.
+     *
+     * In production, pass `launch` from `@cloudflare/playwright`:
+     * ```ts
+     * import { launch } from '@cloudflare/playwright';
+     * const compiler = new WorkerCompiler({
+     *   dependencies: { browserConnector: launch, browserBinding: env.BROWSER },
+     * });
+     * ```
+     */
+    browserConnector?: import('./BrowserFetcher.ts').BrowserConnector;
+    /**
+     * The `BROWSER` binding from the Worker `Env`.  Required when
+     * `browserConnector` is provided.
+     */
+    browserBinding?: import('./BrowserFetcher.ts').IBrowserWorker;
 }
 
 /**
@@ -71,6 +90,8 @@ export class WorkerCompiler {
     private readonly fetcher: IContentFetcher;
     private readonly headerGenerator: HeaderGenerator;
     private readonly tracingContext: TracingContext;
+    private readonly browserConnector: import('./BrowserFetcher.ts').BrowserConnector | undefined;
+    private readonly browserBinding: import('./BrowserFetcher.ts').IBrowserWorker | undefined;
 
     /**
      * Creates a new WorkerCompiler
@@ -103,6 +124,10 @@ export class WorkerCompiler {
 
         // Fetcher: use injected, then custom from options, then build default chain
         this.fetcher = deps?.fetcher ?? this.buildFetcher(options);
+
+        // Browser Rendering: store connector + binding for per-source useBrowser routing
+        this.browserConnector = deps?.browserConnector;
+        this.browserBinding = deps?.browserBinding;
     }
 
     /**
@@ -131,6 +156,28 @@ export class WorkerCompiler {
 
         // Otherwise, compose them
         return new CompositeFetcher(fetchers);
+    }
+
+    /**
+     * Returns the appropriate {@link IContentFetcher} for a given source.
+     *
+     * When the source has `useBrowser: true` and a `browserConnector` +
+     * `browserBinding` were supplied via `WorkerCompilerDependencies`, a
+     * {@link BrowserFetcher} is returned so that the source is fetched through
+     * Cloudflare Browser Rendering.  Otherwise the default fetcher is used.
+     *
+     * @throws {Error} when `useBrowser: true` but browser dependencies were not provided.
+     */
+    private getFetcherForSource(source: ISource): IContentFetcher {
+        if (source.useBrowser) {
+            if (!this.browserConnector || !this.browserBinding) {
+                throw new Error(
+                    `Source '${source.source}' has useBrowser: true but browserConnector and browserBinding were not provided to WorkerCompiler`,
+                );
+            }
+            return new BrowserFetcher(this.browserBinding, {}, this.browserConnector);
+        }
+        return this.fetcher;
     }
 
     /**
@@ -203,12 +250,15 @@ export class WorkerCompiler {
                 timestamp: Date.now(),
             });
 
-            // Download and compile all sources in parallel
-            const downloader = new PlatformDownloader(
-                this.fetcher,
-                { allowEmptyResponse: false },
-                this.logger,
-            );
+            // Download and compile all sources in parallel.
+            // A per-source downloader is created so that sources with
+            // `useBrowser: true` can use BrowserFetcher transparently.
+            const makeDownloader = (source: ISource) =>
+                new PlatformDownloader(
+                    this.getFetcherForSource(source),
+                    { allowEmptyResponse: false },
+                    this.logger,
+                );
 
             // Trace source compilation
             const sourcesEventId = this.tracingContext.diagnostics.operationStart(
@@ -232,7 +282,7 @@ export class WorkerCompiler {
 
                                 const startTime = performance.now();
                                 try {
-                                    let rules = await downloader.download(source.source);
+                                    let rules = await makeDownloader(source).download(source.source);
 
                                     // Strip upstream metadata headers to avoid redundancy
                                     rules = stripUpstreamHeaders(rules);
@@ -277,7 +327,7 @@ export class WorkerCompiler {
 
                         const startTime = performance.now();
                         try {
-                            let rules = await downloader.download(source.source);
+                            let rules = await makeDownloader(source).download(source.source);
 
                             // Strip upstream metadata headers to avoid redundancy
                             rules = stripUpstreamHeaders(rules);

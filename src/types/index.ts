@@ -63,6 +63,19 @@ export interface ISource extends IFilterable, ITransformable {
     name?: string;
     /** Type of the source (adblock or hosts) */
     type?: SourceType;
+    /**
+     * When `true`, the source is fetched via Cloudflare Browser Rendering
+     * instead of a plain HTTP request.
+     *
+     * Useful for pages that require JavaScript execution to serve their content
+     * (e.g. sites that redirect via `window.location`, or that render filter
+     * rules client-side).
+     *
+     * Only effective when used with {@link WorkerCompiler} and a
+     * `browserConnector` dependency is provided.  Has no effect on
+     * {@link FilterCompiler} or in the Deno CLI.
+     */
+    useBrowser?: boolean;
 }
 
 /**

@@ -1,0 +1,50 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/admin/migrate/d1-to-pg'
+order: 1000
+description: |-
+  One-time migration that reads data from Cloudflare D1 (SQLite) and writes it to PostgreSQL via Hyperdrive.
+
+  Migrates: `storage_entries`, `filter_cache`, `compilation_metadata`.
+
+  - **Idempotent**: uses ON CONFLICT DO NOTHING to skip existing rows
+  - **Batched**: processes rows in chunks of 100
+  - **Read-only on D1**: never modifies the source database
+  - **Resumable**: can be re-run safely if interrupted
+
+  Use `dryRun=true` to count rows without writing.
+auth:
+  type: apikey
+  credentials:
+    - key: key
+      value: X-Admin-Key
+    - key: value
+      value: '{{adminKey}}'
+    - key: in
+      value: header
+queryParams:
+  - key: dryRun
+    value: 'true'
+    description: Count rows without writing (safe preview)
+  - key: tables
+    value: ''
+    description: 'Comma-separated list of tables to migrate (default: all). E.g. storage_entries,filter_cache'
+    disabled: true
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200, 400, 401, or 503", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Response has migration result", function () {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("success");
+          });
+      }

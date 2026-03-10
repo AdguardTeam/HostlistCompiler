@@ -1,0 +1,25 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/admin/storage/clear-cache'
+order: 3000
+description: Deletes all cache entries from storage tables. Requires X-Admin-Key header.
+auth:
+  type: apikey
+  credentials:
+    - key: key
+      value: X-Admin-Key
+    - key: value
+      value: '{{adminKey}}'
+    - key: in
+      value: header
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200 or 401", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });

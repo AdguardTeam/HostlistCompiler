@@ -1,0 +1,66 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/compile/batch'
+order: 2000
+description: Compile multiple filter lists in parallel (max 10 per batch). Each item in the requests array is an independent compilation job.
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "requests": [
+        {
+          "id": "list-1",
+          "configuration": {
+            "name": "EasyList",
+            "sources": [
+              {
+                "source": "https://easylist.to/easylist/easylist.txt",
+                "transformations": ["RemoveComments", "Validate"]
+              }
+            ],
+            "transformations": ["Deduplicate"]
+          }
+        },
+        {
+          "id": "list-2",
+          "configuration": {
+            "name": "EasyPrivacy",
+            "sources": [
+              {
+                "source": "https://easylist.to/easylist/easyprivacy.txt",
+                "transformations": ["RemoveComments", "Validate"]
+              }
+            ],
+            "transformations": ["Deduplicate"]
+          }
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      pm.test("Response has results array", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("results");
+          pm.expect(json.results).to.be.an("array");
+      });
+
+      pm.test("Each result has an id and success flag", function () {
+          const json = pm.response.json();
+          json.results.forEach(function (result) {
+              pm.expect(result).to.have.property("id");
+              pm.expect(result).to.have.property("success");
+          });
+      });

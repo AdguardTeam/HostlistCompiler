@@ -1,0 +1,4 @@
+$kind: collection
+name: Migration
+description: One-time D1 → PostgreSQL data migration
+order: 4000

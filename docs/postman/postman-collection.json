@@ -2183,6 +2183,154 @@
           }
         }
       ]
+    },
+    {
+      "name": "Browser Rendering",
+      "description": "Endpoints backed by the Cloudflare Browser Rendering binding (`BROWSER`). Used for resolving redirect chains and monitoring filter-list source URLs for changes.",
+      "item": [
+        {
+          "name": "Resolve canonical URL via browser",
+          "description": "Navigates to a URL using the Cloudflare Browser Rendering binding and returns the",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/browser/resolve-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "browser",
+                "resolve-url"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"url\": \"https://example.com/redirect-me\",\n    \"waitUntil\": \"load\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Navigates to a URL using the Cloudflare Browser Rendering binding and returns the\nfinal canonical URL after all redirects. Useful for discovering the true destination\nof redirect chains or URL shorteners before scheduling a filter-list download.\n\nRequires the `BROWSER` binding to be configured in `wrangler.toml`.\n"
+          }
+        },
+        {
+          "name": "Monitor filter-list sources for reachability",
+          "description": "Performs parallel browser-based health checks on a list of filter-list source",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/browser/monitor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "browser",
+                "monitor"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"urls\": [\n        \"https://example.com/filter-list.txt\",\n        \"https://another.example.com/rules.txt\"\n    ],\n    \"captureScreenshots\": false,\n    \"screenshotPrefix\": \"2025-07-01\",\n    \"timeout\": 30000,\n    \"waitUntil\": \"load\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Performs parallel browser-based health checks on a list of filter-list source\nURLs. For each URL a headless browser navigates to the page, verifies non-empty\ntext content, and optionally captures a full-page PNG screenshot stored in R2.\n\nThe full result set is persisted under the KV key `browser:monitor:latest`\nand is retrievable via `GET /api/browser/monitor/latest`.\n\nRequires the `BROWSER` binding. `FILTER_STORAGE` (R2) is required for\nscreenshot capture. `COMPILATION_CACHE` (KV) is required for result persistence.\n"
+          }
+        },
+        {
+          "name": "Retrieve the latest monitor results",
+          "description": "Returns the most recent result set written by `POST /api/browser/monitor`. Reads",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/browser/monitor/latest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "browser",
+                "monitor",
+                "latest"
+              ]
+            },
+            "description": "Returns the most recent result set written by `POST /api/browser/monitor`. Reads\nthe KV key `browser:monitor:latest` from `COMPILATION_CACHE`.\n\nRequires the `COMPILATION_CACHE` binding.\n"
+          }
+        }
+      ]
     }
   ]
 }

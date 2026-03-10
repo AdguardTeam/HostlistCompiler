@@ -1,0 +1,4 @@
+$kind: collection
+name: Health
+description: Service health monitoring endpoints
+order: 6000

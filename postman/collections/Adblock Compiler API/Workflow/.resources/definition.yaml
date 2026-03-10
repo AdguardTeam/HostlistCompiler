@@ -1,0 +1,4 @@
+$kind: collection
+name: Workflow
+description: Durable Cloudflare Workflow execution endpoints for long-running compilations
+order: 5000

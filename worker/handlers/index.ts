@@ -5,6 +5,11 @@
 // Admin handlers
 export { handleAdminClearCache, handleAdminClearExpired, handleAdminExport, handleAdminListTables, handleAdminQuery, handleAdminStorageStats, handleAdminVacuum } from './admin.ts';
 
+// Browser Rendering handlers
+export { handleMonitorLatest } from './monitor-latest.ts';
+export { handleResolveUrl } from './url-resolver.ts';
+export { handleSourceMonitor } from './source-monitor.ts';
+
 // Compile handlers
 export { handleASTParseRequest, handleCompileAsync, handleCompileBatch, handleCompileBatchAsync, handleCompileJson, handleCompileStream } from './compile.ts';
 
