@@ -725,7 +725,7 @@ export class CompilerComponent {
 
         // Guard: block if Turnstile is configured but challenge not yet completed
         if (!this.isTurnstileReady()) {
-            this.notifications.showToast('warn', 'Bot Check', 'Please complete the bot verification challenge before submitting.');
+            this.notifications.showToast('warning', 'Bot Check', 'Please complete the bot verification challenge before submitting.');
             return;
         }
 
