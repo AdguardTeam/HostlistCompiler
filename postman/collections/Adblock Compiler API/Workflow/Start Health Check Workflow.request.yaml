@@ -1,18 +1,13 @@
 $kind: http-request
+url: "{{baseUrl}}/workflow/health-check"
 method: POST
-url: '{{baseUrl}}/workflow/health-check'
-order: 4000
-description: Triggers manual health check for specified filter list sources. Request body is optional.
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
-  content: |-
-    {}
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 202", function () {
           pm.response.to.have.status(202);
@@ -22,3 +17,5 @@ scripts:
           const json = pm.response.json();
           pm.expect(json).to.have.property("instanceId");
       });
+    language: text/javascript
+order: 4000

@@ -1,42 +1,29 @@
 $kind: http-request
+url: "{{baseUrl}}/admin/auth/api-keys"
 method: POST
-url: '{{baseUrl}}/admin/auth/api-keys'
-order: 2000
-description: |-
-  Creates a new API key for a user. Requires Hyperdrive (PostgreSQL) binding and X-Admin-Key header.
-
-  **Important:** The raw API key is only returned once. Store it securely.
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: ""
 auth:
   type: apikey
   credentials:
-    - key: key
-      value: X-Admin-Key
-    - key: value
-      value: '{{adminKey}}'
-    - key: in
-      value: header
-headers:
-  - key: Content-Type
-    value: application/json
-body:
-  type: json
-  content: |-
-    {
-      "userId": "00000000-0000-0000-0000-000000000000",
-      "name": "My API Key",
-      "expiresInDays": 365
-    }
+    key: X-Admin-Key
+    value: "{{adminKey}}"
+    in: header
 scripts:
   - type: afterResponse
-    language: text/javascript
-    code: |-
+    code: >-
       pm.test("Status code is 201, 400, 401, 404, or 503", function () {
           pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 404, 503]);
       });
 
+
       pm.test("Response is JSON", function () {
           pm.response.to.be.json;
       });
+
 
       if (pm.response.code === 201) {
           pm.test("Response has rawKey (store it — shown only once)", function () {
@@ -44,3 +31,5 @@ scripts:
               pm.expect(json).to.have.property("rawKey");
           });
       }
+    language: text/javascript
+order: 2000

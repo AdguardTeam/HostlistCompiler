@@ -1,36 +1,13 @@
 $kind: http-request
+url: "{{baseUrl}}/compile"
 method: POST
-url: '{{baseUrl}}/compile'
-order: 1000
-description: |-
-  Compile filter lists and return results as JSON. Results are cached for 1 hour.
-  Supports request deduplication for concurrent identical requests.
-
-  **Response headers:**
-  - `X-Cache: HIT|MISS` — cache status
-  - `X-Request-Deduplication: HIT` — present if deduplicated
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
-  content: |-
-    {
-      "configuration": {
-        "name": "My Filter List",
-        "sources": [
-          {
-            "source": "https://easylist.to/easylist/easylist.txt",
-            "transformations": ["RemoveComments", "Validate"]
-          }
-        ],
-        "transformations": ["Deduplicate", "RemoveEmptyLines"]
-      },
-      "benchmark": false
-    }
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -56,3 +33,5 @@ scripts:
               }
           });
       }
+    language: text/javascript
+order: 1000

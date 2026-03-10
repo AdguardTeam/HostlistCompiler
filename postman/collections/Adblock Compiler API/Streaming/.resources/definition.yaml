@@ -1,4 +1,3 @@
 $kind: collection
-name: Streaming
 description: Real-time event streaming endpoints (Server-Sent Events)
-order: 2000
+order: 3000

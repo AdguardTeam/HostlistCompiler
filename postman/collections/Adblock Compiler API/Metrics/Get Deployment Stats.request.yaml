@@ -1,11 +1,8 @@
 $kind: http-request
+url: "{{baseUrl}}/api/deployments/stats"
 method: GET
-url: '{{baseUrl}}/api/deployments/stats'
-order: 5000
-description: Returns aggregated deployment statistics
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200 or 503", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 503]);
@@ -22,3 +19,5 @@ scripts:
               pm.expect(jsonData).to.have.property("totalDeployments");
           });
       }
+    language: text/javascript
+order: 5000

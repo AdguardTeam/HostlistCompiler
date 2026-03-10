@@ -1,11 +1,8 @@
 $kind: http-request
+url: "{{baseUrl}}/api/version"
 method: GET
-url: '{{baseUrl}}/api/version'
-order: 3000
-description: Returns the current version from deployment history
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200 or 503", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 503]);
@@ -22,3 +19,5 @@ scripts:
               pm.expect(jsonData).to.have.property("version");
           });
       }
+    language: text/javascript
+order: 3000

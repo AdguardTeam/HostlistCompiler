@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{baseUrl}}/admin/pg/stats"
+url: "{{baseUrl}}/admin/storage/stats"
 method: GET
 auth:
   type: apikey
@@ -10,12 +10,19 @@ auth:
 scripts:
   - type: afterResponse
     code: |-
-      pm.test("Status code is 200, 401, or 503", function () {
+      pm.test("Status code is 200 or 401", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]);
       });
 
       pm.test("Response is JSON", function () {
           pm.response.to.be.json;
       });
+
+      if (pm.response.code === 200) {
+          pm.test("Response has storage stats", function () {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("success");
+          });
+      }
     language: text/javascript
 order: 1000

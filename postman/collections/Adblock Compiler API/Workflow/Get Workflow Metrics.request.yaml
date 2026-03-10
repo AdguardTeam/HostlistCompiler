@@ -1,11 +1,8 @@
 $kind: http-request
+url: "{{baseUrl}}/workflow/metrics"
 method: GET
-url: '{{baseUrl}}/workflow/metrics'
-order: 6000
-description: Returns aggregated metrics for all workflow types.
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -14,3 +11,5 @@ scripts:
       pm.test("Response is JSON", function () {
           pm.response.to.be.json;
       });
+    language: text/javascript
+order: 6000

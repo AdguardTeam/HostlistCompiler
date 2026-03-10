@@ -1,11 +1,8 @@
 $kind: http-request
+url: "{{baseUrl}}/metrics"
 method: GET
-url: '{{baseUrl}}/metrics'
-order: 2000
-description: Returns aggregated metrics for the last 30 minutes
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -21,3 +18,5 @@ scripts:
           pm.expect(jsonData).to.have.property("timestamp");
           pm.expect(jsonData).to.have.property("endpoints");
       });
+    language: text/javascript
+order: 2000

@@ -1,4 +1,3 @@
 $kind: collection
-name: Metrics
 description: Performance metrics and statistics endpoints
-order: 1000
+order: 2000

@@ -1,15 +1,12 @@
 $kind: http-request
+url: "{{baseUrl}}:/queue/cancel/{{requestId}}"
 method: POST
-url: '{{baseUrl}}/queue/cancel/{{requestId}}'
-order: 6000
-description: Marks a pending queue job as cancelled. The `requestId` variable is set by async compile endpoints.
 pathVariables:
   - key: requestId
-    value: '{{requestId}}'
+    value: "{{requestId}}"
     description: Request ID of the job to cancel
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200 or 400", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 400]);
@@ -25,3 +22,5 @@ scripts:
               pm.expect(json).to.have.property("success");
           });
       }
+    language: text/javascript
+order: 6000

@@ -1,11 +1,8 @@
 $kind: http-request
+url: "{{baseUrl}}/api/turnstile-config"
 method: GET
-url: '{{baseUrl}}/api/turnstile-config'
-order: 6000
-description: Returns the Cloudflare Turnstile site key and whether it is enabled
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -19,3 +16,5 @@ scripts:
           const jsonData = pm.response.json();
           pm.expect(jsonData).to.have.property("enabled");
       });
+    language: text/javascript
+order: 6000

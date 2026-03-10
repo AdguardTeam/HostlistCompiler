@@ -1,11 +1,8 @@
 $kind: http-request
+url: "{{baseUrl}}/api"
 method: GET
-url: '{{baseUrl}}/api'
-order: 1000
-description: Returns API version, available endpoints, and usage examples
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -21,3 +18,5 @@ scripts:
           pm.expect(jsonData).to.have.property("version");
           pm.expect(jsonData).to.have.property("endpoints");
       });
+    language: text/javascript
+order: 1000
