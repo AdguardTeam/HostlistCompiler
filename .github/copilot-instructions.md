@@ -42,7 +42,6 @@ frontend/             # Angular 21 web UI (standalone components, signals, SSR)
 │   ├── services/     # Angular services (signal-based state)
 │   ├── guards/       # Route guards (functional)
 │   └── interceptors/ # HTTP interceptors (functional)
-public/               # Static web UI files (legacy)
 docs/                 # Documentation
 examples/             # Example implementations
 ```
