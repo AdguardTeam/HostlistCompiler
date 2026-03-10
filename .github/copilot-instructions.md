@@ -38,7 +38,7 @@ src/
 worker/               # Cloudflare Worker implementation
 frontend/             # Angular 21 web UI (standalone components, signals, SSR)
 ├── src/app/          # Angular application source
-│   ├── compiler/     # Compiler UI feature module
+│   ├── compiler/     # Compiler UI feature area (standalone components)
 │   ├── services/     # Angular services (signal-based state)
 │   ├── guards/       # Route guards (functional)
 │   └── interceptors/ # HTTP interceptors (functional)
@@ -188,23 +188,23 @@ deno task cache
 ### Frontend Development Commands (Angular)
 
 ```bash
-# Start Angular dev server (from frontend/)
-cd frontend && npm run start
+# Start Angular dev server
+pnpm --filter adblock-compiler-frontend start
 
 # Build Angular app
-cd frontend && npm run build
+pnpm --filter adblock-compiler-frontend build
 
 # Run Angular unit tests with Vitest
-cd frontend && npm run test
+pnpm --filter adblock-compiler-frontend test
 
 # Run tests in watch mode
-cd frontend && npm run test:watch
+pnpm --filter adblock-compiler-frontend test:watch
 
 # Run tests with coverage
-cd frontend && npm run test:coverage
+pnpm --filter adblock-compiler-frontend test:coverage
 
 # Lint Angular code
-cd frontend && npm run lint
+pnpm --filter adblock-compiler-frontend lint
 ```
 
 ### Backend Testing Guidelines (Deno)
@@ -252,8 +252,8 @@ describe('MyComponent', () => {
 2. Run `deno task check` to verify backend types
 3. Run `deno task test` to ensure backend tests pass
 4. Run `deno task lint` to check for lint issues
-5. Run `cd frontend && npm run lint` to lint Angular code
-6. Run `cd frontend && npm run test` to ensure frontend tests pass
+5. Run `pnpm --filter adblock-compiler-frontend lint` to lint Angular code
+6. Run `pnpm --filter adblock-compiler-frontend test` to ensure frontend tests pass
 
 ## Angular Frontend (Angular 21)
 
@@ -471,6 +471,11 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - **AdGuard DNS Syntax**: https://adguard-dns.io/kb/general/dns-filtering-syntax/
 - **Deno Manual**: https://deno.land/manual
 - **Cloudflare Workers**: https://developers.cloudflare.com/workers/
+- **Angular 21 Docs**: https://angular.dev
+- **Angular Signals Guide**: https://angular.dev/guide/signals
+- **Angular Material 21**: https://material.angular.io
+- **Vitest**: https://vitest.dev
+- **@analogjs/vitest-angular**: https://analogjs.org/docs/packages/vitest-angular/overview
 
 ## Don't Do
 
@@ -493,7 +498,7 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Don't use `@ViewChild` / `@ContentChild` decorators — use `viewChild()` / `contentChild()` signal queries
 - Don't use `BehaviorSubject` for component or service state — use `signal()` and `computed()`
 - Don't use `UntypedFormControl` or `any` in reactive forms — always use typed forms
-- Don't reference `document` or `window` directly — use `inject(DOCUMENT)` / `inject(WINDOW)` for SSR safety
+- Don't reference `document` or `window` directly — use `inject(DOCUMENT)` and access `inject(DOCUMENT).defaultView` for SSR-safe window access
 - Don't use class-based route guards or HTTP interceptors — use functional equivalents
 - Don't use `BrowserAnimationsModule` — use `provideAnimationsAsync()` in `app.config.ts`
 - Don't use Karma or Jasmine — use Vitest with `@analogjs/vitest-angular` for all frontend tests
@@ -510,19 +515,6 @@ When uncertain about:
 - **Angular patterns**: Check `frontend/src/app/app.config.ts` and `frontend/src/app/app.component.ts` for Angular 21 examples
 - **Angular testing patterns**: Look at existing `*.spec.ts` files in `frontend/src/app/`
 - **Code quality**: Refer to `CODE_REVIEW.md` for best practices
-
-## Resources
-
-- **JSR Package**: https://jsr.io/@jk-com/adblock-compiler
-- **Live Web UI**: https://adblock-compiler.jayson-knight.workers.dev/
-- **AdGuard DNS Syntax**: https://adguard-dns.io/kb/general/dns-filtering-syntax/
-- **Deno Manual**: https://deno.land/manual
-- **Cloudflare Workers**: https://developers.cloudflare.com/workers/
-- **Angular 21 Docs**: https://angular.dev
-- **Angular Signals Guide**: https://angular.dev/guide/signals
-- **Angular Material 21**: https://material.angular.io
-- **Vitest**: https://vitest.dev
-- **@analogjs/vitest-angular**: https://analogjs.org/docs/packages/vitest-angular/overview
 
 ## Summary
 
