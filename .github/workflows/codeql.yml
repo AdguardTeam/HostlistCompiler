@@ -1,4 +1,9 @@
 name: "CodeQL Advanced"
+# NOTE: This workflow uses CodeQL advanced setup (SARIF upload).
+# GitHub's default CodeQL setup has been permanently disabled for this repository
+# via the API (PATCH /repos/.../code-scanning/default-setup state=not-configured).
+# Both setups cannot coexist — advanced SARIF uploads fail if default setup is enabled.
+# Do NOT re-enable default CodeQL setup in repository settings.
 
 on:
   push:
