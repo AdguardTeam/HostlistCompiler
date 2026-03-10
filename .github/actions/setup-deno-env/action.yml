@@ -1,0 +1,34 @@
+name: 'Setup Deno Environment'
+description: 'Installs Deno, restores the dependency cache, and optionally runs deno install. Consolidates the repeated setup boilerplate shared by all Deno CI jobs.'
+
+inputs:
+    deno-version:
+        description: 'Deno version to install'
+        required: false
+        default: '2.x'
+    install-deps:
+        description: 'Whether to run deno install after setup. Set to "false" for jobs that only need the Deno toolchain (e.g., lint, fmt).'
+        required: false
+        default: 'true'
+
+runs:
+    using: composite
+    steps:
+        - name: Setup Deno
+          uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+          with:
+              deno-version: ${{ inputs.deno-version }}
+
+        - name: Cache Deno dependencies
+          uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+          with:
+              path: |
+                  ~/.cache/deno
+                  ~/.deno
+              key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
+              restore-keys: |
+                  deno-${{ runner.os }}-
+
+        - name: Install Deno dependencies
+          if: ${{ inputs.install-deps == 'true' }}
+          uses: ./.github/actions/deno-install
