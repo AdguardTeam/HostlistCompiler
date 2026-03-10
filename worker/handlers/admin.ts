@@ -179,10 +179,6 @@ export async function handleAdminListTables(env: Env): Promise<Response> {
 }
 
 /**
- * Handle POST /admin/storage/query request.
- * Allows read-only SQL queries for debugging.
- */
-/**
  * Strips SQL comments (single-line -- and multi-line / * ... * /) from a query string.
  * Used for security validation to prevent bypassing pattern checks via comments.
  */
@@ -192,6 +188,10 @@ function stripSqlComments(sql: string): string {
         .replace(/--[^\n]*/g, ' '); // single-line comments
 }
 
+/**
+ * Handle POST /admin/storage/query request.
+ * Allows read-only SQL queries for debugging.
+ */
 export async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
     if (!env.DB) {
         return JsonResponse.serviceUnavailable('D1 database not configured');
@@ -233,10 +233,31 @@ export async function handleAdminQuery(request: Request, env: Env): Promise<Resp
             }
         }
 
-        // Enforce row limit to prevent resource exhaustion
-        const limitedSql = /\bLIMIT\b/i.test(sanitized) ? sql : `${sql} LIMIT 1000`;
+        // Enforce row limit to prevent resource exhaustion.
+        // Strip trailing semicolon, then clamp or append LIMIT to prevent large result sets.
+        const MAX_ROWS = 1000;
+        let workingSql = sanitized.trim();
+        if (workingSql.endsWith(';')) {
+            workingSql = workingSql.slice(0, -1).trimEnd();
+        }
 
-        const result = await env.DB.prepare(limitedSql).all();
+        const limitKeywordRegex = /\bLIMIT\b/i;
+        const simpleLimitRegex = /\bLIMIT\b\s+(\d+)\s*$/i;
+
+        if (!limitKeywordRegex.test(workingSql)) {
+            workingSql = `${workingSql} LIMIT ${MAX_ROWS}`;
+        } else {
+            const simpleMatch = simpleLimitRegex.exec(workingSql);
+            if (!simpleMatch) {
+                return JsonResponse.badRequest('Queries must use simple "LIMIT N" syntax with N \u2264 1000');
+            }
+            const requestedLimit = Number.parseInt(simpleMatch[1], 10);
+            if (!Number.isFinite(requestedLimit) || requestedLimit > MAX_ROWS) {
+                workingSql = workingSql.replace(simpleLimitRegex, `LIMIT ${MAX_ROWS}`);
+            }
+        }
+
+        const result = await env.DB.prepare(workingSql).all();
 
         return JsonResponse.success({
             rows: result.results || [],

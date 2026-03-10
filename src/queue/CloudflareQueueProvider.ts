@@ -148,11 +148,18 @@ export class CloudflareQueueProvider implements IQueueProvider {
                     msg.retry();
                 } else {
                     // Max retries exceeded — acknowledge to dequeue. Cloudflare Queues does not
-                    // have a built-in DLQ, so log a structured warning with full context.
+                    // have a built-in DLQ, so log a structured warning with non-sensitive fields only.
                     msg.ack();
+                    let payloadSummary: string;
+                    try {
+                        const body = msg.body as Record<string, unknown>;
+                        payloadSummary = JSON.stringify({ id: body?.id, type: body?.type, requestId: body?.requestId });
+                    } catch {
+                        payloadSummary = '[unserializable payload]';
+                    }
                     this.logger.error(
                         `[DLQ] Message ${msg.id} permanently failed after ${msg.attempts} attempts and will be dropped. ` +
-                            `Payload summary: ${JSON.stringify(msg.body).substring(0, 200)}. ` +
+                            `Payload summary: ${payloadSummary}. ` +
                             `Error: ${error instanceof Error ? error.message : String(error)}`,
                     );
                 }
