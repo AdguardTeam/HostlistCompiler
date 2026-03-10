@@ -97,6 +97,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.50.1] - 2026-03-10
+
+### Added### Fixed
+
+- exclude ideas/ folder from deno fmt check in CI
+
+
 ## [0.50.0] - 2026-03-10
 
 ### Added- **ui**: add browser rendering visual cues to compiler UI
