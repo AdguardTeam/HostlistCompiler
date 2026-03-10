@@ -65,6 +65,34 @@ Deno.test('SourceSchema - should reject unknown property', () => {
     assertEquals(result.success, false);
 });
 
+// SourceSchema useBrowser tests
+Deno.test('SourceSchema - should accept useBrowser: true', () => {
+    const source = { source: 'https://example.com/list.txt', useBrowser: true };
+    const result = SourceSchema.safeParse(source);
+    assertEquals(result.success, true);
+    if (result.success) assertEquals(result.data.useBrowser, true);
+});
+
+Deno.test('SourceSchema - should accept useBrowser: false', () => {
+    const source = { source: 'https://example.com/list.txt', useBrowser: false };
+    const result = SourceSchema.safeParse(source);
+    assertEquals(result.success, true);
+    if (result.success) assertEquals(result.data.useBrowser, false);
+});
+
+Deno.test('SourceSchema - should accept source without useBrowser (defaults to undefined)', () => {
+    const source = { source: 'https://example.com/list.txt' };
+    const result = SourceSchema.safeParse(source);
+    assertEquals(result.success, true);
+    if (result.success) assertEquals(result.data.useBrowser, undefined);
+});
+
+Deno.test('SourceSchema - should reject non-boolean useBrowser', () => {
+    const source = { source: 'https://example.com/list.txt', useBrowser: 'yes' };
+    const result = SourceSchema.safeParse(source);
+    assertEquals(result.success, false);
+});
+
 // ConfigurationSchema tests
 Deno.test('ConfigurationSchema - should validate minimal configuration', () => {
     const config = {
