@@ -101,6 +101,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.53.0] - 2026-03-10
+
+### Added- add tar.gz/zip compression to release artifacts (Option B)
+
+### Fixed
+
+- upload compressed/* so archives land at artifact root, not in subdirectory
+
+
 ## [0.52.1] - 2026-03-10
 
 ### Added### Fixed
