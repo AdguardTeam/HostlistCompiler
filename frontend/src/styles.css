@@ -411,10 +411,40 @@ body {
     background-size: 28px 28px;
     background-attachment: fixed;
     line-height: 1.6;
+    /* Reserve space for the vertical scrollbar at all times so that its
+       appearance/disappearance during route transitions does not shift the
+       layout horizontally (the "page looks wider" flicker, issue #942). */
+    scrollbar-gutter: stable;
     transition: background-color 0.25s cubic-bezier(0.2, 0, 0, 1),
                 color 0.25s cubic-bezier(0.2, 0, 0, 1);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* =================================================================
+   View Transitions — native browser navigation fade (issue #942)
+   Angular's withViewTransitions() calls document.startViewTransition()
+   on every router navigation. The defaults are a cross-fade at the
+   browser's preferred duration; these rules shorten and smooth it to
+   match the app's 200 ms motion budget.
+   ================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+        animation: 150ms cubic-bezier(0.2, 0, 0, 1) both fade-out;
+    }
+    ::view-transition-new(root) {
+        animation: 200ms 80ms cubic-bezier(0.2, 0, 0, 1) both fade-in;
+    }
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 html.dark-theme,
