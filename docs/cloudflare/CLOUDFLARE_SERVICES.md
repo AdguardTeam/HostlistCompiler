@@ -8,8 +8,9 @@ This document describes all Cloudflare services integrated into the adblock-comp
 
 | Service | Status | Binding | Purpose |
 |---|---|---|---|
-| **KV Namespaces** | ✅ Active | `COMPILATION_CACHE`, `RATE_LIMIT`, `METRICS` | Caching, rate limiting, metrics aggregation |
+| **KV Namespaces** | ✅ Active | `COMPILATION_CACHE`, `RATE_LIMIT`, `METRICS`, `RULES_KV` | Caching, rate limiting, metrics aggregation, rule set storage |
 | **R2 Storage** | ✅ Active | `FILTER_STORAGE` | Filter list storage and artifact persistence |
+| **Browser Rendering** | ✅ Active | `BROWSER` | Headless browser fetching for JS-rendered filter sources (see [Browser Rendering](BROWSER_RENDERING.md)) |
 | **D1 Database** | ✅ Active | `DB` | Compilation history, deployment records |
 | **Queues** | ✅ Active | `ADBLOCK_COMPILER_QUEUE`, `ADBLOCK_COMPILER_QUEUE_HIGH_PRIORITY` | Async compilation, batch processing |
 | **Analytics Engine** | ✅ Active | `ANALYTICS_ENGINE` | Request metrics, cache analytics, workflow tracking |
@@ -179,6 +180,7 @@ Four durable workflows handle crash-resistant async operations:
 
 ## References
 
+- [Browser Rendering](BROWSER_RENDERING.md)
 - [Cloudflare Pipelines](https://developers.cloudflare.com/pipelines/)
 - [Cloudflare Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/)
 - [Cloudflare API Shield](https://developers.cloudflare.com/api-shield/)
