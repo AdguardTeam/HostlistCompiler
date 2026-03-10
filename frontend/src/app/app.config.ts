@@ -90,7 +90,11 @@ export const appConfig: ApplicationConfig = {
             const apiBaseUrl = inject(API_BASE_URL);
             http.get<{ siteKey: string | null; enabled: boolean }>(`${apiBaseUrl}/turnstile-config`)
                 .subscribe({
-                    next: (config) => { if (config.siteKey) turnstileService.setSiteKey(config.siteKey); },
+                    next: (config) => {
+                        if (config.enabled && config.siteKey) {
+                            turnstileService.setSiteKey(config.siteKey);
+                        }
+                    },
                     error: () => { /* Non-fatal: Turnstile will be disabled if config can't be fetched */ },
                 });
         }),
