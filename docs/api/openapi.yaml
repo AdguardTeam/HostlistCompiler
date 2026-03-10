@@ -1281,6 +1281,193 @@ paths:
                 '503':
                     description: COMPILATION_CACHE binding not configured
 
+    /validate-rule:
+        post:
+            summary: Validate a single adblock rule
+            description: Parses and validates a single adblock/DNS rule, returning its AST representation, type, and optional URL match result.
+            operationId: validateRule
+            tags:
+                - Rules
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ValidateRuleRequest'
+            responses:
+                '200':
+                    description: Rule validation result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidateRuleResponse'
+                '400':
+                    description: Invalid request body
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+
+    /rules:
+        get:
+            summary: List saved rule sets
+            description: Returns all saved rule sets stored in the KV namespace.
+            operationId: listRuleSets
+            tags:
+                - Rule Sets
+            responses:
+                '200':
+                    description: List of rule sets
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RuleSetListResponse'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        post:
+            summary: Create a new rule set
+            description: Creates and stores a new named rule set in the KV namespace.
+            operationId: createRuleSet
+            tags:
+                - Rule Sets
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RuleSetCreateRequest'
+            responses:
+                '201':
+                    description: Rule set created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RuleSetResponse'
+                '400':
+                    description: Invalid request body
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+
+    /rules/{id}:
+        parameters:
+            - name: id
+              in: path
+              required: true
+              description: UUID of the rule set
+              schema:
+                  type: string
+                  format: uuid
+        get:
+            summary: Get a rule set by ID
+            operationId: getRuleSet
+            tags:
+                - Rule Sets
+            responses:
+                '200':
+                    description: Rule set found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RuleSet'
+                '404':
+                    description: Rule set not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        put:
+            summary: Update a rule set by ID
+            operationId: updateRuleSet
+            tags:
+                - Rule Sets
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RuleSetUpdateRequest'
+            responses:
+                '200':
+                    description: Rule set updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RuleSet'
+                '400':
+                    description: Invalid request body
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Rule set not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        delete:
+            summary: Delete a rule set by ID
+            operationId: deleteRuleSet
+            tags:
+                - Rule Sets
+            responses:
+                '200':
+                    description: Rule set deleted
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                    id:
+                                        type: string
+                '404':
+                    description: Rule set not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+
+    /notify:
+        post:
+            summary: Send a notification event to configured webhook targets
+            description: Delivers a notification event (e.g. error, warning, info) to one or more configured targets — generic HTTP webhook (WEBHOOK_URL), Sentry (SENTRY_DSN), and/or Datadog (DATADOG_API_KEY). At least one target must be configured in the worker environment.
+            operationId: notify
+            tags:
+                - Notifications
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WebhookNotifyRequest'
+            responses:
+                '200':
+                    description: Notification delivered to at least one target
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookNotifyResponse'
+                '400':
+                    description: Invalid request body
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '503':
+                    description: No notification targets configured
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+
 components:
     schemas:
         # Request Schemas
@@ -2851,6 +3038,224 @@ components:
                                 example: false
                             error:
                                 type: string
+
+        # Rule Validation Schemas
+        ValidateRuleRequest:
+            type: object
+            required:
+                - rule
+            properties:
+                rule:
+                    type: string
+                    description: The adblock rule string to validate
+                    example: '||example.com^'
+                testUrl:
+                    type: string
+                    format: uri
+                    description: Optional URL to test the rule against
+                    example: 'https://example.com/ads/banner.png'
+
+        ValidateRuleResponse:
+            type: object
+            properties:
+                rule:
+                    type: string
+                    description: The original rule string
+                valid:
+                    type: boolean
+                    description: Whether the rule is syntactically valid
+                ruleType:
+                    type: string
+                    description: The detected type of the rule (e.g. NetworkRule, CosmeticRule)
+                ast:
+                    type: object
+                    description: Abstract Syntax Tree of the parsed rule
+                    nullable: true
+                matchResult:
+                    type: boolean
+                    description: Whether the rule matches the provided testUrl (if supplied)
+                    nullable: true
+                error:
+                    type: string
+                    description: Error message if the rule is invalid
+                    nullable: true
+
+        # Rule Set Schemas
+        RuleSet:
+            type: object
+            required:
+                - id
+                - name
+                - rules
+                - createdAt
+                - updatedAt
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier for the rule set
+                name:
+                    type: string
+                    description: Human-readable name for the rule set
+                description:
+                    type: string
+                    description: Optional description of the rule set
+                    nullable: true
+                rules:
+                    type: array
+                    items:
+                        type: string
+                    description: Array of adblock rule strings
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    description: Optional tags for categorising the rule set
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+
+        RuleSetCreateRequest:
+            type: object
+            required:
+                - name
+                - rules
+            properties:
+                name:
+                    type: string
+                    description: Name for the new rule set
+                description:
+                    type: string
+                    nullable: true
+                rules:
+                    type: array
+                    items:
+                        type: string
+                    minItems: 1
+                tags:
+                    type: array
+                    items:
+                        type: string
+
+        RuleSetUpdateRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                    nullable: true
+                rules:
+                    type: array
+                    items:
+                        type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+
+        RuleSetListResponse:
+            type: object
+            required:
+                - items
+                - total
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RuleSet'
+                total:
+                    type: integer
+                    description: Total number of rule sets
+
+        RuleSetResponse:
+            type: object
+            required:
+                - success
+                - data
+            properties:
+                success:
+                    type: boolean
+                data:
+                    $ref: '#/components/schemas/RuleSet'
+
+        # Webhook / Notification Schemas
+        NotifyLevel:
+            type: string
+            enum:
+                - info
+                - warning
+                - error
+                - critical
+            description: Severity level of the notification
+
+        WebhookNotifyRequest:
+            type: object
+            required:
+                - level
+                - message
+            properties:
+                level:
+                    $ref: '#/components/schemas/NotifyLevel'
+                message:
+                    type: string
+                    description: Human-readable notification message
+                title:
+                    type: string
+                    description: Optional short title for the notification
+                    nullable: true
+                source:
+                    type: string
+                    description: Origin service or component that triggered the notification
+                    nullable: true
+                tags:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: Arbitrary key-value metadata tags
+                    nullable: true
+                context:
+                    type: object
+                    additionalProperties: true
+                    description: Additional structured context data
+                    nullable: true
+
+        WebhookDelivery:
+            type: object
+            required:
+                - target
+                - success
+            properties:
+                target:
+                    type: string
+                    description: Delivery target identifier (e.g. webhook, sentry, datadog)
+                success:
+                    type: boolean
+                statusCode:
+                    type: integer
+                    description: HTTP status code returned by the target
+                    nullable: true
+                error:
+                    type: string
+                    description: Error message if delivery failed
+                    nullable: true
+
+        WebhookNotifyResponse:
+            type: object
+            required:
+                - success
+                - deliveries
+            properties:
+                success:
+                    type: boolean
+                    description: True if at least one delivery succeeded
+                deliveries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/WebhookDelivery'
 
     securitySchemes:
         Turnstile:

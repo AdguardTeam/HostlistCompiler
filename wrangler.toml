@@ -50,6 +50,10 @@ id = "5dc36da36d9142cc9ced6c56328898ee"  # Create with: wrangler kv:namespace cr
 binding = "METRICS"
 id = "025c3f10527c46c0be559f299bdba994"  # Create with: wrangler kv:namespace create METRICS
 
+[[kv_namespaces]]
+binding = "RULES_KV"
+id = "00000000000000000000000000000001"  # Create with: wrangler kv:namespace create RULES_KV
+
 # R2 Storage (auto-created by CI)
 [[r2_buckets]]
 binding = "FILTER_STORAGE"
@@ -169,6 +173,10 @@ id = "5dc36da36d9142cc9ced6c56328898ee"
 [[env.development.kv_namespaces]]
 binding = "METRICS"
 id = "025c3f10527c46c0be559f299bdba994"
+
+[[env.development.kv_namespaces]]
+binding = "RULES_KV"
+id = "00000000000000000000000000000002"  # Create with: wrangler kv:namespace create RULES_KV --preview
 
 # Analytics Engine - uncomment after enabling in Cloudflare dashboard
 [[analytics_engine_datasets]]

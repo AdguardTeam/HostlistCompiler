@@ -31,3 +31,12 @@ export {
     QUEUE_BINDINGS_NOT_AVAILABLE_ERROR,
     updateQueueStats,
 } from './queue.ts';
+
+// Rule validation handler (POST /api/validate-rule)
+export { handleValidateRule } from './validate-rule.ts';
+
+// Rule management handlers (POST/GET/PUT/DELETE /api/rules)
+export { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, handleRulesUpdate } from './rules.ts';
+
+// Webhook / notification handler (POST /api/notify)
+export { handleNotify } from './webhook.ts';

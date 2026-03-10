@@ -154,6 +154,12 @@ export interface Env {
     MCP_AGENT?: DurableObjectNamespace;
     // Adblock Compiler container Durable Object namespace
     ADBLOCK_COMPILER?: DurableObjectNamespace;
+    // KV namespace for persisted user rule sets (POST/GET/PUT/DELETE /api/rules)
+    RULES_KV?: KVNamespace;
+    // Webhook target URL for POST /api/notify (generic HTTP endpoint)
+    WEBHOOK_URL?: string;
+    // Datadog API key for POST /api/notify (optional third-party integration)
+    DATADOG_API_KEY?: string;
 }
 
 // ============================================================================
@@ -216,6 +222,8 @@ export interface QueueMessage {
     requestId?: string;
     timestamp: number;
     priority?: Priority;
+    /** Optional group identifier; jobs sharing a group can be cancelled or queried together */
+    group?: string;
 }
 
 /**

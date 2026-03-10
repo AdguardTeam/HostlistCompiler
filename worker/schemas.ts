@@ -65,6 +65,8 @@ const BaseQueueMessageSchema = z.object({
     requestId: z.string().optional(),
     timestamp: z.number().int().positive(),
     priority: PrioritySchema.optional(),
+    /** Optional group identifier; jobs sharing a group can be cancelled or queried together */
+    group: z.string().max(128).optional(),
 });
 
 /**
@@ -559,3 +561,128 @@ export const WorkflowInstanceInfoSchema = z.object({
     output: z.unknown().optional(),
     error: z.string().optional(),
 });
+
+// ============================================================================
+// Rule Validation Schemas (POST /validate-rule)
+// ============================================================================
+
+/**
+ * Schema for validating a single adblock rule.
+ * Optionally tests the rule against a provided URL.
+ */
+export const ValidateRuleRequestSchema = z.object({
+    rule: z.string().min(1, 'Rule must not be empty').describe('Single adblock filter rule to validate'),
+    testUrl: z.string().url('testUrl must be a valid URL').optional().describe('Optional URL to test the rule against'),
+    strict: z.boolean().optional().default(false).describe('Enable strict validation mode'),
+});
+
+export type ValidateRuleRequest = z.infer<typeof ValidateRuleRequestSchema>;
+
+/**
+ * Schema for a single validate-rule response
+ */
+export const ValidateRuleResponseSchema = z.object({
+    success: z.boolean(),
+    valid: z.boolean(),
+    rule: z.string(),
+    parsed: z.record(z.string(), z.unknown()).optional().describe('Parsed AST node when validation succeeds'),
+    error: z.string().optional().describe('Parse error message when valid is false'),
+    testUrl: z.string().optional().describe('The URL that was tested against the rule'),
+    matchResult: z.boolean().optional().describe('Whether the rule matched the testUrl'),
+    duration: z.string().describe('Processing duration e.g. "2ms"'),
+});
+
+// ============================================================================
+// Rule Management Schemas (POST/GET/PUT/DELETE /rules)
+// ============================================================================
+
+/**
+ * Schema for creating a new saved rule set
+ */
+export const RuleSetCreateSchema = z.object({
+    name: z.string().min(1).max(128).describe('Human-readable name for this rule set'),
+    description: z.string().max(512).optional().describe('Optional description'),
+    rules: z.array(z.string()).min(1, 'At least one rule is required').max(10_000, 'Maximum 10,000 rules per set'),
+    tags: z.array(z.string().max(64)).max(20).optional().describe('Optional tags for categorisation'),
+});
+
+export type RuleSetCreate = z.infer<typeof RuleSetCreateSchema>;
+
+/**
+ * Schema for updating an existing rule set (all fields optional)
+ */
+export const RuleSetUpdateSchema = z.object({
+    name: z.string().min(1).max(128).optional(),
+    description: z.string().max(512).optional(),
+    rules: z.array(z.string()).min(1).max(10_000).optional(),
+    tags: z.array(z.string().max(64)).max(20).optional(),
+});
+
+export type RuleSetUpdate = z.infer<typeof RuleSetUpdateSchema>;
+
+/**
+ * Schema for a stored rule set (full representation)
+ */
+export const RuleSetSchema = z.object({
+    id: z.string().uuid().describe('Unique identifier for the rule set'),
+    name: z.string(),
+    description: z.string().optional(),
+    rules: z.array(z.string()),
+    ruleCount: z.number().int().nonnegative(),
+    tags: z.array(z.string()).optional(),
+    createdAt: z.string().datetime().describe('ISO 8601 creation timestamp'),
+    updatedAt: z.string().datetime().describe('ISO 8601 last-updated timestamp'),
+});
+
+export type RuleSet = z.infer<typeof RuleSetSchema>;
+
+// ============================================================================
+// Webhook / Notification Schemas (POST /notify)
+// ============================================================================
+
+/**
+ * Supported notification event levels
+ */
+export const NotifyLevelSchema = z.enum(['info', 'warn', 'error', 'debug']).describe('Severity level of the notification');
+
+/**
+ * Schema for an outbound webhook notification request
+ */
+export const WebhookNotifyRequestSchema = z.object({
+    event: z.string().min(1).max(128).describe('Event name or type (e.g. "compile.error", "rule.invalid")'),
+    level: NotifyLevelSchema.default('info'),
+    message: z.string().min(1).max(2048).describe('Human-readable message describing the event'),
+    metadata: z.record(z.string(), z.unknown()).optional().describe('Arbitrary additional data to attach to the notification'),
+    source: z.string().max(128).optional().describe('Identifies the component that emitted the event'),
+    timestamp: z.string().datetime().optional().describe('ISO 8601 event timestamp; defaults to current time if omitted'),
+});
+
+export type WebhookNotifyRequest = z.infer<typeof WebhookNotifyRequestSchema>;
+
+/**
+ * Schema for the result of a single webhook delivery attempt
+ */
+export const WebhookDeliverySchema = z.object({
+    target: z.string().describe('Webhook target identifier (e.g. "generic", "sentry")'),
+    success: z.boolean(),
+    statusCode: z.number().int().optional(),
+    error: z.string().optional(),
+});
+
+/**
+ * Schema for POST /notify response
+ */
+export const WebhookNotifyResponseSchema = z.object({
+    success: z.boolean(),
+    event: z.string(),
+    deliveries: z.array(WebhookDeliverySchema),
+    duration: z.string(),
+});
+
+// ============================================================================
+// Queue Group Enhancement
+// ============================================================================
+
+// Re-export BaseQueueMessageSchema extension note:
+// The group field is added to queue messages to support grouped job processing.
+// Consumers can use this to batch related jobs or apply shared cancellation.
