@@ -66,18 +66,23 @@ jobs:
                     - target: x86_64-unknown-linux-gnu
                       os: ubuntu-latest
                       artifact: adblock-compiler-linux-x64
+                      compressed_artifact: adblock-compiler-linux-x64.tar.gz
                     - target: aarch64-unknown-linux-gnu
                       os: ubuntu-latest
                       artifact: adblock-compiler-linux-arm64
+                      compressed_artifact: adblock-compiler-linux-arm64.tar.gz
                     - target: x86_64-apple-darwin
                       os: macos-15-intel
                       artifact: adblock-compiler-macos-x64
+                      compressed_artifact: adblock-compiler-macos-x64.tar.gz
                     - target: aarch64-apple-darwin
                       os: macos-14
                       artifact: adblock-compiler-macos-arm64
+                      compressed_artifact: adblock-compiler-macos-arm64.tar.gz
                     - target: x86_64-pc-windows-msvc
                       os: windows-latest
                       artifact: adblock-compiler-windows-x64.exe
+                      compressed_artifact: adblock-compiler-windows-x64.exe.zip
         steps:
             - name: Configure git for long paths (Windows)
               if: runner.os == 'Windows'
@@ -109,11 +114,21 @@ jobs:
             - name: Build binary
               run: deno compile --allow-read --allow-write --allow-net --target ${{ matrix.target }} --output ${{ matrix.artifact }} src/cli.ts
 
+            - name: Compress artifact
+              shell: bash
+              run: |
+                  mkdir -p compressed
+                  if [ "${{ runner.os }}" = "Windows" ]; then
+                    7z a "compressed/${{ matrix.compressed_artifact }}" "${{ matrix.artifact }}"
+                  else
+                    tar -czf "compressed/${{ matrix.compressed_artifact }}" "${{ matrix.artifact }}"
+                  fi
+
             - name: Upload artifact
               uses: actions/upload-artifact@v4
               with:
                   name: ${{ matrix.artifact }}
-                  path: ${{ matrix.artifact }}
+                  path: compressed/*
                   retention-days: 7
 
     build-docker:
@@ -204,12 +219,10 @@ jobs:
               run: |
                   set -euo pipefail
                   mkdir -p release
-                  # Copy all artifacts, preserving directory structure to avoid conflicts
                   for dir in artifacts/*/; do
-                    artifact_name=$(basename "$dir")
-                    if [ -f "$dir$artifact_name" ]; then
-                      cp "$dir$artifact_name" "release/$artifact_name"
-                    fi
+                    for file in "$dir"*.tar.gz "$dir"*.zip; do
+                      [ -f "$file" ] && cp "$file" "release/$(basename "$file")"
+                    done
                   done
                   ls -lah release/
 
@@ -239,11 +252,16 @@ jobs:
 
                   | Platform | Architecture | Download |
                   |----------|--------------|----------|
-                  | Linux | x64 | `adblock-compiler-linux-x64` |
-                  | Linux | ARM64 | `adblock-compiler-linux-arm64` |
-                  | macOS | x64 (Intel) | `adblock-compiler-macos-x64` |
-                  | macOS | ARM64 (Apple Silicon) | `adblock-compiler-macos-arm64` |
-                  | Windows | x64 | `adblock-compiler-windows-x64.exe` |
+                  | Linux | x64 | `adblock-compiler-linux-x64.tar.gz` |
+                  | Linux | ARM64 | `adblock-compiler-linux-arm64.tar.gz` |
+                  | macOS | x64 (Intel) | `adblock-compiler-macos-x64.tar.gz` |
+                  | macOS | ARM64 (Apple Silicon) | `adblock-compiler-macos-arm64.tar.gz` |
+                  | Windows | x64 | `adblock-compiler-windows-x64.exe.zip` |
+
+                  ### Extracting
+
+                  **Linux/macOS:** `tar -xzf adblock-compiler-<platform>.tar.gz`
+                  **Windows:** Extract the `.zip` file using File Explorer or `Expand-Archive` in PowerShell.
 
                   ## Checksums
                   ```
