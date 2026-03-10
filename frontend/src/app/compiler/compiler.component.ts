@@ -184,23 +184,42 @@ interface Preset {
                     <mat-card-subtitle>Add one or more filter list URLs to compile</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
+                    @if (anySourceUsesBrowser()) {
+                        <div class="browser-rendering-banner">
+                            <mat-icon>travel_explore</mat-icon>
+                            <span class="mat-body-2">
+                                <strong>Browser Rendering active</strong> — selected sources will be fetched using a headless Chromium browser.
+                                Ideal for JavaScript-heavy pages or complex redirect chains that plain HTTP cannot handle.
+                            </span>
+                        </div>
+                    }
                     <div formArrayName="urls" class="url-list">
                         @for (url of urlsArray.controls; track $index; let i = $index) {
-                            <div class="url-input-row">
+                            <div class="url-input-row" [formGroupName]="i">
                                 <mat-form-field appearance="outline" class="url-field">
                                     <mat-label>Filter List URL {{ i + 1 }}</mat-label>
                                     <input matInput type="url"
+                                        formControlName="source"
                                         placeholder="https://example.com/filters.txt"
-                                        [formControlName]="i"
                                     />
                                     <mat-icon matSuffix>link</mat-icon>
-                                    @if (urlsArray.at(i).hasError('required')) {
+                                    @if (urlsArray.at(i).get('source')?.hasError('required')) {
                                         <mat-error>URL is required</mat-error>
                                     }
-                                    @if (urlsArray.at(i).hasError('pattern')) {
+                                    @if (urlsArray.at(i).get('source')?.hasError('pattern')) {
                                         <mat-error>Please enter a valid URL (http:// or https://)</mat-error>
                                     }
                                 </mat-form-field>
+                                <mat-slide-toggle
+                                    formControlName="useBrowser"
+                                    class="browser-toggle"
+                                    color="accent"
+                                    [matTooltip]="browserToggleTooltip"
+                                    matTooltipPosition="above"
+                                    aria-label="Enable browser rendering for this source"
+                                >
+                                    <mat-icon class="browser-toggle-icon">travel_explore</mat-icon>
+                                </mat-slide-toggle>
                                 @if (urlsArray.length > 1) {
                                     <button mat-icon-button color="warn" type="button"
                                         (click)="removeUrl(i)" aria-label="Remove URL">
@@ -341,6 +360,13 @@ interface Preset {
                                         [color]="event.type === 'error' ? 'warn' : 'primary'">
                                         {{ event.type }}
                                     </mat-chip>
+                                    @if ($any(event.data)?.['source']?.['useBrowser']) {
+                                        <mat-chip highlighted color="accent"
+                                            matTooltip="This source is being fetched via Browser Rendering (headless Chromium)">
+                                            <mat-icon>travel_explore</mat-icon>
+                                            browser
+                                        </mat-chip>
+                                    }
                                 </mat-chip-set>
                                 <pre class="event-data">{{ event.data | json }}</pre>
                             </div>
@@ -379,6 +405,10 @@ interface Preset {
     .url-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
     .url-input-row { display: flex; align-items: center; gap: 8px; }
     .url-field { flex: 1; }
+    .browser-toggle { flex-shrink: 0; white-space: nowrap; }
+    .browser-toggle-icon { font-size: 18px; vertical-align: middle; margin-right: 2px; }
+    .browser-rendering-banner { display: flex; align-items: flex-start; gap: 8px; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; background: color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 30%, transparent); color: var(--mat-sys-on-surface); }
+    .browser-rendering-banner mat-icon { color: var(--mat-sys-tertiary); margin-top: 2px; flex-shrink: 0; }
     .transformations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 8px; }
     .mode-toggle { margin-bottom: 8px; }
     .mode-hint { color: var(--mat-sys-on-surface-variant); }
@@ -507,6 +537,15 @@ export class CompilerComponent {
 
     readonly turnstileSiteKey = this.turnstileService.siteKey;
 
+    /** Whether any URL row has browser rendering enabled — derived from the existing formValue signal bridge. */
+    readonly anySourceUsesBrowser = computed(() => {
+        const v = this.formValue() as { urls?: Array<{ useBrowser?: boolean }> };
+        return v.urls?.some(u => u.useBrowser) ?? false;
+    });
+
+    /** Tooltip text for the per-source browser rendering toggle. */
+    readonly browserToggleTooltip = 'Fetch this source using Cloudflare Browser Rendering (headless Chromium).\nUse for JavaScript-heavy pages or sites with complex redirect chains that plain HTTP cannot handle.';
+
     /** Active compilation mode */
     compileMode: CompileMode = 'json';
     /** Active SSE connection (null when not streaming) */
@@ -575,7 +614,7 @@ export class CompilerComponent {
         effect(() => {
             const urlParam = this.queryParams()?.get('url');
             if (urlParam) {
-                this.urlsArray.at(0).setValue(urlParam);
+                this.urlsArray.at(0).get('source')?.setValue(urlParam);
             }
         });
 
@@ -614,7 +653,12 @@ export class CompilerComponent {
 
         this.compilerForm = this.fb.group({
             urls: this.fb.array(
-                preset.urls.map(url => this.fb.control(url, [Validators.required, Validators.pattern(this.URL_PATTERN)])),
+                preset.urls.map(url =>
+                    this.fb.group({
+                        source: this.fb.control(url, [Validators.required, Validators.pattern(this.URL_PATTERN)]),
+                        useBrowser: this.fb.control(false),
+                    }),
+                ),
             ),
             transformations: this.fb.group(transformationsGroup),
         });
@@ -635,7 +679,12 @@ export class CompilerComponent {
         const urls = this.presetUrls();
         while (this.urlsArray.length) this.urlsArray.removeAt(0);
         urls.forEach(url =>
-            this.urlsArray.push(this.fb.control(url, [Validators.required, Validators.pattern(this.URL_PATTERN)])),
+            this.urlsArray.push(
+                    this.fb.group({
+                        source: this.fb.control(url, [Validators.required, Validators.pattern(this.URL_PATTERN)]),
+                        useBrowser: this.fb.control(false),
+                    }),
+                ),
         );
 
         // Sync transformations
@@ -650,7 +699,12 @@ export class CompilerComponent {
     }
 
     addUrl(): void {
-        this.urlsArray.push(this.fb.control('', [Validators.required, Validators.pattern(this.URL_PATTERN)]));
+        this.urlsArray.push(
+            this.fb.group({
+                source: this.fb.control('', [Validators.required, Validators.pattern(this.URL_PATTERN)]),
+                useBrowser: this.fb.control(false),
+            }),
+        );
     }
 
     removeUrl(index: number): void {
@@ -664,23 +718,27 @@ export class CompilerComponent {
     onSubmit(): void {
         if (this.compilerForm.invalid) return;
 
-        const urls: string[] = this.compilerForm.value.urls.filter((u: string) => u.trim());
+        type UrlEntry = { source: string; useBrowser: boolean };
+        const urlEntries: UrlEntry[] = this.compilerForm.value.urls.filter((u: UrlEntry) => u.source?.trim());
         const transformationsObj: Record<string, boolean> = this.compilerForm.value.transformations;
         const selectedTransformations = Object.keys(transformationsObj).filter(k => transformationsObj[k]);
 
-        if (!urls.length) return;
+        if (!urlEntries.length) return;
 
         const request: CompileRequest = {
             configuration: {
                 name: 'Adblock Compilation',
-                sources: urls.map(source => ({ source })),
+                sources: urlEntries.map(({ source, useBrowser }) => ({
+                    source,
+                    ...(useBrowser && { useBrowser: true }),
+                })),
                 transformations: selectedTransformations,
             },
             benchmark: true,
             turnstileToken: this.turnstileService.token() || undefined,
         };
 
-        this.log.info(`Compilation started: mode=${this.compileMode}, urls=${urls.length}`, 'compiler');
+        this.log.info(`Compilation started: mode=${this.compileMode}, urls=${urlEntries.length}`, 'compiler');
         this.liveAnnouncer.announce('Compilation started', 'polite');
         this.asyncResult.set(null);
 
@@ -695,7 +753,7 @@ export class CompilerComponent {
                 break;
 
             case 'async':
-                this.submitAsync(urls, selectedTransformations);
+                this.submitAsync(urlEntries.map(e => e.source), selectedTransformations);
                 break;
 
             case 'batch':
@@ -708,10 +766,10 @@ export class CompilerComponent {
                 break;
         }
 
-        if (urls[0]) {
+        if (urlEntries[0]?.source) {
             this.router.navigate([], {
                 relativeTo: this.route,
-                queryParams: { url: urls[0] },
+                queryParams: { url: urlEntries[0].source },
                 queryParamsHandling: 'merge',
             });
         }
@@ -824,7 +882,10 @@ export class CompilerComponent {
             while (this.urlsArray.length) this.urlsArray.removeAt(0);
             urls.forEach(url =>
                 this.urlsArray.push(
-                    this.fb.control(url, [Validators.required, Validators.pattern(this.URL_PATTERN)]),
+                    this.fb.group({
+                        source: this.fb.control(url, [Validators.required, Validators.pattern(this.URL_PATTERN)]),
+                        useBrowser: this.fb.control(false),
+                    }),
                 ),
             );
         };

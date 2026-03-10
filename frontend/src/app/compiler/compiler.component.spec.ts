@@ -45,7 +45,7 @@ describe('CompilerComponent', () => {
 
     it('should initialize form with preset URLs', () => {
         expect(component.urlsArray.length).toBe(1);
-        expect(component.urlsArray.at(0).value).toBe('https://easylist.to/easylist/easylist.txt');
+        expect(component.urlsArray.at(0).get('source')!.value).toBe('https://easylist.to/easylist/easylist.txt');
     });
 
     it('should add a URL field', () => {
@@ -70,7 +70,7 @@ describe('CompilerComponent', () => {
     it('should apply preset and reset form URLs', () => {
         component.applyPreset('Privacy (EasyPrivacy)');
         expect(component.selectedPreset()).toBe('Privacy (EasyPrivacy)');
-        expect(component.urlsArray.at(0).value).toBe('https://easylist.to/easylist/easyprivacy.txt');
+        expect(component.urlsArray.at(0).get('source')!.value).toBe('https://easylist.to/easylist/easyprivacy.txt');
     });
 
     it('should update linkedSignal when preset changes', () => {
@@ -101,7 +101,7 @@ describe('CompilerComponent', () => {
     });
 
     it('should not submit when form is invalid', () => {
-        component.urlsArray.at(0).setValue('');
+        component.urlsArray.at(0).get('source')!.setValue('');
         component.onSubmit();
         // compileResource should still be idle
         expect(component.compileResource.status()).toBe('idle');

@@ -65,6 +65,11 @@ function makeConnector(browser: IPlaywrightBrowser): BrowserConnector {
     return async (_binding: IBrowserWorker) => browser;
 }
 
+/** A no-op connector used when the browser is not exercised (e.g. canHandle tests). */
+const MOCK_CONNECTOR: BrowserConnector = async (_binding: IBrowserWorker) => {
+    throw new Error('MOCK_CONNECTOR should not be called in canHandle tests');
+};
+
 // ============================================================================
 // Tests
 // ============================================================================
@@ -237,4 +242,33 @@ Deno.test({
     fn: async () => {
         // Verify a very short timeout (e.g. 1 ms) causes a wrapped timeout error
     },
+});
+
+// ============================================================================
+// canHandle() tests
+// ============================================================================
+
+Deno.test('BrowserFetcher.canHandle - returns true for https URL', () => {
+    const fetcher = new BrowserFetcher(MOCK_BINDING, {}, MOCK_CONNECTOR);
+    assertEquals(fetcher.canHandle('https://example.com/list.txt'), true);
+});
+
+Deno.test('BrowserFetcher.canHandle - returns true for http URL', () => {
+    const fetcher = new BrowserFetcher(MOCK_BINDING, {}, MOCK_CONNECTOR);
+    assertEquals(fetcher.canHandle('http://example.com/list.txt'), true);
+});
+
+Deno.test('BrowserFetcher.canHandle - returns false for local file path', () => {
+    const fetcher = new BrowserFetcher(MOCK_BINDING, {}, MOCK_CONNECTOR);
+    assertEquals(fetcher.canHandle('/local/path/list.txt'), false);
+});
+
+Deno.test('BrowserFetcher.canHandle - returns false for ftp URL', () => {
+    const fetcher = new BrowserFetcher(MOCK_BINDING, {}, MOCK_CONNECTOR);
+    assertEquals(fetcher.canHandle('ftp://example.com/list.txt'), false);
+});
+
+Deno.test('BrowserFetcher.canHandle - returns false for empty string', () => {
+    const fetcher = new BrowserFetcher(MOCK_BINDING, {}, MOCK_CONNECTOR);
+    assertEquals(fetcher.canHandle(''), false);
 });
