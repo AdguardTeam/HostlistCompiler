@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/admin/storage/tables"
+method: GET
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{adminKey}}"
+    in: header
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200 or 401", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Response has tables array", function () {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("tables");
+              pm.expect(json.tables).to.be.an("array");
+          });
+      }
+    language: text/javascript
+order: 6000

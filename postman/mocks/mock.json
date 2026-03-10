@@ -1,0 +1,13 @@
+{
+  "id": "6709ea2a-c4dc-4411-8e2f-06a08ee5cb3b",
+  "version": 1,
+  "name": "Adblock Compiler API Mock",
+  "protocol": "http",
+  "port": 4500,
+  "mockSrc": "../mock/adblock-compiler-mock.js",
+  "autoRestartOnChange": true,
+  "logging": {
+    "level": "verbose",
+    "showBody": true
+  }
+}

@@ -1,0 +1,4 @@
+$kind: websocket-request
+name: WebSocket endpoint for real-time compilation
+url: '{{baseUrl}}/ws/compile'
+order: 1000

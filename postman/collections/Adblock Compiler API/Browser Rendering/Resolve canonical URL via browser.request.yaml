@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/browser/resolve-url"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: ""
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Response is JSON', function () {
+          pm.response.to.be.json;
+      });
+    language: text/javascript
+order: 1000

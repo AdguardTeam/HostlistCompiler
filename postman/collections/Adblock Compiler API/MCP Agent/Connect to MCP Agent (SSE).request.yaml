@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/agents/mcp-agent/{{mcpAgentInstanceId}}/sse"
+method: GET
+headers:
+  Accept: text/event-stream
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+
+      pm.test("Content-Type is event-stream", function () {
+          pm.expect(pm.response.headers.get("Content-Type")).to.include("text/event-stream");
+      });
+    language: text/javascript
+order: 1000

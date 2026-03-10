@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{baseUrl}}/admin/storage/query"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{adminKey}}"
+    in: header
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200, 400, or 401", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Response has results", function () {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("results");
+          });
+      }
+    language: text/javascript
+order: 7000
