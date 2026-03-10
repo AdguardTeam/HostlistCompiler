@@ -22,7 +22,7 @@
 
 import { ApplicationConfig, ErrorHandler, provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withViewTransitions, withPreloading, PreloadAllModules, TitleStrategy } from '@angular/router';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
@@ -31,6 +31,7 @@ import { routes } from './app.routes';
 import { AppTitleStrategy } from './title-strategy';
 import { ThemeService } from './services/theme.service';
 import { GlobalErrorHandler } from './error/global-error-handler';
+import { TurnstileService } from './services/turnstile.service';
 import { API_BASE_URL } from './tokens';
 
 export const appConfig: ApplicationConfig = {
@@ -75,9 +76,23 @@ export const appConfig: ApplicationConfig = {
         // MatIconRegistry: switches mat-icon from the legacy 'Material Icons' ligature font
         // (not in npm) to the 'material-symbols' npm package which is already imported in
         // styles.css via `@import 'material-symbols/outlined.css'`.
+        // TurnstileService: fires a non-blocking request to /api/turnstile-config so the
+        // widget renders with the correct key without hardcoding it in the source.
+        // The request is fire-and-forget (no await) so a slow/failing network call
+        // cannot delay the first render.
         provideAppInitializer(() => {
             inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
             inject(ThemeService).loadPreferences();
+            // Fire-and-forget: fetch Turnstile site key without blocking bootstrap.
+            // inject() calls must stay in the top-level callback scope (injection context).
+            const http = inject(HttpClient);
+            const turnstileService = inject(TurnstileService);
+            const apiBaseUrl = inject(API_BASE_URL);
+            http.get<{ siteKey: string | null; enabled: boolean }>(`${apiBaseUrl}/turnstile-config`)
+                .subscribe({
+                    next: (config) => { if (config.siteKey) turnstileService.setSiteKey(config.siteKey); },
+                    error: () => { /* Non-fatal: Turnstile will be disabled if config can't be fetched */ },
+                });
         }),
     ],
 };
