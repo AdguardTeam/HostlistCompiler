@@ -99,6 +99,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.52.0] - 2026-03-10
+
+### Added- **api-docs**: add all endpoints + JSON syntax highlighting
+
+### Fixed
+
+- **api-docs**: remove unnecessary escape in regex character class
+
+
 ## [0.51.0] - 2026-03-10
 
 ### Added- add validate-rule, rule set CRUD, and notify endpoints (#912)
