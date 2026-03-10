@@ -150,46 +150,48 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                             HEALTH_THRESHOLDS.maxResponseTimeMs,
                         );
 
-                        const response = await fetch(source.url, {
-                            method: 'GET',
-                            signal: controller.signal,
-                            headers: {
-                                'User-Agent': 'AdblockCompiler-HealthCheck/1.0',
-                            },
-                        });
+                        try {
+                            const response = await fetch(source.url, {
+                                method: 'GET',
+                                signal: controller.signal,
+                                headers: {
+                                    'User-Agent': 'AdblockCompiler-HealthCheck/1.0',
+                                },
+                            });
 
-                        clearTimeout(timeoutId);
+                            result.statusCode = response.status;
+                            result.responseTimeMs = Date.now() - checkStart;
 
-                        result.statusCode = response.status;
-                        result.responseTimeMs = Date.now() - checkStart;
+                            if (!response.ok) {
+                                result.error = `HTTP ${response.status}: ${response.statusText}`;
+                                return result;
+                            }
 
-                        if (!response.ok) {
-                            result.error = `HTTP ${response.status}: ${response.statusText}`;
-                            return result;
+                            // Check content validity
+                            const content = await response.text();
+                            const lines = content.split('\n').filter((line) => {
+                                const trimmed = line.trim();
+                                return trimmed && !trimmed.startsWith('!') && !trimmed.startsWith('#');
+                            });
+
+                            result.ruleCount = lines.length;
+
+                            // Validate rule count
+                            const minRules = source.expectedMinRules || HEALTH_THRESHOLDS.defaultMinRules;
+                            if (lines.length < minRules) {
+                                result.error = `Rule count ${lines.length} below minimum ${minRules}`;
+                                return result;
+                            }
+
+                            // All checks passed
+                            result.healthy = true;
+                            console.log(
+                                `[WORKFLOW:HEALTH] Source "${source.name}" healthy: ` +
+                                    `${result.ruleCount} rules, ${result.responseTimeMs}ms`,
+                            );
+                        } finally {
+                            clearTimeout(timeoutId);
                         }
-
-                        // Check content validity
-                        const content = await response.text();
-                        const lines = content.split('\n').filter((line) => {
-                            const trimmed = line.trim();
-                            return trimmed && !trimmed.startsWith('!') && !trimmed.startsWith('#');
-                        });
-
-                        result.ruleCount = lines.length;
-
-                        // Validate rule count
-                        const minRules = source.expectedMinRules || HEALTH_THRESHOLDS.defaultMinRules;
-                        if (lines.length < minRules) {
-                            result.error = `Rule count ${lines.length} below minimum ${minRules}`;
-                            return result;
-                        }
-
-                        // All checks passed
-                        result.healthy = true;
-                        console.log(
-                            `[WORKFLOW:HEALTH] Source "${source.name}" healthy: ` +
-                                `${result.ruleCount} rules, ${result.responseTimeMs}ms`,
-                        );
                     } catch (error) {
                         result.responseTimeMs = Date.now() - checkStart;
 

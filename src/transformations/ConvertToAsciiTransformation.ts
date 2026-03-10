@@ -16,7 +16,7 @@ export class ConvertToAsciiTransformation extends SyncTransformation {
      * @param rules - Array of rules to process
      * @returns Array with ASCII-safe rules
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         return rules.map((rule) => {
             // Skip comments and empty lines
             if (RuleUtils.isComment(rule) || rule.length === 0) {

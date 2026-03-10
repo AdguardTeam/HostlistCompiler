@@ -21,6 +21,7 @@
 
 import type { IContentFetcher } from './types.ts';
 import { ErrorUtils } from '../utils/index.ts';
+import { HttpFetcher } from './HttpFetcher.ts';
 
 // ============================================================================
 // Playwright structural interfaces
@@ -158,6 +159,8 @@ export class BrowserFetcher implements IContentFetcher {
     /**
      * Navigates to `url` in a headless browser and returns the page content.
      *
+     * @remarks Uses {@link HttpFetcher.isSafeUrl} to block private/internal addresses (SSRF prevention).
+     *
      * Text extraction order:
      * 1. First `<pre>`, `<code>`, or `<textarea>` element's `innerText`
      *    (common for plain-text filter list pages wrapped in HTML)
@@ -168,6 +171,11 @@ export class BrowserFetcher implements IContentFetcher {
      * @throws {Error} If the browser fails to navigate or extract content.
      */
     async fetch(url: string): Promise<string> {
+        // Reuse HttpFetcher's SSRF protection
+        if (!HttpFetcher.isSafeUrl(url)) {
+            throw new Error(`Blocked browser request to private/internal address: ${url}`);
+        }
+
         const browser = await this.connect(this.binding);
         let page: IPlaywrightPage | undefined;
 

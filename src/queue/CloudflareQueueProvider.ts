@@ -147,10 +147,20 @@ export class CloudflareQueueProvider implements IQueueProvider {
                 if (msg.attempts < this.options.maxRetries) {
                     msg.retry();
                 } else {
-                    // Max retries exceeded - message will be dropped or sent to DLQ
+                    // Max retries exceeded — acknowledge to dequeue. Cloudflare Queues does not
+                    // have a built-in DLQ, so log a structured warning with non-sensitive fields only.
                     msg.ack();
+                    let payloadSummary: string;
+                    try {
+                        const body = msg.body as unknown as Record<string, unknown>;
+                        payloadSummary = JSON.stringify({ id: body?.id, type: body?.type, requestId: body?.requestId });
+                    } catch {
+                        payloadSummary = '[unserializable payload]';
+                    }
                     this.logger.error(
-                        `Message ${msg.id} failed after ${msg.attempts} attempts: ${error instanceof Error ? error.message : String(error)}`,
+                        `[DLQ] Message ${msg.id} permanently failed after ${msg.attempts} attempts and will be dropped. ` +
+                            `Payload summary: ${payloadSummary}. ` +
+                            `Error: ${error instanceof Error ? error.message : String(error)}`,
                     );
                 }
                 failed++;

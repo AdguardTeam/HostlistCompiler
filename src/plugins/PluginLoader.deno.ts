@@ -30,6 +30,17 @@ export async function loadPlugin(
         throw new Error('Loading plugins from remote URLs is disabled');
     }
 
+    // Block path traversal and absolute system paths for local plugins
+    if (!isRemote) {
+        if (/\.\.[\\/]/.test(path) || /[\\/]\.\./.test(path)) {
+            throw new Error(`Path traversal detected in plugin path: "${path}"`);
+        }
+        // Block absolute paths that escape the project (e.g., /etc/passwd, C:\Windows)
+        if (/^[/\\]/.test(path) || /^[a-zA-Z]:[/\\]/.test(path)) {
+            throw new Error(`Absolute system paths are not allowed for plugins: "${path}"`);
+        }
+    }
+
     try {
         // Dynamic import - requires Deno runtime with read (file paths) or net (remote URLs) permissions
         const module = await import(path);

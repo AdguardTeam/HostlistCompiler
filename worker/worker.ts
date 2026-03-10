@@ -2195,9 +2195,32 @@ async function queueBatchCompileJob(
 // ============================================================================
 
 /**
+ * Constant-time string comparison to prevent timing attacks.
+ */
+async function timingSafeCompareWorker(a: string, b: string): Promise<boolean> {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode('timing-safe-compare-key');
+    const key = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign'],
+    );
+    const aMac = new Uint8Array(await crypto.subtle.sign('HMAC', key, encoder.encode(a)));
+    const bMac = new Uint8Array(await crypto.subtle.sign('HMAC', key, encoder.encode(b)));
+    if (aMac.length !== bMac.length) return false;
+    let result = 0;
+    for (let i = 0; i < aMac.length; i++) {
+        result |= aMac[i] ^ bMac[i];
+    }
+    return result === 0;
+}
+
+/**
  * Verify admin authentication
  */
-function verifyAdminAuth(request: Request, env: Env): { authorized: boolean; error?: string } {
+async function verifyAdminAuth(request: Request, env: Env): Promise<{ authorized: boolean; error?: string }> {
     const adminKey = request.headers.get('X-Admin-Key');
 
     // If no ADMIN_KEY is configured, admin features are disabled
@@ -2205,8 +2228,13 @@ function verifyAdminAuth(request: Request, env: Env): { authorized: boolean; err
         return { authorized: false, error: 'Admin features not configured' };
     }
 
-    // Verify the provided key matches
-    if (!adminKey || adminKey !== env.ADMIN_KEY) {
+    if (!adminKey) {
+        return { authorized: false, error: 'Unauthorized' };
+    }
+
+    // Use constant-time comparison to prevent timing attacks
+    const matches = await timingSafeCompareWorker(adminKey, env.ADMIN_KEY);
+    if (!matches) {
         return { authorized: false, error: 'Unauthorized' };
     }
 
@@ -3202,7 +3230,7 @@ export default {
 
         if (routePath.startsWith('/admin/storage')) {
             // Verify admin authentication
-            const auth = verifyAdminAuth(request, env);
+            const auth = await verifyAdminAuth(request, env);
             if (!auth.authorized) {
                 return Response.json(
                     { success: false, error: auth.error },

@@ -15,7 +15,7 @@ export class InsertFinalNewLineTransformation extends SyncTransformation {
      * @param rules - Array of rules to process
      * @returns Array with final newline
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         const result = [...rules];
 
         if (result.length === 0 || (result.length > 0 && result[result.length - 1].trim() !== '')) {

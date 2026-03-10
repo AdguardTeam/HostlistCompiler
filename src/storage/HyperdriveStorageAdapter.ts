@@ -28,6 +28,17 @@ import type {
     CreateSourceHealthSnapshot,
     CreateUser,
 } from './schemas.ts';
+import {
+    CreateApiKeySchema,
+    CreateCompilationEventSchema,
+    CreateCompiledOutputSchema,
+    CreateFilterListVersionSchema,
+    CreateFilterSourceSchema,
+    CreateSessionSchema,
+    CreateSourceChangeEventSchema,
+    CreateSourceHealthSnapshotSchema,
+    CreateUserSchema,
+} from './schemas.ts';
 
 // ============================================================================
 // Types
@@ -525,12 +536,13 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Creates a user record.
      */
     async createUser(data: CreateUser): Promise<{ id: string }> {
+        const validated = CreateUserSchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO users (email, display_name, role)
              VALUES ($1, $2, $3)
              RETURNING id`,
-            [data.email, data.displayName ?? null, data.role],
+            [validated.email, validated.displayName ?? null, validated.role],
         );
         return { id: result.rows[0].id };
     }
@@ -551,17 +563,18 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Creates an API key record.
      */
     async createApiKey(data: CreateApiKey): Promise<{ id: string }> {
+        const validated = CreateApiKeySchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO api_keys (user_id, name, key_hash, key_prefix, scopes, rate_limit_per_minute, expires_at)
              VALUES ($1, $2, '', '', $3, $4, $5)
              RETURNING id`,
             [
-                data.userId,
-                data.name,
-                data.scopes,
-                data.rateLimitPerMinute,
-                data.expiresAt?.toISOString() ?? null,
+                validated.userId,
+                validated.name,
+                validated.scopes,
+                validated.rateLimitPerMinute,
+                validated.expiresAt?.toISOString() ?? null,
             ],
         );
         return { id: result.rows[0].id };
@@ -571,17 +584,18 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Creates a session record.
      */
     async createSession(data: CreateSession): Promise<{ id: string }> {
+        const validated = CreateSessionSchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO sessions (user_id, token_hash, ip_address, user_agent, expires_at)
              VALUES ($1, $2, $3, $4, $5)
              RETURNING id`,
             [
-                data.userId,
-                data.tokenHash,
-                data.ipAddress ?? null,
-                data.userAgent ?? null,
-                data.expiresAt.toISOString(),
+                validated.userId,
+                validated.tokenHash,
+                validated.ipAddress ?? null,
+                validated.userAgent ?? null,
+                validated.expiresAt.toISOString(),
             ],
         );
         return { id: result.rows[0].id };
@@ -591,20 +605,21 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Creates a filter source record.
      */
     async createFilterSource(data: CreateFilterSource): Promise<{ id: string }> {
+        const validated = CreateFilterSourceSchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO filter_sources (url, name, description, homepage, license, is_public, owner_user_id, refresh_interval_seconds)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              RETURNING id`,
             [
-                data.url,
-                data.name,
-                data.description ?? null,
-                data.homepage ?? null,
-                data.license ?? null,
-                data.isPublic,
-                data.ownerUserId ?? null,
-                data.refreshIntervalSeconds,
+                validated.url,
+                validated.name,
+                validated.description ?? null,
+                validated.homepage ?? null,
+                validated.license ?? null,
+                validated.isPublic,
+                validated.ownerUserId ?? null,
+                validated.refreshIntervalSeconds,
             ],
         );
         return { id: result.rows[0].id };
@@ -626,19 +641,20 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Creates a filter list version record.
      */
     async createFilterListVersion(data: CreateFilterListVersion): Promise<{ id: string }> {
+        const validated = CreateFilterListVersionSchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO filter_list_versions (source_id, content_hash, rule_count, etag, r2_key, expires_at, is_current)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING id`,
             [
-                data.sourceId,
-                data.contentHash,
-                data.ruleCount,
-                data.etag ?? null,
-                data.r2Key,
-                data.expiresAt?.toISOString() ?? null,
-                data.isCurrent,
+                validated.sourceId,
+                validated.contentHash,
+                validated.ruleCount,
+                validated.etag ?? null,
+                validated.r2Key,
+                validated.expiresAt?.toISOString() ?? null,
+                validated.isCurrent,
             ],
         );
         return { id: result.rows[0].id };
@@ -648,21 +664,22 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Creates a compiled output record.
      */
     async createCompiledOutput(data: CreateCompiledOutput): Promise<{ id: string }> {
+        const validated = CreateCompiledOutputSchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO compiled_outputs (config_hash, config_name, config_snapshot, rule_count, source_count, duration_ms, r2_key, owner_user_id, expires_at)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
              RETURNING id`,
             [
-                data.configHash,
-                data.configName,
-                JSON.stringify(data.configSnapshot),
-                data.ruleCount,
-                data.sourceCount,
-                data.durationMs,
-                data.r2Key,
-                data.ownerUserId ?? null,
-                data.expiresAt?.toISOString() ?? null,
+                validated.configHash,
+                validated.configName,
+                JSON.stringify(validated.configSnapshot),
+                validated.ruleCount,
+                validated.sourceCount,
+                validated.durationMs,
+                validated.r2Key,
+                validated.ownerUserId ?? null,
+                validated.expiresAt?.toISOString() ?? null,
             ],
         );
         return { id: result.rows[0].id };
@@ -688,20 +705,21 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Records a compilation event (audit log).
      */
     async createCompilationEvent(data: CreateCompilationEvent): Promise<{ id: string }> {
+        const validated = CreateCompilationEventSchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO compilation_events (compiled_output_id, user_id, api_key_id, request_source, worker_region, duration_ms, cache_hit, error_message)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              RETURNING id`,
             [
-                data.compiledOutputId ?? null,
-                data.userId ?? null,
-                data.apiKeyId ?? null,
-                data.requestSource,
-                data.workerRegion ?? null,
-                data.durationMs,
-                data.cacheHit,
-                data.errorMessage ?? null,
+                validated.compiledOutputId ?? null,
+                validated.userId ?? null,
+                validated.apiKeyId ?? null,
+                validated.requestSource,
+                validated.workerRegion ?? null,
+                validated.durationMs,
+                validated.cacheHit,
+                validated.errorMessage ?? null,
             ],
         );
         return { id: result.rows[0].id };
@@ -711,20 +729,21 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Creates a source health snapshot.
      */
     async createSourceHealthSnapshot(data: CreateSourceHealthSnapshot): Promise<{ id: string }> {
+        const validated = CreateSourceHealthSnapshotSchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO source_health_snapshots (source_id, status, total_attempts, successful_attempts, failed_attempts, consecutive_failures, avg_duration_ms, avg_rule_count)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              RETURNING id`,
             [
-                data.sourceId,
-                data.status,
-                data.totalAttempts,
-                data.successfulAttempts,
-                data.failedAttempts,
-                data.consecutiveFailures,
-                data.avgDurationMs,
-                data.avgRuleCount,
+                validated.sourceId,
+                validated.status,
+                validated.totalAttempts,
+                validated.successfulAttempts,
+                validated.failedAttempts,
+                validated.consecutiveFailures,
+                validated.avgDurationMs,
+                validated.avgRuleCount,
             ],
         );
         return { id: result.rows[0].id };
@@ -734,17 +753,18 @@ export class HyperdriveStorageAdapter implements IStorageAdapter {
      * Records a source change event.
      */
     async createSourceChangeEvent(data: CreateSourceChangeEvent): Promise<{ id: string }> {
+        const validated = CreateSourceChangeEventSchema.parse(data);
         const pool = this.ensureOpen();
         const result = await pool.query<{ id: string }>(
             `INSERT INTO source_change_events (source_id, previous_version_id, new_version_id, rule_count_delta, content_hash_changed)
              VALUES ($1, $2, $3, $4, $5)
              RETURNING id`,
             [
-                data.sourceId,
-                data.previousVersionId ?? null,
-                data.newVersionId,
-                data.ruleCountDelta,
-                data.contentHashChanged,
+                validated.sourceId,
+                validated.previousVersionId ?? null,
+                validated.newVersionId,
+                validated.ruleCountDelta,
+                validated.contentHashChanged,
             ],
         );
         return { id: result.rows[0].id };

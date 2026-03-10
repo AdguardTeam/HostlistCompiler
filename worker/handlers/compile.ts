@@ -585,7 +585,18 @@ export async function handleCompileAsync(
     const startTime = Date.now();
 
     try {
-        const body = await request.json() as CompileRequest;
+        // Parse and validate request body
+        const rawBody = await request.json();
+        const validationResult = CompileRequestSchema.safeParse(rawBody);
+
+        if (!validationResult.success) {
+            const errors = validationResult.error.issues
+                .map((issue) => `/${issue.path.join('/')}: ${issue.message}`)
+                .join(', ');
+            return JsonResponse.badRequest(`Invalid request body: ${errors}`);
+        }
+
+        const body = validationResult.data;
         const { configuration, preFetchedContent, benchmark, priority = 'standard' } = body;
 
         // deno-lint-ignore no-console

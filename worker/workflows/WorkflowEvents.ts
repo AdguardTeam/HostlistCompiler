@@ -103,10 +103,18 @@ export class WorkflowEvents {
             eventLog.completedAt = new Date().toISOString();
         }
 
-        // Store with TTL
-        await this.kv.put(this.eventKey, JSON.stringify(eventLog), {
-            expirationTtl: this.eventTtl,
-        });
+        // Store with TTL (note: concurrent workflows may overwrite events due to
+        // read-modify-write; this is acceptable since events are observability data)
+        try {
+            await this.kv.put(this.eventKey, JSON.stringify(eventLog), {
+                expirationTtl: this.eventTtl,
+            });
+        } catch (error) {
+            // Log but don't fail the workflow for event storage errors
+            console.error(
+                `[WORKFLOW:EVENT] Failed to store event for ${this.workflowType}/${this.workflowId}: ${error instanceof Error ? error.message : String(error)}`,
+            );
+        }
 
         // Also log for visibility
         console.log(`[WORKFLOW:EVENT] ${this.workflowType}/${this.workflowId} - ${type}`, options?.message || '');

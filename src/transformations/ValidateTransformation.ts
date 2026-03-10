@@ -85,7 +85,7 @@ export class ValidateTransformation extends SyncTransformation {
      * @param rules - Array of rules to validate
      * @returns Array of valid rules
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         const filtered = [...rules];
         const validationErrors: IValidationError[] = [];
         let previousRuleRemoved = false;
@@ -453,7 +453,7 @@ export class ValidateTransformation extends SyncTransformation {
             let domainToCheck: string | null = null;
             if (sepIdx !== -1) {
                 // Pattern has separator: ||domain^ format
-                domainToCheck = StringUtils.substringBetween(ruleText, DOMAIN_PREFIX, DOMAIN_SEPARATOR);
+                domainToCheck = StringUtils.substringBetween(pattern, DOMAIN_PREFIX, DOMAIN_SEPARATOR);
             } else {
                 // Pattern without separator: ||domain format
                 // Extract domain after ||
@@ -531,7 +531,7 @@ export class ValidateAllowIpTransformation extends SyncTransformation {
      * @param rules - Array of rules to validate
      * @returns Array of valid rules
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         return this.validator.executeSync(rules);
     }
 }

@@ -18,6 +18,11 @@ import { assertEquals, assertStringIncludes } from '@std/assert';
 import { handler } from './container-server.ts';
 import { VERSION } from '../src/version.ts';
 
+// Set the shared secret so POST /compile doesn't 503.
+// container-server.ts reads CONTAINER_SECRET per-request from env.
+Deno.env.set('CONTAINER_SECRET', 'test-secret');
+const AUTH_HEADER = { 'X-Container-Secret': 'test-secret' };
+
 // ---------------------------------------------------------------------------
 // GET /health
 // ---------------------------------------------------------------------------
@@ -40,7 +45,7 @@ Deno.test('container-server handler - POST /compile returns compiled rules as pl
     const rule = '||example.com^';
     const request = new Request('http://localhost:8787/compile', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify({
             configuration: {
                 name: 'Test',
@@ -66,7 +71,7 @@ Deno.test('container-server handler - POST /compile returns compiled rules as pl
 Deno.test('container-server handler - POST /compile with invalid JSON returns 400', async () => {
     const request = new Request('http://localhost:8787/compile', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: 'not valid json',
     });
 
@@ -82,7 +87,7 @@ Deno.test('container-server handler - POST /compile with invalid JSON returns 40
 Deno.test('container-server handler - POST /compile with missing configuration returns 400', async () => {
     const request = new Request('http://localhost:8787/compile', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify({ preFetchedContent: {} }),
     });
 
@@ -103,7 +108,7 @@ Deno.test('container-server handler - POST /compile returns 500 when compilation
     // We use a deliberately un-parseable URL scheme to force an immediate error.
     const request = new Request('http://localhost:8787/compile', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
         body: JSON.stringify({
             configuration: {
                 name: 'Error Test',

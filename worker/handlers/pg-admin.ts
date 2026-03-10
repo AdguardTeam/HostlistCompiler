@@ -257,7 +257,12 @@ export async function handlePgQuery(
         return JsonResponse.badRequest('Missing or invalid SQL query');
     }
 
-    const normalizedSql = sql.trim().toUpperCase();
+    // Strip comments before validation to prevent bypass
+    const sanitized = sql
+        .replace(/\/\*[\s\S]*?\*\//g, ' ') // multi-line comments
+        .replace(/--[^\n]*/g, ' '); // single-line comments
+
+    const normalizedSql = sanitized.trim().toUpperCase();
     if (!normalizedSql.startsWith('SELECT')) {
         return JsonResponse.badRequest('Only SELECT queries are allowed');
     }
@@ -266,15 +271,39 @@ export async function handlePgQuery(
         /;\s*(DELETE|UPDATE|INSERT|DROP|ALTER|CREATE|TRUNCATE)/i,
     ];
     for (const pattern of dangerousPatterns) {
-        if (pattern.test(sql)) {
+        if (pattern.test(sanitized)) {
             return JsonResponse.badRequest('Query contains disallowed SQL statements');
+        }
+    }
+
+    // Enforce row limit to prevent resource exhaustion.
+    // Strip trailing semicolon, then clamp or append LIMIT to prevent large result sets.
+    const MAX_ROWS = 1000;
+    let workingSql = sanitized.trim();
+    if (workingSql.endsWith(';')) {
+        workingSql = workingSql.slice(0, -1).trimEnd();
+    }
+
+    const limitKeywordRegex = /\bLIMIT\b/i;
+    const simpleLimitRegex = /\bLIMIT\b\s+(\d+)\s*$/i;
+
+    if (!limitKeywordRegex.test(workingSql)) {
+        workingSql = `${workingSql} LIMIT ${MAX_ROWS}`;
+    } else {
+        const simpleMatch = simpleLimitRegex.exec(workingSql);
+        if (!simpleMatch) {
+            return JsonResponse.badRequest('Queries must use simple "LIMIT N" syntax with N \u2264 1000');
+        }
+        const requestedLimit = Number.parseInt(simpleMatch[1], 10);
+        if (!Number.isFinite(requestedLimit) || requestedLimit > MAX_ROWS) {
+            workingSql = workingSql.replace(simpleLimitRegex, `LIMIT ${MAX_ROWS}`);
         }
     }
 
     const pool = createPool(hyperdrive.connectionString);
 
     try {
-        const result = await pool.query(sql);
+        const result = await pool.query(workingSql);
         return JsonResponse.success({
             rows: result.rows,
             rowCount: result.rows.length,
