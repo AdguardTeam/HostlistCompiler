@@ -33,7 +33,6 @@ import { ThemeService } from './services/theme.service';
 import { GlobalErrorHandler } from './error/global-error-handler';
 import { TurnstileService } from './services/turnstile.service';
 import { API_BASE_URL } from './tokens';
-import { firstValueFrom } from 'rxjs';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -77,23 +76,23 @@ export const appConfig: ApplicationConfig = {
         // MatIconRegistry: switches mat-icon from the legacy 'Material Icons' ligature font
         // (not in npm) to the 'material-symbols' npm package which is already imported in
         // styles.css via `@import 'material-symbols/outlined.css'`.
-        // TurnstileService: fetches the Turnstile site key from /api/turnstile-config so
-        // the widget renders with the correct key without hardcoding it in the source.
-        provideAppInitializer(async () => {
+        // TurnstileService: fires a non-blocking request to /api/turnstile-config so the
+        // widget renders with the correct key without hardcoding it in the source.
+        // The request is fire-and-forget (no await) so a slow/failing network call
+        // cannot delay the first render.
+        provideAppInitializer(() => {
             inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
             inject(ThemeService).loadPreferences();
-            // Fetch Turnstile site key from worker and configure the service
-            try {
-                const http = inject(HttpClient);
-                const config = await firstValueFrom(
-                    http.get<{ siteKey: string | null; enabled: boolean }>('/api/turnstile-config'),
-                );
-                if (config.siteKey) {
-                    inject(TurnstileService).setSiteKey(config.siteKey);
-                }
-            } catch {
-                // Non-fatal: Turnstile will be disabled if config can't be fetched
-            }
+            // Fire-and-forget: fetch Turnstile site key without blocking bootstrap.
+            // inject() calls must stay in the top-level callback scope (injection context).
+            const http = inject(HttpClient);
+            const turnstileService = inject(TurnstileService);
+            const apiBaseUrl = inject(API_BASE_URL);
+            http.get<{ siteKey: string | null; enabled: boolean }>(`${apiBaseUrl}/turnstile-config`)
+                .subscribe({
+                    next: (config) => { if (config.siteKey) turnstileService.setSiteKey(config.siteKey); },
+                    error: () => { /* Non-fatal: Turnstile will be disabled if config can't be fetched */ },
+                });
         }),
     ],
 };

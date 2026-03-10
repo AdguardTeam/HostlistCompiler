@@ -13,15 +13,21 @@ fi
 # Inject Cloudflare Web Analytics token into the built index.html.
 # The placeholder {{CF_WEB_ANALYTICS_TOKEN}} is replaced with the token from
 # the environment, or the analytics script is removed if the token is not set.
+# sed uses a temp file + mv instead of sed -i to be portable across GNU and BSD sed
+# (macOS requires sed -i '' whereas GNU sed accepts sed -i without a suffix).
 INDEX_HTML="$DIST_DIR/index.html"
 if [ -f "$INDEX_HTML" ]; then
     if [ -n "$CF_WEB_ANALYTICS_TOKEN" ]; then
         # Escape characters special in sed replacement with '|' delimiter: & \ |
         ESCAPED_TOKEN=$(printf '%s' "$CF_WEB_ANALYTICS_TOKEN" | sed 's/[&|\\]/\\&/g')
-        sed -i "s|{{CF_WEB_ANALYTICS_TOKEN}}|$ESCAPED_TOKEN|g" "$INDEX_HTML"
+        sed "s|{{CF_WEB_ANALYTICS_TOKEN}}|$ESCAPED_TOKEN|g" "$INDEX_HTML" > "$INDEX_HTML.tmp" && mv "$INDEX_HTML.tmp" "$INDEX_HTML"
         echo "Cloudflare Web Analytics token injected into $INDEX_HTML."
     else
-        sed -i '/CF_WEB_ANALYTICS_TOKEN/d' "$INDEX_HTML"
+        # Remove the entire Cloudflare beacon <script> tag by matching the
+        # cloudflareinsights.com URL as an anchor. Using substitution (not line
+        # deletion) so minified HTML that places multiple tags on one line is handled
+        # safely — only the analytics tag is removed, not the whole line.
+        sed 's|<script[^>]*cloudflareinsights\.com[^>]*></script>||g' "$INDEX_HTML" > "$INDEX_HTML.tmp" && mv "$INDEX_HTML.tmp" "$INDEX_HTML"
         echo "CF_WEB_ANALYTICS_TOKEN not set — analytics script removed from $INDEX_HTML."
     fi
 fi

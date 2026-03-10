@@ -6,6 +6,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { CompilerComponent } from './compiler.component';
 import { API_BASE_URL } from '../tokens';
+import { TurnstileService } from '../services/turnstile.service';
+import { CompilerService } from '../services/compiler.service';
+import { of } from 'rxjs';
 
 describe('CompilerComponent', () => {
     let fixture: ComponentFixture<CompilerComponent>;
@@ -124,5 +127,82 @@ describe('CompilerComponent', () => {
         await fixture.whenStable();
         const el: HTMLElement = fixture.nativeElement;
         expect(el.querySelector('h1')?.textContent).toContain('Compiler');
+    });
+
+    describe('Turnstile token forwarding', () => {
+        it('should include turnstileToken in compile request when json mode is used', async () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            const compilerService = TestBed.inject(CompilerService);
+            const compileSpy = vi.spyOn(compilerService, 'compile').mockReturnValue(
+                of({ success: true, ruleCount: 0, sources: 1, transformations: [], message: 'ok' }),
+            );
+
+            turnstileService.token.set('test-token-json');
+            component.compileMode = 'json';
+            component.onSubmit();
+            await fixture.whenStable();
+
+            expect(compileSpy).toHaveBeenCalledWith(
+                expect.any(Array),
+                expect.any(Array),
+                'test-token-json',
+            );
+        });
+
+        it('should include turnstileToken in compileAsync call when async mode is used', async () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            const compilerService = TestBed.inject(CompilerService);
+            const compileAsyncSpy = vi.spyOn(compilerService, 'compileAsync').mockReturnValue(
+                of({ success: true, requestId: 'test-id', note: 'queued' }),
+            );
+
+            turnstileService.token.set('test-token-async');
+            component.compileMode = 'async';
+            component.onSubmit();
+            await fixture.whenStable();
+
+            expect(compileAsyncSpy).toHaveBeenCalledWith(
+                expect.any(Array),
+                expect.any(Array),
+                'test-token-async',
+            );
+        });
+
+        it('should include turnstileToken in compileBatchAsync call when batch-async mode is used', async () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            const compilerService = TestBed.inject(CompilerService);
+            const compileBatchAsyncSpy = vi.spyOn(compilerService, 'compileBatchAsync').mockReturnValue(
+                of({ success: true, requestId: 'test-batch-id', note: 'queued' }),
+            );
+
+            turnstileService.token.set('test-token-batch-async');
+            component.compileMode = 'batch-async';
+            component.onSubmit();
+            await fixture.whenStable();
+
+            expect(compileBatchAsyncSpy).toHaveBeenCalledWith(
+                expect.any(Array),
+                'test-token-batch-async',
+            );
+        });
+
+        it('should pass undefined turnstileToken when no token is present', async () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            const compilerService = TestBed.inject(CompilerService);
+            const compileSpy = vi.spyOn(compilerService, 'compile').mockReturnValue(
+                of({ success: true, ruleCount: 0, sources: 1, transformations: [], message: 'ok' }),
+            );
+
+            turnstileService.token.set('');
+            component.compileMode = 'json';
+            component.onSubmit();
+            await fixture.whenStable();
+
+            expect(compileSpy).toHaveBeenCalledWith(
+                expect.any(Array),
+                expect.any(Array),
+                undefined,
+            );
+        });
     });
 });
