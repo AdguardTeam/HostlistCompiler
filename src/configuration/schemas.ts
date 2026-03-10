@@ -178,6 +178,7 @@ export const SourceSchema: z.ZodType<ISource> = z.object({
     ).describe('URL or file path to the filter list source'),
     name: z.string().trim().min(1, 'name must be a non-empty string').optional().describe('Human-readable name for the source'),
     type: SourceTypeSchema.optional().describe('Source format type'),
+    useBrowser: z.boolean().optional().describe('When true, fetch via Cloudflare Browser Rendering instead of plain HTTP (WorkerCompiler only)'),
 }).merge(FilterableSchema).merge(TransformableSchema).strict()
     .refine(hasValidTransformationOrdering, transformationOrderingMessage)
     .transform((data) => ({

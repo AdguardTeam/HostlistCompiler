@@ -43,6 +43,11 @@ tags:
     -
         name: Health
         description: Health monitoring endpoints
+    -
+        name: Browser Rendering
+        description: >-
+            Endpoints backed by the Cloudflare Browser Rendering binding (`BROWSER`). Used for resolving redirect chains
+            and monitoring filter-list source URLs for changes.
 paths:
     /api:
         get:
@@ -1232,6 +1237,99 @@ paths:
                     $ref: '#/components/responses/UnauthorizedError'
                 '503':
                     $ref: '#/components/responses/ServiceUnavailable'
+    /api/browser/resolve-url:
+        post:
+            tags:
+                - Browser Rendering
+            summary: Resolve canonical URL via browser
+            description: |
+                Navigates to a URL using the Cloudflare Browser Rendering binding and returns the
+                final canonical URL after all redirects. Useful for discovering the true destination
+                of redirect chains or URL shorteners before scheduling a filter-list download.
+
+                Requires the `BROWSER` binding to be configured in `wrangler.toml`.
+            operationId: browserResolveUrl
+            security:
+                -
+                    BearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BrowserResolveRequest'
+            responses:
+                '200':
+                    description: Resolved URL
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BrowserResolveResponse'
+                '400':
+                    description: Invalid request body
+                '502':
+                    description: Browser navigation failed
+                '503':
+                    description: BROWSER binding not configured
+    /api/browser/monitor:
+        post:
+            tags:
+                - Browser Rendering
+            summary: Monitor filter-list sources for changes
+            description: |
+                Fetches each provided URL using the Cloudflare Browser Rendering binding and
+                computes a content hash. The result is compared against the previously stored hash
+                (if any) in `COMPILATION_CACHE` KV. Each source is reported as `changed` or
+                `unchanged`. The latest result set is persisted under the KV key
+                `browser:monitor:latest` and is retrievable via `GET /api/browser/monitor/latest`.
+
+                Requires both the `BROWSER` and `COMPILATION_CACHE` bindings.
+            operationId: browserMonitor
+            security:
+                -
+                    BearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SourceMonitorRequest'
+            responses:
+                '200':
+                    description: Per-source change status
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SourceMonitorResponse'
+                '400':
+                    description: Invalid request body
+                '503':
+                    description: BROWSER or COMPILATION_CACHE binding not configured
+    /api/browser/monitor/latest:
+        get:
+            tags:
+                - Browser Rendering
+            summary: Retrieve the latest monitor results
+            description: |
+                Returns the most recent result set written by `POST /api/browser/monitor`. Reads
+                the KV key `browser:monitor:latest` from `COMPILATION_CACHE`.
+
+                Requires the `COMPILATION_CACHE` binding.
+            operationId: browserMonitorLatest
+            security:
+                -
+                    BearerAuth: []
+            responses:
+                '200':
+                    description: Latest monitor results
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SourceMonitorResponse'
+                '404':
+                    description: No monitor results available yet
+                '503':
+                    description: COMPILATION_CACHE binding not configured
 components:
     schemas:
         CompileRequest:
@@ -2587,6 +2685,94 @@ components:
                     type: string
                 details:
                     type: object
+        BrowserWaitUntil:
+            type: string
+            enum:
+                - load
+                - domcontentloaded
+                - networkidle0
+                - networkidle2
+            default: networkidle0
+            description: |
+                Playwright `waitUntil` navigation event. `networkidle0` (default) waits until
+                there are no more than 0 network connections for at least 500 ms — suitable for
+                most filter-list sources. Use `load` for fastest navigation and `networkidle2`
+                when a source page fires a few background XHRs after the primary load.
+        BrowserResolveRequest:
+            type: object
+            required:
+                - url
+            properties:
+                url:
+                    type: string
+                    format: uri
+                    description: The URL to navigate to and resolve.
+                    example: 'https://example.com/redirect-me'
+                waitUntil:
+                    $ref: '#/components/schemas/BrowserWaitUntil'
+        BrowserResolveResponse:
+            type: object
+            required:
+                - url
+            properties:
+                url:
+                    type: string
+                    format: uri
+                    description: The canonical URL after all redirects.
+                    example: 'https://example.com/final-destination'
+        SourceMonitorEntry:
+            type: object
+            required:
+                - url
+                - changed
+            properties:
+                url:
+                    type: string
+                    format: uri
+                    description: The source URL that was checked.
+                changed:
+                    type: boolean
+                    description: Whether the content hash has changed since the last check.
+                hash:
+                    type: string
+                    description: Current SHA-256 content hash (hex).
+                previousHash:
+                    type: string
+                    description: 'Previously stored hash, or null if this is the first check.'
+                error:
+                    type: string
+                    description: 'Error message, present only when the URL could not be fetched.'
+        SourceMonitorRequest:
+            type: object
+            required:
+                - urls
+            properties:
+                urls:
+                    type: array
+                    items:
+                        type: string
+                        format: uri
+                    minItems: 1
+                    description: One or more filter-list source URLs to check.
+                    example:
+                        - 'https://example.com/filter-list.txt'
+                        - 'https://another.example.com/rules.txt'
+                waitUntil:
+                    $ref: '#/components/schemas/BrowserWaitUntil'
+        SourceMonitorResponse:
+            type: object
+            required:
+                - checkedAt
+                - results
+            properties:
+                checkedAt:
+                    type: string
+                    format: date-time
+                    description: ISO-8601 timestamp of when the check was performed.
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SourceMonitorEntry'
     responses:
         BadRequestError:
             description: Bad request - request body failed schema validation

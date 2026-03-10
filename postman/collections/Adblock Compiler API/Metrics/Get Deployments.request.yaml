@@ -1,0 +1,41 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/api/deployments'
+order: 4000
+description: Returns deployment history records
+queryParams:
+  - key: limit
+    value: '50'
+    description: Maximum number of records to return (1-1000)
+  - key: version
+    value: ''
+    description: Filter by version
+    disabled: true
+  - key: status
+    value: ''
+    description: Filter by deployment status
+    disabled: true
+  - key: branch
+    value: ''
+    description: Filter by branch name
+    disabled: true
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200 or 503", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Response has deployments array", function () {
+              const jsonData = pm.response.json();
+              pm.expect(jsonData).to.have.property("success");
+              pm.expect(jsonData).to.have.property("deployments");
+              pm.expect(jsonData.deployments).to.be.an("array");
+          });
+      }

@@ -1,0 +1,40 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/workflow/compile'
+order: 1000
+description: Creates a durable Cloudflare Workflow instance for compilation. Returns an instance ID to track progress.
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "configuration": {
+        "name": "Workflow Compile Job",
+        "sources": [
+          {
+            "source": "https://easylist.to/easylist/easylist.txt",
+            "transformations": ["RemoveComments", "Validate"]
+          }
+        ],
+        "transformations": ["Deduplicate"]
+      }
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 202", function () {
+          pm.response.to.have.status(202);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      pm.test("Response has instanceId", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("instanceId");
+          pm.collectionVariables.set("workflowInstanceId", json.instanceId);
+      });

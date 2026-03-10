@@ -1,0 +1,31 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/workflow/events/{{workflowInstanceId}}'
+order: 7000
+description: Returns progress events for a specific workflow instance.
+pathVariables:
+  - key: workflowInstanceId
+    value: '{{workflowInstanceId}}'
+    description: Workflow instance ID
+queryParams:
+  - key: since
+    value: ''
+    description: Return only events after this ISO 8601 timestamp
+    disabled: true
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      pm.test("Response has events array", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("events");
+          pm.expect(json.events).to.be.an("array");
+      });

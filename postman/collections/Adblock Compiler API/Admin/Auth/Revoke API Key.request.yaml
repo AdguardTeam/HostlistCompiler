@@ -1,0 +1,34 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/admin/auth/api-keys/revoke'
+order: 4000
+description: Revokes an API key by ID or key prefix. Requires Hyperdrive (PostgreSQL) binding and X-Admin-Key header.
+auth:
+  type: apikey
+  credentials:
+    - key: key
+      value: X-Admin-Key
+    - key: value
+      value: '{{adminKey}}'
+    - key: in
+      value: header
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "keyId": "00000000-0000-0000-0000-000000000000"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200, 400, 401, 404, or 503", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });

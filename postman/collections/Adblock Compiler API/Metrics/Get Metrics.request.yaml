@@ -1,0 +1,23 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/metrics'
+order: 2000
+description: Returns aggregated metrics for the last 30 minutes
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      pm.test("Response has metrics structure", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property("window");
+          pm.expect(jsonData).to.have.property("timestamp");
+          pm.expect(jsonData).to.have.property("endpoints");
+      });

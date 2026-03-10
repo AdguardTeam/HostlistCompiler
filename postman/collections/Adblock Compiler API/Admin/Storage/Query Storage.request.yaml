@@ -1,0 +1,41 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/admin/storage/query'
+order: 7000
+description: Executes a SELECT-only SQL query against the D1 database for debugging. Only SELECT statements are allowed. Requires X-Admin-Key header.
+auth:
+  type: apikey
+  credentials:
+    - key: key
+      value: X-Admin-Key
+    - key: value
+      value: '{{adminKey}}'
+    - key: in
+      value: header
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sql": "SELECT name, type FROM sqlite_master WHERE type = 'table' ORDER BY name"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200, 400, or 401", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Response has results", function () {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("results");
+          });
+      }

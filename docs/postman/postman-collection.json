@@ -2183,6 +2183,154 @@
           }
         }
       ]
+    },
+    {
+      "name": "Browser Rendering",
+      "description": "Endpoints backed by the Cloudflare Browser Rendering binding (`BROWSER`). Used for resolving redirect chains and monitoring filter-list source URLs for changes.",
+      "item": [
+        {
+          "name": "Resolve canonical URL via browser",
+          "description": "Navigates to a URL using the Cloudflare Browser Rendering binding and returns the",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/browser/resolve-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "browser",
+                "resolve-url"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"url\": \"https://example.com/redirect-me\",\n    \"waitUntil\": \"load\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Navigates to a URL using the Cloudflare Browser Rendering binding and returns the\nfinal canonical URL after all redirects. Useful for discovering the true destination\nof redirect chains or URL shorteners before scheduling a filter-list download.\n\nRequires the `BROWSER` binding to be configured in `wrangler.toml`.\n"
+          }
+        },
+        {
+          "name": "Monitor filter-list sources for changes",
+          "description": "Fetches each provided URL using the Cloudflare Browser Rendering binding and",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/browser/monitor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "browser",
+                "monitor"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"urls\": [\n        \"https://example.com/filter-list.txt\",\n        \"https://another.example.com/rules.txt\"\n    ],\n    \"waitUntil\": \"load\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Fetches each provided URL using the Cloudflare Browser Rendering binding and\ncomputes a content hash. The result is compared against the previously stored hash\n(if any) in `COMPILATION_CACHE` KV. Each source is reported as `changed` or\n`unchanged`. The latest result set is persisted under the KV key\n`browser:monitor:latest` and is retrievable via `GET /api/browser/monitor/latest`.\n\nRequires both the `BROWSER` and `COMPILATION_CACHE` bindings.\n"
+          }
+        },
+        {
+          "name": "Retrieve the latest monitor results",
+          "description": "Returns the most recent result set written by `POST /api/browser/monitor`. Reads",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/browser/monitor/latest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "browser",
+                "monitor",
+                "latest"
+              ]
+            },
+            "description": "Returns the most recent result set written by `POST /api/browser/monitor`. Reads\nthe KV key `browser:monitor:latest` from `COMPILATION_CACHE`.\n\nRequires the `COMPILATION_CACHE` binding.\n"
+          }
+        }
+      ]
     }
   ]
 }

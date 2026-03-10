@@ -21,6 +21,9 @@ importers:
       '@cloudflare/containers':
         specifier: ^0.1.1
         version: 0.1.1
+      '@cloudflare/playwright':
+        specifier: ^0.0.11
+        version: 0.0.11
       '@cloudflare/playwright-mcp':
         specifier: ^0.0.5
         version: 0.0.5(@cfworker/json-schema@4.1.1)(@cloudflare/workers-types@4.20260307.1)(react@19.2.4)(zod@4.3.6)

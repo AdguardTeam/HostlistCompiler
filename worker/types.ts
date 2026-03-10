@@ -148,6 +148,8 @@ export interface Env {
     ERROR_REPORTER_VERBOSE?: string; // 'true' or 'false' for verbose console logging
     // Browser Rendering binding (for Cloudflare Browser Rendering / Playwright MCP)
     BROWSER?: BrowserWorker;
+    // R2 bucket for browser-rendered screenshots (source monitor)
+    FILTER_STORAGE?: R2Bucket;
     // Playwright MCP Agent Durable Object namespace
     MCP_AGENT?: DurableObjectNamespace;
     // Adblock Compiler container Durable Object namespace
@@ -495,4 +497,87 @@ export interface WorkflowMetrics {
     totalBatches?: number;
     totalRuns?: number;
     totalChecks?: number;
+}
+
+// ============================================================================
+// Browser Rendering Types
+// ============================================================================
+
+/**
+ * Playwright page-load strategy shared by browser-rendering endpoints.
+ * `'networkidle'` waits for network activity to settle (most reliable for SPAs).
+ * `'load'` waits only for the `load` event (faster; suitable for static pages).
+ * `'domcontentloaded'` is the fastest option; only waits for HTML parsing.
+ */
+export type BrowserWaitUntil = 'load' | 'domcontentloaded' | 'networkidle';
+
+/**
+ * Request body for `POST /api/browser/resolve-url`.
+ */
+export interface UrlResolveRequest {
+    /** The URL to navigate to and resolve. */
+    url: string;
+    /** Navigation timeout in milliseconds. @default 30_000 */
+    timeout?: number;
+    /** Playwright page-load strategy. @default 'networkidle' */
+    waitUntil?: BrowserWaitUntil;
+}
+
+/**
+ * Response body for `POST /api/browser/resolve-url`.
+ */
+export interface UrlResolveResponse {
+    success: true;
+    /** The canonical URL after all JavaScript redirects have settled. */
+    resolvedUrl: string;
+    /** The original URL that was submitted. */
+    originalUrl: string;
+}
+
+/**
+ * Request body for `POST /api/browser/monitor`.
+ */
+export interface SourceMonitorRequest {
+    /** Array of URLs to health-check (max 10). */
+    urls: string[];
+    /** When `true`, a PNG screenshot is captured and stored per URL. @default false */
+    captureScreenshots?: boolean;
+    /** R2 object key prefix for screenshots. Defaults to the current ISO date. */
+    screenshotPrefix?: string;
+    /** Navigation timeout per URL in milliseconds. @default 30_000 */
+    timeout?: number;
+    /** Playwright page-load strategy applied to every URL. @default 'networkidle' */
+    waitUntil?: BrowserWaitUntil;
+}
+
+/**
+ * Per-URL result inside a {@link SourceMonitorResponse}.
+ */
+export interface SourceMonitorResult {
+    /** The URL that was checked. */
+    url: string;
+    /** Whether the URL was reachable and returned non-empty content. */
+    reachable: boolean;
+    /** HTTP-like status code returned by the browser navigation. */
+    status?: number;
+    /** Error message when `reachable` is `false`. */
+    error?: string;
+    /** R2 object key for the screenshot, when captured. */
+    screenshotKey?: string;
+    /** ISO timestamp of the check. */
+    checkedAt: string;
+}
+
+/**
+ * Response body for `POST /api/browser/monitor`.
+ */
+export interface SourceMonitorResponse {
+    success: true;
+    results: SourceMonitorResult[];
+    /** Total number of URLs checked. */
+    total: number;
+    /** Number of reachable URLs. */
+    reachable: number;
+    /** Number of unreachable URLs. */
+    unreachable: number;
 }

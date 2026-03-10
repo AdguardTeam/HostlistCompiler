@@ -1,0 +1,58 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/compile'
+order: 1000
+description: |-
+  Compile filter lists and return results as JSON. Results are cached for 1 hour.
+  Supports request deduplication for concurrent identical requests.
+
+  **Response headers:**
+  - `X-Cache: HIT|MISS` — cache status
+  - `X-Request-Deduplication: HIT` — present if deduplicated
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "configuration": {
+        "name": "My Filter List",
+        "sources": [
+          {
+            "source": "https://easylist.to/easylist/easylist.txt",
+            "transformations": ["RemoveComments", "Validate"]
+          }
+        ],
+        "transformations": ["Deduplicate", "RemoveEmptyLines"]
+      },
+      "benchmark": false
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      pm.test("Response has required fields", function () {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("success");
+          pm.expect(json.success).to.be.a("boolean");
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Successful response has rules array", function () {
+              const json = pm.response.json();
+              if (json.success) {
+                  pm.expect(json).to.have.property("rules");
+                  pm.expect(json.rules).to.be.an("array");
+                  pm.expect(json).to.have.property("ruleCount");
+              }
+          });
+      }

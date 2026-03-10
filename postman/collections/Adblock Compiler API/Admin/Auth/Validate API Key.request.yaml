@@ -1,0 +1,42 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/admin/auth/api-keys/validate'
+order: 5000
+description: Validates an API key without authenticating a full request. Useful for the admin UI to test keys. Requires X-Admin-Key header.
+auth:
+  type: apikey
+  credentials:
+    - key: key
+      value: X-Admin-Key
+    - key: value
+      value: '{{adminKey}}'
+    - key: in
+      value: header
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "apiKey": "abc123..."
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200, 400, 401, or 503", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 503]);
+      });
+
+      pm.test("Response is JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Response has valid field", function () {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("valid");
+              pm.expect(json.valid).to.be.a("boolean");
+          });
+      }

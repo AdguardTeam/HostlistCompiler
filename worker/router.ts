@@ -32,6 +32,9 @@ import {
 import { handleCreateApiKey, handleCreateUser, handleListApiKeys, handleRevokeApiKey, handleValidateApiKey } from './handlers/auth-admin.ts';
 import { handleMigrateD1ToPg } from './handlers/migrate.ts';
 import { handleBackendStatus, handlePgClearCache, handlePgClearExpired, handlePgExport, handlePgQuery, handlePgStorageStats } from './handlers/pg-admin.ts';
+import { handleResolveUrl } from './handlers/url-resolver.ts';
+import { handleSourceMonitor } from './handlers/source-monitor.ts';
+import { handleMonitorLatest } from './handlers/monitor-latest.ts';
 
 // Re-export Env type for external use
 export type { Env };
@@ -79,6 +82,7 @@ type RouteHandler = (
     request: Request,
     env: Env,
     params: RouteParams,
+    ctx: ExecutionContext,
 ) => Promise<Response>;
 
 /**
@@ -389,6 +393,37 @@ const routes: Route[] = [
         },
         requireAuth: true,
     },
+
+    // =========================================================================
+    // Browser Rendering endpoints
+    // Requires the BROWSER binding (Cloudflare Browser Rendering).
+    // =========================================================================
+
+    // Resolve the canonical URL of a page after JS redirects
+    {
+        method: 'POST',
+        pattern: '/api/browser/resolve-url',
+        handler: (req, env, _params, _ctx) => handleResolveUrl(req, env),
+        requireAuth: true,
+        rateLimit: true,
+    },
+
+    // Parallel health checks on a list of filter-list source URLs
+    {
+        method: 'POST',
+        pattern: '/api/browser/monitor',
+        handler: (req, env, _params, ctx) => handleSourceMonitor(req, env, ctx),
+        requireAuth: true,
+        rateLimit: true,
+    },
+
+    // Read the most recent health-check summary persisted by the monitor
+    {
+        method: 'GET',
+        pattern: '/api/browser/monitor/latest',
+        handler: (req, env) => handleMonitorLatest(req, env),
+        requireAuth: true,
+    },
 ];
 
 /**
@@ -427,6 +462,7 @@ function findRoute(
 export async function handleRequest(
     request: Request,
     env: Env,
+    ctx: ExecutionContext,
 ): Promise<Response> {
     const url = new URL(request.url);
     const { pathname, searchParams } = url;
@@ -498,7 +534,7 @@ export async function handleRequest(
         }
 
         // Execute handler
-        const response = await route.handler(request, env, params);
+        const response = await route.handler(request, env, params, ctx);
 
         // Record metrics
         const duration = performance.now() - startTime;
