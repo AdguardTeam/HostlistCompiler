@@ -205,4 +205,38 @@ describe('CompilerComponent', () => {
             );
         });
     });
+
+    describe('Turnstile gating', () => {
+        it('should not start compilation when site key is configured but token is empty', async () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            const compilerService = TestBed.inject(CompilerService);
+            const compileSpy = vi.spyOn(compilerService, 'compile').mockReturnValue(
+                of({ success: true, ruleCount: 0, sources: 1, transformations: [], message: 'ok' }),
+            );
+
+            turnstileService.siteKey.set('0x4AAAAAAATest');
+            turnstileService.token.set(''); // No token — challenge not completed
+            component.compileMode = 'json';
+            component.onSubmit();
+            await fixture.whenStable();
+
+            expect(compileSpy).not.toHaveBeenCalled();
+        });
+
+        it('should start compilation when site key is configured and token is present', async () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            const compilerService = TestBed.inject(CompilerService);
+            const compileSpy = vi.spyOn(compilerService, 'compile').mockReturnValue(
+                of({ success: true, ruleCount: 0, sources: 1, transformations: [], message: 'ok' }),
+            );
+
+            turnstileService.siteKey.set('0x4AAAAAAATest');
+            turnstileService.token.set('valid-turnstile-token');
+            component.compileMode = 'json';
+            component.onSubmit();
+            await fixture.whenStable();
+
+            expect(compileSpy).toHaveBeenCalled();
+        });
+    });
 });
