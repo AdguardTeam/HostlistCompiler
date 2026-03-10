@@ -5,6 +5,7 @@ Documentation for Cloudflare-specific features, services, and integrations.
 ## Contents
 
 - [Admin Dashboard](ADMIN_DASHBOARD.md) - Real-time metrics, queue monitoring, and system health
+- [Browser Rendering](BROWSER_RENDERING.md) - Headless browser fetching for JavaScript-rendered filter lists
 - [Cloudflare Analytics Engine](CLOUDFLARE_ANALYTICS.md) - High-cardinality metrics and telemetry
 - [Cloudflare D1](CLOUDFLARE_D1.md) - Edge database integration
 - [Cloudflare Workflows](CLOUDFLARE_WORKFLOWS.md) - Durable execution for long-running compilations
