@@ -95,6 +95,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.49.2] - 2026-03-10
+
+### Added### Fixed
+
+- address Copilot code review comments from PR #925
+- expose CF_WEB_ANALYTICS_TOKEN secret in deploy job
+- address PR review comments — non-blocking Turnstile init, sed portability, safe analytics tag removal, regression tests
+- repair Cloudflare Turnstile token plumbing and Web Analytics placeholder
+
+
 ## [0.49.1] - 2026-03-09
 
 ### Added### Fixed
