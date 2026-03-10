@@ -41,14 +41,14 @@ describe('ApiDocsComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('should have 6 endpoint groups', () => {
-        expect(component.endpointGroups.length).toBe(6);
+    it('should have 7 endpoint groups', () => {
+        expect(component.endpointGroups.length).toBe(7);
     });
 
-    it('should have Compilation group with 6 endpoints', () => {
+    it('should have Compilation group with 7 endpoints', () => {
         const compilation = component.endpointGroups.find(g => g.title === 'Compilation');
         expect(compilation).toBeTruthy();
-        expect(compilation!.endpoints.length).toBe(6);
+        expect(compilation!.endpoints.length).toBe(7);
     });
 
     it('should have Monitoring group', () => {
@@ -56,10 +56,10 @@ describe('ApiDocsComponent', () => {
         expect(monitoring).toBeTruthy();
     });
 
-    it('should have Validation group with 1 endpoint', () => {
+    it('should have Validation group with 2 endpoints', () => {
         const validation = component.endpointGroups.find(g => g.title === 'Validation');
         expect(validation).toBeTruthy();
-        expect(validation!.endpoints.length).toBe(1);
+        expect(validation!.endpoints.length).toBe(2);
         expect(validation!.endpoints[0].method).toBe('POST');
     });
 
