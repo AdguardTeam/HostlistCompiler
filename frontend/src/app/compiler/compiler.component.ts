@@ -275,7 +275,7 @@ interface Preset {
             <div class="submit-row">
                 <button
                     mat-raised-button color="primary" type="submit"
-                    [disabled]="isCompiling() || compilerForm.invalid"
+                    [disabled]="isCompiling() || compilerForm.invalid || !isTurnstileReady()"
                 >
                     @if (isCompiling()) {
                         <mat-progress-spinner diameter="20" mode="indeterminate" color="accent" />
@@ -561,6 +561,11 @@ export class CompilerComponent {
         this.compileResource.isLoading() || (this.sseConnection()?.isActive() ?? false) || this.asyncLoading(),
     );
     private readonly asyncLoading = signal(false);
+    /** Whether Turnstile is satisfied: either not configured, or token obtained */
+    readonly isTurnstileReady = computed(() => {
+        const key = this.turnstileService.siteKey();
+        return !key || this.turnstileService.isVerified();
+    });
 
     /** Dynamic submit button label */
     readonly submitLabel = computed(() => {
@@ -717,6 +722,12 @@ export class CompilerComponent {
 
     onSubmit(): void {
         if (this.compilerForm.invalid) return;
+
+        // Guard: block if Turnstile is configured but challenge not yet completed
+        if (!this.isTurnstileReady()) {
+            this.notifications.showToast('warn', 'Bot Check', 'Please complete the bot verification challenge before submitting.');
+            return;
+        }
 
         type UrlEntry = { source: string; useBrowser: boolean };
         const urlEntries: UrlEntry[] = this.compilerForm.value.urls.filter((u: UrlEntry) => u.source?.trim());
