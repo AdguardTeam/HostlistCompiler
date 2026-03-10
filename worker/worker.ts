@@ -61,6 +61,10 @@ import { AnalyticsService } from '../src/services/AnalyticsService.ts';
 import { getDeploymentHistory, getDeploymentStats, getLatestDeployment } from '../src/deployment/version.ts';
 import { validateRequestSize } from './middleware/index.ts';
 import { API_DOCS_REDIRECT } from './utils/constants.ts';
+import { JsonResponse } from './utils/response.ts';
+import { handleValidateRule } from './handlers/validate-rule.ts';
+import { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, handleRulesUpdate } from './handlers/rules.ts';
+import { handleNotify } from './handlers/webhook.ts';
 
 // Import Workflow classes and types
 import {
@@ -1524,6 +1528,13 @@ function handleInfo(request: Request, env: Env): Response {
             'POST /compile/async': 'Queue a compilation job for async processing',
             'POST /compile/batch/async': 'Queue multiple compilations for async processing',
             'GET /ws/compile': 'WebSocket endpoint for bidirectional real-time compilation',
+            'POST /validate-rule': 'Validate a single adblock rule (optionally test against a URL)',
+            'GET /rules': 'List saved rule sets',
+            'POST /rules': 'Create a new saved rule set',
+            'GET /rules/:id': 'Retrieve a saved rule set by ID',
+            'PUT /rules/:id': 'Update a saved rule set by ID',
+            'DELETE /rules/:id': 'Delete a saved rule set by ID',
+            'POST /notify': 'Send a notification event to configured webhook targets',
         },
         example: {
             method: 'POST',
@@ -3551,6 +3562,73 @@ export default {
         // WebSocket endpoint
         if (routePath === '/ws/compile' && request.method === 'GET') {
             return handleWebSocketUpgrade(request, env);
+        }
+
+        // Validate a single rule (POST /api/validate-rule)
+        if (routePath === '/validate-rule' && request.method === 'POST') {
+            const sizeValidation = await validateRequestSize(request, env);
+            if (!sizeValidation.valid) {
+                return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
+            }
+            return handleValidateRule(request, env);
+        }
+
+        // Rule set management (POST /api/rules, GET /api/rules)
+        if (routePath === '/rules') {
+            if (request.method === 'GET') {
+                return handleRulesList(request, env);
+            }
+            if (request.method === 'POST') {
+                const sizeValidation = await validateRequestSize(request, env);
+                if (!sizeValidation.valid) {
+                    return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
+                }
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+                }
+                return handleRulesCreate(request, env);
+            }
+        }
+
+        // Rule set management by ID (GET/PUT/DELETE /api/rules/{id})
+        const rulesIdMatch = routePath.match(/^\/rules\/([0-9a-f-]{36})$/i);
+        if (rulesIdMatch) {
+            const ruleId = rulesIdMatch[1];
+            if (request.method === 'GET') {
+                return handleRulesGet(ruleId, env);
+            }
+            if (request.method === 'PUT') {
+                const sizeValidation = await validateRequestSize(request, env);
+                if (!sizeValidation.valid) {
+                    return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
+                }
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+                }
+                return handleRulesUpdate(ruleId, request, env);
+            }
+            if (request.method === 'DELETE') {
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+                }
+                return handleRulesDelete(ruleId, env);
+            }
+        }
+
+        // Webhook / notification (POST /api/notify)
+        if (routePath === '/notify' && request.method === 'POST') {
+            const sizeValidation = await validateRequestSize(request, env);
+            if (!sizeValidation.valid) {
+                return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
+            }
+            const allowed = await checkRateLimit(env, ip);
+            if (!allowed) {
+                return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+            }
+            return handleNotify(request, env);
         }
 
         // Async compilation endpoints (Turnstile verified)

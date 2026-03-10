@@ -15,6 +15,7 @@ Thank you for your interest in contributing to the Adblock Compiler project! Thi
    cd adblock-compiler
    deno cache src/index.ts
    pnpm install                    # Install Angular frontend dependencies
+   deno task setup:hooks           # Install pre-push git hook (recommended)
    ```
 
 3. **Run Tests**
@@ -106,17 +107,26 @@ update code                # Too vague, missing type
 
 3. **Test Your Changes**
    ```bash
-   # Backend
+   # Quick preflight check (runs fmt, lint, type check, schema generation drift check)
+   deno task preflight
+
+   # Individual checks
    deno task test           # Run tests
    deno task fmt            # Format code
    deno task lint           # Lint code
    deno task check          # Type check
+
+   # If you changed docs/api/openapi.yaml, regenerate derived files:
+   deno task schema:generate    # Regenerates cloudflare-schema.yaml and postman-collection.json
 
    # Frontend (Angular)
    pnpm --filter adblock-compiler-frontend run test     # Vitest unit tests
    pnpm --filter adblock-compiler-frontend run lint     # ESLint
    pnpm --filter adblock-compiler-frontend run build    # Production build
    ```
+
+   > **Tip:** After running `deno task setup:hooks`, the pre-push hook will automatically
+   > check for schema drift and formatting issues before every push, catching CI failures locally.
 
 4. **Commit with Conventional Format**
    ```bash
