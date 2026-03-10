@@ -44,6 +44,60 @@ Deno.test('HttpFetcher - should accept custom options', () => {
     assertEquals(fetcher.canHandle('https://example.com'), true);
 });
 
+// isSafeUrl tests
+
+Deno.test('HttpFetcher.isSafeUrl - should allow public domains', () => {
+    assertEquals(HttpFetcher.isSafeUrl('https://easylist.to/easylist/easylist.txt'), true);
+    assertEquals(HttpFetcher.isSafeUrl('https://example.com/filter.txt'), true);
+    assertEquals(HttpFetcher.isSafeUrl('http://filters.example.org/list.txt'), true);
+});
+
+Deno.test('HttpFetcher.isSafeUrl - should allow public routable IPv4', () => {
+    assertEquals(HttpFetcher.isSafeUrl('https://8.8.8.8/list.txt'), true);
+    assertEquals(HttpFetcher.isSafeUrl('https://1.1.1.1/list.txt'), true);
+});
+
+Deno.test('HttpFetcher.isSafeUrl - should block localhost', () => {
+    assertEquals(HttpFetcher.isSafeUrl('http://localhost/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://127.0.0.1/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://0.0.0.0/list.txt'), false);
+});
+
+Deno.test('HttpFetcher.isSafeUrl - should block RFC 1918 private IPv4', () => {
+    assertEquals(HttpFetcher.isSafeUrl('http://10.0.0.1/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://10.255.255.255/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://192.168.0.1/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://192.168.255.255/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://172.16.0.1/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://172.31.255.255/list.txt'), false);
+});
+
+Deno.test('HttpFetcher.isSafeUrl - should block link-local and cloud metadata IPv4', () => {
+    assertEquals(HttpFetcher.isSafeUrl('http://169.254.169.254/latest/meta-data/'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://169.254.0.1/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://metadata.google.internal/computeMetadata/v1/'), false);
+});
+
+Deno.test('HttpFetcher.isSafeUrl - should block IPv6 loopback', () => {
+    assertEquals(HttpFetcher.isSafeUrl('http://[::1]/list.txt'), false);
+});
+
+Deno.test('HttpFetcher.isSafeUrl - should block IPv6 link-local (fe80::/10)', () => {
+    assertEquals(HttpFetcher.isSafeUrl('http://[fe80::1]/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://[fe80::1%25eth0]/list.txt'), false);
+});
+
+Deno.test('HttpFetcher.isSafeUrl - should block IPv6 ULA (fc00::/7)', () => {
+    assertEquals(HttpFetcher.isSafeUrl('http://[fc00::1]/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://[fd00::1]/list.txt'), false);
+    assertEquals(HttpFetcher.isSafeUrl('http://[fdff:ffff::1]/list.txt'), false);
+});
+
+Deno.test('HttpFetcher.isSafeUrl - should return false for invalid URLs', () => {
+    assertEquals(HttpFetcher.isSafeUrl('not-a-url'), false);
+    assertEquals(HttpFetcher.isSafeUrl(''), false);
+});
+
 // Integration tests (require network access - marked as ignore for CI)
 // Run these with: deno test --allow-net src/platform/HttpFetcher.test.ts
 

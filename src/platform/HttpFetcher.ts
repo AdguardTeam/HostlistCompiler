@@ -45,7 +45,7 @@ export class HttpFetcher implements IContentFetcher {
             const host = parsed.hostname.toLowerCase();
 
             // Reject loopback addresses
-            if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '::1' || host === '0.0.0.0') {
+            if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0') {
                 return false;
             }
 
@@ -59,8 +59,10 @@ export class HttpFetcher implements IContentFetcher {
                 return false;
             }
 
-            // Reject IPv6 private/loopback (common patterns)
-            if (host.startsWith('[fe80:') || host.startsWith('[fc') || host.startsWith('[fd')) {
+            // Reject IPv6 private/loopback ranges.
+            // URL.hostname strips brackets from IPv6 addresses (e.g. http://[fe80::1] → hostname 'fe80::1'),
+            // so we must NOT include brackets in these checks.
+            if (host.includes(':') && (host.startsWith('fe80') || host.startsWith('fc') || host.startsWith('fd'))) {
                 return false;
             }
 

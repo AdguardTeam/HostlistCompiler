@@ -21,6 +21,7 @@
 
 import type { IContentFetcher } from './types.ts';
 import { ErrorUtils } from '../utils/index.ts';
+import { HttpFetcher } from './HttpFetcher.ts';
 
 // ============================================================================
 // Playwright structural interfaces
@@ -171,7 +172,6 @@ export class BrowserFetcher implements IContentFetcher {
      */
     async fetch(url: string): Promise<string> {
         // Reuse HttpFetcher's SSRF protection
-        const { HttpFetcher } = await import('./HttpFetcher.ts');
         if (!HttpFetcher.isSafeUrl(url)) {
             throw new Error(`Blocked browser request to private/internal address: ${url}`);
         }

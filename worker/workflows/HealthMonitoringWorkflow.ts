@@ -159,8 +159,6 @@ export class HealthMonitoringWorkflow extends WorkflowEntrypoint<Env, HealthMoni
                                 },
                             });
 
-                            clearTimeout(timeoutId);
-
                             result.statusCode = response.status;
                             result.responseTimeMs = Date.now() - checkStart;
 

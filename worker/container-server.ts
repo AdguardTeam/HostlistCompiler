@@ -52,12 +52,15 @@ export async function handler(request: Request): Promise<Response> {
     }
 
     if (request.method === 'POST' && url.pathname === '/compile') {
-        // Verify shared secret for defense-in-depth
-        if (CONTAINER_SECRET) {
-            const provided = request.headers.get('X-Container-Secret');
-            if (!provided || provided !== CONTAINER_SECRET) {
-                return new Response('Unauthorized', { status: 401 });
-            }
+        // Verify shared secret for defense-in-depth; fail closed if misconfigured
+        if (!CONTAINER_SECRET) {
+            console.error('[container-server] CONTAINER_SECRET is not configured; refusing /compile request');
+            return new Response('Service unavailable: container secret not configured', { status: 503 });
+        }
+
+        const provided = request.headers.get('X-Container-Secret');
+        if (!provided || provided !== CONTAINER_SECRET) {
+            return new Response('Unauthorized', { status: 401 });
         }
 
         let body: ContainerCompileRequest;
