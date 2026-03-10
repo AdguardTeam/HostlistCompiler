@@ -2241,8 +2241,8 @@
           }
         },
         {
-          "name": "Monitor filter-list sources for changes",
-          "description": "Fetches each provided URL using the Cloudflare Browser Rendering binding and",
+          "name": "Monitor filter-list sources for reachability",
+          "description": "Performs parallel browser-based health checks on a list of filter-list source",
           "event": [
             {
               "listen": "test",
@@ -2282,14 +2282,14 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"urls\": [\n        \"https://example.com/filter-list.txt\",\n        \"https://another.example.com/rules.txt\"\n    ],\n    \"waitUntil\": \"load\"\n}",
+              "raw": "{\n    \"urls\": [\n        \"https://example.com/filter-list.txt\",\n        \"https://another.example.com/rules.txt\"\n    ],\n    \"captureScreenshots\": false,\n    \"screenshotPrefix\": \"2025-07-01\",\n    \"timeout\": 30000,\n    \"waitUntil\": \"load\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "Performs parallel browser-based health checks on a list of filter-list source URLs. For each URL a headless browser navigates to the page, verifies non-empty text content, and optionally captures a full-page PNG screenshot stored in R2.\n\nThe full result set is persisted under the KV key `browser:monitor:latest` and is retrievable via `GET /api/browser/monitor/latest`.\n\nRequires the `BROWSER` binding. `FILTER_STORAGE` (R2) is required for screenshot capture. `COMPILATION_CACHE` (KV) is required for result persistence.\n"
+            "description": "Performs parallel browser-based health checks on a list of filter-list source\nURLs. For each URL a headless browser navigates to the page, verifies non-empty\ntext content, and optionally captures a full-page PNG screenshot stored in R2.\n\nThe full result set is persisted under the KV key `browser:monitor:latest`\nand is retrievable via `GET /api/browser/monitor/latest`.\n\nRequires the `BROWSER` binding. `FILTER_STORAGE` (R2) is required for\nscreenshot capture. `COMPILATION_CACHE` (KV) is required for result persistence.\n"
           }
         },
         {

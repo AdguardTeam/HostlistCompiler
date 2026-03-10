@@ -88,7 +88,7 @@ async function checkUrl(
                 const screenshotBytes = await takeSourceScreenshot(env.BROWSER!, url, { timeout, waitUntil });
                 const slug = await hashUrl(url);
                 screenshotKey = `${screenshotPrefix}/${slug}.png`;
-                await env.FILTER_STORAGE.put(screenshotKey, screenshotBytes.buffer, {
+                await env.FILTER_STORAGE.put(screenshotKey, screenshotBytes.buffer as ArrayBuffer, {
                     httpMetadata: { contentType: 'image/png' },
                 });
             } catch {

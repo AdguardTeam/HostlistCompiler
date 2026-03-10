@@ -50,7 +50,7 @@ async function acquireBrowser(binding: BrowserWorker): Promise<IPlaywrightBrowse
  * Converts a {@link Uint8Array} to a base-64 encoded string without risking a
  * stack overflow from spreading large typed arrays into `String.fromCharCode`.
  */
-function uint8ArrayToBase64(buffer: Uint8Array): string {
+export function uint8ArrayToBase64(buffer: Uint8Array): string {
     const CHUNK = 8_192;
     let binary = '';
     for (let i = 0; i < buffer.length; i += CHUNK) {
