@@ -19,7 +19,7 @@ import { API_BASE_URL } from '../tokens';
 export interface CompileRequest {
     configuration: {
         name: string;
-        sources: Array<{ source: string }>;
+        sources: Array<{ source: string; useBrowser?: boolean }>;
         transformations: string[];
     };
     benchmark?: boolean;
