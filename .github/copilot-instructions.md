@@ -55,6 +55,8 @@ examples/             # Example implementations
 - **Interface naming**: Use `I` prefix for interfaces (e.g., `IConfiguration`, `ILogger`, `IContentFetcher`)
 - **Type imports**: Use `import type` for type-only imports when possible
 - **Readonly**: Use `readonly` for arrays that shouldn't be mutated (e.g., `readonly string[]`)
+- **`noUnusedLocals` / `noUnusedParameters`**: Both are enabled in `compilerOptions` — unused variables and parameters are **compile errors**, not warnings. Remove them or prefix with `_` if intentionally unused.
+- **Tagged TODOs**: The `ban-untagged-todo` lint rule is enforced. All `TODO` comments must include a tag (e.g., `// TODO(@jaypatrick): ...` or `// TODO(#123): ...`). Bare `// TODO:` will fail CI.
 
 ### Formatting
 
@@ -182,6 +184,36 @@ deno task check
 
 # Cache dependencies
 deno task cache
+
+# Run contract tests against the OpenAPI spec (requires live worker)
+deno task test:contract
+
+# Run end-to-end tests against the deployed worker
+deno task test:e2e
+
+# Run E2E API tests only
+deno task test:e2e:api
+
+# Run E2E WebSocket tests only
+deno task test:e2e:ws
+
+# Run benchmarks
+deno task bench
+
+# Validate OpenAPI spec
+deno task openapi:validate
+
+# Generate schema artifacts (run after any API change)
+deno task schema:generate
+
+# Check for drift between generated artifacts and committed files
+deno task check:drift
+
+# Orchestrate fmt:check → lint → check → openapi:validate → schema:generate → check:drift
+deno task preflight
+
+# Full preflight including all extended checks
+deno task preflight:full
 ```
 
 ### Frontend Development Commands (Angular)
@@ -247,12 +279,12 @@ describe('MyComponent', () => {
 
 ### Before Committing
 
-1. Run `deno task fmt` to format backend code
-2. Run `deno task check` to verify backend types
-3. Run `deno task test` to ensure backend tests pass
-4. Run `deno task lint` to check for lint issues
-5. Run `pnpm --filter adblock-compiler-frontend lint` to lint Angular code
-6. Run `pnpm --filter adblock-compiler-frontend test` to ensure frontend tests pass
+1. Run `deno task preflight` (orchestrates fmt:check → lint → check → openapi:validate → schema:generate → check:drift) — or `deno task preflight:full` for all extended checks
+2. Run `deno task test` to ensure backend tests pass
+3. Run `pnpm --filter adblock-compiler-frontend lint` to lint Angular code
+4. Run `pnpm --filter adblock-compiler-frontend test` to ensure frontend tests pass
+5. After any API change, run `deno task schema:generate` and commit the updated `docs/api/cloudflare-schema.yaml`, `docs/postman/postman-collection.json`, and `docs/postman/postman-environment.json`
+6. Run `deno task setup:hooks` once locally to install the pre-push hook that catches drift before pushing
 
 ## Angular Frontend (Angular 21)
 
@@ -389,6 +421,28 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Use `ICompilerEvents` for progress tracking and observability
 - Emit events for compilation progress, warnings, errors
 
+### OpenTelemetry / Tracing
+
+- The codebase uses `@opentelemetry/api` for distributed tracing
+- Call `createTracingContext()` when instantiating `WorkerCompiler` in new Worker handlers — every compilation endpoint must propagate a tracing context
+- Pass the `tracingContext` option through to `WorkerCompiler` constructor options
+
+### Request Deduplication
+
+- `worker.ts` maintains an in-memory `pendingCompilations` Map keyed by cache key to deduplicate in-flight compilation requests
+- When adding or modifying compilation handlers, preserve this deduplication pattern — do not bypass or duplicate it
+
+### Async Queue Pattern (Cloudflare Queues)
+
+- Long-running or batch operations use Cloudflare Queues via `/compile/async` and `/compile/batch/async` endpoints
+- `processCompileMessage` and `updateQueueStats` handle async job processing
+- When adding new long-running operations, prefer the async queue pattern over blocking HTTP responses
+
+### Analytics Instrumentation
+
+- The worker uses `AnalyticsService` to track compilation metrics to Cloudflare Analytics Engine
+- Every new API endpoint must instrument relevant events via `AnalyticsService` for consistent observability
+
 ## Documentation
 
 ### JSDoc Comments
@@ -414,6 +468,7 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - **Documentation**: See `docs/reference/VERSION_MANAGEMENT.md` for manual update process and `docs/reference/AUTO_VERSION_BUMP.md` for automation details
 - **Publishing**: CI/CD automatically publishes to JSR on version changes to master branch
 - **Commit format**: Use conventional commits (e.g., `feat:`, `fix:`, `feat!:`) to trigger automatic version bumps
+- **Version sync command**: After any manual version bump, run `deno task version:sync` to keep version consistent across `src/version.ts`, `deno.json`, `package.json`, and `wrangler.toml` — do not edit these files independently
 
 ## Security
 
@@ -433,12 +488,40 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Pre-fetch all filter list content to avoid CORS restrictions
 - Support streaming compilation via Server-Sent Events
 - Web UI in `public/index.html` and `public/test.html`
+- **Never commit placeholder binding IDs**: `wrangler.toml` binding IDs that are all-zeros are validated in CI — always use real resource IDs
+- **Prisma / D1 database**: When modifying the Prisma schema, run `deno task db:migrate` to apply migrations and `deno task db:generate` to regenerate the Prisma client. CI runs D1 migrations on deploy automatically.
 
 ### Docker
 
 - Multi-stage builds using Deno and Node.js
 - Configuration via `docker-compose.yml`
 - Health checks included
+
+## Database (Prisma / D1)
+
+The worker uses **Prisma** with the **Cloudflare D1** adapter for persistent storage.
+
+### Key Commands
+
+```bash
+# Generate Prisma client after schema changes
+deno task db:generate
+
+# Push schema changes to the local D1 database
+deno task db:push
+
+# Run migrations
+deno task db:migrate
+
+# Open Prisma Studio
+deno task db:studio
+```
+
+### Rules
+
+- Always run `deno task db:generate` after modifying `prisma/schema.prisma`
+- Always run `deno task db:migrate` before deploying schema changes — CI runs this automatically on deploy
+- Use `@prisma/adapter-pg` for the D1 connection; do not use the default Prisma client without the adapter
 
 ## Common Tasks
 
@@ -462,6 +545,17 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - **FilterCompiler**: Main compiler with file system access
 - **WorkerCompiler**: Platform-agnostic compiler for edge runtimes
 - Avoid code duplication between the two - extract shared logic to utilities
+
+## Agent Routing (MCP / Playwright MCP)
+
+The worker includes an MCP (Model Context Protocol) agent routing layer.
+
+### Key Points
+
+- `worker.ts` imports `PlaywrightMcpAgent` and `routeAgentRequest` from the MCP agent library
+- All incoming requests are evaluated by `routeAgentRequest` before falling through to standard HTTP handlers
+- When adding new agent-addressable capabilities, register them through the MCP agent routing layer rather than adding raw HTTP endpoints
+- Do not remove or short-circuit the `routeAgentRequest` call in the worker fetch handler
 
 ## Resources
 
@@ -487,6 +581,10 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Don't commit without running formatting and type checking
 - Don't introduce breaking changes to the public API without documentation
 - Don't use `Function` constructor or `eval()` for security reasons
+- Don't leave bare `// TODO:` comments — always tag them (e.g., `// TODO(@jaypatrick): ...`) or CI will fail
+- Don't bump versions manually in individual files — run `deno task version:sync` to keep all files in sync
+- Don't commit all-zeros placeholder binding IDs in `wrangler.toml`
+- Don't skip `deno task schema:generate` after API changes — drift in generated artifacts will fail CI
 
 ### Frontend (Angular)
 
@@ -514,6 +612,11 @@ When uncertain about:
 - **Angular patterns**: Check `frontend/src/app/app.config.ts` and `frontend/src/app/app.component.ts` for Angular 21 examples
 - **Angular testing patterns**: Look at existing `*.spec.ts` files in `frontend/src/app/`
 - **Code quality**: Refer to `CODE_REVIEW.md` for best practices
+- **Database patterns**: Check `prisma/schema.prisma` and existing D1 migration files in `prisma/migrations/`
+- **Agent routing**: Check `worker/worker.ts` for the `routeAgentRequest` and `PlaywrightMcpAgent` usage
+- **Tracing patterns**: Look for `createTracingContext()` calls in `worker/worker.ts`
+- **Analytics patterns**: Look for `AnalyticsService` usage in `worker/worker.ts`
+- **Benchmark baselines**: Check existing `*.bench.ts` files in `src/` for benchmarking patterns
 
 ## Summary
 
