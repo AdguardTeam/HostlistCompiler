@@ -1,0 +1,22 @@
+coverage:
+    status:
+        patch:
+            default:
+                # Require 70% of new patch lines to be covered.
+                # A 5% threshold means CI fails only below 65%.
+                target: 70%
+                threshold: 5%
+        project:
+            default:
+                # Keep project coverage stable; allow up to 2% drop.
+                target: auto
+                threshold: 2%
+
+# Exclude files that are intentionally untested at the unit level
+# (bootstrap configs, SSR route configs, generated files, etc.)
+ignore:
+    - "frontend/src/app/app.config.ts"
+    - "frontend/src/app/app.routes.server.ts"
+    - "**/*.config.server.ts"
+    - "scripts/**"
+    - "docs/**"
