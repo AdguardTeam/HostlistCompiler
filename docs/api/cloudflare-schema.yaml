@@ -2773,10 +2773,12 @@ components:
                 captureScreenshots:
                     type: boolean
                     default: false
-                    description: When true, a full-page PNG screenshot is captured and stored in R2 per URL.
+                    description: 'When true, a full-page PNG screenshot is captured and stored in R2 per URL.'
                 screenshotPrefix:
                     type: string
-                    description: R2 key prefix for screenshots (alphanumeric, hyphens, underscores only). Defaults to the current ISO date.
+                    description: >-
+                        R2 key prefix for screenshots (alphanumeric, hyphens, underscores only). Defaults to the current
+                        ISO date.
                     example: '2025-07-01'
                 timeout:
                     type: integer
