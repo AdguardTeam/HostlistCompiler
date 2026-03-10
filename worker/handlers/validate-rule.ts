@@ -6,6 +6,7 @@
  */
 
 import { ValidateRuleRequestSchema } from '../schemas.ts';
+import { JsonResponse } from '../utils/response.ts';
 import type { ParsedRuleInfo } from '../../src/services/ASTViewerService.ts';
 import type { Env } from '../types.ts';
 
@@ -40,40 +41,49 @@ export async function handleValidateRule(request: Request, _env: Env): Promise<R
     try {
         body = await request.json();
     } catch {
-        return Response.json(
-            { success: false, error: 'Invalid JSON body' },
-            { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
-        );
+        return JsonResponse.badRequest('Invalid JSON body');
     }
 
     const parsed = ValidateRuleRequestSchema.safeParse(body);
     if (!parsed.success) {
-        return Response.json(
-            { success: false, error: parsed.error.issues.map((i) => i.message).join('; ') },
-            { status: 422, headers: { 'Access-Control-Allow-Origin': '*' } },
-        );
+        return JsonResponse.error(parsed.error.issues.map((i) => i.message).join('; '), 422);
     }
 
-    const { rule, testUrl } = parsed.data;
+    const { rule, testUrl, strict } = parsed.data;
 
     try {
         const { ASTViewerService } = await import('../../src/services/ASTViewerService.ts');
+
+        // When strict mode is requested, use the throwing parser first so that
+        // rules which the tolerant parser would silently accept are flagged as
+        // invalid (e.g. rules with unknown modifiers in strict mode).
+        if (strict) {
+            const { AGTreeParser } = await import('../../src/utils/AGTreeParser.ts');
+            try {
+                AGTreeParser.parseStrict(rule);
+            } catch (strictErr) {
+                const message = strictErr instanceof Error ? strictErr.message : String(strictErr);
+                return JsonResponse.success({
+                    valid: false,
+                    rule,
+                    error: message,
+                    duration: `${Date.now() - startTime}ms`,
+                });
+            }
+        }
+
         const result: ParsedRuleInfo = ASTViewerService.parseRule(rule);
 
         const duration = `${Date.now() - startTime}ms`;
 
         if (!result.success) {
-            return Response.json(
-                {
-                    success: true,
-                    valid: false,
-                    rule,
-                    ruleType: result.type,
-                    error: result.error,
-                    duration,
-                },
-                { headers: { 'Access-Control-Allow-Origin': '*' } },
-            );
+            return JsonResponse.success({
+                valid: false,
+                rule,
+                ruleType: result.type,
+                error: result.error,
+                duration,
+            });
         }
 
         let matchResult: boolean | undefined;
@@ -81,25 +91,17 @@ export async function handleValidateRule(request: Request, _env: Env): Promise<R
             matchResult = testRuleAgainstUrl(result, testUrl);
         }
 
-        return Response.json(
-            {
-                success: true,
-                valid: true,
-                rule,
-                ruleType: result.type,
-                category: result.category,
-                syntax: result.syntax,
-                ast: result.ast ?? null,
-                ...(testUrl !== undefined && { testUrl, matchResult }),
-                duration,
-            },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
-        );
+        return JsonResponse.success({
+            valid: true,
+            rule,
+            ruleType: result.type,
+            category: result.category,
+            syntax: result.syntax,
+            ast: result.ast ?? null,
+            ...(testUrl !== undefined && { testUrl, matchResult }),
+            duration,
+        });
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return Response.json(
-            { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
-        );
+        return JsonResponse.serverError(error);
     }
 }

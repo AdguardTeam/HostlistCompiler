@@ -3582,6 +3582,13 @@ export default {
                 if (!sizeValidation.valid) {
                     return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
                 }
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return Response.json(
+                        { success: false, error: `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX_REQUESTS} requests per minute.` },
+                        { status: 429, headers: { 'Retry-After': '60', 'Access-Control-Allow-Origin': '*' } },
+                    );
+                }
                 return handleRulesCreate(request, env);
             }
         }
@@ -3598,9 +3605,23 @@ export default {
                 if (!sizeValidation.valid) {
                     return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
                 }
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return Response.json(
+                        { success: false, error: `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX_REQUESTS} requests per minute.` },
+                        { status: 429, headers: { 'Retry-After': '60', 'Access-Control-Allow-Origin': '*' } },
+                    );
+                }
                 return handleRulesUpdate(ruleId, request, env);
             }
             if (request.method === 'DELETE') {
+                const allowed = await checkRateLimit(env, ip);
+                if (!allowed) {
+                    return Response.json(
+                        { success: false, error: `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX_REQUESTS} requests per minute.` },
+                        { status: 429, headers: { 'Retry-After': '60', 'Access-Control-Allow-Origin': '*' } },
+                    );
+                }
                 return handleRulesDelete(ruleId, env);
             }
         }
@@ -3610,6 +3631,13 @@ export default {
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
                 return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
+            }
+            const allowed = await checkRateLimit(env, ip);
+            if (!allowed) {
+                return Response.json(
+                    { success: false, error: `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX_REQUESTS} requests per minute.` },
+                    { status: 429, headers: { 'Retry-After': '60', 'Access-Control-Allow-Origin': '*' } },
+                );
             }
             return handleNotify(request, env);
         }
