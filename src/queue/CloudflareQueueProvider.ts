@@ -152,7 +152,7 @@ export class CloudflareQueueProvider implements IQueueProvider {
                     msg.ack();
                     let payloadSummary: string;
                     try {
-                        const body = msg.body as Record<string, unknown>;
+                        const body = msg.body as unknown as Record<string, unknown>;
                         payloadSummary = JSON.stringify({ id: body?.id, type: body?.type, requestId: body?.requestId });
                     } catch {
                         payloadSummary = '[unserializable payload]';
