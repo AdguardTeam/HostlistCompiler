@@ -1,11 +1,8 @@
 $kind: http-request
+url: "{{baseUrl}}/queue/stats"
 method: GET
-url: '{{baseUrl}}/queue/stats'
-order: 3000
-description: Returns queue health metrics and job statistics.
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -19,3 +16,5 @@ scripts:
           const json = pm.response.json();
           pm.expect(json).to.be.an("object");
       });
+    language: text/javascript
+order: 3000

@@ -1,20 +1,14 @@
 $kind: http-request
+url: "{{baseUrl}}/admin/pg/clear-expired"
 method: POST
-url: '{{baseUrl}}/admin/pg/clear-expired'
-order: 3000
-description: Deletes all expired entries from PostgreSQL storage and cache tables. Requires X-Admin-Key header.
 auth:
   type: apikey
   credentials:
-    - key: key
-      value: X-Admin-Key
-    - key: value
-      value: '{{adminKey}}'
-    - key: in
-      value: header
+    key: X-Admin-Key
+    value: "{{adminKey}}"
+    in: header
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200, 401, or 503", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]);
@@ -23,3 +17,5 @@ scripts:
       pm.test("Response is JSON", function () {
           pm.response.to.be.json;
       });
+    language: text/javascript
+order: 3000

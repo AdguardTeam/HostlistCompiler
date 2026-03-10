@@ -1,34 +1,13 @@
 $kind: http-request
+url: "{{baseUrl}}/workflow/batch"
 method: POST
-url: '{{baseUrl}}/workflow/batch'
-order: 2000
-description: Creates a durable Cloudflare Workflow instance for batch compilation.
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
-  content: |-
-    {
-      "requests": [
-        {
-          "id": "wf-batch-1",
-          "configuration": {
-            "name": "Batch Workflow Item",
-            "sources": [
-              {
-                "source": "https://easylist.to/easylist/easylist.txt",
-                "transformations": ["RemoveComments", "Validate"]
-              }
-            ],
-            "transformations": ["Deduplicate"]
-          }
-        }
-      ]
-    }
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 202", function () {
           pm.response.to.have.status(202);
@@ -39,3 +18,5 @@ scripts:
           pm.expect(json).to.have.property("instanceId");
           pm.collectionVariables.set("workflowInstanceId", json.instanceId);
       });
+    language: text/javascript
+order: 2000

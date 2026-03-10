@@ -1,4 +1,4 @@
 $kind: collection
-name: Compilation
-description: Filter list compilation endpoints — synchronous JSON, streaming SSE, batch, and AST parsing
+description: Filter list compilation endpoints — synchronous JSON, streaming
+  SSE, batch, and AST parsing
 order: 1000

@@ -1,31 +1,19 @@
 $kind: http-request
+url: "{{baseUrl}}/admin/auth/users"
 method: POST
-url: '{{baseUrl}}/admin/auth/users'
-order: 1000
-description: Creates a new user account. Requires Hyperdrive (PostgreSQL) binding and X-Admin-Key header.
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: ""
 auth:
   type: apikey
   credentials:
-    - key: key
-      value: X-Admin-Key
-    - key: value
-      value: '{{adminKey}}'
-    - key: in
-      value: header
-headers:
-  - key: Content-Type
-    value: application/json
-body:
-  type: json
-  content: |-
-    {
-      "email": "user@example.com",
-      "name": "Example User",
-      "role": "user"
-    }
+    key: X-Admin-Key
+    value: "{{adminKey}}"
+    in: header
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 201, 400, 401, 409, or 503", function () {
           pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 409, 503]);
@@ -43,3 +31,5 @@ scripts:
               pm.expect(json.user).to.have.property("email");
           });
       }
+    language: text/javascript
+order: 1000

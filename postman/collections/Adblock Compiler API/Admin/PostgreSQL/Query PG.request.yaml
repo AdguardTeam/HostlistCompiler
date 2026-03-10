@@ -1,29 +1,19 @@
 $kind: http-request
+url: "{{baseUrl}}/admin/pg/query"
 method: POST
-url: '{{baseUrl}}/admin/pg/query'
-order: 5000
-description: Executes a SELECT-only SQL query against PostgreSQL for debugging. Mirrors /admin/storage/query for D1. Requires X-Admin-Key header.
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: ""
 auth:
   type: apikey
   credentials:
-    - key: key
-      value: X-Admin-Key
-    - key: value
-      value: '{{adminKey}}'
-    - key: in
-      value: header
-headers:
-  - key: Content-Type
-    value: application/json
-body:
-  type: json
-  content: |-
-    {
-      "sql": "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name"
-    }
+    key: X-Admin-Key
+    value: "{{adminKey}}"
+    in: header
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200, 400, 401, or 503", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 503]);
@@ -39,3 +29,5 @@ scripts:
               pm.expect(json).to.have.property("results");
           });
       }
+    language: text/javascript
+order: 5000

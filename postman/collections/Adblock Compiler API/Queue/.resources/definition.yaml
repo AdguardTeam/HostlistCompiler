@@ -1,4 +1,3 @@
 $kind: collection
-name: Queue
 description: Async job queue management — submit, poll, cancel, and inspect jobs
-order: 3000
+order: 4000

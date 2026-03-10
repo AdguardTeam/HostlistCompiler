@@ -1,27 +1,24 @@
 $kind: http-request
+url: "{{baseUrl}}:/api/deployments?limit=50"
 method: GET
-url: '{{baseUrl}}/api/deployments'
-order: 4000
-description: Returns deployment history records
 queryParams:
   - key: limit
-    value: '50'
+    value: "50"
     description: Maximum number of records to return (1-1000)
   - key: version
-    value: ''
+    value: ""
+    disabled: true
     description: Filter by version
-    disabled: true
   - key: status
-    value: ''
+    value: ""
+    disabled: true
     description: Filter by deployment status
-    disabled: true
   - key: branch
-    value: ''
-    description: Filter by branch name
+    value: ""
     disabled: true
+    description: Filter by branch name
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200 or 503", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 503]);
@@ -39,3 +36,5 @@ scripts:
               pm.expect(jsonData.deployments).to.be.an("array");
           });
       }
+    language: text/javascript
+order: 4000

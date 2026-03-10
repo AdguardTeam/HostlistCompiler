@@ -1,11 +1,8 @@
 $kind: http-request
+url: "{{baseUrl}}/health"
 method: GET
-url: '{{baseUrl}}/health'
-order: 1000
-description: Returns current service health status and version.
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -20,3 +17,5 @@ scripts:
           pm.expect(json).to.have.property("status");
           pm.expect(json.status).to.be.a("string");
       });
+    language: text/javascript
+order: 1000

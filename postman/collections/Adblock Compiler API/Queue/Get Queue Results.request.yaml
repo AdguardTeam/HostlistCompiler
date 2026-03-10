@@ -1,18 +1,12 @@
 $kind: http-request
+url: "{{baseUrl}}:/queue/results/{{requestId}}"
 method: GET
-url: '{{baseUrl}}/queue/results/{{requestId}}'
-order: 4000
-description: |-
-  Retrieve results for a completed async compilation job.
-  Poll this endpoint after calling **Compile Async** or **Compile Batch Async**.
-  The `requestId` variable is automatically set by those requests.
 pathVariables:
   - key: requestId
-    value: '{{requestId}}'
+    value: "{{requestId}}"
     description: Request ID returned from async compile endpoints
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200 or 404", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 404]);
@@ -30,3 +24,5 @@ scripts:
               pm.expect(hasStatus || hasSuccess).to.be.true;
           });
       }
+    language: text/javascript
+order: 4000

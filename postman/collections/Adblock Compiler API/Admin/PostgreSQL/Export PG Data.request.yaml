@@ -1,20 +1,14 @@
 $kind: http-request
+url: "{{baseUrl}}/admin/pg/export"
 method: GET
-url: '{{baseUrl}}/admin/pg/export'
-order: 2000
-description: Exports data from the PostgreSQL backend. Mirrors /admin/storage/export for D1. Requires X-Admin-Key header.
 auth:
   type: apikey
   credentials:
-    - key: key
-      value: X-Admin-Key
-    - key: value
-      value: '{{adminKey}}'
-    - key: in
-      value: header
+    key: X-Admin-Key
+    value: "{{adminKey}}"
+    in: header
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200, 401, or 503", function () {
           pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]);
@@ -23,3 +17,5 @@ scripts:
       pm.test("Response is JSON", function () {
           pm.response.to.be.json;
       });
+    language: text/javascript
+order: 2000

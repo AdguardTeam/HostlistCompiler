@@ -1,47 +1,13 @@
 $kind: http-request
+url: "{{baseUrl}}/compile/batch"
 method: POST
-url: '{{baseUrl}}/compile/batch'
-order: 2000
-description: Compile multiple filter lists in parallel (max 10 per batch). Each item in the requests array is an independent compilation job.
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
-  content: |-
-    {
-      "requests": [
-        {
-          "id": "list-1",
-          "configuration": {
-            "name": "EasyList",
-            "sources": [
-              {
-                "source": "https://easylist.to/easylist/easylist.txt",
-                "transformations": ["RemoveComments", "Validate"]
-              }
-            ],
-            "transformations": ["Deduplicate"]
-          }
-        },
-        {
-          "id": "list-2",
-          "configuration": {
-            "name": "EasyPrivacy",
-            "sources": [
-              {
-                "source": "https://easylist.to/easylist/easyprivacy.txt",
-                "transformations": ["RemoveComments", "Validate"]
-              }
-            ],
-            "transformations": ["Deduplicate"]
-          }
-        }
-      ]
-    }
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -64,3 +30,5 @@ scripts:
               pm.expect(result).to.have.property("success");
           });
       });
+    language: text/javascript
+order: 2000

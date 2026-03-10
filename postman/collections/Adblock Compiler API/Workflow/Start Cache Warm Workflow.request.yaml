@@ -1,18 +1,13 @@
 $kind: http-request
+url: "{{baseUrl}}/workflow/cache-warm"
 method: POST
-url: '{{baseUrl}}/workflow/cache-warm'
-order: 3000
-description: Triggers manual cache warming for specified configurations. Request body is optional.
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
-  content: |-
-    {}
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 202", function () {
           pm.response.to.have.status(202);
@@ -22,3 +17,5 @@ scripts:
           const json = pm.response.json();
           pm.expect(json).to.have.property("instanceId");
       });
+    language: text/javascript
+order: 3000

@@ -1,32 +1,13 @@
 $kind: http-request
+url: "{{baseUrl}}/compile/async"
 method: POST
-url: '{{baseUrl}}/compile/async'
-order: 1000
-description: |-
-  Queue a compilation job for asynchronous processing. Returns immediately with a request ID.
-  Use **Get Queue Results** to poll for completion.
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
-  content: |-
-    {
-      "configuration": {
-        "name": "Async Compile Job",
-        "sources": [
-          {
-            "source": "https://easylist.to/easylist/easylist.txt",
-            "transformations": ["RemoveComments", "Validate"]
-          }
-        ],
-        "transformations": ["Deduplicate"]
-      },
-      "priority": "standard"
-    }
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 202", function () {
           pm.response.to.have.status(202);
@@ -43,3 +24,5 @@ scripts:
           // Save for use in Get Queue Results
           pm.collectionVariables.set("requestId", json.requestId);
       });
+    language: text/javascript
+order: 1000

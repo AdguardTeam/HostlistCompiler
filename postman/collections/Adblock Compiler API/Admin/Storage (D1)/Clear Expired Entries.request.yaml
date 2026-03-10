@@ -1,11 +1,6 @@
 $kind: http-request
-url: "{{baseUrl}}/admin/auth/api-keys/revoke"
+url: "{{baseUrl}}/admin/storage/clear-expired"
 method: POST
-headers:
-  Content-Type: application/json
-body:
-  type: json
-  content: ""
 auth:
   type: apikey
   credentials:
@@ -15,12 +10,12 @@ auth:
 scripts:
   - type: afterResponse
     code: |-
-      pm.test("Status code is 200, 400, 401, 404, or 503", function () {
-          pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404, 503]);
+      pm.test("Status code is 200 or 401", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]);
       });
 
       pm.test("Response is JSON", function () {
           pm.response.to.be.json;
       });
     language: text/javascript
-order: 4000
+order: 2000

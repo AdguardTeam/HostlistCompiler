@@ -1,34 +1,13 @@
 $kind: http-request
+url: "{{baseUrl}}/compile/batch/async"
 method: POST
-url: '{{baseUrl}}/compile/batch/async'
-order: 2000
-description: Queue multiple compilations for async processing. Returns a request ID to poll for results.
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
-  content: |-
-    {
-      "requests": [
-        {
-          "id": "async-list-1",
-          "configuration": {
-            "name": "EasyList Async",
-            "sources": [
-              {
-                "source": "https://easylist.to/easylist/easylist.txt",
-                "transformations": ["RemoveComments", "Validate"]
-              }
-            ],
-            "transformations": ["Deduplicate"]
-          }
-        }
-      ]
-    }
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 202", function () {
           pm.response.to.have.status(202);
@@ -39,3 +18,5 @@ scripts:
           pm.expect(json).to.have.property("requestId");
           pm.collectionVariables.set("requestId", json.requestId);
       });
+    language: text/javascript
+order: 2000

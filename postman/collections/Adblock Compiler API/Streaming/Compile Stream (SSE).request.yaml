@@ -1,46 +1,22 @@
 $kind: http-request
+url: "{{baseUrl}}/compile/stream"
 method: POST
-url: '{{baseUrl}}/compile/stream'
-order: 1000
-description: |-
-  Compile filter lists with real-time progress updates via Server-Sent Events (SSE).
-
-  The response is a `text/event-stream`. Events include:
-  - `log` — log messages
-  - `source:start` / `source:complete` / `source:error` — source download lifecycle
-  - `transformation:start` / `transformation:complete` — transformation lifecycle
-  - `progress` — compilation progress
-  - `result` — final compilation result
-  - `done` — stream complete
-  - `diagnostic`, `cache`, `network`, `metric` — enhanced telemetry events
 headers:
-  - key: Content-Type
-    value: application/json
-  - key: Accept
-    value: text/event-stream
+  Content-Type: application/json
+  Accept: text/event-stream
 body:
   type: json
-  content: |-
-    {
-      "configuration": {
-        "name": "Streaming Compile Test",
-        "sources": [
-          {
-            "source": "https://easylist.to/easylist/easylist.txt",
-            "transformations": ["RemoveComments", "Validate"]
-          }
-        ],
-        "transformations": ["Deduplicate"]
-      }
-    }
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
-    code: |-
+    code: >-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
       });
 
+
       pm.test("Content-Type is event-stream", function () {
           pm.expect(pm.response.headers.get("Content-Type")).to.include("text/event-stream");
       });
+    language: text/javascript
+order: 1000

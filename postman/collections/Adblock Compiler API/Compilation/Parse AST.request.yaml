@@ -1,25 +1,13 @@
 $kind: http-request
+url: "{{baseUrl}}/ast/parse"
 method: POST
-url: '{{baseUrl}}/ast/parse'
-order: 3000
-description: Parses adblock filter rules into an Abstract Syntax Tree (AST) representation.
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
-  content: |-
-    {
-      "rules": [
-        "||ads.example.com^",
-        "||tracking.example.com^$third-party",
-        "@@||safe.example.com^",
-        "##.ad-banner"
-      ]
-    }
+  content: ""
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Status code is 200", function () {
           pm.response.to.have.status(200);
@@ -35,3 +23,5 @@ scripts:
           pm.expect(json).to.have.property("nodes");
           pm.expect(json.nodes).to.be.an("array");
       });
+    language: text/javascript
+order: 3000
