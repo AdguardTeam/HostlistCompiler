@@ -24,20 +24,11 @@ jobs:
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
               with:
                   deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
+                  install-deps: 'false'
 
             - name: Lint
               run: deno lint
@@ -54,30 +45,13 @@ jobs:
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
               with:
                   deno-version: ${{ env.DENO_VERSION }}
 
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
-
-            - name: Install Deno dependencies
-              uses: ./.github/actions/deno-install
-
             - name: Type check all entry points
-              run: |
-                  deno check src/index.ts
-                  deno check src/cli.ts
-                  deno check worker/worker.ts
-                  deno check worker/tail.ts
+              run: deno task check
 
     test:
         name: Test
@@ -91,23 +65,10 @@ jobs:
             - name: Load environment variables
               uses: ./.github/actions/setup-env
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
               with:
                   deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
-
-            - name: Install Deno dependencies
-              uses: ./.github/actions/deno-install
 
             - name: Run tests with coverage
               run: |
@@ -249,8 +210,8 @@ jobs:
                   path: frontend/dist/
                   retention-days: 1
 
-    validate-cloudflare-schema:
-        name: Validate Cloudflare Schema
+    validate-artifacts:
+        name: Validate Generated Artifacts
         runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
@@ -258,79 +219,39 @@ jobs:
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
               with:
                   deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
 
             - name: Validate OpenAPI specification
               run: deno task openapi:validate
 
-            - name: Generate Cloudflare schema
-              run: deno task schema:cloudflare
+            - name: Regenerate all artifacts
+              run: deno task schema:generate
 
-            - name: Check schema is up to date
+            - name: Check all artifacts are up to date
               run: |
+                  DRIFT=0
                   if ! git diff --quiet docs/api/cloudflare-schema.yaml; then
                       echo "❌ docs/api/cloudflare-schema.yaml is out of date!"
-                      echo "The generated schema does not match the committed file."
-                      echo "Run 'deno task schema:cloudflare' locally and commit the updated docs/api/cloudflare-schema.yaml."
                       echo ""
-                      echo "Diff:"
                       git diff docs/api/cloudflare-schema.yaml
-                      exit 1
+                      DRIFT=1
                   fi
-                  echo "✅ Cloudflare schema is up to date"
-
-    validate-postman-collection:
-        name: Validate Postman Collection
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
-              with:
-                  deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
-
-            - name: Generate Postman collection
-              run: deno task postman:collection
-
-            - name: Check Postman collection is up to date
-              run: |
                   if ! git diff --quiet docs/postman/postman-collection.json docs/postman/postman-environment.json; then
-                      echo "❌ Postman collection is out of date!"
-                      echo "The generated collection does not match the committed files."
-                      echo "Run 'deno task postman:collection' locally and commit the updated docs/postman/ files."
+                      echo "❌ Postman collection or environment is out of date!"
                       echo ""
-                      echo "Diff:"
                       git diff docs/postman/postman-collection.json docs/postman/postman-environment.json
+                      DRIFT=1
+                  fi
+                  if [ "$DRIFT" -eq 1 ]; then
+                      echo ""
+                      echo "Run 'deno task schema:generate' locally, commit the updated files, and push again."
+                      echo "Tip: run 'deno task setup:hooks' to catch drift automatically before every push."
                       exit 1
                   fi
-                  echo "✅ Postman collection is up to date"
+                  echo "✅ All generated artifacts are up to date"
 
     check-slow-types:
         name: Check Slow Types
@@ -341,23 +262,10 @@ jobs:
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
               with:
                   deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
-
-            - name: Install Deno dependencies
-              uses: ./.github/actions/deno-install
 
             - name: Check for slow types
               run: deno publish --dry-run
@@ -370,8 +278,7 @@ jobs:
             - lint-format
             - typecheck
             - test
-            - validate-cloudflare-schema
-            - validate-postman-collection
+            - validate-artifacts
             - frontend-lint-test
             - frontend-build
             - check-slow-types
@@ -419,23 +326,10 @@ jobs:
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
               with:
                   deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
-
-            - name: Install Deno dependencies
-              uses: ./.github/actions/deno-install
 
             - name: Publish to JSR
               run: |
@@ -466,26 +360,22 @@ jobs:
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+            - name: Validate wrangler.toml has no placeholder binding IDs
+              run: |
+                  if grep -P 'id\s*=\s*"0{10,}' wrangler.toml; then
+                      echo "❌ wrangler.toml contains placeholder binding IDs (all-zeros pattern)!"
+                      echo "Create real namespaces/resources and update wrangler.toml before merging."
+                      exit 1
+                  fi
+                  echo "✅ No placeholder binding IDs in wrangler.toml"
+
             - name: Load environment variables
               uses: ./.github/actions/setup-env
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
               with:
                   deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
-
-            - name: Install Deno dependencies
-              uses: ./.github/actions/deno-install
 
             - name: Download frontend build artifact
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -521,23 +411,10 @@ jobs:
             - name: Load environment variables
               uses: ./.github/actions/setup-env
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
               with:
                   deno-version: ${{ env.DENO_VERSION }}
-
-            - name: Cache Deno dependencies
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-              with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: deno-${{ runner.os }}-${{ hashFiles('deno.json', 'deno.lock') }}
-                  restore-keys: |
-                      deno-${{ runner.os }}-
-
-            - name: Install Deno dependencies
-              uses: ./.github/actions/deno-install
 
             - name: Download frontend build artifact
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4

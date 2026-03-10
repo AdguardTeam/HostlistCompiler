@@ -9,28 +9,12 @@ on:
     - cron: '33 4 * * 0'
 
 jobs:
-  disable-default-setup:
-    name: Disable Default CodeQL Setup
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      administration: write
-    steps:
-      - name: Disable default CodeQL setup
-        run: |
-          gh api --method PATCH /repos/${{ github.repository }}/code-scanning/default-setup \
-            --field state=not-configured
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   analyze:
     name: Analyze (${{ matrix.language }})
-    needs: disable-default-setup
     # Runner size impacts CodeQL analysis time. To learn more, please see:
     #   - https://gh.io/recommended-hardware-resources-for-running-codeql
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
-    # Consider using larger runners or machines with greater resources for possible analysis time improvements.
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
     permissions:
       # required for all workflows

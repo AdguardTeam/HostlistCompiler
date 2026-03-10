@@ -12,31 +12,18 @@ const prePushPath = join(hooksDir, 'pre-push');
 
 const prePushScript = `#!/usr/bin/env bash
 # Auto-installed by: deno task setup:hooks
-# Regenerates generated files and aborts push if they changed (uncommitted).
+# Runs preflight checks (fmt, lint, type-check all entry points, OpenAPI validation,
+# schema drift detection) before every push. Fast path; does NOT run tests.
+# To also run tests: deno task preflight:full
 set -euo pipefail
 
-echo "🔍 Running pre-push preflight checks..."
+echo "🔍 Running pre-push preflight checks (fmt, lint, types, schema drift)..."
+echo "   Tip: run 'deno task preflight:full' to include tests before opening a PR."
+echo ""
 
-# Regenerate schema files
-deno task schema:generate > /dev/null 2>&1
-
-# Check for uncommitted changes in generated files
-if ! git diff --quiet docs/api/cloudflare-schema.yaml docs/postman/postman-collection.json docs/postman/postman-environment.json; then
+if ! deno task preflight; then
   echo ""
-  echo "❌ Generated files are out of date!"
-  echo "   Run the following, then push again:"
-  echo ""
-  echo "   git add docs/api/cloudflare-schema.yaml docs/postman/postman-collection.json docs/postman/postman-environment.json"
-  echo "   git commit -m 'chore: regenerate cloudflare schema and postman collection'"
-  echo ""
-  exit 1
-fi
-
-# Check formatting
-if ! deno fmt --check > /dev/null 2>&1; then
-  echo ""
-  echo "❌ Formatting check failed. Run: deno task fmt"
-  echo ""
+  echo "❌ Pre-push preflight failed. Fix the issues above and push again."
   exit 1
 fi
 
@@ -48,7 +35,8 @@ try {
     await Deno.writeTextFile(prePushPath, prePushScript);
     await new Deno.Command('chmod', { args: ['+x', prePushPath] }).output();
     console.log(`✅ Installed pre-push hook: ${prePushPath}`);
-    console.log('   The hook will regenerate schemas and check formatting before every push.');
+    console.log('   Runs: fmt, lint, type-check (all entry points), OpenAPI validate, schema drift check.');
+    console.log('   For full checks (incl. tests): deno task preflight:full');
 } catch (err) {
     console.error(`❌ Failed to install hook: ${err instanceof Error ? err.message : String(err)}`);
     Deno.exit(1);
