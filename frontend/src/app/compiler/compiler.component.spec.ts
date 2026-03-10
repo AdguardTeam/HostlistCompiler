@@ -8,6 +8,7 @@ import { CompilerComponent } from './compiler.component';
 import { API_BASE_URL } from '../tokens';
 import { TurnstileService } from '../services/turnstile.service';
 import { CompilerService } from '../services/compiler.service';
+import { NotificationService } from '../services/notification.service';
 import { of } from 'rxjs';
 
 describe('CompilerComponent', () => {
@@ -203,6 +204,63 @@ describe('CompilerComponent', () => {
                 expect.any(Array),
                 undefined,
             );
+        });
+    });
+
+    describe('Turnstile gating', () => {
+        it('should report isTurnstileReady as true when no site key is configured', () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            turnstileService.siteKey.set('');
+            expect(component.isTurnstileReady()).toBe(true);
+        });
+
+        it('should report isTurnstileReady as false when site key set but not yet verified', () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            turnstileService.siteKey.set('0x4AAAAAAATest');
+            turnstileService.token.set('');
+            expect(component.isTurnstileReady()).toBe(false);
+        });
+
+        it('should report isTurnstileReady as true when site key set and token present', () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            turnstileService.siteKey.set('0x4AAAAAAATest');
+            turnstileService.token.set('valid-token');
+            expect(component.isTurnstileReady()).toBe(true);
+        });
+
+        it('should block compilation and show toast when site key configured but token is empty', async () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            const compilerService = TestBed.inject(CompilerService);
+            const notificationsService = TestBed.inject(NotificationService);
+            const compileSpy = vi.spyOn(compilerService, 'compile').mockReturnValue(
+                of({ success: true, ruleCount: 0, sources: 1, transformations: [], message: 'ok' }),
+            );
+            const toastSpy = vi.spyOn(notificationsService, 'showToast');
+
+            turnstileService.siteKey.set('0x4AAAAAAATest');
+            turnstileService.token.set('');
+            component.compileMode = 'json';
+            component.onSubmit();
+            await fixture.whenStable();
+
+            expect(compileSpy).not.toHaveBeenCalled();
+            expect(toastSpy).toHaveBeenCalledWith('warning', expect.any(String), expect.any(String));
+        });
+
+        it('should allow compilation when site key configured and token is present', async () => {
+            const turnstileService = TestBed.inject(TurnstileService);
+            const compilerService = TestBed.inject(CompilerService);
+            const compileSpy = vi.spyOn(compilerService, 'compile').mockReturnValue(
+                of({ success: true, ruleCount: 0, sources: 1, transformations: [], message: 'ok' }),
+            );
+
+            turnstileService.siteKey.set('0x4AAAAAAATest');
+            turnstileService.token.set('valid-turnstile-token');
+            component.compileMode = 'json';
+            component.onSubmit();
+            await fixture.whenStable();
+
+            expect(compileSpy).toHaveBeenCalled();
         });
     });
 });

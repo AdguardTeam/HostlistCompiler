@@ -270,12 +270,15 @@ interface Preset {
 
             <!-- Item 1: Turnstile bot protection -->
             <app-turnstile [siteKey]="turnstileSiteKey()" />
+            @if (turnstileError()) {
+                <p class="turnstile-load-error" role="status">{{ turnstileError() }}</p>
+            }
 
             <!-- Submit -->
             <div class="submit-row">
                 <button
                     mat-raised-button color="primary" type="submit"
-                    [disabled]="isCompiling() || compilerForm.invalid"
+                    [disabled]="isCompiling() || compilerForm.invalid || !isTurnstileReady()"
                 >
                     @if (isCompiling()) {
                         <mat-progress-spinner diameter="20" mode="indeterminate" color="accent" />
@@ -561,6 +564,59 @@ export class CompilerComponent {
         this.compileResource.isLoading() || (this.sseConnection()?.isActive() ?? false) || this.asyncLoading(),
     );
     private readonly asyncLoading = signal(false);
+    /** Grace period (ms) before treating a missing Turnstile verification as a load failure */
+    private static readonly TURNSTILE_LOAD_TIMEOUT_MS = 8000;
+    /** Message shown when Turnstile fails to load within the grace period */
+    private static readonly TURNSTILE_LOAD_ERROR_MSG =
+        'Bot protection could not be loaded. You can continue, but requests may be rate limited or rejected.';
+    /** Turnstile load/verification error message (null when no error) */
+    readonly turnstileError = signal<string | null>(null);
+    /** Internal timeout ID for Turnstile readiness fallback */
+    private turnstileTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    /** Effect to detect Turnstile load/verify failures and enable fallback after a grace period */
+    private readonly turnstileGuardEffect = effect((onCleanup) => {
+        const key = this.turnstileService.siteKey();
+        const verified = this.turnstileService.isVerified();
+
+        // Clear any previous timeout whenever inputs change
+        if (this.turnstileTimeoutId !== null) {
+            clearTimeout(this.turnstileTimeoutId);
+            this.turnstileTimeoutId = null;
+        }
+
+        // No site key configured: no Turnstile, no error
+        if (!key) {
+            this.turnstileError.set(null);
+            return;
+        }
+
+        // Already verified: Turnstile satisfied, clear any previous error
+        if (verified) {
+            this.turnstileError.set(null);
+            return;
+        }
+
+        // Site key present but not yet verified: start a timeout.
+        // If verification does not complete within the grace period, treat as a load error
+        // and allow submission with an explanatory message.
+        this.turnstileTimeoutId = setTimeout(() => {
+            if (!this.turnstileService.isVerified()) {
+                this.turnstileError.set(CompilerComponent.TURNSTILE_LOAD_ERROR_MSG);
+            }
+        }, CompilerComponent.TURNSTILE_LOAD_TIMEOUT_MS);
+
+        onCleanup(() => {
+            if (this.turnstileTimeoutId !== null) {
+                clearTimeout(this.turnstileTimeoutId);
+                this.turnstileTimeoutId = null;
+            }
+        });
+    });
+    /** Whether Turnstile is satisfied: either not configured, token obtained, or an unrecoverable load error occurred */
+    readonly isTurnstileReady = computed(() => {
+        const key = this.turnstileService.siteKey();
+        return !key || this.turnstileService.isVerified() || this.turnstileError() !== null;
+    });
 
     /** Dynamic submit button label */
     readonly submitLabel = computed(() => {
@@ -717,6 +773,12 @@ export class CompilerComponent {
 
     onSubmit(): void {
         if (this.compilerForm.invalid) return;
+
+        // Guard: block if Turnstile is configured but challenge not yet completed
+        if (!this.isTurnstileReady()) {
+            this.notifications.showToast('warning', 'Bot Check', 'Please complete the bot verification challenge before submitting.');
+            return;
+        }
 
         type UrlEntry = { source: string; useBrowser: boolean };
         const urlEntries: UrlEntry[] = this.compilerForm.value.urls.filter((u: UrlEntry) => u.source?.trim());
