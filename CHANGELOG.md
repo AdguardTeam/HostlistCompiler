@@ -100,6 +100,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.52.1] - 2026-03-10
+
+### Added### Fixed
+
+- resolve IPv6 bracket handling and container-server auth in tests
+- resolve TS2352 type assertion error in CloudflareQueueProvider
+- address 9 follow-up review comments from PR #962
+- address 18 code review findings across security, correctness, and robustness
+
+
 ## [0.52.0] - 2026-03-10
 
 ### Added- **api-docs**: add all endpoints + JSON syntax highlighting
