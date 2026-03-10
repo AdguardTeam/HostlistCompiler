@@ -1,21 +1,25 @@
 # Copilot Instructions for adblock-compiler
 
-This repository contains the **Adblock Compiler** - a Deno-native, compiler-as-a-service for adblock filter lists. This document provides guidance to GitHub Copilot on how to work effectively with this codebase.
+This repository contains the **Adblock Compiler** - a Deno-native, compiler-as-a-service for adblock filter lists, with an Angular 21 frontend web UI. This document provides guidance to GitHub Copilot on how to work effectively with this codebase.
 
 ## Technology Stack
 
 ### Core Technologies
 
-- **Deno 2.6.7+**: Primary runtime environment (NOT Node.js)
+- **Deno 2.6.7+**: Primary runtime environment for the backend/compiler (NOT Node.js)
 - **TypeScript**: All code is written in TypeScript with strict type checking
 - **JSR (JavaScript Registry)**: Package is published to JSR at `@jk-com/adblock-compiler@0.8.8`
 - **Cloudflare Workers**: Production deployment target for the worker implementation
+- **Angular 21**: Frontend web UI (standalone components, signals, zoneless change detection)
 
 ### Supporting Technologies
 
 - **Wrangler**: Cloudflare Workers deployment tool
 - **Docker**: Container deployment support
 - **Deno standard library**: `@std/path`, `@std/fs`, `@std/flags`, `@std/assert`, `@std/testing`, `@std/async`
+- **Angular Material 21**: UI component library for the frontend
+- **Vitest + @analogjs/vitest-angular**: Unit testing framework for the Angular frontend
+- **@angular/ssr**: Server-side rendering for the Angular frontend
 
 ## Project Structure
 
@@ -32,7 +36,12 @@ src/
 └── index.ts          # Main library exports
 
 worker/               # Cloudflare Worker implementation
-public/               # Static web UI files
+frontend/             # Angular 21 web UI (standalone components, signals, SSR)
+├── src/app/          # Angular application source
+│   ├── compiler/     # Compiler UI feature area (standalone components)
+│   ├── services/     # Angular services (signal-based state)
+│   ├── guards/       # Route guards (functional)
+│   └── interceptors/ # HTTP interceptors (functional)
 docs/                 # Documentation
 examples/             # Example implementations
 ```
@@ -135,7 +144,7 @@ export class MyTransformation extends SyncTransformation {
 
 ## Building and Testing
 
-### Development Commands
+### Backend Development Commands (Deno)
 
 ```bash
 # Run in development mode with watch
@@ -175,20 +184,190 @@ deno task check
 deno task cache
 ```
 
-### Testing Guidelines
+### Frontend Development Commands (Angular)
 
+```bash
+# Start Angular dev server
+pnpm --filter adblock-compiler-frontend start
+
+# Build Angular app
+pnpm --filter adblock-compiler-frontend build
+
+# Run Angular unit tests with Vitest
+pnpm --filter adblock-compiler-frontend test
+
+# Run tests in watch mode
+pnpm --filter adblock-compiler-frontend test:watch
+
+# Run tests with coverage
+pnpm --filter adblock-compiler-frontend test:coverage
+
+# Lint Angular code
+pnpm --filter adblock-compiler-frontend lint
+```
+
+### Backend Testing Guidelines (Deno)
+
+- **Always use Deno's built-in test framework** for all `src/` and `worker/` TypeScript code
 - **Co-location**: Place tests next to source files (e.g., `MyClass.ts` and `MyClass.test.ts`)
-- **Test framework**: Use Deno's built-in test framework
 - **Assertions**: Use `@std/assert` for assertions
 - **Test structure**: Use descriptive test names with `Deno.test('should do X when Y', () => { ... })`
 - **Coverage**: Aim for comprehensive test coverage, especially for transformations
 
+### Frontend Testing Guidelines (Angular + Vitest)
+
+- **Always use Vitest** (via `@analogjs/vitest-angular`) for all `frontend/` Angular code — never use Karma/Jasmine
+- **Co-location**: Place spec files next to source files (e.g., `my.component.ts` and `my.component.spec.ts`)
+- **Test utilities**: Use `@angular/core/testing` (`TestBed`, `ComponentFixture`) with Vitest's `describe`/`it`/`expect`
+- **Signal testing**: Use `TestBed.flushEffects()` to flush pending signal effects before asserting
+- **Zoneless**: Tests run in a zoneless context — use `fixture.detectChanges()` explicitly after state mutations
+- **Test structure**:
+
+```typescript
+import { describe, it, expect, beforeEach } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { MyComponent } from './my.component';
+
+describe('MyComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [MyComponent],
+            providers: [provideZonelessChangeDetection()],
+        }).compileComponents();
+    });
+
+    it('should render correctly', () => {
+        const fixture = TestBed.createComponent(MyComponent);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('expected text');
+    });
+});
+```
+
 ### Before Committing
 
-1. Run `deno task fmt` to format code
-2. Run `deno task check` to verify types
-3. Run `deno task test` to ensure tests pass
-4. Run `deno task lint` to check for lint issues (if enabled)
+1. Run `deno task fmt` to format backend code
+2. Run `deno task check` to verify backend types
+3. Run `deno task test` to ensure backend tests pass
+4. Run `deno task lint` to check for lint issues
+5. Run `pnpm --filter adblock-compiler-frontend lint` to lint Angular code
+6. Run `pnpm --filter adblock-compiler-frontend test` to ensure frontend tests pass
+
+## Angular Frontend (Angular 21)
+
+The `frontend/` directory contains an Angular 21 web UI. Always use modern Angular 21 patterns — never use legacy NgModule-based patterns.
+
+### Core Angular 21 Principles
+
+- **Standalone components only**: Never use `NgModule`. Every component, directive, and pipe must be `standalone: true`
+- **Signals for state**: Use `signal()`, `computed()`, `effect()` for reactive state — avoid `BehaviorSubject` for local component state
+- **Zoneless change detection**: The app uses `provideZonelessChangeDetection()` — never import or rely on Zone.js
+- **`inject()` function**: Use `inject()` for dependency injection inside functions, factories, and as a class field initializer — avoid constructor injection except when necessary
+- **Modern control flow**: Use `@if`, `@for`, `@switch` — never use `*ngIf`, `*ngFor`, `*ngSwitch` structural directives
+
+### Component Pattern
+
+```typescript
+import { Component, inject, signal, computed, input, output } from '@angular/core';
+
+@Component({
+    selector: 'app-my-component',
+    standalone: true,
+    imports: [/* only what this component needs */],
+    template: `
+        @if (isLoading()) {
+            <mat-spinner />
+        } @else {
+            @for (item of items(); track item.id) {
+                <div>{{ item.name }}</div>
+            }
+        }
+    `,
+})
+export class MyComponent {
+    private readonly myService = inject(MyService);
+
+    // Signal inputs (preferred over @Input decorator)
+    readonly title = input<string>('');
+    readonly items = input.required<Item[]>();
+
+    // Signal outputs (preferred over @Output decorator)
+    readonly selected = output<Item>();
+
+    // Local writable signal
+    protected readonly isLoading = signal(false);
+
+    // Computed signal derived from inputs/state
+    protected readonly itemCount = computed(() => this.items().length);
+}
+```
+
+### Service Pattern (Signal-based state)
+
+```typescript
+import { Injectable, signal, computed, inject } from '@angular/core';
+
+@Injectable({ providedIn: 'root' })
+export class MyService {
+    private readonly http = inject(HttpClient);
+
+    // Private writable, public readonly computed
+    private readonly _items = signal<Item[]>([]);
+    readonly items = this._items.asReadonly();
+    readonly count = computed(() => this._items().length);
+
+    async loadItems(): Promise<void> {
+        const data = await firstValueFrom(this.http.get<Item[]>('/api/items'));
+        this._items.set(data);
+    }
+}
+```
+
+### Routing
+
+- Use functional route guards (`CanActivateFn`) — never class-based guards
+- Use `withComponentInputBinding()` to bind route params as signal inputs
+- Lazy-load feature routes with `loadComponent` or `loadChildren`
+
+```typescript
+export const routes: Routes = [
+    {
+        path: 'compiler',
+        loadComponent: () => import('./compiler/compiler.component').then(m => m.CompilerComponent),
+        canActivate: [myFunctionalGuard],
+    },
+];
+```
+
+### Forms
+
+- Use **typed reactive forms** — always provide explicit generic types to `FormControl<T>`, `FormGroup<T>`, `FormArray<T>`
+- Never use `UntypedFormControl` or the `any` escape hatch
+
+```typescript
+const form = new FormGroup({
+    url: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+    enabled: new FormControl<boolean>(true, { nonNullable: true }),
+});
+```
+
+### HTTP
+
+- Use `HttpClient` with `withFetch()` (already configured in `app.config.ts`)
+- Prefer `firstValueFrom()` / `lastValueFrom()` over `.subscribe()` for one-shot requests
+- Use functional HTTP interceptors (`HttpInterceptorFn`) — never class-based interceptors
+
+### SSR / Prerendering
+
+- Use `inject(DOCUMENT)` for DOM access — never reference `document` directly (breaks SSR)
+- Use `isPlatformBrowser(inject(PLATFORM_ID))` to guard browser-only code
+- Render modes are defined in `app.routes.server.ts` — consult it before adding new routes
+
+### Angular Material
+
+- Import only the specific Material modules needed per component (tree-shakeable)
+- Use `provideAnimationsAsync()` (already in `app.config.ts`) — never `BrowserAnimationsModule`
 
 ## Architecture Patterns
 
@@ -291,8 +470,15 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - **AdGuard DNS Syntax**: https://adguard-dns.io/kb/general/dns-filtering-syntax/
 - **Deno Manual**: https://deno.land/manual
 - **Cloudflare Workers**: https://developers.cloudflare.com/workers/
+- **Angular 21 Docs**: https://angular.dev
+- **Angular Signals Guide**: https://angular.dev/guide/signals
+- **Angular Material 21**: https://material.angular.io
+- **Vitest**: https://vitest.dev
+- **@analogjs/vitest-angular**: https://analogjs.org/docs/packages/vitest-angular/overview
 
 ## Don't Do
+
+### Backend (Deno/TypeScript)
 
 - Don't use Node.js-specific APIs (use Deno standard library instead)
 - Don't use `npm:` imports unless absolutely necessary (prefer JSR)
@@ -302,6 +488,21 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Don't introduce breaking changes to the public API without documentation
 - Don't use `Function` constructor or `eval()` for security reasons
 
+### Frontend (Angular)
+
+- Don't use `NgModule` — all components, directives, and pipes must be standalone
+- Don't use Zone.js or `NgZone` — the app uses `provideZonelessChangeDetection()`
+- Don't use `*ngIf`, `*ngFor`, `*ngSwitch` — use `@if`, `@for`, `@switch` control flow
+- Don't use `@Input()` / `@Output()` decorators for new components — use `input()` / `output()` signal APIs
+- Don't use `@ViewChild` / `@ContentChild` decorators — use `viewChild()` / `contentChild()` signal queries
+- Don't use `BehaviorSubject` for component or service state — use `signal()` and `computed()`
+- Don't use `UntypedFormControl` or `any` in reactive forms — always use typed forms
+- Don't reference `document` or `window` directly — use `inject(DOCUMENT)` and access `inject(DOCUMENT).defaultView` for SSR-safe window access
+- Don't use class-based route guards or HTTP interceptors — use functional equivalents
+- Don't use `BrowserAnimationsModule` — use `provideAnimationsAsync()` in `app.config.ts`
+- Don't use Karma or Jasmine — use Vitest with `@analogjs/vitest-angular` for all frontend tests
+- Don't import entire Angular Material modules — import only the specific modules needed per component
+
 ## Questions or Clarifications
 
 When uncertain about:
@@ -309,9 +510,11 @@ When uncertain about:
 - **Architecture decisions**: Refer to existing patterns in `src/compiler/` and `src/platform/`
 - **Transformation logic**: Check existing transformations in `src/transformations/`
 - **API design**: Review `src/types/index.ts` for interface definitions
-- **Testing patterns**: Look at existing `*.test.ts` files
+- **Backend testing patterns**: Look at existing `*.test.ts` files in `src/`
+- **Angular patterns**: Check `frontend/src/app/app.config.ts` and `frontend/src/app/app.component.ts` for Angular 21 examples
+- **Angular testing patterns**: Look at existing `*.spec.ts` files in `frontend/src/app/`
 - **Code quality**: Refer to `CODE_REVIEW.md` for best practices
 
 ## Summary
 
-This is a mature, production-ready Deno TypeScript project with strict typing, comprehensive testing, and multi-platform support. Prioritize type safety, clean abstractions, and thorough testing. Follow the established patterns for transformations, fetchers, and compilers.
+This is a mature, production-ready project with two main parts: a **Deno TypeScript compiler backend** and an **Angular 21 frontend**. For the backend, prioritize type safety, clean abstractions, and Deno-native testing. For the frontend, always use Angular 21 modern patterns (standalone, signals, zoneless, `@if`/`@for` control flow) and Vitest for tests. Follow the established patterns in each area and never mix the paradigms.
