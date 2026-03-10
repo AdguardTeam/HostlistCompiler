@@ -1426,7 +1426,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/RuleSet'
+                                $ref: '#/components/schemas/RuleSetResponse'
                 '404':
                     description: Rule set not found
                     content:
@@ -1450,7 +1450,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/RuleSet'
+                                $ref: '#/components/schemas/RuleSetResponse'
                 '400':
                     description: Invalid request body
                     content:
@@ -1475,11 +1475,15 @@ paths:
                         application/json:
                             schema:
                                 type: object
+                                required:
+                                    - success
+                                    - message
                                 properties:
                                     success:
                                         type: boolean
-                                    id:
+                                    message:
                                         type: string
+                                        description: Confirmation message
                 '404':
                     description: Rule set not found
                     content:
@@ -1515,8 +1519,14 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ErrorResponse'
+                '502':
+                    description: All configured notification targets failed to receive the event
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookNotifyResponse'
                 '503':
-                    description: No notification targets configured
+                    description: 'No notification targets configured (set WEBHOOK_URL, SENTRY_DSN, or DATADOG_API_KEY)'
                     content:
                         application/json:
                             schema:
@@ -3084,18 +3094,40 @@ components:
                     format: uri
                     description: Optional URL to test the rule against
                     example: 'https://example.com/ads/banner.png'
+                strict:
+                    type: boolean
+                    description: Enable strict validation mode (rejects rules that the tolerant parser would silently accept)
+                    default: false
+                    example: true
         ValidateRuleResponse:
             type: object
+            required:
+                - success
+                - valid
+                - rule
+                - duration
             properties:
-                rule:
-                    type: string
-                    description: The original rule string
+                success:
+                    type: boolean
+                    description: Whether the validation request was processed successfully
                 valid:
                     type: boolean
                     description: Whether the rule is syntactically valid
+                rule:
+                    type: string
+                    description: The original rule string
                 ruleType:
                     type: string
-                    description: 'The detected type of the rule (e.g. NetworkRule, CosmeticRule)'
+                    description: 'High-level classification of the rule (e.g. "NetworkRule", "CosmeticRule")'
+                    nullable: true
+                category:
+                    type: string
+                    description: 'Category of the rule (e.g. "Network", "Cosmetic")'
+                    nullable: true
+                syntax:
+                    type: string
+                    description: Detected adblock syntax variant for the rule
+                    nullable: true
                 ast:
                     type: object
                     description: Abstract Syntax Tree of the parsed rule
@@ -3104,10 +3136,18 @@ components:
                     type: boolean
                     description: Whether the rule matches the provided testUrl (if supplied)
                     nullable: true
+                testUrl:
+                    type: string
+                    format: uri
+                    description: 'The URL used to test the rule against, if provided'
+                    nullable: true
                 error:
                     type: string
                     description: Error message if the rule is invalid
                     nullable: true
+                duration:
+                    type: string
+                    description: Processing duration (e.g. "2ms")
         RuleSet:
             type: object
             required:
@@ -3181,16 +3221,55 @@ components:
                     type: array
                     items:
                         type: string
+        RuleSetMeta:
+            type: object
+            description: Rule set metadata returned in list responses (no rules array)
+            required:
+                - id
+                - name
+                - ruleCount
+                - createdAt
+                - updatedAt
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier for the rule set
+                name:
+                    type: string
+                    description: Human-readable name for the rule set
+                description:
+                    type: string
+                    description: Optional description of the rule set
+                    nullable: true
+                ruleCount:
+                    type: integer
+                    description: Number of rules in the set
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    description: Optional tags for categorising the rule set
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
         RuleSetListResponse:
             type: object
             required:
+                - success
                 - items
                 - total
             properties:
+                success:
+                    type: boolean
                 items:
                     type: array
                     items:
-                        $ref: '#/components/schemas/RuleSet'
+                        $ref: '#/components/schemas/RuleSetMeta'
+                    description: Metadata-only list of rule sets (rules array excluded)
                 total:
                     type: integer
                     description: Total number of rule sets
@@ -3208,39 +3287,41 @@ components:
             type: string
             enum:
                 - info
-                - warning
+                - warn
                 - error
-                - critical
+                - debug
             description: Severity level of the notification
         WebhookNotifyRequest:
             type: object
             required:
-                - level
+                - event
                 - message
             properties:
+                event:
+                    type: string
+                    description: 'Event name or type (e.g. "compile.error", "rule.invalid")'
+                    minLength: 1
+                    maxLength: 128
                 level:
                     $ref: '#/components/schemas/NotifyLevel'
                 message:
                     type: string
-                    description: Human-readable notification message
-                title:
-                    type: string
-                    description: Optional short title for the notification
+                    description: Human-readable message describing the event
+                    minLength: 1
+                    maxLength: 2048
+                metadata:
+                    type: object
+                    additionalProperties: true
+                    description: Optional structured metadata associated with the event
                     nullable: true
                 source:
                     type: string
-                    description: Origin service or component that triggered the notification
+                    description: Identifies the component that emitted the event
                     nullable: true
-                tags:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: Arbitrary key-value metadata tags
-                    nullable: true
-                context:
-                    type: object
-                    additionalProperties: true
-                    description: Additional structured context data
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: ISO 8601 event timestamp; defaults to current time if omitted
                     nullable: true
         WebhookDelivery:
             type: object
@@ -3265,15 +3346,23 @@ components:
             type: object
             required:
                 - success
+                - event
                 - deliveries
+                - duration
             properties:
                 success:
                     type: boolean
                     description: True if at least one delivery succeeded
+                event:
+                    type: string
+                    description: The event name from the request
                 deliveries:
                     type: array
                     items:
                         $ref: '#/components/schemas/WebhookDelivery'
+                duration:
+                    type: string
+                    description: Processing duration (e.g. "5ms")
     securitySchemes:
         Turnstile:
             type: apiKey
