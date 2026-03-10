@@ -2289,7 +2289,7 @@
                 }
               }
             },
-            "description": "Fetches each provided URL using the Cloudflare Browser Rendering binding and\ncomputes a content hash. The result is compared against the previously stored hash\n(if any) in `COMPILATION_CACHE` KV. Each source is reported as `changed` or\n`unchanged`. The latest result set is persisted under the KV key\n`browser:monitor:latest` and is retrievable via `GET /api/browser/monitor/latest`.\n\nRequires both the `BROWSER` and `COMPILATION_CACHE` bindings.\n"
+            "description": "Performs parallel browser-based health checks on a list of filter-list source URLs. For each URL a headless browser navigates to the page, verifies non-empty text content, and optionally captures a full-page PNG screenshot stored in R2.\n\nThe full result set is persisted under the KV key `browser:monitor:latest` and is retrievable via `GET /api/browser/monitor/latest`.\n\nRequires the `BROWSER` binding. `FILTER_STORAGE` (R2) is required for screenshot capture. `COMPILATION_CACHE` (KV) is required for result persistence.\n"
           }
         },
         {

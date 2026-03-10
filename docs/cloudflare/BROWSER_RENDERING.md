@@ -34,7 +34,7 @@ src/platform/BrowserFetcher.ts
   ├── IPlaywrightBrowser       — slim Playwright Browser interface
   ├── IPlaywrightPage          — slim Playwright Page interface
   ├── BrowserConnector         — (binding: IBrowserWorker) => Promise<IPlaywrightBrowser>
-  ├── BrowserFetcherOptions    — { timeout?: number; waitUntil?: BrowserWaitUntil; logger?: ILogger }
+  ├── BrowserFetcherOptions    — { timeout?: number; waitUntil?: BrowserWaitUntil; returnHtml?: boolean }
   ├── EXTRACT_TEXT_SCRIPT      — inline script injected into the page to extract filter rules
   └── BrowserFetcher           — IContentFetcher implementation
 ```
@@ -70,7 +70,7 @@ Navigates to a URL and returns the final canonical URL after all redirects.
 ```jsonc
 {
     "url": "https://example.com/short-link",   // required
-    "waitUntil": "networkidle0"                // optional, see §waitUntil Options
+    "waitUntil": "networkidle"                 // optional, see §waitUntil Options
 }
 ```
 
@@ -78,7 +78,9 @@ Navigates to a URL and returns the final canonical URL after all redirects.
 
 ```jsonc
 {
-    "url": "https://example.com/final-destination"
+    "success": true,
+    "resolvedUrl": "https://example.com/final-destination",
+    "originalUrl": "https://example.com/short-link"
 }
 ```
 
@@ -89,21 +91,25 @@ filter-list download. Saves bandwidth on subsequent compilation runs.
 
 ### `POST /api/browser/monitor`
 
-Fetches each URL, computes a SHA-256 hash of the page content, and compares it against the
-hash stored in `COMPILATION_CACHE` KV from the previous check. Runs all URL checks in parallel.
+Performs parallel browser-based health checks on a list of filter-list source URLs.
+For each URL the handler navigates with a headless browser, verifies non-empty text
+content, and optionally captures a full-page PNG screenshot stored in R2.
 
-The full result set is persisted to the KV key `browser:monitor:latest` so it can be retrieved
-later without re-running the checks.
+The full result set is persisted to the KV key `browser:monitor:latest` so it can be
+retrieved later without re-running the checks.
 
 **Request body**
 
 ```jsonc
 {
-    "urls": [                                   // required, 1+
+    "urls": [                                   // required, 1–10
         "https://example.com/filter-list.txt",
         "https://another.example.com/rules.txt"
     ],
-    "waitUntil": "networkidle0"                // optional
+    "captureScreenshots": false,               // optional — store a PNG per URL in R2
+    "screenshotPrefix": "2025-07-01",          // optional — R2 key prefix (default: ISO date)
+    "timeout": 30000,                          // optional — per-URL timeout in ms
+    "waitUntil": "networkidle"                 // optional, see §waitUntil Options
 }
 ```
 
@@ -111,28 +117,33 @@ later without re-running the checks.
 
 ```jsonc
 {
-    "checkedAt": "2025-07-01T12:00:00.000Z",
+    "success": true,
+    "total": 2,
+    "reachable": 1,
+    "unreachable": 1,
     "results": [
         {
             "url": "https://example.com/filter-list.txt",
-            "changed": true,
-            "hash": "abc123...",
-            "previousHash": "def456..."
+            "reachable": true,
+            "checkedAt": "2025-07-01T12:00:00.000Z",
+            "screenshotKey": "2025-07-01/a1b2c3d4e5f6.png"
         },
         {
             "url": "https://another.example.com/rules.txt",
-            "changed": false,
-            "hash": "abc999...",
-            "previousHash": "abc999..."
+            "reachable": false,
+            "error": "net::ERR_NAME_NOT_RESOLVED",
+            "checkedAt": "2025-07-01T12:00:01.000Z"
         }
     ]
 }
 ```
 
-When a URL cannot be fetched, the result entry contains an `error` field and `changed` is
-set to `false`.
+`screenshotKey` is only present when `captureScreenshots` is `true` and `FILTER_STORAGE`
+is configured. When a URL cannot be fetched, the result entry contains an `error` field
+and `reachable` is `false`.
 
-**Required bindings:** `BROWSER` + `COMPILATION_CACHE`
+**Required bindings:** `BROWSER`
+**Optional bindings:** `FILTER_STORAGE` (R2 for screenshots), `COMPILATION_CACHE` (KV for persistence)
 
 ---
 
@@ -158,8 +169,7 @@ considers a page navigation complete.
 |---|---|
 | `load` | Fires when the `load` DOM event fires. Fastest; suitable for static pages. |
 | `domcontentloaded` | Fires when the `DOMContentLoaded` event fires. |
-| `networkidle0` | **(default)** Waits until no network connections for 500 ms. Best for SPA-heavy pages. |
-| `networkidle2` | Waits until ≤ 2 network connections for 500 ms. Suitable when background XHRs persist. |
+| `networkidle` | **(default)** Waits until no network connections for 500 ms. Best for SPA-heavy pages. |
 
 ---
 
@@ -192,7 +202,7 @@ const result = await compiler.compile({
 ```
 
 When `useBrowser` is `true` but `browserConnector` or `browserBinding` are not provided to
-`WorkerCompiler`, the compiler falls back to the default fetcher and logs a warning.
+`WorkerCompiler`, the compiler throws an error.
 
 ---
 
@@ -208,7 +218,7 @@ import { launch } from '@cloudflare/playwright';
 
 const fetcher = new BrowserFetcher(
     env.BROWSER,
-    { timeout: 30_000, waitUntil: 'networkidle0' },
+    { timeout: 30_000, waitUntil: 'networkidle' },
     launch,
 );
 
@@ -222,6 +232,7 @@ const content = await fetcher.fetch('https://example.com/filter-list.txt');
 | Binding | Type | Required for |
 |---|---|---|
 | `BROWSER` | `Fetcher` | All browser navigation |
-| `COMPILATION_CACHE` | `KVNamespace` | `POST /api/browser/monitor`, `GET /api/browser/monitor/latest` |
+| `FILTER_STORAGE` | `R2Bucket` | Screenshot capture (`POST /api/browser/monitor` with `captureScreenshots: true`) |
+| `COMPILATION_CACHE` | `KVNamespace` | Result persistence (`POST /api/browser/monitor`, `GET /api/browser/monitor/latest`) |
 
-Both are already declared in `worker/types.ts` (`Env` interface) and `wrangler.toml`.
+Both `BROWSER` and `COMPILATION_CACHE` are already declared in `worker/types.ts` (`Env` interface) and `wrangler.toml`.

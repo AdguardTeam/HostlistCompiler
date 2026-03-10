@@ -146,11 +146,14 @@ export async function fetchWithBrowser(
 
 /**
  * Navigates to `url` in a headless browser, takes a full-page PNG screenshot,
- * and returns it as a base-64 encoded string.
+ * and returns the raw bytes as a {@link Uint8Array}.
+ *
+ * Callers that need a base-64 string (e.g. to embed the screenshot inline in an
+ * API response) can convert with {@link uint8ArrayToBase64}.
  *
  * @throws {Error} If navigation or screenshot capture fails.
  */
-export async function takeSourceScreenshot(binding: BrowserWorker, url: string, options: BrowserNavOptions = {}): Promise<string> {
+export async function takeSourceScreenshot(binding: BrowserWorker, url: string, options: BrowserNavOptions = {}): Promise<Uint8Array> {
     const browser = await acquireBrowser(binding);
     let page: IPlaywrightPage | undefined;
 
@@ -162,11 +165,9 @@ export async function takeSourceScreenshot(binding: BrowserWorker, url: string, 
         });
 
         // Playwright's screenshot() returns a Buffer/Uint8Array.
-        const screenshotBuffer = await (page as unknown as {
+        return await (page as unknown as {
             screenshot(options?: { fullPage?: boolean }): Promise<Uint8Array>;
         }).screenshot({ fullPage: true });
-
-        return uint8ArrayToBase64(screenshotBuffer);
     } catch (error) {
         throw new Error(`takeSourceScreenshot failed for '${url}': ${ErrorUtils.getMessage(error)}`);
     } finally {

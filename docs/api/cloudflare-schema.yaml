@@ -1275,15 +1275,17 @@ paths:
         post:
             tags:
                 - Browser Rendering
-            summary: Monitor filter-list sources for changes
+            summary: Monitor filter-list sources for reachability
             description: |
-                Fetches each provided URL using the Cloudflare Browser Rendering binding and
-                computes a content hash. The result is compared against the previously stored hash
-                (if any) in `COMPILATION_CACHE` KV. Each source is reported as `changed` or
-                `unchanged`. The latest result set is persisted under the KV key
-                `browser:monitor:latest` and is retrievable via `GET /api/browser/monitor/latest`.
+                Performs parallel browser-based health checks on a list of filter-list source
+                URLs. For each URL a headless browser navigates to the page, verifies non-empty
+                text content, and optionally captures a full-page PNG screenshot stored in R2.
 
-                Requires both the `BROWSER` and `COMPILATION_CACHE` bindings.
+                The full result set is persisted under the KV key `browser:monitor:latest`
+                and is retrievable via `GET /api/browser/monitor/latest`.
+
+                Requires the `BROWSER` binding. `FILTER_STORAGE` (R2) is required for
+                screenshot capture. `COMPILATION_CACHE` (KV) is required for result persistence.
             operationId: browserMonitor
             security:
                 -
@@ -1296,7 +1298,7 @@ paths:
                             $ref: '#/components/schemas/SourceMonitorRequest'
             responses:
                 '200':
-                    description: Per-source change status
+                    description: Per-source reachability results
                     content:
                         application/json:
                             schema:
@@ -1304,7 +1306,7 @@ paths:
                 '400':
                     description: Invalid request body
                 '503':
-                    description: BROWSER or COMPILATION_CACHE binding not configured
+                    description: BROWSER binding not configured
     /api/browser/monitor/latest:
         get:
             tags:
@@ -2690,14 +2692,12 @@ components:
             enum:
                 - load
                 - domcontentloaded
-                - networkidle0
-                - networkidle2
-            default: networkidle0
+                - networkidle
+            default: networkidle
             description: |
-                Playwright `waitUntil` navigation event. `networkidle0` (default) waits until
+                Playwright `waitUntil` navigation event. `networkidle` (default) waits until
                 there are no more than 0 network connections for at least 500 ms — suitable for
-                most filter-list sources. Use `load` for fastest navigation and `networkidle2`
-                when a source page fires a few background XHRs after the primary load.
+                most filter-list sources. Use `load` for fastest navigation.
         BrowserResolveRequest:
             type: object
             required:
@@ -2713,32 +2713,44 @@ components:
         BrowserResolveResponse:
             type: object
             required:
-                - url
+                - success
+                - resolvedUrl
+                - originalUrl
             properties:
-                url:
+                success:
+                    type: boolean
+                    example: true
+                resolvedUrl:
                     type: string
                     format: uri
-                    description: The canonical URL after all redirects.
+                    description: The canonical URL after all JavaScript redirects have settled.
                     example: 'https://example.com/final-destination'
+                originalUrl:
+                    type: string
+                    format: uri
+                    description: The original URL that was submitted.
+                    example: 'https://example.com/redirect-me'
         SourceMonitorEntry:
             type: object
             required:
                 - url
-                - changed
+                - reachable
+                - checkedAt
             properties:
                 url:
                     type: string
                     format: uri
                     description: The source URL that was checked.
-                changed:
+                reachable:
                     type: boolean
-                    description: Whether the content hash has changed since the last check.
-                hash:
+                    description: Whether the URL was reachable and returned non-empty content.
+                checkedAt:
                     type: string
-                    description: Current SHA-256 content hash (hex).
-                previousHash:
+                    format: date-time
+                    description: ISO-8601 timestamp of when this URL was checked.
+                screenshotKey:
                     type: string
-                    description: 'Previously stored hash, or null if this is the first check.'
+                    description: R2 object key for the captured screenshot (only present when captureScreenshots is true).
                 error:
                     type: string
                     description: 'Error message, present only when the URL could not be fetched.'
@@ -2753,26 +2765,52 @@ components:
                         type: string
                         format: uri
                     minItems: 1
-                    description: One or more filter-list source URLs to check.
+                    maxItems: 10
+                    description: One or more filter-list source URLs to check (max 10).
                     example:
                         - 'https://example.com/filter-list.txt'
                         - 'https://another.example.com/rules.txt'
+                captureScreenshots:
+                    type: boolean
+                    default: false
+                    description: When true, a full-page PNG screenshot is captured and stored in R2 per URL.
+                screenshotPrefix:
+                    type: string
+                    description: R2 key prefix for screenshots (alphanumeric, hyphens, underscores only). Defaults to the current ISO date.
+                    example: '2025-07-01'
+                timeout:
+                    type: integer
+                    minimum: 1000
+                    maximum: 60000
+                    description: Per-URL navigation timeout in milliseconds.
+                    example: 30000
                 waitUntil:
                     $ref: '#/components/schemas/BrowserWaitUntil'
         SourceMonitorResponse:
             type: object
             required:
-                - checkedAt
+                - success
                 - results
+                - total
+                - reachable
+                - unreachable
             properties:
-                checkedAt:
-                    type: string
-                    format: date-time
-                    description: ISO-8601 timestamp of when the check was performed.
+                success:
+                    type: boolean
+                    example: true
                 results:
                     type: array
                     items:
                         $ref: '#/components/schemas/SourceMonitorEntry'
+                total:
+                    type: integer
+                    description: Total number of URLs checked.
+                reachable:
+                    type: integer
+                    description: Number of reachable URLs.
+                unreachable:
+                    type: integer
+                    description: Number of unreachable URLs.
     responses:
         BadRequestError:
             description: Bad request - request body failed schema validation
