@@ -1,6 +1,6 @@
 {
     "name": "adblock-compiler",
-    "version": "0.49.2",
+    "version": "0.50.0",
     "description": "Compiler-as-a-Service for adblock filter lists",
     "homepage": "https://adblock-compiler.jayson-knight.workers.dev/",
     "type": "module",
