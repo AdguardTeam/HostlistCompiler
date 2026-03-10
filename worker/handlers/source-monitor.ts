@@ -33,7 +33,12 @@ import { fetchWithBrowser, takeSourceScreenshot } from './browser.ts';
 export const SourceMonitorRequestSchema = z.object({
     urls: z.array(z.string().url('each url must be a valid absolute URL')).min(1, 'urls must contain at least one URL').max(10, 'urls must contain at most 10 URLs'),
     captureScreenshots: z.boolean().optional().describe('Capture a full-page PNG screenshot per URL'),
-    screenshotPrefix: z.string().optional().describe('R2 key prefix for screenshots (defaults to ISO date)'),
+    screenshotPrefix: z
+        .string()
+        .regex(/^[a-zA-Z0-9_-]+$/, 'screenshotPrefix must contain only alphanumeric characters, hyphens, or underscores')
+        .max(50)
+        .optional()
+        .describe('R2 key prefix for screenshots — alphanumeric, hyphens, and underscores only (defaults to ISO date)'),
     timeout: z.number().int().min(1_000).max(60_000).optional().describe('Per-URL navigation timeout in ms (1 000–60 000)'),
     waitUntil: z.enum(['load', 'domcontentloaded', 'networkidle']).optional().describe(
         "Page-load strategy applied to every URL: 'networkidle' (default), 'load', or 'domcontentloaded'",

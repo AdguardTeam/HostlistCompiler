@@ -165,9 +165,16 @@ export class WorkerCompiler {
      * `browserBinding` were supplied via `WorkerCompilerDependencies`, a
      * {@link BrowserFetcher} is returned so that the source is fetched through
      * Cloudflare Browser Rendering.  Otherwise the default fetcher is used.
+     *
+     * @throws {Error} when `useBrowser: true` but browser dependencies were not provided.
      */
     private getFetcherForSource(source: ISource): IContentFetcher {
-        if (source.useBrowser && this.browserConnector && this.browserBinding) {
+        if (source.useBrowser) {
+            if (!this.browserConnector || !this.browserBinding) {
+                throw new Error(
+                    `Source '${source.source}' has useBrowser: true but browserConnector and browserBinding were not provided to WorkerCompiler`,
+                );
+            }
             return new BrowserFetcher(this.browserBinding, {}, this.browserConnector);
         }
         return this.fetcher;
