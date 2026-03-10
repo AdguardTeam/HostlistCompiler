@@ -20,7 +20,6 @@ import type { IConfiguration } from '../src/types/index.ts';
 import { VERSION } from '../src/version.ts';
 
 const PORT = parseInt(Deno.env.get('PORT') ?? '8787', 10);
-const CONTAINER_SECRET = Deno.env.get('CONTAINER_SECRET') ?? '';
 
 /**
  * Request body accepted by `POST /compile`.
@@ -52,14 +51,17 @@ export async function handler(request: Request): Promise<Response> {
     }
 
     if (request.method === 'POST' && url.pathname === '/compile') {
+        // Read per-request so tests can set the env var before calling
+        const containerSecret = Deno.env.get('CONTAINER_SECRET') ?? '';
+
         // Verify shared secret for defense-in-depth; fail closed if misconfigured
-        if (!CONTAINER_SECRET) {
+        if (!containerSecret) {
             console.error('[container-server] CONTAINER_SECRET is not configured; refusing /compile request');
             return new Response('Service unavailable: container secret not configured', { status: 503 });
         }
 
         const provided = request.headers.get('X-Container-Secret');
-        if (!provided || provided !== CONTAINER_SECRET) {
+        if (!provided || provided !== containerSecret) {
             return new Response('Unauthorized', { status: 401 });
         }
 
