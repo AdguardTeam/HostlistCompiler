@@ -16,7 +16,7 @@
  */
 
 import { Component, inject, signal, viewChild, effect } from '@angular/core';
-import { ChildrenOutletContexts, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,7 +26,6 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { ThemeService } from './services/theme.service';
-import { routeAnimation } from './route-animations';
 import { ErrorBoundaryComponent } from './error/error-boundary.component';
 import { NotificationContainerComponent } from './notification/notification-container.component';
 
@@ -58,7 +57,6 @@ interface NavItem {
         ErrorBoundaryComponent,
         NotificationContainerComponent,
     ],
-    animations: [routeAnimation],
     template: `
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <mat-sidenav-container class="app-sidenav-container">
@@ -160,9 +158,7 @@ interface NavItem {
             <!-- toolbar-title: required by AppComponent unit tests (app.component.spec.ts line 112).
                  Do not remove even though it is visually hidden. -->
             <span class="toolbar-title" aria-hidden="true" style="display:none">Adblock Compiler</span>
-            <div [@routeAnimation]="getRouteAnimationData()">
-              <router-outlet />
-            </div>
+            <router-outlet />
           </main>
 
           <!-- Footer matching original -->
@@ -232,8 +228,6 @@ export class AppComponent {
      */
     readonly themeService = inject(ThemeService);
 
-    private readonly contexts = inject(ChildrenOutletContexts);
-
     constructor() {
         // Close the mobile drawer whenever desktop layout is active (horizontal nav takes over).
         // Runs whenever isMobile() is false to ensure the drawer stays closed on desktop.
@@ -246,9 +240,5 @@ export class AppComponent {
 
     toggleSidenav(): void {
         this.sidenavOpen.update(open => !open);
-    }
-
-    getRouteAnimationData(): string {
-        return this.contexts.getContext('primary')?.route?.snapshot?.url.toString() ?? '';
     }
 }
