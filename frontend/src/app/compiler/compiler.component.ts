@@ -505,7 +505,7 @@ export class CompilerComponent {
     private readonly notifications   = inject(NotificationService);
     private readonly log             = inject(LogService);
 
-    readonly turnstileSiteKey = inject(TurnstileService).siteKey;
+    readonly turnstileSiteKey = this.turnstileService.siteKey;
 
     /** Active compilation mode */
     compileMode: CompileMode = 'json';
