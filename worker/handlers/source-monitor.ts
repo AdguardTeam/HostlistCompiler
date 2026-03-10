@@ -13,7 +13,7 @@
  *
  * **Required binding:** `BROWSER` (Cloudflare Browser Rendering)
  * **Optional bindings:** `FILTER_STORAGE` (R2 bucket for screenshots),
- *                        `CACHE` (KV namespace for summary persistence)
+ *                        `COMPILATION_CACHE` (KV namespace for summary persistence)
  *
  * **Rate limit / auth:** protected by `requireAuth` in the router.
  */
@@ -55,6 +55,17 @@ function todayPrefix(): string {
     return new Date().toISOString().replace(ISO_DATE_RE, '');
 }
 
+/**
+ * Returns a 12-character hex prefix derived from a SHA-256 digest of `url`.
+ * Used to produce a collision-resistant R2 object key for screenshots.
+ */
+async function hashUrl(url: string): Promise<string> {
+    const data = new TextEncoder().encode(url);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer).subarray(0, 6));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function checkUrl(
     env: Env,
     url: string,
@@ -73,12 +84,11 @@ async function checkUrl(
 
         if (captureScreenshots && env.FILTER_STORAGE) {
             try {
-                const base64 = await takeSourceScreenshot(env.BROWSER!, url, { timeout, waitUntil });
-                // base64 → binary → store in R2
-                const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-                const slug = url.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100);
+                // takeSourceScreenshot returns Uint8Array — no base64 round-trip needed.
+                const screenshotBytes = await takeSourceScreenshot(env.BROWSER!, url, { timeout, waitUntil });
+                const slug = await hashUrl(url);
                 screenshotKey = `${screenshotPrefix}/${slug}.png`;
-                await env.FILTER_STORAGE.put(screenshotKey, binary.buffer, {
+                await env.FILTER_STORAGE.put(screenshotKey, screenshotBytes.buffer, {
                     httpMetadata: { contentType: 'image/png' },
                 });
             } catch {
