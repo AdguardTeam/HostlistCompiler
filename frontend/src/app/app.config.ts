@@ -20,9 +20,11 @@
  *     provideAppInitializer(() => { inject(ThemeService).loadPreferences(); })
  */
 
-import { ApplicationConfig, ErrorHandler, provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, PLATFORM_ID, provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withViewTransitions, withPreloading, PreloadAllModules, TitleStrategy } from '@angular/router';
 import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { firstValueFrom, timeout } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
@@ -76,27 +78,33 @@ export const appConfig: ApplicationConfig = {
         // MatIconRegistry: switches mat-icon from the legacy 'Material Icons' ligature font
         // (not in npm) to the 'material-symbols' npm package which is already imported in
         // styles.css via `@import 'material-symbols/outlined.css'`.
-        // TurnstileService: fires a non-blocking request to /api/turnstile-config so the
-        // widget renders with the correct key without hardcoding it in the source.
-        // The request is fire-and-forget (no await) so a slow/failing network call
-        // cannot delay the first render.
-        provideAppInitializer(() => {
+        // TurnstileService: awaits /api/turnstile-config (browser only) so the site key
+        // signal is populated before the first render, ensuring the Turnstile widget
+        // renders with the correct key. Skipped during SSR/prerendering — Turnstile is
+        // only used on the compiler route (RenderMode.Server) and the widget is
+        // browser-only. A try/catch keeps this non-fatal so a network failure or timeout
+        // still allows the app to boot with Turnstile simply disabled.
+        provideAppInitializer(async () => {
             inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
             inject(ThemeService).loadPreferences();
-            // Fire-and-forget: fetch Turnstile site key without blocking bootstrap.
-            // inject() calls must stay in the top-level callback scope (injection context).
+
+            if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
+
             const http = inject(HttpClient);
             const turnstileService = inject(TurnstileService);
             const apiBaseUrl = inject(API_BASE_URL);
-            http.get<{ siteKey: string | null; enabled: boolean }>(`${apiBaseUrl}/turnstile-config`)
-                .subscribe({
-                    next: (config) => {
-                        if (config.enabled && config.siteKey) {
-                            turnstileService.setSiteKey(config.siteKey);
-                        }
-                    },
-                    error: () => { /* Non-fatal: Turnstile will be disabled if config can't be fetched */ },
-                });
+
+            try {
+                const config = await firstValueFrom(
+                    http.get<{ siteKey: string | null; enabled: boolean }>(`${apiBaseUrl}/turnstile-config`)
+                        .pipe(timeout(5000)),
+                );
+                if (config.enabled && config.siteKey) {
+                    turnstileService.setSiteKey(config.siteKey);
+                }
+            } catch {
+                // Non-fatal: Turnstile will be disabled if config can't be fetched or times out
+            }
         }),
     ],
 };
