@@ -489,7 +489,7 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Support streaming compilation via Server-Sent Events
 - Web UI in `public/index.html` and `public/test.html`
 - **Never commit placeholder binding IDs**: `wrangler.toml` binding IDs that are all-zeros are validated in CI — always use real resource IDs
-- **Prisma / D1 database**: When modifying the Prisma schema, run `deno task db:migrate` to apply migrations and `deno task db:generate` to regenerate the Prisma client. CI runs D1 migrations on deploy automatically.
+- **Prisma / PostgreSQL database**: When modifying the Prisma schema, run `deno task db:migrate` to apply migrations and `deno task db:generate` to regenerate the Prisma client. Production uses Cloudflare Hyperdrive to connect to PostgreSQL (PlanetScale/Neon); CI runs migrations on deploy automatically.
 
 ### Docker
 
@@ -497,9 +497,9 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Configuration via `docker-compose.yml`
 - Health checks included
 
-## Database (Prisma / D1)
+## Database (Prisma / PostgreSQL via Hyperdrive)
 
-The worker uses **Prisma** with the **Cloudflare D1** adapter for persistent storage.
+The worker uses **Prisma** with a **PostgreSQL** database (PlanetScale or Neon) accessed through **Cloudflare Hyperdrive** in production. Local development uses a local PostgreSQL instance (Docker or native). D1/SQLite is a separate binding used only for legacy admin and migration endpoints — it is not the primary Prisma data source.
 
 ### Key Commands
 
@@ -507,7 +507,7 @@ The worker uses **Prisma** with the **Cloudflare D1** adapter for persistent sto
 # Generate Prisma client after schema changes
 deno task db:generate
 
-# Push schema changes to the local D1 database
+# Push schema changes to the local database
 deno task db:push
 
 # Run migrations
@@ -521,7 +521,7 @@ deno task db:studio
 
 - Always run `deno task db:generate` after modifying `prisma/schema.prisma`
 - Always run `deno task db:migrate` before deploying schema changes — CI runs this automatically on deploy
-- Use `@prisma/adapter-pg` for the D1 connection; do not use the default Prisma client without the adapter
+- The Prisma schema uses the `postgresql` provider; configure `DATABASE_URL` as a Hyperdrive connection string in production (`wrangler secret put DATABASE_URL`) and as a local PostgreSQL URL in development
 
 ## Common Tasks
 
@@ -552,7 +552,7 @@ The worker includes an MCP (Model Context Protocol) agent routing layer.
 
 ### Key Points
 
-- `worker.ts` imports `PlaywrightMcpAgent` and `routeAgentRequest` from the MCP agent library
+- `worker/worker.ts` imports `PlaywrightMcpAgent` from `worker/mcp-agent.ts` and `routeAgentRequest` from `worker/agent-routing.ts` (local worker modules, not an external library)
 - All incoming requests are evaluated by `routeAgentRequest` before falling through to standard HTTP handlers
 - When adding new agent-addressable capabilities, register them through the MCP agent routing layer rather than adding raw HTTP endpoints
 - Do not remove or short-circuit the `routeAgentRequest` call in the worker fetch handler
