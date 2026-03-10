@@ -98,6 +98,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.51.0] - 2026-03-10
+
+### Added- add validate-rule, rule set CRUD, and notify endpoints (#912)
+
+### Fixed
+
+- remove placeholder RULES_KV binding that broke Cloudflare preview builds
+- **ci**: regenerate cloudflare schema, add preflight task and pre-push hook
+- address code review feedback — rate limit via JsonResponse, accurate total in rule list, clearer strict mode comment
+- address all review feedback from PR #947
+- **ci**: use single quotes in codecov.yml to pass deno fmt check
+- **ci**: add codecov.yml and expand turnstile coverage tests
+- **turnstile**: add load-error fallback, gating unit tests, and refine constants
+- **turnstile**: add platform guard and timeout to app initializer
+- **turnstile**: use correct ToastType 'warning' instead of 'warn'
+- **turnstile**: async bootstrap, submit guard, and reactive disabled binding
+- **frontend**: remove stale getRouteAnimationData test from app.component.spec.ts
+- **frontend**: eliminate navigation flicker on tab switch (#942)
+
+
 ## [0.50.1] - 2026-03-10
 
 ### Added### Fixed
