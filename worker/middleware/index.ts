@@ -140,13 +140,37 @@ export function isTurnstileEnabled(env: Env): boolean {
 // ============================================================================
 
 /**
+ * Constant-time string comparison to prevent timing attacks.
+ * Uses HMAC-based comparison via Web Crypto API.
+ */
+async function timingSafeCompare(a: string, b: string): Promise<boolean> {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode('timing-safe-compare-key');
+    const key = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign'],
+    );
+    const aMac = new Uint8Array(await crypto.subtle.sign('HMAC', key, encoder.encode(a)));
+    const bMac = new Uint8Array(await crypto.subtle.sign('HMAC', key, encoder.encode(b)));
+    if (aMac.length !== bMac.length) return false;
+    let result = 0;
+    for (let i = 0; i < aMac.length; i++) {
+        result |= aMac[i] ^ bMac[i];
+    }
+    return result === 0;
+}
+
+/**
  * Verify admin authentication from request headers.
  *
  * @param request - Incoming request
  * @param env - Environment bindings
  * @returns Authorization result
  */
-export function verifyAdminAuth(request: Request, env: Env): AdminAuthResult {
+export async function verifyAdminAuth(request: Request, env: Env): Promise<AdminAuthResult> {
     const adminKey = request.headers.get('X-Admin-Key');
 
     // If no ADMIN_KEY is configured, admin features are disabled
@@ -154,8 +178,13 @@ export function verifyAdminAuth(request: Request, env: Env): AdminAuthResult {
         return { authorized: false, error: 'Admin features not configured' };
     }
 
-    // Verify the provided key matches
-    if (!adminKey || adminKey !== env.ADMIN_KEY) {
+    if (!adminKey) {
+        return { authorized: false, error: 'Unauthorized' };
+    }
+
+    // Use constant-time comparison to prevent timing attacks
+    const matches = await timingSafeCompare(adminKey, env.ADMIN_KEY);
+    if (!matches) {
         return { authorized: false, error: 'Unauthorized' };
     }
 

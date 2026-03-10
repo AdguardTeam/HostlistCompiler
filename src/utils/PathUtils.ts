@@ -78,8 +78,44 @@ export class PathUtils {
                 basePath.lastIndexOf('\\'),
             );
             const baseDir = lastSeparatorIndex >= 0 ? basePath.substring(0, lastSeparatorIndex + 1) : '';
-            return baseDir + includePath;
+            const resolved = PathUtils.normalizeDotSegments(baseDir + includePath);
+
+            // Prevent path traversal: resolved path must stay within the base directory
+            const normalizedBase = PathUtils.normalizeDotSegments(baseDir);
+            if (normalizedBase && !resolved.startsWith(normalizedBase)) {
+                throw new Error(`Path traversal detected: '${includePath}' escapes base directory '${baseDir}'`);
+            }
+
+            return resolved;
         }
+    }
+
+    /**
+     * Resolves `.` and `..` segments in a path without relying on the OS path module.
+     * Preserves the original path separator style (backslash or forward slash).
+     * @param path - The path to normalize
+     * @returns Normalized path with dot segments resolved
+     */
+    public static normalizeDotSegments(path: string): string {
+        // Detect whether the path uses backslashes (Windows-style)
+        const usesBackslash = path.includes('\\');
+        const normalized = path.replace(/\\/g, '/');
+        const segments = normalized.split('/');
+        const result: string[] = [];
+
+        for (const segment of segments) {
+            if (segment === '..') {
+                // Only pop if we have segments and we're not at the root
+                if (result.length > 0 && result[result.length - 1] !== '') {
+                    result.pop();
+                }
+            } else if (segment !== '.') {
+                result.push(segment);
+            }
+        }
+
+        const sep = usesBackslash ? '\\' : '/';
+        return result.join(sep);
     }
 
     /**

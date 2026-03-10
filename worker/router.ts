@@ -512,7 +512,7 @@ export async function handleRequest(
 
         // Admin authentication
         if (route.requireAuth) {
-            const auth = verifyAdminAuth(request, env);
+            const auth = await verifyAdminAuth(request, env);
             if (!auth.authorized) {
                 return JsonResponse.error(auth.error || 'Unauthorized', 401);
             }

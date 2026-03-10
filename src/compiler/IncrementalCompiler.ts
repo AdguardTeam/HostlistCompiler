@@ -225,7 +225,7 @@ export class IncrementalCompiler {
                 sources: sourceResults.map((sr) => ({
                     ...sr.source,
                     _precompiled: sr.rules,
-                })) as ISource[],
+                })),
             },
             benchmark,
         );

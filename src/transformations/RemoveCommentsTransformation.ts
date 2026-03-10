@@ -17,7 +17,7 @@ export class RemoveCommentsTransformation extends SyncTransformation {
      * @param rules - Array of rules to process
      * @returns Array with comments removed
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         const filtered = rules.filter((rule) => !RuleUtils.isComment(rule));
         this.info(`Removed ${rules.length - filtered.length} comments`);
         return filtered;

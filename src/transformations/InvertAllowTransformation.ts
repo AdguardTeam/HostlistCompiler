@@ -17,7 +17,7 @@ export class InvertAllowTransformation extends SyncTransformation {
      * @param rules - Array of rules to invert
      * @returns Array with inverted rules
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         let inverted = 0;
 
         const filtered = rules.map((rule) => {

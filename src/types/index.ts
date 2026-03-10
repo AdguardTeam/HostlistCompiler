@@ -76,6 +76,12 @@ export interface ISource extends IFilterable, ITransformable {
      * {@link FilterCompiler} or in the Deno CLI.
      */
     useBrowser?: boolean;
+    /**
+     * Pre-compiled rules for this source. Used internally by incremental
+     * compilation to pass cached rules without re-downloading.
+     * @internal
+     */
+    _precompiled?: readonly string[];
 }
 
 /**

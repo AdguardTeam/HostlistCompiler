@@ -182,6 +182,16 @@ export async function handleAdminListTables(env: Env): Promise<Response> {
  * Handle POST /admin/storage/query request.
  * Allows read-only SQL queries for debugging.
  */
+/**
+ * Strips SQL comments (single-line -- and multi-line / * ... * /) from a query string.
+ * Used for security validation to prevent bypassing pattern checks via comments.
+ */
+function stripSqlComments(sql: string): string {
+    return sql
+        .replace(/\/\*[\s\S]*?\*\//g, ' ') // multi-line comments
+        .replace(/--[^\n]*/g, ' '); // single-line comments
+}
+
 export async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
     if (!env.DB) {
         return JsonResponse.serviceUnavailable('D1 database not configured');
@@ -195,8 +205,11 @@ export async function handleAdminQuery(request: Request, env: Env): Promise<Resp
             return JsonResponse.badRequest('Missing or invalid SQL query');
         }
 
+        // Strip comments before validation to prevent bypass
+        const sanitized = stripSqlComments(sql);
+
         // Validate that the query is read-only (SELECT only)
-        const normalizedSql = sql.trim().toUpperCase();
+        const normalizedSql = sanitized.trim().toUpperCase();
         if (!normalizedSql.startsWith('SELECT')) {
             return JsonResponse.badRequest('Only SELECT queries are allowed');
         }
@@ -215,12 +228,15 @@ export async function handleAdminQuery(request: Request, env: Env): Promise<Resp
         ];
 
         for (const pattern of dangerousPatterns) {
-            if (pattern.test(sql)) {
+            if (pattern.test(sanitized)) {
                 return JsonResponse.badRequest('Query contains disallowed SQL statements');
             }
         }
 
-        const result = await env.DB.prepare(sql).all();
+        // Enforce row limit to prevent resource exhaustion
+        const limitedSql = /\bLIMIT\b/i.test(sanitized) ? sql : `${sql} LIMIT 1000`;
+
+        const result = await env.DB.prepare(limitedSql).all();
 
         return JsonResponse.success({
             rows: result.results || [],

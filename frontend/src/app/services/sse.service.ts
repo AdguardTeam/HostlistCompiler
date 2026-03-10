@@ -74,6 +74,7 @@ export class SseService {
         const status = signal<SseStatus>('idle');
         const retryCount = signal(0);
         let abortController: AbortController | null = new AbortController();
+        let connectionId = 0;
 
         const isActive = computed(() => {
             const s = status();
@@ -89,6 +90,7 @@ export class SseService {
         };
 
         const close = () => {
+            connectionId++; // Invalidate any pending retries
             abortController?.abort();
             abortController = null;
             status.set('closed');
@@ -98,6 +100,7 @@ export class SseService {
 
         const attempt = (retry: number) => {
             if (!abortController) return; // connection was closed
+            const thisConnectionId = connectionId;
             retryCount.set(retry);
             status.set('connecting');
 
@@ -111,6 +114,9 @@ export class SseService {
                 () => status.set('open'),
                 () => status.set('closed'),
                 (error) => {
+                    // Bail out if the connection was closed/replaced during the attempt
+                    if (thisConnectionId !== connectionId) return;
+
                     this.logger.error('[SseService] Stream error', 'sse', {
                         error: error instanceof Error ? error.message : String(error),
                     });
@@ -118,7 +124,11 @@ export class SseService {
                     if (retry < SseService.MAX_RETRIES && abortController) {
                         const delay = Math.min(1000 * Math.pow(2, retry), 8000);
                         status.set('connecting');
-                        setTimeout(() => attempt(retry + 1), delay);
+                        setTimeout(() => {
+                            if (thisConnectionId === connectionId) {
+                                attempt(retry + 1);
+                            }
+                        }, delay);
                     } else {
                         status.set('error');
                     }

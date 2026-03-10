@@ -36,9 +36,48 @@ export class HttpFetcher implements IContentFetcher {
     }
 
     /**
+     * Validates that a URL does not target private/internal network addresses.
+     * Prevents SSRF attacks against localhost, private IPs, and cloud metadata endpoints.
+     */
+    public static isSafeUrl(url: string): boolean {
+        try {
+            const parsed = new URL(url);
+            const host = parsed.hostname.toLowerCase();
+
+            // Reject loopback addresses
+            if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '::1' || host === '0.0.0.0') {
+                return false;
+            }
+
+            // Reject private IP ranges (RFC 1918)
+            if (/^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(host)) {
+                return false;
+            }
+
+            // Reject link-local and cloud metadata endpoints
+            if (/^169\.254\./.test(host) || host === 'metadata.google.internal') {
+                return false;
+            }
+
+            // Reject IPv6 private/loopback (common patterns)
+            if (host.startsWith('[fe80:') || host.startsWith('[fc') || host.startsWith('[fd')) {
+                return false;
+            }
+
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
      * Fetches content from a URL.
      */
     public async fetch(source: string): Promise<string> {
+        if (!HttpFetcher.isSafeUrl(source)) {
+            throw new Error(`Blocked request to private/internal address: ${source}`);
+        }
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
 

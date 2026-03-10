@@ -92,6 +92,9 @@ export class ArgumentParser {
             if (!Number.isFinite(n) || !Number.isInteger(n)) {
                 throw new Error(`Invalid value for --${flagName}: expected a finite integer, got: ${String(v)}`);
             }
+            if (n < 0) {
+                throw new Error(`Invalid value for --${flagName}: expected a non-negative integer, got: ${n}`);
+            }
             return n;
         };
 

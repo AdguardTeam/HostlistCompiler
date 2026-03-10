@@ -15,7 +15,7 @@ export class RemoveEmptyLinesTransformation extends SyncTransformation {
      * @param rules - Array of rules to process
      * @returns Array with empty lines removed
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         const filtered = rules.filter((line) => line.trim().length > 0);
         this.info(`Removed ${rules.length - filtered.length} empty lines`);
         return filtered;

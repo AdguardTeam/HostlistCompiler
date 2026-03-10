@@ -139,8 +139,8 @@ function setupHeartbeat(ws: WebSocket, state: WebSocketConnectionState): void {
         // Check if connection has timed out
         if (timeSinceLastHeartbeat > WS_CONFIG.CONNECTION_TIMEOUT) {
             console.log(`[WebSocket] Connection timeout: ${state.connectionId}`);
-            ws.close(1000, 'Connection timeout');
             clearInterval(interval);
+            ws.close(1000, 'Connection timeout');
             return;
         }
 
@@ -155,6 +155,11 @@ function setupHeartbeat(ws: WebSocket, state: WebSocketConnectionState): void {
             clearInterval(interval);
         }
     }, WS_CONFIG.HEARTBEAT_INTERVAL);
+
+    // Clear interval when the WebSocket closes normally
+    ws.addEventListener('close', () => {
+        clearInterval(interval);
+    });
 }
 
 /**

@@ -29,7 +29,7 @@ export class RemoveModifiersTransformation extends SyncTransformation {
      * @param rules - Array of rules to process
      * @returns Array with modifiers removed
      */
-    public executeSync(rules: string[]): string[] {
+    public executeSync(rules: readonly string[]): readonly string[] {
         const filtered: string[] = [];
         let modifiedCount = 0;
 

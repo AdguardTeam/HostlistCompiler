@@ -154,6 +154,12 @@ export class D1StorageAdapter implements IStorageAdapter {
             enableLogging: config.enableLogging ?? false,
             tablePrefix: config.tablePrefix ?? '',
         };
+
+        // Validate table prefix to prevent SQL injection
+        if (this.config.tablePrefix && !/^[a-zA-Z0-9_]+$/.test(this.config.tablePrefix)) {
+            throw new Error(`Invalid table prefix "${this.config.tablePrefix}": only alphanumeric characters and underscores are allowed`);
+        }
+
         this.logger = logger;
     }
 
