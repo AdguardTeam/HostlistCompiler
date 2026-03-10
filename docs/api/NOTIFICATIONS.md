@@ -5,7 +5,8 @@ to one or more configured external targets: a generic HTTP webhook, Sentry, and/
 Datadog. The response reports delivery success for each target independently so
 callers can handle partial failures.
 
-All requests require a Bearer token in the `Authorization` header.
+This endpoint does not require an `Authorization` header; it is protected via payload
+validation, size limits, and rate limiting.
 
 ---
 
@@ -19,7 +20,7 @@ All requests require a Bearer token in the `Authorization` header.
 {
     "event": "compilation.failed",       // required — machine-readable event name
     "message": "Worker timed out",       // required — human-readable description
-    "level": "error",                    // optional — info | warn | error  (default: "info")
+    "level": "error",                    // optional — info | warn | error | debug  (default: "info")
     "source": "adblock-compiler",        // optional — originating service/component
     "timestamp": "2026-03-10T12:00:00Z", // optional — ISO 8601 (defaults to now)
     "metadata": {                        // optional — arbitrary key/value pairs
@@ -33,7 +34,7 @@ All requests require a Bearer token in the `Authorization` header.
 |---|---|---|---|
 | `event` | `string` | ✅ | Machine-readable event identifier (e.g., `compilation.failed`) |
 | `message` | `string` | ✅ | Human-readable description of the event |
-| `level` | `string` | ❌ | Severity level: `"info"`, `"warn"`, or `"error"`. Default: `"info"` |
+| `level` | `string` | ❌ | Severity level: `"info"`, `"warn"`, `"error"`, or `"debug"`. Default: `"info"` |
 | `source` | `string` | ❌ | Originating service or component name |
 | `timestamp` | `string` | ❌ | ISO 8601 timestamp. Defaults to the time of the request |
 | `metadata` | `object` | ❌ | Arbitrary key/value pairs forwarded to all targets |
@@ -47,25 +48,29 @@ All requests require a Bearer token in the `Authorization` header.
 ```jsonc
 {
     "success": true,
-    "results": [
+    "event": "compilation.completed",
+    "deliveries": [
         { "target": "generic", "success": true, "statusCode": 200 },
         { "target": "sentry",  "success": true, "statusCode": 200 }
-    ]
+    ],
+    "duration": "42ms"
 }
 ```
 
 ### Partial failure — `200`
 
-The HTTP response is `200` even when some targets fail. Inspect `results` to determine
-which targets succeeded.
+The HTTP response is `200` even when some targets fail. Inspect `deliveries` to
+determine which targets succeeded.
 
 ```jsonc
 {
     "success": true,
-    "results": [
+    "event": "compilation.completed",
+    "deliveries": [
         { "target": "generic", "success": false, "error": "Connection refused" },
         { "target": "datadog", "success": true,  "statusCode": 202 }
-    ]
+    ],
+    "duration": "38ms"
 }
 ```
 
@@ -74,10 +79,11 @@ which targets succeeded.
 ```jsonc
 {
     "success": false,
-    "error": "All notification targets failed",
-    "results": [
+    "event": "compilation.completed",
+    "deliveries": [
         { "target": "generic", "success": false, "error": "Connection refused" }
-    ]
+    ],
+    "duration": "15ms"
 }
 ```
 
@@ -154,7 +160,6 @@ The event is submitted to the Datadog Events v1 API (`/api/v1/events`):
 
 ```bash
 curl -X POST https://adblock-compiler.jayson-knight.workers.dev/api/notify \
-  -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "event": "compilation.completed",
@@ -170,10 +175,7 @@ curl -X POST https://adblock-compiler.jayson-knight.workers.dev/api/notify \
 ```typescript
 await fetch('/api/notify', {
     method: 'POST',
-    headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
         event: 'compilation.failed',
         message: 'Source download timed out after 30s',
@@ -189,5 +191,5 @@ await fetch('/api/notify', {
 
 - Delivery to each target is attempted in parallel.
 - Failed deliveries are reported in the response but do not affect other targets.
-- The endpoint always returns `200` when at least one target succeeds. Use the `results`
+- The endpoint always returns `200` when at least one target succeeds. Use the `deliveries`
   array to detect partial failures.
