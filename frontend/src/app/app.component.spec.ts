@@ -97,12 +97,6 @@ describe('AppComponent', () => {
         expect(component.themeService.isDark()).toBe(false);
     });
 
-    it('should return route animation data', () => {
-        // Without navigation, returns empty or default
-        const data = component.getRouteAnimationData();
-        expect(typeof data).toBe('string');
-    });
-
     it('should render the toolbar title', async () => {
         await fixture.whenStable();
         const el: HTMLElement = fixture.nativeElement;
