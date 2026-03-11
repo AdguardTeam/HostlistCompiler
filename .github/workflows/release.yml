@@ -264,7 +264,6 @@ jobs:
               with:
                   path: artifacts
                   pattern: adblock-compiler-*
-                  merge-multiple: true
 
             - name: Prepare release assets
               run: |
