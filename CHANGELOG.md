@@ -102,6 +102,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.54.0] - 2026-03-11
+
+### Added- add mdbook-pdf PDF generation to documentation build pipeline
+
+### Fixed
+
+- remove merge-multiple from download-artifact to match per-dir loop
+- remove manual Chromium install — use pre-installed runner browser
+- configure mdbook-pdf to output adblock-compiler.pdf directly
+
+
 ## [0.53.0] - 2026-03-10
 
 ### Added- add tar.gz/zip compression to release artifacts (Option B)
