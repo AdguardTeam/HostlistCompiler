@@ -6,6 +6,8 @@ src = "docs"
 [preprocessor.mermaid]
 command = "mdbook-mermaid"
 
+[output.pdf]
+
 [output.html]
 site-url = "/"
 git-repository-url = "https://github.com/jaypatrick/adblock-compiler"

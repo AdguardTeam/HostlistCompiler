@@ -38,6 +38,18 @@ jobs:
           sudo mv /tmp/mdbook-mermaid-install/mdbook-mermaid /usr/local/bin/
           rm -rf mdbook-mermaid.tar.gz /tmp/mdbook-mermaid-install
 
+      - name: Install mdbook-pdf and Chromium
+        run: |
+          MDBOOK_PDF_VERSION=0.1.10
+          curl -fsSL "https://github.com/HollowMan6/mdbook-pdf/releases/download/v${MDBOOK_PDF_VERSION}/mdbook-pdf" -o mdbook-pdf
+          chmod +x mdbook-pdf
+          sudo mv mdbook-pdf /usr/local/bin/
+
+          # Install Chromium for headless PDF rendering
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends chromium-browser || \
+            sudo apt-get install -y --no-install-recommends chromium
+
       - name: Set up Deno
         uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
         with:
@@ -56,6 +68,26 @@ jobs:
 
       - name: Build mdBook
         run: mdbook build
+
+      - name: Prepare PDF for deployment
+        run: |
+          set -euo pipefail
+          PDF_SRC="book/pdf/output.pdf"
+          PDF_DEST="book/pdf/adblock-compiler.pdf"
+          if [ -f "$PDF_SRC" ]; then
+            mv "$PDF_SRC" "$PDF_DEST"
+            echo "✅ PDF prepared at $PDF_DEST"
+          else
+            echo "⚠️ PDF not found at $PDF_SRC — skipping rename"
+          fi
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: adblock-compiler-docs-pdf
+          path: book/pdf/adblock-compiler.pdf
+          retention-days: 90
+          if-no-files-found: warn
 
       - name: Generate TypeScript API reference
         continue-on-error: true
