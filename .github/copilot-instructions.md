@@ -81,6 +81,7 @@ examples/             # Example implementations
 - **Interfaces**: Define interfaces in `src/types/index.ts`
 - **Utilities**: Pure functions in `src/utils/`
 - **Logging**: Use the `ILogger` interface, pass loggers via constructor dependency injection
+- **Extensibility**: Design code to be open for extension and closed for modification — prefer interfaces and base classes over concrete implementations when adding new capabilities, so existing behavior is not disturbed
 
 ### Naming Conventions
 
