@@ -362,3 +362,56 @@ export async function authenticateRequestUnified(
         ),
     };
 }
+
+// ============================================================================
+// Auth Guard Helpers
+// ============================================================================
+
+/**
+ * Returns a 401 JSON response if the auth context is anonymous, or `null` if
+ * the user is authenticated. Use as an early-return guard:
+ *
+ * ```ts
+ * const denied = requireAuth(authContext);
+ * if (denied) return denied;
+ * ```
+ */
+export function requireAuth(context: IAuthContext): Response | null {
+    if (context.authMethod === 'anonymous') {
+        return new Response(
+            JSON.stringify({ success: false, error: 'Authentication required' }),
+            { status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+    return null;
+}
+
+/**
+ * Returns a 403 JSON response if the user's tier is below the required minimum,
+ * or `null` if the tier is sufficient. Tier ordering:
+ * Anonymous (0) < Free (1) < Pro (2) < Admin (3).
+ *
+ * ```ts
+ * const denied = requireTier(authContext, UserTier.Pro);
+ * if (denied) return denied;
+ * ```
+ */
+export function requireTier(context: IAuthContext, minTier: UserTier): Response | null {
+    const tierOrder: Record<UserTier, number> = {
+        [UserTier.Anonymous]: 0,
+        [UserTier.Free]: 1,
+        [UserTier.Pro]: 2,
+        [UserTier.Admin]: 3,
+    };
+
+    if (tierOrder[context.tier] < tierOrder[minTier]) {
+        return new Response(
+            JSON.stringify({
+                success: false,
+                error: `Insufficient tier: requires ${minTier}, current tier is ${context.tier}`,
+            }),
+            { status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+    return null;
+}

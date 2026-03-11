@@ -14,7 +14,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 // Import shared types
-import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, Priority, QueueMessage, Workflow } from './types.ts';
+import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, IAuthContext, Priority, QueueMessage, Workflow } from './types.ts';
 
 // Container class for Cloudflare Containers deployment.
 // Extends the official @cloudflare/containers helper so that Cloudflare's
@@ -59,7 +59,8 @@ import { VERSION } from '../src/version.ts';
 import { handleWebSocketUpgrade } from './websocket.ts';
 import { AnalyticsService } from '../src/services/AnalyticsService.ts';
 import { getDeploymentHistory, getDeploymentStats, getLatestDeployment } from '../src/deployment/version.ts';
-import { validateRequestSize } from './middleware/index.ts';
+import { checkRateLimitTiered, validateRequestSize } from './middleware/index.ts';
+import { authenticateRequestUnified, requireAuth } from './middleware/auth.ts';
 import { API_DOCS_REDIRECT } from './utils/constants.ts';
 import { JsonResponse } from './utils/response.ts';
 import { handleValidateRule } from './handlers/validate-rule.ts';
@@ -113,7 +114,6 @@ function createPgPool(connectionString: string): {
  * Rate limiting configuration (from centralized defaults)
  */
 const RATE_LIMIT_WINDOW = WORKER_DEFAULTS.RATE_LIMIT_WINDOW_SECONDS;
-const RATE_LIMIT_MAX_REQUESTS = WORKER_DEFAULTS.RATE_LIMIT_MAX_REQUESTS;
 
 /**
  * Cache TTL in seconds (from centralized defaults)
@@ -185,39 +185,8 @@ interface CompilationResult {
     };
 }
 
-/**
- * Check rate limit for an IP address
- */
-async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
-    const key = `ratelimit:${ip}`;
-    const now = Date.now();
-
-    // Get current count
-    const data = await env.RATE_LIMIT.get(key, 'json') as { count: number; resetAt: number } | null;
-
-    if (!data || now > data.resetAt) {
-        // First request or window expired, start new window
-        await env.RATE_LIMIT.put(
-            key,
-            JSON.stringify({ count: 1, resetAt: now + (RATE_LIMIT_WINDOW * 1000) }),
-            { expirationTtl: RATE_LIMIT_WINDOW + 10 },
-        );
-        return true;
-    }
-
-    if (data.count >= RATE_LIMIT_MAX_REQUESTS) {
-        return false; // Rate limit exceeded
-    }
-
-    // Increment count
-    await env.RATE_LIMIT.put(
-        key,
-        JSON.stringify({ count: data.count + 1, resetAt: data.resetAt }),
-        { expirationTtl: RATE_LIMIT_WINDOW + 10 },
-    );
-
-    return true;
-}
+// Local checkRateLimit removed — replaced by imported checkRateLimitTiered
+// from ./middleware/index.ts which supports tier-aware rate limiting.
 
 /**
  * Turnstile verification response
@@ -3212,6 +3181,16 @@ export default {
         // routes above are already handled before this point.
         const routePath = pathname.startsWith('/api/') ? pathname.slice(4) : pathname;
 
+        // ── Unified Authentication ──────────────────────────────────────
+        // Runs the three-tier auth chain (Clerk JWT → API key → Anonymous).
+        // Never throws — auth failures produce a Response in authResult.
+        // Public routes still proceed (anonymous context, no short-circuit).
+        const authResult = await authenticateRequestUnified(request, env, createPgPool);
+        if (authResult.response) {
+            return authResult.response;
+        }
+        const authContext: IAuthContext = authResult.context;
+
         // Handle metrics endpoint
         if (routePath === '/metrics' && request.method === 'GET') {
             const metrics = await getMetrics(env);
@@ -3467,26 +3446,29 @@ export default {
                 return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
             }
 
-            const allowed = await checkRateLimit(env, ip);
+            const rateLimitResult = await checkRateLimitTiered(env, ip, authContext);
 
-            if (!allowed) {
+            if (!rateLimitResult.allowed) {
                 // Track rate limit exceeded event
                 analytics.trackRateLimitExceeded({
                     requestId,
                     clientIpHash: AnalyticsService.hashIp(ip),
-                    rateLimit: RATE_LIMIT_MAX_REQUESTS,
+                    rateLimit: rateLimitResult.limit,
                     windowSeconds: RATE_LIMIT_WINDOW,
                 });
 
                 return Response.json(
                     {
                         success: false,
-                        error: 'Rate limit exceeded. Maximum 10 requests per minute.',
+                        error: `Rate limit exceeded. Maximum ${rateLimitResult.limit} requests per ${RATE_LIMIT_WINDOW} seconds.`,
                     },
                     {
                         status: 429,
                         headers: {
-                            'Retry-After': '60',
+                            'Retry-After': String(Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)),
+                            'X-RateLimit-Limit': String(rateLimitResult.limit),
+                            'X-RateLimit-Remaining': '0',
+                            'X-RateLimit-Reset': String(rateLimitResult.resetAt),
                             'Access-Control-Allow-Origin': '*',
                         },
                     },
@@ -3625,8 +3607,11 @@ export default {
             return handleValidateRule(request, env);
         }
 
-        // Rule set management (POST /api/rules, GET /api/rules)
+        // Rule set management (POST /api/rules, GET /api/rules) — requires authentication
         if (routePath === '/rules') {
+            const authGuard = requireAuth(authContext);
+            if (authGuard) return authGuard;
+
             if (request.method === 'GET') {
                 return handleRulesList(request, env);
             }
@@ -3635,17 +3620,20 @@ export default {
                 if (!sizeValidation.valid) {
                     return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
                 }
-                const allowed = await checkRateLimit(env, ip);
-                if (!allowed) {
+                const rlCreate = await checkRateLimitTiered(env, ip, authContext);
+                if (!rlCreate.allowed) {
                     return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesCreate(request, env);
             }
         }
 
-        // Rule set management by ID (GET/PUT/DELETE /api/rules/{id})
+        // Rule set management by ID (GET/PUT/DELETE /api/rules/{id}) — requires authentication
         const rulesIdMatch = routePath.match(/^\/rules\/([0-9a-f-]{36})$/i);
         if (rulesIdMatch) {
+            const authGuard = requireAuth(authContext);
+            if (authGuard) return authGuard;
+
             const ruleId = rulesIdMatch[1];
             if (request.method === 'GET') {
                 return handleRulesGet(ruleId, env);
@@ -3655,15 +3643,15 @@ export default {
                 if (!sizeValidation.valid) {
                     return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
                 }
-                const allowed = await checkRateLimit(env, ip);
-                if (!allowed) {
+                const rlUpdate = await checkRateLimitTiered(env, ip, authContext);
+                if (!rlUpdate.allowed) {
                     return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesUpdate(ruleId, request, env);
             }
             if (request.method === 'DELETE') {
-                const allowed = await checkRateLimit(env, ip);
-                if (!allowed) {
+                const rlDelete = await checkRateLimitTiered(env, ip, authContext);
+                if (!rlDelete.allowed) {
                     return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesDelete(ruleId, env);
@@ -3675,14 +3663,17 @@ export default {
             return handleClerkWebhook(request, env, createPgPool);
         }
 
-        // Webhook / notification (POST /api/notify)
+        // Webhook / notification (POST /api/notify) — requires authentication
         if (routePath === '/notify' && request.method === 'POST') {
+            const authGuard = requireAuth(authContext);
+            if (authGuard) return authGuard;
+
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
                 return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
             }
-            const allowed = await checkRateLimit(env, ip);
-            if (!allowed) {
+            const rlNotify = await checkRateLimitTiered(env, ip, authContext);
+            if (!rlNotify.allowed) {
                 return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
             }
             return handleNotify(request, env);
