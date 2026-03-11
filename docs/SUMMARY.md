@@ -1,6 +1,7 @@
 # Summary
 
 - [Introduction](README.md)
+- [📄 Download PDF](download.md)
 - [API Reference](api-reference.md)
 - [REST / HTTP API](api/README.md)
   - [AGTree Integration](api/AGTREE_INTEGRATION.md)
