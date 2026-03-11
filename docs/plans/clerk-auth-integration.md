@@ -367,3 +367,41 @@ The adblock-compiler currently has only static admin key auth and Turnstile bot 
 - **Existing admin key**: Retained as fallback during migration; deprecated after CF Access is live
 - **SSR safety**: All Clerk operations guarded with `isPlatformBrowser()` — server renders show loading state
 - **OpenAPI spec**: Must be updated with Bearer JWT security scheme after Phase 1; run `deno task schema:generate` after changes
+
+---
+
+## Extensibility Improvements ✅ (Post-Phase 6)
+
+After completing all 6 phases, the auth system was reviewed for extensibility. Four improvements were identified and implemented in commit `ea38e5ca4`:
+
+### 1. Scope Registry ✅
+- Replaced hardcoded `VALID_SCOPES` string array with `AuthScope` enum + `SCOPE_REGISTRY` (metadata per scope: displayName, description, requiredTier)
+- `isValidScope()` type guard for runtime validation
+- `api-keys.ts` now derives scopes from registry instead of local const
+
+### 2. Centralized Tier Config ✅
+- Added `TIER_REGISTRY`: `Record<UserTier, ITierConfig>` with order, rateLimit, displayName, description
+- `isTierSufficient()` helper uses registry order — adding a new tier is a single registry entry
+- `TIER_RATE_LIMITS` marked `@deprecated`, now derives from `TIER_REGISTRY`
+- `requireTier()` refactored to use `isTierSufficient()` and registry display names
+
+### 3. `requireScope()` Guard ✅
+- New guard in `auth.ts`: JWT users bypass scope checks (full access), API key users checked against their scopes
+- Returns 403 with descriptive error listing missing scopes
+- Anonymous users get 401
+
+### 4. `IAuthProvider` Interface ✅
+- Extracted `IAuthProvider` and `IAuthProviderResult` interfaces to `worker/types.ts`
+- Created `ClerkAuthProvider` class (`worker/middleware/clerk-auth-provider.ts`) wrapping existing `verifyClerkJWT()`
+- `authenticateRequestUnified()` now accepts optional `IAuthProvider` param, defaulting to `ClerkAuthProvider`
+- Swapping auth providers (e.g., Auth0, Supabase Auth) is now a config change — implement `IAuthProvider` and pass it in
+
+### 5. API Key Tier Lookup Fix ✅
+- API key auth path now queries `users` table for the key owner's actual tier
+- Replaced hardcoded `UserTier.Free` with `resolveApiKeyOwnerTier()` DB lookup
+- Falls back to `UserTier.Free` on DB errors or missing user
+
+### Testing
+- 23 new extensibility tests in `worker/middleware/auth-extensibility.test.ts`
+- Covers: scope registry, tier registry, `isTierSufficient()`, `requireScope()`, `requireTier()`, `ClerkAuthProvider` structure, guard chains
+- Total: **1419 tests, 0 failures**
