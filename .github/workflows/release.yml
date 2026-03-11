@@ -228,8 +228,8 @@ jobs:
               run: |
                   set -euo pipefail
                   mkdir -p pdf-release
-                  if [ -f "book/pdf/output.pdf" ]; then
-                    cp book/pdf/output.pdf pdf-release/adblock-compiler-docs.pdf
+                  if [ -f "book/pdf/adblock-compiler.pdf" ]; then
+                    cp book/pdf/adblock-compiler.pdf pdf-release/adblock-compiler-docs.pdf
                     echo "✅ PDF ready for release"
                   else
                     echo "⚠️ PDF not found — skipping"

@@ -72,13 +72,11 @@ jobs:
       - name: Prepare PDF for deployment
         run: |
           set -euo pipefail
-          PDF_SRC="book/pdf/output.pdf"
-          PDF_DEST="book/pdf/adblock-compiler.pdf"
-          if [ -f "$PDF_SRC" ]; then
-            mv "$PDF_SRC" "$PDF_DEST"
-            echo "✅ PDF prepared at $PDF_DEST"
+          PDF_PATH="book/pdf/adblock-compiler.pdf"
+          if [ -f "$PDF_PATH" ]; then
+            echo "✅ PDF ready at $PDF_PATH"
           else
-            echo "⚠️ PDF not found at $PDF_SRC — skipping rename"
+            echo "⚠️ PDF not found at $PDF_PATH — skipping"
           fi
 
       - name: Upload PDF artifact
