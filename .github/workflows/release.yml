@@ -216,10 +216,7 @@ jobs:
                   curl -fsSL "https://github.com/HollowMan6/mdbook-pdf/releases/download/v${MDBOOK_PDF_VERSION}/mdbook-pdf" -o mdbook-pdf
                   chmod +x mdbook-pdf
                   sudo mv mdbook-pdf /usr/local/bin/
-
-                  sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends chromium-browser || \
-                    sudo apt-get install -y --no-install-recommends chromium
+                  # Chromium is pre-installed on GitHub-hosted ubuntu-latest runners
 
             - name: Build documentation PDF
               run: mdbook build

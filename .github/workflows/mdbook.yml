@@ -38,17 +38,13 @@ jobs:
           sudo mv /tmp/mdbook-mermaid-install/mdbook-mermaid /usr/local/bin/
           rm -rf mdbook-mermaid.tar.gz /tmp/mdbook-mermaid-install
 
-      - name: Install mdbook-pdf and Chromium
+      - name: Install mdbook-pdf
         run: |
           MDBOOK_PDF_VERSION=0.1.10
           curl -fsSL "https://github.com/HollowMan6/mdbook-pdf/releases/download/v${MDBOOK_PDF_VERSION}/mdbook-pdf" -o mdbook-pdf
           chmod +x mdbook-pdf
           sudo mv mdbook-pdf /usr/local/bin/
-
-          # Install Chromium for headless PDF rendering
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends chromium-browser || \
-            sudo apt-get install -y --no-install-recommends chromium
+          # Chromium is pre-installed on GitHub-hosted ubuntu-latest runners
 
       - name: Set up Deno
         uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
