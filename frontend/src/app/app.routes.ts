@@ -28,6 +28,16 @@ export const routes: Routes = [
         data: { metaDescription: 'Compile, validate, and transform adblock filter lists in real-time. Open-source compiler-as-a-service with streaming, batch, and async modes.' },
     },
     {
+        path: 'sign-in',
+        loadComponent: () => import('./auth/sign-in/sign-in.component').then((m) => m.SignInComponent),
+        title: 'Sign In',
+    },
+    {
+        path: 'sign-up',
+        loadComponent: () => import('./auth/sign-up/sign-up.component').then((m) => m.SignUpComponent),
+        title: 'Sign Up',
+    },
+    {
         path: 'compiler',
         loadComponent: () => import('./compiler/compiler.component').then((m) => m.CompilerComponent),
         title: 'Compiler',

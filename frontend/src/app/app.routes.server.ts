@@ -28,6 +28,16 @@ export const serverRoutes: ServerRoute[] = [
         renderMode: RenderMode.Prerender,
     },
     {
+        // Auth routes: Clerk SDK is browser-only (loads JS, mounts UI into DOM).
+        // CSR is the only viable mode — no server rendering possible.
+        path: 'sign-in',
+        renderMode: RenderMode.Client,
+    },
+    {
+        path: 'sign-up',
+        renderMode: RenderMode.Client,
+    },
+    {
         // Compiler: dynamic (form state, SSE connections, query params) — SSR per request.
         // mat-button-toggle-group converted from [(ngModel)] to [value]/(change).
         path: 'compiler',

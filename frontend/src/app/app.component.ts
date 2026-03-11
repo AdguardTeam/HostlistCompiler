@@ -28,6 +28,7 @@ import { map } from 'rxjs/operators';
 import { ThemeService } from './services/theme.service';
 import { ErrorBoundaryComponent } from './error/error-boundary.component';
 import { NotificationContainerComponent } from './notification/notification-container.component';
+import { UserButtonComponent } from './auth/user-button/user-button.component';
 
 /** Navigation item interface */
 interface NavItem {
@@ -56,6 +57,7 @@ interface NavItem {
         MatTooltipModule,
         ErrorBoundaryComponent,
         NotificationContainerComponent,
+        UserButtonComponent,
     ],
     template: `
     <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -121,6 +123,7 @@ interface NavItem {
                 Adblock Compiler
               </p>
               <div class="header-actions">
+                <app-user-button />
                 <button
                   mat-icon-button
                   (click)="themeService.toggle()"
