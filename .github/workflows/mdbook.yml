@@ -38,14 +38,6 @@ jobs:
           sudo mv /tmp/mdbook-mermaid-install/mdbook-mermaid /usr/local/bin/
           rm -rf mdbook-mermaid.tar.gz /tmp/mdbook-mermaid-install
 
-      - name: Install mdbook-pdf
-        run: |
-          MDBOOK_PDF_VERSION=0.1.13
-          curl -fsSL "https://github.com/HollowMan6/mdbook-pdf/releases/download/v${MDBOOK_PDF_VERSION}/mdbook-pdf-v${MDBOOK_PDF_VERSION}-x86_64-unknown-linux-gnu" -o mdbook-pdf
-          chmod +x mdbook-pdf
-          sudo mv mdbook-pdf /usr/local/bin/
-          # Chromium is pre-installed on GitHub-hosted ubuntu-latest runners
-
       - name: Set up Deno
         uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2
         with:
@@ -65,15 +57,23 @@ jobs:
       - name: Build mdBook
         run: mdbook build
 
-      - name: Prepare PDF for deployment
+      - name: Generate PDF with headless Chromium
         run: |
           set -euo pipefail
-          PDF_PATH="book/pdf/adblock-compiler.pdf"
-          if [ -f "$PDF_PATH" ]; then
-            echo "✅ PDF ready at $PDF_PATH"
-          else
-            echo "⚠️ PDF not found at $PDF_PATH — skipping"
+          mkdir -p book/pdf
+          PRINT_HTML="$(pwd)/book/print.html"
+          if [ ! -f "$PRINT_HTML" ]; then
+            echo "⚠️ print.html not found — skipping PDF generation"
+            exit 0
           fi
+          chromium-browser \
+            --headless \
+            --disable-gpu \
+            --no-sandbox \
+            --run-all-compositor-stages-before-draw \
+            --print-to-pdf="$(pwd)/book/pdf/adblock-compiler.pdf" \
+            "file://${PRINT_HTML}"
+          echo "✅ PDF generated at book/pdf/adblock-compiler.pdf"
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
@@ -124,4 +124,3 @@ jobs:
             --branch=main \
             --commit-dirty=true
           echo "✅ Documentation deployed successfully"
-
