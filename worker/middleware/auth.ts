@@ -20,13 +20,7 @@
  */
 
 import type { Env, HyperdriveBinding } from '../types.ts';
-import {
-    type IAuthContext,
-    type IAuthMiddlewareResult,
-    type IClerkPublicMetadata,
-    UserTier,
-    ANONYMOUS_AUTH_CONTEXT,
-} from '../types.ts';
+import { ANONYMOUS_AUTH_CONTEXT, type IAuthContext, type IAuthMiddlewareResult, type IClerkPublicMetadata, UserTier } from '../types.ts';
 import { verifyClerkJWT } from './clerk-jwt.ts';
 
 // ============================================================================

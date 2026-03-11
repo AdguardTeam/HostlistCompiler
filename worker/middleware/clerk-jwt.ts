@@ -180,8 +180,8 @@ export async function verifyClerkJWT(
 function isClerkIssuer(issuer: string): boolean {
     try {
         const url = new URL(issuer);
-        return url.hostname.endsWith('.clerk.accounts.dev')
-            || url.hostname.endsWith('.clerk.com');
+        return url.hostname.endsWith('.clerk.accounts.dev') ||
+            url.hostname.endsWith('.clerk.com');
     } catch {
         return false;
     }
@@ -193,15 +193,15 @@ function isClerkIssuer(issuer: string): boolean {
  */
 function isExpectedJwtError(message: string): boolean {
     const expectedPatterns = [
-        'exp',           // expired
-        'nbf',           // not yet valid
-        'iat',           // issued at
-        'JWS',           // signature error
-        'JWK',           // key error
-        'alg',           // algorithm mismatch
-        'compact',       // malformed token
-        'decode',        // decode failure
-        'invalid',       // generic invalid
+        'exp', // expired
+        'nbf', // not yet valid
+        'iat', // issued at
+        'JWS', // signature error
+        'JWK', // key error
+        'alg', // algorithm mismatch
+        'compact', // malformed token
+        'decode', // decode failure
+        'invalid', // generic invalid
     ];
     const lowerMessage = message.toLowerCase();
     return expectedPatterns.some((pattern) => lowerMessage.includes(pattern.toLowerCase()));
