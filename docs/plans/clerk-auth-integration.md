@@ -151,9 +151,9 @@ The adblock-compiler currently has only static admin key auth and Turnstile bot 
    - Skip Turnstile verification for webhook endpoint
    - Skip rate limiting for webhook endpoint
 
-### Phase 3: Angular Frontend — ClerkService & Auth UI 🔄
+### Phase 3: Angular Frontend — ClerkService & Auth UI ✅
 
-**Status**: In progress — `@clerk/clerk-js@6.3.0` installed, `CLERK_PUBLISHABLE_KEY` token added
+**Status**: Complete — committed as `ff8347f99` on `feature/clerk-auth-integration`
 
 **Goal**: Full Clerk integration in Angular 21 using `@clerk/clerk-js` with signals.
 
