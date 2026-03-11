@@ -52,8 +52,8 @@ describe('AppComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('should have 7 navigation items', () => {
-        expect(component.navItems.length).toBe(7);
+    it('should have 8 navigation items', () => {
+        expect(component.navItems.length).toBe(8);
     });
 
     it('should include Home nav item', () => {

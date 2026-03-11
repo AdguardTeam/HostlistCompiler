@@ -62,6 +62,13 @@ export const routes: Routes = [
         data: { description: 'HTTP API endpoint documentation', metaDescription: 'Complete HTTP API reference for the Adblock Compiler service. Covers compile, stream, batch, async, AST parse, metrics, and queue endpoints.' },
     },
     {
+        path: 'api-keys',
+        loadComponent: () => import('./components/api-keys/api-keys.component').then((m) => m.ApiKeysComponent),
+        title: 'API Keys',
+        data: { description: 'Manage API keys', metaDescription: 'Create and manage personal API keys for programmatic access to the Adblock Compiler service.' },
+        canActivate: [() => import('./guards/auth.guard').then((m) => m.authGuard)],
+    },
+    {
         path: 'admin',
         loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent),
         title: 'Admin',

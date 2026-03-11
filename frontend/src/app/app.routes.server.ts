@@ -56,6 +56,11 @@ export const serverRoutes: ServerRoute[] = [
         renderMode: RenderMode.Prerender,
     },
     {
+        // API keys: user-specific, requires Clerk auth — CSR only (no SSR for auth UI).
+        path: 'api-keys',
+        renderMode: RenderMode.Client,
+    },
+    {
         // All other routes (performance, admin, etc.) — SSR per request.
         path: '**',
         renderMode: RenderMode.Server,
