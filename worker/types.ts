@@ -98,6 +98,153 @@ export interface HyperdriveBinding {
 }
 
 // ============================================================================
+// Authentication & Authorization Types
+// ============================================================================
+
+/**
+ * User tier determines rate limits and feature access.
+ * Maps to the Prisma UserTier enum and Clerk user metadata.
+ */
+export enum UserTier {
+    Anonymous = 'anonymous',
+    Free = 'free',
+    Pro = 'pro',
+    Admin = 'admin',
+}
+
+/**
+ * Rate limits per tier (requests per minute).
+ */
+export const TIER_RATE_LIMITS: Readonly<Record<UserTier, number>> = {
+    [UserTier.Anonymous]: 10,
+    [UserTier.Free]: 60,
+    [UserTier.Pro]: 300,
+    [UserTier.Admin]: Infinity,
+} as const;
+
+/**
+ * Unified authentication context attached to every request.
+ * Populated by the auth middleware chain (JWT → API key → anonymous).
+ */
+export interface IAuthContext {
+    /** Internal database user ID (null for anonymous) */
+    readonly userId: string | null;
+    /** Clerk external user ID from JWT `sub` claim (null if not JWT-authenticated) */
+    readonly clerkUserId: string | null;
+    /** User tier determining rate limits and feature access */
+    readonly tier: UserTier;
+    /** User role from Clerk public metadata (e.g., 'admin', 'user') */
+    readonly role: string;
+    /** API key ID if authenticated via API key (null otherwise) */
+    readonly apiKeyId: string | null;
+    /** Clerk session ID from JWT `sid` claim (null if not JWT-authenticated) */
+    readonly sessionId: string | null;
+    /** Granted scopes (from API key permissions or JWT claims) */
+    readonly scopes: readonly string[];
+    /** Authentication method used for this request */
+    readonly authMethod: 'clerk-jwt' | 'api-key' | 'anonymous';
+}
+
+/**
+ * Clerk JWT payload claims.
+ * @see https://clerk.com/docs/backend-requests/handling/manual-jwt
+ */
+export interface IClerkClaims {
+    /** Clerk user ID (e.g., 'user_2abc123') */
+    readonly sub: string;
+    /** Issuer — Clerk instance URL (e.g., 'https://my-app.clerk.accounts.dev') */
+    readonly iss: string;
+    /** Expiration time (Unix timestamp) */
+    readonly exp: number;
+    /** Not before time (Unix timestamp) */
+    readonly nbf: number;
+    /** Issued at time (Unix timestamp) */
+    readonly iat: number;
+    /** Authorized party — the origin URL of the requesting application */
+    readonly azp?: string;
+    /** Clerk session ID */
+    readonly sid?: string;
+    /** Clerk organization ID (if using organizations) */
+    readonly org_id?: string;
+    /** Clerk organization role */
+    readonly org_role?: string;
+    /** Public metadata set on the user (contains role, tier) */
+    readonly metadata?: IClerkPublicMetadata;
+}
+
+/**
+ * Clerk user public metadata stored on the Clerk user object.
+ * Set via Clerk Dashboard or Backend API.
+ */
+export interface IClerkPublicMetadata {
+    /** User role (e.g., 'admin', 'user') */
+    readonly role?: string;
+    /** User tier override (normally derived from subscription) */
+    readonly tier?: UserTier;
+}
+
+/**
+ * Result of JWT verification via the Clerk JWKS middleware.
+ */
+export interface IJwtVerificationResult {
+    /** Whether verification was successful */
+    readonly valid: boolean;
+    /** Decoded claims if valid */
+    readonly claims?: IClerkClaims;
+    /** Error message if invalid */
+    readonly error?: string;
+}
+
+/**
+ * Result of the unified authentication middleware chain.
+ */
+export interface IAuthMiddlewareResult {
+    /** The resolved authentication context */
+    readonly context: IAuthContext;
+    /** Optional response to short-circuit the request (e.g., 401/403) */
+    readonly response?: Response;
+}
+
+/**
+ * Cloudflare Access JWT claims for admin route protection.
+ * @see https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/validating-json/
+ */
+export interface ICfAccessClaims {
+    /** Audience tag — matches the Access application AUD */
+    readonly aud: readonly string[];
+    /** Email of the authenticated user */
+    readonly email: string;
+    /** Expiration time (Unix timestamp) */
+    readonly exp: number;
+    /** Issued at time (Unix timestamp) */
+    readonly iat: number;
+    /** Not before time (Unix timestamp) */
+    readonly nbf: number;
+    /** Issuer — CF Access team domain */
+    readonly iss: string;
+    /** Subject (unique user identifier within CF Access) */
+    readonly sub: string;
+    /** Identity nonce for session binding */
+    readonly identity_nonce?: string;
+    /** Country of the request */
+    readonly country?: string;
+}
+
+/**
+ * Anonymous auth context — used when no authentication is provided.
+ */
+export const ANONYMOUS_AUTH_CONTEXT: IAuthContext = {
+    userId: null,
+    clerkUserId: null,
+    tier: UserTier.Anonymous,
+    role: 'anonymous',
+    apiKeyId: null,
+    sessionId: null,
+    scopes: [],
+    authMethod: 'anonymous',
+} as const;
+
+// ============================================================================
 // Environment Bindings
 // ============================================================================
 
@@ -160,6 +307,20 @@ export interface Env {
     WEBHOOK_URL?: string;
     // Datadog API key for POST /api/notify (optional third-party integration)
     DATADOG_API_KEY?: string;
+    // --- Clerk Authentication ---
+    /** Clerk secret key for backend API calls (secret — set via `wrangler secret put`) */
+    CLERK_SECRET_KEY?: string;
+    /** Clerk publishable key for frontend initialization (not secret — set as var) */
+    CLERK_PUBLISHABLE_KEY?: string;
+    /** Clerk JWKS URL for JWT verification (e.g., https://<instance>.clerk.accounts.dev/.well-known/jwks.json) */
+    CLERK_JWKS_URL?: string;
+    /** Clerk webhook signing secret for Svix signature verification (secret) */
+    CLERK_WEBHOOK_SECRET?: string;
+    // --- Cloudflare Access (admin route protection) ---
+    /** Cloudflare Access team domain (e.g., 'myteam' for myteam.cloudflareaccess.com) */
+    CF_ACCESS_TEAM_DOMAIN?: string;
+    /** Cloudflare Access application audience (AUD) tag */
+    CF_ACCESS_AUD?: string;
 }
 
 // ============================================================================
