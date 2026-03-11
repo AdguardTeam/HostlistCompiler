@@ -15,7 +15,7 @@
  */
 
 import { JsonResponse } from '../utils/response.ts';
-import type { IAuthContext } from '../types.ts';
+import { type IAuthContext, VALID_SCOPES } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // PgPool interface (matches worker/middleware/auth.ts)
@@ -98,13 +98,12 @@ interface UpdateKeyBody {
 // Validation
 // ---------------------------------------------------------------------------
 
-const VALID_SCOPES = ['compile', 'rules', 'admin'] as const;
 const MAX_KEY_NAME_LENGTH = 100;
 const MAX_KEYS_PER_USER = 25;
 
 function validateScopes(scopes: unknown): string[] | null {
     if (!Array.isArray(scopes)) return null;
-    const valid = scopes.every((s) => typeof s === 'string' && (VALID_SCOPES as readonly string[]).includes(s));
+    const valid = scopes.every((s) => typeof s === 'string' && VALID_SCOPES.includes(s));
     return valid ? (scopes as string[]) : null;
 }
 

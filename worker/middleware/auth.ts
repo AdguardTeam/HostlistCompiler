@@ -19,9 +19,9 @@
  * @see worker/types.ts — IAuthContext, IAuthMiddlewareResult, UserTier
  */
 
-import type { Env, HyperdriveBinding } from '../types.ts';
-import { ANONYMOUS_AUTH_CONTEXT, type IAuthContext, type IAuthMiddlewareResult, type IClerkPublicMetadata, UserTier } from '../types.ts';
-import { verifyClerkJWT } from './clerk-jwt.ts';
+import type { Env, HyperdriveBinding, IAuthProvider } from '../types.ts';
+import { ANONYMOUS_AUTH_CONTEXT, type IAuthContext, type IAuthMiddlewareResult, isTierSufficient, TIER_REGISTRY, UserTier } from '../types.ts';
+import { ClerkAuthProvider } from './clerk-auth-provider.ts';
 
 // ============================================================================
 // Types
@@ -233,37 +233,17 @@ function isJwtToken(token: string): boolean {
 }
 
 /**
- * Map Clerk public metadata to a {@link UserTier}.
- *
- * Clerk users store their tier in `publicMetadata.tier` as a {@link UserTier}
- * enum value. If the value is missing the user defaults to {@link UserTier.Free}.
- */
-function resolveTierFromMetadata(metadata: IClerkPublicMetadata | undefined): UserTier {
-    if (!metadata?.tier) return UserTier.Free;
-    return metadata.tier;
-}
-
-/**
- * Map Clerk public metadata to a role string.
- *
- * Falls back to `'user'` when the metadata does not specify a role.
- */
-function resolveRoleFromMetadata(metadata: IClerkPublicMetadata | undefined): string {
-    return metadata?.role ?? 'user';
-}
-
-/**
  * Authenticate a request using the unified three-tier chain.
  *
  * The chain tries, **in order**:
  *
- * 1. **Clerk JWT** — If the Bearer token is a JWT (contains dots, not an
- *    `abc_` key) it is verified against the Clerk JWKS endpoint. On success
- *    the user's tier and role are read from the JWT's public metadata claims.
+ * 1. **JWT via auth provider** — If the Bearer token is a JWT (contains dots,
+ *    not an `abc_` key) it is verified by the configured {@link IAuthProvider}.
+ *    Defaults to {@link ClerkAuthProvider} when no provider is supplied.
  *
  * 2. **API key** — If the Bearer token starts with `abc_` it is hashed and
  *    looked up in PostgreSQL via Hyperdrive. The authenticated user inherits
- *    the tier associated with the key's owner.
+ *    their actual tier from the `users` table (not hardcoded).
  *
  * 3. **Anonymous** — When no credentials are present the request proceeds as
  *    {@link ANONYMOUS_AUTH_CONTEXT} (10 req/min rate limit, basic features).
@@ -272,15 +252,17 @@ function resolveRoleFromMetadata(metadata: IClerkPublicMetadata | undefined): st
  * `response` field on the result — callers should check for a `response` and
  * short-circuit the request when present.
  *
- * @param request    - Incoming HTTP request
- * @param env        - Worker env bindings (must include Clerk + optional Hyperdrive vars)
- * @param createPool - Optional pg Pool factory for API key lookups
+ * @param request      - Incoming HTTP request
+ * @param env          - Worker env bindings (must include Clerk + optional Hyperdrive vars)
+ * @param createPool   - Optional pg Pool factory for API key lookups
+ * @param authProvider - Optional pluggable auth provider (defaults to Clerk)
  * @returns A {@link IAuthMiddlewareResult} with the resolved auth context
  */
 export async function authenticateRequestUnified(
     request: Request,
     env: Env,
     createPool?: PgPoolFactory,
+    authProvider?: IAuthProvider,
 ): Promise<IAuthMiddlewareResult> {
     const token = extractBearerToken(request);
 
@@ -303,10 +285,17 @@ export async function authenticateRequestUnified(
 
         const result = await authenticateApiKey(request, env.HYPERDRIVE, createPool);
         if (result.authenticated) {
+            // Resolve the key owner's actual tier from the database
+            const ownerTier = await resolveApiKeyOwnerTier(
+                result.userId,
+                env.HYPERDRIVE,
+                createPool,
+            );
+
             const context: IAuthContext = {
                 userId: result.userId ?? null,
                 clerkUserId: null,
-                tier: UserTier.Free, // TODO(@jaypatrick): look up tier from user record
+                tier: ownerTier,
                 role: 'user',
                 apiKeyId: result.apiKeyId ?? null,
                 sessionId: null,
@@ -325,21 +314,21 @@ export async function authenticateRequestUnified(
         };
     }
 
-    // --- JWT path ---
+    // --- JWT path (via pluggable auth provider) ---
     if (isJwtToken(token)) {
-        const jwtResult = await verifyClerkJWT(request, env);
+        const provider = authProvider ?? new ClerkAuthProvider(env);
+        const providerResult = await provider.verifyToken(request);
 
-        if (jwtResult.valid && jwtResult.claims) {
-            const metadata = jwtResult.claims.metadata;
+        if (providerResult.valid && providerResult.providerUserId) {
             const context: IAuthContext = {
-                userId: null, // TODO(@jaypatrick): resolve DB userId from clerkUserId
-                clerkUserId: jwtResult.claims.sub,
-                tier: resolveTierFromMetadata(metadata),
-                role: resolveRoleFromMetadata(metadata),
+                userId: null, // TODO(@jaypatrick): resolve DB userId from providerUserId
+                clerkUserId: providerResult.providerUserId,
+                tier: providerResult.tier ?? UserTier.Free,
+                role: providerResult.role ?? 'user',
                 apiKeyId: null,
-                sessionId: jwtResult.claims.sid ?? null,
+                sessionId: providerResult.sessionId ?? null,
                 scopes: [],
-                authMethod: 'clerk-jwt',
+                authMethod: provider.authMethod,
             };
             return { context };
         }
@@ -347,7 +336,7 @@ export async function authenticateRequestUnified(
         return {
             context: { ...ANONYMOUS_AUTH_CONTEXT },
             response: new Response(
-                JSON.stringify({ error: jwtResult.error ?? 'Invalid JWT' }),
+                JSON.stringify({ error: providerResult.error ?? 'Invalid JWT' }),
                 { status: 401, headers: { 'Content-Type': 'application/json' } },
             ),
         };
@@ -361,6 +350,42 @@ export async function authenticateRequestUnified(
             { status: 401, headers: { 'Content-Type': 'application/json' } },
         ),
     };
+}
+
+// ---------------------------------------------------------------------------
+// API Key Tier Resolution
+// ---------------------------------------------------------------------------
+
+/**
+ * Look up the actual tier of an API key's owner from the `users` table.
+ * Falls back to {@link UserTier.Free} if the user cannot be found or on error.
+ */
+async function resolveApiKeyOwnerTier(
+    userId: string | undefined,
+    hyperdrive: HyperdriveBinding,
+    createPool: PgPoolFactory,
+): Promise<UserTier> {
+    if (!userId) return UserTier.Free;
+
+    try {
+        const pool = createPool(hyperdrive.connectionString);
+        const result = await pool.query(
+            `SELECT tier FROM users WHERE id = $1 LIMIT 1`,
+            [userId],
+        );
+
+        if (result.rows.length > 0 && result.rows[0].tier) {
+            const dbTier = result.rows[0].tier as string;
+            // Validate the DB value is a known tier
+            if (Object.values(UserTier).includes(dbTier as UserTier)) {
+                return dbTier as UserTier;
+            }
+        }
+        return UserTier.Free;
+    } catch {
+        // Non-critical: fall back to Free tier on DB errors
+        return UserTier.Free;
+    }
 }
 
 // ============================================================================
@@ -388,8 +413,8 @@ export function requireAuth(context: IAuthContext): Response | null {
 
 /**
  * Returns a 403 JSON response if the user's tier is below the required minimum,
- * or `null` if the tier is sufficient. Tier ordering:
- * Anonymous (0) < Free (1) < Pro (2) < Admin (3).
+ * or `null` if the tier is sufficient. Tier ordering is derived from
+ * {@link TIER_REGISTRY} — adding a new tier only requires updating the registry.
  *
  * ```ts
  * const denied = requireTier(authContext, UserTier.Pro);
@@ -397,18 +422,54 @@ export function requireAuth(context: IAuthContext): Response | null {
  * ```
  */
 export function requireTier(context: IAuthContext, minTier: UserTier): Response | null {
-    const tierOrder: Record<UserTier, number> = {
-        [UserTier.Anonymous]: 0,
-        [UserTier.Free]: 1,
-        [UserTier.Pro]: 2,
-        [UserTier.Admin]: 3,
-    };
-
-    if (tierOrder[context.tier] < tierOrder[minTier]) {
+    if (!isTierSufficient(context.tier, minTier)) {
         return new Response(
             JSON.stringify({
                 success: false,
-                error: `Insufficient tier: requires ${minTier}, current tier is ${context.tier}`,
+                error: `Insufficient tier: requires ${TIER_REGISTRY[minTier].displayName}, current tier is ${TIER_REGISTRY[context.tier].displayName}`,
+            }),
+            { status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+    return null;
+}
+
+/**
+ * Returns a 403 JSON response if the auth context is missing any of the
+ * required scopes, or `null` if scope requirements are met.
+ *
+ * **JWT-authenticated users** (authMethod === 'clerk-jwt') are treated as
+ * having all scopes — they are the resource owner and can do anything their
+ * tier allows. Only **API-key authenticated** requests are scope-restricted.
+ *
+ * ```ts
+ * const denied = requireScope(authContext, 'compile');
+ * if (denied) return denied;
+ * ```
+ */
+export function requireScope(context: IAuthContext, ...requiredScopes: string[]): Response | null {
+    // JWT-authenticated users (Clerk sessions) bypass scope checks — they own
+    // the account and are limited only by tier, not by API-key scopes.
+    if (context.authMethod === 'clerk-jwt') {
+        return null;
+    }
+
+    // Anonymous users cannot have scopes — they should be caught by requireAuth
+    // first, but guard defensively.
+    if (context.authMethod === 'anonymous') {
+        return new Response(
+            JSON.stringify({ success: false, error: 'Authentication required' }),
+            { status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+        );
+    }
+
+    // API-key users: check that every required scope is present
+    const missing = requiredScopes.filter((s) => !context.scopes.includes(s));
+    if (missing.length > 0) {
+        return new Response(
+            JSON.stringify({
+                success: false,
+                error: `Missing required scope${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}`,
             }),
             { status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
         );

@@ -112,15 +112,117 @@ export enum UserTier {
     Admin = 'admin',
 }
 
+// ---------------------------------------------------------------------------
+// Tier Registry — single source of truth for tier metadata
+// ---------------------------------------------------------------------------
+
+/**
+ * Configuration for a single user tier.
+ * All tier-related metadata lives here — no scattered constants.
+ */
+export interface ITierConfig {
+    /** Numeric rank for ordering comparisons (higher = more privileged) */
+    readonly order: number;
+    /** Requests per minute allowed for this tier */
+    readonly rateLimit: number;
+    /** Human-readable display name */
+    readonly displayName: string;
+    /** Short description of the tier */
+    readonly description: string;
+}
+
+/**
+ * Centralized tier registry — the single source of truth for tier ordering,
+ * rate limits, and metadata. To add a new tier:
+ *   1. Add the value to {@link UserTier}
+ *   2. Add its config entry here
+ * That's it — all guards, rate limiters, and UI derive from this registry.
+ */
+export const TIER_REGISTRY: Readonly<Record<UserTier, ITierConfig>> = {
+    [UserTier.Anonymous]: { order: 0, rateLimit: 10, displayName: 'Anonymous', description: 'Unauthenticated user — basic access' },
+    [UserTier.Free]: { order: 1, rateLimit: 60, displayName: 'Free', description: 'Registered free-tier user' },
+    [UserTier.Pro]: { order: 2, rateLimit: 300, displayName: 'Pro', description: 'Paid pro-tier user — higher limits' },
+    [UserTier.Admin]: { order: 3, rateLimit: Infinity, displayName: 'Admin', description: 'Administrator — unrestricted access' },
+} as const;
+
 /**
  * Rate limits per tier (requests per minute).
+ * @deprecated Use {@link TIER_REGISTRY}[tier].rateLimit instead. Kept for backward compatibility.
  */
 export const TIER_RATE_LIMITS: Readonly<Record<UserTier, number>> = {
-    [UserTier.Anonymous]: 10,
-    [UserTier.Free]: 60,
-    [UserTier.Pro]: 300,
-    [UserTier.Admin]: Infinity,
+    [UserTier.Anonymous]: TIER_REGISTRY[UserTier.Anonymous].rateLimit,
+    [UserTier.Free]: TIER_REGISTRY[UserTier.Free].rateLimit,
+    [UserTier.Pro]: TIER_REGISTRY[UserTier.Pro].rateLimit,
+    [UserTier.Admin]: TIER_REGISTRY[UserTier.Admin].rateLimit,
 } as const;
+
+/**
+ * Compare two tiers by rank. Returns true if `actual` >= `required`.
+ */
+export function isTierSufficient(actual: UserTier, required: UserTier): boolean {
+    return TIER_REGISTRY[actual].order >= TIER_REGISTRY[required].order;
+}
+
+// ---------------------------------------------------------------------------
+// Scope Registry — single source of truth for API scopes
+// ---------------------------------------------------------------------------
+
+/**
+ * Enumeration of all API scopes. To add a new scope:
+ *   1. Add the value here
+ *   2. Add its config to {@link SCOPE_REGISTRY}
+ */
+export enum AuthScope {
+    Compile = 'compile',
+    Rules = 'rules',
+    Admin = 'admin',
+}
+
+/**
+ * Metadata for a single API scope.
+ */
+export interface IScopeConfig {
+    /** Human-readable display name */
+    readonly displayName: string;
+    /** Short description shown in API key creation UI */
+    readonly description: string;
+    /** Minimum tier required to use this scope */
+    readonly requiredTier: UserTier;
+}
+
+/**
+ * Centralized scope registry — the single source of truth for scope
+ * validation, descriptions, and tier requirements. To add a new scope:
+ *   1. Add the value to {@link AuthScope}
+ *   2. Add its config entry here
+ */
+export const SCOPE_REGISTRY: Readonly<Record<AuthScope, IScopeConfig>> = {
+    [AuthScope.Compile]: {
+        displayName: 'Compile',
+        description: 'Compile and download filter lists',
+        requiredTier: UserTier.Free,
+    },
+    [AuthScope.Rules]: {
+        displayName: 'Rules',
+        description: 'Create, read, update, and delete custom filter rules',
+        requiredTier: UserTier.Free,
+    },
+    [AuthScope.Admin]: {
+        displayName: 'Admin',
+        description: 'Full administrative access — manage users, keys, and system config',
+        requiredTier: UserTier.Admin,
+    },
+} as const;
+
+/** All valid scope string values (derived from the registry). */
+export const VALID_SCOPES: readonly string[] = Object.values(AuthScope);
+
+/**
+ * Type guard: checks whether a string is a valid {@link AuthScope}.
+ */
+export function isValidScope(value: string): value is AuthScope {
+    return VALID_SCOPES.includes(value);
+}
 
 /**
  * Unified authentication context attached to every request.
@@ -203,6 +305,70 @@ export interface IAuthMiddlewareResult {
     readonly context: IAuthContext;
     /** Optional response to short-circuit the request (e.g., 401/403) */
     readonly response?: Response;
+}
+
+// ---------------------------------------------------------------------------
+// Auth Provider Abstraction
+// ---------------------------------------------------------------------------
+
+/**
+ * Result of JWT token verification from any auth provider.
+ */
+export interface IAuthProviderResult {
+    /** Whether the token was valid */
+    readonly valid: boolean;
+    /** Unique user ID within the provider (e.g., Clerk's `user_2abc`) */
+    readonly providerUserId?: string;
+    /** User tier derived from provider metadata */
+    readonly tier?: UserTier;
+    /** User role derived from provider metadata */
+    readonly role?: string;
+    /** Session ID from the token */
+    readonly sessionId?: string | null;
+    /** Error message when invalid */
+    readonly error?: string;
+}
+
+/**
+ * Interface for pluggable authentication providers.
+ *
+ * Abstracts JWT verification and user metadata resolution so that swapping
+ * from Clerk to Auth0, Okta, Firebase Auth, or a custom provider is a
+ * single-line config change — implement this interface and pass the
+ * instance to {@link authenticateRequestUnified}.
+ *
+ * @example
+ * ```typescript
+ * // Create a provider
+ * const provider = new ClerkAuthProvider(env);
+ *
+ * // Use it for authentication
+ * const result = await provider.verifyToken(request);
+ * if (result.valid) {
+ *     console.log('User:', result.providerUserId);
+ * }
+ * ```
+ */
+export interface IAuthProvider {
+    /** Human-readable provider name (e.g., 'clerk', 'auth0', 'okta') */
+    readonly name: string;
+
+    /**
+     * Verify a JWT token from the incoming request.
+     * Implementations should:
+     *   - Extract the token (Bearer header, cookie, etc.)
+     *   - Verify signature against the provider's JWKS
+     *   - Extract user ID, tier, role from the token/metadata
+     *
+     * @returns Provider result with user context or error
+     */
+    verifyToken(request: Request): Promise<IAuthProviderResult>;
+
+    /**
+     * Returns the auth method string used in {@link IAuthContext.authMethod}.
+     * This allows the auth middleware to tag the context appropriately.
+     */
+    readonly authMethod: IAuthContext['authMethod'];
 }
 
 /**
