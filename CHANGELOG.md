@@ -103,6 +103,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.54.1] - 2026-03-11
+
+### Added### Fixed
+
+- **docs**: replace mdbook-pdf with headless Chromium PDF generation
+- update mdbook-pdf to v0.1.13 with new platform-specific asset URL
+
+
 ## [0.54.0] - 2026-03-11
 
 ### Added- add mdbook-pdf PDF generation to documentation build pipeline
