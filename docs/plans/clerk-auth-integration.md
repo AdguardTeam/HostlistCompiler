@@ -252,7 +252,7 @@ The adblock-compiler currently has only static admin key auth and Turnstile bot 
    - `/admin` → AdminComponent (requires `adminGuard` — Clerk + CF Access)
    - Add `authGuard` (redirects to sign-in if not authenticated)
 
-### Phase 4: API Key Management
+### Phase 4: API Key Management ✅ (backend: `63d6f2d39`, frontend: pending)
 
 **Goal**: Registered users can create/revoke API keys for programmatic access.
 
@@ -285,7 +285,7 @@ The adblock-compiler currently has only static admin key auth and Turnstile bot 
    - Key list with copy/revoke actions
    - Show key only once on creation (with copy button)
 
-### Phase 5: Cloudflare Access for Admin Routes
+### Phase 5: Cloudflare Access for Admin Routes ✅ (`63d6f2d39`)
 
 **Goal**: Admin routes protected by Cloudflare Access zero-trust.
 
