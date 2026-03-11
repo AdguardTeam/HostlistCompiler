@@ -65,6 +65,7 @@ import { JsonResponse } from './utils/response.ts';
 import { handleValidateRule } from './handlers/validate-rule.ts';
 import { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, handleRulesUpdate } from './handlers/rules.ts';
 import { handleNotify } from './handlers/webhook.ts';
+import { handleClerkWebhook } from './handlers/clerk-webhook.ts';
 
 // Import Workflow classes and types
 import {
@@ -84,6 +85,29 @@ import { PlaywrightMcpAgent } from './mcp-agent.ts';
 
 // Re-export Env for compatibility with existing imports
 export type { Env };
+
+// ---------------------------------------------------------------------------
+// PgPool factory (mirrors worker/router.ts — lazy-init Pool from Hyperdrive)
+// ---------------------------------------------------------------------------
+
+function createPgPool(connectionString: string): {
+    query<T = Record<string, unknown>>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount: number | null }>;
+} {
+    let pool: unknown = null;
+    const ensurePool = async () => {
+        if (!pool) {
+            const { Pool } = await import('pg');
+            pool = new Pool({ connectionString });
+        }
+        return pool as { query: (text: string, values?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }> };
+    };
+    return {
+        async query<T = Record<string, unknown>>(text: string, values?: unknown[]) {
+            const p = await ensurePool();
+            return p.query(text, values) as Promise<{ rows: T[]; rowCount: number | null }>;
+        },
+    };
+}
 
 /**
  * Rate limiting configuration (from centralized defaults)
@@ -3644,6 +3668,11 @@ export default {
                 }
                 return handleRulesDelete(ruleId, env);
             }
+        }
+
+        // Clerk webhook (POST /api/webhooks/clerk) — Svix-verified, no auth/rate-limit
+        if (routePath === '/webhooks/clerk' && request.method === 'POST') {
+            return handleClerkWebhook(request, env, createPgPool);
         }
 
         // Webhook / notification (POST /api/notify)

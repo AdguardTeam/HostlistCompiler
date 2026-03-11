@@ -28,12 +28,21 @@ datasource db {
 // ============================================================================
 
 model User {
-  id          String   @id @default(uuid()) @db.Uuid
-  email       String   @unique
-  displayName String?  @map("display_name")
-  role        String   @default("user") // admin | user | readonly
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id             String    @id @default(uuid()) @db.Uuid
+  email          String    @unique
+  displayName    String?   @map("display_name")
+  role           String    @default("user") // admin | user | readonly
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Clerk integration fields
+  clerkUserId    String?   @unique @map("clerk_user_id")
+  tier           String    @default("free") // anonymous | free | pro | admin
+  firstName      String?   @map("first_name")
+  lastName       String?   @map("last_name")
+  imageUrl       String?   @map("image_url")
+  emailVerified  Boolean   @default(false) @map("email_verified")
+  lastSignInAt   DateTime? @map("last_sign_in_at") @db.Timestamptz
 
   apiKeys  ApiKey[]
   sessions Session[]
