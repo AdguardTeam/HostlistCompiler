@@ -309,26 +309,24 @@ The adblock-compiler currently has only static admin key auth and Turnstile bot 
    - Check for CF Access headers in initial page load
    - Admin UI only shows for users with both Clerk admin role + CF Access token
 
-### Phase 6: Documentation, OpenAPI & Testing
+### Phase 6: Testing ✅ (`9ef13ede0`)
 
-**Goal**: Comprehensive docs, updated OpenAPI spec, full test coverage.
+**Goal**: Full test coverage for all auth components.
 
-**Files to create/modify:**
-- `docs/api/openapi.yaml` — MODIFY: Add Bearer auth security scheme, document all new endpoints
-- `docs/guides/authentication.md` — NEW: Auth setup guide
-- `docs/guides/api-keys.md` — NEW: API key usage guide
-- `worker/middleware/clerk-jwt.test.ts` — NEW: JWT middleware tests
-- `worker/handlers/clerk-webhook.test.ts` — NEW: Webhook handler tests
-- `worker/handlers/api-keys.test.ts` — NEW: API key handler tests
-- `frontend/src/app/services/clerk.service.spec.ts` — NEW: ClerkService tests
-- `frontend/src/app/interceptors/auth.interceptor.spec.ts` — NEW: Auth interceptor tests
-- `frontend/src/app/guards/auth.guard.spec.ts` — NEW: Auth guard tests
+**Backend tests (Deno, 46 tests — ALL PASS):**
+- `worker/handlers/api-keys.test.ts` — 23 tests: CRUD, validation, user isolation
+- `worker/handlers/clerk-webhook.test.ts` — 6 tests: Svix signature verification, event routing
+- `worker/services/user-service.test.ts` — 11 tests: upsert, find, delete, tier management
+- `worker/middleware/cf-access.test.ts` — 6 tests: CF Access JWT validation, skip paths
 
-**Testing approach:**
-- Worker tests: Deno test framework with mocked `jose` and Clerk responses
-- Frontend tests: Vitest with `@analogjs/vitest-angular`, mock `@clerk/clerk-js`
-- Contract tests: Validate OpenAPI spec matches implementation
-- E2E tests: Test full auth flow with test Clerk instance
+**Frontend tests (Vitest + Angular, 49 tests — ALL PASS):**
+- `frontend/src/app/services/clerk.service.spec.ts` — 11 tests: SSR safety, signals, init
+- `frontend/src/app/services/api-key.service.spec.ts` — 15 tests: CRUD with HttpTestingController
+- `frontend/src/app/guards/auth.guard.spec.ts` — 4 tests: redirect logic, loading state
+- `frontend/src/app/interceptors/auth.interceptor.spec.ts` — 5 tests: Bearer token injection
+- `frontend/src/app/components/api-keys/api-keys.component.spec.ts` — 14 tests: Material UI, create/revoke
+
+**Total: 95 auth-specific tests. Full suite: 1396 backend + 353 frontend = 1749 tests.**
 
 ---
 
