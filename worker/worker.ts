@@ -67,6 +67,8 @@ import { handleValidateRule } from './handlers/validate-rule.ts';
 import { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, handleRulesUpdate } from './handlers/rules.ts';
 import { handleNotify } from './handlers/webhook.ts';
 import { handleClerkWebhook } from './handlers/clerk-webhook.ts';
+import { handleCreateApiKey, handleListApiKeys, handleRevokeApiKey, handleUpdateApiKey } from './handlers/api-keys.ts';
+import { verifyCfAccessJwt } from './middleware/cf-access.ts';
 
 // Import Workflow classes and types
 import {
@@ -3232,7 +3234,7 @@ export default {
         // ========================================================================
 
         if (routePath.startsWith('/admin/storage')) {
-            // Verify admin authentication
+            // Verify admin authentication (X-Admin-Key header)
             const auth = await verifyAdminAuth(request, env);
             if (!auth.authorized) {
                 return Response.json(
@@ -3244,6 +3246,15 @@ export default {
                             'WWW-Authenticate': 'X-Admin-Key',
                         },
                     },
+                );
+            }
+
+            // Defense-in-depth: also require CF Access JWT when configured
+            const cfAccess = await verifyCfAccessJwt(request, env);
+            if (!cfAccess.valid) {
+                return Response.json(
+                    { success: false, error: cfAccess.error ?? 'CF Access verification failed' },
+                    { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } },
                 );
             }
 
@@ -3655,6 +3666,50 @@ export default {
                     return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesDelete(ruleId, env);
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // API key management (POST/GET /api/keys, DELETE/PATCH /api/keys/:id)
+        // Requires Clerk JWT authentication (not API-key or anonymous)
+        // -----------------------------------------------------------------
+        if (routePath === '/keys' || routePath.startsWith('/keys/')) {
+            const authGuardKeys = requireAuth(authContext);
+            if (authGuardKeys) return authGuardKeys;
+
+            // Only Clerk-authenticated users can manage keys (not other API keys)
+            if (authContext.authMethod !== 'clerk-jwt') {
+                return JsonResponse.forbidden('API key management requires Clerk authentication');
+            }
+
+            // Require Hyperdrive for database access
+            if (!env.HYPERDRIVE) {
+                return JsonResponse.serviceUnavailable('Database not configured');
+            }
+            const connStr = env.HYPERDRIVE.connectionString;
+
+            if (routePath === '/keys') {
+                if (request.method === 'POST') {
+                    const rlKeys = await checkRateLimitTiered(env, ip, authContext);
+                    if (!rlKeys.allowed) {
+                        return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+                    }
+                    return handleCreateApiKey(request, authContext, connStr, createPgPool);
+                }
+                if (request.method === 'GET') {
+                    return handleListApiKeys(authContext, connStr, createPgPool);
+                }
+            }
+
+            const keyIdMatch = routePath.match(/^\/keys\/([0-9a-f-]{36})$/i);
+            if (keyIdMatch) {
+                const keyId = keyIdMatch[1];
+                if (request.method === 'DELETE') {
+                    return handleRevokeApiKey(keyId, authContext, connStr, createPgPool);
+                }
+                if (request.method === 'PATCH') {
+                    return handleUpdateApiKey(keyId, request, authContext, connStr, createPgPool);
+                }
             }
         }
 
