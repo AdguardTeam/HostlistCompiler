@@ -9,7 +9,7 @@ Implements a fully automated Lighthouse CI integration with a **Deno-first** app
 | File                                         | Action     | Notes                                                                          |
 | -------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
 | `.github/workflows/lighthouse.yml`           | ✅ Created | Post-deploy audit workflow; `deployment_status` + `workflow_dispatch`          |
-| `.lighthouserc.json`                         | ✅ Created | LHCI config — a11y `error`-level (≥0.90), all others `warn`                   |
+| `.lighthouserc.json`                         | ✅ Created | LHCI config — a11y `error`-level (≥0.90), all others `warn`                    |
 | `scripts/lighthouse-summary.ts`              | ✅ Created | **Deno-native** report parser; writes Markdown table to `$GITHUB_STEP_SUMMARY` |
 | `skills/seo-aeo-audit/scripts/lighthouse.sh` | ✅ Updated | Expanded from SEO-only → all 4 categories; pnpm-aware install hint             |
 | `docs/auth/removing-anonymous-access.md`     | ✅ Updated | Phase 3 Performance Monitoring section added; stray backtick removed           |
