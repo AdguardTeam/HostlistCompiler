@@ -405,3 +405,26 @@ After completing all 6 phases, the auth system was reviewed for extensibility. F
 - 23 new extensibility tests in `worker/middleware/auth-extensibility.test.ts`
 - Covers: scope registry, tier registry, `isTierSufficient()`, `requireScope()`, `requireTier()`, `ClerkAuthProvider` structure, guard chains
 - Total: **1419 tests, 0 failures**
+
+---
+
+## Documentation ✅ (Post-Extensibility)
+
+Comprehensive documentation covering the entire Clerk auth integration was created in `docs/auth/`. Committed as `986cbb778`.
+
+### Documents Created
+
+| Document | Audience | Description |
+|----------|----------|-------------|
+| `docs/auth/README.md` | All | Index with architecture diagram, auth methods, tier table |
+| `docs/auth/clerk-setup.md` | Operators | 8-step Clerk dashboard configuration walkthrough |
+| `docs/auth/configuration.md` | Operators / DevOps | All environment variables, secrets, deployment checklist |
+| `docs/auth/developer-guide.md` | Developers | IAuthProvider, scope/tier registries, guard functions, testing |
+| `docs/auth/api-authentication.md` | API Consumers | 3 auth methods, rate limits, endpoint matrix, code examples |
+| `docs/auth/admin-access.md` | Operators | Admin endpoint protection, migration from ADMIN_KEY to Clerk tiers |
+| `docs/auth/removing-anonymous-access.md` | All | 3-phase migration plan for mandatory authentication |
+| `docs/auth/cloudflare-access.md` | Operators / DevOps | Cloudflare Zero Trust Access setup for admin routes |
+| `docs/auth/clerk-cloudflare-integration.md` | Developers / DevOps | 10 Clerk+Cloudflare integration points (Workers, KV, Hyperdrive, Turnstile, Queues, Analytics Engine) |
+
+### Also Updated
+- `docs/SUMMARY.md` — Added "Authentication & Authorization" section to mdBook table of contents
