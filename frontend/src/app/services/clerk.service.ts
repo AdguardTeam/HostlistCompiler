@@ -77,8 +77,9 @@ export class ClerkService {
     }
 
     /** Mount Clerk's pre-built sign-in UI into the given DOM element. */
-    mountSignIn(element: HTMLDivElement): void {
-        this.clerkInstance?.mountSignIn(element);
+    mountSignIn(element: HTMLDivElement, afterSignInUrl?: string): void {
+        const props = afterSignInUrl ? { afterSignInUrl } : undefined;
+        this.clerkInstance?.mountSignIn(element, props);
     }
 
     /** Unmount Clerk's sign-in UI from the given DOM element. */
