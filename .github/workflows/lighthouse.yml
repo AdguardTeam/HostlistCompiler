@@ -1,6 +1,10 @@
 name: Lighthouse CI
 
 on:
+    # Fires automatically when the main CI workflow completes on main — which
+    # means the Cloudflare Worker deploy step has already finished. ci.yml does
+    # not create GitHub Deployment/Status events, so workflow_run is the
+    # correct trigger here instead of deployment_status.
     workflow_run:
         workflows: ['CI']
         types: [completed]
@@ -28,7 +32,7 @@ jobs:
         continue-on-error: true
         if: >-
             github.event_name == 'workflow_dispatch' ||
-            github.event.workflow_run.conclusion == 'success'
+            (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
 
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -69,6 +73,7 @@ jobs:
             - name: Run Lighthouse CI
               run: |
                   lhci autorun \
+                    --config=.lighthouserc.json \
                     --collect.url="${TARGET_URL}/" \
                     --collect.url="${TARGET_URL}/sign-in" \
                     --collect.url="${TARGET_URL}/sign-up" \

@@ -38,9 +38,8 @@ After an adequate migration window, reject all unauthenticated requests with:
 
 ```json
 {
-    "error": "Unauthorized",
-    "message": "Authentication is required. Sign up at https://adblock-compiler.jayson-knight.workers.dev/sign-up",
-    "code": 401
+    "success": false,
+    "error": "Authentication is required. Sign up at https://adblock-compiler.jayson-knight.workers.dev/sign-up"
 }
 ```
 
@@ -90,7 +89,7 @@ Update your error-handling code to detect `401 Unauthorized` and surface a meani
 A: The timeline is TBD and will be communicated via the changelog and GitHub releases at least 30 days in advance.
 
 **Q: Will existing filter list URLs break?**
-A: Direct URL-based filter list subscriptions (e.g. in DNS resolvers) are unaffected during Phases 1 and 2. Phase 3 will require those callers to pass an API key in a query parameter (`?key=<api-key>`) or header.
+A: Direct URL-based filter list subscriptions (e.g. in DNS resolvers) are unaffected during Phases 1 and 2. Phase 3 will require those callers to pass an API key via the `Authorization: Bearer <api-key>` header.
 
 **Q: What if I hit rate limits?**
 A: Upgrade to Pro tier (300 req/min) or contact us for Enterprise needs.

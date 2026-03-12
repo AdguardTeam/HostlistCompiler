@@ -6,14 +6,14 @@ Implements a fully automated Lighthouse CI integration with a **Deno-first** app
 
 ### What changed
 
-| File | Action | Notes |
-|------|--------|-------|
-| `.github/workflows/lighthouse.yml` | ✅ Created | Post-deploy audit workflow; `deployment_status` + `workflow_dispatch` |
-| `.lighthouserc.json` | ✅ Created | LHCI config — a11y `error`-level (≥0.90), all others `warn` |
-| `scripts/lighthouse-summary.ts` | ✅ Created | **Deno-native** report parser; writes Markdown table to `$GITHUB_STEP_SUMMARY` |
-| `skills/seo-aeo-audit/scripts/lighthouse.sh` | ✅ Updated | Expanded from SEO-only → all 4 categories; pnpm-aware install hint |
-| `docs/auth/removing-anonymous-access.md` | ✅ Updated | Phase 3 Performance Monitoring section added; stray backtick removed |
-| `docs/reference/LIGHTHOUSE_CI.md` | ✅ Created | Full reference documentation |
+| File                                         | Action     | Notes                                                                          |
+| -------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| `.github/workflows/lighthouse.yml`           | ✅ Created | Post-deploy audit workflow; `deployment_status` + `workflow_dispatch`          |
+| `.lighthouserc.json`                         | ✅ Created | LHCI config — a11y `error`-level (≥0.90), all others `warn`                    |
+| `scripts/lighthouse-summary.ts`              | ✅ Created | **Deno-native** report parser; writes Markdown table to `$GITHUB_STEP_SUMMARY` |
+| `skills/seo-aeo-audit/scripts/lighthouse.sh` | ✅ Updated | Expanded from SEO-only → all 4 categories; pnpm-aware install hint             |
+| `docs/auth/removing-anonymous-access.md`     | ✅ Updated | Phase 3 Performance Monitoring section added; stray backtick removed           |
+| `docs/reference/LIGHTHOUSE_CI.md`            | ✅ Created | Full reference documentation                                                   |
 
 ---
 
@@ -21,7 +21,7 @@ Implements a fully automated Lighthouse CI integration with a **Deno-first** app
 
 `@lhci/cli` has no Deno-native equivalent — it shells out to Chrome and uses Node internals. The strategy is:
 
-- **Deno** — everything that *can* be Deno: the report summarisation script (`scripts/lighthouse-summary.ts`) uses `jsr:@std/cli`, `jsr:@std/fs`, and `Deno.readTextFile`. The workflow reuses the existing `.github/actions/setup-deno-env` composite action.
+- **Deno** — everything that _can_ be Deno: the report summarisation script (`scripts/lighthouse-summary.ts`) uses `jsr:@std/cli`, `jsr:@std/fs`, and `Deno.readTextFile`. The workflow reuses the existing `.github/actions/setup-deno-env` composite action.
 - **pnpm** — `@lhci/cli` only, installed via `pnpm add --global` (matching the pattern in `ci.yml`'s `frontend-lint-test` and `frontend-build` jobs).
 - **No npm** — the original spec called for `npm i -g @lhci/cli`; this is replaced with pnpm throughout.
 
@@ -47,4 +47,4 @@ deno run --allow-read --allow-env scripts/lighthouse-summary.ts \
     --url=https://adblock-compiler.jayson-knight.workers.dev
 ```
 
-*This pull request was created from Copilot chat.*
+_This pull request was created from Copilot chat._
