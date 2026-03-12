@@ -24,7 +24,7 @@ import {
     VALID_SCOPES,
 } from '../types.ts';
 import { authenticateRequestUnified, requireAuth, requireScope, requireTier } from './auth.ts';
-import { ClerkAuthProvider } from './clerk-auth-provider.ts';
+import { ClerkAuthProvider, resolveTierFromMetadata } from './clerk-auth-provider.ts';
 
 // ============================================================================
 // Fixtures
@@ -209,6 +209,29 @@ Deno.test('requireScope - anonymous returns 401', async () => {
     const response = requireScope(ctx, 'compile');
     assertEquals(response instanceof Response, true);
     assertEquals(response!.status, 401);
+});
+
+// ============================================================================
+// resolveTierFromMetadata
+// ============================================================================
+
+Deno.test('resolveTierFromMetadata - returns Free when metadata is undefined', () => {
+    assertEquals(resolveTierFromMetadata(undefined), UserTier.Free);
+});
+
+Deno.test('resolveTierFromMetadata - returns Free when tier is absent from metadata', () => {
+    assertEquals(resolveTierFromMetadata({} as { tier?: UserTier }), UserTier.Free);
+});
+
+Deno.test('resolveTierFromMetadata - returns Free for unrecognised tier (e.g. "enterprise")', () => {
+    assertEquals(resolveTierFromMetadata({ tier: 'enterprise' as unknown as UserTier }), UserTier.Free);
+});
+
+Deno.test('resolveTierFromMetadata - returns valid tier when recognised', () => {
+    assertEquals(resolveTierFromMetadata({ tier: UserTier.Pro }), UserTier.Pro);
+    assertEquals(resolveTierFromMetadata({ tier: UserTier.Free }), UserTier.Free);
+    assertEquals(resolveTierFromMetadata({ tier: UserTier.Admin }), UserTier.Admin);
+    assertEquals(resolveTierFromMetadata({ tier: UserTier.Anonymous }), UserTier.Anonymous);
 });
 
 // ============================================================================

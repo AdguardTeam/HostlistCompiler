@@ -149,24 +149,32 @@ curl -X PATCH https://api.clerk.com/v1/users/{user_id}/metadata \
 
 > **Tip**: When a user's tier is updated via the API or dashboard, Clerk fires a `user.updated` webhook, which automatically syncs the change to your PostgreSQL database.
 
-## Step 7: Configure Cloudflare Worker Secrets
+## Step 7: Configure Environment Variables
 
-Store sensitive keys as Cloudflare Worker secrets (not in `wrangler.toml`):
+### Local Development — Use direnv/.env.local (recommended)
+
+This project uses **direnv** + `.envrc` for local env management. Add your Clerk keys to `.env.local` (gitignored):
 
 ```bash
-# Required secrets
+# .env.local (copy from .env.example, then fill in your real values)
+CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+CLERK_JWKS_URL=https://your-instance.clerk.accounts.dev/.well-known/jwks.json
+CLERK_WEBHOOK_SECRET=whsec_...
+```
+
+Run `direnv allow` once in the repo root to activate automatic loading.
+
+### Production Deployment — Use wrangler secret put
+
+For Cloudflare Workers production deployments, store all Clerk variables as Worker secrets:
+
+```bash
+# All Clerk variables (use prod pk_live_ / sk_live_ keys)
 wrangler secret put CLERK_PUBLISHABLE_KEY
-# Enter: pk_live_...
-
 wrangler secret put CLERK_SECRET_KEY
-# Enter: sk_live_...
-
-wrangler secret put CLERK_WEBHOOK_SECRET
-# Enter: whsec_...
-
-# JWKS URL (derived from your Clerk frontend API URL)
 wrangler secret put CLERK_JWKS_URL
-# Enter: https://<your-clerk-frontend-api>.clerk.accounts.dev/.well-known/jwks.json
+wrangler secret put CLERK_WEBHOOK_SECRET
 ```
 
 ### Finding Your JWKS URL

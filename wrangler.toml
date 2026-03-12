@@ -92,16 +92,22 @@ tag = "v1"
 new_sqlite_classes = ["PlaywrightMcpAgent"]
 tag = "v2"
 
-# Environment variables (base - overridden by env.* sections)
+# Static runtime constants (non-secret Cloudflare-specific config)
+# ─────────────────────────────────────────────────────────────────────────────
+# RULE: This [vars] section is ONLY for static, non-secret runtime constants
+#       that are Cloudflare-specific. Do NOT add new application env vars here.
+#       All new variables belong in .env.example → .env.local (via direnv).
+#       For production secrets use `wrangler secret put`.
+# ─────────────────────────────────────────────────────────────────────────────
 [vars]
 # IMPORTANT: This version should match the VERSION constant in src/version.ts (single source of truth)
 # To update: change VERSION in src/version.ts, then run `deno task version:sync` to propagate changes
 # The worker will fall back to src/version.ts if this is not set
 COMPILER_VERSION = "0.55.0"
 ENVIRONMENT = "production"
-# TURNSTILE_SITE_KEY, ADMIN_KEY, etc. are loaded from .env files via .envrc
-# For local dev: managed by .env.development and .env.local
-# For production: managed via Cloudflare secrets (wrangler secret put ADMIN_KEY)
+# All other runtime variables (TURNSTILE_*, CLERK_*, ADMIN_KEY, DATABASE_URL, etc.)
+# are managed via the direnv/.envrc system for local dev (.env.local)
+# and via `wrangler secret put` for production deployments.
 
 [[d1_databases]]
 binding = "DB"
