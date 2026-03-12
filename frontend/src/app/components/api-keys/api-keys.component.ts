@@ -262,6 +262,9 @@ export class ApiKeysComponent implements OnInit {
     private readonly snackBar = inject(MatSnackBar);
     private readonly platformId = inject(PLATFORM_ID);
 
+    // Expose global Number to the template
+    protected readonly Number = Number;
+
     // Create-form state
     protected readonly newKeyName = signal('');
     protected readonly newKeyScopes = signal<string[]>(['compile']);
