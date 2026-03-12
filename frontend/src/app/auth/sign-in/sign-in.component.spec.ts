@@ -60,7 +60,7 @@ describe('SignInComponent', () => {
         expect(mockClerkService.mountSignIn.mock.calls[0][1]).toBeUndefined();
     });
 
-    it('should pass returnUrl from query params to mountSignIn as afterSignInUrl', async () => {
+    it('should pass returnUrl from query params to mountSignIn as fallbackRedirectUrl', async () => {
         TestBed.resetTestingModule();
         const routeWithReturn = makeRoute({ returnUrl: '/compiler' });
         const clerkWithReturn = { mountSignIn: vi.fn(), unmountSignIn: vi.fn() };

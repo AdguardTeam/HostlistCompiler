@@ -295,13 +295,13 @@ direnv allow                  # activate auto-loading
 
 ### Where Variables Live
 
-| File | Purpose | Committed? |
-|------|---------|-----------|
-| `.env` | Non-secret base defaults (PORT, COMPILER_VERSION) | ✅ Yes |
-| `.env.development` | Dev-specific defaults (Turnstile test keys, LOG_LEVEL=debug) | ✅ Yes |
-| `.env.production` | Prod-specific placeholder values | ✅ Yes |
-| `.env.local` | Your personal secrets and overrides | ❌ No |
-| `.env.example` | Template with all available variables + comments | ✅ Yes |
+| File               | Purpose                                                      | Committed? |
+| ------------------ | ------------------------------------------------------------ | ---------- |
+| `.env`             | Non-secret base defaults (PORT, COMPILER_VERSION)            | ✅ Yes     |
+| `.env.development` | Dev-specific defaults (Turnstile test keys, LOG_LEVEL=debug) | ✅ Yes     |
+| `.env.production`  | Prod-specific placeholder values                             | ✅ Yes     |
+| `.env.local`       | Your personal secrets and overrides                          | ❌ No      |
+| `.env.example`     | Template with all available variables + comments             | ✅ Yes     |
 
 See [docs/reference/ENV_CONFIGURATION.md](docs/reference/ENV_CONFIGURATION.md) for the full reference.
 

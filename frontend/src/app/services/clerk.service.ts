@@ -77,8 +77,8 @@ export class ClerkService {
     }
 
     /** Mount Clerk's pre-built sign-in UI into the given DOM element. */
-    mountSignIn(element: HTMLDivElement, afterSignInUrl?: string): void {
-        const props = afterSignInUrl ? { afterSignInUrl } : undefined;
+    mountSignIn(element: HTMLDivElement, fallbackRedirectUrl?: string): void {
+        const props = fallbackRedirectUrl ? { fallbackRedirectUrl } : undefined;
         this.clerkInstance?.mountSignIn(element, props);
     }
 
