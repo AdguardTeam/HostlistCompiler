@@ -28,7 +28,7 @@ import { ClerkService } from '../../services/clerk.service';
 })
 export class UserButtonComponent implements OnDestroy {
     protected readonly clerk = inject(ClerkService);
-    private readonly container = viewChild<ElementRef<HTMLElement>>('userButtonContainer');
+    private readonly container = viewChild<ElementRef<HTMLDivElement>>('userButtonContainer');
     private mounted = false;
 
     constructor() {

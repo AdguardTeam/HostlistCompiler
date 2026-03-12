@@ -17,8 +17,8 @@
 
 import { Injectable, inject, signal, computed, PLATFORM_ID } from '@angular/core';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import type Clerk from '@clerk/clerk-js';
-import type { UserResource, SessionResource } from '@clerk/types';
+import type { Clerk } from '@clerk/clerk-js';
+import type { UserResource, SessionResource } from '@clerk/shared/types';
 
 @Injectable({ providedIn: 'root' })
 export class ClerkService {
@@ -47,7 +47,7 @@ export class ClerkService {
         if (!publishableKey) return;
 
         try {
-            const { default: ClerkJS } = await import('@clerk/clerk-js');
+            const { Clerk: ClerkJS } = await import('@clerk/clerk-js');
             this.clerkInstance = new ClerkJS(publishableKey);
             await this.clerkInstance.load();
 
@@ -57,9 +57,9 @@ export class ClerkService {
             this._isLoaded.set(true);
 
             // Subscribe to future state changes
-            this.clerkInstance.addListener((state) => {
-                this._user.set(state.user ?? null);
-                this._session.set(state.session ?? null);
+            this.clerkInstance.addListener((emission) => {
+                this._user.set(emission.user ?? null);
+                this._session.set(emission.session ?? null);
             });
         } catch (err) {
             // Non-fatal: app works without Clerk (anonymous mode)
@@ -77,32 +77,32 @@ export class ClerkService {
     }
 
     /** Mount Clerk's pre-built sign-in UI into the given DOM element. */
-    mountSignIn(element: HTMLElement): void {
+    mountSignIn(element: HTMLDivElement): void {
         this.clerkInstance?.mountSignIn(element);
     }
 
     /** Unmount Clerk's sign-in UI from the given DOM element. */
-    unmountSignIn(element: HTMLElement): void {
+    unmountSignIn(element: HTMLDivElement): void {
         this.clerkInstance?.unmountSignIn(element);
     }
 
     /** Mount Clerk's pre-built sign-up UI into the given DOM element. */
-    mountSignUp(element: HTMLElement): void {
+    mountSignUp(element: HTMLDivElement): void {
         this.clerkInstance?.mountSignUp(element);
     }
 
     /** Unmount Clerk's sign-up UI from the given DOM element. */
-    unmountSignUp(element: HTMLElement): void {
+    unmountSignUp(element: HTMLDivElement): void {
         this.clerkInstance?.unmountSignUp(element);
     }
 
     /** Mount Clerk's user button (avatar + dropdown) into the given DOM element. */
-    mountUserButton(element: HTMLElement): void {
+    mountUserButton(element: HTMLDivElement): void {
         this.clerkInstance?.mountUserButton(element);
     }
 
     /** Unmount Clerk's user button from the given DOM element. */
-    unmountUserButton(element: HTMLElement): void {
+    unmountUserButton(element: HTMLDivElement): void {
         this.clerkInstance?.unmountUserButton(element);
     }
 

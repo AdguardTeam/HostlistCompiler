@@ -35,7 +35,7 @@ import { ClerkService } from '../../services/clerk.service';
 export class SignInComponent implements OnDestroy {
     private readonly clerk = inject(ClerkService);
     private readonly route = inject(ActivatedRoute);
-    private readonly container = viewChild<ElementRef<HTMLElement>>('signInContainer');
+    private readonly container = viewChild<ElementRef<HTMLDivElement>>('signInContainer');
 
     constructor() {
         afterNextRender(() => {
