@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.54.1",
+    "version": "0.55.0",
     "exports": "./src/index.ts",
     "nodeModulesDir": "auto",
     "publish": {
@@ -62,7 +62,10 @@
         "ui:test:ng": "pnpm --filter adblock-compiler-frontend run test",
         "docs:api": "deno doc --html --name=\"AdBlock Compiler\" --output=book/api-reference src/index.ts",
         "docs:build": "mdbook build && deno task docs:api",
-        "docs:serve": "mdbook serve"
+        "docs:serve": "mdbook serve",
+        "lighthouse:summary": "deno run --allow-read --allow-write --allow-env scripts/lighthouse-summary.ts",
+        "lighthouse:run": "pnpm exec lhci autorun",
+        "lighthouse:install": "pnpm add --global @lhci/cli"
     },
     "imports": {
         "@/": "./src/",

@@ -1,0 +1,99 @@
+name: Lighthouse CI
+
+on:
+    # Fires automatically when the main CI workflow completes on main — which
+    # means the Cloudflare Worker deploy step has already finished. ci.yml does
+    # not create GitHub Deployment/Status events, so workflow_run is the
+    # correct trigger here instead of deployment_status.
+    workflow_run:
+        workflows: ['CI']
+        types: [completed]
+        branches: [main]
+    workflow_dispatch:
+        inputs:
+            url:
+                description: 'Target URL to audit'
+                required: false
+                default: 'https://adblock-compiler.jayson-knight.workers.dev'
+
+env:
+    DENO_VERSION: '2.x'
+
+permissions:
+    contents: read
+    statuses: write
+
+jobs:
+    lighthouse:
+        name: Lighthouse Audit
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        # Scores are advisory initially — regressions warn, not block
+        continue-on-error: true
+        if: >-
+            github.event_name == 'workflow_dispatch' ||
+            (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+                  install-deps: 'false'
+
+            - name: Install Lighthouse CI
+              run: pnpm add --global @lhci/cli
+
+            - name: Determine target URL
+              id: target
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    TARGET_URL="${{ github.event.inputs.url }}"
+                  else
+                    TARGET_URL="https://adblock-compiler.jayson-knight.workers.dev"
+                  fi
+                  if [ -z "$TARGET_URL" ]; then
+                    echo "❌ TARGET_URL is empty — cannot run Lighthouse audit" >&2
+                    exit 1
+                  fi
+                  echo "TARGET_URL=${TARGET_URL}" >> "$GITHUB_ENV"
+                  echo "url=${TARGET_URL}" >> "$GITHUB_OUTPUT"
+
+            # Thresholds and settings are configured in .lighthouserc.json at the repository root.
+            - name: Run Lighthouse CI
+              run: |
+                  lhci autorun \
+                    --config=.lighthouserc.json \
+                    --collect.url="${TARGET_URL}/" \
+                    --collect.url="${TARGET_URL}/sign-in" \
+                    --collect.url="${TARGET_URL}/sign-up" \
+                    --collect.url="${TARGET_URL}/health"
+              env:
+                  LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+                  LHCI_BUILD_CONTEXT__GITHUB_REPO_SLUG: ${{ github.repository }}
+
+            - name: Generate step summary
+              if: always()
+              run: deno task lighthouse:summary
+              env:
+                  LHCI_OUTPUT_DIR: lhci-results
+                  TARGET_URL: ${{ steps.target.outputs.url }}
+
+            - name: Upload Lighthouse results
+              if: always()
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: lighthouse-results
+                  path: lhci-results/
+                  retention-days: 30
