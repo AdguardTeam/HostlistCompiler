@@ -11,7 +11,18 @@
  */
 
 import { assertEquals } from '@std/assert';
-import { type AuthScope, type Env, type IAuthContext, type IAuthProvider, isTierSufficient, isValidScope, SCOPE_REGISTRY, TIER_REGISTRY, UserTier, VALID_SCOPES } from '../types.ts';
+import {
+    type AuthScope,
+    type Env,
+    type IAuthContext,
+    type IAuthProvider,
+    isTierSufficient,
+    isValidScope,
+    SCOPE_REGISTRY,
+    TIER_REGISTRY,
+    UserTier,
+    VALID_SCOPES,
+} from '../types.ts';
 import { authenticateRequestUnified, requireAuth, requireScope, requireTier } from './auth.ts';
 import { ClerkAuthProvider } from './clerk-auth-provider.ts';
 
