@@ -104,6 +104,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.55.0] - 2026-03-12
+
+### Added- Lighthouse CI — Deno-native summary + pnpm integration
+
+### Fixed
+
+- merge main into branch — resolve lighthouse.yml conflict, keep pnpm/Deno/URL-guard/Deno-summary approach
+- merge main into branch — resolve lighthouse.yml conflict, add clarifying comment to lhci step
+- resolve merge conflicts with main — incorporate workflow comment, if condition fix, --config flag, and doc alignment
+- correct deno fmt issues in PULL_REQUESTS/996/body.md (20 trailing spaces on row 12, add trailing newline)
+- apply deno fmt to PULL_REQUESTS/996/body.md (table padding, italic syntax)
+- address PR review feedback on workflow trigger, URL guard, pnpm detection, and score floor
+
+
 ## [0.54.1] - 2026-03-11
 
 ### Added### Fixed
