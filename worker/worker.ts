@@ -3183,17 +3183,31 @@ export default {
             );
         }
 
+        // Handle Clerk config endpoint (provides publishable key to frontend)
+        if (pathname === '/api/clerk-config' && request.method === 'GET') {
+            return Response.json(
+                { publishableKey: env.CLERK_PUBLISHABLE_KEY || null },
+                {
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                        'Cache-Control': 'public, max-age=3600',
+                    },
+                },
+            );
+        }
+
         // The Angular frontend uses API_BASE_URL = '/api', so functional calls
         // arrive as /api/compile, /api/metrics, /api/validate, etc.
         // Strip the /api prefix so they reach the root-level handlers below.
-        // Note: the native /api, /api/version, /api/deployments, /api/turnstile-config
-        // routes above are already handled before this point.
+        // Note: the native /api, /api/version, /api/deployments, /api/turnstile-config,
+        // and /api/clerk-config routes above are already handled before this point.
         const routePath = pathname.startsWith('/api/') ? pathname.slice(4) : pathname;
 
         // ── Unified Authentication ──────────────────────────────────────
         // Runs the three-tier auth chain (Clerk JWT → API key → Anonymous).
-        // Never throws — auth failures produce a Response in authResult.
-        // Public routes still proceed (anonymous context, no short-circuit).
+        // Never throws — auth failures are signalled via authResult.response.
+        // Requests with NO token proceed as anonymous (no short-circuit).
+        // Requests with an INVALID token are rejected (authResult.response is set).
         const authResult = await authenticateRequestUnified(request, env, createPgPool);
         if (authResult.response) {
             return authResult.response;

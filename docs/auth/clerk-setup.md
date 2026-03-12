@@ -104,7 +104,7 @@ Clerk provides a **"Testing"** tab on each webhook endpoint:
 |-------|--------|----------------|
 | `user.created` | Create/update user record | Insert into `users` table |
 | `user.updated` | Update user profile/tier | Update `users` table |
-| `user.deleted` | Soft-delete user | Mark user as deleted |
+| `user.deleted` | Delete user | Hard-delete from `users` table |
 
 ## Step 6: Set User Tiers via Public Metadata
 

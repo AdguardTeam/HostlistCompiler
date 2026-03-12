@@ -16,10 +16,14 @@ import { verifyClerkJWT } from './clerk-jwt.ts';
 
 /**
  * Map Clerk public metadata to a {@link UserTier}.
- * Falls back to {@link UserTier.Free} when metadata is absent.
+ * Validates the tier value against the known {@link UserTier} enum values.
+ * Falls back to {@link UserTier.Free} when metadata is absent or contains
+ * an unrecognised tier value (e.g. a misconfigured Clerk public metadata field).
  */
 function resolveTierFromMetadata(metadata: IClerkPublicMetadata | undefined): UserTier {
     if (!metadata?.tier) return UserTier.Free;
+    const validTiers = Object.values(UserTier) as string[];
+    if (!validTiers.includes(metadata.tier as string)) return UserTier.Free;
     return metadata.tier;
 }
 

@@ -31,22 +31,20 @@ export class UserButtonComponent implements OnDestroy {
     private readonly container = viewChild<ElementRef<HTMLDivElement>>('userButtonContainer');
     private mounted = false;
 
-    constructor() {
-        afterNextRender(() => {
-            this.tryMount();
-        });
+    private readonly _mountEffect = afterNextRender(() => {
+        this.tryMount();
+    });
 
-        // Re-mount when sign-in state changes (e.g. user signs in while on page)
-        effect(() => {
-            const signedIn = this.clerk.isSignedIn();
-            if (signedIn && !this.mounted) {
-                // Wait a tick for the @if to render the container
-                queueMicrotask(() => this.tryMount());
-            } else if (!signedIn) {
-                this.mounted = false;
-            }
-        });
-    }
+    // Re-mount when sign-in state changes (e.g. user signs in while on page)
+    private readonly _signInEffect = effect(() => {
+        const signedIn = this.clerk.isSignedIn();
+        if (signedIn && !this.mounted) {
+            // Wait a tick for the @if to render the container
+            queueMicrotask(() => this.tryMount());
+        } else if (!signedIn) {
+            this.mounted = false;
+        }
+    });
 
     ngOnDestroy(): void {
         const el = this.container()?.nativeElement;

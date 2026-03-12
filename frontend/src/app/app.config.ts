@@ -36,7 +36,7 @@ import { ThemeService } from './services/theme.service';
 import { ClerkService } from './services/clerk.service';
 import { GlobalErrorHandler } from './error/global-error-handler';
 import { TurnstileService } from './services/turnstile.service';
-import { API_BASE_URL, CLERK_PUBLISHABLE_KEY } from './tokens';
+import { API_BASE_URL } from './tokens';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -110,10 +110,19 @@ export const appConfig: ApplicationConfig = {
             }
 
             // Clerk SDK initialisation (browser only, non-fatal)
-            // Uses the same provideAppInitializer pattern as Turnstile above.
-            const clerkKey = inject(CLERK_PUBLISHABLE_KEY);
-            if (clerkKey) {
-                await inject(ClerkService).initialize(clerkKey);
+            // Fetches the publishable key from /api/clerk-config at runtime —
+            // mirrors the Turnstile pattern above so no build-time env files are needed.
+            try {
+                const clerkConfig = await firstValueFrom(
+                    http.get<{ publishableKey: string | null }>(`${apiBaseUrl}/clerk-config`)
+                        .pipe(timeout(5000)),
+                );
+                if (clerkConfig.publishableKey) {
+                    await inject(ClerkService).initialize(clerkConfig.publishableKey);
+                }
+            } catch (err) {
+                // Non-fatal: Clerk will be uninitialised if config can't be fetched
+                console.warn('[app.config] Failed to load Clerk config:', err instanceof Error ? err.message : String(err));
             }
         }),
     ],

@@ -33,14 +33,12 @@ export class SignUpComponent implements OnDestroy {
     private readonly clerk = inject(ClerkService);
     private readonly container = viewChild<ElementRef<HTMLDivElement>>('signUpContainer');
 
-    constructor() {
-        afterNextRender(() => {
-            const el = this.container()?.nativeElement;
-            if (el) {
-                this.clerk.mountSignUp(el);
-            }
-        });
-    }
+    private readonly _mount = afterNextRender(() => {
+        const el = this.container()?.nativeElement;
+        if (el) {
+            this.clerk.mountSignUp(el);
+        }
+    });
 
     ngOnDestroy(): void {
         const el = this.container()?.nativeElement;
