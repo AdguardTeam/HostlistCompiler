@@ -268,13 +268,13 @@ flowchart TD
 ```
 ````
 
-| Diagram type | Mermaid syntax |
-|---|---|
-| Decision tree / auth flow | `flowchart TD` |
-| Request/response flow | `sequenceDiagram` |
-| Architecture with boundaries | `flowchart TD` or `graph LR` with `subgraph` |
-| Left-to-right pipeline | `flowchart LR` |
-| Static KPI / metrics data | Regular markdown table (no Mermaid type available) |
+| Diagram type                 | Mermaid syntax                                     |
+| ---------------------------- | -------------------------------------------------- |
+| Decision tree / auth flow    | `flowchart TD`                                     |
+| Request/response flow        | `sequenceDiagram`                                  |
+| Architecture with boundaries | `flowchart TD` or `graph LR` with `subgraph`       |
+| Left-to-right pipeline       | `flowchart LR`                                     |
+| Static KPI / metrics data    | Regular markdown table (no Mermaid type available) |
 
 > **Note:** Directory/file tree listings using `├──`, `└──`, `│` are acceptable as-is and must **not** be converted to Mermaid.
 
