@@ -19,13 +19,18 @@
 #   scripts/lighthouse.sh https://example.com reports/lighthouse performance,accessibility
 set -euo pipefail
 
-if ! command -v lighthouse >/dev/null 2>&1; then
-  echo "lighthouse CLI not found. Install with: npm i -g lighthouse" >&2
+# Auto-detect the lighthouse binary: system install first, then pnpm exec
+if command -v lighthouse >/dev/null 2>&1; then
+  LIGHTHOUSE_BIN="lighthouse"
+elif command -v pnpm >/dev/null 2>&1 && pnpm exec lighthouse --version >/dev/null 2>&1; then
+  LIGHTHOUSE_BIN="pnpm exec lighthouse"
+else
+  echo "lighthouse CLI not found. Install with: pnpm add -g lighthouse" >&2
   exit 1
 fi
 
 if [ "$#" -lt 1 ]; then
-  echo "Usage: scripts/lighthouse.sh <url|urls.txt> [output_dir] [categories]" >&2
+  echo "Usage: $(basename "$0") <url|urls.txt> [output_dir] [categories]" >&2
   exit 1
 fi
 
@@ -41,8 +46,8 @@ run_lighthouse() {
   safe_name=$(echo "$url" | sed -E 's#https?://##; s#[^a-zA-Z0-9._-]#_#g')
   local out_path="$OUTPUT_DIR/${safe_name}.json"
 
-  echo "Running Lighthouse (${CATEGORIES}) for $url"
-  lighthouse "$url" \
+  echo "Running Lighthouse ($CATEGORIES) for $url"
+  $LIGHTHOUSE_BIN "$url" \
     --only-categories="$CATEGORIES" \
     --output=json \
     --output-path="$out_path" \

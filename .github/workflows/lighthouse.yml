@@ -16,6 +16,9 @@ on:
                 required: false
                 default: 'https://adblock-compiler.jayson-knight.workers.dev'
 
+env:
+    DENO_VERSION: '2.x'
+
 permissions:
     contents: read
     statuses: write
@@ -34,13 +37,23 @@ jobs:
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+            - name: Setup pnpm
+              uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+
             - name: Setup Node.js
               uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: '22'
+                  cache: 'pnpm'
+
+            - name: Setup Deno environment
+              uses: ./.github/actions/setup-deno-env
+              with:
+                  deno-version: ${{ env.DENO_VERSION }}
+                  install-deps: 'false'
 
             - name: Install Lighthouse CI
-              run: npm install -g @lhci/cli
+              run: pnpm add --global @lhci/cli
 
             - name: Determine target URL
               id: target
@@ -50,9 +63,14 @@ jobs:
                   else
                     TARGET_URL="https://adblock-compiler.jayson-knight.workers.dev"
                   fi
+                  if [ -z "$TARGET_URL" ]; then
+                    echo "❌ TARGET_URL is empty — cannot run Lighthouse audit" >&2
+                    exit 1
+                  fi
                   echo "TARGET_URL=${TARGET_URL}" >> "$GITHUB_ENV"
                   echo "url=${TARGET_URL}" >> "$GITHUB_OUTPUT"
 
+            # Thresholds and settings are configured in .lighthouserc.json at the repository root.
             - name: Run Lighthouse CI
               run: |
                   lhci autorun \
@@ -65,6 +83,13 @@ jobs:
                   LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
                   LHCI_BUILD_CONTEXT__GITHUB_REPO_SLUG: ${{ github.repository }}
 
+            - name: Generate step summary
+              if: always()
+              run: deno task lighthouse:summary
+              env:
+                  LHCI_OUTPUT_DIR: lhci-results
+                  TARGET_URL: ${{ steps.target.outputs.url }}
+
             - name: Upload Lighthouse results
               if: always()
               uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -72,88 +97,3 @@ jobs:
                   name: lighthouse-results
                   path: lhci-results/
                   retention-days: 30
-
-            - name: Post summary
-              if: always()
-              run: |
-                  set +e
-
-                  echo "## 🔦 Lighthouse CI Results" >> "$GITHUB_STEP_SUMMARY"
-                  echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo "**Target:** \`${TARGET_URL}\`" >> "$GITHUB_STEP_SUMMARY"
-                  echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo "| URL | Performance | Accessibility | Best Practices | SEO |" >> "$GITHUB_STEP_SUMMARY"
-                  echo "| --- | ----------- | ------------- | -------------- | --- |" >> "$GITHUB_STEP_SUMMARY"
-
-                  score_emoji() {
-                    local score="$1"
-                    # score is 0-1 float; compare as integer * 100
-                    local pct
-                    pct=$(echo "$score * 100" | bc | cut -d. -f1)
-                    if [ "${pct:-0}" -ge 90 ]; then
-                      echo "✅ ${pct}"
-                    elif [ "${pct:-0}" -ge 75 ]; then
-                      echo "⚠️ ${pct}"
-                    else
-                      echo "❌ ${pct}"
-                    fi
-                  }
-
-                  # Parse manifest.json to get one representative run per URL,
-                  # avoiding duplicate rows when numberOfRuns > 1.
-                  manifest="lhci-results/manifest.json"
-                  if [ ! -f "$manifest" ]; then
-                    echo "| (no results) | — | — | — | — |" >> "$GITHUB_STEP_SUMMARY"
-                  else
-                    python3 - <<'PYEOF'
-import json, os, subprocess, sys
-
-manifest_path = "lhci-results/manifest.json"
-target_url = os.environ.get("TARGET_URL", "")
-summary_file = os.environ.get("GITHUB_STEP_SUMMARY", "/dev/stdout")
-
-with open(manifest_path) as f:
-    entries = json.load(f)
-
-# Keep only representative runs (one per URL); fall back to all if flag absent
-representative = [e for e in entries if e.get("isRepresentativeRun", False)]
-if not representative:
-    representative = entries
-
-seen = set()
-rows = []
-for entry in representative:
-    url = entry.get("url", "unknown")
-    if url in seen:
-        continue
-    seen.add(url)
-    json_path = entry.get("jsonPath", "")
-    if not json_path or not os.path.isfile(json_path):
-        continue
-    with open(json_path) as rf:
-        report = json.load(rf)
-    cats = report.get("categories", {})
-    def fmt(score):
-        if score is None:
-            return "N/A"
-        pct = int(score * 100)
-        if pct >= 90:
-            return f"✅ {pct}"
-        elif pct >= 75:
-            return f"⚠️ {pct}"
-        else:
-            return f"❌ {pct}"
-    perf = fmt(cats.get("performance", {}).get("score"))
-    a11y = fmt(cats.get("accessibility", {}).get("score"))
-    bp   = fmt(cats.get("best-practices", {}).get("score"))
-    seo  = fmt(cats.get("seo", {}).get("score"))
-    short = url[len(target_url):] or "/"
-    rows.append(f"| `{short}` | {perf} | {a11y} | {bp} | {seo} |")
-
-with open(summary_file, "a") as sf:
-    sf.write("\n".join(rows) + "\n")
-PYEOF
-                  fi
-
-                  echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo "_Scores: ✅ ≥ 90 · ⚠️ ≥ 75 · ❌ < 75. Full reports uploaded as artifact \`lighthouse-results\`._" >> "$GITHUB_STEP_SUMMARY"
