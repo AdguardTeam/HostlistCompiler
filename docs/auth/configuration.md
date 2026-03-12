@@ -39,15 +39,28 @@ Complete reference for all environment variables and configuration needed to run
 |----------|----------|--------|-------------|
 | `DATABASE_URL` | **Yes** | PostgreSQL connection string | Hyperdrive connection URL in production; local PostgreSQL URL in development. |
 
-## Setting Secrets in Cloudflare Workers
+## Setting Variables and Secrets in Cloudflare Workers
 
-**Never** put secrets in `wrangler.toml`. Use Cloudflare Worker secrets:
+### Public Variables (wrangler.toml)
+
+Non-sensitive configuration should be committed in `wrangler.toml` under `[vars]`:
+
+```toml
+[vars]
+# Clerk public key — safe to commit (starts with pk_test_ or pk_live_)
+CLERK_PUBLISHABLE_KEY = "pk_live_..."
+
+# Clerk JWKS URL — public endpoint, safe to commit
+CLERK_JWKS_URL = "https://<your-instance>.clerk.accounts.dev/.well-known/jwks.json"
+```
+
+### Secrets (wrangler secret put)
+
+**Never** put secrets in `wrangler.toml`. Use Cloudflare Worker secrets for sensitive values:
 
 ```bash
-# Required for auth
-wrangler secret put CLERK_PUBLISHABLE_KEY
+# Required auth secrets
 wrangler secret put CLERK_SECRET_KEY
-wrangler secret put CLERK_JWKS_URL
 wrangler secret put CLERK_WEBHOOK_SECRET
 
 # Legacy admin (optional — will be deprecated)
