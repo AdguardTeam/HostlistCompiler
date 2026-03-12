@@ -22,7 +22,7 @@ set -euo pipefail
 # Auto-detect the lighthouse binary: system install first, then pnpm exec
 if command -v lighthouse >/dev/null 2>&1; then
   LIGHTHOUSE_BIN="lighthouse"
-elif pnpm exec lighthouse --version >/dev/null 2>&1; then
+elif command -v pnpm >/dev/null 2>&1 && pnpm exec lighthouse --version >/dev/null 2>&1; then
   LIGHTHOUSE_BIN="pnpm exec lighthouse"
 else
   echo "lighthouse CLI not found. Install with: pnpm add -g lighthouse" >&2
@@ -30,7 +30,7 @@ else
 fi
 
 if [ "$#" -lt 1 ]; then
-  echo "Usage: scripts/seo/lighthouse.sh <url|urls.txt> [output_dir] [categories]" >&2
+  echo "Usage: $(basename "$0") <url|urls.txt> [output_dir] [categories]" >&2
   exit 1
 fi
 

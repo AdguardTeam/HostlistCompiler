@@ -50,7 +50,7 @@ function scoreEmoji(score: number | null): string {
     if (score === null) {
         return 'N/A';
     }
-    const pct = Math.round(score * 100);
+    const pct = Math.floor(score * 100);
     if (pct >= 90) {
         return `✅ ${pct}`;
     }

@@ -1,7 +1,10 @@
 name: Lighthouse CI
 
 on:
-    deployment_status:
+    workflow_run:
+        workflows: ['CI']
+        types: [completed]
+        branches: [main]
     workflow_dispatch:
         inputs:
             url:
@@ -25,7 +28,7 @@ jobs:
         continue-on-error: true
         if: >-
             github.event_name == 'workflow_dispatch' ||
-            github.event.deployment_status.state == 'success'
+            github.event.workflow_run.conclusion == 'success'
 
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -54,7 +57,11 @@ jobs:
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
                     TARGET_URL="${{ github.event.inputs.url }}"
                   else
-                    TARGET_URL="${{ github.event.deployment_status.target_url }}"
+                    TARGET_URL="https://adblock-compiler.jayson-knight.workers.dev"
+                  fi
+                  if [ -z "$TARGET_URL" ]; then
+                    echo "❌ TARGET_URL is empty — cannot run Lighthouse audit" >&2
+                    exit 1
                   fi
                   echo "TARGET_URL=${TARGET_URL}" >> "$GITHUB_ENV"
                   echo "url=${TARGET_URL}" >> "$GITHUB_OUTPUT"
