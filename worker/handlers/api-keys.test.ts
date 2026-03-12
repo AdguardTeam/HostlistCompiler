@@ -336,6 +336,18 @@ Deno.test('handleCreateApiKey - enforces per-user key limit', async () => {
     assertEquals((body.error as string).includes('25'), true);
 });
 
+Deno.test('handleCreateApiKey - rejects request when auth context has no userId', async () => {
+    const createPool = createInMemoryPool();
+    const req = new Request('https://example.com/api/keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'No User' }),
+    });
+
+    const res = await handleCreateApiKey(req, makeAuthContext({ userId: null }), CONNECTION_STRING, createPool);
+    assertEquals(res.status, 403);
+});
+
 // ============================================================================
 // handleListApiKeys
 // ============================================================================
@@ -391,6 +403,12 @@ Deno.test('handleListApiKeys - does not return keys from other users', async () 
     assertEquals(body.total, 0);
 });
 
+Deno.test('handleListApiKeys - rejects request when auth context has no userId', async () => {
+    const createPool = createInMemoryPool();
+    const res = await handleListApiKeys(makeAuthContext({ userId: null }), CONNECTION_STRING, createPool);
+    assertEquals(res.status, 403);
+});
+
 // ============================================================================
 // handleRevokeApiKey
 // ============================================================================
@@ -439,6 +457,12 @@ Deno.test("handleRevokeApiKey - prevents revoking another user's key", async () 
     // User B tries to revoke
     const res = await handleRevokeApiKey(keyId, makeAuthContext({ userId: 'user-B' }), CONNECTION_STRING, createPool);
     assertEquals(res.status, 404);
+});
+
+Deno.test('handleRevokeApiKey - rejects request when auth context has no userId', async () => {
+    const createPool = createInMemoryPool();
+    const res = await handleRevokeApiKey('key-123', makeAuthContext({ userId: null }), CONNECTION_STRING, createPool);
+    assertEquals(res.status, 403);
 });
 
 // ============================================================================
@@ -551,4 +575,16 @@ Deno.test('handleUpdateApiKey - rejects invalid JSON', async () => {
 
     const res = await handleUpdateApiKey('123', req, makeAuthContext(), CONNECTION_STRING, createPool);
     assertEquals(res.status, 400);
+});
+
+Deno.test('handleUpdateApiKey - rejects request when auth context has no userId', async () => {
+    const createPool = createInMemoryPool();
+    const req = new Request('https://example.com/api/keys/123', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Renamed' }),
+    });
+
+    const res = await handleUpdateApiKey('123', req, makeAuthContext({ userId: null }), CONNECTION_STRING, createPool);
+    assertEquals(res.status, 403);
 });

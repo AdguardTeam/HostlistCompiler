@@ -11,8 +11,8 @@
  */
 
 import { assertEquals } from '@std/assert';
-import { type AuthScope, type IAuthContext, isTierSufficient, isValidScope, SCOPE_REGISTRY, TIER_REGISTRY, UserTier, VALID_SCOPES } from '../types.ts';
-import { requireAuth, requireScope, requireTier } from './auth.ts';
+import { type AuthScope, type Env, type IAuthContext, type IAuthProvider, isTierSufficient, isValidScope, SCOPE_REGISTRY, TIER_REGISTRY, UserTier, VALID_SCOPES } from '../types.ts';
+import { authenticateRequestUnified, requireAuth, requireScope, requireTier } from './auth.ts';
 import { ClerkAuthProvider } from './clerk-auth-provider.ts';
 
 // ============================================================================
@@ -254,4 +254,46 @@ Deno.test('auth guard chain - authenticated API key without scope fails at scope
     const scopeDenied = requireScope(ctx, 'admin');
     assertEquals(scopeDenied instanceof Response, true);
     assertEquals(scopeDenied!.status, 403);
+});
+
+// ============================================================================
+// Unified auth user resolution
+// ============================================================================
+
+Deno.test('authenticateRequestUnified - resolves DB userId from clerk_user_id for JWT auth', async () => {
+    const env = {
+        HYPERDRIVE: { connectionString: 'postgresql://test' },
+    } as Env;
+
+    const createPool = (_connectionString: string) => ({
+        query: async <T = Record<string, unknown>>(_text: string, values?: unknown[]) => {
+            const clerkUserId = values?.[0];
+            if (clerkUserId === 'clerk_abc') {
+                return { rows: [{ id: 'user-db-123' }] as T[], rowCount: 1 };
+            }
+            return { rows: [] as T[], rowCount: 0 };
+        },
+    });
+
+    const provider: IAuthProvider = {
+        name: 'mock-provider',
+        authMethod: 'clerk-jwt',
+        verifyToken: async (_request: Request) => ({
+            valid: true,
+            providerUserId: 'clerk_abc',
+            tier: UserTier.Free,
+            role: 'user',
+            sessionId: 'sess_123',
+        }),
+    };
+
+    const request = new Request('https://example.com/api/keys', {
+        headers: { Authorization: 'Bearer header.payload.signature' },
+    });
+
+    const result = await authenticateRequestUnified(request, env, createPool, provider);
+    assertEquals(result.response, undefined);
+    assertEquals(result.context.userId, 'user-db-123');
+    assertEquals(result.context.clerkUserId, 'clerk_abc');
+    assertEquals(result.context.authMethod, 'clerk-jwt');
 });

@@ -101,6 +101,13 @@ interface UpdateKeyBody {
 const MAX_KEY_NAME_LENGTH = 100;
 const MAX_KEYS_PER_USER = 25;
 
+function requireUserId(authContext: IAuthContext): Response | null {
+    if (!authContext.userId) {
+        return JsonResponse.forbidden('User identity is not available for this session. Please sign out and sign in again.');
+    }
+    return null;
+}
+
 function validateScopes(scopes: unknown): string[] | null {
     if (!Array.isArray(scopes)) return null;
     const valid = scopes.every((s) => typeof s === 'string' && VALID_SCOPES.includes(s));
@@ -123,6 +130,11 @@ export async function handleCreateApiKey(
     connectionString: string,
     createPool: PgPoolFactory,
 ): Promise<Response> {
+    const userGuard = requireUserId(authContext);
+    if (userGuard) {
+        return userGuard;
+    }
+
     let body: CreateKeyBody;
     try {
         body = await request.json() as CreateKeyBody;
@@ -211,6 +223,11 @@ export async function handleListApiKeys(
     connectionString: string,
     createPool: PgPoolFactory,
 ): Promise<Response> {
+    const userGuard = requireUserId(authContext);
+    if (userGuard) {
+        return userGuard;
+    }
+
     const pool = createPool(connectionString);
 
     const result = await pool.query<ApiKeyRow>(
@@ -251,6 +268,11 @@ export async function handleRevokeApiKey(
     connectionString: string,
     createPool: PgPoolFactory,
 ): Promise<Response> {
+    const userGuard = requireUserId(authContext);
+    if (userGuard) {
+        return userGuard;
+    }
+
     const pool = createPool(connectionString);
 
     const result = await pool.query(
@@ -277,6 +299,11 @@ export async function handleUpdateApiKey(
     connectionString: string,
     createPool: PgPoolFactory,
 ): Promise<Response> {
+    const userGuard = requireUserId(authContext);
+    if (userGuard) {
+        return userGuard;
+    }
+
     let body: UpdateKeyBody;
     try {
         body = await request.json() as UpdateKeyBody;

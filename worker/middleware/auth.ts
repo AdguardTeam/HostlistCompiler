@@ -320,8 +320,28 @@ export async function authenticateRequestUnified(
         const providerResult = await provider.verifyToken(request);
 
         if (providerResult.valid && providerResult.providerUserId) {
+            let resolvedUserId: string | null = null;
+            if (env.HYPERDRIVE && createPool) {
+                try {
+                    resolvedUserId = await resolveUserIdByClerkId(
+                        providerResult.providerUserId,
+                        env.HYPERDRIVE,
+                        createPool,
+                    );
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    return {
+                        context: { ...ANONYMOUS_AUTH_CONTEXT },
+                        response: new Response(
+                            JSON.stringify({ error: `Authentication user lookup failed: ${message}` }),
+                            { status: 503, headers: { 'Content-Type': 'application/json' } },
+                        ),
+                    };
+                }
+            }
+
             const context: IAuthContext = {
-                userId: null, // TODO(@jaypatrick): resolve DB userId from providerUserId
+                userId: resolvedUserId,
                 clerkUserId: providerResult.providerUserId,
                 tier: providerResult.tier ?? UserTier.Free,
                 role: providerResult.role ?? 'user',
@@ -350,6 +370,27 @@ export async function authenticateRequestUnified(
             { status: 401, headers: { 'Content-Type': 'application/json' } },
         ),
     };
+}
+
+// ---------------------------------------------------------------------------
+// Clerk User Resolution
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve internal `users.id` from Clerk `clerk_user_id`.
+ */
+async function resolveUserIdByClerkId(
+    clerkUserId: string,
+    hyperdrive: HyperdriveBinding,
+    createPool: PgPoolFactory,
+): Promise<string | null> {
+    const pool = createPool(hyperdrive.connectionString);
+    const result = await pool.query<{ id: string }>(
+        `SELECT id FROM users WHERE clerk_user_id = $1 LIMIT 1`,
+        [clerkUserId],
+    );
+
+    return result.rows[0]?.id ?? null;
 }
 
 // ---------------------------------------------------------------------------
