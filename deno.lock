@@ -2,6 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@opentelemetry/api@^1.9.0": "1.9.0",
+    "jsr:@panva/jose@^6.2.1": "6.2.1",
     "jsr:@std/assert@*": "1.0.19",
     "jsr:@std/assert@^1.0.17": "1.0.19",
     "jsr:@std/assert@^1.0.19": "1.0.19",
@@ -26,7 +27,7 @@
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@prisma/adapter-pg@^7.4.2": "7.4.2",
     "npm:@prisma/client@^7.4.2": "7.4.2_prisma@7.4.2__react@19.2.4_react@19.2.4",
-    "npm:jose@^6.0.11": "6.2.0",
+    "npm:jose@^6.2.1": "6.2.1",
     "npm:prisma@^7.4.2": "7.4.2_react@19.2.4",
     "npm:svix@^1.62.0": "1.87.0",
     "npm:wrangler@*": "4.71.0_@cloudflare+workers-types@4.20260307.1",
@@ -36,6 +37,9 @@
   "jsr": {
     "@opentelemetry/api@1.9.0": {
       "integrity": "a8a4980ff5eff7bd322715cad1a128b3208675f1e05b8adbfcf6b240502739b7"
+    },
+    "@panva/jose@6.2.1": {
+      "integrity": "6725a90a47be84c57a0f889c73bf09c6a209019c816f1f029f9084929fadfcbf"
     },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
@@ -1323,8 +1327,8 @@
       "integrity": "sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==",
       "bin": true
     },
-    "jose@6.2.0": {
-      "integrity": "sha512-xsfE1TcSCbUdo6U07tR0mvhg0flGxU8tPLbF03mirl2ukGQENhUg4ubGYQnhVH0b5stLlPM+WOqDkEl1R1y5sQ=="
+    "jose@6.2.1": {
+      "integrity": "sha512-jUaKr1yrbfaImV7R2TN/b3IcZzsw38/chqMpo2XJ7i2F8AfM/lA4G1goC3JVEwg0H7UldTmSt3P68nt31W7/mw=="
     },
     "js-base64@3.7.8": {
       "integrity": "sha512-hNngCeKxIUQiEUN3GPJOkz4wF/YvdUdbNL9hsBcMQTkKzboD7T/q3OYOuuPZLUE6dBxSGpwhk5mwuDud7JVAow=="
@@ -2129,6 +2133,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@opentelemetry/api@^1.9.0",
+      "jsr:@panva/jose@^6.2.1",
       "jsr:@std/assert@^1.0.19",
       "jsr:@std/async@^1.2.0",
       "jsr:@std/cli@^1.0.28",
@@ -2144,7 +2149,6 @@
       "npm:@cloudflare/workers-types@^4.20260307.1",
       "npm:@prisma/adapter-pg@^7.4.2",
       "npm:@prisma/client@^7.4.2",
-      "npm:jose@^6.0.11",
       "npm:prisma@^7.4.2",
       "npm:svix@^1.62.0",
       "npm:wrangler@^4.71.0"
@@ -2156,7 +2160,7 @@
         "npm:@cloudflare/playwright-mcp@^0.0.5",
         "npm:@cloudflare/playwright@^0.0.11",
         "npm:@opentelemetry/api@^1.9.0",
-        "npm:jose@^6.0.11",
+        "npm:jose@^6.2.1",
         "npm:svix@^1.62.0",
         "npm:wrangler@^4.71.0",
         "npm:zod@^4.3.6"
