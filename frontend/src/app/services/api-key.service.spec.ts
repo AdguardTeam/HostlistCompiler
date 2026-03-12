@@ -3,7 +3,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ApiKeyService, ApiKey, CreateApiKeyResponse } from './api-key.service';
+import { ApiKeyService, ApiKey } from './api-key.service';
 
 /** Flush one round of microtasks (Promise callbacks). */
 const tick = () => new Promise<void>((r) => setTimeout(r, 0));
@@ -19,6 +19,9 @@ const MOCK_KEY: ApiKey = {
     revokedAt: null,
     createdAt: '2025-01-01T00:00:00Z',
 };
+
+/** Backend wraps all GET /api/keys responses as { success, keys, total }. */
+const listResponse = (keys: ApiKey[]) => ({ success: true, keys, total: keys.length });
 
 describe('ApiKeyService', () => {
     let service: ApiKeyService;
@@ -57,7 +60,7 @@ describe('ApiKeyService', () => {
             await tick();
             const req = httpTesting.expectOne('/api/keys');
             expect(req.request.method).toBe('GET');
-            req.flush({ data: [MOCK_KEY] });
+            req.flush(listResponse([MOCK_KEY]));
 
             await promise;
             expect(service.keys()).toEqual([MOCK_KEY]);
@@ -80,9 +83,17 @@ describe('ApiKeyService', () => {
 
     describe('createKey', () => {
         it('should POST and return plaintext', async () => {
-            const createResponse: CreateApiKeyResponse = {
-                key: MOCK_KEY,
-                plaintext: 'abc_secret_key_here',
+            // Backend returns the key fields merged at the top level alongside success:true.
+            const createResponse = {
+                success: true,
+                id: MOCK_KEY.id,
+                key: 'abc_secret_key_here',  // plaintext returned only on creation
+                keyPrefix: MOCK_KEY.keyPrefix,
+                name: MOCK_KEY.name,
+                scopes: MOCK_KEY.scopes,
+                rateLimitPerMinute: MOCK_KEY.rateLimitPerMinute,
+                expiresAt: null,
+                createdAt: MOCK_KEY.createdAt,
             };
 
             const promise = service.createKey({ name: 'New Key', scopes: ['compile'] });
@@ -91,12 +102,12 @@ describe('ApiKeyService', () => {
             await tick();
             const req = httpTesting.expectOne({ method: 'POST', url: '/api/keys' });
             expect(req.request.body).toEqual({ name: 'New Key', scopes: ['compile'] });
-            req.flush({ data: createResponse });
+            req.flush(createResponse);
 
             // createKey chains loadKeys — wait for the refresh GET to appear
             await tick();
             const refreshReq = httpTesting.expectOne({ method: 'GET', url: '/api/keys' });
-            refreshReq.flush({ data: [MOCK_KEY] });
+            refreshReq.flush(listResponse([MOCK_KEY]));
 
             const plaintext = await promise;
             expect(plaintext).toBe('abc_secret_key_here');
@@ -120,7 +131,7 @@ describe('ApiKeyService', () => {
             // Seed a key into local state first
             const loadPromise = service.loadKeys();
             await tick();
-            httpTesting.expectOne('/api/keys').flush({ data: [MOCK_KEY] });
+            httpTesting.expectOne('/api/keys').flush(listResponse([MOCK_KEY]));
             await loadPromise;
 
             const promise = service.revokeKey('key-1');
@@ -128,7 +139,7 @@ describe('ApiKeyService', () => {
             await tick();
             const req = httpTesting.expectOne('/api/keys/key-1');
             expect(req.request.method).toBe('DELETE');
-            req.flush({});
+            req.flush({ success: true, message: 'API key revoked' });
 
             const ok = await promise;
             expect(ok).toBe(true);
@@ -153,17 +164,18 @@ describe('ApiKeyService', () => {
             // Seed a key first
             const loadPromise = service.loadKeys();
             await tick();
-            httpTesting.expectOne('/api/keys').flush({ data: [MOCK_KEY] });
+            httpTesting.expectOne('/api/keys').flush(listResponse([MOCK_KEY]));
             await loadPromise;
 
-            const updated = { ...MOCK_KEY, name: 'Updated Name' };
+            // Backend returns updated key fields at top level alongside success:true
+            const updatedRow = { ...MOCK_KEY, name: 'Updated Name' };
             const promise = service.updateKey('key-1', { name: 'Updated Name' });
 
             await tick();
             const req = httpTesting.expectOne('/api/keys/key-1');
             expect(req.request.method).toBe('PATCH');
             expect(req.request.body).toEqual({ name: 'Updated Name' });
-            req.flush({ data: updated });
+            req.flush({ success: true, ...updatedRow });
 
             const ok = await promise;
             expect(ok).toBe(true);
@@ -191,7 +203,7 @@ describe('ApiKeyService', () => {
 
             const promise = service.loadKeys();
             await tick();
-            httpTesting.expectOne('/api/keys').flush({ data: [expired, revoked, active] });
+            httpTesting.expectOne('/api/keys').flush(listResponse([expired, revoked, active]));
             await promise;
 
             expect(service.count()).toBe(3);

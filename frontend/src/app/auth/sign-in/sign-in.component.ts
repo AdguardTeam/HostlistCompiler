@@ -37,14 +37,12 @@ export class SignInComponent implements OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly container = viewChild<ElementRef<HTMLDivElement>>('signInContainer');
 
-    constructor() {
-        afterNextRender(() => {
-            const el = this.container()?.nativeElement;
-            if (el) {
-                this.clerk.mountSignIn(el);
-            }
-        });
-    }
+    private readonly _mount = afterNextRender(() => {
+        const el = this.container()?.nativeElement;
+        if (el) {
+            this.clerk.mountSignIn(el);
+        }
+    });
 
     ngOnDestroy(): void {
         const el = this.container()?.nativeElement;

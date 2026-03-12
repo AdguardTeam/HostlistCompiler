@@ -95,14 +95,16 @@ import { ClerkService } from '../../services/clerk.service';
                     <div class="create-form">
                         <mat-form-field appearance="outline" class="name-field">
                             <mat-label>Key Name</mat-label>
-                            <input matInput [(ngModel)]="newKeyName"
+                            <input matInput [ngModel]="newKeyName()"
+                                   (ngModelChange)="newKeyName.set($event)"
                                    placeholder="e.g. CI Pipeline" maxlength="100" />
                             <mat-hint>A friendly name to identify this key</mat-hint>
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="scopes-field">
                             <mat-label>Scopes</mat-label>
-                            <mat-select [(ngModel)]="newKeyScopes" multiple>
+                            <mat-select [ngModel]="newKeyScopes()"
+                                        (ngModelChange)="newKeyScopes.set($event)" multiple>
                                 <mat-option value="compile">compile</mat-option>
                                 <mat-option value="rules">rules</mat-option>
                             </mat-select>
@@ -111,7 +113,8 @@ import { ClerkService } from '../../services/clerk.service';
 
                         <mat-form-field appearance="outline" class="expiry-field">
                             <mat-label>Expires In (days)</mat-label>
-                            <input matInput type="number" [(ngModel)]="newKeyExpiryDays"
+                            <input matInput type="number" [ngModel]="newKeyExpiryDays()"
+                                   (ngModelChange)="newKeyExpiryDays.set($event ? Number($event) : null)"
                                    min="1" max="365" placeholder="90" />
                             <mat-hint>Leave empty for no expiry</mat-hint>
                         </mat-form-field>

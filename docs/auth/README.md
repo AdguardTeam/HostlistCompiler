@@ -17,26 +17,27 @@ The adblock-compiler uses [Clerk](https://clerk.com) for user identity managemen
 
 ## Architecture Overview
 
-```
-┌─────────────┐     ┌─────────────────────┐     ┌──────────────┐
-│   Angular    │────▶│  Cloudflare Worker   │────▶│  PostgreSQL  │
-│   Frontend   │     │  (Auth Middleware)    │     │  (Hyperdrive)│
-│              │     │                      │     │              │
-│  @clerk/     │     │  Clerk JWT verify    │     │  users       │
-│  clerk-js    │     │  API key verify      │     │  api_keys    │
-│              │     │  CF Access verify    │     │              │
-└─────────────┘     │  Tier enforcement    │     └──────────────┘
-                    │  Scope enforcement   │
-                    │  Rate limiting       │
-                    └─────────────────────┘
-                              ▲
-                              │
-                    ┌─────────┴─────────┐
-                    │  Clerk Webhooks    │
-                    │  (user.created,    │
-                    │   user.updated,    │
-                    │   user.deleted)    │
-                    └───────────────────┘
+```mermaid
+flowchart LR
+    FE["Angular Frontend\n(@clerk/clerk-js)"]
+    W["Cloudflare Worker\n(Auth Middleware)"]
+    DB[("PostgreSQL\n(Hyperdrive)")]
+    WH["Clerk Webhooks\n(user.created\nuser.updated\nuser.deleted)"]
+
+    FE -->|"Clerk JWT / API Key"| W
+    W -->|"Verify + Tier lookup"| DB
+    WH -->|"Sync user records"| W
+    W -->|"Upsert / delete users"| DB
+
+    subgraph W["Cloudflare Worker"]
+        direction TB
+        JWT["Clerk JWT verify"]
+        AK["API key verify"]
+        CF["CF Access verify"]
+        TE["Tier enforcement"]
+        SE["Scope enforcement"]
+        RL["Rate limiting"]
+    end
 ```
 
 ## Authentication Methods

@@ -56,8 +56,8 @@ export interface UserRow {
 /**
  * Upsert a user record from Clerk webhook event data.
  *
- * On conflict by `clerk_user_id` the existing row is updated.
- * On conflict by `email` with no `clerk_user_id` the Clerk ID is linked.
+ * On conflict by `clerk_user_id` the existing row is updated in place.
+ * A new row is inserted when no matching `clerk_user_id` exists.
  */
 export async function upsertUserFromClerk(pool: PgPool, data: ClerkUserData): Promise<UserRow | null> {
     const displayName = [data.firstName, data.lastName].filter(Boolean).join(' ') || null;

@@ -115,7 +115,7 @@ The Angular frontend does **not** require build-time environment files. All auth
 
 1. Angular app starts → `app.config.ts` runs initialization
 2. Fetches `/api/turnstile-config` → configures Turnstile widget
-3. Fetches Clerk publishable key → initializes `ClerkService`
+3. Fetches `/api/clerk-config` → initializes `ClerkService` with the publishable key
 4. `ClerkService` loads `@clerk/clerk-js` and listens for auth state changes
 5. `authInterceptor` automatically attaches JWT to API requests
 
@@ -125,9 +125,10 @@ Defined in `frontend/src/app/tokens.ts`:
 
 | Token | Type | Default | Description |
 |-------|------|---------|-------------|
-| `CLERK_PUBLISHABLE_KEY` | `InjectionToken<string>` | `''` | Clerk publishable key (fetched at runtime) |
 | `TURNSTILE_SITE_KEY` | `InjectionToken<string>` | `''` | Turnstile public site key |
 | `API_BASE_URL` | `InjectionToken<string>` | `/api` | Base URL for API calls |
+
+> **Note:** The Clerk publishable key is fetched from `GET /api/clerk-config` at runtime rather than provided as a static injection token, matching the Turnstile pattern.
 
 ## Database Schema
 

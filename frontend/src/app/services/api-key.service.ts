@@ -34,9 +34,18 @@ export interface CreateApiKeyRequest {
     expiresInDays?: number;
 }
 
+/** Shape of the top-level POST /api/keys response body. */
 export interface CreateApiKeyResponse {
-    key: ApiKey;
-    plaintext: string;
+    success: boolean;
+    /** Plaintext key — returned only once on creation. */
+    key: string;
+    id: string;
+    keyPrefix: string;
+    name: string;
+    scopes: string[];
+    rateLimitPerMinute: number;
+    expiresAt: string | null;
+    createdAt: string;
 }
 
 export interface UpdateApiKeyRequest {
@@ -72,9 +81,9 @@ export class ApiKeyService {
         this._error.set(null);
         try {
             const res = await firstValueFrom(
-                this.http.get<{ data: ApiKey[] }>('/api/keys'),
+                this.http.get<{ success: boolean; keys: ApiKey[]; total: number }>('/api/keys'),
             );
-            this._keys.set(res.data ?? []);
+            this._keys.set(res.keys ?? []);
         } catch (err) {
             this._error.set(err instanceof Error ? err.message : 'Failed to load API keys');
         } finally {
@@ -87,11 +96,11 @@ export class ApiKeyService {
         this._error.set(null);
         try {
             const res = await firstValueFrom(
-                this.http.post<{ data: CreateApiKeyResponse }>('/api/keys', req),
+                this.http.post<CreateApiKeyResponse>('/api/keys', req),
             );
             // Refresh the list to include the new key
             await this.loadKeys();
-            return res.data?.plaintext ?? null;
+            return res.key ?? null;
         } catch (err) {
             this._error.set(err instanceof Error ? err.message : 'Failed to create API key');
             return null;
@@ -121,11 +130,22 @@ export class ApiKeyService {
         this._error.set(null);
         try {
             const res = await firstValueFrom(
-                this.http.patch<{ data: ApiKey }>(`/api/keys/${id}`, req),
+                this.http.patch<ApiKey & { success: boolean }>(`/api/keys/${id}`, req),
             );
-            // Update local state with the returned key
-            if (res.data) {
-                this._keys.update((keys) => keys.map((k) => (k.id === id ? res.data : k)));
+            // Backend returns the updated key fields at the top level alongside success:true
+            if (res.id) {
+                const updatedKey: ApiKey = {
+                    id: res.id,
+                    keyPrefix: res.keyPrefix,
+                    name: res.name,
+                    scopes: res.scopes,
+                    rateLimitPerMinute: res.rateLimitPerMinute,
+                    lastUsedAt: res.lastUsedAt,
+                    expiresAt: res.expiresAt,
+                    revokedAt: res.revokedAt,
+                    createdAt: res.createdAt,
+                };
+                this._keys.update((keys) => keys.map((k) => (k.id === id ? updatedKey : k)));
             }
             return true;
         } catch (err) {
