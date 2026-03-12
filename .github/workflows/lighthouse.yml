@@ -1,7 +1,14 @@
 name: Lighthouse CI
 
 on:
-    deployment_status:
+    # Fires automatically when the main CI workflow completes on main — which
+    # means the Cloudflare Worker deploy step has already finished. ci.yml does
+    # not create GitHub Deployment/Status events, so workflow_run is the
+    # correct trigger here instead of deployment_status.
+    workflow_run:
+        workflows: ['CI']
+        types: [completed]
+        branches: [main]
     workflow_dispatch:
         inputs:
             url:
@@ -22,7 +29,7 @@ jobs:
         continue-on-error: true
         if: >-
             github.event_name == 'workflow_dispatch' ||
-            github.event.deployment_status.state == 'success'
+            (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
 
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -41,7 +48,7 @@ jobs:
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
                     TARGET_URL="${{ github.event.inputs.url }}"
                   else
-                    TARGET_URL="${{ github.event.deployment_status.target_url }}"
+                    TARGET_URL="https://adblock-compiler.jayson-knight.workers.dev"
                   fi
                   echo "TARGET_URL=${TARGET_URL}" >> "$GITHUB_ENV"
                   echo "url=${TARGET_URL}" >> "$GITHUB_OUTPUT"
@@ -92,28 +99,61 @@ jobs:
                     fi
                   }
 
-                  for report_file in lhci-results/*.json; do
-                    [ -f "$report_file" ] || continue
-                    # Skip manifest and links files
-                    [[ "$report_file" == *manifest* ]] && continue
-                    [[ "$report_file" == *links* ]] && continue
+                  # Parse manifest.json to get one representative run per URL,
+                  # avoiding duplicate rows when numberOfRuns > 1.
+                  manifest="lhci-results/manifest.json"
+                  if [ ! -f "$manifest" ]; then
+                    echo "| (no results) | — | — | — | — |" >> "$GITHUB_STEP_SUMMARY"
+                  else
+                    python3 - <<'PYEOF'
+import json, os, subprocess, sys
 
-                    url=$(python3 -c "import json,sys; d=json.load(open('$report_file')); print(d.get('finalUrl', d.get('requestedUrl', 'unknown')))" 2>/dev/null || echo "unknown")
-                    perf=$(python3 -c "import json,sys; d=json.load(open('$report_file')); cats=d.get('categories',{}); print(cats.get('performance',{}).get('score','N/A'))" 2>/dev/null || echo "N/A")
-                    a11y=$(python3 -c "import json,sys; d=json.load(open('$report_file')); cats=d.get('categories',{}); print(cats.get('accessibility',{}).get('score','N/A'))" 2>/dev/null || echo "N/A")
-                    bp=$(python3 -c "import json,sys; d=json.load(open('$report_file')); cats=d.get('categories',{}); print(cats.get('best-practices',{}).get('score','N/A'))" 2>/dev/null || echo "N/A")
-                    seo=$(python3 -c "import json,sys; d=json.load(open('$report_file')); cats=d.get('categories',{}); print(cats.get('seo',{}).get('score','N/A'))" 2>/dev/null || echo "N/A")
+manifest_path = "lhci-results/manifest.json"
+target_url = os.environ.get("TARGET_URL", "")
+summary_file = os.environ.get("GITHUB_STEP_SUMMARY", "/dev/stdout")
 
-                    perf_fmt=$([ "$perf" = "N/A" ] && echo "N/A" || score_emoji "$perf")
-                    a11y_fmt=$([ "$a11y" = "N/A" ] && echo "N/A" || score_emoji "$a11y")
-                    bp_fmt=$([ "$bp" = "N/A" ] && echo "N/A" || score_emoji "$bp")
-                    seo_fmt=$([ "$seo" = "N/A" ] && echo "N/A" || score_emoji "$seo")
+with open(manifest_path) as f:
+    entries = json.load(f)
 
-                    short_url="${url#${TARGET_URL}}"
-                    [ -z "$short_url" ] && short_url="/"
+# Keep only representative runs (one per URL); fall back to all if flag absent
+representative = [e for e in entries if e.get("isRepresentativeRun", False)]
+if not representative:
+    representative = entries
 
-                    echo "| \`${short_url}\` | ${perf_fmt} | ${a11y_fmt} | ${bp_fmt} | ${seo_fmt} |" >> "$GITHUB_STEP_SUMMARY"
-                  done
+seen = set()
+rows = []
+for entry in representative:
+    url = entry.get("url", "unknown")
+    if url in seen:
+        continue
+    seen.add(url)
+    json_path = entry.get("jsonPath", "")
+    if not json_path or not os.path.isfile(json_path):
+        continue
+    with open(json_path) as rf:
+        report = json.load(rf)
+    cats = report.get("categories", {})
+    def fmt(score):
+        if score is None:
+            return "N/A"
+        pct = int(score * 100)
+        if pct >= 90:
+            return f"✅ {pct}"
+        elif pct >= 75:
+            return f"⚠️ {pct}"
+        else:
+            return f"❌ {pct}"
+    perf = fmt(cats.get("performance", {}).get("score"))
+    a11y = fmt(cats.get("accessibility", {}).get("score"))
+    bp   = fmt(cats.get("best-practices", {}).get("score"))
+    seo  = fmt(cats.get("seo", {}).get("score"))
+    short = url[len(target_url):] or "/"
+    rows.append(f"| `{short}` | {perf} | {a11y} | {bp} | {seo} |")
+
+with open(summary_file, "a") as sf:
+    sf.write("\n".join(rows) + "\n")
+PYEOF
+                  fi
 
                   echo "" >> "$GITHUB_STEP_SUMMARY"
                   echo "_Scores: ✅ ≥ 90 · ⚠️ ≥ 75 · ❌ < 75. Full reports uploaded as artifact \`lighthouse-results\`._" >> "$GITHUB_STEP_SUMMARY"

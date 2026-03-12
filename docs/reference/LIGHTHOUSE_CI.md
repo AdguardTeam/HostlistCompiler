@@ -39,9 +39,11 @@ The full LHCI configuration lives in `.lighthouserc.json` at the repository root
 
 The workflow (`.github/workflows/lighthouse.yml`) runs on two triggers:
 
-### 1. `deployment_status` (automatic)
+### 1. `workflow_run` on `CI` (automatic)
 
-Fires when the Cloudflare Worker deploy job in `ci.yml` reports a successful deployment to production. The audited URL is taken from `github.event.deployment_status.target_url`.
+Fires automatically when the main CI workflow (defined in `ci.yml`) completes successfully on the `main` branch — which means the Cloudflare Worker deploy step has already finished. The audited URL is the fixed production URL `https://adblock-compiler.jayson-knight.workers.dev`.
+
+> **Why not `deployment_status`?** The `ci.yml` deploy job uses `wrangler` directly and records deployments to Cloudflare D1; it does not create GitHub Deployment or Deployment Status events. The `deployment_status` trigger would therefore never fire. `workflow_run` is the correct alternative.
 
 ### 2. `workflow_dispatch` (manual)
 
