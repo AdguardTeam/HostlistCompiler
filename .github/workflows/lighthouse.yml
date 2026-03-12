@@ -1,0 +1,119 @@
+name: Lighthouse CI
+
+on:
+    deployment_status:
+    workflow_dispatch:
+        inputs:
+            url:
+                description: 'Target URL to audit'
+                required: false
+                default: 'https://adblock-compiler.jayson-knight.workers.dev'
+
+permissions:
+    contents: read
+    statuses: write
+
+jobs:
+    lighthouse:
+        name: Lighthouse Audit
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        # Scores are advisory initially — regressions warn, not block
+        continue-on-error: true
+        if: >-
+            github.event_name == 'workflow_dispatch' ||
+            github.event.deployment_status.state == 'success'
+
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version: '22'
+
+            - name: Install Lighthouse CI
+              run: npm install -g @lhci/cli
+
+            - name: Determine target URL
+              id: target
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    TARGET_URL="${{ github.event.inputs.url }}"
+                  else
+                    TARGET_URL="${{ github.event.deployment_status.target_url }}"
+                  fi
+                  echo "TARGET_URL=${TARGET_URL}" >> "$GITHUB_ENV"
+                  echo "url=${TARGET_URL}" >> "$GITHUB_OUTPUT"
+
+            - name: Run Lighthouse CI
+              run: |
+                  lhci autorun \
+                    --config=.lighthouserc.json \
+                    --collect.url="${TARGET_URL}/" \
+                    --collect.url="${TARGET_URL}/sign-in" \
+                    --collect.url="${TARGET_URL}/sign-up" \
+                    --collect.url="${TARGET_URL}/health"
+              env:
+                  LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+                  LHCI_BUILD_CONTEXT__GITHUB_REPO_SLUG: ${{ github.repository }}
+
+            - name: Upload Lighthouse results
+              if: always()
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: lighthouse-results
+                  path: lhci-results/
+                  retention-days: 30
+
+            - name: Post summary
+              if: always()
+              run: |
+                  set +e
+
+                  echo "## 🔦 Lighthouse CI Results" >> "$GITHUB_STEP_SUMMARY"
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "**Target:** \`${TARGET_URL}\`" >> "$GITHUB_STEP_SUMMARY"
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "| URL | Performance | Accessibility | Best Practices | SEO |" >> "$GITHUB_STEP_SUMMARY"
+                  echo "| --- | ----------- | ------------- | -------------- | --- |" >> "$GITHUB_STEP_SUMMARY"
+
+                  score_emoji() {
+                    local score="$1"
+                    # score is 0-1 float; compare as integer * 100
+                    local pct
+                    pct=$(echo "$score * 100" | bc | cut -d. -f1)
+                    if [ "${pct:-0}" -ge 90 ]; then
+                      echo "✅ ${pct}"
+                    elif [ "${pct:-0}" -ge 75 ]; then
+                      echo "⚠️ ${pct}"
+                    else
+                      echo "❌ ${pct}"
+                    fi
+                  }
+
+                  for report_file in lhci-results/*.json; do
+                    [ -f "$report_file" ] || continue
+                    # Skip manifest and links files
+                    [[ "$report_file" == *manifest* ]] && continue
+                    [[ "$report_file" == *links* ]] && continue
+
+                    url=$(python3 -c "import json,sys; d=json.load(open('$report_file')); print(d.get('finalUrl', d.get('requestedUrl', 'unknown')))" 2>/dev/null || echo "unknown")
+                    perf=$(python3 -c "import json,sys; d=json.load(open('$report_file')); cats=d.get('categories',{}); print(cats.get('performance',{}).get('score','N/A'))" 2>/dev/null || echo "N/A")
+                    a11y=$(python3 -c "import json,sys; d=json.load(open('$report_file')); cats=d.get('categories',{}); print(cats.get('accessibility',{}).get('score','N/A'))" 2>/dev/null || echo "N/A")
+                    bp=$(python3 -c "import json,sys; d=json.load(open('$report_file')); cats=d.get('categories',{}); print(cats.get('best-practices',{}).get('score','N/A'))" 2>/dev/null || echo "N/A")
+                    seo=$(python3 -c "import json,sys; d=json.load(open('$report_file')); cats=d.get('categories',{}); print(cats.get('seo',{}).get('score','N/A'))" 2>/dev/null || echo "N/A")
+
+                    perf_fmt=$([ "$perf" = "N/A" ] && echo "N/A" || score_emoji "$perf")
+                    a11y_fmt=$([ "$a11y" = "N/A" ] && echo "N/A" || score_emoji "$a11y")
+                    bp_fmt=$([ "$bp" = "N/A" ] && echo "N/A" || score_emoji "$bp")
+                    seo_fmt=$([ "$seo" = "N/A" ] && echo "N/A" || score_emoji "$seo")
+
+                    short_url="${url#${TARGET_URL}}"
+                    [ -z "$short_url" ] && short_url="/"
+
+                    echo "| \`${short_url}\` | ${perf_fmt} | ${a11y_fmt} | ${bp_fmt} | ${seo_fmt} |" >> "$GITHUB_STEP_SUMMARY"
+                  done
+
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "_Scores: ✅ ≥ 90 · ⚠️ ≥ 75 · ❌ < 75. Full reports uploaded as artifact \`lighthouse-results\`._" >> "$GITHUB_STEP_SUMMARY"
