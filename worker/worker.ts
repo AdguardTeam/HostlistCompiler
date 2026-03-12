@@ -99,8 +99,15 @@ function createPgPool(connectionString: string): {
     let pool: unknown = null;
     const ensurePool = async () => {
         if (!pool) {
-            const { Pool } = await import('pg');
-            pool = new Pool({ connectionString });
+            // Dynamic import of pg module - using variable to prevent esbuild static analysis
+            // since pg is a Node.js module provided by the Workers runtime via Hyperdrive
+            try {
+                const moduleName = 'pg';
+                const { Pool } = await import(/* @vite-ignore */ moduleName);
+                pool = new Pool({ connectionString });
+            } catch (error) {
+                throw new Error(`Failed to initialize PostgreSQL pool: ${error instanceof Error ? error.message : String(error)}`);
+            }
         }
         return pool as { query: (text: string, values?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }> };
     };

@@ -55,7 +55,9 @@ function createPgPool(connectionString: string): {
     const ensurePool = async () => {
         if (!pool) {
             try {
-                const { Pool } = await import('pg');
+                // Dynamic import using variable to prevent esbuild static analysis
+                const moduleName = 'pg';
+                const { Pool } = await import(/* @vite-ignore */ moduleName);
                 pool = new Pool({ connectionString });
             } catch {
                 throw new Error(
