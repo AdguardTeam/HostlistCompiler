@@ -6,45 +6,17 @@ Technical reference for developers working on or extending the adblock-compiler 
 
 ### Authentication Flow
 
-```
-Request arrives at Worker
-        │
-        ▼
-┌─────────────────────────┐
-│ authenticateRequestUnified() │
-│  (worker/middleware/auth.ts)  │
-└─────────┬───────────────┘
-          │
-          ▼
-    ┌───────────┐     Yes    ┌────────────────┐
-    │ Has Bearer │──────────▶│ Starts with    │
-    │ token?     │           │ "abc_" prefix? │
-    └─────┬─────┘           └──────┬─────────┘
-          │ No                     │
-          ▼                   Yes  │  No
-    ┌───────────┐            ▼     ▼
-    │ Anonymous  │    ┌──────────┐ ┌──────────────┐
-    │ (tier: 0)  │    │ API Key  │ │ Clerk JWT    │
-    └───────────┘    │ Verify   │ │ Verify       │
-                     │ (SHA-256 │ │ (JWKS/RS256) │
-                     │  lookup) │ │              │
-                     └────┬─────┘ └──────┬───────┘
-                          │              │
-                          ▼              ▼
-                    ┌──────────────────────┐
-                    │  IAuthContext         │
-                    │  { userId, tier,     │
-                    │    authMethod,       │
-                    │    scopes }          │
-                    └──────────────────────┘
-                              │
-                              ▼
-                    ┌─────────────────────┐
-                    │ Route Handlers       │
-                    │ requireAuth()        │
-                    │ requireTier()        │
-                    │ requireScope()       │
-                    └─────────────────────┘
+```mermaid
+flowchart TD
+    A["Request arrives at Worker"] --> B["authenticateRequestUnified()\n(worker/middleware/auth.ts)"]
+    B --> C{Has Bearer token?}
+    C -->|No| D["Anonymous\n(tier: 0)"]
+    C -->|Yes| E{"Starts with\n'abc_' prefix?"}
+    E -->|Yes| F["API Key Verify\n(SHA-256 lookup)"]
+    E -->|No| G["Clerk JWT Verify\n(JWKS/RS256)"]
+    F --> H["IAuthContext\n{ userId, tier, authMethod, scopes }"]
+    G --> H
+    H --> I["Route Handlers\nrequireAuth()\nrequireTier()\nrequireScope()"]
 ```
 
 ### Key Files
@@ -356,33 +328,20 @@ return handleCompileRequest(request, env);
 
 ### Clerk Webhook Architecture
 
-```
-Clerk Dashboard                   Cloudflare Worker
-     │                                  │
-     │  POST /api/webhooks/clerk        │
-     │  Headers:                        │
-     │    svix-id                       │
-     │    svix-timestamp                │
-     │    svix-signature                │
-     │  Body: { type, data }            │
-     ├─────────────────────────────────▶│
-     │                                  │
-     │                          ┌───────┴───────┐
-     │                          │ Svix Verify    │
-     │                          │ (HMAC check)   │
-     │                          └───────┬───────┘
-     │                                  │
-     │                          ┌───────┴───────┐
-     │                          │ Event Router   │
-     │                          │ user.created → │
-     │                          │ user.updated → │
-     │                          │ user.deleted → │
-     │                          └───────┬───────┘
-     │                                  │
-     │                          ┌───────┴───────┐
-     │                          │ UserService    │
-     │                          │ (PostgreSQL)   │
-     │                          └───────────────┘
+```mermaid
+sequenceDiagram
+    participant CD as Clerk Dashboard
+    participant CW as Cloudflare Worker
+    participant SV as Svix Verify
+    participant ER as Event Router
+    participant US as UserService (PostgreSQL)
+
+    CD->>CW: POST /api/webhooks/clerk<br/>Headers: svix-id, svix-timestamp, svix-signature<br/>Body: { type, data }
+    CW->>SV: Verify signature (HMAC check)
+    SV-->>CW: Verified
+    CW->>ER: Route event
+    ER->>US: user.created / user.updated / user.deleted
+    US-->>CW: DB operation complete
 ```
 
 ### Processing Logic

@@ -26,22 +26,12 @@ Cloudflare Access (part of [Cloudflare Zero Trust](https://one.dash.cloudflare.c
 
 ## Architecture
 
-```
-┌──────────────┐     ┌─────────────────────┐     ┌─────────────────┐
-│  Admin User  │────▶│  Cloudflare Access   │────▶│  Worker         │
-│  (Browser)   │     │  (Zero Trust Proxy)  │     │                 │
-│              │     │                      │     │  1. X-Admin-Key │
-│              │     │  ✓ Identity check    │     │  2. CF Access   │
-│              │     │  ✓ Injects JWT       │     │     JWT verify  │
-│              │     │    header             │     │  3. Handler     │
-└──────────────┘     └─────────────────────┘     └─────────────────┘
+```mermaid
+flowchart LR
+    ADMIN["Admin User\n(Browser)"] --> CF_ACCESS["Cloudflare Access\n(Zero Trust Proxy)\n✓ Identity check\n✓ Injects JWT header"]
+    CF_ACCESS --> WORKER1["Worker\n1. X-Admin-Key\n2. CF Access JWT verify\n3. Handler"]
 
-┌──────────────┐                                  ┌─────────────────┐
-│  CI/CD       │─────────────────────────────────▶│  Worker         │
-│  Pipeline    │  Uses Service Token headers:     │                 │
-│              │  CF-Access-Client-Id              │  Verified via   │
-│              │  CF-Access-Client-Secret           │  CF Access      │
-└──────────────┘                                  └─────────────────┘
+    CICD["CI/CD Pipeline\nCF-Access-Client-Id\nCF-Access-Client-Secret"] --> WORKER2["Worker\nVerified via\nCF Access"]
 ```
 
 ### Defense-in-Depth Layers
@@ -70,32 +60,16 @@ When a request reaches an admin endpoint:
 
 ### JWT Verification Flow
 
-```
-Request → Extract CF-Access-JWT-Assertion header
-            │
-            ▼
-        Token present?
-         │         │
-         No        Yes
-         │         │
-         ▼         ▼
-    Return 403   Fetch JWKS (cached per Worker isolate)
-                   │
-                   ▼
-              Verify JWT:
-              - Signature (RS256)
-              - Audience = CF_ACCESS_AUD
-              - Issuer = https://<team>.cloudflareaccess.com
-              - Not expired
-                   │
-              ┌────┴────┐
-              │         │
-            Valid    Invalid
-              │         │
-              ▼         ▼
-         Return     Return 403
-         email +    + error message
-         identity
+```mermaid
+flowchart TD
+    REQ["Request"] --> EXTRACT["Extract CF-Access-JWT-Assertion header"]
+    EXTRACT --> PRESENT{Token present?}
+    PRESENT -->|No| REJECT1["Return 403"]
+    PRESENT -->|Yes| JWKS_FETCH["Fetch JWKS\n(cached per Worker isolate)"]
+    JWKS_FETCH --> VERIFY["Verify JWT\n• Signature (RS256)\n• Audience = CF_ACCESS_AUD\n• Issuer = CF Access team URL\n• Not expired"]
+    VERIFY --> VALID{Valid?}
+    VALID -->|Valid| SUCCESS["Return email + identity"]
+    VALID -->|Invalid| REJECT2["Return 403 + error message"]
 ```
 
 ---

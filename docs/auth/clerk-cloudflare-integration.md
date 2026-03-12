@@ -51,36 +51,37 @@ This document explains how Clerk authentication integrates with the Cloudflare W
 
 ## Architecture Overview
 
-```
-┌────────────┐        ┌──────────────────────────────────────────────────────────┐
-│            │        │                 Cloudflare Worker                        │
-│  Browser   │───────▶│                                                          │
-│  (Clerk JS │  JWT   │  ┌──────────────┐   ┌──────────────┐   ┌────────────┐  │
-│   SDK)     │────────│─▶│ Clerk JWT    │──▶│ Rate Limiter │──▶│ Handler    │  │
-│            │        │  │ Verification │   │ (by tier)    │   │            │  │
-└────────────┘        │  └──────┬───────┘   └──────┬───────┘   └────────────┘  │
-                      │         │                   │                           │
-                      │    ┌────▼────┐         ┌────▼────┐                     │
-                      │    │ JWKS    │         │ KV      │                     │
-                      │    │ (jose)  │         │ RATE_   │                     │
-                      │    │ cached  │         │ LIMIT   │                     │
-                      │    └─────────┘         └─────────┘                     │
-                      │                                                         │
-┌────────────┐        │  ┌──────────────┐   ┌──────────────┐                   │
-│  Clerk     │  POST  │  │ Webhook      │──▶│ User Service │                   │
-│  Dashboard │────────│─▶│ Handler      │   │ (Prisma)     │                   │
-│  (Svix)    │        │  │ (Svix verify)│   └──────┬───────┘                   │
-└────────────┘        │  └──────────────┘          │                           │
-                      │                       ┌────▼────────┐                  │
-                      │                       │ Hyperdrive   │                  │
-                      │                       │ → PostgreSQL │                  │
-                      │                       └──────────────┘                  │
-                      │                                                         │
-                      │  ┌──────────────┐   ┌──────────────┐                   │
-                      │  │ Turnstile    │   │ Analytics    │                   │
-                      │  │ Verification │   │ Engine       │                   │
-                      │  └──────────────┘   └──────────────┘                   │
-                      └──────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Browser
+        CLERKJS["Browser\n(Clerk JS SDK)"]
+    end
+
+    subgraph DASH["Clerk Dashboard (Svix)"]
+        SVIX["Clerk Dashboard"]
+    end
+
+    subgraph WORKER["Cloudflare Worker"]
+        JWT_VERIFY["Clerk JWT\nVerification"]
+        RATE_LIMITER["Rate Limiter\n(by tier)"]
+        HANDLER["Handler"]
+        JWKS["JWKS (jose)\ncached"]
+        KV_RATE["KV\nRATE_LIMIT"]
+        WEBHOOK["Webhook Handler\n(Svix verify)"]
+        USER_SVC["User Service\n(Prisma)"]
+        HYPERDRIVE["Hyperdrive\n→ PostgreSQL"]
+        TURNSTILE["Turnstile\nVerification"]
+        ANALYTICS["Analytics\nEngine"]
+    end
+
+    CLERKJS -->|JWT| JWT_VERIFY
+    JWT_VERIFY --> RATE_LIMITER
+    RATE_LIMITER --> HANDLER
+    JWT_VERIFY -.-> JWKS
+    RATE_LIMITER -.-> KV_RATE
+    SVIX -->|POST webhook| WEBHOOK
+    WEBHOOK --> USER_SVC
+    USER_SVC --> HYPERDRIVE
 ```
 
 ---
@@ -244,26 +245,20 @@ Using `clerkUserId` for authenticated users avoids problems where multiple users
 
 ### Rate Limit Flow
 
-```
-Request arrives
-    │
-    ▼
-authenticateRequestUnified() → determines tier
-    │
-    ▼
-checkRateLimitTiered(tier, userId, ip)
-    │
-    ├── Admin tier? → Skip KV, return allowed: true
-    │
-    ├── Build key: "ratelimit:user:<id>" or "ratelimit:ip:<ip>"
-    │
-    ├── KV.get(key) → parse { count, resetAt }
-    │
-    ├── Window expired? → Reset count to 0
-    │
-    ├── count < tierLimit? → Increment, KV.put(), return allowed: true
-    │
-    └── count >= tierLimit → Return allowed: false (429)
+```mermaid
+flowchart TD
+    A[Request arrives] --> B[authenticateRequestUnified\ndetermines tier]
+    B --> C[checkRateLimitTiered\ntier, userId, ip]
+    C --> D{Admin tier?}
+    D -- Yes --> E[Skip KV\nreturn allowed: true]
+    D -- No --> F[Build key\nratelimit:user:id or ratelimit:ip:ip]
+    F --> G[KV.get key\nparse count + resetAt]
+    G --> H{Window expired?}
+    H -- Yes --> I[Reset count to 0]
+    I --> J{count < tierLimit?}
+    H -- No --> J
+    J -- Yes --> K[Increment, KV.put\nreturn allowed: true]
+    J -- No --> L[return allowed: false\n429 Too Many Requests]
 ```
 
 KV entries use TTL = `RATE_LIMIT_WINDOW + 10` seconds to auto-expire stale counters.
@@ -587,45 +582,40 @@ type AnalyticsEventType =
 
 ## Complete Integration Map
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    Cloudflare Worker Runtime                        │
-│                                                                     │
-│  Clerk Secrets (encrypted at rest):                                │
-│  ├── CLERK_SECRET_KEY        → Clerk API calls                     │
-│  ├── CLERK_WEBHOOK_SECRET    → Svix verification                   │
-│  └── (CLERK_PUBLISHABLE_KEY) → Served to frontend                  │
-│       (CLERK_JWKS_URL)       → JWKS endpoint                       │
-│                                                                     │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ Auth Middleware Pipeline                                     │   │
-│  │                                                             │   │
-│  │  1. Extract JWT (Bearer header / __session cookie)          │   │
-│  │  2. Verify JWT signature (jose + JWKS from Clerk)           │   │
-│  │  3. Resolve tier from JWT claims or API key → User record   │   │
-│  │  4. Rate limit via KV (keyed by userId or IP)               │   │
-│  │  5. Verify Turnstile token (compilation endpoints)          │   │
-│  │  6. Dispatch to handler                                     │   │
-│  └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
-│  ┌─────────────┐  ┌───────────────┐  ┌──────────────────────┐     │
-│  │ KV          │  │ Hyperdrive    │  │ Assets               │     │
-│  │ RATE_LIMIT  │  │ → PostgreSQL  │  │ Angular + Clerk JS   │     │
-│  │             │  │               │  │                      │     │
-│  │ Rate limit  │  │ users table   │  │ ClerkService         │     │
-│  │ counters    │  │ api_keys      │  │ authInterceptor      │     │
-│  │ by tier     │  │ sessions      │  │ authGuard            │     │
-│  └─────────────┘  └───────────────┘  └──────────────────────┘     │
-│                                                                     │
-│  ┌─────────────────┐  ┌───────────────┐  ┌─────────────────────┐  │
-│  │ Queues           │  │ Analytics     │  │ Turnstile           │  │
-│  │                  │  │ Engine        │  │                     │  │
-│  │ Auth applied     │  │               │  │ Bot protection on   │  │
-│  │ before enqueue   │  │ rate_limit_   │  │ compile endpoints   │  │
-│  │ (not in message) │  │ exceeded      │  │ (independent of     │  │
-│  │                  │  │ events        │  │  Clerk auth)        │  │
-│  └─────────────────┘  └───────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph CFW["Cloudflare Worker Runtime"]
+        subgraph Secrets["Clerk Secrets (encrypted at rest)"]
+            S1[CLERK_SECRET_KEY → Clerk API calls]
+            S2[CLERK_WEBHOOK_SECRET → Svix verification]
+            S3["(CLERK_PUBLISHABLE_KEY) → Served to frontend"]
+            S4["(CLERK_JWKS_URL) → JWKS endpoint"]
+        end
+
+        subgraph Pipeline["Auth Middleware Pipeline"]
+            P1[1. Extract JWT\nBearer header / __session cookie]
+            P2[2. Verify JWT signature\njose + JWKS from Clerk]
+            P3[3. Resolve tier\nJWT claims or API key → User record]
+            P4[4. Rate limit via KV\nkeyed by userId or IP]
+            P5[5. Verify Turnstile token\ncompilation endpoints]
+            P6[6. Dispatch to handler]
+            P1 --> P2 --> P3 --> P4 --> P5 --> P6
+        end
+
+        KV["KV / RATE_LIMIT\nRate limit counters by tier"]
+        HP["Hyperdrive → PostgreSQL\nusers · api_keys · sessions"]
+        Assets["Assets\nAngular + Clerk JS\nClerkService · authInterceptor · authGuard"]
+        Queues["Queues\nAuth applied before enqueue\n(not in message)"]
+        Analytics["Analytics Engine\nrate_limit_exceeded events"]
+        Turnstile["Turnstile\nBot protection on compile endpoints\n(independent of Clerk auth)"]
+    end
+
+    Pipeline --> KV
+    Pipeline --> HP
+    Pipeline --> Assets
+    Pipeline --> Queues
+    Pipeline --> Analytics
+    Pipeline --> Turnstile
 ```
 
 ---

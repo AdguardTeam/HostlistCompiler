@@ -31,29 +31,20 @@ No endpoint exists to surface these registries to the UI — that is what this d
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────┐
-│                     Web UI                          │
-│  ┌──────────────────────────────────────────────┐   │
-│  │  Registry Picker (search + group filter)     │   │
-│  │  ← fetches GET /registry/hostlists           │   │
-│  │  ← fetches GET /registry/filters             │   │
-│  │  → injects source: "hostlist-registry://..."  │   │
-│  └──────────────────────────────────────────────┘   │
-└────────────────────┬────────────────────────────────┘
-                     │ POST /compile  (CompileRequest)
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│                 Cloudflare Worker                   │
-│                                                     │
-│  GET /registry/hostlists  ──► HostlistRegistryProxy │
-│  GET /registry/filters    ──► FiltersRegistryProxy  │
-│  GET /registry/services   ──► ServicesRegistryProxy │
-│                                                     │
-│  POST /compile                                      │
-│    └─ HostlistRegistryFetcher  (resolves URIs)      │
-│    └─ FiltersRegistryFetcher   (resolves URIs)      │
-└─────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph UI["Web UI"]
+        PICKER["Registry Picker\n(search + group filter)\n← GET /registry/hostlists\n← GET /registry/filters\n→ injects source: hostlist-registry://..."]
+    end
+
+    subgraph WORKER["Cloudflare Worker"]
+        HOSTLIST["GET /registry/hostlists → HostlistRegistryProxy"]
+        FILTERS["GET /registry/filters → FiltersRegistryProxy"]
+        SERVICES["GET /registry/services → ServicesRegistryProxy"]
+        COMPILE["POST /compile\n  └─ HostlistRegistryFetcher (resolves URIs)\n  └─ FiltersRegistryFetcher (resolves URIs)"]
+    end
+
+    PICKER -->|POST /compile| COMPILE
 ```
 
 ---

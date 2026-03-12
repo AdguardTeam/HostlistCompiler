@@ -255,6 +255,29 @@ this.sseConnection.set(conn);
 
 This pattern avoids manual Observable subscriptions—the component template reads signals reactively, and the connection auto-cleans via `DestroyRef.onDestroy()`.
 
+## Documentation Diagrams
+
+**Always use Mermaid for diagrams and charts in documentation. Never use ASCII art for diagrams.**
+
+Wrap every diagram in a fenced code block with the `mermaid` language identifier:
+
+````markdown
+```mermaid
+flowchart TD
+    A[Start] --> B[End]
+```
+````
+
+| Diagram type | Mermaid syntax |
+|---|---|
+| Decision tree / auth flow | `flowchart TD` |
+| Request/response flow | `sequenceDiagram` |
+| Architecture with boundaries | `flowchart TD` or `graph LR` with `subgraph` |
+| Left-to-right pipeline | `flowchart LR` |
+| Static KPI / metrics data | Regular markdown table (no Mermaid type available) |
+
+> **Note:** Directory/file tree listings using `├──`, `└──`, `│` are acceptable as-is and must **not** be converted to Mermaid.
+
 ## Questions or Help?
 
 - Create an issue on GitHub
