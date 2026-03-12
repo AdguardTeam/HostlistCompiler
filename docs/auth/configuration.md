@@ -39,50 +39,34 @@ Complete reference for all environment variables and configuration needed to run
 |----------|----------|--------|-------------|
 | `DATABASE_URL` | **Yes** | PostgreSQL connection string | Hyperdrive connection URL in production; local PostgreSQL URL in development. |
 
-## Setting Variables and Secrets in Cloudflare Workers
-
-### Public Variables (wrangler.toml)
-
-Non-sensitive configuration should be committed in `wrangler.toml` under `[vars]`:
-
-```toml
-[vars]
-# Clerk public key — safe to commit (starts with pk_test_ or pk_live_)
-CLERK_PUBLISHABLE_KEY = "pk_live_..."
-
-# Clerk JWKS URL — public endpoint, safe to commit
-CLERK_JWKS_URL = "https://<your-instance>.clerk.accounts.dev/.well-known/jwks.json"
-```
-
-### Secrets (wrangler secret put)
-
-**Never** put secrets in `wrangler.toml`. Use Cloudflare Worker secrets for sensitive values:
-
-```bash
-# Required auth secrets
-wrangler secret put CLERK_SECRET_KEY
-wrangler secret put CLERK_WEBHOOK_SECRET
-
-# Legacy admin (optional — will be deprecated)
-wrangler secret put ADMIN_KEY
-
-# Cloudflare Access (optional)
-wrangler secret put CF_ACCESS_TEAM_DOMAIN
-wrangler secret put CF_ACCESS_AUD
-
-# Turnstile (optional)
-wrangler secret put TURNSTILE_SITE_KEY
-wrangler secret put TURNSTILE_SECRET_KEY
-
-# Database
-wrangler secret put DATABASE_URL
-```
-
 ## Local Development Setup
 
-### Option A: Using .env.local (Recommended)
+This project uses **direnv** + `.envrc` for ALL local environment management. When you enter the project directory, the `.envrc` automatically loads the appropriate `.env` file(s) based on your git branch.
 
-Create `.env.local` (gitignored) with your development keys:
+### Step 1: Install direnv (one-time)
+
+```bash
+# macOS
+brew install direnv
+
+# Add to your shell config (~/.zshrc or ~/.bashrc)
+eval "$(direnv hook zsh)"   # or bash
+```
+
+### Step 2: Allow the .envrc
+
+```bash
+cd adblock-compiler
+direnv allow
+```
+
+### Step 3: Create your .env.local
+
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local` with your actual Clerk keys and other secrets:
 
 ```bash
 # .env.local — NOT committed to git
@@ -91,28 +75,75 @@ CLERK_SECRET_KEY=sk_test_...
 CLERK_JWKS_URL=https://your-instance.clerk.accounts.dev/.well-known/jwks.json
 CLERK_WEBHOOK_SECRET=whsec_...
 
-# Optional — use test keys for local dev
+# Optional — use test keys for local Turnstile dev
 TURNSTILE_SITE_KEY=1x00000000000000000000AA
 TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
 
 # Admin key for local testing
 ADMIN_KEY=local-dev-admin-key
 
-# Local PostgreSQL
-DATABASE_URL=postgresql://user:password@localhost:5432/adblock_compiler
+# Local PostgreSQL connection (override the SQLite default from .env.development)
+# DATABASE_URL=postgresql://user:password@localhost:5432/adblock_compiler
+
+# Optional: CF Access (skip if not using CF Zero Trust locally)
+# CF_ACCESS_TEAM_DOMAIN=your-team-name
+# CF_ACCESS_AUD=your-audience-tag
 ```
 
-### Option B: Using direnv
+For a complete list of all available variables, see [`.env.example`](../../.env.example).
 
-The project uses `.envrc` with direnv for automatic environment loading. See [Environment Configuration](../reference/ENV_CONFIGURATION.md) for details.
+### How .envrc loads your variables
 
-### Option C: Using Wrangler Dev
+The `.envrc` loads files in this order (later overrides earlier):
+
+```
+.env             ← committed base defaults (PORT, COMPILER_VERSION, etc.)
+.env.development ← committed dev defaults (test Turnstile keys, LOG_LEVEL=debug)
+.env.local       ← your personal secrets (gitignored — never committed)
+```
+
+---
+
+## Production Deployment
+
+For production Cloudflare Workers deployments, use `wrangler secret put` for true secrets, and `wrangler.toml [vars]` **only** for static, non-sensitive runtime configuration that is not managed by `.env`:
+
+### Static public vars (wrangler.toml [vars])
+
+Only put values here that are truly static and non-sensitive — these are Cloudflare-specific runtime constants that do not change between developer machines:
+
+```toml
+[vars]
+COMPILER_VERSION = "0.55.0"
+ENVIRONMENT = "production"
+```
+
+### Secrets (wrangler secret put)
+
+For production, set all secrets via Cloudflare's secret management — **never** commit real keys to `wrangler.toml` or any `.env.*` file:
 
 ```bash
-# Start local dev with secrets from .dev.vars
-echo 'CLERK_PUBLISHABLE_KEY=pk_test_...' >> .dev.vars
-echo 'CLERK_SECRET_KEY=sk_test_...' >> .dev.vars
-wrangler dev
+# Clerk authentication secrets
+wrangler secret put CLERK_SECRET_KEY
+wrangler secret put CLERK_WEBHOOK_SECRET
+
+# Clerk public vars — while not secret, easiest to manage here for prod
+wrangler secret put CLERK_PUBLISHABLE_KEY
+wrangler secret put CLERK_JWKS_URL
+
+# Cloudflare Access (admin route protection — optional)
+wrangler secret put CF_ACCESS_TEAM_DOMAIN
+wrangler secret put CF_ACCESS_AUD
+
+# Turnstile bot protection (optional)
+wrangler secret put TURNSTILE_SITE_KEY
+wrangler secret put TURNSTILE_SECRET_KEY
+
+# Legacy admin key (optional — will be replaced by Clerk tier auth)
+wrangler secret put ADMIN_KEY
+
+# Database connection
+wrangler secret put DATABASE_URL
 ```
 
 ## Frontend Configuration
@@ -191,12 +222,13 @@ The auth system uses PostgreSQL (via Cloudflare Hyperdrive) with these tables:
 2. [ ] Configure Clerk sign-in/sign-up URLs
 3. [ ] Configure Clerk allowed origins
 4. [ ] Set up Clerk webhook endpoint
-5. [ ] Store all secrets via `wrangler secret put`
-6. [ ] Run Prisma migrations: `deno task db:migrate`
-7. [ ] Deploy worker: `wrangler deploy`
-8. [ ] Test webhook delivery from Clerk dashboard
-9. [ ] Create first admin user (set `tier: admin` in Clerk public metadata)
-10. [ ] Verify end-to-end auth flow
+5. [ ] Copy `.env.example` → `.env.local` and fill in all auth keys (local dev)
+6. [ ] Store all production secrets via `wrangler secret put` (production deploy)
+7. [ ] Run Prisma migrations: `deno task db:migrate`
+8. [ ] Deploy worker: `wrangler deploy`
+9. [ ] Test webhook delivery from Clerk dashboard
+10. [ ] Create first admin user (set `tier: admin` in Clerk public metadata)
+11. [ ] Verify end-to-end auth flow
 
 ### Production Upgrade
 

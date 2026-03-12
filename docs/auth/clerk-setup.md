@@ -149,32 +149,32 @@ curl -X PATCH https://api.clerk.com/v1/users/{user_id}/metadata \
 
 > **Tip**: When a user's tier is updated via the API or dashboard, Clerk fires a `user.updated` webhook, which automatically syncs the change to your PostgreSQL database.
 
-## Step 7: Configure Cloudflare Worker Variables and Secrets
+## Step 7: Configure Environment Variables
 
-### Public Variables (add to wrangler.toml)
+### Local Development — Use direnv/.env.local (recommended)
 
-Public Clerk values are not sensitive and should be committed in `wrangler.toml` under `[vars]`:
-
-```toml
-[vars]
-# Clerk publishable key — public, safe to commit
-CLERK_PUBLISHABLE_KEY = "pk_live_..."
-
-# JWKS URL — public endpoint, safe to commit
-CLERK_JWKS_URL = "https://<your-clerk-frontend-api>.clerk.accounts.dev/.well-known/jwks.json"
-```
-
-### Secrets (use wrangler secret put)
-
-Store sensitive keys as Cloudflare Worker secrets (not in `wrangler.toml`):
+This project uses **direnv** + `.envrc` for local env management. Add your Clerk keys to `.env.local` (gitignored):
 
 ```bash
-# Required secrets
-wrangler secret put CLERK_SECRET_KEY
-# Enter: sk_live_...
+# .env.local (copy from .env.example, then fill in your real values)
+CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+CLERK_JWKS_URL=https://your-instance.clerk.accounts.dev/.well-known/jwks.json
+CLERK_WEBHOOK_SECRET=whsec_...
+```
 
+Run `direnv allow` once in the repo root to activate automatic loading.
+
+### Production Deployment — Use wrangler secret put
+
+For Cloudflare Workers production deployments, store all Clerk variables as Worker secrets:
+
+```bash
+# All Clerk variables (use prod pk_live_ / sk_live_ keys)
+wrangler secret put CLERK_PUBLISHABLE_KEY
+wrangler secret put CLERK_SECRET_KEY
+wrangler secret put CLERK_JWKS_URL
 wrangler secret put CLERK_WEBHOOK_SECRET
-# Enter: whsec_...
 ```
 
 ### Finding Your JWKS URL
