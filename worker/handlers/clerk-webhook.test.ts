@@ -5,7 +5,7 @@
  *   - Svix signature verification (missing headers, invalid signature)
  *   - user.created / user.updated / user.deleted event handling
  *   - Missing webhook secret configuration
- *   - Missing email in event data
+ *   - Users without email addresses (phone-only, social login, etc.)
  *   - Unknown event types (graceful acknowledgement)
  *
  * Uses an in-memory D1 mock (same shape as D1Database in worker/types.ts).
@@ -284,13 +284,28 @@ Deno.test('handleClerkWebhook - user.deleted returns deleted=false when user not
     assertEquals(body.deleted, false);
 });
 
-Deno.test('handleClerkWebhook - returns 400 when user.created has no email', async () => {
-    const noEmailEvent = { type: 'user.created', data: { id: 'user_noemail' } };
-    const mockPrisma = createMockPrisma();
-    const mockVerify = () => noEmailEvent as ClerkWebhookEvent;
+Deno.test('handleClerkWebhook - user.created succeeds without email address', async () => {
+    const noEmailEvent: ClerkWebhookEvent = {
+        type: 'user.created',
+        data: {
+            id: 'user_noemail',
+            email_addresses: [],
+            first_name: 'John',
+            last_name: 'Doe',
+            image_url: 'https://img.clerk.com/xxxxxx',
+            public_metadata: {},
+        },
+    };
+    const mockPrisma = createMockPrisma({ upsertResult: { id: 'uuid-noemail-1' } });
+    const mockVerify = () => noEmailEvent;
     const req = makeSvixRequest(noEmailEvent);
     const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
-    assertEquals(res.status, 400);
+    assertEquals(res.status, 200);
+
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.created');
+    assertEquals(body.userId, 'uuid-noemail-1');
 });
 
 Deno.test('handleClerkWebhook - returns 200 for unknown event type', async () => {
