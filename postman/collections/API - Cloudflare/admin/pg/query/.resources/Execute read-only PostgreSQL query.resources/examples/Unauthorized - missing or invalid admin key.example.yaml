@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/pg/query
+  url: {{baseUrl}}/admin/pg/query
   method: POST
   headers:
     - key: Content-Type

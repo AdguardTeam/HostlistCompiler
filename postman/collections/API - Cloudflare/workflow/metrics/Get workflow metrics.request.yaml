@@ -1,6 +1,6 @@
 $kind: http-request
 description: Returns aggregated metrics for all workflow types
-url: http://{{baseUrl}}/workflow/metrics
+url: {{baseUrl}}/workflow/metrics
 method: GET
 headers:
   Accept: application/json

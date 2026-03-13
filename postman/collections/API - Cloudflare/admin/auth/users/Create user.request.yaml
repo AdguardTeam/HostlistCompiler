@@ -1,6 +1,6 @@
 $kind: http-request
 description: Creates a new user account. Requires Hyperdrive (PostgreSQL) binding.
-url: http://{{baseUrl}}/admin/auth/users
+url: {{baseUrl}}/admin/auth/users
 method: POST
 headers:
   Content-Type: application/json

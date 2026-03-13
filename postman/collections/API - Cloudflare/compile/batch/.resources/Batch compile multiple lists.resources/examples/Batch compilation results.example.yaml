@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/compile/batch
+  url: {{baseUrl}}/compile/batch
   method: POST
   headers:
     Content-Type: application/json
@@ -79,7 +79,7 @@ response:
         "success": true,
         "results": [
           {
-            "success": false,
+            "success": true,
             "id": "string",
             "rules": [
               "string",
@@ -119,7 +119,7 @@ response:
             "error": "string"
           },
           {
-            "success": false,
+            "success": true,
             "id": "string",
             "rules": [
               "string",

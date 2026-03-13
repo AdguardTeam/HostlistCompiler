@@ -1,6 +1,6 @@
 $kind: http-request
 description: Marks a pending queue job as cancelled
-url: http://{{baseUrl}}/queue/cancel/:requestId
+url: {{baseUrl}}/queue/cancel/:requestId
 method: POST
 headers:
   Accept: application/json

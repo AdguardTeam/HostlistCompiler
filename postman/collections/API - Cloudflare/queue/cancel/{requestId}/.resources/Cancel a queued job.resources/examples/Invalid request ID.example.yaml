@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/queue/cancel/:requestId
+  url: {{baseUrl}}/queue/cancel/:requestId
   method: POST
   pathVariables:
     - key: requestId

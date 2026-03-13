@@ -1,6 +1,6 @@
 $kind: http-request
 description: Deletes all cache entries from PostgreSQL tables
-url: http://{{baseUrl}}/admin/pg/clear-cache
+url: {{baseUrl}}/admin/pg/clear-cache
 method: POST
 headers:
   Accept: application/json

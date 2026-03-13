@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/workflow/events/:workflowId?since=1957-11-17T10:24:39.571Z
+  url: {{baseUrl}}/workflow/events/:workflowId?since=1957-11-17T10:24:39.571Z
   method: GET
   headers:
     Accept: application/json

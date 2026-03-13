@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/compile/batch
+  url: {{baseUrl}}/compile/batch
   method: POST
   headers:
     Content-Type: application/json

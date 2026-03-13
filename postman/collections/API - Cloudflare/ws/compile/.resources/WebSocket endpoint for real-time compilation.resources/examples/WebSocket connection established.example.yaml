@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/ws/compile
+  url: {{baseUrl}}/ws/compile
   method: GET
   body:
     type: text

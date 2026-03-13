@@ -1,6 +1,6 @@
 $kind: http-request
 description: Deletes all expired entries from storage tables
-url: http://{{baseUrl}}/admin/storage/clear-expired
+url: {{baseUrl}}/admin/storage/clear-expired
 method: POST
 headers:
   Accept: application/json

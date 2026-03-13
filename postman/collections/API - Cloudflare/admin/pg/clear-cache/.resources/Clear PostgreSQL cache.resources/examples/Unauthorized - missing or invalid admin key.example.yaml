@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/pg/clear-cache
+  url: {{baseUrl}}/admin/pg/clear-cache
   method: POST
   headers:
     - key: Accept

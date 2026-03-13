@@ -4,7 +4,7 @@ description: >
 
   Streams events including source downloads, transformations, diagnostics, cache
   operations, network events, and metrics.
-url: http://{{baseUrl}}/compile/stream
+url: {{baseUrl}}/compile/stream
 method: POST
 headers:
   Content-Type: application/json

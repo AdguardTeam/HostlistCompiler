@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/compile/batch/async
+  url: {{baseUrl}}/compile/batch/async
   method: POST
   headers:
     Content-Type: application/json

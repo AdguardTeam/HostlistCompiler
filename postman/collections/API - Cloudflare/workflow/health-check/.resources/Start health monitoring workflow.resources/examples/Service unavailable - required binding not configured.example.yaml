@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/workflow/health-check
+  url: {{baseUrl}}/workflow/health-check
   method: POST
   headers:
     Content-Type: application/json

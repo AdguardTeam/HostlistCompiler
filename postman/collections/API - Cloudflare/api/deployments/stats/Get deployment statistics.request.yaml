@@ -1,6 +1,6 @@
 $kind: http-request
 description: Returns aggregated deployment statistics
-url: http://{{baseUrl}}/api/deployments/stats
+url: {{baseUrl}}/api/deployments/stats
 method: GET
 headers:
   Accept: application/json

@@ -1,6 +1,6 @@
 $kind: http-request
 description: Exports data from the PostgreSQL backend (mirrors /admin/storage/export for D1)
-url: http://{{baseUrl}}/admin/pg/export
+url: {{baseUrl}}/admin/pg/export
 method: GET
 headers:
   Accept: application/json

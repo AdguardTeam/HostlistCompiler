@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/workflow/status/:workflowType/:instanceId
+  url: {{baseUrl}}/workflow/status/:workflowType/:instanceId
   method: GET
   pathVariables:
     - key: workflowType

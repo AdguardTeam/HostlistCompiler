@@ -1,7 +1,7 @@
 $kind: http-request
 description: Validates an API key without authenticating a full request. Useful
   for the admin UI to test keys.
-url: http://{{baseUrl}}/admin/auth/api-keys/validate
+url: {{baseUrl}}/admin/auth/api-keys/validate
 method: POST
 headers:
   Content-Type: application/json

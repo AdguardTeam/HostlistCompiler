@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/pg/stats
+  url: {{baseUrl}}/admin/pg/stats
   method: GET
   headers:
     - key: Accept
@@ -20,7 +20,7 @@ response:
     type: json
     content: |-
       {
-        "success": false,
+        "success": true,
         "data": {
           "stats": {
             "storage_entries": 4116,

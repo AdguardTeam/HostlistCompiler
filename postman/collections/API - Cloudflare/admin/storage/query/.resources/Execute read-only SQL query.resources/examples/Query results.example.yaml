@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/storage/query
+  url: {{baseUrl}}/admin/storage/query
   method: POST
   headers:
     - key: Content-Type

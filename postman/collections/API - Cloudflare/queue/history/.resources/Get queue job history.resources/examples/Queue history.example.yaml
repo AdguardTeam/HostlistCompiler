@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/queue/history
+  url: {{baseUrl}}/queue/history
   method: GET
   headers:
     Accept: application/json

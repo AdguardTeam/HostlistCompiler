@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/auth/api-keys/revoke
+  url: {{baseUrl}}/admin/auth/api-keys/revoke
   method: POST
   headers:
     - key: Content-Type

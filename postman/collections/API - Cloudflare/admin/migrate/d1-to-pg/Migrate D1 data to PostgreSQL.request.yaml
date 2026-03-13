@@ -17,7 +17,7 @@ description: >
   - **Read-only on D1**: never modifies the source database
 
   - **Resumable**: can be re-run safely if interrupted
-url: http://{{baseUrl}}/admin/migrate/d1-to-pg?dryRun=false&tables=storage_entries,filter_cache
+url: {{baseUrl}}/admin/migrate/d1-to-pg?dryRun=false&tables=storage_entries,filter_cache
 method: POST
 headers:
   Accept: application/json

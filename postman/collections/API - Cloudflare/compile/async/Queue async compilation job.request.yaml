@@ -4,7 +4,7 @@ description: >
   a request ID.
 
   Use GET /queue/results/{requestId} to retrieve results when complete.
-url: http://{{baseUrl}}/compile/async
+url: {{baseUrl}}/compile/async
 method: POST
 headers:
   Content-Type: application/json

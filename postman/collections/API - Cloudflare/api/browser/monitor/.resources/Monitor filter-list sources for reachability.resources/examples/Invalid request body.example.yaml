@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/api/browser/monitor
+  url: {{baseUrl}}/api/browser/monitor
   method: POST
   headers:
     Content-Type: application/json

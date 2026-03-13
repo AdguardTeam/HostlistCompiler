@@ -3,7 +3,7 @@ description: |
   Creates a new API key for a user. Requires Hyperdrive (PostgreSQL) binding.
 
   **Important:** The raw API key is only returned once. Store it securely.
-url: http://{{baseUrl}}/admin/auth/api-keys
+url: {{baseUrl}}/admin/auth/api-keys
 method: POST
 headers:
   Content-Type: application/json

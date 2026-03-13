@@ -1,7 +1,7 @@
 $kind: http-request
 description: Executes a SELECT-only SQL query against PostgreSQL for debugging
   (mirrors /admin/storage/query for D1)
-url: http://{{baseUrl}}/admin/pg/query
+url: {{baseUrl}}/admin/pg/query
 method: POST
 headers:
   Content-Type: application/json

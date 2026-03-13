@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/storage/tables
+  url: {{baseUrl}}/admin/storage/tables
   method: GET
   headers:
     - key: Accept

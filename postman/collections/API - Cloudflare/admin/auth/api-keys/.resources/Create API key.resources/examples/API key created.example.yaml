@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/auth/api-keys
+  url: {{baseUrl}}/admin/auth/api-keys
   method: POST
   headers:
     - key: Content-Type
@@ -32,7 +32,7 @@ response:
     type: json
     content: |-
       {
-        "success": false,
+        "success": true,
         "data": {
           "id": "03e4a756-9b1f-8651-5e70-17774cfee8e3",
           "apiKey": "string",

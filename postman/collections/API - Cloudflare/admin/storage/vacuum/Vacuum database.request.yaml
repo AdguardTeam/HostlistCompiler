@@ -1,6 +1,6 @@
 $kind: http-request
 description: Runs VACUUM on the D1 database to reclaim space
-url: http://{{baseUrl}}/admin/storage/vacuum
+url: {{baseUrl}}/admin/storage/vacuum
 method: POST
 headers:
   Accept: application/json

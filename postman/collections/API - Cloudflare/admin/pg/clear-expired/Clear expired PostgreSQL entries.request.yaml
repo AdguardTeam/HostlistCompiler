@@ -1,6 +1,6 @@
 $kind: http-request
 description: Deletes all expired entries from PostgreSQL storage and cache tables
-url: http://{{baseUrl}}/admin/pg/clear-expired
+url: {{baseUrl}}/admin/pg/clear-expired
 method: POST
 headers:
   Accept: application/json

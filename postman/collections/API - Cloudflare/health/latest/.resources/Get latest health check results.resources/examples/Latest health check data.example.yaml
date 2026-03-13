@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/health/latest
+  url: {{baseUrl}}/health/latest
   method: GET
   headers:
     Accept: application/json
@@ -26,7 +26,7 @@ response:
             "url": "string",
             "healthy": false,
             "lastChecked": "1947-09-16T13:04:01.180Z",
-            "statusCode": 4270,
+            "statusCode": 503,
             "responseTimeMs": 5911.135148429605,
             "ruleCount": 2644,
             "error": "string"
@@ -36,7 +36,7 @@ response:
             "url": "string",
             "healthy": true,
             "lastChecked": "2003-04-27T15:56:01.563Z",
-            "statusCode": 9164,
+            "statusCode": 200,
             "responseTimeMs": 8134.458851159016,
             "ruleCount": 5373,
             "error": "string"

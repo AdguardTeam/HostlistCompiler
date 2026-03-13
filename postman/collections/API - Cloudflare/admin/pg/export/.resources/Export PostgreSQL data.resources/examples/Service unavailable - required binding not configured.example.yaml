@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/pg/export
+  url: {{baseUrl}}/admin/pg/export
   method: GET
   headers:
     - key: Accept

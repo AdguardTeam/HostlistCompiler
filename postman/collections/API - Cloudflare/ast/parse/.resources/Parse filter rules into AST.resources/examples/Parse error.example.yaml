@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/ast/parse
+  url: {{baseUrl}}/ast/parse
   method: POST
   headers:
     Content-Type: application/json

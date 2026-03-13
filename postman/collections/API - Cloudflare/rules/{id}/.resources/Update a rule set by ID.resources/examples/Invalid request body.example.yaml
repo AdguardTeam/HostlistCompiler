@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/rules/:id
+  url: {{baseUrl}}/rules/:id
   method: PUT
   headers:
     Content-Type: application/json

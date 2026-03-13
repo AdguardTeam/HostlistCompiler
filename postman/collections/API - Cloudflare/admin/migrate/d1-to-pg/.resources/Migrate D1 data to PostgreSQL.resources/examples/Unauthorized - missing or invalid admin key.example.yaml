@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/migrate/d1-to-pg?dryRun=false&tables=storage_entries,filter_cache
+  url: {{baseUrl}}/admin/migrate/d1-to-pg?dryRun=false&tables=storage_entries,filter_cache
   method: POST
   headers:
     - key: Accept
