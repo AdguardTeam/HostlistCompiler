@@ -106,6 +106,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.56.1] - 2026-03-13
+
+### Added### Fixed
+
+- **postman**: resolve Postman collection issues from review comments
+
+
 ## [0.56.0] - 2026-03-13
 
 ### Added- **auth**: implement returnUrl query param behavior in SignInComponent
