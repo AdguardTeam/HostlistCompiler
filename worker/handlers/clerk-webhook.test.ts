@@ -9,15 +9,11 @@
  *   - Unknown event types (graceful acknowledgement)
  *
  * Uses an in-memory D1 mock (same shape as D1Database in worker/types.ts).
- * Svix verification is tested via direct invocation — since we cannot
- * generate valid HMAC signatures without a real Svix secret, we test
- * the error paths for invalid signatures and test happy paths by
- * mocking the Svix import at the module boundary.
+ * Svix verification is bypassed in happy-path tests via the _testVerify
+ * injection parameter on handleClerkWebhook (same pattern as testPrisma).
  */
 
 import { assertEquals } from '@std/assert';
-import { stub } from '@std/testing/mock';
-import { Webhook } from 'svix';
 import { handleClerkWebhook } from './clerk-webhook.ts';
 import type { ClerkWebhookEvent, PrismaLike } from './clerk-webhook.ts';
 import type { D1Database, D1ExecResult, D1PreparedStatement, D1Result, Env } from '../types.ts';
@@ -158,20 +154,13 @@ Deno.test('handleClerkWebhook - returns 503 when webhook secret not configured',
 });
 
 Deno.test('handleClerkWebhook - returns 503 when DB binding not configured', async () => {
-    // Stub Webhook.verify so the signature check is bypassed — without this
-    // an invalid HMAC returns 401 before the DB-binding guard is ever reached,
-    // making the assertion meaningless (the old test accepted 401 OR 503).
-    const verifyStub = stub(Webhook.prototype, 'verify', () => makeUserCreatedEvent());
-    try {
-        const req = makeSvixRequest({ type: 'user.created', data: { id: 'user_123' } });
-        const res = await handleClerkWebhook(req, makeEnv({ DB: undefined as unknown as D1Database }));
-        assertEquals(res.status, 503);
+    const req = makeSvixRequest({ type: 'user.created', data: { id: 'user_123' } });
+    const mockVerify = () => makeUserCreatedEvent();
+    const res = await handleClerkWebhook(req, makeEnv({ DB: undefined as unknown as D1Database }), null, mockVerify);
+    assertEquals(res.status, 503);
 
-        const body = await res.json() as Record<string, unknown>;
-        assertEquals(typeof body.error, 'string');
-    } finally {
-        verifyStub.restore();
-    }
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(typeof body.error, 'string');
 });
 
 // ============================================================================
@@ -247,108 +236,80 @@ Deno.test('handleClerkWebhook - returns 401 for invalid Svix signature', async (
 // ============================================================================
 
 Deno.test('handleClerkWebhook - user.created returns 200 and upserts user', async () => {
-    const verifyStub = stub(Webhook.prototype, 'verify', () => makeUserCreatedEvent());
-    try {
-        const mockPrisma = createMockPrisma({ upsertResult: { id: 'uuid-alice-42' } });
-        const req = makeSvixRequest(makeUserCreatedEvent());
-        const res = await handleClerkWebhook(req, makeEnv(), mockPrisma);
-        assertEquals(res.status, 200);
+    const mockPrisma = createMockPrisma({ upsertResult: { id: 'uuid-alice-42' } });
+    const mockVerify = () => makeUserCreatedEvent();
+    const req = makeSvixRequest(makeUserCreatedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
 
-        const body = await res.json() as Record<string, unknown>;
-        assertEquals(body.success, true);
-        assertEquals(body.event, 'user.created');
-        assertEquals(body.userId, 'uuid-alice-42');
-    } finally {
-        verifyStub.restore();
-    }
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.created');
+    assertEquals(body.userId, 'uuid-alice-42');
 });
 
 Deno.test('handleClerkWebhook - user.updated returns 200 and upserts user', async () => {
-    const verifyStub = stub(Webhook.prototype, 'verify', () => makeUserUpdatedEvent());
-    try {
-        const mockPrisma = createMockPrisma({ upsertResult: { id: 'uuid-alice-7' } });
-        const req = makeSvixRequest(makeUserUpdatedEvent());
-        const res = await handleClerkWebhook(req, makeEnv(), mockPrisma);
-        assertEquals(res.status, 200);
+    const mockPrisma = createMockPrisma({ upsertResult: { id: 'uuid-alice-7' } });
+    const mockVerify = () => makeUserUpdatedEvent();
+    const req = makeSvixRequest(makeUserUpdatedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
 
-        const body = await res.json() as Record<string, unknown>;
-        assertEquals(body.success, true);
-        assertEquals(body.event, 'user.updated');
-    } finally {
-        verifyStub.restore();
-    }
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.updated');
 });
 
 Deno.test('handleClerkWebhook - user.deleted returns 200 and removes user', async () => {
-    const verifyStub = stub(Webhook.prototype, 'verify', () => makeUserDeletedEvent());
-    try {
-        const mockPrisma = createMockPrisma({ deleteManyResult: { count: 1 } });
-        const req = makeSvixRequest(makeUserDeletedEvent());
-        const res = await handleClerkWebhook(req, makeEnv(), mockPrisma);
-        assertEquals(res.status, 200);
+    const mockPrisma = createMockPrisma({ deleteManyResult: { count: 1 } });
+    const mockVerify = () => makeUserDeletedEvent();
+    const req = makeSvixRequest(makeUserDeletedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
 
-        const body = await res.json() as Record<string, unknown>;
-        assertEquals(body.success, true);
-        assertEquals(body.event, 'user.deleted');
-        assertEquals(body.deleted, true);
-    } finally {
-        verifyStub.restore();
-    }
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.deleted');
+    assertEquals(body.deleted, true);
 });
 
 Deno.test('handleClerkWebhook - user.deleted returns deleted=false when user not found', async () => {
-    const verifyStub = stub(Webhook.prototype, 'verify', () => makeUserDeletedEvent('user_gone'));
-    try {
-        const mockPrisma = createMockPrisma({ deleteManyResult: { count: 0 } });
-        const req = makeSvixRequest(makeUserDeletedEvent('user_gone'));
-        const res = await handleClerkWebhook(req, makeEnv(), mockPrisma);
-        assertEquals(res.status, 200);
+    const mockPrisma = createMockPrisma({ deleteManyResult: { count: 0 } });
+    const mockVerify = () => makeUserDeletedEvent('user_gone');
+    const req = makeSvixRequest(makeUserDeletedEvent('user_gone'));
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
 
-        const body = await res.json() as Record<string, unknown>;
-        assertEquals(body.deleted, false);
-    } finally {
-        verifyStub.restore();
-    }
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.deleted, false);
 });
 
 Deno.test('handleClerkWebhook - returns 400 when user.created has no email', async () => {
     const noEmailEvent = { type: 'user.created', data: { id: 'user_noemail' } };
-    const verifyStub = stub(Webhook.prototype, 'verify', () => noEmailEvent);
-    try {
-        const mockPrisma = createMockPrisma();
-        const req = makeSvixRequest(noEmailEvent);
-        const res = await handleClerkWebhook(req, makeEnv(), mockPrisma);
-        assertEquals(res.status, 400);
-    } finally {
-        verifyStub.restore();
-    }
+    const mockPrisma = createMockPrisma();
+    const mockVerify = () => noEmailEvent as ClerkWebhookEvent;
+    const req = makeSvixRequest(noEmailEvent);
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 400);
 });
 
 Deno.test('handleClerkWebhook - returns 200 for unknown event type', async () => {
     const unknownEvent = { type: 'session.created', data: { id: 'sess_xyz' } };
-    const verifyStub = stub(Webhook.prototype, 'verify', () => unknownEvent);
-    try {
-        const mockPrisma = createMockPrisma();
-        const req = makeSvixRequest(unknownEvent);
-        const res = await handleClerkWebhook(req, makeEnv(), mockPrisma);
-        assertEquals(res.status, 200);
+    const mockPrisma = createMockPrisma();
+    const mockVerify = () => unknownEvent as ClerkWebhookEvent;
+    const req = makeSvixRequest(unknownEvent);
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
 
-        const body = await res.json() as Record<string, unknown>;
-        assertEquals(body.success, true);
-        assertEquals(body.event, 'session.created');
-    } finally {
-        verifyStub.restore();
-    }
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'session.created');
 });
 
 Deno.test('handleClerkWebhook - returns 500 when prisma upsert throws', async () => {
-    const verifyStub = stub(Webhook.prototype, 'verify', () => makeUserCreatedEvent());
-    try {
-        const mockPrisma = createMockPrisma({ upsertError: new Error('D1 constraint violation') });
-        const req = makeSvixRequest(makeUserCreatedEvent());
-        const res = await handleClerkWebhook(req, makeEnv(), mockPrisma);
-        assertEquals(res.status, 500);
-    } finally {
-        verifyStub.restore();
-    }
+    const mockPrisma = createMockPrisma({ upsertError: new Error('D1 constraint violation') });
+    const mockVerify = () => makeUserCreatedEvent();
+    const req = makeSvixRequest(makeUserCreatedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 500);
 });

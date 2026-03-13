@@ -102,6 +102,14 @@ export async function handleClerkWebhook(
     env: Env,
     /** Injected Prisma client — for unit testing only. Omit in production. */
     testPrisma?: PrismaLike | null,
+    /**
+     * Injected Svix verify function — for unit testing only.
+     * When provided, replaces `new Webhook(secret).verify(body, headers)` so
+     * tests can bypass HMAC validation without prototype-stubbing npm packages.
+     * Omit in production.
+     * @internal
+     */
+    _testVerify?: ((body: string, headers: Record<string, string>) => ClerkWebhookEvent) | null,
 ): Promise<Response> {
     // ---- 1. Validate that the webhook secret is configured ----
     const webhookSecret = env.CLERK_WEBHOOK_SECRET;
@@ -131,12 +139,8 @@ export async function handleClerkWebhook(
     // ---- 3. Verify Svix signature ----
     let event: ClerkWebhookEvent;
     try {
-        const wh = new Webhook(webhookSecret);
-        event = wh.verify(rawBody, {
-            'svix-id': svixId,
-            'svix-timestamp': svixTimestamp,
-            'svix-signature': svixSignature,
-        }) as ClerkWebhookEvent;
+        const svixHeaders = { 'svix-id': svixId, 'svix-timestamp': svixTimestamp, 'svix-signature': svixSignature };
+        event = _testVerify ? _testVerify(rawBody, svixHeaders) : (new Webhook(webhookSecret).verify(rawBody, svixHeaders) as ClerkWebhookEvent);
     } catch {
         return JsonResponse.error('Invalid webhook signature', 401);
     }
