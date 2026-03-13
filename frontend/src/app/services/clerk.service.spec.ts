@@ -53,10 +53,12 @@ describe('ClerkService', () => {
             expect(service.session()).toBeNull();
         });
 
-        it('should no-op initialize when publishableKey is empty', async () => {
+        it('should mark isLoaded true (but isAvailable false) when publishableKey is empty', async () => {
             await service.initialize('');
-            // isLoaded stays false because it returns early
-            expect(service.isLoaded()).toBe(false);
+            // isLoaded is set to true so consumers can render an error/fallback
+            // state instead of waiting for Clerk indefinitely.
+            expect(service.isLoaded()).toBe(true);
+            expect(service.isAvailable()).toBe(false);
         });
 
         it('should set isLoaded true even when Clerk import fails', async () => {
