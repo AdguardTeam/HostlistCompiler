@@ -37,7 +37,7 @@ Complete reference for all environment variables and configuration needed to run
 
 | Variable | Required | Source | Description |
 |----------|----------|--------|-------------|
-| `DATABASE_URL` | **Yes** | PostgreSQL connection string | Hyperdrive connection URL in production; local PostgreSQL URL in development. |
+| `DATABASE_URL` | **Yes** | PostgreSQL connection string | Hyperdrive connection URL in production; local PostgreSQL URL in development. Used for **API keys** (PostgreSQL) only — user sync uses Cloudflare D1 instead. |
 
 ## Local Development Setup
 
@@ -176,28 +176,34 @@ Defined in `frontend/src/app/tokens.ts`:
 
 ## Database Schema
 
-The auth system uses PostgreSQL (via Cloudflare Hyperdrive) with these tables:
+The auth system uses a **split database architecture**:
 
-### `users` Table
+- **Cloudflare D1 (SQLite)** — stores user records, synced from Clerk webhooks. Binding: `env.DB`.
+- **PostgreSQL via Hyperdrive** — stores API keys. Connection: `DATABASE_URL` environment variable.
+
+### `users` Table (Cloudflare D1)
+
+Managed by `prisma/schema.d1.prisma`; synced via the `POST /api/webhooks/clerk` handler.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | UUID | Primary key |
-| `clerkId` | String | Clerk user ID (unique, indexed) |
+| `clerk_user_id` | String | Clerk user ID (unique, indexed) |
 | `email` | String | Primary email from Clerk |
-| `firstName` | String? | First name |
-| `lastName` | String? | Last name |
-| `imageUrl` | String? | Profile picture URL |
-| `tier` | Enum | `anonymous`, `free`, `pro`, `admin` |
-| `role` | String? | User role from Clerk metadata |
-| `emailVerified` | Boolean | Email verification status |
-| `clerkCreatedAt` | DateTime? | When user was created in Clerk |
-| `clerkUpdatedAt` | DateTime? | Last update in Clerk |
-| `lastSignInAt` | DateTime? | Last sign-in timestamp |
-| `createdAt` | DateTime | Record creation time |
-| `updatedAt` | DateTime | Last record update |
+| `first_name` | String? | First name |
+| `last_name` | String? | Last name |
+| `image_url` | String? | Profile picture URL |
+| `tier` | String | `anonymous`, `free`, `pro`, `admin` |
+| `created_at` | DateTime | Record creation time |
+| `updated_at` | DateTime | Last record update |
 
-### `api_keys` Table
+Apply the D1 migration before first deploy:
+
+```bash
+wrangler d1 migrations apply adblock-compiler-d1-database --remote
+```
+
+### `api_keys` Table (PostgreSQL via Hyperdrive)
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -224,7 +230,7 @@ The auth system uses PostgreSQL (via Cloudflare Hyperdrive) with these tables:
 4. [ ] Set up Clerk webhook endpoint
 5. [ ] Copy `.env.example` → `.env.local` and fill in all auth keys (local dev)
 6. [ ] Store all production secrets via `wrangler secret put` (production deploy)
-7. [ ] Run Prisma migrations: `deno task db:migrate`
+7. [ ] Apply D1 migration: `wrangler d1 migrations apply adblock-compiler-d1-database --remote`
 8. [ ] Deploy worker: `wrangler deploy`
 9. [ ] Test webhook delivery from Clerk dashboard
 10. [ ] Create first admin user (set `tier: admin` in Clerk public metadata)
