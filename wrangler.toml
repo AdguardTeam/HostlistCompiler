@@ -113,7 +113,7 @@ tag = "v2"
 # IMPORTANT: This version should match the VERSION constant in src/version.ts (single source of truth)
 # To update: change VERSION in src/version.ts, then run `deno task version:sync` to propagate changes
 # The worker will fall back to src/version.ts if this is not set
-COMPILER_VERSION = "0.56.1"
+COMPILER_VERSION = "0.56.2"
 ENVIRONMENT = "production"
 # All other runtime variables (TURNSTILE_*, CLERK_*, ADMIN_KEY, DATABASE_URL, etc.)
 # are managed via the direnv/.envrc system for local dev (.env.local)

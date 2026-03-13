@@ -107,6 +107,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.56.2] - 2026-03-13
+
+### Added### Fixed
+
+- validate tier/role from Clerk public_metadata to prevent privilege escalation
+- replace Webhook.prototype stub with _testVerify injection in webhook tests
+- address review comments - isLoaded signal, webhook test 503 path, sloppy-imports scope
+- define import.meta.url for Cloudflare Workers bundled context
+- upgrade Prisma to 7.5.0 and add @prisma/client to package.json
+- resolve 3 CI failures on fix/clerk-auth-bugs-1010
+- update clerk-webhook signature, wrap PrismaClient init in try/catch, update tests to use D1 mock
+- resolve Clerk auth integration bugs (#1010)
+
+
 ## [0.56.1] - 2026-03-13
 
 ### Added### Fixed
