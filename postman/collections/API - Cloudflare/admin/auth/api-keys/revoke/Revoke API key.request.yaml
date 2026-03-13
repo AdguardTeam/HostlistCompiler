@@ -1,7 +1,7 @@
 $kind: http-request
 description: Revokes an API key by ID or key prefix. Requires Hyperdrive
   (PostgreSQL) binding.
-url: http://{{baseUrl}}/admin/auth/api-keys/revoke
+url: {{baseUrl}}/admin/auth/api-keys/revoke
 method: POST
 headers:
   Content-Type: application/json

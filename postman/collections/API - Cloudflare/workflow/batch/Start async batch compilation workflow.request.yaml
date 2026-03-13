@@ -1,6 +1,6 @@
 $kind: http-request
 description: Creates a durable Cloudflare Workflow instance for batch compilation
-url: http://{{baseUrl}}/workflow/batch
+url: {{baseUrl}}/workflow/batch
 method: POST
 headers:
   Content-Type: application/json

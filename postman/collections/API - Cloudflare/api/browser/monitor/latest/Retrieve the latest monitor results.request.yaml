@@ -7,7 +7,7 @@ description: >
 
 
   Requires the `COMPILATION_CACHE` binding.
-url: http://{{baseUrl}}/api/browser/monitor/latest
+url: {{baseUrl}}/api/browser/monitor/latest
 method: GET
 headers:
   Accept: application/json

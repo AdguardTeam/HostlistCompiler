@@ -1,6 +1,6 @@
 $kind: http-request
 description: Returns API version, available endpoints, and usage examples
-url: http://{{baseUrl}}/api
+url: {{baseUrl}}/api
 method: GET
 headers:
   Accept: application/json

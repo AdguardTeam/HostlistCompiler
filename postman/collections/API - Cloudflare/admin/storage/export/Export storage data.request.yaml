@@ -2,7 +2,7 @@ $kind: http-request
 description: Exports storage entries as JSON (includes storage entries, filter
   cache, and compilation metadata; returned amounts subject to implementation
   limits)
-url: http://{{baseUrl}}/admin/storage/export
+url: {{baseUrl}}/admin/storage/export
 method: GET
 headers:
   Accept: application/json

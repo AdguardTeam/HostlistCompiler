@@ -1,6 +1,6 @@
 $kind: http-request
 description: Retrieve results for a completed async compilation job
-url: http://{{baseUrl}}/queue/results/:requestId
+url: {{baseUrl}}/queue/results/:requestId
 method: GET
 headers:
   Accept: application/json

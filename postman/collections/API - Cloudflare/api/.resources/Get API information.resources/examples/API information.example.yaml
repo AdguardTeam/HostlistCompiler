@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/api
+  url: {{baseUrl}}/api
   method: GET
   headers:
     Accept: application/json

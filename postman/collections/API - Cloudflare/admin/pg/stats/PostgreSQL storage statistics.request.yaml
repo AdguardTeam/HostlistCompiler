@@ -1,7 +1,7 @@
 $kind: http-request
 description: Returns storage statistics from the PostgreSQL backend (mirrors
   /admin/storage/stats for D1)
-url: http://{{baseUrl}}/admin/pg/stats
+url: {{baseUrl}}/admin/pg/stats
 method: GET
 headers:
   Accept: application/json

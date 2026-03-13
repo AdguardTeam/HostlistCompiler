@@ -1,6 +1,6 @@
 $kind: http-request
 description: Compile multiple filter lists in parallel (max 10 per batch)
-url: http://{{baseUrl}}/compile/batch
+url: {{baseUrl}}/compile/batch
 method: POST
 headers:
   Content-Type: application/json

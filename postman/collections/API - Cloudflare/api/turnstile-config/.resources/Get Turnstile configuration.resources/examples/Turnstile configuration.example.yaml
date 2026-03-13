@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/api/turnstile-config
+  url: {{baseUrl}}/api/turnstile-config
   method: GET
   headers:
     Accept: application/json

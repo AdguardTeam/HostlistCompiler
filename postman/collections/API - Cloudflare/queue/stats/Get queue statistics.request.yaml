@@ -1,6 +1,6 @@
 $kind: http-request
 description: Returns queue health metrics and job statistics
-url: http://{{baseUrl}}/queue/stats
+url: {{baseUrl}}/queue/stats
 method: GET
 headers:
   Accept: application/json

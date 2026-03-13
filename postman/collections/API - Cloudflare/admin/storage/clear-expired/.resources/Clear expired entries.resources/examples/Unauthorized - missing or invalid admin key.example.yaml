@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/storage/clear-expired
+  url: {{baseUrl}}/admin/storage/clear-expired
   method: POST
   headers:
     - key: Accept

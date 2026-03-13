@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/compile/stream
+  url: {{baseUrl}}/compile/stream
   method: POST
   headers:
     Content-Type: application/json

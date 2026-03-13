@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/queue/cancel/:requestId
+  url: {{baseUrl}}/queue/cancel/:requestId
   method: POST
   headers:
     Accept: application/json
@@ -20,7 +20,7 @@ response:
     type: json
     content: |-
       {
-        "success": false,
+        "success": true,
         "message": "string",
         "note": "string"
       }

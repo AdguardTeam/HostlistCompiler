@@ -10,7 +10,7 @@ description: >
 
 
   Requires the `BROWSER` binding to be configured in `wrangler.toml`.
-url: http://{{baseUrl}}/api/browser/resolve-url
+url: {{baseUrl}}/api/browser/resolve-url
 method: POST
 headers:
   Content-Type: application/json

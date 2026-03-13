@@ -1,6 +1,6 @@
 $kind: http-request
 description: Returns all tables and indexes in the D1 database
-url: http://{{baseUrl}}/admin/storage/tables
+url: {{baseUrl}}/admin/storage/tables
 method: GET
 headers:
   Accept: application/json

@@ -1,15 +1,15 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/validate-rule
+  url: {{baseUrl}}/validate-rule
   method: POST
   headers:
     Content-Type: application/json
     Accept: application/json
   body:
     type: json
-    content: >-
+    content: |-
       {
-        "value": "reference #/components/schemas/ValidateRuleRequest not found in the OpenAPI spec"
+        "rule": "||example.com^"
       }
 response:
   statusCode: 200
@@ -18,8 +18,15 @@ response:
     Content-Type: application/json
   body:
     type: json
-    content: >-
+    content: |-
       {
-        "value": "reference #/components/schemas/ValidateRuleResponse not found in the OpenAPI spec"
+        "success": true,
+        "valid": true,
+        "rule": "||example.com^",
+        "ruleType": "NetworkRule",
+        "category": "Network",
+        "syntax": "AdGuard",
+        "ast": null,
+        "duration": "1ms"
       }
 order: 1000

@@ -1,6 +1,6 @@
 $kind: http-request
 description: Creates and stores a new named rule set in the KV namespace.
-url: http://{{baseUrl}}/rules
+url: {{baseUrl}}/rules
 method: POST
 headers:
   Content-Type: application/json

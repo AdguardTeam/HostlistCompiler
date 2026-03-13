@@ -4,7 +4,7 @@ description: >
   hour.
 
   Supports request deduplication for concurrent identical requests.
-url: http://{{baseUrl}}/compile
+url: {{baseUrl}}/compile
 method: POST
 headers:
   Content-Type: application/json

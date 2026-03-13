@@ -1,6 +1,6 @@
 $kind: http-request
 description: Returns current service health status and version
-url: http://{{baseUrl}}/health
+url: {{baseUrl}}/health
 method: GET
 headers:
   Accept: application/json

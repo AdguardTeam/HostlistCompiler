@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/backends
+  url: {{baseUrl}}/admin/backends
   method: GET
   headers:
     - key: Accept
@@ -20,7 +20,7 @@ response:
     type: json
     content: |-
       {
-        "success": false,
+        "success": true,
         "data": {
           "backends": {
             "d1": {

@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/auth/api-keys/validate
+  url: {{baseUrl}}/admin/auth/api-keys/validate
   method: POST
   headers:
     - key: Content-Type

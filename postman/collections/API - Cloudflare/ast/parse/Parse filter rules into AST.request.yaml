@@ -1,6 +1,6 @@
 $kind: http-request
 description: Parses adblock filter rules into an Abstract Syntax Tree representation
-url: http://{{baseUrl}}/ast/parse
+url: {{baseUrl}}/ast/parse
 method: POST
 headers:
   Content-Type: application/json

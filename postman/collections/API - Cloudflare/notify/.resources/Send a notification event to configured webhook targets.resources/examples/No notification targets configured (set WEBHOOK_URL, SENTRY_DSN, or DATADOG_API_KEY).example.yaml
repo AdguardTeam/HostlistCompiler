@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/notify
+  url: {{baseUrl}}/notify
   method: POST
   headers:
     Content-Type: application/json

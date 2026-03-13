@@ -1,6 +1,6 @@
 $kind: http-request
 description: Creates a durable Cloudflare Workflow instance for compilation
-url: http://{{baseUrl}}/workflow/compile
+url: {{baseUrl}}/workflow/compile
 method: POST
 headers:
   Content-Type: application/json

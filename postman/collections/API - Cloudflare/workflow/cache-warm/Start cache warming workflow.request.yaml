@@ -1,6 +1,6 @@
 $kind: http-request
 description: Triggers manual cache warming for specified configurations
-url: http://{{baseUrl}}/workflow/cache-warm
+url: {{baseUrl}}/workflow/cache-warm
 method: POST
 headers:
   Content-Type: application/json

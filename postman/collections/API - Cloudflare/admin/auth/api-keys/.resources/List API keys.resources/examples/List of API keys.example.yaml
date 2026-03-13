@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/admin/auth/api-keys?userId=809331b7-026e-18ca-da21-74e840eada1a
+  url: {{baseUrl}}/admin/auth/api-keys?userId=809331b7-026e-18ca-da21-74e840eada1a
   method: GET
   headers:
     - key: Accept

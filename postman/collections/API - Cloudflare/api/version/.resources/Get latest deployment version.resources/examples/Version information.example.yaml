@@ -1,6 +1,6 @@
 $kind: http-example
 request:
-  url: http://{{baseUrl}}/api/version
+  url: {{baseUrl}}/api/version
   method: GET
   headers:
     Accept: application/json
@@ -16,7 +16,7 @@ response:
     type: json
     content: |-
       {
-        "success": false,
+        "success": true,
         "version": "string",
         "buildNumber": 404,
         "fullVersion": "string",

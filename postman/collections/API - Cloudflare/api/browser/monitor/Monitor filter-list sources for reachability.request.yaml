@@ -17,7 +17,7 @@ description: >
 
   screenshot capture. `COMPILATION_CACHE` (KV) is required for result
   persistence.
-url: http://{{baseUrl}}/api/browser/monitor
+url: {{baseUrl}}/api/browser/monitor
 method: POST
 headers:
   Content-Type: application/json

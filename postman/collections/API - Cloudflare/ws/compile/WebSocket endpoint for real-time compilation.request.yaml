@@ -44,7 +44,7 @@ description: >
   - Session-based compilation tracking
 
   - Cancellation support
-url: http://{{baseUrl}}/ws/compile
+url: {{baseUrl}}/ws/compile
 method: GET
 body:
   type: text
