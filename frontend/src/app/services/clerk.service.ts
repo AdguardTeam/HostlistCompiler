@@ -47,7 +47,12 @@ export class ClerkService {
      */
     async initialize(publishableKey: string): Promise<void> {
         if (!isPlatformBrowser(this.platformId)) return;
-        if (!publishableKey) return;
+        if (!publishableKey) {
+            // Mark loaded (but not available) so consumers can show an error/fallback
+            // state instead of spinning indefinitely waiting for Clerk to initialise.
+            this._isLoaded.set(true);
+            return;
+        }
 
         try {
             const { Clerk: ClerkJS } = await import('@clerk/clerk-js');

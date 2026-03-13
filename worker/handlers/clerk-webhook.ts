@@ -22,13 +22,15 @@ import type { Env } from '../types.ts';
 // Clerk webhook event shapes (subset we care about)
 // ---------------------------------------------------------------------------
 
-interface ClerkEmailAddress {
+/** @internal Clerk email address shape in webhook payloads. */
+export interface ClerkEmailAddress {
     readonly email_address: string;
     readonly id: string;
     readonly verification?: { readonly status: string } | null;
 }
 
-interface ClerkUserEventData {
+/** @internal Clerk user data shape in webhook payloads. */
+export interface ClerkUserEventData {
     readonly id: string;
     readonly email_addresses?: readonly ClerkEmailAddress[];
     readonly primary_email_address_id?: string;
@@ -39,7 +41,8 @@ interface ClerkUserEventData {
     readonly last_sign_in_at?: number | null;
 }
 
-interface ClerkWebhookEvent {
+/** @internal Clerk webhook event shape. */
+export interface ClerkWebhookEvent {
     readonly type: string;
     readonly data: ClerkUserEventData;
 }
@@ -73,12 +76,32 @@ function toDisplayName(data: ClerkUserEventData, fallbackEmail: string): string 
 }
 
 // ---------------------------------------------------------------------------
+// Prisma abstraction (allows injection for unit testing)
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal Prisma-like interface used by this handler.
+ * Exported so unit tests can inject a mock without depending on the full
+ * generated Prisma client.
+ * @internal
+ */
+export interface PrismaLike {
+    user: {
+        upsert(args: unknown): Promise<{ id: string }>;
+        deleteMany(args: unknown): Promise<{ count: number }>;
+    };
+    $disconnect(): Promise<void>;
+}
+
+// ---------------------------------------------------------------------------
 // Route handler
 // ---------------------------------------------------------------------------
 
 export async function handleClerkWebhook(
     request: Request,
     env: Env,
+    /** Injected Prisma client — for unit testing only. Omit in production. */
+    testPrisma?: PrismaLike | null,
 ): Promise<Response> {
     // ---- 1. Validate that the webhook secret is configured ----
     const webhookSecret = env.CLERK_WEBHOOK_SECRET;
@@ -119,7 +142,8 @@ export async function handleClerkWebhook(
     }
 
     // ---- 4. Obtain a D1 database connection via Prisma ----
-    if (!env.DB) {
+    const db = env.DB;
+    if (!db) {
         return JsonResponse.serviceUnavailable(
             'D1 database binding not configured. ' +
                 'Ensure the DB binding is present in wrangler.toml.',
@@ -127,10 +151,12 @@ export async function handleClerkWebhook(
     }
 
     // ---- 5. Handle event ----
-    let prisma: InstanceType<typeof PrismaClient> | null = null;
+    let prisma: PrismaLike | null = null;
     try {
-        const adapter = new PrismaD1(env.DB);
-        prisma = new PrismaClient({ adapter });
+        prisma = testPrisma ?? (() => {
+            const adapter = new PrismaD1(db);
+            return new PrismaClient({ adapter }) as unknown as PrismaLike;
+        })();
 
         switch (event.type) {
             case 'user.created':
