@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/admin/backends
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "backends": {
+            "d1": {
+              "available": true,
+              "latencyMs": 4005,
+              "host": "string",
+              "error": "string"
+            },
+            "postgresql": {
+              "available": false,
+              "latencyMs": 9008,
+              "host": "string",
+              "error": "string"
+            }
+          },
+          "primary": "d1",
+          "timestamp": "2020-12-07T22:12:13.095Z"
+        }
+      }
+order: 1000

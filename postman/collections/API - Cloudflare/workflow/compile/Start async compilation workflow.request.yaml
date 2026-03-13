@@ -1,0 +1,67 @@
+$kind: http-request
+description: Creates a durable Cloudflare Workflow instance for compilation
+url: {{baseUrl}}/workflow/compile
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "configuration": {
+        "name": "string",
+        "sources": [
+          {
+            "source": "string",
+            "name": "string",
+            "type": "adblock",
+            "transformations": [
+              "ConvertToAscii",
+              "RemoveComments"
+            ],
+            "exclusions": [
+              "string",
+              "string"
+            ],
+            "inclusions": [
+              "string",
+              "string"
+            ]
+          }
+        ],
+        "description": "string",
+        "homepage": "http://cBxpuDUXQbpLbhcOekpOXDHq.fjdyf01Kpoy8eHBbtlQ",
+        "license": "string",
+        "version": "string",
+        "transformations": [
+          "Compress",
+          "Validate"
+        ],
+        "exclusions": [
+          "string",
+          "string"
+        ],
+        "exclusions_sources": [
+          "string",
+          "string"
+        ],
+        "inclusions": [
+          "string",
+          "string"
+        ],
+        "inclusions_sources": [
+          "string",
+          "string"
+        ]
+      },
+      "preFetchedContent": {
+        "key_0": "string",
+        "key_1": "string"
+      },
+      "benchmark": false,
+      "turnstileToken": "string",
+      "priority": "standard"
+    }
+examples: ./.resources/Start async compilation workflow.resources/examples
+order: 1000

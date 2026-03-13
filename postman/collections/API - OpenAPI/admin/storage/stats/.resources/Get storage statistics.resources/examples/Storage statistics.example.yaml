@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/storage/stats
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "stats": {
+          "storage_entries": 1607,
+          "filter_cache": 28,
+          "compilation_metadata": 6165,
+          "expired_storage": 8772,
+          "expired_cache": 4857
+        },
+        "timestamp": "2006-07-24T03:21:22.303Z"
+      }
+order: 1000

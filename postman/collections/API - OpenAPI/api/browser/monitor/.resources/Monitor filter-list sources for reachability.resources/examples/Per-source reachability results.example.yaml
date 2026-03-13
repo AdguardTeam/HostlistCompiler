@@ -1,0 +1,51 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/api/browser/monitor
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "urls": [
+          "https://example.com/filter-list.txt",
+          "https://another.example.com/rules.txt"
+        ],
+        "captureScreenshots": false,
+        "screenshotPrefix": "2025-07-01",
+        "timeout": 30000,
+        "waitUntil": "networkidle"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "success": true,
+        "results": [
+          {
+            "url": "https://coZrcMyZUeZsYDGOSLIHtnqG.fknE.lMyQfHSUh.wj0xMLcszz7Kd6YLyNKEv5ShamvHVu",
+            "reachable": true,
+            "checkedAt": "2020-10-14T18:23:15.721Z",
+            "screenshotKey": "string",
+            "error": "string"
+          },
+          {
+            "url": "http://RHgNnvCnoyPkjKCiVOUvuYInMf.ycsC-561fLfYX",
+            "reachable": false,
+            "checkedAt": "1963-10-21T22:52:46.650Z",
+            "screenshotKey": "string",
+            "error": "string"
+          }
+        ],
+        "total": 6690,
+        "reachable": 245,
+        "unreachable": 3668
+      }
+order: 1000

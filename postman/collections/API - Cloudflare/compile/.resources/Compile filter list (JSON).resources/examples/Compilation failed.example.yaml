@@ -1,0 +1,40 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/compile
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "configuration": {
+          "name": "My Filter List",
+          "sources": [
+            {
+              "source": "https://example.com/filters.txt",
+              "transformations": [
+                "RemoveComments",
+                "Validate"
+              ]
+            }
+          ],
+          "transformations": [
+            "Deduplicate"
+          ]
+        }
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "string"
+      }
+order: 4000

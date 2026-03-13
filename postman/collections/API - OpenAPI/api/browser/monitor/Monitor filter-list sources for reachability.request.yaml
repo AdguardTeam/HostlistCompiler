@@ -1,0 +1,39 @@
+$kind: http-request
+description: >
+  Performs parallel browser-based health checks on a list of filter-list source
+
+  URLs. For each URL a headless browser navigates to the page, verifies
+  non-empty
+
+  text content, and optionally captures a full-page PNG screenshot stored in R2.
+
+
+  The full result set is persisted under the KV key `browser:monitor:latest`
+
+  and is retrievable via `GET /api/browser/monitor/latest`.
+
+
+  Requires the `BROWSER` binding. `FILTER_STORAGE` (R2) is required for
+
+  screenshot capture. `COMPILATION_CACHE` (KV) is required for result
+  persistence.
+url: http://{{baseUrl}}/api/browser/monitor
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "urls": [
+        "https://example.com/filter-list.txt",
+        "https://another.example.com/rules.txt"
+      ],
+      "captureScreenshots": false,
+      "screenshotPrefix": "2025-07-01",
+      "timeout": 30000,
+      "waitUntil": "networkidle"
+    }
+examples: ./.resources/Monitor filter-list sources for reachability.resources/examples
+order: 1000

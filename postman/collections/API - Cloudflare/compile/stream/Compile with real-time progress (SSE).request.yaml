@@ -1,0 +1,71 @@
+$kind: http-request
+description: >
+  Compile filter lists with real-time progress updates via Server-Sent Events.
+
+  Streams events including source downloads, transformations, diagnostics, cache
+  operations, network events, and metrics.
+url: {{baseUrl}}/compile/stream
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: text/event-stream
+body:
+  type: json
+  content: |-
+    {
+      "configuration": {
+        "name": "string",
+        "sources": [
+          {
+            "source": "string",
+            "name": "string",
+            "type": "adblock",
+            "transformations": [
+              "ConvertToAscii",
+              "RemoveComments"
+            ],
+            "exclusions": [
+              "string",
+              "string"
+            ],
+            "inclusions": [
+              "string",
+              "string"
+            ]
+          }
+        ],
+        "description": "string",
+        "homepage": "http://cBxpuDUXQbpLbhcOekpOXDHq.fjdyf01Kpoy8eHBbtlQ",
+        "license": "string",
+        "version": "string",
+        "transformations": [
+          "Compress",
+          "Validate"
+        ],
+        "exclusions": [
+          "string",
+          "string"
+        ],
+        "exclusions_sources": [
+          "string",
+          "string"
+        ],
+        "inclusions": [
+          "string",
+          "string"
+        ],
+        "inclusions_sources": [
+          "string",
+          "string"
+        ]
+      },
+      "preFetchedContent": {
+        "key_0": "string",
+        "key_1": "string"
+      },
+      "benchmark": false,
+      "turnstileToken": "string",
+      "priority": "standard"
+    }
+examples: ./.resources/Compile with real-time progress (SSE).resources/examples
+order: 1000

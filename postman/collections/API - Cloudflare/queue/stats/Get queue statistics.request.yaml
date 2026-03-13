@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns queue health metrics and job statistics
+url: {{baseUrl}}/queue/stats
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get queue statistics.resources/examples
+order: 1000

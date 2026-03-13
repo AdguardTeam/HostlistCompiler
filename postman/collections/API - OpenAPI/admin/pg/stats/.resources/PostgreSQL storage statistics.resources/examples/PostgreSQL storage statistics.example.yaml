@@ -1,0 +1,39 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/pg/stats
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "stats": {
+            "storage_entries": 744,
+            "filter_cache": 5659,
+            "compilation_metadata": 2505,
+            "expired_storage": 5620,
+            "expired_cache": 3649,
+            "users": 7275,
+            "active_api_keys": 7107
+          },
+          "backend": "postgresql",
+          "host": "string",
+          "timestamp": "2005-09-24T16:26:21.843Z"
+        }
+      }
+order: 1000

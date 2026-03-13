@@ -1,0 +1,17 @@
+$kind: http-request
+description: Deletes all expired entries from storage tables
+url: {{baseUrl}}/admin/storage/clear-expired
+method: POST
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Clear expired entries.resources/examples
+order: 1000

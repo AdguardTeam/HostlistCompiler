@@ -1,0 +1,24 @@
+$kind: http-request
+description: Returns deployment history records
+url: {{baseUrl}}/api/deployments?limit=50&version=string&status=string&branch=string
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: limit
+    value: "50"
+    description: Maximum number of records to return
+  - key: version
+    value: string
+    description: Filter by version
+  - key: status
+    value: string
+    description: Filter by deployment status
+  - key: branch
+    value: string
+    description: Filter by branch name
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get deployment history.resources/examples
+order: 1000

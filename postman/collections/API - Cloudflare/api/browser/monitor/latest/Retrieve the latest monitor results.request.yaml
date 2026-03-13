@@ -1,0 +1,18 @@
+$kind: http-request
+description: >
+  Returns the most recent result set written by `POST /api/browser/monitor`.
+  Reads
+
+  the KV key `browser:monitor:latest` from `COMPILATION_CACHE`.
+
+
+  Requires the `COMPILATION_CACHE` binding.
+url: {{baseUrl}}/api/browser/monitor/latest
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Retrieve the latest monitor results.resources/examples
+order: 1000

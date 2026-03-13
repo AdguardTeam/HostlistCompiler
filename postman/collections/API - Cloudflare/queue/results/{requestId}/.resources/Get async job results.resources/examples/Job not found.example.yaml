@@ -1,0 +1,18 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/queue/results/:requestId
+  method: GET
+  pathVariables:
+    - key: requestId
+      value: string
+      description: Request ID returned from async endpoints
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 404
+  statusText: Not Found
+  body:
+    type: text
+    content: ""
+order: 2000

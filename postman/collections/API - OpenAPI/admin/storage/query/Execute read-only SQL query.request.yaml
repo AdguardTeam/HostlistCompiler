@@ -1,0 +1,21 @@
+$kind: http-request
+description: Executes a SELECT-only SQL query against the D1 database for debugging
+url: http://{{baseUrl}}/admin/storage/query
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sql": "string"
+    }
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Execute read-only SQL query.resources/examples
+order: 1000

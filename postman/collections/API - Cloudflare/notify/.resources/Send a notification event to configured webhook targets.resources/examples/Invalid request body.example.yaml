@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/notify
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "value": "reference #/components/schemas/WebhookNotifyRequest not found in the OpenAPI spec"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "value": "reference #/components/schemas/ErrorResponse not found in the OpenAPI spec"
+      }
+order: 2000

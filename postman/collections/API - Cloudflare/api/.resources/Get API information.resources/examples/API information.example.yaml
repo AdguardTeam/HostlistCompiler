@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/api
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "type": "object"
+      }
+order: 1000

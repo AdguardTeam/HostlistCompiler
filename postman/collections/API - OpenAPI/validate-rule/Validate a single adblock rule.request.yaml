@@ -1,0 +1,16 @@
+$kind: http-request
+description: Parses and validates a single adblock/DNS rule, returning its AST
+  representation, type, and optional URL match result.
+url: http://{{baseUrl}}/validate-rule
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: >-
+    {
+      "value": "reference #/components/schemas/ValidateRuleRequest not found in the OpenAPI spec"
+    }
+examples: ./.resources/Validate a single adblock rule.resources/examples
+order: 1000

@@ -1,4 +1,0 @@
-$kind: collection
-name: Storage (D1)
-description: D1 SQLite storage management — stats, cache, vacuum, export, and raw SQL queries
-order: 1000

@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/api/browser/monitor
+  method: POST
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "urls": [
+          "https://example.com/filter-list.txt",
+          "https://another.example.com/rules.txt"
+        ],
+        "captureScreenshots": false,
+        "screenshotPrefix": "2025-07-01",
+        "timeout": 30000,
+        "waitUntil": "networkidle"
+      }
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  body:
+    type: text
+    content: ""
+order: 3000

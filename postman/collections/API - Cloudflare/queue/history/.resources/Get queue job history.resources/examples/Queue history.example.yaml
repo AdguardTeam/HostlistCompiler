@@ -1,0 +1,50 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/queue/history
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "history": [
+          {
+            "requestId": "string",
+            "configName": "string",
+            "status": "cancelled",
+            "duration": 4234,
+            "timestamp": "string",
+            "error": "string",
+            "ruleCount": 5505
+          },
+          {
+            "requestId": "string",
+            "configName": "string",
+            "status": "cancelled",
+            "duration": 1489,
+            "timestamp": "string",
+            "error": "string",
+            "ruleCount": 9248
+          }
+        ],
+        "depthHistory": [
+          {
+            "timestamp": "string",
+            "pending": 1517
+          },
+          {
+            "timestamp": "string",
+            "pending": 7387
+          }
+        ]
+      }
+order: 1000

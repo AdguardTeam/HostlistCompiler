@@ -1,0 +1,27 @@
+$kind: http-request
+description: Triggers manual health check for specified filter list sources
+url: http://{{baseUrl}}/workflow/health-check
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: >-
+    {
+      "sources": [
+        {
+          "name": "string",
+          "url": "http://IelpRodEsDldOIhTIvNMmv.fpaqn64TjF,9e",
+          "expectedMinRules": 4117
+        },
+        {
+          "name": "string",
+          "url": "https://tQvvhmjxicHs.xsJA7No-,FXVEMdngSVcSQxuhoxUin+YwACHbDOEoJlbPF-N7mCuz.h",
+          "expectedMinRules": 5676
+        }
+      ],
+      "alertOnFailure": true
+    }
+examples: ./.resources/Start health monitoring workflow.resources/examples
+order: 1000

@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/validate-rule
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "rule": "||example.com^"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "valid": true,
+        "rule": "||example.com^",
+        "ruleType": "NetworkRule",
+        "category": "Network",
+        "syntax": "AdGuard",
+        "ast": null,
+        "duration": "1ms"
+      }
+order: 1000

@@ -1,0 +1,163 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/compile/batch
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "requests": [
+          {
+            "id": "string",
+            "configuration": {
+              "name": "string",
+              "sources": [
+                {
+                  "source": "string",
+                  "name": "string",
+                  "type": "adblock",
+                  "transformations": [
+                    "RemoveComments",
+                    "Validate"
+                  ],
+                  "exclusions": [
+                    "string",
+                    "string"
+                  ],
+                  "inclusions": [
+                    "string",
+                    "string"
+                  ]
+                }
+              ],
+              "description": "string",
+              "homepage": "http://asfXpWQCbDKhQBtiTAqWxxnRD.egdFswh-E2qG",
+              "license": "string",
+              "version": "string",
+              "transformations": [
+                "RemoveModifiers",
+                "InsertFinalNewLine"
+              ],
+              "exclusions": [
+                "string",
+                "string"
+              ],
+              "exclusions_sources": [
+                "string",
+                "string"
+              ],
+              "inclusions": [
+                "string",
+                "string"
+              ],
+              "inclusions_sources": [
+                "string",
+                "string"
+              ]
+            },
+            "preFetchedContent": {
+              "key_0": "string",
+              "key_1": "string",
+              "key_2": "string"
+            },
+            "benchmark": true
+          }
+        ]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "results": [
+          {
+            "success": true,
+            "id": "string",
+            "rules": [
+              "string",
+              "string"
+            ],
+            "ruleCount": 9356,
+            "metrics": {
+              "totalDurationMs": 842,
+              "sourceCount": 1571,
+              "ruleCount": 1928,
+              "transformationMetrics": [
+                {
+                  "name": "string",
+                  "inputCount": 5415,
+                  "outputCount": 2821,
+                  "durationMs": 3347
+                },
+                {
+                  "name": "string",
+                  "inputCount": 9580,
+                  "outputCount": 5799,
+                  "durationMs": 6834
+                }
+              ]
+            },
+            "compiledAt": "2002-03-27T21:57:55.523Z",
+            "previousVersion": {
+              "rules": [
+                "string",
+                "string"
+              ],
+              "ruleCount": 784,
+              "compiledAt": "1971-03-22T17:05:45.268Z"
+            },
+            "cached": false,
+            "deduplicated": false,
+            "error": "string"
+          },
+          {
+            "success": true,
+            "id": "string",
+            "rules": [
+              "string",
+              "string"
+            ],
+            "ruleCount": 9707,
+            "metrics": {
+              "totalDurationMs": 7725,
+              "sourceCount": 4287,
+              "ruleCount": 9056,
+              "transformationMetrics": [
+                {
+                  "name": "string",
+                  "inputCount": 8763,
+                  "outputCount": 1111,
+                  "durationMs": 5689
+                },
+                {
+                  "name": "string",
+                  "inputCount": 4160,
+                  "outputCount": 2278,
+                  "durationMs": 5830
+                }
+              ]
+            },
+            "compiledAt": "1984-02-08T16:29:23.110Z",
+            "previousVersion": {
+              "rules": [
+                "string",
+                "string"
+              ],
+              "ruleCount": 6420,
+              "compiledAt": "1977-12-06T09:28:39.560Z"
+            },
+            "cached": true,
+            "deduplicated": false,
+            "error": "string"
+          }
+        ]
+      }
+order: 1000

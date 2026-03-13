@@ -1,3 +1,0 @@
-$kind: collection
-description: Administration endpoints — require X-Admin-Key header
-order: 7000

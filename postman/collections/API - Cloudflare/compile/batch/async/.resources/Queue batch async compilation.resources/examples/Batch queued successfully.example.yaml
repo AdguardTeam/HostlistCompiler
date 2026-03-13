@@ -1,0 +1,86 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/compile/batch/async
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "requests": [
+          {
+            "id": "string",
+            "configuration": {
+              "name": "string",
+              "sources": [
+                {
+                  "source": "string",
+                  "name": "string",
+                  "type": "adblock",
+                  "transformations": [
+                    "RemoveComments",
+                    "Validate"
+                  ],
+                  "exclusions": [
+                    "string",
+                    "string"
+                  ],
+                  "inclusions": [
+                    "string",
+                    "string"
+                  ]
+                }
+              ],
+              "description": "string",
+              "homepage": "http://asfXpWQCbDKhQBtiTAqWxxnRD.egdFswh-E2qG",
+              "license": "string",
+              "version": "string",
+              "transformations": [
+                "RemoveModifiers",
+                "InsertFinalNewLine"
+              ],
+              "exclusions": [
+                "string",
+                "string"
+              ],
+              "exclusions_sources": [
+                "string",
+                "string"
+              ],
+              "inclusions": [
+                "string",
+                "string"
+              ],
+              "inclusions_sources": [
+                "string",
+                "string"
+              ]
+            },
+            "preFetchedContent": {
+              "key_0": "string",
+              "key_1": "string",
+              "key_2": "string"
+            },
+            "benchmark": true
+          }
+        ]
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "message": "string",
+        "requestId": "string",
+        "priority": "standard",
+        "note": "string",
+        "batchSize": 4708
+      }
+order: 1000

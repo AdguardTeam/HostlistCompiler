@@ -1,0 +1,57 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/metrics
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "window": "string",
+        "timestamp": "2014-12-10T11:54:21.139Z",
+        "endpoints": {
+          "key_0": {
+            "count": 6177,
+            "success": 9874,
+            "failed": 7521,
+            "avgDuration": 8258.262264985284,
+            "errors": {
+              "key_0": 6167,
+              "key_1": 8300,
+              "key_2": 8532
+            }
+          },
+          "key_1": {
+            "count": 3369,
+            "success": 9102,
+            "failed": 7339,
+            "avgDuration": 2726.3743717662514,
+            "errors": {
+              "key_0": 2065,
+              "key_1": 8833
+            }
+          },
+          "key_2": {
+            "count": 7143,
+            "success": 6024,
+            "failed": 5252,
+            "avgDuration": 2581.543281612302,
+            "errors": {
+              "key_0": 7594,
+              "key_1": 11,
+              "key_2": 3545,
+              "key_3": 4887
+            }
+          }
+        }
+      }
+order: 1000

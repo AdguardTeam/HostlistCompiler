@@ -1,0 +1,14 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/ws/compile
+  method: GET
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 101
+  statusText: Switching Protocols
+  body:
+    type: text
+    content: ""
+order: 1000

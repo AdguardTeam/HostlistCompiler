@@ -1,0 +1,19 @@
+$kind: http-request
+description: Exports storage entries as JSON (includes storage entries, filter
+  cache, and compilation metadata; returned amounts subject to implementation
+  limits)
+url: {{baseUrl}}/admin/storage/export
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Export storage data.resources/examples
+order: 1000

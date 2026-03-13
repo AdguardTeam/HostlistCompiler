@@ -1,0 +1,22 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/api/turnstile-config
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "siteKey": "string",
+        "enabled": true
+      }
+order: 1000

@@ -1,0 +1,24 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/auth/api-keys/revoke
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "apiKeyId": "bfd3ef9a-8900-a9ca-b6e9-fee391dced01",
+        "keyPrefix": "string"
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  body:
+    type: text
+    content: ""
+order: 4000

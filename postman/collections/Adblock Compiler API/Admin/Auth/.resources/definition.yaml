@@ -1,3 +1,0 @@
-$kind: collection
-description: User and API key management (requires Hyperdrive / PostgreSQL binding)
-order: 2000

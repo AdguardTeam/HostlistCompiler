@@ -1,0 +1,38 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/workflow/health-check
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "sources": [
+          {
+            "name": "string",
+            "url": "https://EfzyclAxqjOQ.xcyLXV.y1uT.U,ic+OZUZypQM77VC44",
+            "expectedMinRules": 3283
+          },
+          {
+            "name": "string",
+            "url": "https://Gy.nonjxmvlQIOgDTCwUshqdAJyFsU0N,mcif7",
+            "expectedMinRules": 5695
+          }
+        ],
+        "alertOnFailure": true
+      }
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "string"
+      }
+order: 3000

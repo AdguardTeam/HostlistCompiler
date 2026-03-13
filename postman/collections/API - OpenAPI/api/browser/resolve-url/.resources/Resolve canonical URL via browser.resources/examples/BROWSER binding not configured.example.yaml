@@ -1,0 +1,20 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/api/browser/resolve-url
+  method: POST
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "url": "https://example.com/redirect-me",
+        "waitUntil": "networkidle"
+      }
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  body:
+    type: text
+    content: ""
+order: 4000

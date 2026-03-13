@@ -1,0 +1,15 @@
+$kind: http-request
+description: Retrieve results for a completed async compilation job
+url: {{baseUrl}}/queue/results/:requestId
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: requestId
+    value: string
+    description: Request ID returned from async endpoints
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get async job results.resources/examples
+order: 1000

@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns the current version from deployment history
+url: {{baseUrl}}/api/version
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get latest deployment version.resources/examples
+order: 1000

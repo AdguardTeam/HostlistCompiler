@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/storage/tables
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "tables": [
+          {
+            "name": "string",
+            "type": "table"
+          },
+          {
+            "name": "string",
+            "type": "index"
+          }
+        ]
+      }
+order: 1000

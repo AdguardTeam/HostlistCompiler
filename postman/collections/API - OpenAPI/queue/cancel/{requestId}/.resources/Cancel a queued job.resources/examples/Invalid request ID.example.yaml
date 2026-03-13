@@ -1,0 +1,18 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/queue/cancel/:requestId
+  method: POST
+  pathVariables:
+    - key: requestId
+      value: string
+      description: Request ID of the job to cancel
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 400
+  statusText: Bad Request
+  body:
+    type: text
+    content: ""
+order: 2000

@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns aggregated metrics for all workflow types
+url: {{baseUrl}}/workflow/metrics
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get workflow metrics.resources/examples
+order: 1000

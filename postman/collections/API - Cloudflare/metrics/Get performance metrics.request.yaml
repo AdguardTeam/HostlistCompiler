@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns aggregated metrics for the last 30 minutes
+url: {{baseUrl}}/metrics
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get performance metrics.resources/examples
+order: 1000

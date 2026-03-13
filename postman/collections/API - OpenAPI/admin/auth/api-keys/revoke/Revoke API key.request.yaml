@@ -1,0 +1,23 @@
+$kind: http-request
+description: Revokes an API key by ID or key prefix. Requires Hyperdrive
+  (PostgreSQL) binding.
+url: http://{{baseUrl}}/admin/auth/api-keys/revoke
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "apiKeyId": "bfd3ef9a-8900-a9ca-b6e9-fee391dced01",
+      "keyPrefix": "string"
+    }
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Revoke API key.resources/examples
+order: 1000

@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/admin/migrate/d1-to-pg?dryRun=false&tables=storage_entries,filter_cache
+  method: POST
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  queryParams:
+    - key: dryRun
+      value: "false"
+      description: Count rows without writing (dry run)
+    - key: tables
+      value: storage_entries,filter_cache
+      description: "Comma-separated list of tables to migrate (default: all)"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "string"
+      }
+order: 4000

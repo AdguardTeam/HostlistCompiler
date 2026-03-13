@@ -1,0 +1,69 @@
+$kind: http-request
+description: Queue multiple compilations for async processing
+url: http://{{baseUrl}}/compile/batch/async
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: >-
+    {
+      "requests": [
+        {
+          "id": "string",
+          "configuration": {
+            "name": "string",
+            "sources": [
+              {
+                "source": "string",
+                "name": "string",
+                "type": "adblock",
+                "transformations": [
+                  "Deduplicate",
+                  "Validate"
+                ],
+                "exclusions": [
+                  "string",
+                  "string"
+                ],
+                "inclusions": [
+                  "string",
+                  "string"
+                ]
+              }
+            ],
+            "description": "string",
+            "homepage": "http://HiyzupPqRUMJatjQUvaAc.kfB,nhSEdU5jPu+9D4.7tD1S+YIwehzyGyJ.4yNOR2Mj4qih",
+            "license": "string",
+            "version": "string",
+            "transformations": [
+              "RemoveComments",
+              "Validate"
+            ],
+            "exclusions": [
+              "string",
+              "string"
+            ],
+            "exclusions_sources": [
+              "string",
+              "string"
+            ],
+            "inclusions": [
+              "string",
+              "string"
+            ],
+            "inclusions_sources": [
+              "string",
+              "string"
+            ]
+          },
+          "preFetchedContent": {
+            "key_0": "string"
+          },
+          "benchmark": true
+        }
+      ]
+    }
+examples: ./.resources/Queue batch async compilation.resources/examples
+order: 1000

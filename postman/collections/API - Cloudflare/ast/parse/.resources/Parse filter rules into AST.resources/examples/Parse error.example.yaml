@@ -1,0 +1,23 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/ast/parse
+  method: POST
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "rules": [
+          "string",
+          "string"
+        ],
+        "text": "string"
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  body:
+    type: text
+    content: ""
+order: 3000

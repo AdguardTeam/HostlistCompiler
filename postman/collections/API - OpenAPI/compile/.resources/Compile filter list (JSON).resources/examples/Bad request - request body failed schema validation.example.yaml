@@ -1,0 +1,40 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/compile
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "configuration": {
+          "name": "My Filter List",
+          "sources": [
+            {
+              "source": "https://example.com/filters.txt",
+              "transformations": [
+                "RemoveComments",
+                "Validate"
+              ]
+            }
+          ],
+          "transformations": [
+            "Deduplicate"
+          ]
+        }
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "Invalid request body"
+      }
+order: 2000

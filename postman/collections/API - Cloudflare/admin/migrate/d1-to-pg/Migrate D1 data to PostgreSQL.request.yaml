@@ -1,0 +1,41 @@
+$kind: http-request
+description: >
+  One-time migration that reads data from Cloudflare D1 (SQLite) and writes it
+  to PostgreSQL via Hyperdrive.
+
+
+  Migrates the following tables: `storage_entries`, `filter_cache`,
+  `compilation_metadata`.
+
+
+  The migration is:
+
+  - **Idempotent**: uses ON CONFLICT DO NOTHING to skip existing rows
+
+  - **Batched**: processes rows in chunks of 100
+
+  - **Read-only on D1**: never modifies the source database
+
+  - **Resumable**: can be re-run safely if interrupted
+url: {{baseUrl}}/admin/migrate/d1-to-pg?dryRun=false&tables=storage_entries,filter_cache
+method: POST
+headers:
+  Accept: application/json
+queryParams:
+  - key: dryRun
+    value: "false"
+    description: Count rows without writing (dry run)
+  - key: tables
+    value: storage_entries,filter_cache
+    description: "Comma-separated list of tables to migrate (default: all)"
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Migrate D1 data to PostgreSQL.resources/examples
+order: 1000

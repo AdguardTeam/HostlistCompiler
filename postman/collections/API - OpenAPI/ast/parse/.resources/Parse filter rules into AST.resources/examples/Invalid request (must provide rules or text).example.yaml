@@ -1,0 +1,23 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/ast/parse
+  method: POST
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "rules": [
+          "string",
+          "string"
+        ],
+        "text": "string"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  body:
+    type: text
+    content: ""
+order: 2000

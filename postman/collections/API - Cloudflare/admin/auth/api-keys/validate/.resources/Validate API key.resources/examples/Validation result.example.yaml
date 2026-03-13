@@ -1,0 +1,42 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/admin/auth/api-keys/validate
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "apiKey": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "valid": true,
+          "keyPrefix": "string",
+          "name": "string",
+          "scopes": [
+            "string",
+            "string"
+          ],
+          "userEmail": "string",
+          "status": "revoked",
+          "error": "string"
+        }
+      }
+order: 1000

@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns API version, available endpoints, and usage examples
+url: {{baseUrl}}/api
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get API information.resources/examples
+order: 1000

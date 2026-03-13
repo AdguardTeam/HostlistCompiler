@@ -1,0 +1,17 @@
+$kind: http-request
+description: Returns health and connectivity status of both D1 and PostgreSQL backends
+url: http://{{baseUrl}}/admin/backends
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Backend health status.resources/examples
+order: 1000

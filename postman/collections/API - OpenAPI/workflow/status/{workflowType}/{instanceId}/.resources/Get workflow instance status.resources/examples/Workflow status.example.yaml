@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/workflow/status/:workflowType/:instanceId
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: workflowType
+      value: health-monitoring
+      description: Type of workflow
+    - key: instanceId
+      value: string
+      description: Workflow instance ID
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "workflowId": "string",
+        "workflowType": "string",
+        "status": "running",
+        "output": {},
+        "error": "string"
+      }
+order: 1000

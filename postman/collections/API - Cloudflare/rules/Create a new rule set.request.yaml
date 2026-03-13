@@ -1,0 +1,15 @@
+$kind: http-request
+description: Creates and stores a new named rule set in the KV namespace.
+url: {{baseUrl}}/rules
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: >-
+    {
+      "value": "reference #/components/schemas/RuleSetCreateRequest not found in the OpenAPI spec"
+    }
+examples: ./.resources/Create a new rule set.resources/examples
+order: 2000

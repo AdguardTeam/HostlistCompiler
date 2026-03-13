@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/admin/pg/query
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "sql": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "rows": [
+          {
+            "key_0": "string",
+            "key_1": 8829.900670365416,
+            "key_2": true
+          },
+          {
+            "key_0": 3099.5352616273285
+          }
+        ],
+        "rowCount": 6908,
+        "meta": {
+          "key_0": false,
+          "key_1": 8668,
+          "key_2": 2502.6945784848276,
+          "key_3": "string"
+        }
+      }
+order: 1000

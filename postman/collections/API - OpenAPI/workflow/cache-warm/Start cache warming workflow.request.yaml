@@ -1,0 +1,108 @@
+$kind: http-request
+description: Triggers manual cache warming for specified configurations
+url: http://{{baseUrl}}/workflow/cache-warm
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: >-
+    {
+      "configurations": [
+        {
+          "name": "string",
+          "sources": [
+            {
+              "source": "string",
+              "name": "string",
+              "type": "adblock",
+              "transformations": [
+                "ValidateAllowIp",
+                "RemoveModifiers"
+              ],
+              "exclusions": [
+                "string",
+                "string"
+              ],
+              "inclusions": [
+                "string",
+                "string"
+              ]
+            }
+          ],
+          "description": "string",
+          "homepage": "https://S.qxLlW9pnkAgOl0Z6x8J1nTvdMRUiZ39FroDd9VTXgtgAGRwfTH3+bsDMNHMDlbIx6EBUXE",
+          "license": "string",
+          "version": "string",
+          "transformations": [
+            "RemoveComments",
+            "InvertAllow"
+          ],
+          "exclusions": [
+            "string",
+            "string"
+          ],
+          "exclusions_sources": [
+            "string",
+            "string"
+          ],
+          "inclusions": [
+            "string",
+            "string"
+          ],
+          "inclusions_sources": [
+            "string",
+            "string"
+          ]
+        },
+        {
+          "name": "string",
+          "sources": [
+            {
+              "source": "string",
+              "name": "string",
+              "type": "adblock",
+              "transformations": [
+                "RemoveEmptyLines",
+                "TrimLines"
+              ],
+              "exclusions": [
+                "string",
+                "string"
+              ],
+              "inclusions": [
+                "string",
+                "string"
+              ]
+            }
+          ],
+          "description": "string",
+          "homepage": "http://YAhgvirdTOHAb.dyzqbbx3KcHendnf7DHConeR2CVZty7Ccd-Xk",
+          "license": "string",
+          "version": "string",
+          "transformations": [
+            "ValidateAllowIp",
+            "InvertAllow"
+          ],
+          "exclusions": [
+            "string",
+            "string"
+          ],
+          "exclusions_sources": [
+            "string",
+            "string"
+          ],
+          "inclusions": [
+            "string",
+            "string"
+          ],
+          "inclusions_sources": [
+            "string",
+            "string"
+          ]
+        }
+      ]
+    }
+examples: ./.resources/Start cache warming workflow.resources/examples
+order: 1000

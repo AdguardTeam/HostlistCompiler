@@ -1,0 +1,18 @@
+$kind: http-request
+description: Returns storage statistics from the PostgreSQL backend (mirrors
+  /admin/storage/stats for D1)
+url: {{baseUrl}}/admin/pg/stats
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/PostgreSQL storage statistics.resources/examples
+order: 1000

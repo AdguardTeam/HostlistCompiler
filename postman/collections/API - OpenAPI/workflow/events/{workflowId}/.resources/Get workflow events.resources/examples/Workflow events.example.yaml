@@ -1,0 +1,61 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/workflow/events/:workflowId?since=1986-05-02T20:31:48.325Z
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    - key: since
+      value: 1986-05-02T20:31:48.325Z
+      description: Return only events after this timestamp
+  pathVariables:
+    - key: workflowId
+      value: string
+      description: Workflow instance ID
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "workflowId": "string",
+        "workflowType": "string",
+        "startedAt": "2010-07-10T23:51:01.286Z",
+        "completedAt": "1950-03-25T17:26:55.832Z",
+        "progress": 30.52012870923495,
+        "isComplete": false,
+        "events": [
+          {
+            "type": "string",
+            "workflowId": "string",
+            "workflowType": "string",
+            "timestamp": "1997-04-29T10:29:11.220Z",
+            "step": "string",
+            "progress": 39.48576177224221,
+            "message": "string",
+            "data": {
+              "key_0": 6275
+            }
+          },
+          {
+            "type": "string",
+            "workflowId": "string",
+            "workflowType": "string",
+            "timestamp": "1979-03-18T18:42:25.169Z",
+            "step": "string",
+            "progress": 58.271653110210345,
+            "message": "string",
+            "data": {
+              "key_0": true
+            }
+          }
+        ]
+      }
+order: 1000

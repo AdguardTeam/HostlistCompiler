@@ -1,0 +1,61 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/queue/results/:requestId
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: requestId
+      value: string
+      description: Request ID returned from async endpoints
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "rules": [
+          "string",
+          "string"
+        ],
+        "ruleCount": 4766,
+        "metrics": {
+          "totalDurationMs": 949,
+          "sourceCount": 9331,
+          "ruleCount": 149,
+          "transformationMetrics": [
+            {
+              "name": "string",
+              "inputCount": 5192,
+              "outputCount": 6791,
+              "durationMs": 4664
+            },
+            {
+              "name": "string",
+              "inputCount": 20,
+              "outputCount": 7186,
+              "durationMs": 5864
+            }
+          ]
+        },
+        "compiledAt": "1986-01-03T22:33:06.964Z",
+        "previousVersion": {
+          "rules": [
+            "string",
+            "string"
+          ],
+          "ruleCount": 7315,
+          "compiledAt": "1999-06-24T02:58:30.851Z"
+        },
+        "cached": true,
+        "deduplicated": true,
+        "error": "string"
+      }
+order: 1000

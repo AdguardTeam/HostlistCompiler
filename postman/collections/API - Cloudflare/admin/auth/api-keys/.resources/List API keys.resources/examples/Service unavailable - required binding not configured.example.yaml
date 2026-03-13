@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/admin/auth/api-keys?userId=809331b7-026e-18ca-da21-74e840eada1a
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  queryParams:
+    - key: userId
+      value: 809331b7-026e-18ca-da21-74e840eada1a
+      description: User ID to list API keys for
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "string"
+      }
+order: 4000

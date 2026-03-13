@@ -1,0 +1,29 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/workflow/status/:workflowType/:instanceId
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: workflowType
+      value: batch-compilation
+      description: Type of workflow
+    - key: instanceId
+      value: string
+      description: Workflow instance ID
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "string"
+      }
+order: 4000

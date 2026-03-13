@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/admin/auth/api-keys/revoke
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "apiKeyId": "5e60927e-5a7b-7fa6-5f0d-9ff69e523ef7",
+        "keyPrefix": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "revoked": false
+        }
+      }
+order: 1000

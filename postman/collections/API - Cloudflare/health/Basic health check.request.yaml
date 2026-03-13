@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns current service health status and version
+url: {{baseUrl}}/health
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Basic health check.resources/examples
+order: 2000

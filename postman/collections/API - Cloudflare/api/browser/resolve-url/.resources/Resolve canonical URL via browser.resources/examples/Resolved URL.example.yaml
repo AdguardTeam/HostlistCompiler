@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/api/browser/resolve-url
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "url": "https://example.com/redirect-me",
+        "waitUntil": "networkidle"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "resolvedUrl": "https://example.com/final-destination",
+        "originalUrl": "https://example.com/redirect-me"
+      }
+order: 1000

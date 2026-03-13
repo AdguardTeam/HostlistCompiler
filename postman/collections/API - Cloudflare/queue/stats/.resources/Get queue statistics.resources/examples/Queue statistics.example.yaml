@@ -1,0 +1,59 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/queue/stats
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "pending": 586,
+        "completed": 348,
+        "failed": 5350,
+        "cancelled": 531,
+        "totalProcessingTime": 2941,
+        "averageProcessingTime": 4280,
+        "processingRate": 4716.753363645463,
+        "queueLag": 9700,
+        "lastUpdate": "1960-03-19T23:57:56.540Z",
+        "history": [
+          {
+            "requestId": "string",
+            "configName": "string",
+            "status": "completed",
+            "duration": 8811,
+            "timestamp": "string",
+            "error": "string",
+            "ruleCount": 6855
+          },
+          {
+            "requestId": "string",
+            "configName": "string",
+            "status": "completed",
+            "duration": 1654,
+            "timestamp": "string",
+            "error": "string",
+            "ruleCount": 7355
+          }
+        ],
+        "depthHistory": [
+          {
+            "timestamp": "string",
+            "pending": 8658
+          },
+          {
+            "timestamp": "string",
+            "pending": 783
+          }
+        ]
+      }
+order: 1000

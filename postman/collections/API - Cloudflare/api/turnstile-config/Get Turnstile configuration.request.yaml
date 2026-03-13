@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns the Cloudflare Turnstile site key and whether it is enabled
+url: {{baseUrl}}/api/turnstile-config
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get Turnstile configuration.resources/examples
+order: 1000

@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns job history and queue depth over time
+url: http://{{baseUrl}}/queue/history
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get queue job history.resources/examples
+order: 1000

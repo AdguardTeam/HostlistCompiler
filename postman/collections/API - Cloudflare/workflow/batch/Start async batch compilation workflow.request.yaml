@@ -1,0 +1,71 @@
+$kind: http-request
+description: Creates a durable Cloudflare Workflow instance for batch compilation
+url: {{baseUrl}}/workflow/batch
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "requests": [
+        {
+          "id": "string",
+          "configuration": {
+            "name": "string",
+            "sources": [
+              {
+                "source": "string",
+                "name": "string",
+                "type": "adblock",
+                "transformations": [
+                  "RemoveComments",
+                  "Validate"
+                ],
+                "exclusions": [
+                  "string",
+                  "string"
+                ],
+                "inclusions": [
+                  "string",
+                  "string"
+                ]
+              }
+            ],
+            "description": "string",
+            "homepage": "http://asfXpWQCbDKhQBtiTAqWxxnRD.egdFswh-E2qG",
+            "license": "string",
+            "version": "string",
+            "transformations": [
+              "RemoveModifiers",
+              "InsertFinalNewLine"
+            ],
+            "exclusions": [
+              "string",
+              "string"
+            ],
+            "exclusions_sources": [
+              "string",
+              "string"
+            ],
+            "inclusions": [
+              "string",
+              "string"
+            ],
+            "inclusions_sources": [
+              "string",
+              "string"
+            ]
+          },
+          "preFetchedContent": {
+            "key_0": "string",
+            "key_1": "string",
+            "key_2": "string"
+          },
+          "benchmark": true
+        }
+      ]
+    }
+examples: ./.resources/Start async batch compilation workflow.resources/examples
+order: 1000

@@ -1,0 +1,64 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/auth/api-keys?userId=13c05ce8-8993-79da-50ff-e56c71c3ae72
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  queryParams:
+    - key: userId
+      value: 13c05ce8-8993-79da-50ff-e56c71c3ae72
+      description: User ID to list API keys for
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "data": {
+          "keys": [
+            {
+              "id": "838a6919-55b8-26e7-74c4-37f52e18df92",
+              "name": "string",
+              "keyPrefix": "string",
+              "scopes": [
+                "string",
+                "string"
+              ],
+              "rateLimitPerMinute": 6234,
+              "createdAt": "1969-04-20T07:19:17.694Z",
+              "expiresAt": "2001-03-08T18:08:03.362Z",
+              "revokedAt": "1997-12-30T09:18:54.417Z",
+              "lastUsedAt": "1959-11-11T04:48:50.186Z",
+              "status": "expired"
+            },
+            {
+              "id": "49c6d338-d4ba-fdde-d006-122b46936359",
+              "name": "string",
+              "keyPrefix": "string",
+              "scopes": [
+                "string",
+                "string"
+              ],
+              "rateLimitPerMinute": 629,
+              "createdAt": "2013-07-01T11:56:05.190Z",
+              "expiresAt": "1994-08-24T09:23:45.257Z",
+              "revokedAt": "2004-10-02T01:26:28.030Z",
+              "lastUsedAt": "2009-11-23T15:12:48.198Z",
+              "status": "revoked"
+            }
+          ],
+          "count": 3319
+        }
+      }
+order: 1000

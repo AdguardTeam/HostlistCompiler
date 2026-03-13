@@ -1,0 +1,45 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/ast/parse
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "rules": [
+          "string",
+          "string"
+        ],
+        "text": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "parsedRules": [
+          {
+            "key_0": 3191.4444391828533,
+            "key_1": "string",
+            "key_2": "string"
+          },
+          {
+            "key_0": false,
+            "key_1": false
+          }
+        ],
+        "summary": {
+          "key_0": "string",
+          "key_1": true,
+          "key_2": 4818
+        }
+      }
+order: 1000

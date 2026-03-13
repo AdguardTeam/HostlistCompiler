@@ -1,0 +1,19 @@
+$kind: http-request
+description: Returns progress events for a specific workflow instance
+url: {{baseUrl}}/workflow/events/:workflowId?since=1957-11-17T10:24:39.571Z
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: since
+    value: 1957-11-17T10:24:39.571Z
+    description: Return only events after this timestamp
+pathVariables:
+  - key: workflowId
+    value: string
+    description: Workflow instance ID
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get workflow events.resources/examples
+order: 1000

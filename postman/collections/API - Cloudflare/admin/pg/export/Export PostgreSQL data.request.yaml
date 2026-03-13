@@ -1,0 +1,17 @@
+$kind: http-request
+description: Exports data from the PostgreSQL backend (mirrors /admin/storage/export for D1)
+url: {{baseUrl}}/admin/pg/export
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Export PostgreSQL data.resources/examples
+order: 1000

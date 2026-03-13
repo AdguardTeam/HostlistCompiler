@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: {{baseUrl}}/validate-rule
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "rule": ""
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "Rule must not be empty"
+      }
+order: 2000

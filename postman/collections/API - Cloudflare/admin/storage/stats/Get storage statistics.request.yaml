@@ -1,0 +1,17 @@
+$kind: http-request
+description: Returns database table counts and expired entry counts
+url: {{baseUrl}}/admin/storage/stats
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Get storage statistics.resources/examples
+order: 1000
