@@ -1,0 +1,71 @@
+$kind: http-request
+description: Compile multiple filter lists in parallel (max 10 per batch)
+url: http://{{baseUrl}}/compile/batch
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "requests": [
+        {
+          "id": "string",
+          "configuration": {
+            "name": "string",
+            "sources": [
+              {
+                "source": "string",
+                "name": "string",
+                "type": "adblock",
+                "transformations": [
+                  "RemoveComments",
+                  "Validate"
+                ],
+                "exclusions": [
+                  "string",
+                  "string"
+                ],
+                "inclusions": [
+                  "string",
+                  "string"
+                ]
+              }
+            ],
+            "description": "string",
+            "homepage": "http://asfXpWQCbDKhQBtiTAqWxxnRD.egdFswh-E2qG",
+            "license": "string",
+            "version": "string",
+            "transformations": [
+              "RemoveModifiers",
+              "InsertFinalNewLine"
+            ],
+            "exclusions": [
+              "string",
+              "string"
+            ],
+            "exclusions_sources": [
+              "string",
+              "string"
+            ],
+            "inclusions": [
+              "string",
+              "string"
+            ],
+            "inclusions_sources": [
+              "string",
+              "string"
+            ]
+          },
+          "preFetchedContent": {
+            "key_0": "string",
+            "key_1": "string",
+            "key_2": "string"
+          },
+          "benchmark": true
+        }
+      ]
+    }
+examples: ./.resources/Batch compile multiple lists.resources/examples
+order: 1000

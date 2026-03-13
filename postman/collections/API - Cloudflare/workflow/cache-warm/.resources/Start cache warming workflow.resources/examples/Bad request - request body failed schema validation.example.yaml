@@ -1,0 +1,119 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/workflow/cache-warm
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "configurations": [
+          {
+            "name": "string",
+            "sources": [
+              {
+                "source": "string",
+                "name": "string",
+                "type": "adblock",
+                "transformations": [
+                  "Deduplicate",
+                  "InvertAllow"
+                ],
+                "exclusions": [
+                  "string",
+                  "string"
+                ],
+                "inclusions": [
+                  "string",
+                  "string"
+                ]
+              }
+            ],
+            "description": "string",
+            "homepage": "https://PcBjigIDRZgiLC.vypXJxazLaLYL.7Nu+UMJIzGhvlnzmyb3",
+            "license": "string",
+            "version": "string",
+            "transformations": [
+              "Validate",
+              "ConvertToAscii"
+            ],
+            "exclusions": [
+              "string",
+              "string"
+            ],
+            "exclusions_sources": [
+              "string",
+              "string"
+            ],
+            "inclusions": [
+              "string",
+              "string"
+            ],
+            "inclusions_sources": [
+              "string",
+              "string"
+            ]
+          },
+          {
+            "name": "string",
+            "sources": [
+              {
+                "source": "string",
+                "name": "string",
+                "type": "adblock",
+                "transformations": [
+                  "ValidateAllowIp",
+                  "RemoveModifiers"
+                ],
+                "exclusions": [
+                  "string",
+                  "string"
+                ],
+                "inclusions": [
+                  "string",
+                  "string"
+                ]
+              }
+            ],
+            "description": "string",
+            "homepage": "http://nLztotJL.yxt.assoxK39kgkN7xjk4iHut",
+            "license": "string",
+            "version": "string",
+            "transformations": [
+              "Validate",
+              "RemoveModifiers"
+            ],
+            "exclusions": [
+              "string",
+              "string"
+            ],
+            "exclusions_sources": [
+              "string",
+              "string"
+            ],
+            "inclusions": [
+              "string",
+              "string"
+            ],
+            "inclusions_sources": [
+              "string",
+              "string"
+            ]
+          }
+        ]
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "Invalid request body"
+      }
+order: 2000

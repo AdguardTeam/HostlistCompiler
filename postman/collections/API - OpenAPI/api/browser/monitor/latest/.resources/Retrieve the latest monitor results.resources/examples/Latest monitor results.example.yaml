@@ -1,0 +1,40 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/api/browser/monitor/latest
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "success": true,
+        "results": [
+          {
+            "url": "https://coZrcMyZUeZsYDGOSLIHtnqG.fknE.lMyQfHSUh.wj0xMLcszz7Kd6YLyNKEv5ShamvHVu",
+            "reachable": true,
+            "checkedAt": "2020-10-14T18:23:15.721Z",
+            "screenshotKey": "string",
+            "error": "string"
+          },
+          {
+            "url": "http://RHgNnvCnoyPkjKCiVOUvuYInMf.ycsC-561fLfYX",
+            "reachable": false,
+            "checkedAt": "1963-10-21T22:52:46.650Z",
+            "screenshotKey": "string",
+            "error": "string"
+          }
+        ],
+        "total": 6690,
+        "reachable": 245,
+        "unreachable": 3668
+      }
+order: 1000

@@ -1,0 +1,38 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/auth/api-keys
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "userId": "92464aa1-d71c-45d6-7bc4-9d2321ba6391",
+        "name": "string",
+        "scopes": [
+          "string",
+          "string"
+        ],
+        "rateLimitPerMinute": 2726,
+        "expiresAt": "2012-08-21T19:07:14.315Z"
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "string"
+      }
+order: 3000

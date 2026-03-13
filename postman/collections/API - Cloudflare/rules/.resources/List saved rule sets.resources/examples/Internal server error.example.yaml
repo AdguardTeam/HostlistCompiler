@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/rules
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "value": "reference #/components/schemas/ErrorResponse not found in the OpenAPI spec"
+      }
+order: 2000

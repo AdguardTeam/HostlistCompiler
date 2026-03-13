@@ -1,0 +1,17 @@
+$kind: http-request
+description: Deletes all cache entries from PostgreSQL tables
+url: http://{{baseUrl}}/admin/pg/clear-cache
+method: POST
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Clear PostgreSQL cache.resources/examples
+order: 1000

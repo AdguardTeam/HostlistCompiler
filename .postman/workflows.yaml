@@ -1,0 +1,22 @@
+# This is a Workflow metadata file for defining entity relationships in this workspace.
+# Each workflow defines relations between entities and may include optional behavior/settings.
+# The Paths are relative to the .postman directory (avoid absolute paths).
+# Keep relation entries explicit and avoid duplicate pairs within the same workflow.
+# This file is declarative metadata and does not execute workflows by itself.
+workflows:
+  syncSpecToCollection:
+    - spec: ../docs/api/cloudflare-schema.yaml
+      collection: ../postman/collections/Adblock Compiler API
+      options:
+        keepImplicitHeaders: true
+        syncExamples: false
+    - spec: ../docs/api/cloudflare-schema.yaml
+      collection: ../postman/collections/API - Cloudflare
+      options:
+        keepImplicitHeaders: true
+        syncExamples: false
+    - spec: ../docs/api/openapi.yaml
+      collection: ../postman/collections/API - OpenAPI
+      options:
+        keepImplicitHeaders: true
+        syncExamples: false

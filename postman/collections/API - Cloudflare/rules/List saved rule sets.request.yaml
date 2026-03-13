@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns all saved rule sets stored in the KV namespace.
+url: http://{{baseUrl}}/rules
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/List saved rule sets.resources/examples
+order: 1000

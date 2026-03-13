@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/storage/vacuum
+  method: POST
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "deleted": 8561,
+        "message": "string"
+      }
+order: 1000

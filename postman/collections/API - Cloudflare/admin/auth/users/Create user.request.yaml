@@ -1,0 +1,23 @@
+$kind: http-request
+description: Creates a new user account. Requires Hyperdrive (PostgreSQL) binding.
+url: http://{{baseUrl}}/admin/auth/users
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "uCtjq1Fo@zlfebvCyvh.pk",
+      "displayName": "string",
+      "role": "user"
+    }
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Create user.resources/examples
+order: 1000

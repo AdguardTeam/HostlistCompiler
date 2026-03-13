@@ -1,0 +1,51 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/health/latest
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "message": "string",
+        "timestamp": "1949-06-27T13:20:02.711Z",
+        "runId": "string",
+        "results": [
+          {
+            "name": "string",
+            "url": "string",
+            "healthy": true,
+            "lastChecked": "2005-08-23T12:57:02.267Z",
+            "statusCode": 9068,
+            "responseTimeMs": 544.4214819938642,
+            "ruleCount": 5428,
+            "error": "string"
+          },
+          {
+            "name": "string",
+            "url": "string",
+            "healthy": true,
+            "lastChecked": "1989-03-08T15:58:25.057Z",
+            "statusCode": 1910,
+            "responseTimeMs": 6423.678441440293,
+            "ruleCount": 9800,
+            "error": "string"
+          }
+        ],
+        "summary": {
+          "total": 7267,
+          "healthy": 1662,
+          "unhealthy": 6198
+        }
+      }
+order: 1000

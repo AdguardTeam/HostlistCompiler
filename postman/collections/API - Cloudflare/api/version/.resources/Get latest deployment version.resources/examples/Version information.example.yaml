@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/api/version
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "version": "string",
+        "buildNumber": 404,
+        "fullVersion": "string",
+        "gitCommit": "string",
+        "gitBranch": "string",
+        "deployedAt": "string",
+        "deployedBy": "string",
+        "status": "string",
+        "message": "string"
+      }
+order: 1000

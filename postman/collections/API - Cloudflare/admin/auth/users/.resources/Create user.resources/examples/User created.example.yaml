@@ -1,0 +1,39 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/auth/users
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "email": "uCtjq1Fo@zlfebvCyvh.pk",
+        "displayName": "string",
+        "role": "user"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "user": {
+            "id": "29647577-3027-ce14-b1dc-a31a267635ba",
+            "email": "1cOW0a4@BGJZFvUEiNNCoIMyhMynSxiBBaQGbgHOt.zsj",
+            "role": "string"
+          }
+        }
+      }
+order: 1000

@@ -1,0 +1,18 @@
+$kind: http-request
+description: Returns the current status and output of a workflow instance
+url: http://{{baseUrl}}/workflow/status/:workflowType/:instanceId
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: workflowType
+    value: batch-compilation
+    description: Type of workflow
+  - key: instanceId
+    value: string
+    description: Workflow instance ID
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get workflow instance status.resources/examples
+order: 1000

@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/rules/:id
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: 13c05ce8-8993-79da-50ff-e56c71c3ae72
+      description: UUID of the rule set
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "value": "reference #/components/schemas/ErrorResponse not found in the OpenAPI spec"
+      }
+order: 2000

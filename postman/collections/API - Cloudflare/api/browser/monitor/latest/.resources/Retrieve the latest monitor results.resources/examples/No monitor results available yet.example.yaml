@@ -1,0 +1,14 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/api/browser/monitor/latest
+  method: GET
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 404
+  statusText: Not Found
+  body:
+    type: text
+    content: ""
+order: 2000

@@ -1,0 +1,14 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/ws/compile
+  method: GET
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 426
+  statusText: Upgrade Required (RFC 2817)
+  body:
+    type: text
+    content: ""
+order: 2000

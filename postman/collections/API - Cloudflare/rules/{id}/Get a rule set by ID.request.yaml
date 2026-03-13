@@ -1,0 +1,14 @@
+$kind: http-request
+url: http://{{baseUrl}}/rules/:id
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: 809331b7-026e-18ca-da21-74e840eada1a
+    description: UUID of the rule set
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get a rule set by ID.resources/examples
+order: 1000

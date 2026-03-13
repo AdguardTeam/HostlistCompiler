@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/rules
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "value": "reference #/components/schemas/RuleSetListResponse not found in the OpenAPI spec"
+      }
+order: 1000

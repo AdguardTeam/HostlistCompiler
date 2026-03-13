@@ -1,0 +1,31 @@
+$kind: http-request
+description: |
+  Creates a new API key for a user. Requires Hyperdrive (PostgreSQL) binding.
+
+  **Important:** The raw API key is only returned once. Store it securely.
+url: http://{{baseUrl}}/admin/auth/api-keys
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "userId": "92464aa1-d71c-45d6-7bc4-9d2321ba6391",
+      "name": "string",
+      "scopes": [
+        "string",
+        "string"
+      ],
+      "rateLimitPerMinute": 2726,
+      "expiresAt": "2012-08-21T19:07:14.315Z"
+    }
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/Create API key.resources/examples
+order: 1000

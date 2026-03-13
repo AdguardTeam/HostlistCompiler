@@ -1,0 +1,82 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/compile
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "configuration": {
+          "name": "My Filter List",
+          "sources": [
+            {
+              "source": "https://example.com/filters.txt",
+              "transformations": [
+                "RemoveComments",
+                "Validate"
+              ]
+            }
+          ],
+          "transformations": [
+            "Deduplicate"
+          ]
+        }
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: X-Cache
+      value: MISS
+      description: Cache hit/miss status
+    - key: X-Request-Deduplication
+      value: HIT
+      description: Present if request was deduplicated
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "rules": [
+          "string",
+          "string"
+        ],
+        "ruleCount": 4766,
+        "metrics": {
+          "totalDurationMs": 949,
+          "sourceCount": 9331,
+          "ruleCount": 149,
+          "transformationMetrics": [
+            {
+              "name": "string",
+              "inputCount": 5192,
+              "outputCount": 6791,
+              "durationMs": 4664
+            },
+            {
+              "name": "string",
+              "inputCount": 20,
+              "outputCount": 7186,
+              "durationMs": 5864
+            }
+          ]
+        },
+        "compiledAt": "1986-01-03T22:33:06.964Z",
+        "previousVersion": {
+          "rules": [
+            "string",
+            "string"
+          ],
+          "ruleCount": 7315,
+          "compiledAt": "1999-06-24T02:58:30.851Z"
+        },
+        "cached": true,
+        "deduplicated": true,
+        "error": "string"
+      }
+order: 1000

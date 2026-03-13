@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/workflow/metrics
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "timestamp": "1984-03-19T14:40:22.285Z",
+        "workflows": {
+          "compilation": {
+            "key_0": 7348,
+            "key_1": 1679,
+            "key_2": 274.6670287509745
+          },
+          "batchCompilation": {
+            "key_0": 7616.67279280555,
+            "key_1": 1092,
+            "key_2": 4499.708986582347
+          },
+          "cacheWarming": {
+            "key_0": "string",
+            "key_1": true
+          },
+          "healthMonitoring": {
+            "key_0": 7215.683186035069,
+            "key_1": 7166.954115680397,
+            "key_2": 3015.32357138647
+          }
+        }
+      }
+order: 1000

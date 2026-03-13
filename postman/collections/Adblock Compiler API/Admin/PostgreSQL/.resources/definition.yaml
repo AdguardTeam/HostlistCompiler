@@ -1,3 +1,0 @@
-$kind: collection
-description: PostgreSQL (Hyperdrive) backend management — mirrors D1 storage endpoints
-order: 3000

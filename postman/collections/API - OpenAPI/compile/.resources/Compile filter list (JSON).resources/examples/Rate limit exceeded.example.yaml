@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/compile
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "configuration": {
+          "name": "My Filter List",
+          "sources": [
+            {
+              "source": "https://example.com/filters.txt",
+              "transformations": [
+                "RemoveComments",
+                "Validate"
+              ]
+            }
+          ],
+          "transformations": [
+            "Deduplicate"
+          ]
+        }
+      }
+response:
+  statusCode: 429
+  statusText: Too Many Requests
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Retry-After
+      value: "378"
+      description: Seconds until retry allowed
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "error": "Rate limit exceeded. Maximum 10 requests per minute."
+      }
+order: 3000

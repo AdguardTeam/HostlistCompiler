@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/rules/:id
+  method: DELETE
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: 809331b7-026e-18ca-da21-74e840eada1a
+      description: UUID of the rule set
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: >-
+      {
+        "value": "reference #/components/schemas/ErrorResponse not found in the OpenAPI spec"
+      }
+order: 2000

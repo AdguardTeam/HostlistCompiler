@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns the results of the most recent health monitoring workflow run
+url: http://{{baseUrl}}/health/latest
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get latest health check results.resources/examples
+order: 1000

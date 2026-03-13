@@ -1,0 +1,11 @@
+$kind: http-request
+description: Returns aggregated deployment statistics
+url: http://{{baseUrl}}/api/deployments/stats
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/Get deployment statistics.resources/examples
+order: 1000

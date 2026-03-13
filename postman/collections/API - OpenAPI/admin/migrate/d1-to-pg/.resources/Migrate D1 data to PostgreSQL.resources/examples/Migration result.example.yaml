@@ -1,0 +1,62 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/migrate/d1-to-pg?dryRun=false&tables=storage_entries,filter_cache
+  method: POST
+  headers:
+    - key: Accept
+      value: application/json
+    - key: X-Admin-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  queryParams:
+    - key: dryRun
+      value: "false"
+      description: Count rows without writing (dry run)
+    - key: tables
+      value: storage_entries,filter_cache
+      description: "Comma-separated list of tables to migrate (default: all)"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "data": {
+          "dryRun": true,
+          "startedAt": "2025-05-08T08:01:36.619Z",
+          "completedAt": "1982-11-21T16:14:29.797Z",
+          "totalDurationMs": 1621,
+          "tables": [
+            {
+              "table": "string",
+              "sourceCount": 1506,
+              "migratedCount": 408,
+              "skippedCount": 8783,
+              "errorCount": 8765,
+              "durationMs": 5547
+            },
+            {
+              "table": "string",
+              "sourceCount": 445,
+              "migratedCount": 6255,
+              "skippedCount": 39,
+              "errorCount": 8716,
+              "durationMs": 280
+            }
+          ],
+          "errors": [
+            "string",
+            "string"
+          ],
+          "summary": "string",
+          "message": "string"
+        }
+      }
+order: 1000

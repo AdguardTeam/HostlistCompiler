@@ -1,0 +1,15 @@
+$kind: http-request
+description: Marks a pending queue job as cancelled
+url: http://{{baseUrl}}/queue/cancel/:requestId
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: requestId
+    value: string
+    description: Request ID of the job to cancel
+body:
+  type: text
+  content: ""
+examples: ./.resources/Cancel a queued job.resources/examples
+order: 1000

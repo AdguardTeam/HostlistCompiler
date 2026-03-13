@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/workflow/status/:workflowType/:instanceId
+  method: GET
+  pathVariables:
+    - key: workflowType
+      value: batch-compilation
+      description: Type of workflow
+    - key: instanceId
+      value: string
+      description: Workflow instance ID
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 400
+  statusText: Bad Request
+  body:
+    type: text
+    content: ""
+order: 2000

@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/api/deployments/stats
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "totalDeployments": 4101,
+        "successfulDeployments": 1079,
+        "failedDeployments": 2942,
+        "latestVersion": "string"
+      }
+order: 1000

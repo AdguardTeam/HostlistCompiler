@@ -1,0 +1,22 @@
+$kind: http-request
+description: Lists API keys for a user (without key hashes). Requires Hyperdrive
+  (PostgreSQL) binding.
+url: http://{{baseUrl}}/admin/auth/api-keys?userId=809331b7-026e-18ca-da21-74e840eada1a
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: userId
+    value: 809331b7-026e-18ca-da21-74e840eada1a
+    description: User ID to list API keys for
+body:
+  type: text
+  content: ""
+auth:
+  type: apikey
+  credentials:
+    key: X-Admin-Key
+    value: "{{apiKey}}"
+    in: header
+examples: ./.resources/List API keys.resources/examples
+order: 2000

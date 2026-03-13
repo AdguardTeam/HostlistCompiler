@@ -1,0 +1,17 @@
+name: adblock-compiler-local
+values:
+  - key: baseUrl
+    value: ''
+    enabled: true
+  - key: apiKey
+    value: ''
+    enabled: true
+  - key: clerkJwt
+    value: ''
+    enabled: true
+  - key: clerkPublishableKey
+    value: ''
+    enabled: true
+  - key: adminKey
+    value: ''
+    enabled: true

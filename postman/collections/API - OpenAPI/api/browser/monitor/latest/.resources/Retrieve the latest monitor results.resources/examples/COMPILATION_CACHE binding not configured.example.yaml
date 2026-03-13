@@ -1,0 +1,14 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/api/browser/monitor/latest
+  method: GET
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  body:
+    type: text
+    content: ""
+order: 3000
