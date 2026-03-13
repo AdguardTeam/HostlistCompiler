@@ -25,6 +25,7 @@ import { provideRouter, withComponentInputBinding, withViewTransitions, withPrel
 import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { firstValueFrom, timeout } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+import { authInterceptor } from './interceptors/auth.interceptor';
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
@@ -32,6 +33,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { routes } from './app.routes';
 import { AppTitleStrategy } from './title-strategy';
 import { ThemeService } from './services/theme.service';
+import { ClerkService } from './services/clerk.service';
 import { GlobalErrorHandler } from './error/global-error-handler';
 import { TurnstileService } from './services/turnstile.service';
 import { API_BASE_URL } from './tokens';
@@ -54,8 +56,9 @@ export const appConfig: ApplicationConfig = {
         // for WCAG 2.4.2 (Page Titled) compliance.
         { provide: TitleStrategy, useClass: AppTitleStrategy },
 
-        // HttpClient with fetch for SSR compatibility + error interceptor.
-        provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
+        // HttpClient with fetch for SSR compatibility + auth and error interceptors.
+        // Order matters: authInterceptor adds Bearer token, then errorInterceptor adds X-Trace-ID.
+        provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
 
         // Client hydration with HTTP transfer cache — prevents double-fetching
         // API data that was already retrieved during SSR.
@@ -104,6 +107,22 @@ export const appConfig: ApplicationConfig = {
                 }
             } catch {
                 // Non-fatal: Turnstile will be disabled if config can't be fetched or times out
+            }
+
+            // Clerk SDK initialisation (browser only, non-fatal)
+            // Fetches the publishable key from /api/clerk-config at runtime —
+            // mirrors the Turnstile pattern above so no build-time env files are needed.
+            try {
+                const clerkConfig = await firstValueFrom(
+                    http.get<{ publishableKey: string | null }>(`${apiBaseUrl}/clerk-config`)
+                        .pipe(timeout(5000)),
+                );
+                if (clerkConfig.publishableKey) {
+                    await inject(ClerkService).initialize(clerkConfig.publishableKey);
+                }
+            } catch (err) {
+                // Non-fatal: Clerk will be uninitialised if config can't be fetched
+                console.warn('[app.config] Failed to load Clerk config:', err instanceof Error ? err.message : String(err));
             }
         }),
     ],

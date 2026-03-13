@@ -40,24 +40,17 @@ completed wiring and how to use both layers.
 
 ## Architecture
 
-```
-FilterCompiler.compile(config)
-  │
-  ├─ emitCompilationStart         ← ICompilerEvents.onCompilationStart
-  │
-  ├─ SourceCompiler.compile()     ← ICompilerEvents.onSourceStart / onSourceComplete
-  │
-  └─ TransformationPipeline.transform()
-       │
-       └─ for each transformation:
-            ├─ emitProgress                             ← ICompilerEvents.onProgress
-            ├─ hookManager.executeBeforeHooks(ctx)      ← beforeTransform hooks
-            │     └─ [bridge hook → emitTransformationStart]  ← ICompilerEvents.onTransformationStart
-            ├─ transformation.execute(rules, ctx)
-            ├─ hookManager.executeAfterHooks(ctx)       ← afterTransform hooks
-            │     └─ [bridge hook → emitTransformationComplete] ← ICompilerEvents.onTransformationComplete
-            └─ (on error) hookManager.executeErrorHooks(ctx)  ← onError hooks
-                                                           then re-throw
+```mermaid
+flowchart TD
+    A["FilterCompiler.compile(config)"] --> B["emitCompilationStart\n← ICompilerEvents.onCompilationStart"]
+    A --> C["SourceCompiler.compile()\n← ICompilerEvents.onSourceStart / onSourceComplete"]
+    A --> D["TransformationPipeline.transform()"]
+    D --> E["for each transformation"]
+    E --> F["emitProgress\n← ICompilerEvents.onProgress"]
+    E --> G["hookManager.executeBeforeHooks(ctx)\n← beforeTransform hooks\n  bridge → emitTransformationStart\n  ← ICompilerEvents.onTransformationStart"]
+    E --> H["transformation.execute(rules, ctx)"]
+    E --> I["hookManager.executeAfterHooks(ctx)\n← afterTransform hooks\n  bridge → emitTransformationComplete\n  ← ICompilerEvents.onTransformationComplete"]
+    E --> J["(on error) hookManager.executeErrorHooks(ctx)\n← onError hooks → re-throw"]
 ```
 
 The bridge between the two layers is `createEventBridgeHook`, which is

@@ -25,12 +25,9 @@ The new admin dashboard (`/`) is now the landing page that provides:
 
 The dashboard displays four critical metrics that auto-refresh every 30 seconds:
 
-```
-┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐
-│ Total Requests  │  Queue Depth    │ Cache Hit Rate  │ Avg Response    │
-│     1,234       │       5         │     87%         │     245ms       │
-└─────────────────┴─────────────────┴─────────────────┴─────────────────┘
-```
+| Total Requests | Queue Depth | Cache Hit Rate | Avg Response |
+|:--------------:|:-----------:|:--------------:|:------------:|
+| 1,234          | 5           | 87%            | 245ms        |
 
 #### 2. Notification System
 

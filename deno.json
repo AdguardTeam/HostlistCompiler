@@ -87,6 +87,8 @@
         "@prisma/client": "npm:@prisma/client@^7.4.2",
         "prisma": "npm:prisma@^7.4.2",
         "@opentelemetry/api": "jsr:@opentelemetry/api@^1.9.0",
+        "jose": "jsr:@panva/jose@^6.2.1",
+        "svix": "npm:svix@^1.62.0",
         "zod": "jsr:@zod/zod@^4.3.6"
     },
     "lint": {

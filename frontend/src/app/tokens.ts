@@ -49,3 +49,14 @@ export const TURNSTILE_SITE_KEY = new InjectionToken<string>('TURNSTILE_SITE_KEY
     providedIn: 'root',
     factory: () => '',
 });
+
+/**
+ * Clerk publishable key for frontend Clerk SDK initialization.
+ * Not a secret — safe to include in client-side bundles.
+ * In production, provide via `{ provide: CLERK_PUBLISHABLE_KEY, useValue: 'pk_live_...' }`
+ * in app.config.ts, or fetch from `/api/clerk-config` at runtime.
+ */
+export const CLERK_PUBLISHABLE_KEY = new InjectionToken<string>('CLERK_PUBLISHABLE_KEY', {
+    providedIn: 'root',
+    factory: () => '',
+});

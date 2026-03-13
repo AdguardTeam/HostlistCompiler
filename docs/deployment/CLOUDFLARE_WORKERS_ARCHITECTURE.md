@@ -110,39 +110,16 @@ This means:
 
 ## Relationship Between the Two Workers
 
-```
-Browser Request
-      │
-      ▼
-┌─────────────────────────────────────────────┐
-│         Cloudflare Edge Network             │
-│                                             │
-│  ┌──────────────────────────────────────┐   │
-│  │  adblock-compiler-frontend           │   │
-│  │  (Angular 21 SSR Worker)             │   │
-│  │                                      │   │
-│  │  • Prerendered home page (SSG)        │   │
-│  │  • SSR for /compiler, /performance,  │   │
-│  │    /admin, /api-docs, /validation    │   │
-│  │  • Static assets served from CDN     │   │
-│  │    via ASSETS binding (bypasses      │   │
-│  │    Worker fetch handler entirely)    │   │
-│  └───────────────┬──────────────────────┘   │
-│                  │ API calls                │
-│                  ▼                          │
-│  ┌──────────────────────────────────────┐   │
-│  │  adblock-compiler-backend            │   │
-│  │  (TypeScript REST API Worker)        │   │
-│  │                                      │   │
-│  │  • POST /compile                     │   │
-│  │  • POST /compile/stream (SSE)        │   │
-│  │  • POST /compile/batch               │   │
-│  │  • GET  /metrics                     │   │
-│  │  • GET  /health                      │   │
-│  │  • KV, R2, D1, Durable Objects,      │   │
-│  │    Queues, Workflows, Hyperdrive      │   │
-│  └──────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    BROWSER["Browser Request"] --> EDGE
+
+    subgraph EDGE["Cloudflare Edge Network"]
+        direction TB
+        FRONTEND["adblock-compiler-frontend\n(Angular 21 SSR Worker)\n\n• Prerendered home page (SSG)\n• SSR for /compiler, /performance, /admin, /api-docs, /validation\n• Static assets served from CDN via ASSETS binding"]
+        FRONTEND -->|API calls| BACKEND
+        BACKEND["adblock-compiler-backend\n(TypeScript REST API Worker)\n\n• POST /compile\n• POST /compile/stream (SSE)\n• POST /compile/batch\n• GET /metrics  •  GET /health\n• KV, R2, D1, Durable Objects, Queues, Workflows, Hyperdrive"]
+    end
 ```
 
 ### Two Deployment Modes

@@ -149,28 +149,15 @@ The included web UI provides:
 - **API Testing** - Direct endpoint testing interface
 - **Validation UI** - Rule validation and AST visualization
 
-```
-┌────────────────────────────────────────────────────┐
-│  Adblock Compiler - Interactive Web Dashboard      │
-├────────────────────────────────────────────────────┤
-│                                                    │
-│  Compilation Queue: [████████░░] 8 pending       │
-│  Average Time: 2.3s                              │
-│                                                    │
-│  ┌─────────────────────────────────────────────┐ │
-│  │ Configuration                               │ │
-│  ├─────────────────────────────────────────────┤ │
-│  │ Name:        My Blocklist                  │ │
-│  │ Sources:     3 configured                  │ │
-│  │ Rules (in):  500,000                       │ │
-│  │ Rules (out): 125,000 (after optimization)  │ │
-│  │ Size (raw):  12.5 MB                       │ │
-│  │ Size (gz):   1.8 MB (85% reduction)        │ │
-│  │                                             │ │
-│  │ [Compile] [Download] [Share]               │ │
-│  └─────────────────────────────────────────────┘ │
-│                                                    │
-└────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph Dashboard["Adblock Compiler — Interactive Web Dashboard"]
+        QUEUE["Compilation Queue\n▓▓▓▓▓▓▓▓░░  8 pending\nAverage Time: 2.3s"]
+        subgraph Config["Configuration"]
+            STATS["Name: My Blocklist\nSources: 3 configured\nRules in: 500,000\nRules out: 125,000 (75% reduction)\nSize raw: 12.5 MB\nSize gz: 1.8 MB (85% reduction)"]
+            ACTIONS["[ Compile ]  [ Download ]  [ Share ]"]
+        end
+    end
 ```
 
 ### 7. 📚 Full OpenAPI 3.0.3 Documentation

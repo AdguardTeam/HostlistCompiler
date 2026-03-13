@@ -82,6 +82,8 @@ Then edit `.env.local` with your actual secrets and API keys.
 
 ## Wrangler Integration
 
+> **Rule:** Use `.envrc`/`.env.local` for ALL local development. Do **not** add new variables to `wrangler.toml [vars]` — that section is reserved for Cloudflare-specific runtime bindings (KV namespace IDs, D1 IDs, queue names, etc.) and truly static non-secret constants like `COMPILER_VERSION`.
+
 The `wrangler.toml` configuration supports environment-based deployments. Production is the default (top-level) environment; there is no `--env production` flag:
 
 ```bash
@@ -94,11 +96,15 @@ wrangler deploy
 
 Environment variables from `.env.local` are automatically available during local development (`wrangler dev`).
 
-For production deployments, secrets should be set using:
+For production deployments, all runtime secrets and configuration should be set using:
 
 ```bash
-wrangler secret put ADMIN_KEY
+wrangler secret put CLERK_SECRET_KEY
+wrangler secret put CLERK_WEBHOOK_SECRET
 wrangler secret put TURNSTILE_SECRET_KEY
+wrangler secret put ADMIN_KEY
+wrangler secret put DATABASE_URL
+# ... see docs/auth/configuration.md for the full list
 ```
 
 ## Troubleshooting
@@ -136,10 +142,12 @@ Make sure:
 - ✅ **DO** commit `.env`, `.env.development`, `.env.production`
 - ✅ **DO** use test/dummy values in committed files
 - ✅ **DO** put all secrets in `.env.local`
+- ✅ **DO** add every new variable to `.env.example` with a comment stub before merging
 - ❌ **DON'T** commit `.env.local`
 - ⚠️ **BE CAREFUL** with `.envrc` — it is committed as part of the env-loading system, so never put secrets or credentials in it
 - ❌ **DON'T** put real secrets in any committed file
 - ❌ **DON'T** commit production credentials
+- ❌ **DON'T** add new environment variables to `wrangler.toml [vars]` — use `.env.example` + `.env.local` instead
 
 ## GitHub Actions Integration
 
@@ -167,3 +175,20 @@ The action automatically:
 ## Environment Variables Reference
 
 See `.env.example` for a complete list of available variables and their purposes.
+
+### Key Variables by Category
+
+| Category | Variables | Where to set locally |
+|----------|-----------|---------------------|
+| Core | `PORT`, `COMPILER_VERSION` | `.env` (committed defaults) |
+| Database | `DATABASE_URL`, `DIRECT_DATABASE_URL` | `.env.local` |
+| Clerk Auth | `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWKS_URL`, `CLERK_WEBHOOK_SECRET` | `.env.local` |
+| CF Access | `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD` | `.env.local` |
+| Turnstile | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | `.env.development` (test keys) / `.env.local` (prod keys) |
+| Logging | `LOG_LEVEL`, `LOG_STRUCTURED`, `LOG_SINK_URL`, `LOG_SINK_TOKEN` | `.env.local` or `.env.development` |
+| Error reporting | `ERROR_REPORTER_TYPE`, `SENTRY_DSN`, `DATADOG_API_KEY` | `.env.local` |
+| Notifications | `WEBHOOK_URL`, `SLACK_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL` | `.env.local` |
+| Cloudflare API | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | `.env.local` |
+| Testing | `E2E_BASE_URL`, `SKIP_CONTRACT_TESTS`, `STORAGE_BACKEND` | `.env.local` or CI secrets |
+
+For auth-specific variables, see [docs/auth/configuration.md](../auth/configuration.md).

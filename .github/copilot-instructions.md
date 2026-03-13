@@ -490,6 +490,7 @@ The codebase supports multiple runtimes through a platform abstraction layer:
 - Support streaming compilation via Server-Sent Events
 - Web UI in `public/index.html` and `public/test.html`
 - **Never commit placeholder binding IDs**: `wrangler.toml` binding IDs that are all-zeros are validated in CI — always use real resource IDs
+- **Environment variables**: Always add new variables to `.env.example` with a comment stub. Do NOT add new variables to `wrangler.toml [vars]` — that section is only for Cloudflare-specific runtime bindings (KV/D1/R2 IDs, queue names) and truly static non-secret constants (`COMPILER_VERSION`). All local-dev configuration belongs in `.env.local` via the `.envrc`/direnv system.
 - **Prisma / PostgreSQL database**: When modifying the Prisma schema, run `deno task db:migrate` to apply migrations and `deno task db:generate` to regenerate the Prisma client. Production uses Cloudflare Hyperdrive to connect to PostgreSQL (PlanetScale/Neon); CI runs migrations on deploy automatically.
 
 ### Docker
@@ -586,6 +587,7 @@ The worker includes an MCP (Model Context Protocol) agent routing layer.
 - Don't bump versions manually in individual files — run `deno task version:sync` to keep all files in sync
 - Don't commit all-zeros placeholder binding IDs in `wrangler.toml`
 - Don't skip `deno task schema:generate` after API changes — drift in generated artifacts will fail CI
+- Don't add new environment variables to `wrangler.toml [vars]` — add them to `.env.example` and document them for `.env.local` via the direnv system
 
 ### Frontend (Angular)
 

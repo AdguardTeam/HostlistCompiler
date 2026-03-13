@@ -14,7 +14,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 // Import shared types
-import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, Priority, QueueMessage, Workflow } from './types.ts';
+import type { BatchCompileQueueMessage, CacheWarmQueueMessage, CompileQueueMessage, CompileRequest, Env, IAuthContext, Priority, QueueMessage, Workflow } from './types.ts';
 
 // Container class for Cloudflare Containers deployment.
 // Extends the official @cloudflare/containers helper so that Cloudflare's
@@ -59,12 +59,16 @@ import { VERSION } from '../src/version.ts';
 import { handleWebSocketUpgrade } from './websocket.ts';
 import { AnalyticsService } from '../src/services/AnalyticsService.ts';
 import { getDeploymentHistory, getDeploymentStats, getLatestDeployment } from '../src/deployment/version.ts';
-import { validateRequestSize } from './middleware/index.ts';
+import { checkRateLimitTiered, validateRequestSize } from './middleware/index.ts';
+import { authenticateRequestUnified, requireAuth } from './middleware/auth.ts';
 import { API_DOCS_REDIRECT } from './utils/constants.ts';
 import { JsonResponse } from './utils/response.ts';
 import { handleValidateRule } from './handlers/validate-rule.ts';
 import { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, handleRulesUpdate } from './handlers/rules.ts';
 import { handleNotify } from './handlers/webhook.ts';
+import { handleClerkWebhook } from './handlers/clerk-webhook.ts';
+import { handleCreateApiKey, handleListApiKeys, handleRevokeApiKey, handleUpdateApiKey } from './handlers/api-keys.ts';
+import { verifyCfAccessJwt } from './middleware/cf-access.ts';
 
 // Import Workflow classes and types
 import {
@@ -85,11 +89,40 @@ import { PlaywrightMcpAgent } from './mcp-agent.ts';
 // Re-export Env for compatibility with existing imports
 export type { Env };
 
+// ---------------------------------------------------------------------------
+// PgPool factory (mirrors worker/router.ts — lazy-init Pool from Hyperdrive)
+// ---------------------------------------------------------------------------
+
+function createPgPool(connectionString: string): {
+    query<T = Record<string, unknown>>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount: number | null }>;
+} {
+    let pool: unknown = null;
+    const ensurePool = async () => {
+        if (!pool) {
+            // Dynamic import of pg module - using variable to prevent esbuild static analysis
+            // since pg is a Node.js module provided by the Workers runtime via Hyperdrive
+            try {
+                const moduleName = 'pg';
+                const { Pool } = await import(/* @vite-ignore */ moduleName);
+                pool = new Pool({ connectionString });
+            } catch (error) {
+                throw new Error(`Failed to initialize PostgreSQL pool: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        }
+        return pool as { query: (text: string, values?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }> };
+    };
+    return {
+        async query<T = Record<string, unknown>>(text: string, values?: unknown[]) {
+            const p = await ensurePool();
+            return p.query(text, values) as Promise<{ rows: T[]; rowCount: number | null }>;
+        },
+    };
+}
+
 /**
  * Rate limiting configuration (from centralized defaults)
  */
 const RATE_LIMIT_WINDOW = WORKER_DEFAULTS.RATE_LIMIT_WINDOW_SECONDS;
-const RATE_LIMIT_MAX_REQUESTS = WORKER_DEFAULTS.RATE_LIMIT_MAX_REQUESTS;
 
 /**
  * Cache TTL in seconds (from centralized defaults)
@@ -161,39 +194,8 @@ interface CompilationResult {
     };
 }
 
-/**
- * Check rate limit for an IP address
- */
-async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
-    const key = `ratelimit:${ip}`;
-    const now = Date.now();
-
-    // Get current count
-    const data = await env.RATE_LIMIT.get(key, 'json') as { count: number; resetAt: number } | null;
-
-    if (!data || now > data.resetAt) {
-        // First request or window expired, start new window
-        await env.RATE_LIMIT.put(
-            key,
-            JSON.stringify({ count: 1, resetAt: now + (RATE_LIMIT_WINDOW * 1000) }),
-            { expirationTtl: RATE_LIMIT_WINDOW + 10 },
-        );
-        return true;
-    }
-
-    if (data.count >= RATE_LIMIT_MAX_REQUESTS) {
-        return false; // Rate limit exceeded
-    }
-
-    // Increment count
-    await env.RATE_LIMIT.put(
-        key,
-        JSON.stringify({ count: data.count + 1, resetAt: data.resetAt }),
-        { expirationTtl: RATE_LIMIT_WINDOW + 10 },
-    );
-
-    return true;
-}
+// Local checkRateLimit removed — replaced by imported checkRateLimitTiered
+// from ./middleware/index.ts which supports tier-aware rate limiting.
 
 /**
  * Turnstile verification response
@@ -3181,12 +3183,36 @@ export default {
             );
         }
 
+        // Handle Clerk config endpoint (provides publishable key to frontend)
+        if (pathname === '/api/clerk-config' && request.method === 'GET') {
+            return Response.json(
+                { publishableKey: env.CLERK_PUBLISHABLE_KEY || null },
+                {
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                        'Cache-Control': 'public, max-age=3600',
+                    },
+                },
+            );
+        }
+
         // The Angular frontend uses API_BASE_URL = '/api', so functional calls
         // arrive as /api/compile, /api/metrics, /api/validate, etc.
         // Strip the /api prefix so they reach the root-level handlers below.
-        // Note: the native /api, /api/version, /api/deployments, /api/turnstile-config
-        // routes above are already handled before this point.
+        // Note: the native /api, /api/version, /api/deployments, /api/turnstile-config,
+        // and /api/clerk-config routes above are already handled before this point.
         const routePath = pathname.startsWith('/api/') ? pathname.slice(4) : pathname;
+
+        // ── Unified Authentication ──────────────────────────────────────
+        // Runs the three-tier auth chain (Clerk JWT → API key → Anonymous).
+        // Never throws — auth failures are signalled via authResult.response.
+        // Requests with NO token proceed as anonymous (no short-circuit).
+        // Requests with an INVALID token are rejected (authResult.response is set).
+        const authResult = await authenticateRequestUnified(request, env, createPgPool);
+        if (authResult.response) {
+            return authResult.response;
+        }
+        const authContext: IAuthContext = authResult.context;
 
         // Handle metrics endpoint
         if (routePath === '/metrics' && request.method === 'GET') {
@@ -3229,7 +3255,7 @@ export default {
         // ========================================================================
 
         if (routePath.startsWith('/admin/storage')) {
-            // Verify admin authentication
+            // Verify admin authentication (X-Admin-Key header)
             const auth = await verifyAdminAuth(request, env);
             if (!auth.authorized) {
                 return Response.json(
@@ -3241,6 +3267,15 @@ export default {
                             'WWW-Authenticate': 'X-Admin-Key',
                         },
                     },
+                );
+            }
+
+            // Defense-in-depth: also require CF Access JWT when configured
+            const cfAccess = await verifyCfAccessJwt(request, env);
+            if (!cfAccess.valid) {
+                return Response.json(
+                    { success: false, error: cfAccess.error ?? 'CF Access verification failed' },
+                    { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } },
                 );
             }
 
@@ -3443,26 +3478,29 @@ export default {
                 return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
             }
 
-            const allowed = await checkRateLimit(env, ip);
+            const rateLimitResult = await checkRateLimitTiered(env, ip, authContext);
 
-            if (!allowed) {
+            if (!rateLimitResult.allowed) {
                 // Track rate limit exceeded event
                 analytics.trackRateLimitExceeded({
                     requestId,
                     clientIpHash: AnalyticsService.hashIp(ip),
-                    rateLimit: RATE_LIMIT_MAX_REQUESTS,
+                    rateLimit: rateLimitResult.limit,
                     windowSeconds: RATE_LIMIT_WINDOW,
                 });
 
                 return Response.json(
                     {
                         success: false,
-                        error: 'Rate limit exceeded. Maximum 10 requests per minute.',
+                        error: `Rate limit exceeded. Maximum ${rateLimitResult.limit} requests per ${RATE_LIMIT_WINDOW} seconds.`,
                     },
                     {
                         status: 429,
                         headers: {
-                            'Retry-After': '60',
+                            'Retry-After': String(Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)),
+                            'X-RateLimit-Limit': String(rateLimitResult.limit),
+                            'X-RateLimit-Remaining': '0',
+                            'X-RateLimit-Reset': String(rateLimitResult.resetAt),
                             'Access-Control-Allow-Origin': '*',
                         },
                     },
@@ -3601,8 +3639,11 @@ export default {
             return handleValidateRule(request, env);
         }
 
-        // Rule set management (POST /api/rules, GET /api/rules)
+        // Rule set management (POST /api/rules, GET /api/rules) — requires authentication
         if (routePath === '/rules') {
+            const authGuard = requireAuth(authContext);
+            if (authGuard) return authGuard;
+
             if (request.method === 'GET') {
                 return handleRulesList(request, env);
             }
@@ -3611,17 +3652,20 @@ export default {
                 if (!sizeValidation.valid) {
                     return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
                 }
-                const allowed = await checkRateLimit(env, ip);
-                if (!allowed) {
+                const rlCreate = await checkRateLimitTiered(env, ip, authContext);
+                if (!rlCreate.allowed) {
                     return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesCreate(request, env);
             }
         }
 
-        // Rule set management by ID (GET/PUT/DELETE /api/rules/{id})
+        // Rule set management by ID (GET/PUT/DELETE /api/rules/{id}) — requires authentication
         const rulesIdMatch = routePath.match(/^\/rules\/([0-9a-f-]{36})$/i);
         if (rulesIdMatch) {
+            const authGuard = requireAuth(authContext);
+            if (authGuard) return authGuard;
+
             const ruleId = rulesIdMatch[1];
             if (request.method === 'GET') {
                 return handleRulesGet(ruleId, env);
@@ -3631,29 +3675,81 @@ export default {
                 if (!sizeValidation.valid) {
                     return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
                 }
-                const allowed = await checkRateLimit(env, ip);
-                if (!allowed) {
+                const rlUpdate = await checkRateLimitTiered(env, ip, authContext);
+                if (!rlUpdate.allowed) {
                     return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesUpdate(ruleId, request, env);
             }
             if (request.method === 'DELETE') {
-                const allowed = await checkRateLimit(env, ip);
-                if (!allowed) {
+                const rlDelete = await checkRateLimitTiered(env, ip, authContext);
+                if (!rlDelete.allowed) {
                     return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
                 }
                 return handleRulesDelete(ruleId, env);
             }
         }
 
-        // Webhook / notification (POST /api/notify)
+        // -----------------------------------------------------------------
+        // API key management (POST/GET /api/keys, DELETE/PATCH /api/keys/:id)
+        // Requires Clerk JWT authentication (not API-key or anonymous)
+        // -----------------------------------------------------------------
+        if (routePath === '/keys' || routePath.startsWith('/keys/')) {
+            const authGuardKeys = requireAuth(authContext);
+            if (authGuardKeys) return authGuardKeys;
+
+            // Only Clerk-authenticated users can manage keys (not other API keys)
+            if (authContext.authMethod !== 'clerk-jwt') {
+                return JsonResponse.forbidden('API key management requires Clerk authentication');
+            }
+
+            // Require Hyperdrive for database access
+            if (!env.HYPERDRIVE) {
+                return JsonResponse.serviceUnavailable('Database not configured');
+            }
+            const connStr = env.HYPERDRIVE.connectionString;
+
+            if (routePath === '/keys') {
+                if (request.method === 'POST') {
+                    const rlKeys = await checkRateLimitTiered(env, ip, authContext);
+                    if (!rlKeys.allowed) {
+                        return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
+                    }
+                    return handleCreateApiKey(request, authContext, connStr, createPgPool);
+                }
+                if (request.method === 'GET') {
+                    return handleListApiKeys(authContext, connStr, createPgPool);
+                }
+            }
+
+            const keyIdMatch = routePath.match(/^\/keys\/([0-9a-f-]{36})$/i);
+            if (keyIdMatch) {
+                const keyId = keyIdMatch[1];
+                if (request.method === 'DELETE') {
+                    return handleRevokeApiKey(keyId, authContext, connStr, createPgPool);
+                }
+                if (request.method === 'PATCH') {
+                    return handleUpdateApiKey(keyId, request, authContext, connStr, createPgPool);
+                }
+            }
+        }
+
+        // Clerk webhook (POST /api/webhooks/clerk) — Svix-verified, no auth/rate-limit
+        if (routePath === '/webhooks/clerk' && request.method === 'POST') {
+            return handleClerkWebhook(request, env, createPgPool);
+        }
+
+        // Webhook / notification (POST /api/notify) — requires authentication
         if (routePath === '/notify' && request.method === 'POST') {
+            const authGuard = requireAuth(authContext);
+            if (authGuard) return authGuard;
+
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
                 return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
             }
-            const allowed = await checkRateLimit(env, ip);
-            if (!allowed) {
+            const rlNotify = await checkRateLimitTiered(env, ip, authContext);
+            if (!rlNotify.allowed) {
                 return JsonResponse.rateLimited(RATE_LIMIT_WINDOW);
             }
             return handleNotify(request, env);

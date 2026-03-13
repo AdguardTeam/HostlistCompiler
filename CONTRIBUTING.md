@@ -255,6 +255,56 @@ this.sseConnection.set(conn);
 
 This pattern avoids manual Observable subscriptions—the component template reads signals reactively, and the connection auto-cleans via `DestroyRef.onDestroy()`.
 
+## Documentation Diagrams
+
+**Always use Mermaid for diagrams and charts in documentation. Never use ASCII art for diagrams.**
+
+Wrap every diagram in a fenced code block with the `mermaid` language identifier:
+
+````markdown
+```mermaid
+flowchart TD
+    A[Start] --> B[End]
+```
+````
+
+| Diagram type                 | Mermaid syntax                                     |
+| ---------------------------- | -------------------------------------------------- |
+| Decision tree / auth flow    | `flowchart TD`                                     |
+| Request/response flow        | `sequenceDiagram`                                  |
+| Architecture with boundaries | `flowchart TD` or `graph LR` with `subgraph`       |
+| Left-to-right pipeline       | `flowchart LR`                                     |
+| Static KPI / metrics data    | Regular markdown table (no Mermaid type available) |
+
+> **Note:** Directory/file tree listings using `├──`, `└──`, `│` are acceptable as-is and must **not** be converted to Mermaid.
+
+## Environment Variables
+
+This project uses **direnv** + `.envrc` for all local environment management. Variables are loaded automatically when you enter the project directory.
+
+### The Rule
+
+> **Always add new environment variables to `.env.example` with a comment stub.** Do NOT add them to `wrangler.toml [vars]` — that file is reserved for Cloudflare-specific runtime bindings and static non-secret constants only.
+
+### Quick Setup
+
+```bash
+cp .env.example .env.local   # create your local secrets file
+direnv allow                  # activate auto-loading
+```
+
+### Where Variables Live
+
+| File               | Purpose                                                      | Committed? |
+| ------------------ | ------------------------------------------------------------ | ---------- |
+| `.env`             | Non-secret base defaults (PORT, COMPILER_VERSION)            | ✅ Yes     |
+| `.env.development` | Dev-specific defaults (Turnstile test keys, LOG_LEVEL=debug) | ✅ Yes     |
+| `.env.production`  | Prod-specific placeholder values                             | ✅ Yes     |
+| `.env.local`       | Your personal secrets and overrides                          | ❌ No      |
+| `.env.example`     | Template with all available variables + comments             | ✅ Yes     |
+
+See [docs/reference/ENV_CONFIGURATION.md](docs/reference/ENV_CONFIGURATION.md) for the full reference.
+
 ## Questions or Help?
 
 - Create an issue on GitHub

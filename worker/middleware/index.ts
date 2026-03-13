@@ -5,21 +5,21 @@
 
 import { WORKER_DEFAULTS } from '../../src/config/defaults.ts';
 import { ErrorUtils } from '../../src/utils/index.ts';
-import type { AdminAuthResult, Env, RateLimitData, TurnstileResult, TurnstileVerifyResponse } from '../types.ts';
+import type { AdminAuthResult, Env, IAuthContext, RateLimitData, TurnstileResult, TurnstileVerifyResponse } from '../types.ts';
+import { ANONYMOUS_AUTH_CONTEXT, TIER_RATE_LIMITS, UserTier } from '../types.ts';
 
 // ============================================================================
 // Configuration Constants
 // ============================================================================
 
 const RATE_LIMIT_WINDOW = WORKER_DEFAULTS.RATE_LIMIT_WINDOW_SECONDS;
-const RATE_LIMIT_MAX_REQUESTS = WORKER_DEFAULTS.RATE_LIMIT_MAX_REQUESTS;
 
 // ============================================================================
 // Rate Limiting
 // ============================================================================
 
 /**
- * Check rate limit for an IP address.
+ * Check rate limit for an IP address (legacy flat-limit version).
  * Returns true if the request is allowed, false if rate limited.
  *
  * @param env - Environment bindings
@@ -27,43 +27,93 @@ const RATE_LIMIT_MAX_REQUESTS = WORKER_DEFAULTS.RATE_LIMIT_MAX_REQUESTS;
  * @returns Promise resolving to whether the request is allowed
  */
 export async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
-    const key = `ratelimit:${ip}`;
-    const now = Date.now();
-
-    // Get current count
-    const data = await env.RATE_LIMIT.get(key, 'json') as RateLimitData | null;
-
-    if (!data || now > data.resetAt) {
-        // First request or window expired, start new window
-        await env.RATE_LIMIT.put(
-            key,
-            JSON.stringify({ count: 1, resetAt: now + (RATE_LIMIT_WINDOW * 1000) }),
-            { expirationTtl: RATE_LIMIT_WINDOW + 10 },
-        );
-        return true;
-    }
-
-    if (data.count >= RATE_LIMIT_MAX_REQUESTS) {
-        return false; // Rate limit exceeded
-    }
-
-    // Increment count
-    await env.RATE_LIMIT.put(
-        key,
-        JSON.stringify({ count: data.count + 1, resetAt: data.resetAt }),
-        { expirationTtl: RATE_LIMIT_WINDOW + 10 },
-    );
-
-    return true;
+    const result = await checkRateLimitTiered(env, ip, ANONYMOUS_AUTH_CONTEXT);
+    return result.allowed;
 }
 
 /**
- * Get rate limit configuration
+ * Result of a tiered rate limit check, including remaining quota and reset time
+ * for use in response headers (X-RateLimit-Remaining, X-RateLimit-Reset).
  */
-export function getRateLimitConfig() {
+export interface IRateLimitResult {
+    /** Whether the request is allowed */
+    readonly allowed: boolean;
+    /** Maximum requests per window for this tier */
+    readonly limit: number;
+    /** Remaining requests in the current window */
+    readonly remaining: number;
+    /** Unix timestamp (ms) when the current window resets */
+    readonly resetAt: number;
+}
+
+/**
+ * Check rate limit with tier-aware limits derived from {@link IAuthContext}.
+ *
+ * Key strategy:
+ * - Authenticated users: keyed by `ratelimit:user:<userId>` to avoid
+ *   IP collisions (e.g. multiple users behind a corporate NAT).
+ * - Anonymous users: keyed by `ratelimit:ip:<ip>` (preserves existing behaviour).
+ * - Admin tier (Infinity limit): short-circuits — always allowed, no KV I/O.
+ *
+ * @param env - Environment bindings (needs `RATE_LIMIT` KV namespace)
+ * @param ip - Client IP address (fallback key for anonymous users)
+ * @param authContext - Unified auth context with tier information
+ * @returns Detailed rate limit result with remaining quota
+ */
+export async function checkRateLimitTiered(
+    env: Env,
+    ip: string,
+    authContext: IAuthContext,
+): Promise<IRateLimitResult> {
+    const maxRequests = TIER_RATE_LIMITS[authContext.tier];
+
+    // Admin tier has unlimited requests — skip KV entirely
+    if (maxRequests === Infinity) {
+        return { allowed: true, limit: Infinity, remaining: Infinity, resetAt: 0 };
+    }
+
+    // Key by userId for authenticated users, IP for anonymous
+    const identity = authContext.userId ? `user:${authContext.userId}` : `ip:${ip}`;
+    const key = `ratelimit:${identity}`;
+    const now = Date.now();
+    const windowMs = RATE_LIMIT_WINDOW * 1000;
+
+    const data = await env.RATE_LIMIT.get(key, 'json') as RateLimitData | null;
+
+    if (!data || now > data.resetAt) {
+        // First request or window expired — start new window
+        const resetAt = now + windowMs;
+        await env.RATE_LIMIT.put(
+            key,
+            JSON.stringify({ count: 1, resetAt }),
+            { expirationTtl: RATE_LIMIT_WINDOW + 10 },
+        );
+        return { allowed: true, limit: maxRequests, remaining: maxRequests - 1, resetAt };
+    }
+
+    if (data.count >= maxRequests) {
+        return { allowed: false, limit: maxRequests, remaining: 0, resetAt: data.resetAt };
+    }
+
+    // Increment count
+    const newCount = data.count + 1;
+    await env.RATE_LIMIT.put(
+        key,
+        JSON.stringify({ count: newCount, resetAt: data.resetAt }),
+        { expirationTtl: RATE_LIMIT_WINDOW + 10 },
+    );
+
+    return { allowed: true, limit: maxRequests, remaining: maxRequests - newCount, resetAt: data.resetAt };
+}
+
+/**
+ * Get rate limit configuration for a given tier.
+ * When no tier is provided, returns the anonymous (default) limits.
+ */
+export function getRateLimitConfig(tier: UserTier = UserTier.Anonymous) {
     return {
         window: RATE_LIMIT_WINDOW,
-        maxRequests: RATE_LIMIT_MAX_REQUESTS,
+        maxRequests: TIER_RATE_LIMITS[tier],
     };
 }
 

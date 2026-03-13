@@ -28,6 +28,7 @@ import { map } from 'rxjs/operators';
 import { ThemeService } from './services/theme.service';
 import { ErrorBoundaryComponent } from './error/error-boundary.component';
 import { NotificationContainerComponent } from './notification/notification-container.component';
+import { UserButtonComponent } from './auth/user-button/user-button.component';
 
 /** Navigation item interface */
 interface NavItem {
@@ -56,6 +57,7 @@ interface NavItem {
         MatTooltipModule,
         ErrorBoundaryComponent,
         NotificationContainerComponent,
+        UserButtonComponent,
     ],
     template: `
     <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -121,6 +123,7 @@ interface NavItem {
                 Adblock Compiler
               </p>
               <div class="header-actions">
+                <app-user-button />
                 <button
                   mat-icon-button
                   (click)="themeService.toggle()"
@@ -196,6 +199,7 @@ export class AppComponent {
         { path: '/performance', label: 'Performance', icon: 'monitoring'        },
         { path: '/validation',  label: 'Validation',  icon: 'check_circle'      },
         { path: '/api-docs',    label: 'API Docs',    icon: 'description'       },
+        { path: '/api-keys',    label: 'API Keys',    icon: 'vpn_key'           },
         { path: '/admin',       label: 'Admin',       icon: 'admin_panel_settings' },
         { path: 'https://adblock-compiler-docs.pages.dev/', label: 'Docs', icon: 'menu_book', external: true },
     ];

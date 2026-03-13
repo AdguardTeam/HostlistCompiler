@@ -28,6 +28,16 @@ export const routes: Routes = [
         data: { metaDescription: 'Compile, validate, and transform adblock filter lists in real-time. Open-source compiler-as-a-service with streaming, batch, and async modes.' },
     },
     {
+        path: 'sign-in',
+        loadComponent: () => import('./auth/sign-in/sign-in.component').then((m) => m.SignInComponent),
+        title: 'Sign In',
+    },
+    {
+        path: 'sign-up',
+        loadComponent: () => import('./auth/sign-up/sign-up.component').then((m) => m.SignUpComponent),
+        title: 'Sign Up',
+    },
+    {
         path: 'compiler',
         loadComponent: () => import('./compiler/compiler.component').then((m) => m.CompilerComponent),
         title: 'Compiler',
@@ -50,6 +60,13 @@ export const routes: Routes = [
         loadComponent: () => import('./api-docs/api-docs.component').then((m) => m.ApiDocsComponent),
         title: 'API Reference',
         data: { description: 'HTTP API endpoint documentation', metaDescription: 'Complete HTTP API reference for the Adblock Compiler service. Covers compile, stream, batch, async, AST parse, metrics, and queue endpoints.' },
+    },
+    {
+        path: 'api-keys',
+        loadComponent: () => import('./components/api-keys/api-keys.component').then((m) => m.ApiKeysComponent),
+        title: 'API Keys',
+        data: { description: 'Manage API keys', metaDescription: 'Create and manage personal API keys for programmatic access to the Adblock Compiler service.' },
+        canActivate: [() => import('./guards/auth.guard').then((m) => m.authGuard)],
     },
     {
         path: 'admin',
