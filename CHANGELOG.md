@@ -105,6 +105,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.56.0] - 2026-03-13
+
+### Added- **auth**: implement returnUrl query param behavior in SignInComponent
+- **env**: update .env subsystem with all new vars and direnv-first rule
+- **auth**: add extensibility improvements — scope registry, tier config, IAuthProvider, requireScope
+- **frontend**: add API key management UI
+- Phase 5-6 API key CRUD handlers and CF Access admin middleware
+- Phase 4 Angular Clerk integration — ClerkService, auth components, guards, interceptor
+- wire auth middleware to protected routes (Phase 3)
+- **auth**: add Clerk webhook handler, user service, and Prisma schema updates (Phase 2)
+- add Clerk auth integration - Phase 1
+
+### Fixed
+
+- **auth**: use fallbackRedirectUrl in mountSignIn; fix CONTRIBUTING.md formatting
+- **auth**: add tier validation tests, fix CLERK_PUBLISHABLE_KEY secret/var docs
+- **frontend**: expose Number to ApiKeysComponent template
+- **auth**: apply PR review feedback - Angular 21 rules, response shapes, tier validation, docs
+- **auth**: resolve Clerk userId for API key management
+- **frontend**: resolve Clerk TypeScript compilation errors
+- **deps**: update pnpm lockfile for jose 6.2.1
+- **worker**: prevent pg bundling during Workers build
+
+
 ## [0.55.0] - 2026-03-12
 
 ### Added- Lighthouse CI — Deno-native summary + pnpm integration
