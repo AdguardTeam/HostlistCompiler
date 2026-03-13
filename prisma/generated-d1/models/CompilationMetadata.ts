@@ -1074,6 +1074,11 @@ export type CompilationMetadataFindManyArgs<ExtArgs extends runtime.Types.Extens
    * Skip the first `n` CompilationMetadata.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of CompilationMetadata.
+   */
   distinct?: Prisma.CompilationMetadataScalarFieldEnum | Prisma.CompilationMetadataScalarFieldEnum[]
 }
 

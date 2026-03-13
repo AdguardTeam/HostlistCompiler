@@ -1102,6 +1102,11 @@ export type SourceAttemptFindManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Skip the first `n` SourceAttempts.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of SourceAttempts.
+   */
   distinct?: Prisma.SourceAttemptScalarFieldEnum | Prisma.SourceAttemptScalarFieldEnum[]
 }
 

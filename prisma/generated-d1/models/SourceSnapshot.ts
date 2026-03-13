@@ -1094,6 +1094,11 @@ export type SourceSnapshotFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Skip the first `n` SourceSnapshots.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of SourceSnapshots.
+   */
   distinct?: Prisma.SourceSnapshotScalarFieldEnum | Prisma.SourceSnapshotScalarFieldEnum[]
 }
 
