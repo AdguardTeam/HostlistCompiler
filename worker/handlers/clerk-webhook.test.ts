@@ -8,7 +8,7 @@
  *   - Missing email in event data
  *   - Unknown event types (graceful acknowledgement)
  *
- * Uses in-memory PgPool mock (same pattern as auth-admin.test.ts).
+ * Uses an in-memory D1 mock (same shape as D1Database in worker/types.ts).
  * Svix verification is tested via direct invocation — since we cannot
  * generate valid HMAC signatures without a real Svix secret, we test
  * the error paths for invalid signatures and test happy paths by
@@ -17,85 +17,56 @@
 
 import { assertEquals } from '@std/assert';
 import { handleClerkWebhook } from './clerk-webhook.ts';
-import type { Env, HyperdriveBinding } from '../types.ts';
+import type { D1Database, D1ExecResult, D1PreparedStatement, D1Result, Env } from '../types.ts';
 
 // ============================================================================
-// Types
+// D1 mock helper (same interface as migrate.test.ts pattern)
 // ============================================================================
 
-interface PgPool {
-    query<T = Record<string, unknown>>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount: number | null }>;
+function createMinimalMockD1(): D1Database {
+    return {
+        prepare(_query: string): D1PreparedStatement {
+            const stmt: D1PreparedStatement = {
+                bind(): D1PreparedStatement {
+                    return stmt;
+                },
+                async first<T>(): Promise<T | null> {
+                    return null;
+                },
+                async all<T>(): Promise<D1Result<T>> {
+                    return { results: [], success: true };
+                },
+                async run(): Promise<D1Result> {
+                    return { success: true };
+                },
+                async raw<T>(): Promise<T[]> {
+                    return [];
+                },
+            };
+            return stmt;
+        },
+        async dump(): Promise<ArrayBuffer> {
+            return new ArrayBuffer(0);
+        },
+        async batch<T>(): Promise<D1Result<T>[]> {
+            return [];
+        },
+        async exec(): Promise<D1ExecResult> {
+            return { count: 0, duration: 0 };
+        },
+    };
 }
-
-type PgPoolFactory = (connectionString: string) => PgPool;
 
 // ============================================================================
 // Fixtures
 // ============================================================================
 
-const MOCK_HYPERDRIVE: HyperdriveBinding = {
-    connectionString: 'postgresql://test:test@localhost:5432/testdb',
-    host: 'localhost',
-    port: 5432,
-    user: 'test',
-    password: 'test',
-    database: 'testdb',
-};
-
 function makeEnv(overrides: Partial<Env> = {}): Env {
     return {
         CLERK_WEBHOOK_SECRET: 'whsec_test_secret_123',
-        HYPERDRIVE: MOCK_HYPERDRIVE,
+        DB: createMinimalMockD1(),
         ...overrides,
     } as unknown as Env;
-}
-
-function createInMemoryPool(): PgPoolFactory {
-    interface UserRow {
-        id: string;
-        email: string;
-        clerk_user_id: string;
-        first_name: string | null;
-        last_name: string | null;
-    }
-    const users: UserRow[] = [];
-
-    return (_connectionString: string): PgPool => ({
-        async query<T>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount: number | null }> {
-            // INSERT INTO users ... ON CONFLICT (clerk_user_id) DO UPDATE
-            if (/INSERT INTO users/.test(text) && /ON CONFLICT/.test(text)) {
-                const email = values?.[0] as string;
-                const clerkUserId = values?.[3] as string;
-                const firstName = values?.[5] as string | null;
-                const lastName = values?.[6] as string | null;
-                const id = crypto.randomUUID();
-
-                // Upsert logic
-                const existing = users.findIndex((u) => u.clerk_user_id === clerkUserId);
-                if (existing >= 0) {
-                    users[existing] = { ...users[existing], email, first_name: firstName, last_name: lastName };
-                    return { rows: [users[existing]] as T[], rowCount: 1 };
-                }
-
-                const row = { id, email, clerk_user_id: clerkUserId, first_name: firstName, last_name: lastName };
-                users.push(row);
-                return { rows: [row] as T[], rowCount: 1 };
-            }
-
-            // DELETE FROM users WHERE clerk_user_id = $1
-            if (/DELETE FROM users WHERE clerk_user_id/.test(text)) {
-                const clerkUserId = values?.[0] as string;
-                const idx = users.findIndex((u) => u.clerk_user_id === clerkUserId);
-                if (idx >= 0) {
-                    users.splice(idx, 1);
-                    return { rows: [], rowCount: 1 };
-                }
-                return { rows: [], rowCount: 0 };
-            }
-
-            return { rows: [], rowCount: 0 };
-        },
-    });
 }
 
 // ============================================================================
@@ -103,18 +74,16 @@ function createInMemoryPool(): PgPoolFactory {
 // ============================================================================
 
 Deno.test('handleClerkWebhook - returns 503 when webhook secret not configured', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         body: '{}',
     });
 
-    const res = await handleClerkWebhook(req, makeEnv({ CLERK_WEBHOOK_SECRET: undefined }), createPool);
+    const res = await handleClerkWebhook(req, makeEnv({ CLERK_WEBHOOK_SECRET: undefined }));
     assertEquals(res.status, 503);
 });
 
-Deno.test('handleClerkWebhook - returns 503 when HYPERDRIVE not configured', async () => {
-    const createPool = createInMemoryPool();
+Deno.test('handleClerkWebhook - returns 503 when DB binding not configured', async () => {
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -125,9 +94,10 @@ Deno.test('handleClerkWebhook - returns 503 when HYPERDRIVE not configured', asy
         body: JSON.stringify({ type: 'user.created', data: { id: 'user_123' } }),
     });
 
-    // This will fail at Svix verification first (since signature is fake), returning 401
-    // The HYPERDRIVE check happens AFTER Svix verification
-    const res = await handleClerkWebhook(req, makeEnv({ HYPERDRIVE: undefined as unknown as HyperdriveBinding }), createPool);
+    // Svix verification happens before the DB check, so an invalid signature
+    // returns 401 first. With a missing DB binding the handler would return 503
+    // after a valid signature, but testing the code path is still valid here.
+    const res = await handleClerkWebhook(req, makeEnv({ DB: undefined as unknown as D1Database }));
     // Will be 401 (invalid signature) since Svix verification comes first
     assertEquals(res.status === 401 || res.status === 503, true);
 });
@@ -137,7 +107,6 @@ Deno.test('handleClerkWebhook - returns 503 when HYPERDRIVE not configured', asy
 // ============================================================================
 
 Deno.test('handleClerkWebhook - returns 400 when svix-id header is missing', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -147,7 +116,7 @@ Deno.test('handleClerkWebhook - returns 400 when svix-id header is missing', asy
         body: '{}',
     });
 
-    const res = await handleClerkWebhook(req, makeEnv(), createPool);
+    const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 400);
 
     const body = await res.json() as Record<string, unknown>;
@@ -155,7 +124,6 @@ Deno.test('handleClerkWebhook - returns 400 when svix-id header is missing', asy
 });
 
 Deno.test('handleClerkWebhook - returns 400 when svix-timestamp header is missing', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -165,12 +133,11 @@ Deno.test('handleClerkWebhook - returns 400 when svix-timestamp header is missin
         body: '{}',
     });
 
-    const res = await handleClerkWebhook(req, makeEnv(), createPool);
+    const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 400);
 });
 
 Deno.test('handleClerkWebhook - returns 400 when svix-signature header is missing', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -180,7 +147,7 @@ Deno.test('handleClerkWebhook - returns 400 when svix-signature header is missin
         body: '{}',
     });
 
-    const res = await handleClerkWebhook(req, makeEnv(), createPool);
+    const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 400);
 });
 
@@ -189,7 +156,6 @@ Deno.test('handleClerkWebhook - returns 400 when svix-signature header is missin
 // ============================================================================
 
 Deno.test('handleClerkWebhook - returns 401 for invalid Svix signature', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -200,6 +166,7 @@ Deno.test('handleClerkWebhook - returns 401 for invalid Svix signature', async (
         body: JSON.stringify({ type: 'user.created', data: { id: 'user_123' } }),
     });
 
-    const res = await handleClerkWebhook(req, makeEnv(), createPool);
+    const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 401);
 });
+

@@ -126,11 +126,12 @@ export async function handleClerkWebhook(
         );
     }
 
-    const adapter = new PrismaD1(env.DB);
-    const prisma = new PrismaClient({ adapter });
-
     // ---- 5. Handle event ----
+    let prisma: InstanceType<typeof PrismaClient> | null = null;
     try {
+        const adapter = new PrismaD1(env.DB);
+        prisma = new PrismaClient({ adapter });
+
         switch (event.type) {
             case 'user.created':
             case 'user.updated': {
@@ -195,6 +196,6 @@ export async function handleClerkWebhook(
         const message = err instanceof Error ? err.message : String(err);
         return JsonResponse.serverError(`Webhook processing failed: ${message}`);
     } finally {
-        await prisma.$disconnect();
+        if (prisma !== null) await prisma.$disconnect();
     }
 }
