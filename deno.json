@@ -1,6 +1,6 @@
 {
     "name": "@jk-com/adblock-compiler",
-    "version": "0.56.1",
+    "version": "0.56.2",
     "exports": "./src/index.ts",
     "nodeModulesDir": "auto",
     "publish": {
@@ -36,7 +36,7 @@
         "fmt:check": "deno fmt --check",
         "check": "deno task check:src && deno task check:worker",
         "check:slow-types": "deno publish --dry-run",
-        "check:drift": "git diff --quiet docs/api/cloudflare-schema.yaml docs/postman/postman-collection.json docs/postman/postman-environment.json || (printf '\\n\u274c Generated files are out of date. Run: deno task schema:generate\\n   Then: git add docs/api/cloudflare-schema.yaml docs/postman/postman-collection.json docs/postman/postman-environment.json\\n   Finally: commit the updated files (for example: git commit -m \"chore: update generated schemas\")\\n' && exit 1)",
+        "check:drift": "git diff --quiet docs/api/cloudflare-schema.yaml docs/postman/postman-collection.json docs/postman/postman-environment.json || (printf '\\n❌ Generated files are out of date. Run: deno task schema:generate\\n   Then: git add docs/api/cloudflare-schema.yaml docs/postman/postman-collection.json docs/postman/postman-environment.json\\n   Finally: commit the updated files (for example: git commit -m \"chore: update generated schemas\")\\n' && exit 1)",
         "cache": "deno cache src/index.ts",
         "openapi:validate": "deno run --allow-read --allow-net scripts/validate-openapi.ts",
         "openapi:docs": "deno run --allow-read --allow-write --allow-net scripts/generate-docs.ts",
