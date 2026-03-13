@@ -1,10 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SignInComponent } from './sign-in.component';
 import { ClerkService } from '../../services/clerk.service';
+
+/** Build a minimal ActivatedRoute stub with the given query params snapshot. */
+function makeRoute(queryParams: Record<string, string> = {}) {
+    return { snapshot: { queryParams } };
+}
 
 describe('SignInComponent', () => {
     let component: SignInComponent;
@@ -13,9 +17,6 @@ describe('SignInComponent', () => {
         mountSignIn: ReturnType<typeof vi.fn>;
         unmountSignIn: ReturnType<typeof vi.fn>;
     };
-    let mockActivatedRoute: {
-        queryParams: typeof of;
-    };
 
     beforeEach(async () => {
         mockClerkService = {
@@ -23,16 +24,12 @@ describe('SignInComponent', () => {
             unmountSignIn: vi.fn(),
         };
 
-        mockActivatedRoute = {
-            queryParams: of({}),
-        };
-
         await TestBed.configureTestingModule({
             imports: [SignInComponent],
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkService },
-                { provide: ActivatedRoute, useValue: mockActivatedRoute },
+                { provide: ActivatedRoute, useValue: makeRoute() },
             ],
         }).compileComponents();
 
@@ -57,12 +54,32 @@ describe('SignInComponent', () => {
         expect(authPage).toBeTruthy();
     });
 
-    it('should mount Clerk sign-in UI after render', () => {
-        // afterNextRender runs asynchronously
-        // mountSignIn should have been called with the container element
+    it('should mount Clerk sign-in UI after render without returnUrl', () => {
         expect(mockClerkService.mountSignIn).toHaveBeenCalledTimes(1);
-        const callArg = mockClerkService.mountSignIn.mock.calls[0][0];
-        expect(callArg).toBeInstanceOf(HTMLDivElement);
+        expect(mockClerkService.mountSignIn.mock.calls[0][0]).toBeInstanceOf(HTMLDivElement);
+        expect(mockClerkService.mountSignIn.mock.calls[0][1]).toBeUndefined();
+    });
+
+    it('should pass returnUrl from query params to mountSignIn as fallbackRedirectUrl', async () => {
+        TestBed.resetTestingModule();
+        const routeWithReturn = makeRoute({ returnUrl: '/compiler' });
+        const clerkWithReturn = { mountSignIn: vi.fn(), unmountSignIn: vi.fn() };
+
+        await TestBed.configureTestingModule({
+            imports: [SignInComponent],
+            providers: [
+                provideZonelessChangeDetection(),
+                { provide: ClerkService, useValue: clerkWithReturn },
+                { provide: ActivatedRoute, useValue: routeWithReturn },
+            ],
+        }).compileComponents();
+
+        const f = TestBed.createComponent(SignInComponent);
+        f.detectChanges();
+
+        expect(clerkWithReturn.mountSignIn).toHaveBeenCalledTimes(1);
+        expect(clerkWithReturn.mountSignIn.mock.calls[0][0]).toBeInstanceOf(HTMLDivElement);
+        expect(clerkWithReturn.mountSignIn.mock.calls[0][1]).toBe('/compiler');
     });
 
     it('should unmount Clerk sign-in UI on destroy', () => {
@@ -76,11 +93,7 @@ describe('SignInComponent', () => {
     });
 
     it('should handle missing container gracefully on destroy', () => {
-        // Create a component where the container is not available
-        const mockClerkNoContainer = {
-            mountSignIn: vi.fn(),
-            unmountSignIn: vi.fn(),
-        };
+        const mockClerkNoContainer = { mountSignIn: vi.fn(), unmountSignIn: vi.fn() };
 
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
@@ -88,7 +101,7 @@ describe('SignInComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkNoContainer },
-                { provide: ActivatedRoute, useValue: mockActivatedRoute },
+                { provide: ActivatedRoute, useValue: makeRoute() },
             ],
         });
 
@@ -103,11 +116,8 @@ describe('SignInComponent', () => {
         expect(mockClerkNoContainer.unmountSignIn).not.toHaveBeenCalled();
     });
 
-    it('should handle null container element gracefully', () => {
-        const mockClerkNoMount = {
-            mountSignIn: vi.fn(),
-            unmountSignIn: vi.fn(),
-        };
+    it('should handle null container element gracefully on mount', () => {
+        const mockClerkNoMount = { mountSignIn: vi.fn(), unmountSignIn: vi.fn() };
 
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
@@ -115,7 +125,7 @@ describe('SignInComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkNoMount },
-                { provide: ActivatedRoute, useValue: mockActivatedRoute },
+                { provide: ActivatedRoute, useValue: makeRoute() },
             ],
         });
 

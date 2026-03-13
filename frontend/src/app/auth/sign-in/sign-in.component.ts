@@ -40,7 +40,8 @@ export class SignInComponent implements OnDestroy {
     private readonly _mount = afterNextRender(() => {
         const el = this.container()?.nativeElement;
         if (el) {
-            this.clerk.mountSignIn(el);
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] as string | undefined;
+            this.clerk.mountSignIn(el, returnUrl);
         }
     });
 
