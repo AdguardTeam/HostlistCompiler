@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideZonelessChangeDetection } from '@angular/core';
+import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SignInComponent } from './sign-in.component';
@@ -10,19 +10,22 @@ function makeRoute(queryParams: Record<string, string> = {}) {
     return { snapshot: { queryParams } };
 }
 
+function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: boolean }> = {}) {
+    return {
+        isLoaded: signal(overrides.isLoaded ?? true),
+        isAvailable: signal(overrides.isAvailable ?? true),
+        mountSignIn: vi.fn(),
+        unmountSignIn: vi.fn(),
+    };
+}
+
 describe('SignInComponent', () => {
     let component: SignInComponent;
     let fixture: ComponentFixture<SignInComponent>;
-    let mockClerkService: {
-        mountSignIn: ReturnType<typeof vi.fn>;
-        unmountSignIn: ReturnType<typeof vi.fn>;
-    };
+    let mockClerkService: ReturnType<typeof makeMockClerk>;
 
     beforeEach(async () => {
-        mockClerkService = {
-            mountSignIn: vi.fn(),
-            unmountSignIn: vi.fn(),
-        };
+        mockClerkService = makeMockClerk();
 
         await TestBed.configureTestingModule({
             imports: [SignInComponent],
@@ -40,6 +43,38 @@ describe('SignInComponent', () => {
 
     it('should create', () => {
         expect(component).toBeTruthy();
+    });
+
+    it('should show loading spinner while Clerk is not loaded', () => {
+        mockClerkService.isLoaded.set(false);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-loading')).toBeTruthy();
+        expect(compiled.querySelector('.clerk-container')).toBeNull();
+        expect(compiled.querySelector('.auth-error')).toBeNull();
+    });
+
+    it('should show error state when Clerk is loaded but not available', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isAvailable.set(false);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-error')).toBeTruthy();
+        expect(compiled.querySelector('.clerk-container')).toBeNull();
+        expect(compiled.querySelector('.auth-loading')).toBeNull();
+    });
+
+    it('should show Clerk container when loaded and available', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isAvailable.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.clerk-container')).toBeTruthy();
+        expect(compiled.querySelector('.auth-loading')).toBeNull();
+        expect(compiled.querySelector('.auth-error')).toBeNull();
     });
 
     it('should render the sign-in container element', () => {
@@ -63,7 +98,7 @@ describe('SignInComponent', () => {
     it('should pass returnUrl from query params to mountSignIn as fallbackRedirectUrl', async () => {
         TestBed.resetTestingModule();
         const routeWithReturn = makeRoute({ returnUrl: '/compiler' });
-        const clerkWithReturn = { mountSignIn: vi.fn(), unmountSignIn: vi.fn() };
+        const clerkWithReturn = makeMockClerk();
 
         await TestBed.configureTestingModule({
             imports: [SignInComponent],
@@ -82,6 +117,25 @@ describe('SignInComponent', () => {
         expect(clerkWithReturn.mountSignIn.mock.calls[0][1]).toBe('/compiler');
     });
 
+    it('should not mount when Clerk is not available', async () => {
+        TestBed.resetTestingModule();
+        const clerk = makeMockClerk({ isLoaded: true, isAvailable: false });
+
+        await TestBed.configureTestingModule({
+            imports: [SignInComponent],
+            providers: [
+                provideZonelessChangeDetection(),
+                { provide: ClerkService, useValue: clerk },
+                { provide: ActivatedRoute, useValue: makeRoute() },
+            ],
+        }).compileComponents();
+
+        const f = TestBed.createComponent(SignInComponent);
+        f.detectChanges();
+
+        expect(clerk.mountSignIn).not.toHaveBeenCalled();
+    });
+
     it('should unmount Clerk sign-in UI on destroy', () => {
         const compiled = fixture.nativeElement as HTMLElement;
         const containerElement = compiled.querySelector('.clerk-container') as HTMLDivElement;
@@ -93,14 +147,12 @@ describe('SignInComponent', () => {
     });
 
     it('should handle missing container gracefully on destroy', () => {
-        const mockClerkNoContainer = { mountSignIn: vi.fn(), unmountSignIn: vi.fn() };
-
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
             imports: [SignInComponent],
             providers: [
                 provideZonelessChangeDetection(),
-                { provide: ClerkService, useValue: mockClerkNoContainer },
+                { provide: ClerkService, useValue: makeMockClerk() },
                 { provide: ActivatedRoute, useValue: makeRoute() },
             ],
         });
@@ -108,16 +160,13 @@ describe('SignInComponent', () => {
         const tempFixture = TestBed.createComponent(SignInComponent);
         const tempComponent = tempFixture.componentInstance;
 
-        // Manually set container to undefined to simulate missing element
         (tempComponent as any).container = () => undefined;
 
-        // Should not throw when destroying
         expect(() => tempFixture.destroy()).not.toThrow();
-        expect(mockClerkNoContainer.unmountSignIn).not.toHaveBeenCalled();
     });
 
     it('should handle null container element gracefully on mount', () => {
-        const mockClerkNoMount = { mountSignIn: vi.fn(), unmountSignIn: vi.fn() };
+        const mockClerkNoMount = makeMockClerk();
 
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
@@ -132,8 +181,6 @@ describe('SignInComponent', () => {
         const tempFixture = TestBed.createComponent(SignInComponent);
         tempFixture.detectChanges();
 
-        // The component should not throw if container is missing/null
-        // afterNextRender will check for null and skip mounting
         expect(() => tempFixture.detectChanges()).not.toThrow();
     });
 });

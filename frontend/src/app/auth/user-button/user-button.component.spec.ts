@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserButtonComponent } from './user-button.component';
 import { ClerkService } from '../../services/clerk.service';
@@ -8,6 +9,7 @@ describe('UserButtonComponent', () => {
     let component: UserButtonComponent;
     let fixture: ComponentFixture<UserButtonComponent>;
     let mockClerkService: {
+        isLoaded: ReturnType<typeof signal<boolean>>;
         isSignedIn: ReturnType<typeof signal<boolean>>;
         mountUserButton: ReturnType<typeof vi.fn>;
         unmountUserButton: ReturnType<typeof vi.fn>;
@@ -15,6 +17,7 @@ describe('UserButtonComponent', () => {
 
     beforeEach(async () => {
         mockClerkService = {
+            isLoaded: signal(true),
             isSignedIn: signal(false),
             mountUserButton: vi.fn(),
             unmountUserButton: vi.fn(),
@@ -24,6 +27,7 @@ describe('UserButtonComponent', () => {
             imports: [UserButtonComponent],
             providers: [
                 provideZonelessChangeDetection(),
+                provideRouter([]),
                 { provide: ClerkService, useValue: mockClerkService },
             ],
         }).compileComponents();
@@ -37,7 +41,30 @@ describe('UserButtonComponent', () => {
         expect(component).toBeTruthy();
     });
 
+    it('should not render anything while Clerk is loading', () => {
+        mockClerkService.isLoaded.set(false);
+        mockClerkService.isSignedIn.set(false);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.user-button-container')).toBeNull();
+        expect(compiled.querySelector('.auth-links')).toBeNull();
+    });
+
+    it('should render sign-in/sign-up links when loaded and not signed in', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isSignedIn.set(false);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-links')).toBeTruthy();
+        expect(compiled.querySelector('a[href="/sign-in"]')).toBeTruthy();
+        expect(compiled.querySelector('a[href="/sign-up"]')).toBeTruthy();
+        expect(compiled.querySelector('.user-button-container')).toBeNull();
+    });
+
     it('should not render user button container when not signed in', () => {
+        mockClerkService.isLoaded.set(true);
         mockClerkService.isSignedIn.set(false);
         fixture.detectChanges();
 
@@ -53,6 +80,7 @@ describe('UserButtonComponent', () => {
         const compiled = fixture.nativeElement as HTMLElement;
         const container = compiled.querySelector('.user-button-container');
         expect(container).toBeTruthy();
+        expect(compiled.querySelector('.auth-links')).toBeNull();
     });
 
     it('should mount user button when signed in and container is available', async () => {
@@ -86,6 +114,7 @@ describe('UserButtonComponent', () => {
 
     it('should remount when user signs in after component creation', async () => {
         // Start signed out
+        mockClerkService.isLoaded.set(true);
         mockClerkService.isSignedIn.set(false);
         fixture.detectChanges();
 
@@ -117,6 +146,7 @@ describe('UserButtonComponent', () => {
 
     it('should handle missing container gracefully on destroy', () => {
         const mockClerkNoContainer = {
+            isLoaded: signal(true),
             isSignedIn: signal(false),
             mountUserButton: vi.fn(),
             unmountUserButton: vi.fn(),
@@ -127,6 +157,7 @@ describe('UserButtonComponent', () => {
             imports: [UserButtonComponent],
             providers: [
                 provideZonelessChangeDetection(),
+                provideRouter([]),
                 { provide: ClerkService, useValue: mockClerkNoContainer },
             ],
         });
@@ -180,19 +211,23 @@ describe('UserButtonComponent', () => {
 
     it('should conditionally render based on isSignedIn signal', () => {
         // Test @if control flow
+        mockClerkService.isLoaded.set(true);
         mockClerkService.isSignedIn.set(false);
         fixture.detectChanges();
         let compiled = fixture.nativeElement as HTMLElement;
         expect(compiled.querySelector('.user-button-container')).toBeNull();
+        expect(compiled.querySelector('.auth-links')).toBeTruthy();
 
         mockClerkService.isSignedIn.set(true);
         fixture.detectChanges();
         compiled = fixture.nativeElement as HTMLElement;
         expect(compiled.querySelector('.user-button-container')).toBeTruthy();
+        expect(compiled.querySelector('.auth-links')).toBeNull();
 
         mockClerkService.isSignedIn.set(false);
         fixture.detectChanges();
         compiled = fixture.nativeElement as HTMLElement;
         expect(compiled.querySelector('.user-button-container')).toBeNull();
+        expect(compiled.querySelector('.auth-links')).toBeTruthy();
     });
 });

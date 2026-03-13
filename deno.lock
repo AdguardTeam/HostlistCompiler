@@ -25,9 +25,11 @@
     "npm:@cloudflare/playwright@^0.0.11": "0.0.11",
     "npm:@cloudflare/workers-types@^4.20260307.1": "4.20260307.1",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
+    "npm:@prisma/adapter-d1@^7.4.2": "7.5.0",
     "npm:@prisma/adapter-pg@^7.4.2": "7.4.2",
     "npm:@prisma/client@^7.4.2": "7.4.2_prisma@7.4.2__react@19.2.4_react@19.2.4",
     "npm:jose@^6.2.1": "6.2.1",
+    "npm:prisma@*": "7.4.2_react@19.2.4",
     "npm:prisma@^7.4.2": "7.4.2_react@19.2.4",
     "npm:svix@^1.62.0": "1.87.0",
     "npm:wrangler@*": "4.71.0_@cloudflare+workers-types@4.20260307.1",
@@ -652,10 +654,18 @@
     "@poppinss/exception@1.2.3": {
       "integrity": "sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw=="
     },
+    "@prisma/adapter-d1@7.5.0": {
+      "integrity": "sha512-lJMpe2PZk8dB0UqxGXQ3p0NDq+mNNTSY97x4cklIVQByPKW0sluMnrKG+DxgSy0tt+H6WNUV2hQIGZIIZwYlYA==",
+      "dependencies": [
+        "@cloudflare/workers-types",
+        "@prisma/driver-adapter-utils@7.5.0",
+        "ky"
+      ]
+    },
     "@prisma/adapter-pg@7.4.2": {
       "integrity": "sha512-oUo2Zhe9Tf6YwVL8kLPuOLTK1Z2pwi/Ua77t2PuGyBan2w7shRKqHvYK+3XXmRH9RWhPJ4SMtHZKpNo6Ax/4bQ==",
       "dependencies": [
-        "@prisma/driver-adapter-utils",
+        "@prisma/driver-adapter-utils@7.4.2",
         "pg",
         "postgres-array@3.0.4"
       ]
@@ -688,6 +698,9 @@
     "@prisma/debug@7.4.2": {
       "integrity": "sha512-aP7qzu+g/JnbF6U69LMwHoUkELiserKmWsE2shYuEpNUJ4GrtxBCvZwCyCBHFSH2kLTF2l1goBlBh4wuvRq62w=="
     },
+    "@prisma/debug@7.5.0": {
+      "integrity": "sha512-163+nffny0JoPEkDhfNco0vcuT3ymIJc9+WX7MHSQhfkeKUmKe9/wqvGk5SjppT93DtBjVwr5HPJYlXbzm6qtg=="
+    },
     "@prisma/dev@0.20.0_@electric-sql+pglite@0.3.15_hono@4.11.4": {
       "integrity": "sha512-ovlBYwWor0OzG+yH4J3Ot+AneD818BttLA+Ii7wjbcLHUrnC4tbUPVGyNd3c/+71KETPKZfjhkTSpdS15dmXNQ==",
       "dependencies": [
@@ -714,6 +727,12 @@
       "integrity": "sha512-REdjFpT/ye9KdDs+CXAXPIbMQkVLhne9G5Pe97sNY4Ovx4r2DAbWM9hOFvvB1Oq8H8bOCdu0Ri3AoGALquQqVw==",
       "dependencies": [
         "@prisma/debug@7.4.2"
+      ]
+    },
+    "@prisma/driver-adapter-utils@7.5.0": {
+      "integrity": "sha512-B79N/amgV677mFesFDBAdrW0OIaqawap9E0sjgLBtzIz2R3hIMS1QB8mLZuUEiS4q5Y8Oh3I25Kw4SLxMypk9Q==",
+      "dependencies": [
+        "@prisma/debug@7.5.0"
       ]
     },
     "@prisma/engines-version@7.5.0-10.94a226be1cf2967af2541cca5529f0f7ba866919": {
@@ -1360,6 +1379,9 @@
     },
     "kleur@4.1.5": {
       "integrity": "sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ=="
+    },
+    "ky@1.7.5": {
+      "integrity": "sha512-HzhziW6sc5m0pwi5M196+7cEBtbt0lCYi67wNsiwMUmz833wloE0gbzJPWKs1gliFKQb34huItDQX97LyOdPdA=="
     },
     "lilconfig@2.1.0": {
       "integrity": "sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ=="
@@ -2147,6 +2169,7 @@
       "npm:@cloudflare/playwright-mcp@^0.0.5",
       "npm:@cloudflare/playwright@^0.0.11",
       "npm:@cloudflare/workers-types@^4.20260307.1",
+      "npm:@prisma/adapter-d1@^7.4.2",
       "npm:@prisma/adapter-pg@^7.4.2",
       "npm:@prisma/client@^7.4.2",
       "npm:prisma@^7.4.2",
