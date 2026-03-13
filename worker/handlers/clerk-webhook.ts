@@ -16,7 +16,39 @@ import { Webhook } from 'svix';
 import { PrismaClient } from '../../prisma/generated-d1/client.ts';
 import { PrismaD1 } from '@prisma/adapter-d1';
 import { JsonResponse } from '../utils/response.ts';
+import { UserTier } from '../types.ts';
 import type { Env } from '../types.ts';
+
+// ---------------------------------------------------------------------------
+// Metadata validation helpers
+// ---------------------------------------------------------------------------
+
+/** Valid user roles stored in Prisma. */
+const VALID_ROLES = new Set(['user', 'admin']);
+
+/**
+ * Validates a tier value from Clerk metadata against the {@link UserTier} enum.
+ * Returns the validated tier or `undefined` if invalid/absent.
+ * Admin tier is never accepted from webhook metadata — must be granted server-side.
+ */
+function validateTier(value: unknown): UserTier | undefined {
+    if (typeof value === 'string' && (Object.values(UserTier) as string[]).includes(value) && value !== UserTier.Admin) {
+        return value as UserTier;
+    }
+    return undefined;
+}
+
+/**
+ * Validates a role value from Clerk metadata against the allowed role set.
+ * Returns the validated role or `undefined` if invalid/absent.
+ * Admin role is never accepted from webhook metadata — must be granted server-side.
+ */
+function validateRole(value: unknown): string | undefined {
+    if (typeof value === 'string' && VALID_ROLES.has(value) && value !== 'admin') {
+        return value;
+    }
+    return undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Clerk webhook event shapes (subset we care about)
@@ -183,8 +215,8 @@ export async function handleClerkWebhook(
                         lastName: event.data.last_name ?? null,
                         imageUrl: event.data.image_url ?? null,
                         emailVerified: isEmailVerified(event.data),
-                        tier: typeof meta['tier'] === 'string' ? meta['tier'] : 'free',
-                        role: typeof meta['role'] === 'string' ? meta['role'] : 'user',
+                        tier: validateTier(meta['tier']) ?? UserTier.Free,
+                        role: validateRole(meta['role']) ?? 'user',
                         lastSignInAt,
                     },
                     update: {
@@ -194,8 +226,8 @@ export async function handleClerkWebhook(
                         lastName: event.data.last_name ?? null,
                         imageUrl: event.data.image_url ?? null,
                         emailVerified: isEmailVerified(event.data),
-                        tier: typeof meta['tier'] === 'string' ? meta['tier'] : undefined,
-                        role: typeof meta['role'] === 'string' ? meta['role'] : undefined,
+                        tier: validateTier(meta['tier']),
+                        role: validateRole(meta['role']),
                         lastSignInAt,
                     },
                 });
