@@ -69,7 +69,7 @@ import { ClerkService } from '../../services/clerk.service';
     `],
 })
 export class SignUpComponent implements OnDestroy {
-    private readonly clerk = inject(ClerkService);
+    protected readonly clerk = inject(ClerkService);
     private readonly container = viewChild<ElementRef<HTMLDivElement>>('signUpContainer');
 
     private readonly _mount = afterNextRender(() => {

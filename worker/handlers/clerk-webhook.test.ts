@@ -169,4 +169,3 @@ Deno.test('handleClerkWebhook - returns 401 for invalid Svix signature', async (
     const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 401);
 });
-
