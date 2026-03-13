@@ -11,6 +11,16 @@ workers_dev = true
 # Enable logpush for this worker
 logpush = true
 
+# Provide a stable fallback for import.meta.url so that Node.js-compat
+# polyfills (fileURLToPath, createRequire) work in Cloudflare Workers.
+# In a bundled Worker, import.meta.url is undefined after esbuild inlines all
+# modules, which causes @prisma/client/runtime/client.mjs and the generated
+# Prisma D1 client to throw on startup. Substituting a file:// URL at bundle
+# time lets fileURLToPath succeed (returning /worker.js) and __dirname resolve
+# to "/" — harmless since the Worker never touches the file system.
+[define]
+"import.meta.url" = '"file:///worker.js"'
+
 # Build configuration
 # Builds Angular frontend and generates static assets for deployment.
 # Wrangler calls this command automatically on `wrangler deploy`.

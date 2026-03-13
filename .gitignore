@@ -89,3 +89,6 @@ frontend/package-lock.json
 
 # Lighthouse CI
 lhci-results/
+
+# Prisma D1 local placeholder database (generated during schema build, not committed)
+prisma/d1-dev.db

@@ -72,7 +72,7 @@ jobs:
 
             - name: Run tests with coverage
               run: |
-                  deno test --allow-read --allow-write --allow-net --allow-env --coverage=coverage
+                  deno task test:coverage
                   deno coverage coverage --lcov --output=coverage.lcov --include="^file:"
               env:
                   DENO_TLS_CA_STORE: system

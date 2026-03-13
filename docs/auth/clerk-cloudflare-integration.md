@@ -1,6 +1,6 @@
 # Clerk + Cloudflare Integration Guide
 
-This document explains how Clerk authentication integrates with the Cloudflare Workers platform. It covers every touchpoint between Clerk and Cloudflare services — JWT verification, KV rate limiting, Hyperdrive user storage, webhook handling, Turnstile bot protection, frontend deployment, and analytics.
+This document explains how Clerk authentication integrates with the Cloudflare Workers platform. It covers every touchpoint between Clerk and Cloudflare services — JWT verification, KV rate limiting, D1 user sync, Hyperdrive API key storage, webhook handling, Turnstile bot protection, frontend deployment, and analytics.
 
 > **See also:** [Cloudflare Access](cloudflare-access.md) for the separate defense-in-depth layer on admin routes.
 
@@ -23,7 +23,7 @@ This document explains how Clerk authentication integrates with the Cloudflare W
   - [Tier Limits](#tier-limits)
   - [Key Strategy](#key-strategy)
   - [Rate Limit Flow](#rate-limit-flow)
-- [User Data Sync via Hyperdrive + PostgreSQL](#user-data-sync-via-hyperdrive--postgresql)
+- [User Data Sync via Cloudflare D1](#user-data-sync-via-cloudflare-d1)
   - [Webhook Route](#webhook-route)
   - [Svix Signature Verification](#svix-signature-verification)
   - [Prisma User Model](#prisma-user-model)
@@ -42,7 +42,8 @@ This document explains how Clerk authentication integrates with the Cloudflare W
   - [Step 1: Create the Worker](#step-1-create-the-worker)
   - [Step 2: Set Clerk Secrets](#step-2-set-clerk-secrets)
   - [Step 3: Configure KV Namespace](#step-3-configure-kv-namespace)
-  - [Step 4: Configure Hyperdrive](#step-4-configure-hyperdrive)
+  - [Step 4: Configure D1 (User Sync)](#step-4-configure-d1-user-sync)
+  - [Step 4b: Configure Hyperdrive (API Keys)](#step-4b-configure-hyperdrive-api-keys)
   - [Step 5: Configure Turnstile](#step-5-configure-turnstile)
   - [Step 6: Deploy and Verify](#step-6-deploy-and-verify)
 - [Troubleshooting](#troubleshooting)
@@ -68,8 +69,8 @@ flowchart LR
         JWKS["JWKS (jose)\ncached"]
         KV_RATE["KV\nRATE_LIMIT"]
         WEBHOOK["Webhook Handler\n(Svix verify)"]
-        USER_SVC["User Service\n(Prisma)"]
-        HYPERDRIVE["Hyperdrive\n→ PostgreSQL"]
+        USER_SVC["User Service\n(Prisma D1)"]
+        D1["D1\n(users table)"]
         TURNSTILE["Turnstile\nVerification"]
         ANALYTICS["Analytics\nEngine"]
     end
@@ -81,7 +82,7 @@ flowchart LR
     RATE_LIMITER -.-> KV_RATE
     SVIX -->|POST webhook| WEBHOOK
     WEBHOOK --> USER_SVC
-    USER_SVC --> HYPERDRIVE
+    USER_SVC --> D1
 ```
 
 ---
@@ -92,8 +93,8 @@ flowchart LR
 |---|---|---|
 | **Workers** | (runtime) | Hosts all auth middleware and handlers |
 | **KV** | `RATE_LIMIT` | Tier-based rate limiting counters |
-| **Hyperdrive** | `HYPERDRIVE` | Connection pooling to PostgreSQL for user/API-key storage |
-| **D1** | `DB` | Legacy admin database (not primary Clerk storage) |
+| **D1** | `DB` | Primary user record storage — synced from Clerk webhooks via Prisma D1 adapter |
+| **Hyperdrive** | `HYPERDRIVE` | Connection pooling to PostgreSQL for API key storage |
 | **Turnstile** | `TURNSTILE_SECRET_KEY` | Bot protection on compilation endpoints |
 | **Analytics Engine** | `ANALYTICS_ENGINE` | Operational metrics (no dedicated auth events yet) |
 | **Queues** | `ADBLOCK_COMPILER_QUEUE` | Async compilation (auth applied before queueing) |
@@ -265,9 +266,11 @@ KV entries use TTL = `RATE_LIMIT_WINDOW + 10` seconds to auto-expire stale count
 
 ---
 
-## User Data Sync via Hyperdrive + PostgreSQL
+## User Data Sync via Cloudflare D1
 
-When users sign up, update profiles, or delete accounts in Clerk, the changes are synced to the Worker's PostgreSQL database via webhooks.
+When users sign up, update profiles, or delete accounts in Clerk, the changes are synced to the Worker's **Cloudflare D1** database via webhooks.
+
+> **Architecture note:** User records are stored in Cloudflare D1 (SQLite). API keys are stored in PostgreSQL via Hyperdrive. These are two separate stores.
 
 ### Webhook Route
 
@@ -298,32 +301,35 @@ const event = wh.verify(rawBody, {
 
 ### Prisma User Model
 
-**Source:** `prisma/schema.prisma`
+**Source:** `prisma/schema.d1.prisma`
 
 ```prisma
 model User {
-    id             String    @id @default(uuid()) @db.Uuid
-    email          String    @unique
-    displayName    String?   @map("display_name")
-    role           String    @default("user")
+    id           String    @id @default(uuid())
+    email        String    @unique
+    tier         String    @default("free")
 
     // Clerk-synced fields
-    clerkUserId    String?   @unique @map("clerk_user_id")
-    tier           String    @default("free")
-    firstName      String?   @map("first_name")
-    lastName       String?   @map("last_name")
-    imageUrl       String?   @map("image_url")
-    emailVerified  Boolean   @default(false)
-    lastSignInAt   DateTime? @map("last_sign_in_at")
+    clerkUserId  String?   @unique @map("clerk_user_id")
+    firstName    String?   @map("first_name")
+    lastName     String?   @map("last_name")
+    imageUrl     String?   @map("image_url")
 
-    apiKeys  ApiKey[]
-    sessions Session[]
+    createdAt    DateTime  @default(now()) @map("created_at")
+    updatedAt    DateTime  @updatedAt @map("updated_at")
 
     @@map("users")
 }
 ```
 
-The database is accessed via **Cloudflare Hyperdrive**, which provides connection pooling to the external PostgreSQL instance (PlanetScale or Neon).
+The database is accessed via the **Prisma D1 adapter** (`@prisma/adapter-d1`), using the `env.DB` D1 binding:
+
+```typescript
+const adapter = new PrismaD1(env.DB);
+const prisma = new PrismaClient({ adapter });
+```
+
+> **Note on `import.meta.url`:** Wrangler bundles all modules into a single `worker.js` file. To prevent `import.meta.url` from being `undefined` at runtime (which would crash the Prisma client), `wrangler.toml` defines `"import.meta.url" = '"file:///worker.js"'` in the `[define]` section. This is an esbuild-level substitution that applies to both generated client code and `@prisma/client` internals.
 
 ### Webhook Event Handling
 
@@ -603,7 +609,8 @@ flowchart TD
         end
 
         KV["KV / RATE_LIMIT\nRate limit counters by tier"]
-        HP["Hyperdrive → PostgreSQL\nusers · api_keys · sessions"]
+        D1["D1 / DB\nUser records (Clerk webhook sync)"]
+        HP["Hyperdrive → PostgreSQL\napi_keys"]
         Assets["Assets\nAngular + Clerk JS\nClerkService · authInterceptor · authGuard"]
         Queues["Queues\nAuth applied before enqueue\n(not in message)"]
         Analytics["Analytics Engine\nrate_limit_exceeded events"]
@@ -611,6 +618,7 @@ flowchart TD
     end
 
     Pipeline --> KV
+    Pipeline --> D1
     Pipeline --> HP
     Pipeline --> Assets
     Pipeline --> Queues
@@ -664,9 +672,33 @@ wrangler kv namespace create "RATE_LIMIT"
 # id = "<returned-id>"
 ```
 
-### Step 4: Configure Hyperdrive
+### Step 4: Configure D1 (User Sync)
 
-Hyperdrive connects the Worker to PostgreSQL where user data and API keys are stored:
+The `users` table is stored in Cloudflare D1 and synced from Clerk webhooks via the Prisma D1 adapter. Apply the migration to the remote D1 database **before** deploying the Worker:
+
+```bash
+# Apply the Clerk users migration to the remote D1 database
+wrangler d1 migrations apply adblock-compiler-d1-database --remote
+
+# Verify the table was created
+wrangler d1 execute adblock-compiler-d1-database --remote \
+  --command="SELECT name FROM sqlite_master WHERE type='table';"
+```
+
+The D1 binding is already configured in `wrangler.toml`:
+
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "adblock-compiler-d1-database"
+database_id = "<your-d1-database-id>"
+```
+
+> **Note on Prisma + Wrangler:** The `prisma/generated-d1/` client is committed to the repository because the Wrangler build pipeline does not run a Prisma generate step. If you modify `prisma/schema.d1.prisma`, run `pnpm exec prisma generate --schema=prisma/schema.d1.prisma` locally and commit the updated `prisma/generated-d1/` directory.
+
+### Step 4b: Configure Hyperdrive (API Keys)
+
+Hyperdrive connects the Worker to PostgreSQL where API keys are stored. User records are **not** in PostgreSQL — only `api_keys`:
 
 ```bash
 # Create Hyperdrive configuration
@@ -681,7 +713,7 @@ binding = "HYPERDRIVE"
 id = "<returned-id>"
 ```
 
-Run Prisma migrations to create the users/api_keys tables:
+Run the PostgreSQL schema migrations (creates the `api_keys` table):
 ```bash
 deno task db:migrate
 ```

@@ -2,22 +2,48 @@
 //
 // This schema is optimized for Cloudflare D1 (SQLite at the edge).
 //
-// Prerequisites:
-//   npm install @prisma/client @prisma/adapter-d1
-//
 // Generate client:
-//   npx prisma generate --schema=prisma/schema.d1.prisma
+//   deno task db:generate:d1
 //
-// Create migration:
-//   npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.d1.prisma --script > migrations/0001_init.sql
+// Apply to local D1:
+//   wrangler d1 execute adblock-compiler-d1-database --local --command="$(npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.d1.prisma --script)"
 //
-// Apply migration:
-//   wrangler d1 execute adblock-storage --file=migrations/0001_init.sql
+// Apply to remote D1:
+//   wrangler d1 execute adblock-compiler-d1-database --remote --command="$(npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.d1.prisma --script)"
 
-
+generator d1Client {
+  provider = "prisma-client"
+  output   = "./generated-d1"
+}
 
 datasource db {
   provider = "sqlite"
+  // No url here — Prisma 7 uses the adapter passed to PrismaClient at runtime.
+  // See: https://pris.ly/d/config-datasource
+}
+
+// ============================================================================
+// Users — synced from Clerk webhooks
+// ============================================================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  displayName   String?   @map("display_name")
+  role          String    @default("user")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Clerk integration fields
+  clerkUserId   String?   @unique @map("clerk_user_id")
+  tier          String    @default("free")
+  firstName     String?   @map("first_name")
+  lastName      String?   @map("last_name")
+  imageUrl      String?   @map("image_url")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  lastSignInAt  DateTime? @map("last_sign_in_at")
+
+  @@map("users")
 }
 
 // ============================================================================

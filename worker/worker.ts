@@ -3736,7 +3736,7 @@ export default {
 
         // Clerk webhook (POST /api/webhooks/clerk) — Svix-verified, no auth/rate-limit
         if (routePath === '/webhooks/clerk' && request.method === 'POST') {
-            return handleClerkWebhook(request, env, createPgPool);
+            return handleClerkWebhook(request, env);
         }
 
         // Webhook / notification (POST /api/notify) — requires authentication

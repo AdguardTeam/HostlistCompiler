@@ -14,7 +14,7 @@ The adblock-compiler uses [Clerk](https://clerk.com) for user identity managemen
 | [Removing Anonymous Access](removing-anonymous-access.md) | All | Migration plan for mandatory authentication |
 | [Admin Access](admin-access.md) | Operators | Admin endpoint protection and dashboard access |
 | [Cloudflare Access](cloudflare-access.md) | Operators / DevOps | Cloudflare Zero Trust Access setup for admin routes |
-| [Clerk + Cloudflare Integration](clerk-cloudflare-integration.md) | Developers / DevOps | How Clerk integrates with Workers, KV, Hyperdrive, Turnstile |
+| [Clerk + Cloudflare Integration](clerk-cloudflare-integration.md) | Developers / DevOps | How Clerk integrates with Workers, KV, D1, Hyperdrive, Turnstile |
 
 ## Architecture Overview
 
@@ -22,13 +22,15 @@ The adblock-compiler uses [Clerk](https://clerk.com) for user identity managemen
 flowchart LR
     FE["Angular Frontend\n(@clerk/clerk-js)"]
     W["Cloudflare Worker\n(Auth Middleware)"]
-    DB[("PostgreSQL\n(Hyperdrive)")]
+    D1[("Cloudflare D1\n(User records)")]
+    PG[("PostgreSQL\n(Hyperdrive — API keys)")]
     WH["Clerk Webhooks\n(user.created\nuser.updated\nuser.deleted)"]
 
     FE -->|"Clerk JWT / API Key"| W
-    W -->|"Verify + Tier lookup"| DB
+    W -->|"Tier lookup"| D1
+    W -->|"API key verify"| PG
     WH -->|"Sync user records"| W
-    W -->|"Upsert / delete users"| DB
+    W -->|"Upsert / delete users"| D1
 
     subgraph W["Cloudflare Worker"]
         direction TB

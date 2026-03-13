@@ -33,6 +33,10 @@ describe('ClerkService', () => {
             expect(service.isLoaded()).toBe(false);
         });
 
+        it('should start with isAvailable false', () => {
+            expect(service.isAvailable()).toBe(false);
+        });
+
         it('should start with isSignedIn false', () => {
             expect(service.isSignedIn()).toBe(false);
         });
@@ -49,10 +53,12 @@ describe('ClerkService', () => {
             expect(service.session()).toBeNull();
         });
 
-        it('should no-op initialize when publishableKey is empty', async () => {
+        it('should mark isLoaded true (but isAvailable false) when publishableKey is empty', async () => {
             await service.initialize('');
-            // isLoaded stays false because it returns early
-            expect(service.isLoaded()).toBe(false);
+            // isLoaded is set to true so consumers can render an error/fallback
+            // state instead of waiting for Clerk indefinitely.
+            expect(service.isLoaded()).toBe(true);
+            expect(service.isAvailable()).toBe(false);
         });
 
         it('should set isLoaded true even when Clerk import fails', async () => {
@@ -61,6 +67,23 @@ describe('ClerkService', () => {
             await service.initialize('pk_test_fake_key_12345');
             expect(service.isLoaded()).toBe(true);
             expect(service.isSignedIn()).toBe(false);
+        });
+
+        it('should not set isAvailable when Clerk import fails', async () => {
+            // isAvailable is only set in the success path; on failure it stays false
+            await service.initialize('pk_test_fake_key_12345');
+            expect(service.isAvailable()).toBe(false);
+        });
+
+        it('should not set isAvailable when publishableKey is empty', async () => {
+            await service.initialize('');
+            expect(service.isAvailable()).toBe(false);
+        });
+
+        it('should leave isAvailable false when Clerk import fails', async () => {
+            // On import failure, only isLoaded is set to true; isAvailable stays false
+            await service.initialize('pk_test_fake_key_12345');
+            expect(service.isAvailable()).toBe(false);
         });
 
         it('should return null from getToken when not initialised', async () => {
@@ -97,8 +120,9 @@ describe('ClerkService', () => {
 
         it('should no-op initialize on server', async () => {
             await service.initialize('pk_test_fake_key');
-            // isLoaded stays false on server (early return)
+            // isLoaded and isAvailable stay false on server (early return)
             expect(service.isLoaded()).toBe(false);
+            expect(service.isAvailable()).toBe(false);
         });
     });
 });

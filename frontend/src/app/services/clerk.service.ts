@@ -28,11 +28,14 @@ export class ClerkService {
 
     // Writable signals (private)
     private readonly _isLoaded = signal(false);
+    private readonly _isAvailable = signal(false);
     private readonly _user = signal<UserResource | null>(null);
     private readonly _session = signal<SessionResource | null>(null);
 
     // Public read-only signals
     readonly isLoaded = this._isLoaded.asReadonly();
+    /** True only when the Clerk SDK loaded successfully (publishable key was valid). */
+    readonly isAvailable = this._isAvailable.asReadonly();
     readonly user = this._user.asReadonly();
     readonly session = this._session.asReadonly();
     readonly isSignedIn = computed(() => !!this._user());
@@ -44,7 +47,12 @@ export class ClerkService {
      */
     async initialize(publishableKey: string): Promise<void> {
         if (!isPlatformBrowser(this.platformId)) return;
-        if (!publishableKey) return;
+        if (!publishableKey) {
+            // Mark loaded (but not available) so consumers can show an error/fallback
+            // state instead of spinning indefinitely waiting for Clerk to initialise.
+            this._isLoaded.set(true);
+            return;
+        }
 
         try {
             const { Clerk: ClerkJS } = await import('@clerk/clerk-js');
@@ -54,6 +62,7 @@ export class ClerkService {
             // Seed initial state
             this._user.set(this.clerkInstance.user ?? null);
             this._session.set(this.clerkInstance.session ?? null);
+            this._isAvailable.set(true);
             this._isLoaded.set(true);
 
             // Subscribe to future state changes

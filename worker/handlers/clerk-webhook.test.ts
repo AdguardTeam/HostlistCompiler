@@ -8,94 +8,135 @@
  *   - Missing email in event data
  *   - Unknown event types (graceful acknowledgement)
  *
- * Uses in-memory PgPool mock (same pattern as auth-admin.test.ts).
- * Svix verification is tested via direct invocation — since we cannot
- * generate valid HMAC signatures without a real Svix secret, we test
- * the error paths for invalid signatures and test happy paths by
- * mocking the Svix import at the module boundary.
+ * Uses an in-memory D1 mock (same shape as D1Database in worker/types.ts).
+ * Svix verification is bypassed in happy-path tests via the _testVerify
+ * injection parameter on handleClerkWebhook (same pattern as testPrisma).
  */
 
 import { assertEquals } from '@std/assert';
 import { handleClerkWebhook } from './clerk-webhook.ts';
-import type { Env, HyperdriveBinding } from '../types.ts';
+import type { ClerkWebhookEvent, PrismaLike } from './clerk-webhook.ts';
+import type { D1Database, D1ExecResult, D1PreparedStatement, D1Result, Env } from '../types.ts';
 
 // ============================================================================
-// Types
+// Prisma mock helper
 // ============================================================================
 
-interface PgPool {
-    query<T = Record<string, unknown>>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount: number | null }>;
+interface MockPrismaOptions {
+    upsertResult?: { id: string };
+    deleteManyResult?: { count: number };
+    upsertError?: Error;
+    deleteManyError?: Error;
 }
 
-type PgPoolFactory = (connectionString: string) => PgPool;
+function createMockPrisma(opts: MockPrismaOptions = {}): PrismaLike {
+    return {
+        user: {
+            async upsert() {
+                if (opts.upsertError) throw opts.upsertError;
+                return opts.upsertResult ?? { id: 'uuid-mock-1' };
+            },
+            async deleteMany() {
+                if (opts.deleteManyError) throw opts.deleteManyError;
+                return opts.deleteManyResult ?? { count: 1 };
+            },
+        },
+        async $disconnect() {
+            /* noop */
+        },
+    };
+}
+
+// ============================================================================
+// Clerk event fixtures
+// ============================================================================
+
+/** A minimal valid Clerk user.created / user.updated event payload. */
+function makeUserCreatedEvent(userId = 'user_abc123'): ClerkWebhookEvent {
+    return {
+        type: 'user.created',
+        data: {
+            id: userId,
+            email_addresses: [{ id: 'ea_1', email_address: 'alice@example.com', verification: { status: 'verified' } }],
+            primary_email_address_id: 'ea_1',
+            first_name: 'Alice',
+            last_name: 'Smith',
+            image_url: 'https://example.com/alice.jpg',
+            public_metadata: { tier: 'pro', role: 'user' },
+            last_sign_in_at: 1_700_000_000_000,
+        },
+    };
+}
+
+function makeUserUpdatedEvent(userId = 'user_abc123'): ClerkWebhookEvent {
+    return { ...makeUserCreatedEvent(userId), type: 'user.updated' };
+}
+
+function makeUserDeletedEvent(userId = 'user_abc123'): ClerkWebhookEvent {
+    return { type: 'user.deleted', data: { id: userId } };
+}
+
+/** Build a POST request with all required Svix headers. */
+function makeSvixRequest(body: unknown): Request {
+    return new Request('https://example.com/api/webhooks/clerk', {
+        method: 'POST',
+        headers: {
+            'svix-id': 'msg_test_123',
+            'svix-timestamp': String(Math.floor(Date.now() / 1000)),
+            'svix-signature': 'v1,fake_signature',
+        },
+        body: JSON.stringify(body),
+    });
+}
+
+// ============================================================================
+// D1 mock helper (same interface as migrate.test.ts pattern)
+// ============================================================================
+
+function createMinimalMockD1(): D1Database {
+    return {
+        prepare(_query: string): D1PreparedStatement {
+            const stmt: D1PreparedStatement = {
+                bind(): D1PreparedStatement {
+                    return stmt;
+                },
+                async first<T>(): Promise<T | null> {
+                    return null;
+                },
+                async all<T>(): Promise<D1Result<T>> {
+                    return { results: [], success: true };
+                },
+                async run(): Promise<D1Result> {
+                    return { success: true };
+                },
+                async raw<T>(): Promise<T[]> {
+                    return [];
+                },
+            };
+            return stmt;
+        },
+        async dump(): Promise<ArrayBuffer> {
+            return new ArrayBuffer(0);
+        },
+        async batch<T>(): Promise<D1Result<T>[]> {
+            return [];
+        },
+        async exec(): Promise<D1ExecResult> {
+            return { count: 0, duration: 0 };
+        },
+    };
+}
 
 // ============================================================================
 // Fixtures
 // ============================================================================
 
-const MOCK_HYPERDRIVE: HyperdriveBinding = {
-    connectionString: 'postgresql://test:test@localhost:5432/testdb',
-    host: 'localhost',
-    port: 5432,
-    user: 'test',
-    password: 'test',
-    database: 'testdb',
-};
-
 function makeEnv(overrides: Partial<Env> = {}): Env {
     return {
         CLERK_WEBHOOK_SECRET: 'whsec_test_secret_123',
-        HYPERDRIVE: MOCK_HYPERDRIVE,
+        DB: createMinimalMockD1(),
         ...overrides,
     } as unknown as Env;
-}
-
-function createInMemoryPool(): PgPoolFactory {
-    interface UserRow {
-        id: string;
-        email: string;
-        clerk_user_id: string;
-        first_name: string | null;
-        last_name: string | null;
-    }
-    const users: UserRow[] = [];
-
-    return (_connectionString: string): PgPool => ({
-        async query<T>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount: number | null }> {
-            // INSERT INTO users ... ON CONFLICT (clerk_user_id) DO UPDATE
-            if (/INSERT INTO users/.test(text) && /ON CONFLICT/.test(text)) {
-                const email = values?.[0] as string;
-                const clerkUserId = values?.[3] as string;
-                const firstName = values?.[5] as string | null;
-                const lastName = values?.[6] as string | null;
-                const id = crypto.randomUUID();
-
-                // Upsert logic
-                const existing = users.findIndex((u) => u.clerk_user_id === clerkUserId);
-                if (existing >= 0) {
-                    users[existing] = { ...users[existing], email, first_name: firstName, last_name: lastName };
-                    return { rows: [users[existing]] as T[], rowCount: 1 };
-                }
-
-                const row = { id, email, clerk_user_id: clerkUserId, first_name: firstName, last_name: lastName };
-                users.push(row);
-                return { rows: [row] as T[], rowCount: 1 };
-            }
-
-            // DELETE FROM users WHERE clerk_user_id = $1
-            if (/DELETE FROM users WHERE clerk_user_id/.test(text)) {
-                const clerkUserId = values?.[0] as string;
-                const idx = users.findIndex((u) => u.clerk_user_id === clerkUserId);
-                if (idx >= 0) {
-                    users.splice(idx, 1);
-                    return { rows: [], rowCount: 1 };
-                }
-                return { rows: [], rowCount: 0 };
-            }
-
-            return { rows: [], rowCount: 0 };
-        },
-    });
 }
 
 // ============================================================================
@@ -103,33 +144,23 @@ function createInMemoryPool(): PgPoolFactory {
 // ============================================================================
 
 Deno.test('handleClerkWebhook - returns 503 when webhook secret not configured', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         body: '{}',
     });
 
-    const res = await handleClerkWebhook(req, makeEnv({ CLERK_WEBHOOK_SECRET: undefined }), createPool);
+    const res = await handleClerkWebhook(req, makeEnv({ CLERK_WEBHOOK_SECRET: undefined }));
     assertEquals(res.status, 503);
 });
 
-Deno.test('handleClerkWebhook - returns 503 when HYPERDRIVE not configured', async () => {
-    const createPool = createInMemoryPool();
-    const req = new Request('https://example.com/api/webhooks/clerk', {
-        method: 'POST',
-        headers: {
-            'svix-id': 'msg_123',
-            'svix-timestamp': String(Math.floor(Date.now() / 1000)),
-            'svix-signature': 'v1,fake_signature',
-        },
-        body: JSON.stringify({ type: 'user.created', data: { id: 'user_123' } }),
-    });
+Deno.test('handleClerkWebhook - returns 503 when DB binding not configured', async () => {
+    const req = makeSvixRequest({ type: 'user.created', data: { id: 'user_123' } });
+    const mockVerify = () => makeUserCreatedEvent();
+    const res = await handleClerkWebhook(req, makeEnv({ DB: undefined as unknown as D1Database }), null, mockVerify);
+    assertEquals(res.status, 503);
 
-    // This will fail at Svix verification first (since signature is fake), returning 401
-    // The HYPERDRIVE check happens AFTER Svix verification
-    const res = await handleClerkWebhook(req, makeEnv({ HYPERDRIVE: undefined as unknown as HyperdriveBinding }), createPool);
-    // Will be 401 (invalid signature) since Svix verification comes first
-    assertEquals(res.status === 401 || res.status === 503, true);
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(typeof body.error, 'string');
 });
 
 // ============================================================================
@@ -137,7 +168,6 @@ Deno.test('handleClerkWebhook - returns 503 when HYPERDRIVE not configured', asy
 // ============================================================================
 
 Deno.test('handleClerkWebhook - returns 400 when svix-id header is missing', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -147,7 +177,7 @@ Deno.test('handleClerkWebhook - returns 400 when svix-id header is missing', asy
         body: '{}',
     });
 
-    const res = await handleClerkWebhook(req, makeEnv(), createPool);
+    const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 400);
 
     const body = await res.json() as Record<string, unknown>;
@@ -155,7 +185,6 @@ Deno.test('handleClerkWebhook - returns 400 when svix-id header is missing', asy
 });
 
 Deno.test('handleClerkWebhook - returns 400 when svix-timestamp header is missing', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -165,12 +194,11 @@ Deno.test('handleClerkWebhook - returns 400 when svix-timestamp header is missin
         body: '{}',
     });
 
-    const res = await handleClerkWebhook(req, makeEnv(), createPool);
+    const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 400);
 });
 
 Deno.test('handleClerkWebhook - returns 400 when svix-signature header is missing', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -180,7 +208,7 @@ Deno.test('handleClerkWebhook - returns 400 when svix-signature header is missin
         body: '{}',
     });
 
-    const res = await handleClerkWebhook(req, makeEnv(), createPool);
+    const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 400);
 });
 
@@ -189,7 +217,6 @@ Deno.test('handleClerkWebhook - returns 400 when svix-signature header is missin
 // ============================================================================
 
 Deno.test('handleClerkWebhook - returns 401 for invalid Svix signature', async () => {
-    const createPool = createInMemoryPool();
     const req = new Request('https://example.com/api/webhooks/clerk', {
         method: 'POST',
         headers: {
@@ -200,6 +227,89 @@ Deno.test('handleClerkWebhook - returns 401 for invalid Svix signature', async (
         body: JSON.stringify({ type: 'user.created', data: { id: 'user_123' } }),
     });
 
-    const res = await handleClerkWebhook(req, makeEnv(), createPool);
+    const res = await handleClerkWebhook(req, makeEnv());
     assertEquals(res.status, 401);
+});
+
+// ============================================================================
+// Happy-path tests (Webhook.verify stubbed; Prisma injected via _testPrisma)
+// ============================================================================
+
+Deno.test('handleClerkWebhook - user.created returns 200 and upserts user', async () => {
+    const mockPrisma = createMockPrisma({ upsertResult: { id: 'uuid-alice-42' } });
+    const mockVerify = () => makeUserCreatedEvent();
+    const req = makeSvixRequest(makeUserCreatedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
+
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.created');
+    assertEquals(body.userId, 'uuid-alice-42');
+});
+
+Deno.test('handleClerkWebhook - user.updated returns 200 and upserts user', async () => {
+    const mockPrisma = createMockPrisma({ upsertResult: { id: 'uuid-alice-7' } });
+    const mockVerify = () => makeUserUpdatedEvent();
+    const req = makeSvixRequest(makeUserUpdatedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
+
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.updated');
+});
+
+Deno.test('handleClerkWebhook - user.deleted returns 200 and removes user', async () => {
+    const mockPrisma = createMockPrisma({ deleteManyResult: { count: 1 } });
+    const mockVerify = () => makeUserDeletedEvent();
+    const req = makeSvixRequest(makeUserDeletedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
+
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.deleted');
+    assertEquals(body.deleted, true);
+});
+
+Deno.test('handleClerkWebhook - user.deleted returns deleted=false when user not found', async () => {
+    const mockPrisma = createMockPrisma({ deleteManyResult: { count: 0 } });
+    const mockVerify = () => makeUserDeletedEvent('user_gone');
+    const req = makeSvixRequest(makeUserDeletedEvent('user_gone'));
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
+
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.deleted, false);
+});
+
+Deno.test('handleClerkWebhook - returns 400 when user.created has no email', async () => {
+    const noEmailEvent = { type: 'user.created', data: { id: 'user_noemail' } };
+    const mockPrisma = createMockPrisma();
+    const mockVerify = () => noEmailEvent as ClerkWebhookEvent;
+    const req = makeSvixRequest(noEmailEvent);
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 400);
+});
+
+Deno.test('handleClerkWebhook - returns 200 for unknown event type', async () => {
+    const unknownEvent = { type: 'session.created', data: { id: 'sess_xyz' } };
+    const mockPrisma = createMockPrisma();
+    const mockVerify = () => unknownEvent as ClerkWebhookEvent;
+    const req = makeSvixRequest(unknownEvent);
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
+
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'session.created');
+});
+
+Deno.test('handleClerkWebhook - returns 500 when prisma upsert throws', async () => {
+    const mockPrisma = createMockPrisma({ upsertError: new Error('D1 constraint violation') });
+    const mockVerify = () => makeUserCreatedEvent();
+    const req = makeSvixRequest(makeUserCreatedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 500);
 });

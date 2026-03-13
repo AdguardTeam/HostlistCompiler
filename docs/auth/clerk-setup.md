@@ -74,7 +74,7 @@ This ensures the user's tier (set in public metadata) is available in the JWT pa
 
 ## Step 5: Configure Webhooks
 
-Webhooks sync user data between Clerk and your PostgreSQL database.
+Webhooks sync user data between Clerk and your Cloudflare D1 database.
 
 1. Go to **Webhooks** in the sidebar
 2. Click **"Add Endpoint"**
@@ -147,7 +147,7 @@ curl -X PATCH https://api.clerk.com/v1/users/{user_id}/metadata \
   }'
 ```
 
-> **Tip**: When a user's tier is updated via the API or dashboard, Clerk fires a `user.updated` webhook, which automatically syncs the change to your PostgreSQL database.
+> **Tip**: When a user's tier is updated via the API or dashboard, Clerk fires a `user.updated` webhook, which automatically syncs the change to your Cloudflare D1 database.
 
 ## Step 7: Configure Environment Variables
 
@@ -201,7 +201,13 @@ curl -X GET https://your-worker.workers.dev/api/keys \
 
 1. Create a test user in Clerk dashboard
 2. Check your Worker logs for webhook processing
-3. Verify the user appears in your PostgreSQL `users` table
+3. Verify the user appears in your D1 `users` table:
+
+```bash
+# Query via Wrangler (remote D1)
+wrangler d1 execute adblock-compiler-d1-database --remote \
+  --command="SELECT id, email, tier, clerk_user_id FROM users ORDER BY created_at DESC LIMIT 5;"
+```
 
 ### Verify Public Metadata Tier
 
@@ -245,3 +251,128 @@ curl -X GET https://your-worker.workers.dev/api/keys \
 - [ ] JWKS URL is correct and accessible from Workers
 - [ ] Admin users have `tier: "admin"` in public metadata
 - [ ] CF Access configured for admin routes (optional but recommended)
+
+---
+
+## Step 9: Deploy to Cloudflare Workers
+
+This section walks through deploying the full Clerk integration to a Cloudflare Worker from scratch.
+
+### Prerequisites
+
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed and authenticated (`wrangler login`)
+- A Cloudflare account with Workers and D1 enabled
+- Clerk API keys from Steps 2 and 5 above
+
+### 9a. Apply the D1 Migration
+
+The `users` table (used by the Clerk webhook handler) lives in Cloudflare D1. Apply the migration to the remote D1 database before deploying:
+
+```bash
+# Apply the Clerk users migration to the remote D1 database
+wrangler d1 migrations apply adblock-compiler-d1-database --remote
+```
+
+Verify the table was created:
+
+```bash
+wrangler d1 execute adblock-compiler-d1-database --remote \
+  --command="SELECT name FROM sqlite_master WHERE type='table';"
+```
+
+You should see `users` (and other D1 tables) in the output.
+
+### 9b. Set Worker Secrets
+
+Store all secrets via Wrangler's secret management — **never** commit real keys to `wrangler.toml`:
+
+```bash
+# Clerk authentication secrets
+wrangler secret put CLERK_SECRET_KEY
+wrangler secret put CLERK_WEBHOOK_SECRET
+```
+
+When prompted, paste the corresponding values from your Clerk dashboard.
+
+### 9c. Add Public Variables to wrangler.toml
+
+`CLERK_PUBLISHABLE_KEY` and `CLERK_JWKS_URL` are public (non-secret) values that belong in `wrangler.toml [vars]`:
+
+```toml
+# wrangler.toml
+[vars]
+CLERK_PUBLISHABLE_KEY = "pk_live_..."          # from Clerk Dashboard → API Keys
+CLERK_JWKS_URL        = "https://<instance>.clerk.accounts.dev/.well-known/jwks.json"
+```
+
+> **Note:** For local development, put these in `.env.local` (loaded by direnv) rather than `wrangler.toml`.
+
+### 9d. Deploy the Worker
+
+```bash
+# Using the project task (runs preflight checks first)
+deno task wrangler:deploy
+
+# Or directly with Wrangler
+wrangler deploy
+```
+
+After deployment, confirm the worker is live:
+
+```bash
+curl https://your-worker.workers.dev/api/version
+```
+
+### 9e. Update the Webhook Endpoint URL
+
+Back in the Clerk Dashboard:
+
+1. Go to **Webhooks** → your endpoint
+2. Update the **Endpoint URL** to your production Worker URL:
+   ```
+   https://your-worker.workers.dev/api/webhooks/clerk
+   ```
+3. Click **Save**
+
+If you previously used a local dev URL (e.g., from `wrangler dev` or Cloudflare Tunnel), remove it and add only the production URL.
+
+### 9f. Verify End-to-End
+
+**Test webhook delivery:**
+
+1. In the Clerk Dashboard, go to **Webhooks** → your endpoint → **Testing** tab
+2. Select `user.created` and click **Send test webhook**
+3. The delivery log should show a `200 OK` response
+4. Confirm the user appeared in D1:
+
+```bash
+wrangler d1 execute adblock-compiler-d1-database --remote \
+  --command="SELECT id, email, tier FROM users ORDER BY created_at DESC LIMIT 3;"
+```
+
+**Test JWT authentication:**
+
+```bash
+# Sign in via the Angular frontend, then copy the session token from
+# browser DevTools (Application → Cookies → __session) and test:
+curl https://your-worker.workers.dev/api/keys \
+  -H "Authorization: Bearer <your-clerk-jwt>"
+```
+
+### 9g. Switch to Production Keys
+
+When ready to go live, replace test keys with production keys:
+
+```bash
+# Update the secret with the sk_live_ key
+wrangler secret put CLERK_SECRET_KEY   # paste sk_live_...
+```
+
+And in `wrangler.toml`:
+
+```toml
+[vars]
+CLERK_PUBLISHABLE_KEY = "pk_live_..."   # was pk_test_...
+```
+
+> **Reminder:** After changing `wrangler.toml`, redeploy with `wrangler deploy`.

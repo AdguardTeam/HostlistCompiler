@@ -9,20 +9,51 @@
  */
 
 import { Component, ElementRef, afterNextRender, inject, viewChild, effect, OnDestroy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ClerkService } from '../../services/clerk.service';
 
 @Component({
     selector: 'app-user-button',
     standalone: true,
+    imports: [RouterLink],
     template: `
         @if (clerk.isSignedIn()) {
             <div #userButtonContainer class="user-button-container"></div>
+        } @else if (clerk.isLoaded()) {
+            <nav class="auth-links" aria-label="Authentication">
+                <a routerLink="/sign-in" class="auth-link">Sign in</a>
+                <a routerLink="/sign-up" class="auth-link auth-link--primary">Sign up</a>
+            </nav>
         }
     `,
     styles: [`
         .user-button-container {
             display: inline-flex;
             align-items: center;
+        }
+        .auth-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .auth-link {
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+            color: var(--mat-sys-on-surface);
+            transition: background 0.15s;
+        }
+        .auth-link:hover {
+            background: var(--mat-sys-surface-variant);
+        }
+        .auth-link--primary {
+            background: var(--mat-sys-primary);
+            color: var(--mat-sys-on-primary);
+        }
+        .auth-link--primary:hover {
+            opacity: 0.9;
         }
     `],
 })
