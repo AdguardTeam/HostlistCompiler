@@ -1686,3 +1686,121 @@ Deno.test({
         assertEquals(registry.getPlugin('slow-init'), undefined);
     },
 });
+
+// ─────────────────────────────────────────────────────────────────────
+// New behaviour: connectBridge() replays existing registrations
+// ─────────────────────────────────────────────────────────────────────
+
+Deno.test('connectBridge — replays pre-registered formatters to new bridge', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    class XmlFormatter {}
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'pre-fmt' }),
+        formatters: [{ format: 'xml', formatterClass: XmlFormatter as never }],
+    };
+
+    // Register BEFORE bridge is connected
+    await registry.register(plugin);
+
+    const replayed: string[] = [];
+    registry.connectBridge({
+        registerFormatter: (format) => replayed.push(format),
+    });
+
+    // Bridge should have received the already-registered formatter
+    assertEquals(replayed, ['xml']);
+});
+
+Deno.test('connectBridge — replays pre-registered event hooks to new bridge', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    const hooks = { onCompileStart: () => {} };
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'pre-hooks' }),
+        eventHooks: [{ name: 'pre-lifecycle', hooks: hooks as never }],
+    };
+
+    await registry.register(plugin);
+
+    const eventReplays: unknown[] = [];
+    const xformReplays: unknown[] = [];
+    registry.connectBridge({
+        registerEventHooks: (h) => eventReplays.push(h),
+        registerTransformationHooks: (h) => xformReplays.push(h),
+    });
+
+    assertEquals(eventReplays.length, 1);
+    assertEquals(xformReplays.length, 1);
+});
+
+Deno.test('connectBridge — does not double-register when bridge set before registration', async () => {
+    const registered: string[] = [];
+    const registry = new PluginRegistry(silentLogger, {
+        registerFormatter: (format) => registered.push(format),
+    });
+
+    class TsvFormatter {}
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'tsv-fmt' }),
+        formatters: [{ format: 'tsv', formatterClass: TsvFormatter as never }],
+    };
+
+    // Register after bridge is already wired — should only appear once
+    await registry.register(plugin);
+
+    const replayed: string[] = [];
+    registry.connectBridge({
+        registerFormatter: (format) => replayed.push(format),
+    });
+
+    // The original bridge captured one call during register()
+    assertEquals(registered, ['tsv']);
+    // The new bridge receives the replay
+    assertEquals(replayed, ['tsv']);
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// New behaviour: unregisterTransformationHooks on unregister / rollback
+// ─────────────────────────────────────────────────────────────────────
+
+Deno.test('unregister — calls unregisterTransformationHooks on bridge', async () => {
+    const unregistered: unknown[] = [];
+
+    const registry = new PluginRegistry(silentLogger, {
+        registerTransformationHooks: () => {},
+        unregisterTransformationHooks: (hooks) => unregistered.push(hooks),
+    });
+
+    const hooks = { onCompileStart: () => {} };
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'xhook-unregister' }),
+        eventHooks: [{ name: 'xhook', hooks: hooks as never }],
+    };
+
+    await registry.register(plugin);
+    await registry.unregister('xhook-unregister');
+
+    assertEquals(unregistered.length, 1);
+});
+
+Deno.test('rollback — calls unregisterTransformationHooks when init fails', async () => {
+    const registered: unknown[] = [];
+    const unregistered: unknown[] = [];
+
+    const registry = new PluginRegistry(silentLogger, {
+        registerTransformationHooks: (hooks) => registered.push(hooks),
+        unregisterTransformationHooks: (hooks) => unregistered.push(hooks),
+    });
+
+    const hooks = { onCompileStart: () => {} };
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'failing-init' }),
+        eventHooks: [{ name: 'xhook-fail', hooks: hooks as never }],
+        init: () => { throw new Error('init failure'); },
+    };
+
+    await assertRejects(() => registry.register(plugin), Error, 'init failure');
+    assertEquals(registered.length, 1);
+    assertEquals(unregistered.length, 1);
+});
