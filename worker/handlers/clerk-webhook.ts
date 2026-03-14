@@ -12,7 +12,7 @@
  * Security: Svix HMAC signature verification (no JWT / API-key auth).
  *
  * Note: this handler intentionally does NOT use the Prisma-generated D1 client.
- * The `prisma-client` generator (v6) embeds a WASM-based query compiler that calls
+ * The `prisma-client` generator (v7) embeds a WASM-based query compiler that calls
  * `new WebAssembly.Module(base64Data)` at instantiation time — an operation blocked by
  * Cloudflare Workers' embedder.  The {@link D1UserStore} class below uses the D1
  * binding's `prepare/bind/run/first` API directly and carries no WASM dependency.
@@ -142,7 +142,7 @@ export interface PrismaLike {
  * replaces that client for the webhook handler with plain SQL — no WASM required.
  *
  * Operations:
- *   - `user.upsert`    — UPDATE then INSERT (explicit, SQLite-compatible)
+ *   - `user.upsert`    — single atomic `INSERT … ON CONFLICT(clerk_user_id) DO UPDATE`
  *   - `user.deleteMany` — DELETE WHERE clerk_user_id = ?
  *   - `$disconnect`    — no-op (D1 connections are managed by the runtime)
  */
@@ -151,7 +151,7 @@ class D1UserStore implements PrismaLike {
 
     readonly user = {
         upsert: async (rawArgs: unknown): Promise<{ id: string }> => {
-            const { where, create, update } = rawArgs as {
+            const { create, update } = rawArgs as {
                 where: { clerkUserId: string };
                 create: {
                     clerkUserId: string;
@@ -187,53 +187,31 @@ class D1UserStore implements PrismaLike {
             const updateRole = update.role !== undefined ? update.role : null;
             const updateLastSignInAt = update.lastSignInAt ? update.lastSignInAt.toISOString() : null;
 
-            // Attempt UPDATE first; this is the common path for returning users.
-            const updated = await this.db
+            // Single atomic upsert: avoids the race between a separate UPDATE and INSERT
+            // under concurrent Clerk webhook delivery.  ON CONFLICT targets clerk_user_id
+            // (the unique constraint), making retried deliveries idempotent.
+            // created_at / updated_at are always included to satisfy NOT NULL constraints.
+            const id = crypto.randomUUID();
+            const row = await this.db
                 .prepare(
-                    `UPDATE users
-                     SET email           = COALESCE(?, email),
-                         email_verified  = COALESCE(?, email_verified),
+                    `INSERT INTO users
+                         (id, clerk_user_id, email, display_name, first_name, last_name, image_url, email_verified, tier, role, last_sign_in_at, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                     ON CONFLICT(clerk_user_id) DO UPDATE SET
+                         email           = COALESCE(?, users.email),
+                         email_verified  = COALESCE(?, users.email_verified),
                          display_name    = ?,
                          first_name      = ?,
                          last_name       = ?,
                          image_url       = ?,
-                         tier            = COALESCE(?, tier),
-                         role            = COALESCE(?, role),
+                         tier            = COALESCE(?, users.tier),
+                         role            = COALESCE(?, users.role),
                          last_sign_in_at = ?,
                          updated_at      = datetime('now')
-                     WHERE clerk_user_id = ?`,
+                     RETURNING id`,
                 )
                 .bind(
-                    updateEmail,
-                    updateEmailVerified,
-                    update.displayName !== undefined ? update.displayName : create.displayName,
-                    update.firstName !== undefined ? update.firstName : create.firstName,
-                    update.lastName !== undefined ? update.lastName : create.lastName,
-                    update.imageUrl !== undefined ? update.imageUrl : create.imageUrl,
-                    updateTier,
-                    updateRole,
-                    updateLastSignInAt,
-                    where.clerkUserId,
-                )
-                .run();
-
-            if ((updated.meta?.changes ?? 0) > 0) {
-                const row = await this.db
-                    .prepare('SELECT id FROM users WHERE clerk_user_id = ?')
-                    .bind(where.clerkUserId)
-                    .first<{ id: string }>();
-                return { id: row!.id };
-            }
-
-            // No existing row — insert a new one.
-            const id = crypto.randomUUID();
-            await this.db
-                .prepare(
-                    `INSERT INTO users
-                         (id, clerk_user_id, email, display_name, first_name, last_name, image_url, email_verified, tier, role, last_sign_in_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                )
-                .bind(
+                    // INSERT values (11 params — created_at/updated_at use datetime('now'))
                     id,
                     create.clerkUserId,
                     create.email,
@@ -245,10 +223,20 @@ class D1UserStore implements PrismaLike {
                     create.tier,
                     create.role,
                     create.lastSignInAt ? create.lastSignInAt.toISOString() : null,
+                    // ON CONFLICT DO UPDATE SET values (9 params)
+                    updateEmail,
+                    updateEmailVerified,
+                    update.displayName !== undefined ? update.displayName : create.displayName,
+                    update.firstName !== undefined ? update.firstName : create.firstName,
+                    update.lastName !== undefined ? update.lastName : create.lastName,
+                    update.imageUrl !== undefined ? update.imageUrl : create.imageUrl,
+                    updateTier,
+                    updateRole,
+                    updateLastSignInAt,
                 )
-                .run();
+                .first<{ id: string }>();
 
-            return { id };
+            return { id: row!.id };
         },
 
         deleteMany: async (rawArgs: unknown): Promise<{ count: number }> => {
