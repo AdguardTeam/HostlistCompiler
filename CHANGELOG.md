@@ -111,6 +111,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.57.0] - 2026-03-14
+
+### Added- add Zod runtime validation to Clerk auth trust boundaries (#1012)
+
+### Fixed
+
+- **test**: use AuthScope.Admin enum in auth-admin.test.ts
+- resolve TS2345 type error and address code review findings
+- address PR review feedback on Zod trust boundary validation
+
+
 ## [0.56.5] - 2026-03-14
 
 ### Added### Fixed
