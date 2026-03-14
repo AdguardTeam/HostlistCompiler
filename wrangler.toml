@@ -125,6 +125,15 @@ database_name = "adblock-compiler-d1-database"
 database_id = "3e8e7dfe-3213-452a-a671-6c18e6e74ce5"
 migrations_dir = "migrations"
 
+# Admin configuration database (isolated from main app data)
+# Created via: wrangler d1 create adblock-compiler-admin-d1
+# TODO: Replace database_id after running the create command
+[[d1_databases]]
+binding = "ADMIN_DB"
+database_name = "adblock-compiler-admin-d1"
+database_id = "PLACEHOLDER_RUN_WRANGLER_D1_CREATE"
+migrations_dir = "admin-migrations"
+
 # Static assets — served from the Angular production build output.
 # Run `npm --prefix frontend run build` to generate assets before deploying.
 # For local dev: `npm --prefix frontend start` for Angular dev server.

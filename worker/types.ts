@@ -440,6 +440,8 @@ export interface Env {
     CF_WEB_ANALYTICS_TOKEN?: string;
     // D1 Database binding (optional - for SQLite admin features)
     DB?: D1Database;
+    // Admin D1 Database binding (isolated admin config: roles, flags, audit, tiers, scopes)
+    ADMIN_DB?: D1Database;
     // Hyperdrive binding (optional - for PlanetScale PostgreSQL via Hyperdrive)
     HYPERDRIVE?: HyperdriveBinding;
     // Admin authentication key
