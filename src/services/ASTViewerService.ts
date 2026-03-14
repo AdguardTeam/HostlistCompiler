@@ -7,6 +7,7 @@
 
 import { AGTreeParser } from '../utils/AGTreeParser.ts';
 import type { AnyRule } from '../utils/AGTreeParser.ts';
+import type { ParsedNode, PluginRegistry } from '../plugins/PluginSystem.ts';
 
 /**
  * Parsed rule with display-friendly information.
@@ -274,5 +275,47 @@ export class ASTViewerService {
         }
 
         return parts.join(' | ');
+    }
+
+    /**
+     * Parse a single rule using the first available parser plugin from a
+     * {@link PluginRegistry}. Falls back to the direct {@link AGTreeParser}
+     * if no registry is provided or no parser plugins are registered.
+     *
+     * @param ruleText - The rule text to parse
+     * @param registry - Optional plugin registry to obtain parser plugins from
+     * @returns Parsed rule info (same shape as {@link parseRule})
+     */
+    static parseRuleViaPlugin(
+        ruleText: string,
+        registry?: PluginRegistry,
+    ): ParsedRuleInfo {
+        if (!registry) return this.parseRule(ruleText);
+
+        const parsers = registry.listParsers();
+        if (parsers.length === 0) return this.parseRule(ruleText);
+
+        const parser = registry.getParser(parsers[0]);
+        if (!parser) return this.parseRule(ruleText);
+
+        const result = parser.parse(ruleText) as ParsedNode;
+        if (result.type === 'Error') {
+            return {
+                ruleText,
+                success: false,
+                error: (result.error as string) ??
+                    'Parser plugin returned error',
+            };
+        }
+
+        return {
+            ruleText,
+            success: true,
+            category: result.category as string | undefined,
+            type: result.type,
+            syntax: result.syntax as string | undefined,
+            valid: true,
+            ast: result.ast as AnyRule | undefined,
+        };
     }
 }

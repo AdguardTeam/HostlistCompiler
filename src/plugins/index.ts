@@ -3,6 +3,7 @@
  */
 
 export { createSimplePlugin, globalRegistry, PluginRegistry, PluginTransformationWrapper } from './PluginSystem.ts';
+export { agTreeParserPlugin } from './AGTreeParserPlugin.ts';
 
 export type {
     CacheBackendPlugin,
