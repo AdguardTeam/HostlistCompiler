@@ -2,8 +2,10 @@
  * Plugin system exports
  */
 
-export { createSimplePlugin, globalRegistry, PluginRegistry, PluginTransformationWrapper } from './PluginSystem.ts';
+export { createSimplePlugin, globalRegistry, PluginRegistry, PluginTransformationWrapper, topologicalSort } from './PluginSystem.ts';
 export { agTreeParserPlugin } from './AGTreeParserPlugin.ts';
+export { discoverPlugins } from './PluginDiscovery.ts';
+export type { DiscoveryOptions } from './PluginDiscovery.ts';
 
 export type {
     CacheBackendPlugin,

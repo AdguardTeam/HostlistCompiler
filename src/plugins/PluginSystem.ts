@@ -361,6 +361,18 @@ export class PluginRegistry {
             throw new Error(`Plugin "${name}" is already registered`);
         }
 
+        // Validate declared dependencies are already registered
+        if (plugin.manifest.dependencies?.length) {
+            const missing = plugin.manifest.dependencies.filter(
+                (dep) => !this.plugins.has(dep),
+            );
+            if (missing.length > 0) {
+                throw new Error(
+                    `Plugin "${name}" has unmet dependencies: ${missing.join(', ')}`,
+                );
+            }
+        }
+
         this.logger.info(`Registering plugin: ${name} v${plugin.manifest.version}`);
 
         // Dispatch transformations
@@ -521,6 +533,18 @@ export class PluginRegistry {
 
         this.plugins.set(name, plugin);
         this.logger.info(`Plugin "${name}" registered successfully`);
+    }
+
+    /**
+     * Register multiple plugins at once, resolving inter-plugin
+     * dependencies via topological sort. Throws if a dependency
+     * cycle is detected or an external dependency is missing.
+     */
+    async registerAll(plugins: Plugin[]): Promise<void> {
+        const sorted = topologicalSort(plugins);
+        for (const plugin of sorted) {
+            await this.register(plugin);
+        }
     }
 
     /**
@@ -871,6 +895,44 @@ export class PluginTransformationWrapper extends Transformation {
     ): Promise<readonly string[]> {
         return this.plugin.execute(rules, context);
     }
+}
+
+// ── Dependency Resolution ───────────────────────────────────────────
+
+/**
+ * Topologically sort a list of plugins so that dependencies are
+ * registered before their dependents. Throws on cycles.
+ */
+export function topologicalSort(plugins: Plugin[]): Plugin[] {
+    const byName = new Map<string, Plugin>();
+    for (const p of plugins) byName.set(p.manifest.name, p);
+
+    const visited = new Set<string>();
+    const visiting = new Set<string>();
+    const ordered: Plugin[] = [];
+
+    function visit(name: string): void {
+        if (visited.has(name)) return;
+        if (visiting.has(name)) {
+            throw new Error(`Circular plugin dependency detected involving "${name}"`);
+        }
+        visiting.add(name);
+
+        const plugin = byName.get(name);
+        if (plugin?.manifest.dependencies) {
+            for (const dep of plugin.manifest.dependencies) {
+                // Only resolve within the provided set
+                if (byName.has(dep)) visit(dep);
+            }
+        }
+
+        visiting.delete(name);
+        visited.add(name);
+        if (plugin) ordered.push(plugin);
+    }
+
+    for (const p of plugins) visit(p.manifest.name);
+    return ordered;
 }
 
 /**

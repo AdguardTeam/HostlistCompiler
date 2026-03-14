@@ -1155,6 +1155,10 @@ Deno.test('PluginRegistry - multi-slot plugin', async (t) => {
 Deno.test('PluginManifest - dependencies field', async () => {
     const registry = new PluginRegistry(silentLogger);
 
+    // Register dependencies first
+    await registry.register({ manifest: { name: 'core-plugin', version: '1.0.0' } });
+    await registry.register({ manifest: { name: 'parser-plugin', version: '1.0.0' } });
+
     const plugin: Plugin = {
         manifest: createTestManifest({
             name: 'dependent-plugin',
@@ -1386,4 +1390,113 @@ Deno.test('resolveConflicts — delegates to resolver plugin', async () => {
 Deno.test('resolveConflicts — returns undefined when no resolver', () => {
     const registry = new PluginRegistry(silentLogger);
     assertEquals(registry.resolveConflicts([] as never), undefined);
+});
+
+// ── Phase 4: Dependency Resolution ──────────────────────────────────
+
+Deno.test('register — rejects plugin with unmet dependencies', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    const plugin: Plugin = {
+        manifest: { name: 'child', version: '1.0.0', dependencies: ['parent'] },
+    };
+
+    await assertRejects(
+        () => registry.register(plugin),
+        Error,
+        'unmet dependencies: parent',
+    );
+});
+
+Deno.test('register — accepts plugin when all dependencies satisfied', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    const parent: Plugin = { manifest: { name: 'parent', version: '1.0.0' } };
+    const child: Plugin = {
+        manifest: { name: 'child', version: '1.0.0', dependencies: ['parent'] },
+    };
+
+    await registry.register(parent);
+    await registry.register(child);
+
+    assertExists(registry.getPlugin('child'));
+});
+
+Deno.test('registerAll — sorts by dependencies', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    const order: string[] = [];
+
+    const a: Plugin = {
+        manifest: { name: 'a', version: '1.0.0' },
+        init: () => {
+            order.push('a');
+        },
+    };
+    const b: Plugin = {
+        manifest: { name: 'b', version: '1.0.0', dependencies: ['a'] },
+        init: () => {
+            order.push('b');
+        },
+    };
+    const c: Plugin = {
+        manifest: { name: 'c', version: '1.0.0', dependencies: ['b'] },
+        init: () => {
+            order.push('c');
+        },
+    };
+
+    // Pass them in reverse order to prove sort works
+    await registry.registerAll([c, b, a]);
+
+    assertEquals(order, ['a', 'b', 'c']);
+    assertExists(registry.getPlugin('a'));
+    assertExists(registry.getPlugin('b'));
+    assertExists(registry.getPlugin('c'));
+});
+
+Deno.test('registerAll — detects circular dependency', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    const a: Plugin = {
+        manifest: { name: 'a', version: '1.0.0', dependencies: ['b'] },
+    };
+    const b: Plugin = {
+        manifest: { name: 'b', version: '1.0.0', dependencies: ['a'] },
+    };
+
+    await assertRejects(
+        () => registry.registerAll([a, b]),
+        Error,
+        'Circular plugin dependency',
+    );
+});
+
+// Use the exported function directly
+import { topologicalSort } from './PluginSystem.ts';
+
+Deno.test('topologicalSort — preserves order for independent plugins', () => {
+    const a: Plugin = { manifest: { name: 'a', version: '1.0.0' } };
+    const b: Plugin = { manifest: { name: 'b', version: '1.0.0' } };
+    const result = topologicalSort([a, b]);
+    assertEquals(result.length, 2);
+    assertEquals(result[0].manifest.name, 'a');
+    assertEquals(result[1].manifest.name, 'b');
+});
+
+Deno.test('topologicalSort — reorders based on dependencies', () => {
+    const a: Plugin = { manifest: { name: 'a', version: '1.0.0', dependencies: ['b'] } };
+    const b: Plugin = { manifest: { name: 'b', version: '1.0.0' } };
+    const result = topologicalSort([a, b]);
+    assertEquals(result[0].manifest.name, 'b');
+    assertEquals(result[1].manifest.name, 'a');
+});
+
+Deno.test('topologicalSort — throws on cycle', () => {
+    const a: Plugin = { manifest: { name: 'a', version: '1.0.0', dependencies: ['b'] } };
+    const b: Plugin = { manifest: { name: 'b', version: '1.0.0', dependencies: ['a'] } };
+    let threw = false;
+    try {
+        topologicalSort([a, b]);
+    } catch (e) {
+        threw = true;
+        assertEquals((e as Error).message.includes('Circular'), true);
+    }
+    assertEquals(threw, true);
 });
