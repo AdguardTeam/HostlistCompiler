@@ -162,8 +162,8 @@ interface TierFormData {
 
     <!-- Create / Edit Dialog -->
     @if (dialogMode()) {
-        <div class="overlay" (click)="closeDialog()">
-            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeDialog()" (keydown.enter)="closeDialog()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">{{ dialogMode() === 'create' ? 'add_circle' : 'edit' }}</mat-icon>
                     <mat-card-title>{{ dialogMode() === 'create' ? 'Create Tier' : 'Edit Tier' }}</mat-card-title>
@@ -218,8 +218,8 @@ interface TierFormData {
 
     <!-- Delete Confirmation -->
     @if (deletingTier()) {
-        <div class="overlay" (click)="closeDeleteConfirm()">
-            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeDeleteConfirm()" (keydown.enter)="closeDeleteConfirm()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar style="color: var(--mat-sys-error)" aria-hidden="true">warning</mat-icon>
                     <mat-card-title>Delete Tier</mat-card-title>
@@ -336,7 +336,7 @@ export class TiersComponent {
         sorted.sort((a, b) => {
             const aVal = (a as unknown as Record<string, unknown>)[active];
             const bVal = (b as unknown as Record<string, unknown>)[active];
-            let cmp = 0;
+            let cmp: number;
             if (typeof aVal === 'number' && typeof bVal === 'number') {
                 cmp = aVal - bVal;
             } else {

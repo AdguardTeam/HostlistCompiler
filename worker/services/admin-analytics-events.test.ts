@@ -9,7 +9,7 @@
  *   - All functions are no-op when ANALYTICS_ENGINE is undefined (no throw)
  */
 
-import { assertEquals, assertExists } from 'jsr:@std/assert';
+import { assertEquals, assertExists } from '@std/assert';
 import { trackAdminAction, trackAdminAuthFailure, trackAdminConfigChange, trackFeatureFlagEvaluation } from './admin-analytics-events.ts';
 import type { Env } from '../types.ts';
 

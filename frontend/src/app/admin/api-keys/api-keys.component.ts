@@ -202,8 +202,8 @@ type KeyStatus = 'all' | 'active' | 'revoked' | 'expired';
 
     <!-- Detail overlay -->
     @if (detailKey()) {
-        <div class="overlay" (click)="closeDetail()">
-            <mat-card appearance="outlined" class="detail-dialog" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="detail-dialog" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">info</mat-icon>
                     <mat-card-title>Key Details</mat-card-title>
@@ -272,8 +272,8 @@ type KeyStatus = 'all' | 'active' | 'revoked' | 'expired';
 
     <!-- Revoke confirmation -->
     @if (revokingKey()) {
-        <div class="overlay" (click)="closeRevokeConfirm()">
-            <mat-card appearance="outlined" class="detail-dialog" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeRevokeConfirm()" (keydown.enter)="closeRevokeConfirm()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="detail-dialog" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar style="color: var(--mat-sys-error)" aria-hidden="true">warning</mat-icon>
                     <mat-card-title>Revoke API Key</mat-card-title>

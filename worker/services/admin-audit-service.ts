@@ -171,22 +171,20 @@ export async function queryAuditLogs(
         params.push(query.until);
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
 
     // --- total count (same WHERE, no LIMIT/OFFSET) ---
+    const countSql = 'SELECT COUNT(*) AS cnt FROM admin_audit_logs ' + whereClause;
     const countResult = await db
-        .prepare(`SELECT COUNT(*) AS cnt FROM admin_audit_logs ${whereClause}`)
+        .prepare(countSql)
         .bind(...params)
         .first<{ cnt: number }>();
     const total = countResult?.cnt ?? 0;
 
     // --- paginated rows ---
+    const rowsSql = 'SELECT * FROM admin_audit_logs ' + whereClause + ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
     const rowsResult = await db
-        .prepare(
-            `SELECT * FROM admin_audit_logs ${whereClause}
-			 ORDER BY created_at DESC
-			 LIMIT ? OFFSET ?`,
-        )
+        .prepare(rowsSql)
         .bind(...params, query.limit, query.offset)
         .all();
 
@@ -337,10 +335,11 @@ export async function countAuditLogs(
         }
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
 
+    const countSql = 'SELECT COUNT(*) AS cnt FROM admin_audit_logs ' + whereClause;
     const row = await db
-        .prepare(`SELECT COUNT(*) AS cnt FROM admin_audit_logs ${whereClause}`)
+        .prepare(countSql)
         .bind(...params)
         .first<{ cnt: number }>();
 

@@ -15,7 +15,7 @@
  * the middleware logic.
  */
 
-import { assertEquals, assertExists } from 'jsr:@std/assert';
+import { assertEquals, assertExists } from '@std/assert';
 
 // We need to mock ClerkAuthProvider and resolveAdminContext.
 // Since the middleware imports them directly, we use a different approach:
