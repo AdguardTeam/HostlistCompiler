@@ -2,9 +2,29 @@
  * Plugin system exports
  */
 
-export { createSimplePlugin, globalRegistry, PluginRegistry, PluginTransformationWrapper } from './PluginSystem.ts';
+export { createSimplePlugin, globalRegistry, PluginRegistry, PluginTransformationWrapper, topologicalSort } from './PluginSystem.ts';
+export { agTreeParserPlugin } from './AGTreeParserPlugin.ts';
+// discoverPlugins and DiscoveryOptions are Deno-only (depends on PluginLoader.deno.ts).
+// Import directly: import { discoverPlugins } from './plugins/PluginDiscovery.ts'
 
-export type { DownloaderPlugin, Plugin, PluginContext, PluginLoadOptions, PluginManifest, TransformationPlugin } from './PluginSystem.ts';
+export type {
+    CacheBackendPlugin,
+    ConflictResolverPlugin,
+    DiffReporterPlugin,
+    DownloaderPlugin,
+    EventHookPlugin,
+    FormatterPlugin,
+    HeaderGeneratorPlugin,
+    ParsedNode,
+    ParserPlugin,
+    Plugin,
+    PluginContext,
+    PluginLoadOptions,
+    PluginManifest,
+    SubsystemBridge,
+    TransformationPlugin,
+    ValidationPlugin,
+} from './PluginSystem.ts';
 
 /**
  * @deprecated `loadPlugin` has been removed from the public API. Dynamic plugin loading

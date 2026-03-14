@@ -238,7 +238,24 @@ export type { OptimizationStats, RuleOptimizerOptions } from './transformations/
 
 // Plugin system
 export { createSimplePlugin, globalRegistry, loadPlugin, PluginRegistry, PluginTransformationWrapper } from './plugins/index.ts';
-export type { DownloaderPlugin, Plugin, PluginContext, PluginLoadOptions, PluginManifest, TransformationPlugin } from './plugins/index.ts';
+export type {
+    CacheBackendPlugin,
+    ConflictResolverPlugin,
+    DiffReporterPlugin,
+    DownloaderPlugin,
+    EventHookPlugin,
+    FormatterPlugin,
+    HeaderGeneratorPlugin,
+    ParsedNode,
+    ParserPlugin,
+    Plugin,
+    PluginContext,
+    PluginLoadOptions,
+    PluginManifest,
+    SubsystemBridge,
+    TransformationPlugin,
+    ValidationPlugin,
+} from './plugins/index.ts';
 
 // Default export for backward compatibility
 import { compile as compileFunc } from './compiler/index.ts';

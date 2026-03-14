@@ -7,6 +7,7 @@
 
 import { AGTreeParser } from '../utils/AGTreeParser.ts';
 import type { AnyRule } from '../utils/AGTreeParser.ts';
+import type { ParsedNode, PluginRegistry } from '../plugins/PluginSystem.ts';
 
 /**
  * Parsed rule with display-friendly information.
@@ -274,5 +275,70 @@ export class ASTViewerService {
         }
 
         return parts.join(' | ');
+    }
+
+    /**
+     * Parse a single rule using a parser plugin from a {@link PluginRegistry}.
+     * Parser selection prefers plugins whose `supportedSyntaxes` includes
+     * `'adblock'`; falls back to the first registered parser when none match.
+     * Falls back to the direct {@link AGTreeParser} if no registry is provided
+     * or no parser plugins are registered.
+     *
+     * If the parser returns an array of nodes, the result is only accepted when
+     * exactly one node is returned. Any other array result falls back to the
+     * direct {@link AGTreeParser}.
+     *
+     * @param ruleText - The rule text to parse
+     * @param registry - Optional plugin registry to obtain parser plugins from
+     * @returns Parsed rule info (same shape as {@link parseRule})
+     */
+    static parseRuleViaPlugin(
+        ruleText: string,
+        registry?: PluginRegistry,
+    ): ParsedRuleInfo {
+        if (!registry) return this.parseRule(ruleText);
+
+        const parserNames = registry.listParsers();
+        if (parserNames.length === 0) return this.parseRule(ruleText);
+
+        // Prefer a parser that advertises support for the generic 'adblock' syntax;
+        // fall back to parserNames[0] which is guaranteed non-empty (length checked above).
+        const adblockParsers = registry.getParsersForSyntax('adblock');
+        const parserName = adblockParsers.length > 0 ? adblockParsers[0].name : parserNames[0];
+        const parser = registry.getParser(parserName);
+        if (!parser) return this.parseRule(ruleText);
+
+        const rawResult = parser.parse(ruleText);
+
+        // Normalise array results: accept only single-node arrays
+        let result: ParsedNode;
+        if (Array.isArray(rawResult)) {
+            if (rawResult.length !== 1) {
+                // Multi-node (or empty) result – fall back to direct parser
+                return this.parseRule(ruleText);
+            }
+            result = rawResult[0];
+        } else {
+            result = rawResult;
+        }
+
+        if (result.type === 'Error') {
+            return {
+                ruleText,
+                success: false,
+                error: (result.error as string) ??
+                    'Parser plugin returned error',
+            };
+        }
+
+        return {
+            ruleText,
+            success: true,
+            category: result.category as string | undefined,
+            type: result.type,
+            syntax: result.syntax as string | undefined,
+            valid: true,
+            ast: result.ast as AnyRule | undefined,
+        };
     }
 }

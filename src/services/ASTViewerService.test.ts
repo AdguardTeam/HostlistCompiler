@@ -161,3 +161,135 @@ Deno.test('ASTViewerService - Format AST', () => {
         assertEquals(formatted.includes('||example.com^'), true);
     }
 });
+
+// ─────────────────────────────────────────────────────────────────────
+// parseRuleViaPlugin — array handling and supportedSyntaxes selection
+// ─────────────────────────────────────────────────────────────────────
+
+import { type ParsedNode, PluginRegistry } from '../plugins/PluginSystem.ts';
+import { silentLogger } from '../utils/index.ts';
+
+Deno.test('parseRuleViaPlugin — falls back when no registry provided', () => {
+    const result = ASTViewerService.parseRuleViaPlugin('||example.com^');
+    assertEquals(result.success, true);
+    assertEquals(result.type, 'NetworkRule');
+});
+
+Deno.test('parseRuleViaPlugin — falls back when registry has no parsers', () => {
+    const registry = new PluginRegistry(silentLogger);
+    const result = ASTViewerService.parseRuleViaPlugin('||example.com^', registry);
+    assertEquals(result.success, true);
+});
+
+Deno.test('parseRuleViaPlugin — uses scalar ParsedNode result', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    await registry.register({
+        manifest: { name: 'scalar-parser', version: '1.0.0' },
+        parsers: [{
+            name: 'scalar-parser',
+            supportedSyntaxes: ['adblock'],
+            parse: (_input: string): ParsedNode => ({
+                type: 'NetworkRule',
+                category: 'Network',
+                syntax: 'AdGuard',
+            }),
+        }],
+    });
+
+    const result = ASTViewerService.parseRuleViaPlugin('||example.com^', registry);
+    assertEquals(result.success, true);
+    assertEquals(result.type, 'NetworkRule');
+});
+
+Deno.test('parseRuleViaPlugin — handles single-element array result', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    await registry.register({
+        manifest: { name: 'array-parser', version: '1.0.0' },
+        parsers: [{
+            name: 'array-parser',
+            supportedSyntaxes: ['adblock'],
+            parse: (_input: string): ParsedNode[] => [{
+                type: 'NetworkRule',
+                category: 'Network',
+            }],
+        }],
+    });
+
+    const result = ASTViewerService.parseRuleViaPlugin('||example.com^', registry);
+    assertEquals(result.success, true);
+    assertEquals(result.type, 'NetworkRule');
+});
+
+Deno.test('parseRuleViaPlugin — falls back to direct parser for multi-node array', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    await registry.register({
+        manifest: { name: 'multi-parser', version: '1.0.0' },
+        parsers: [{
+            name: 'multi-parser',
+            supportedSyntaxes: ['adblock'],
+            parse: (_input: string): ParsedNode[] => [
+                { type: 'NetworkRule' },
+                { type: 'Comment' },
+            ],
+        }],
+    });
+
+    // Should fall back to direct AGTree parser
+    const result = ASTViewerService.parseRuleViaPlugin('||example.com^', registry);
+    assertEquals(result.success, true);
+    assertEquals(result.type, 'NetworkRule');
+});
+
+Deno.test('parseRuleViaPlugin — prefers parser with adblock supportedSyntaxes', async () => {
+    const callOrder: string[] = [];
+    const registry = new PluginRegistry(silentLogger);
+
+    // Register a non-adblock parser first so it would be picked by naïve first-parser logic
+    await registry.register({
+        manifest: { name: 'hosts-parser', version: '1.0.0' },
+        parsers: [{
+            name: 'hosts-parser',
+            supportedSyntaxes: ['hosts'],
+            parse: (_input: string): ParsedNode => {
+                callOrder.push('hosts-parser');
+                return { type: 'HostRule' };
+            },
+        }],
+    });
+
+    // Register an adblock parser second
+    await registry.register({
+        manifest: { name: 'adblock-parser', version: '1.0.0' },
+        parsers: [{
+            name: 'adblock-parser',
+            supportedSyntaxes: ['adblock'],
+            parse: (_input: string): ParsedNode => {
+                callOrder.push('adblock-parser');
+                return { type: 'NetworkRule', category: 'Network' };
+            },
+        }],
+    });
+
+    ASTViewerService.parseRuleViaPlugin('||example.com^', registry);
+    // The adblock-syntax parser should be preferred
+    assertEquals(callOrder, ['adblock-parser']);
+});
+
+Deno.test('parseRuleViaPlugin — returns error result for Error node', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    await registry.register({
+        manifest: { name: 'error-parser', version: '1.0.0' },
+        parsers: [{
+            name: 'error-parser',
+            supportedSyntaxes: ['adblock'],
+            parse: (_input: string): ParsedNode => ({
+                type: 'Error',
+                error: 'parse failed',
+            }),
+        }],
+    });
+
+    const result = ASTViewerService.parseRuleViaPlugin('bad input', registry);
+    assertEquals(result.success, false);
+    assertEquals(result.error, 'parse failed');
+});
