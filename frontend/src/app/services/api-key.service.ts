@@ -9,14 +9,34 @@
  */
 
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom, retry, timer } from 'rxjs';
 import {
     GetKeysResponseSchema,
     CreateKeyResponseSchema,
     UpdateKeyResponseSchema,
     validateResponse,
 } from '../schemas/api-responses';
+
+// ---------------------------------------------------------------------------
+// Retry helper for transient HTTP errors (5xx, network failures)
+// ---------------------------------------------------------------------------
+
+/** Retry config: 2 retries with exponential backoff, only for transient errors. */
+const TRANSIENT_RETRY = retry<unknown>({
+    count: 2,
+    delay: (error, retryCount) => {
+        // Only retry on 5xx or network errors (status 0)
+        if (error instanceof HttpErrorResponse && error.status >= 500) {
+            return timer(300 * 2 ** (retryCount - 1));
+        }
+        if (error instanceof HttpErrorResponse && error.status === 0) {
+            return timer(300 * 2 ** (retryCount - 1));
+        }
+        // Don't retry 4xx or non-HTTP errors
+        throw error;
+    },
+});
 
 // ---------------------------------------------------------------------------
 // Types
@@ -87,7 +107,7 @@ export class ApiKeyService {
         this._error.set(null);
         try {
             const raw = await firstValueFrom(
-                this.http.get<unknown>('/api/keys'),
+                this.http.get<unknown>('/api/keys').pipe(TRANSIENT_RETRY),
             );
             const res = validateResponse(GetKeysResponseSchema, raw, 'GET /api/keys');
             this._keys.set(res.keys ?? []);
@@ -103,7 +123,7 @@ export class ApiKeyService {
         this._error.set(null);
         try {
             const raw = await firstValueFrom(
-                this.http.post<unknown>('/api/keys', req),
+                this.http.post<unknown>('/api/keys', req).pipe(TRANSIENT_RETRY),
             );
             const res = validateResponse(CreateKeyResponseSchema, raw, 'POST /api/keys');
             // Refresh the list to include the new key
@@ -120,7 +140,7 @@ export class ApiKeyService {
         this._error.set(null);
         try {
             await firstValueFrom(
-                this.http.delete(`/api/keys/${id}`),
+                this.http.delete(`/api/keys/${id}`).pipe(TRANSIENT_RETRY),
             );
             // Update local state immediately
             this._keys.update((keys) =>
@@ -138,7 +158,7 @@ export class ApiKeyService {
         this._error.set(null);
         try {
             const raw = await firstValueFrom(
-                this.http.patch<unknown>(`/api/keys/${id}`, req),
+                this.http.patch<unknown>(`/api/keys/${id}`, req).pipe(TRANSIENT_RETRY),
             );
             const res = validateResponse(UpdateKeyResponseSchema, raw, `PATCH /api/keys/${id}`);
             // Backend returns the updated key fields at the top level alongside success:true

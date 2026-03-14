@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SignInComponent } from './sign-in.component';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 /** Build a minimal ActivatedRoute stub with the given query params snapshot. */
 function makeRoute(queryParams: Record<string, string> = {}) {
@@ -19,13 +20,19 @@ function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: bool
     };
 }
 
+function makeMockTheme(dark = false) {
+    return { isDark: signal(dark) };
+}
+
 describe('SignInComponent', () => {
     let component: SignInComponent;
     let fixture: ComponentFixture<SignInComponent>;
     let mockClerkService: ReturnType<typeof makeMockClerk>;
+    let mockThemeService: ReturnType<typeof makeMockTheme>;
 
     beforeEach(async () => {
         mockClerkService = makeMockClerk();
+        mockThemeService = makeMockTheme();
 
         await TestBed.configureTestingModule({
             imports: [SignInComponent],
@@ -33,6 +40,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkService },
                 { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: mockThemeService },
             ],
         }).compileComponents();
 
@@ -106,6 +114,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: clerkWithReturn },
                 { provide: ActivatedRoute, useValue: routeWithReturn },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         }).compileComponents();
 
@@ -127,6 +136,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: clerk },
                 { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         }).compileComponents();
 
@@ -154,6 +164,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: makeMockClerk() },
                 { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         });
 
@@ -175,6 +186,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkNoMount },
                 { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         });
 
@@ -182,5 +194,46 @@ describe('SignInComponent', () => {
         tempFixture.detectChanges();
 
         expect(() => tempFixture.detectChanges()).not.toThrow();
+    });
+
+    it('should unmount and remount when theme changes while mounted', () => {
+        // afterNextRender fired in beforeEach — component is mounted
+        expect(mockClerkService.mountSignIn).toHaveBeenCalledTimes(1);
+
+        // Toggle theme
+        mockThemeService.isDark.set(true);
+        TestBed.flushEffects();
+
+        // Should have unmounted the old widget and remounted with new appearance
+        expect(mockClerkService.unmountSignIn).toHaveBeenCalledTimes(1);
+        expect(mockClerkService.mountSignIn).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not remount when theme changes before initial mount', () => {
+        TestBed.resetTestingModule();
+        const clerk = makeMockClerk({ isLoaded: true, isAvailable: false });
+        const theme = makeMockTheme();
+
+        TestBed.configureTestingModule({
+            imports: [SignInComponent],
+            providers: [
+                provideZonelessChangeDetection(),
+                { provide: ClerkService, useValue: clerk },
+                { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: theme },
+            ],
+        });
+
+        // isAvailable is false → no container → widget never mounted
+        const f = TestBed.createComponent(SignInComponent);
+        f.detectChanges();
+        expect(clerk.mountSignIn).not.toHaveBeenCalled();
+
+        // Toggling theme with nothing mounted should not call unmount/mount
+        theme.isDark.set(true);
+        TestBed.flushEffects();
+
+        expect(clerk.unmountSignIn).not.toHaveBeenCalled();
+        expect(clerk.mountSignIn).not.toHaveBeenCalled();
     });
 });
