@@ -2,7 +2,7 @@
  * Handler for POST /api/webhooks/clerk
  *
  * Receives Clerk webhook events, verifies the Svix signature, and
- * syncs user data to D1 (SQLite) via Prisma with the @prisma/adapter-d1 adapter.
+ * syncs user data to D1 (SQLite) via the native D1 binding.
  *
  * Supported events:
  *   - user.created  → upsert user record
@@ -10,11 +10,15 @@
  *   - user.deleted  → delete user record
  *
  * Security: Svix HMAC signature verification (no JWT / API-key auth).
+ *
+ * Note: this handler intentionally does NOT use the Prisma-generated D1 client.
+ * The `prisma-client` generator (v7) embeds a WASM-based query compiler that calls
+ * `new WebAssembly.Module(base64Data)` at instantiation time — an operation blocked by
+ * Cloudflare Workers' embedder.  The {@link D1UserStore} class below uses the D1
+ * binding's `prepare/bind/run/first` API directly and carries no WASM dependency.
  */
 
 import { Webhook } from 'svix';
-import { PrismaClient } from '../../prisma/generated-d1/client.ts';
-import { PrismaD1 } from '@prisma/adapter-d1';
 import { JsonResponse } from '../utils/response.ts';
 import { UserTier } from '../types.ts';
 import type { Env } from '../types.ts';
@@ -127,6 +131,130 @@ export interface PrismaLike {
 }
 
 // ---------------------------------------------------------------------------
+// D1-native implementation of PrismaLike (no WASM dependency)
+// ---------------------------------------------------------------------------
+
+/**
+ * Implements {@link PrismaLike} using the D1 binding's `prepare/bind/run/first` API.
+ *
+ * The Prisma-generated D1 client calls `new WebAssembly.Module(base64Data)` at
+ * instantiation time, which Cloudflare Workers' embedder blocks.  This class
+ * replaces that client for the webhook handler with plain SQL — no WASM required.
+ *
+ * Operations:
+ *   - `user.upsert`    — single atomic `INSERT … ON CONFLICT(clerk_user_id) DO UPDATE`
+ *   - `user.deleteMany` — DELETE WHERE clerk_user_id = ?
+ *   - `$disconnect`    — no-op (D1 connections are managed by the runtime)
+ */
+class D1UserStore implements PrismaLike {
+    constructor(private readonly db: NonNullable<Env['DB']>) {}
+
+    readonly user = {
+        upsert: async (rawArgs: unknown): Promise<{ id: string }> => {
+            const { create, update } = rawArgs as {
+                where: { clerkUserId: string };
+                create: {
+                    clerkUserId: string;
+                    email: string | null;
+                    displayName: string;
+                    firstName: string | null;
+                    lastName: string | null;
+                    imageUrl: string | null;
+                    emailVerified: boolean;
+                    tier: string;
+                    role: string;
+                    lastSignInAt: Date | null;
+                };
+                update: {
+                    email?: string;
+                    emailVerified?: boolean;
+                    displayName?: string;
+                    firstName?: string | null;
+                    lastName?: string | null;
+                    imageUrl?: string | null;
+                    tier?: string;
+                    role?: string;
+                    lastSignInAt?: Date | null;
+                };
+            };
+
+            // email/emailVerified are conditionally present in update (emailless users omit them).
+            // Passing null to COALESCE(?, col) preserves the existing column value.
+            const updateEmail = 'email' in update ? (update.email ?? null) : null;
+            const updateEmailVerified = 'emailVerified' in update ? (update.emailVerified ? 1 : 0) : null;
+            // tier/role from Clerk metadata may be undefined (invalid) — preserve existing in that case.
+            const updateTier = update.tier !== undefined ? update.tier : null;
+            const updateRole = update.role !== undefined ? update.role : null;
+            const updateLastSignInAt = update.lastSignInAt ? update.lastSignInAt.toISOString() : null;
+
+            // Single atomic upsert: avoids the race between a separate UPDATE and INSERT
+            // under concurrent Clerk webhook delivery.  ON CONFLICT targets clerk_user_id
+            // (the unique constraint), making retried deliveries idempotent.
+            // created_at / updated_at are always included to satisfy NOT NULL constraints.
+            const id = crypto.randomUUID();
+            const row = await this.db
+                .prepare(
+                    `INSERT INTO users
+                         (id, clerk_user_id, email, display_name, first_name, last_name, image_url, email_verified, tier, role, last_sign_in_at, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                     ON CONFLICT(clerk_user_id) DO UPDATE SET
+                         email           = COALESCE(?, users.email),
+                         email_verified  = COALESCE(?, users.email_verified),
+                         display_name    = ?,
+                         first_name      = ?,
+                         last_name       = ?,
+                         image_url       = ?,
+                         tier            = COALESCE(?, users.tier),
+                         role            = COALESCE(?, users.role),
+                         last_sign_in_at = ?,
+                         updated_at      = datetime('now')
+                     RETURNING id`,
+                )
+                .bind(
+                    // INSERT values (11 params — created_at/updated_at use datetime('now'))
+                    id,
+                    create.clerkUserId,
+                    create.email,
+                    create.displayName,
+                    create.firstName,
+                    create.lastName,
+                    create.imageUrl,
+                    create.emailVerified ? 1 : 0,
+                    create.tier,
+                    create.role,
+                    create.lastSignInAt ? create.lastSignInAt.toISOString() : null,
+                    // ON CONFLICT DO UPDATE SET values (9 params)
+                    updateEmail,
+                    updateEmailVerified,
+                    update.displayName !== undefined ? update.displayName : create.displayName,
+                    update.firstName !== undefined ? update.firstName : create.firstName,
+                    update.lastName !== undefined ? update.lastName : create.lastName,
+                    update.imageUrl !== undefined ? update.imageUrl : create.imageUrl,
+                    updateTier,
+                    updateRole,
+                    updateLastSignInAt,
+                )
+                .first<{ id: string }>();
+
+            return { id: row!.id };
+        },
+
+        deleteMany: async (rawArgs: unknown): Promise<{ count: number }> => {
+            const { where } = rawArgs as { where: { clerkUserId: string } };
+            const result = await this.db
+                .prepare('DELETE FROM users WHERE clerk_user_id = ?')
+                .bind(where.clerkUserId)
+                .run();
+            return { count: result.meta?.changes ?? 0 };
+        },
+    };
+
+    async $disconnect(): Promise<void> {
+        // D1 connections are managed by the Workers runtime — nothing to close.
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Route handler
 // ---------------------------------------------------------------------------
 
@@ -178,7 +306,7 @@ export async function handleClerkWebhook(
         return JsonResponse.error('Invalid webhook signature', 401);
     }
 
-    // ---- 4. Obtain a D1 database connection via Prisma ----
+    // ---- 4. Obtain the D1 database binding ----
     const db = env.DB;
     if (!db) {
         return JsonResponse.serviceUnavailable(
@@ -190,10 +318,7 @@ export async function handleClerkWebhook(
     // ---- 5. Handle event ----
     let prisma: PrismaLike | null = null;
     try {
-        prisma = testPrisma ?? (() => {
-            const adapter = new PrismaD1(db);
-            return new PrismaClient({ adapter }) as unknown as PrismaLike;
-        })();
+        prisma = testPrisma ?? new D1UserStore(db);
 
         switch (event.type) {
             case 'user.created':
