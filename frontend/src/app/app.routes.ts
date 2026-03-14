@@ -39,10 +39,12 @@ export const routes: Routes = [
     },
     // Common auth path aliases — redirect to canonical routes so users
     // arriving via /login, /log-in, /register etc. land on the right page.
-    { path: 'login', redirectTo: 'sign-in' },
-    { path: 'log-in', redirectTo: 'sign-in' },
-    { path: 'register', redirectTo: 'sign-up' },
-    { path: 'signup', redirectTo: 'sign-up' },
+    // pathMatch: 'full' ensures only the exact alias path is redirected;
+    // any nested segments (e.g. /login/callback) are not inadvertently consumed.
+    { path: 'login', redirectTo: 'sign-in', pathMatch: 'full' },
+    { path: 'log-in', redirectTo: 'sign-in', pathMatch: 'full' },
+    { path: 'register', redirectTo: 'sign-up', pathMatch: 'full' },
+    { path: 'signup', redirectTo: 'sign-up', pathMatch: 'full' },
     {
         path: 'compiler',
         loadComponent: () => import('./compiler/compiler.component').then((m) => m.CompilerComponent),

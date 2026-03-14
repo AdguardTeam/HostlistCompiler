@@ -123,7 +123,11 @@ export const appConfig: ApplicationConfig = {
                 );
                 await clerkService.initialize(clerkConfig.publishableKey ?? '');
             } catch (err) {
+                // Mark the config fetch as failed so the header can show a transient-error
+                // message (e.g. "Sign in temporarily unavailable") rather than implying the
+                // auth environment variable is missing.
                 console.warn('[app.config] Failed to load Clerk config:', err instanceof Error ? err.message : String(err));
+                clerkService.markConfigLoadFailed();
                 await clerkService.initialize('');
             }
         }),
