@@ -1,8 +1,11 @@
 /**
  * UserButtonComponent — Mounts Clerk's user button (avatar + dropdown menu).
  *
- * Shown in the app header when the user is signed in. Renders nothing when
- * Clerk hasn't loaded or the user is anonymous.
+ * Shown in the app header. When the user is signed in, mounts Clerk's user
+ * button widget. When Clerk is loaded but the user is signed out, renders
+ * sign-in / sign-up navigation links. When the config fetch failed, renders a
+ * "Sign in unavailable" error hint. Renders nothing while Clerk is still
+ * loading.
  *
  * Uses `afterNextRender` for SSR-safe DOM mounting, and `effect` to remount
  * when `isSignedIn()` changes.
