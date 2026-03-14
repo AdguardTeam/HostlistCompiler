@@ -110,6 +110,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.56.5] - 2026-03-14
+
+### Added### Fixed
+
+- make user_email nullable in validateApiKey result type
+- use if ! pattern to make D1 migration error handling deterministic under set -e
+- automate D1 migrations via wrangler migration tracking (#1030)
+
+
 ## [0.56.4] - 2026-03-14
 
 ### Added### Fixed
