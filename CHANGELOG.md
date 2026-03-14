@@ -108,6 +108,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.56.3] - 2026-03-14
+
+### Added### Fixed
+
+- prevent emailVerified corruption on user.updated with no email
+- correct D1 migration table name from User to users (#1018)
+- allow Clerk webhook users without email address (#1017)
+
+
 ## [0.56.2] - 2026-03-13
 
 ### Added### Fixed
