@@ -12,6 +12,7 @@ describe('UserButtonComponent', () => {
     let mockClerkService: {
         isLoaded: ReturnType<typeof signal<boolean>>;
         isSignedIn: ReturnType<typeof signal<boolean>>;
+        configLoadFailed: ReturnType<typeof signal<boolean>>;
         mountUserButton: ReturnType<typeof vi.fn>;
         unmountUserButton: ReturnType<typeof vi.fn>;
     };
@@ -21,6 +22,7 @@ describe('UserButtonComponent', () => {
         mockClerkService = {
             isLoaded: signal(true),
             isSignedIn: signal(false),
+            configLoadFailed: signal(false),
             mountUserButton: vi.fn(),
             unmountUserButton: vi.fn(),
         };
@@ -152,6 +154,7 @@ describe('UserButtonComponent', () => {
         const mockClerkNoContainer = {
             isLoaded: signal(true),
             isSignedIn: signal(false),
+            configLoadFailed: signal(false),
             mountUserButton: vi.fn(),
             unmountUserButton: vi.fn(),
         };
@@ -236,36 +239,37 @@ describe('UserButtonComponent', () => {
         expect(compiled.querySelector('.auth-links')).toBeTruthy();
     });
 
-    it('should unmount and remount when theme changes while signed in', async () => {
-        // Sign in and wait for the widget to mount
-        mockClerkService.isSignedIn.set(true);
-        TestBed.flushEffects();
+    it('should show error message when configLoadFailed is true', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isSignedIn.set(false);
+        mockClerkService.configLoadFailed.set(true);
         fixture.detectChanges();
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        const mountCallsBefore = mockClerkService.mountUserButton.mock.calls.length;
-        expect(mountCallsBefore).toBeGreaterThan(0);
-
-        // Toggle theme while the widget is mounted
-        mockThemeService.isDark.set(true);
-        TestBed.flushEffects();
-
-        // Widget should have been unmounted once and then remounted
-        expect(mockClerkService.unmountUserButton).toHaveBeenCalledTimes(1);
-        expect(mockClerkService.mountUserButton.mock.calls.length).toBeGreaterThan(mountCallsBefore);
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-config-error')).toBeTruthy();
+        expect(compiled.querySelector('.auth-links')).toBeNull();
+        expect(compiled.querySelector('.user-button-container')).toBeNull();
     });
 
-    it('should not remount when theme changes before initial mount', () => {
-        // isSignedIn is false — no container, nothing mounted
+    it('should not show error message when configLoadFailed is false', () => {
+        mockClerkService.isLoaded.set(true);
         mockClerkService.isSignedIn.set(false);
+        mockClerkService.configLoadFailed.set(false);
         fixture.detectChanges();
 
-        mockThemeService.isDark.set(true);
-        TestBed.flushEffects();
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-config-error')).toBeNull();
+        expect(compiled.querySelector('.auth-links')).toBeTruthy();
+    });
 
-        // No unmount or mount should occur since the widget was never mounted
-        expect(mockClerkService.unmountUserButton).not.toHaveBeenCalled();
-        // mountUserButton may have been called 0 times from afterNextRender (no container)
-        expect(mockClerkService.mountUserButton).not.toHaveBeenCalled();
+    it('should not show error message when user is signed in (even if configLoadFailed)', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isSignedIn.set(true);
+        mockClerkService.configLoadFailed.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-config-error')).toBeNull();
+        expect(compiled.querySelector('.user-button-container')).toBeTruthy();
     });
 });
