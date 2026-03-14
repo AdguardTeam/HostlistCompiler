@@ -389,35 +389,38 @@ export async function handleClerkWebhook(
                 const meta = data.public_metadata ?? {};
                 const lastSignInAt = data.last_sign_in_at ? new Date(data.last_sign_in_at) : null;
 
-                const user = await withD1Retry(() =>
-                    store.user.upsert({
-                        where: { clerkUserId: data.id },
-                        create: {
-                            email: email ?? null,
-                            clerkUserId: data.id,
-                            displayName: toDisplayName(data, email),
-                            firstName: data.first_name ?? null,
-                            lastName: data.last_name ?? null,
-                            imageUrl: data.image_url ?? null,
-                            emailVerified: isEmailVerified(data),
-                            tier: validateTier(meta['tier']) ?? UserTier.Free,
-                            role: validateRole(meta['role']) ?? 'user',
-                            lastSignInAt,
-                        },
-                        update: {
-                            // Only update email/emailVerified if the event includes an email address;
-                            // leave the existing DB values intact when email_addresses is empty.
-                            ...(email !== null && { email, emailVerified: isEmailVerified(data) }),
-                            displayName: toDisplayName(data, email),
-                            firstName: data.first_name ?? null,
-                            lastName: data.last_name ?? null,
-                            imageUrl: data.image_url ?? null,
-                            tier: validateTier(meta['tier']),
-                            role: validateRole(meta['role']),
-                            lastSignInAt,
-                        },
-                    }),
-                undefined, _testBaseDelayMs);
+                const user = await withD1Retry(
+                    () =>
+                        store.user.upsert({
+                            where: { clerkUserId: data.id },
+                            create: {
+                                email: email ?? null,
+                                clerkUserId: data.id,
+                                displayName: toDisplayName(data, email),
+                                firstName: data.first_name ?? null,
+                                lastName: data.last_name ?? null,
+                                imageUrl: data.image_url ?? null,
+                                emailVerified: isEmailVerified(data),
+                                tier: validateTier(meta['tier']) ?? UserTier.Free,
+                                role: validateRole(meta['role']) ?? 'user',
+                                lastSignInAt,
+                            },
+                            update: {
+                                // Only update email/emailVerified if the event includes an email address;
+                                // leave the existing DB values intact when email_addresses is empty.
+                                ...(email !== null && { email, emailVerified: isEmailVerified(data) }),
+                                displayName: toDisplayName(data, email),
+                                firstName: data.first_name ?? null,
+                                lastName: data.last_name ?? null,
+                                imageUrl: data.image_url ?? null,
+                                tier: validateTier(meta['tier']),
+                                role: validateRole(meta['role']),
+                                lastSignInAt,
+                            },
+                        }),
+                    undefined,
+                    _testBaseDelayMs,
+                );
 
                 return Response.json(
                     { success: true, event: event.type, userId: user.id },
