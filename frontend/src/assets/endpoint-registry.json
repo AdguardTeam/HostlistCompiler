@@ -1,0 +1,892 @@
+{
+  "generatedAt": "2026-03-14T20:07:39.987Z",
+  "specVersion": "2.0.0",
+  "endpoints": [
+    {
+      "path": "/admin/auth/api-keys",
+      "method": "GET",
+      "operationId": "listApiKeys",
+      "summary": "List API keys",
+      "description": "Lists API keys for a user (without key hashes). Requires Hyperdrive (PostgreSQL) binding.",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 1,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/auth/api-keys",
+      "method": "POST",
+      "operationId": "createApiKey",
+      "summary": "Create API key",
+      "description": "Creates a new API key for a user. Requires Hyperdrive (PostgreSQL) binding. **Important:** The raw API key is only returned once. Store it securely.",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/admin/auth/api-keys/revoke",
+      "method": "POST",
+      "operationId": "revokeApiKey",
+      "summary": "Revoke API key",
+      "description": "Revokes an API key by ID or key prefix. Requires Hyperdrive (PostgreSQL) binding.",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/admin/auth/api-keys/validate",
+      "method": "POST",
+      "operationId": "validateApiKey",
+      "summary": "Validate API key",
+      "description": "Validates an API key without authenticating a full request. Useful for the admin UI to test keys.",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/admin/auth/users",
+      "method": "POST",
+      "operationId": "createUser",
+      "summary": "Create user",
+      "description": "Creates a new user account. Requires Hyperdrive (PostgreSQL) binding.",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/admin/backends",
+      "method": "GET",
+      "operationId": "getBackendStatus",
+      "summary": "Backend health status",
+      "description": "Returns health and connectivity status of both D1 and PostgreSQL backends",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/migrate/d1-to-pg",
+      "method": "POST",
+      "operationId": "migrateD1ToPg",
+      "summary": "Migrate D1 data to PostgreSQL",
+      "description": "One-time migration that reads data from Cloudflare D1 (SQLite) and writes it to PostgreSQL via Hyperdrive. Migrates the following tables: `storage_entries`, `filter_cache`, `compilation_metadata`. ...",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 2,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/pg/clear-cache",
+      "method": "POST",
+      "operationId": "clearPgCache",
+      "summary": "Clear PostgreSQL cache",
+      "description": "Deletes all cache entries from PostgreSQL tables",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/pg/clear-expired",
+      "method": "POST",
+      "operationId": "clearPgExpiredEntries",
+      "summary": "Clear expired PostgreSQL entries",
+      "description": "Deletes all expired entries from PostgreSQL storage and cache tables",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/pg/export",
+      "method": "GET",
+      "operationId": "exportPgData",
+      "summary": "Export PostgreSQL data",
+      "description": "Exports data from the PostgreSQL backend (mirrors /admin/storage/export for D1)",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/pg/query",
+      "method": "POST",
+      "operationId": "queryPg",
+      "summary": "Execute read-only PostgreSQL query",
+      "description": "Executes a SELECT-only SQL query against PostgreSQL for debugging (mirrors /admin/storage/query for D1)",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/admin/pg/stats",
+      "method": "GET",
+      "operationId": "getPgStorageStats",
+      "summary": "PostgreSQL storage statistics",
+      "description": "Returns storage statistics from the PostgreSQL backend (mirrors /admin/storage/stats for D1)",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/storage/clear-cache",
+      "method": "POST",
+      "operationId": "clearCacheEntries",
+      "summary": "Clear cache entries",
+      "description": "Deletes all cache entries from storage tables",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/storage/clear-expired",
+      "method": "POST",
+      "operationId": "clearExpiredEntries",
+      "summary": "Clear expired entries",
+      "description": "Deletes all expired entries from storage tables",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/storage/export",
+      "method": "GET",
+      "operationId": "exportStorage",
+      "summary": "Export storage data",
+      "description": "Exports storage entries as JSON (includes storage entries, filter cache, and compilation metadata; returned amounts subject to implementation limits)",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/storage/query",
+      "method": "POST",
+      "operationId": "queryStorage",
+      "summary": "Execute read-only SQL query",
+      "description": "Executes a SELECT-only SQL query against the D1 database for debugging",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/admin/storage/stats",
+      "method": "GET",
+      "operationId": "getAdminStorageStats",
+      "summary": "Get storage statistics",
+      "description": "Returns database table counts and expired entry counts",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/storage/tables",
+      "method": "GET",
+      "operationId": "listStorageTables",
+      "summary": "List database tables",
+      "description": "Returns all tables and indexes in the D1 database",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/admin/storage/vacuum",
+      "method": "POST",
+      "operationId": "vacuumDatabase",
+      "summary": "Vacuum database",
+      "description": "Runs VACUUM on the D1 database to reclaim space",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        "AdminKey"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api",
+      "method": "GET",
+      "operationId": "getApiInfo",
+      "summary": "Get API information",
+      "description": "Returns API version, available endpoints, and usage examples",
+      "tags": [
+        "Metrics"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api/browser/monitor",
+      "method": "POST",
+      "operationId": "browserMonitor",
+      "summary": "Monitor filter-list sources for reachability",
+      "description": "Performs parallel browser-based health checks on a list of filter-list source URLs. For each URL a headless browser navigates to the page, verifies non-empty text content, and optionally captures a...",
+      "tags": [
+        "Browser Rendering"
+      ],
+      "security": [
+        "BearerAuth"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/api/browser/monitor/latest",
+      "method": "GET",
+      "operationId": "browserMonitorLatest",
+      "summary": "Retrieve the latest monitor results",
+      "description": "Returns the most recent result set written by `POST /api/browser/monitor`. Reads the KV key `browser:monitor:latest` from `COMPILATION_CACHE`. Requires the `COMPILATION_CACHE` binding.",
+      "tags": [
+        "Browser Rendering"
+      ],
+      "security": [
+        "BearerAuth"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api/browser/resolve-url",
+      "method": "POST",
+      "operationId": "browserResolveUrl",
+      "summary": "Resolve canonical URL via browser",
+      "description": "Navigates to a URL using the Cloudflare Browser Rendering binding and returns the final canonical URL after all redirects. Useful for discovering the true destination of redirect chains or URL shor...",
+      "tags": [
+        "Browser Rendering"
+      ],
+      "security": [
+        "BearerAuth"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/api/deployments",
+      "method": "GET",
+      "operationId": "getDeployments",
+      "summary": "Get deployment history",
+      "description": "Returns deployment history records",
+      "tags": [
+        "Metrics"
+      ],
+      "security": [],
+      "parameterCount": 4,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api/deployments/stats",
+      "method": "GET",
+      "operationId": "getDeploymentStats",
+      "summary": "Get deployment statistics",
+      "description": "Returns aggregated deployment statistics",
+      "tags": [
+        "Metrics"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api/keys",
+      "method": "GET",
+      "operationId": "userListApiKeys",
+      "summary": "List user's API keys",
+      "description": "Lists all API keys belonging to the authenticated user. Returns metadata only — never the key hash or plaintext. Requires Clerk JWT authentication.",
+      "tags": [
+        "Authentication"
+      ],
+      "security": [
+        "ClerkJWT"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api/keys",
+      "method": "POST",
+      "operationId": "userCreateApiKey",
+      "summary": "Create API key",
+      "description": "Creates a new API key for the authenticated user. The raw API key (with `abc_` prefix) is returned **only once** — store it securely. Requires Clerk JWT authentication.",
+      "tags": [
+        "Authentication"
+      ],
+      "security": [
+        "ClerkJWT"
+      ],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/api/keys/{keyId}",
+      "method": "DELETE",
+      "operationId": "userRevokeApiKey",
+      "summary": "Revoke API key",
+      "description": "Revokes (soft-deletes) an API key. The key remains in the database for audit purposes but is no longer valid for authentication. Only the key owner can revoke their own keys.",
+      "tags": [
+        "Authentication"
+      ],
+      "security": [
+        "ClerkJWT"
+      ],
+      "parameterCount": 1,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api/keys/{keyId}",
+      "method": "PATCH",
+      "operationId": "userUpdateApiKey",
+      "summary": "Update API key",
+      "description": "Updates an API key's name or scopes. Only the key owner can update their own keys. Requires Clerk JWT authentication.",
+      "tags": [
+        "Authentication"
+      ],
+      "security": [
+        "ClerkJWT"
+      ],
+      "parameterCount": 1,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/api/turnstile-config",
+      "method": "GET",
+      "operationId": "getTurnstileConfig",
+      "summary": "Get Turnstile configuration",
+      "description": "Returns the Cloudflare Turnstile site key and whether it is enabled",
+      "tags": [
+        "Metrics"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api/version",
+      "method": "GET",
+      "operationId": "getApiVersion",
+      "summary": "Get latest deployment version",
+      "description": "Returns the current version from deployment history",
+      "tags": [
+        "Metrics"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/api/webhooks/clerk",
+      "method": "POST",
+      "operationId": "clerkWebhook",
+      "summary": "Clerk webhook receiver",
+      "description": "Receives Clerk webhook events (user.created, user.updated, user.deleted, session.created). Verified via Svix webhook signature. This endpoint is called by Clerk's webhook infrastructure and should ...",
+      "tags": [
+        "Authentication"
+      ],
+      "security": [],
+      "parameterCount": 3,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/ast/parse",
+      "method": "POST",
+      "operationId": "parseAST",
+      "summary": "Parse filter rules into AST",
+      "description": "Parses adblock filter rules into an Abstract Syntax Tree representation",
+      "tags": [
+        "Compilation"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/compile",
+      "method": "POST",
+      "operationId": "compileJson",
+      "summary": "Compile filter list (JSON)",
+      "description": "Compile filter lists and return results as JSON. Results are cached for 1 hour. Supports request deduplication for concurrent identical requests.",
+      "tags": [
+        "Compilation"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/compile/async",
+      "method": "POST",
+      "operationId": "compileAsync",
+      "summary": "Queue async compilation job",
+      "description": "Queue a compilation job for asynchronous processing. Returns immediately with a request ID. Use GET /queue/results/{requestId} to retrieve results when complete.",
+      "tags": [
+        "Queue"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/compile/batch",
+      "method": "POST",
+      "operationId": "compileBatch",
+      "summary": "Batch compile multiple lists",
+      "description": "Compile multiple filter lists in parallel (max 10 per batch)",
+      "tags": [
+        "Compilation"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/compile/batch/async",
+      "method": "POST",
+      "operationId": "compileBatchAsync",
+      "summary": "Queue batch async compilation",
+      "description": "Queue multiple compilations for async processing",
+      "tags": [
+        "Queue"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/compile/stream",
+      "method": "POST",
+      "operationId": "compileStream",
+      "summary": "Compile with real-time progress (SSE)",
+      "description": "Compile filter lists with real-time progress updates via Server-Sent Events. Streams events including source downloads, transformations, diagnostics, cache operations, network events, and metrics.",
+      "tags": [
+        "Streaming"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/health",
+      "method": "GET",
+      "operationId": "getHealth",
+      "summary": "Basic health check",
+      "description": "Returns current service health status and version",
+      "tags": [
+        "Health"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/health/latest",
+      "method": "GET",
+      "operationId": "getLatestHealth",
+      "summary": "Get latest health check results",
+      "description": "Returns the results of the most recent health monitoring workflow run",
+      "tags": [
+        "Health"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/metrics",
+      "method": "GET",
+      "operationId": "getMetrics",
+      "summary": "Get performance metrics",
+      "description": "Returns aggregated metrics for the last 30 minutes",
+      "tags": [
+        "Metrics"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/notify",
+      "method": "POST",
+      "operationId": "notify",
+      "summary": "Send a notification event to configured webhook targets",
+      "description": "Delivers a notification event (e.g. error, warning, info) to one or more configured targets — generic HTTP webhook (WEBHOOK_URL), Sentry (SENTRY_DSN), and/or Datadog (DATADOG_API_KEY). At least one...",
+      "tags": [
+        "Notifications"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/queue/cancel/{requestId}",
+      "method": "POST",
+      "operationId": "cancelQueueJob",
+      "summary": "Cancel a queued job",
+      "description": "Marks a pending queue job as cancelled",
+      "tags": [
+        "Queue"
+      ],
+      "security": [],
+      "parameterCount": 1,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/queue/history",
+      "method": "GET",
+      "operationId": "getQueueHistory",
+      "summary": "Get queue job history",
+      "description": "Returns job history and queue depth over time",
+      "tags": [
+        "Queue"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/queue/results/{requestId}",
+      "method": "GET",
+      "operationId": "getQueueResults",
+      "summary": "Get async job results",
+      "description": "Retrieve results for a completed async compilation job",
+      "tags": [
+        "Queue"
+      ],
+      "security": [],
+      "parameterCount": 1,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/queue/stats",
+      "method": "GET",
+      "operationId": "getQueueStats",
+      "summary": "Get queue statistics",
+      "description": "Returns queue health metrics and job statistics",
+      "tags": [
+        "Queue"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/rules",
+      "method": "GET",
+      "operationId": "listRuleSets",
+      "summary": "List saved rule sets",
+      "description": "Returns all saved rule sets stored in the KV namespace.",
+      "tags": [
+        "Rule Sets"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/rules",
+      "method": "POST",
+      "operationId": "createRuleSet",
+      "summary": "Create a new rule set",
+      "description": "Creates and stores a new named rule set in the KV namespace.",
+      "tags": [
+        "Rule Sets"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/rules/{id}",
+      "method": "DELETE",
+      "operationId": "deleteRuleSet",
+      "summary": "Delete a rule set by ID",
+      "description": "",
+      "tags": [
+        "Rule Sets"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/rules/{id}",
+      "method": "GET",
+      "operationId": "getRuleSet",
+      "summary": "Get a rule set by ID",
+      "description": "",
+      "tags": [
+        "Rule Sets"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/rules/{id}",
+      "method": "PUT",
+      "operationId": "updateRuleSet",
+      "summary": "Update a rule set by ID",
+      "description": "",
+      "tags": [
+        "Rule Sets"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/validate-rule",
+      "method": "POST",
+      "operationId": "validateRule",
+      "summary": "Validate a single adblock rule",
+      "description": "Parses and validates a single adblock/DNS rule, returning its AST representation, type, and optional URL match result.",
+      "tags": [
+        "Rules"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/workflow/batch",
+      "method": "POST",
+      "operationId": "startWorkflowBatch",
+      "summary": "Start async batch compilation workflow",
+      "description": "Creates a durable Cloudflare Workflow instance for batch compilation",
+      "tags": [
+        "Workflow"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/workflow/cache-warm",
+      "method": "POST",
+      "operationId": "startWorkflowCacheWarm",
+      "summary": "Start cache warming workflow",
+      "description": "Triggers manual cache warming for specified configurations",
+      "tags": [
+        "Workflow"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/workflow/compile",
+      "method": "POST",
+      "operationId": "startWorkflowCompile",
+      "summary": "Start async compilation workflow",
+      "description": "Creates a durable Cloudflare Workflow instance for compilation",
+      "tags": [
+        "Workflow"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/workflow/events/{workflowId}",
+      "method": "GET",
+      "operationId": "getWorkflowEvents",
+      "summary": "Get workflow events",
+      "description": "Returns progress events for a specific workflow instance",
+      "tags": [
+        "Workflow"
+      ],
+      "security": [],
+      "parameterCount": 2,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/workflow/health-check",
+      "method": "POST",
+      "operationId": "startWorkflowHealthCheck",
+      "summary": "Start health monitoring workflow",
+      "description": "Triggers manual health check for specified filter list sources",
+      "tags": [
+        "Workflow"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": true
+    },
+    {
+      "path": "/workflow/metrics",
+      "method": "GET",
+      "operationId": "getWorkflowMetrics",
+      "summary": "Get workflow metrics",
+      "description": "Returns aggregated metrics for all workflow types",
+      "tags": [
+        "Workflow"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/workflow/status/{workflowType}/{instanceId}",
+      "method": "GET",
+      "operationId": "getWorkflowStatus",
+      "summary": "Get workflow instance status",
+      "description": "Returns the current status and output of a workflow instance",
+      "tags": [
+        "Workflow"
+      ],
+      "security": [],
+      "parameterCount": 2,
+      "hasRequestBody": false
+    },
+    {
+      "path": "/ws/compile",
+      "method": "GET",
+      "operationId": "websocketCompile",
+      "summary": "WebSocket endpoint for real-time compilation",
+      "description": "Bidirectional WebSocket connection for real-time compilation with event streaming. **Client → Server Messages:** - `compile` - Start compilation - `cancel` - Cancel running compilation - `ping` - H...",
+      "tags": [
+        "WebSocket"
+      ],
+      "security": [],
+      "parameterCount": 0,
+      "hasRequestBody": false
+    }
+  ],
+  "tags": [
+    {
+      "name": "Compilation",
+      "description": "Filter list compilation endpoints"
+    },
+    {
+      "name": "Streaming",
+      "description": "Real-time event streaming endpoints"
+    },
+    {
+      "name": "Queue",
+      "description": "Async job queue management"
+    },
+    {
+      "name": "Metrics",
+      "description": "Performance metrics and statistics"
+    },
+    {
+      "name": "WebSocket",
+      "description": "Bidirectional real-time communication"
+    },
+    {
+      "name": "Admin",
+      "description": "Administration endpoints for storage, auth, migration, and backends (require X-Admin-Key header)"
+    },
+    {
+      "name": "Workflow",
+      "description": "Durable execution workflow endpoints"
+    },
+    {
+      "name": "Health",
+      "description": "Health monitoring endpoints"
+    },
+    {
+      "name": "Browser Rendering",
+      "description": "Endpoints backed by the Cloudflare Browser Rendering binding (`BROWSER`). Used for resolving redirect chains and monitoring filter-list source URLs for changes."
+    },
+    {
+      "name": "Authentication",
+      "description": "User-level authentication endpoints — API key management and webhook receivers. Requires Clerk JWT or API key auth."
+    },
+    {
+      "name": "Notifications",
+      "description": ""
+    },
+    {
+      "name": "Rule Sets",
+      "description": ""
+    },
+    {
+      "name": "Rules",
+      "description": ""
+    }
+  ]
+}
