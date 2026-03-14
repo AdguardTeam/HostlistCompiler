@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserButtonComponent } from './user-button.component';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 describe('UserButtonComponent', () => {
     let component: UserButtonComponent;
@@ -15,6 +16,7 @@ describe('UserButtonComponent', () => {
         mountUserButton: ReturnType<typeof vi.fn>;
         unmountUserButton: ReturnType<typeof vi.fn>;
     };
+    let mockThemeService: { isDark: ReturnType<typeof signal<boolean>> };
 
     beforeEach(async () => {
         mockClerkService = {
@@ -24,6 +26,7 @@ describe('UserButtonComponent', () => {
             mountUserButton: vi.fn(),
             unmountUserButton: vi.fn(),
         };
+        mockThemeService = { isDark: signal(false) };
 
         await TestBed.configureTestingModule({
             imports: [UserButtonComponent],
@@ -31,6 +34,7 @@ describe('UserButtonComponent', () => {
                 provideZonelessChangeDetection(),
                 provideRouter([]),
                 { provide: ClerkService, useValue: mockClerkService },
+                { provide: ThemeService, useValue: mockThemeService },
             ],
         }).compileComponents();
 
@@ -162,6 +166,7 @@ describe('UserButtonComponent', () => {
                 provideZonelessChangeDetection(),
                 provideRouter([]),
                 { provide: ClerkService, useValue: mockClerkNoContainer },
+                { provide: ThemeService, useValue: { isDark: signal(false) } },
             ],
         });
 
@@ -266,5 +271,38 @@ describe('UserButtonComponent', () => {
         const compiled = fixture.nativeElement as HTMLElement;
         expect(compiled.querySelector('.auth-config-error')).toBeNull();
         expect(compiled.querySelector('.user-button-container')).toBeTruthy();
+    });
+
+    it('should unmount and remount when theme changes while signed in', async () => {
+        // Sign in and wait for the widget to mount
+        mockClerkService.isSignedIn.set(true);
+        TestBed.flushEffects();
+        fixture.detectChanges();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const mountCallsBefore = mockClerkService.mountUserButton.mock.calls.length;
+        expect(mountCallsBefore).toBeGreaterThan(0);
+
+        // Toggle theme while the widget is mounted
+        mockThemeService.isDark.set(true);
+        TestBed.flushEffects();
+
+        // Widget should have been unmounted once and then remounted
+        expect(mockClerkService.unmountUserButton).toHaveBeenCalledTimes(1);
+        expect(mockClerkService.mountUserButton.mock.calls.length).toBeGreaterThan(mountCallsBefore);
+    });
+
+    it('should not remount when theme changes before initial mount', () => {
+        // isSignedIn is false — no container, nothing mounted
+        mockClerkService.isSignedIn.set(false);
+        fixture.detectChanges();
+
+        mockThemeService.isDark.set(true);
+        TestBed.flushEffects();
+
+        // No unmount or mount should occur since the widget was never mounted
+        expect(mockClerkService.unmountUserButton).not.toHaveBeenCalled();
+        // mountUserButton may have been called 0 times from afterNextRender (no container)
+        expect(mockClerkService.mountUserButton).not.toHaveBeenCalled();
     });
 });

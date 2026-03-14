@@ -5,9 +5,10 @@
  * div, ensuring SSR safety (no DOM access during server render).
  */
 
-import { Component, ElementRef, afterNextRender, inject, viewChild, OnDestroy } from '@angular/core';
+import { Component, ElementRef, afterNextRender, inject, viewChild, OnDestroy, effect } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
     selector: 'app-sign-up',
@@ -79,12 +80,24 @@ import { ClerkService } from '../../services/clerk.service';
 })
 export class SignUpComponent implements OnDestroy {
     protected readonly clerk = inject(ClerkService);
+    private readonly theme = inject(ThemeService);
     private readonly container = viewChild<ElementRef<HTMLDivElement>>('signUpContainer');
+    private mounted = false;
 
     private readonly _mount = afterNextRender(() => {
-        const el = this.container()?.nativeElement;
-        if (el) {
-            this.clerk.mountSignUp(el);
+        this.tryMount();
+    });
+
+    // Re-mount with updated appearance when the user toggles dark/light mode
+    private readonly _themeEffect = effect(() => {
+        this.theme.isDark(); // track the signal
+        if (this.mounted) {
+            const el = this.container()?.nativeElement;
+            if (el) {
+                this.clerk.unmountSignUp(el);
+                this.mounted = false;
+                this.tryMount();
+            }
         }
     });
 
@@ -92,6 +105,14 @@ export class SignUpComponent implements OnDestroy {
         const el = this.container()?.nativeElement;
         if (el) {
             this.clerk.unmountSignUp(el);
+        }
+    }
+
+    private tryMount(): void {
+        const el = this.container()?.nativeElement;
+        if (el && !this.mounted) {
+            this.clerk.mountSignUp(el);
+            this.mounted = true;
         }
     }
 }

@@ -14,6 +14,7 @@
 import { Component, ElementRef, afterNextRender, inject, viewChild, effect, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
     selector: 'app-user-button',
@@ -72,6 +73,7 @@ import { ClerkService } from '../../services/clerk.service';
 })
 export class UserButtonComponent implements OnDestroy {
     protected readonly clerk = inject(ClerkService);
+    private readonly theme = inject(ThemeService);
     private readonly container = viewChild<ElementRef<HTMLDivElement>>('userButtonContainer');
     private mounted = false;
 
@@ -87,6 +89,19 @@ export class UserButtonComponent implements OnDestroy {
             queueMicrotask(() => this.tryMount());
         } else if (!signedIn) {
             this.mounted = false;
+        }
+    });
+
+    // Re-mount with updated appearance when the user toggles dark/light mode
+    private readonly _themeEffect = effect(() => {
+        this.theme.isDark(); // track the signal
+        if (this.mounted) {
+            const el = this.container()?.nativeElement;
+            if (el) {
+                this.clerk.unmountUserButton(el);
+                this.mounted = false;
+                this.tryMount();
+            }
         }
     });
 

@@ -7,10 +7,11 @@
  * Reads `returnUrl` from query params so Clerk can redirect back after sign-in.
  */
 
-import { Component, ElementRef, afterNextRender, inject, viewChild, OnDestroy } from '@angular/core';
+import { Component, ElementRef, afterNextRender, inject, viewChild, OnDestroy, effect } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
     selector: 'app-sign-in',
@@ -83,13 +84,24 @@ import { ClerkService } from '../../services/clerk.service';
 export class SignInComponent implements OnDestroy {
     protected readonly clerk = inject(ClerkService);
     private readonly route = inject(ActivatedRoute);
+    private readonly theme = inject(ThemeService);
     private readonly container = viewChild<ElementRef<HTMLDivElement>>('signInContainer');
+    private mounted = false;
 
     private readonly _mount = afterNextRender(() => {
-        const el = this.container()?.nativeElement;
-        if (el) {
-            const returnUrl = this.route.snapshot.queryParams['returnUrl'] as string | undefined;
-            this.clerk.mountSignIn(el, returnUrl);
+        this.tryMount();
+    });
+
+    // Re-mount with updated appearance when the user toggles dark/light mode
+    private readonly _themeEffect = effect(() => {
+        this.theme.isDark(); // track the signal
+        if (this.mounted) {
+            const el = this.container()?.nativeElement;
+            if (el) {
+                this.clerk.unmountSignIn(el);
+                this.mounted = false;
+                this.tryMount();
+            }
         }
     });
 
@@ -97,6 +109,15 @@ export class SignInComponent implements OnDestroy {
         const el = this.container()?.nativeElement;
         if (el) {
             this.clerk.unmountSignIn(el);
+        }
+    }
+
+    private tryMount(): void {
+        const el = this.container()?.nativeElement;
+        if (el && !this.mounted) {
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] as string | undefined;
+            this.clerk.mountSignIn(el, returnUrl);
+            this.mounted = true;
         }
     }
 }
