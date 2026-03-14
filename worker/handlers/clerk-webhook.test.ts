@@ -390,7 +390,8 @@ Deno.test('handleClerkWebhook - returns 500 when prisma upsert throws', async ()
 });
 
 Deno.test('handleClerkWebhook - retries transient D1 failure and succeeds', async () => {
-    // First call throws, second succeeds — proves retry works
+    // First call throws a transient error, second succeeds — proves retry works.
+    // baseDelayMs is set to 0 so the test completes without real timer delays.
     let callCount = 0;
     const retryPrisma: PrismaLike = {
         user: {
@@ -407,7 +408,7 @@ Deno.test('handleClerkWebhook - retries transient D1 failure and succeeds', asyn
     };
     const mockVerify = () => makeUserCreatedEvent();
     const req = makeSvixRequest(makeUserCreatedEvent());
-    const res = await handleClerkWebhook(req, makeEnv(), retryPrisma, mockVerify);
+    const res = await handleClerkWebhook(req, makeEnv(), retryPrisma, mockVerify, 0);
     assertEquals(res.status, 200);
     assertEquals(callCount, 2, 'upsert should have been called twice (1 failure + 1 success)');
     const body = await res.json() as { success: boolean; userId: string };
