@@ -125,14 +125,27 @@ database_name = "adblock-compiler-d1-database"
 database_id = "3e8e7dfe-3213-452a-a671-6c18e6e74ce5"
 migrations_dir = "migrations"
 
-# Admin configuration database (isolated from main app data)
-# Created via: wrangler d1 create adblock-compiler-admin-d1
-# TODO: Replace database_id after running the create command
-[[d1_databases]]
-binding = "ADMIN_DB"
-database_name = "adblock-compiler-admin-d1"
-database_id = "PLACEHOLDER_RUN_WRANGLER_D1_CREATE"
-migrations_dir = "admin-migrations"
+# Admin configuration database (ADMIN_DB) — NOT YET PROVISIONED
+# ─────────────────────────────────────────────────────────────────────────────
+# The ADMIN_DB D1 database binding is intentionally commented out until the
+# database is created in the Cloudflare account.  The Cloudflare Workers Builds
+# integration validates that every database_id in wrangler.toml exists in the
+# account; an unprovisioned binding causes the preview build to fail instantly.
+#
+# To enable ADMIN_DB:
+#   1.  wrangler d1 create adblock-compiler-admin-d1
+#   2.  Copy the "database_id" UUID from the command output.
+#   3.  Un-comment the [[d1_databases]] block below and paste the UUID.
+#   4.  Run migrations: wrangler d1 migrations apply adblock-compiler-admin-d1 --remote
+#
+# The worker code treats ADMIN_DB as optional (Env.ADMIN_DB?: D1Database) so
+# all existing functionality works without this binding.
+#
+# [[d1_databases]]
+# binding = "ADMIN_DB"
+# database_name = "adblock-compiler-admin-d1"
+# database_id = "<UUID from wrangler d1 create adblock-compiler-admin-d1>"
+# migrations_dir = "admin-migrations"
 
 # Static assets — served from the Angular production build output.
 # Run `npm --prefix frontend run build` to generate assets before deploying.
