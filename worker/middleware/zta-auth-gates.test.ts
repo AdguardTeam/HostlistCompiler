@@ -9,7 +9,7 @@ import { assertEquals, assertExists } from 'https://deno.land/std@0.220.0/assert
 import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
 import type { SecurityEventData } from '../../src/services/AnalyticsService.ts';
 import { requireAuth } from '../middleware/auth.ts';
-import { type IAuthContext, UserTier, ANONYMOUS_AUTH_CONTEXT } from '../types.ts';
+import { ANONYMOUS_AUTH_CONTEXT, type IAuthContext, UserTier } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -311,6 +311,19 @@ See [docs/reference/ENV_CONFIGURATION.md](docs/reference/ENV_CONFIGURATION.md) f
 - Check existing documentation in `docs/`
 - Review the [README.md](README.md)
 
+## Zero Trust Architecture (ZTA)
+
+This project enforces Zero Trust principles at every layer. Every PR touching `worker/` or `frontend/` must follow these rules:
+
+- **Auth first**: Every handler verifies authentication before business logic
+- **CORS allowlist**: Use `getCorsHeaders()` from `worker/utils/cors.ts` — never `Access-Control-Allow-Origin: *` on write endpoints
+- **Parameterized SQL**: Always `.prepare().bind()` — never string interpolation
+- **Zod validation**: All trust boundaries (webhooks, JWT claims, API bodies, DB rows) must be Zod-validated
+- **Secrets in Worker Secrets**: Never put credentials in `wrangler.toml [vars]`
+- **Frontend auth via Clerk SDK**: Never store tokens in `localStorage`
+
+See the full [ZTA Developer Guide](docs/security/ZTA_DEVELOPER_GUIDE.md) and [ZTA Architecture](docs/security/ZERO_TRUST_ARCHITECTURE.md).
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the same license as the project.
