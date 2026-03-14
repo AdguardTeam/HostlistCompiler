@@ -115,7 +115,10 @@ interface RoleFormData {
                         @for (role of roles(); track role.id) {
                             <a mat-list-item
                                 [class.selected-role]="selectedRole()?.id === role.id"
-                                (click)="selectRole(role)">
+                                (click)="selectRole(role)"
+                                (keydown.enter)="selectRole(role)"
+                                tabindex="0"
+                                role="button">
                                 <mat-icon matListItemIcon aria-hidden="true">
                                     {{ role.role_name === 'super_admin' ? 'shield' : role.role_name === 'admin' ? 'admin_panel_settings' : 'person' }}
                                 </mat-icon>
@@ -223,8 +226,8 @@ interface RoleFormData {
 
     <!-- Create / Edit Role Dialog -->
     @if (dialogMode()) {
-        <div class="overlay" (click)="closeDialog()">
-            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeDialog()" (keydown.enter)="closeDialog()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">{{ dialogMode() === 'create' ? 'add_circle' : 'edit' }}</mat-icon>
                     <mat-card-title>{{ dialogMode() === 'create' ? 'Create Role' : 'Edit Role' }}</mat-card-title>
@@ -276,8 +279,8 @@ interface RoleFormData {
 
     <!-- Assign User Dialog -->
     @if (showAssignDialog()) {
-        <div class="overlay" (click)="closeAssignDialog()">
-            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeAssignDialog()" (keydown.enter)="closeAssignDialog()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">person_add</mat-icon>
                     <mat-card-title>Assign User to {{ selectedRole()!.display_name }}</mat-card-title>

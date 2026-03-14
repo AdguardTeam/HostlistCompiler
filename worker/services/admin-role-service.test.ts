@@ -12,7 +12,7 @@
  *   - Edge cases: undefined DB, expired assignment
  */
 
-import { assertEquals, assertExists } from 'jsr:@std/assert';
+import { assertEquals, assertExists } from '@std/assert';
 import {
     assignRole,
     CACHE_TTL_SECONDS,

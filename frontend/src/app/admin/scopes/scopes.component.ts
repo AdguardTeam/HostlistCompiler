@@ -139,8 +139,8 @@ interface ScopeFormData {
 
     <!-- Create / Edit dialog -->
     @if (dialogMode()) {
-        <div class="overlay" (click)="closeDialog()">
-            <mat-card appearance="outlined" class="scope-dialog" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeDialog()" (keydown.enter)="closeDialog()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="scope-dialog" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">{{ dialogMode() === 'create' ? 'add_circle' : 'edit' }}</mat-icon>
                     <mat-card-title>{{ dialogMode() === 'create' ? 'Create Scope' : 'Edit Scope' }}</mat-card-title>
@@ -192,8 +192,8 @@ interface ScopeFormData {
 
     <!-- Delete confirmation -->
     @if (deletingScope()) {
-        <div class="overlay" (click)="closeDeleteConfirm()">
-            <mat-card appearance="outlined" class="scope-dialog" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeDeleteConfirm()" (keydown.enter)="closeDeleteConfirm()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="scope-dialog" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar style="color: var(--mat-sys-error)" aria-hidden="true">warning</mat-icon>
                     <mat-card-title>Delete Scope</mat-card-title>

@@ -11,7 +11,7 @@
  *   - createAuditContext() — extracts correct fields from request
  */
 
-import { assertEquals, assertExists } from 'jsr:@std/assert';
+import { assertEquals, assertExists } from '@std/assert';
 import { countAuditLogs, createAuditContext, getAuditLog, getAuditLogsByActor, getAuditLogsByResource, queryAuditLogs, writeAuditLog } from './admin-audit-service.ts';
 
 // ============================================================================

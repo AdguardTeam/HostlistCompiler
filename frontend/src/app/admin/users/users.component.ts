@@ -43,21 +43,6 @@ interface UserListResponse {
     readonly offset: number;
 }
 
-interface RoleAssignment {
-    readonly id: number;
-    readonly clerk_user_id: string;
-    readonly role_name: string;
-    readonly assigned_by: string;
-    readonly assigned_at: string;
-    readonly expires_at: string | null;
-}
-
-interface RoleAssignmentListResponse {
-    readonly success: boolean;
-    readonly items: RoleAssignment[];
-    readonly total: number;
-}
-
 @Component({
     selector: 'app-admin-users',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -210,8 +195,8 @@ interface RoleAssignmentListResponse {
 
     <!-- User Detail Overlay -->
     @if (detailUser()) {
-        <div class="overlay" (click)="closeOverlays()">
-            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeOverlays()" (keydown.enter)="closeOverlays()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">person</mat-icon>
                     <mat-card-title>{{ detailUser()!.display_name || detailUser()!.email }}</mat-card-title>
@@ -254,8 +239,8 @@ interface RoleAssignmentListResponse {
 
     <!-- Change Tier Overlay -->
     @if (tierOverlayUser()) {
-        <div class="overlay" (click)="closeOverlays()">
-            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeOverlays()" (keydown.enter)="closeOverlays()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">layers</mat-icon>
                     <mat-card-title>Change Tier</mat-card-title>
@@ -287,8 +272,8 @@ interface RoleAssignmentListResponse {
 
     <!-- Assign Role Overlay -->
     @if (roleOverlayUser()) {
-        <div class="overlay" (click)="closeOverlays()">
-            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeOverlays()" (keydown.enter)="closeOverlays()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="dialog-card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">admin_panel_settings</mat-icon>
                     <mat-card-title>Assign Admin Role</mat-card-title>

@@ -119,7 +119,7 @@ interface WebhookEventsResponse {
                                 <ng-container matColumnDef="processing_time">
                                     <th mat-header-cell *matHeaderCellDef>Time (ms)</th>
                                     <td mat-cell *matCellDef="let row">
-                                        {{ row.processing_time_ms != null ? row.processing_time_ms + 'ms' : '—' }}
+                                        {{ row.processing_time_ms !== null ? row.processing_time_ms + 'ms' : '—' }}
                                     </td>
                                 </ng-container>
 

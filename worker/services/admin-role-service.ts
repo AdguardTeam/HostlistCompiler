@@ -377,10 +377,11 @@ export async function listRoleAssignments(
         values.push(filters.role_name);
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
 
+    const sql = 'SELECT * FROM admin_role_assignments ' + where + ' ORDER BY assigned_at DESC';
     const result = await db
-        .prepare(`SELECT * FROM admin_role_assignments ${where} ORDER BY assigned_at DESC`)
+        .prepare(sql)
         .bind(...values)
         .all();
 

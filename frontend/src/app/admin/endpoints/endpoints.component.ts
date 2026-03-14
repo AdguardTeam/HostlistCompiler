@@ -169,8 +169,8 @@ interface EndpointOverride {
 
     <!-- Inline override editor (replaces MatDialog to avoid the dependency) -->
     @if (editingEndpoint()) {
-        <div class="overlay" (click)="closeOverride()">
-            <mat-card appearance="outlined" class="override-dialog" (click)="$event.stopPropagation()">
+        <div class="overlay" (click)="closeOverride()" (keydown.enter)="closeOverride()" tabindex="0" role="button">
+            <mat-card appearance="outlined" class="override-dialog" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0" role="dialog">
                 <mat-card-header>
                     <mat-icon mat-card-avatar aria-hidden="true">tune</mat-icon>
                     <mat-card-title>Override: {{ editingEndpoint()!.method }} {{ editingEndpoint()!.path }}</mat-card-title>
@@ -188,7 +188,7 @@ interface EndpointOverride {
                         </mat-form-field>
 
                         <div class="scope-toggles">
-                            <label class="scope-label">Scopes:</label>
+                            <span class="scope-label">Scopes:</span>
                             @for (s of availableScopes; track s) {
                                 <mat-checkbox [checked]="overrideScopes.includes(s)"
                                     (change)="toggleScope(s)">{{ s }}</mat-checkbox>

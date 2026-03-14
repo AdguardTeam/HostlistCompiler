@@ -11,7 +11,7 @@
  *   - Edge cases: flag not found, 0% rollout, 100% rollout
  */
 
-import { assertEquals, assertExists } from 'jsr:@std/assert';
+import { assertEquals, assertExists } from '@std/assert';
 import {
     createFeatureFlag,
     deleteFeatureFlag,
