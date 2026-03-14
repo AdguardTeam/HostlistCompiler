@@ -98,7 +98,7 @@ scopedLogger.error('D1 query failed', { error: err.message });
 
 ## Analytics Engine Events
 
-Admin actions are reported to Cloudflare Analytics Engine for dashboarding and alerting. Events use the `ANALYTICS` binding.
+Admin actions are reported to Cloudflare Analytics Engine for dashboarding and alerting. Events use the `ANALYTICS_ENGINE` binding.
 
 ### Event Types
 
@@ -112,7 +112,7 @@ Admin actions are reported to Cloudflare Analytics Engine for dashboarding and a
 ### Writing Events
 
 ```typescript
-env.ANALYTICS.writeDataPoint({
+env.ANALYTICS_ENGINE?.writeDataPoint({
     blobs: ['admin_action', actorId, action, resourceType],
     doubles: [durationMs],
     indexes: [requestId],

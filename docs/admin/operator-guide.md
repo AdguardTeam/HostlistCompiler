@@ -117,19 +117,27 @@ curl -X PATCH https://api.clerk.com/v1/users/{your_user_id}/metadata \
 
 ### Step 2: Assign the Super-Admin Role in ADMIN_DB
 
-Now that Clerk recognizes you as an admin, call the role assignment API:
+Since there are no existing admin role assignments at bootstrap, the first super-admin must be seeded out-of-band via a direct D1 insert (the API endpoint requires `roles:assign` permission, which nobody holds yet):
 
 ```bash
-curl -X POST https://your-worker.workers.dev/admin/system/roles/assign \
-  -H "Authorization: Bearer $YOUR_CLERK_JWT" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "clerk_user_id": "user_2yourClerkId",
-    "role_name": "super-admin"
-  }'
+# Using Wrangler to execute a D1 query directly
+wrangler d1 execute adblock-compiler-admin-d1 --command \
+  "INSERT INTO admin_role_assignments (clerk_user_id, role_name, assigned_by)
+   VALUES ('user_2yourClerkId', 'super-admin', 'bootstrap')"
 ```
 
-> **Note**: The first role assignment requires that the caller has `roles:assign` permission. Since there's no one with this permission yet, the middleware has a bootstrap exception: if the `admin_role_assignments` table is completely empty, the first authenticated admin (Clerk gate pass) is allowed to self-assign.
+Or, if you prefer the Wrangler D1 interactive shell:
+
+```bash
+wrangler d1 execute adblock-compiler-admin-d1 --interactive
+```
+
+```sql
+INSERT INTO admin_role_assignments (clerk_user_id, role_name, assigned_by)
+VALUES ('user_2yourClerkId', 'super-admin', 'bootstrap');
+```
+
+Once you have confirmed the insert, subsequent role assignments can be made through the API (`POST /admin/system/roles/assign`) using your super-admin JWT.
 
 ### Step 3: Verify
 

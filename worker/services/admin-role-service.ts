@@ -76,7 +76,9 @@ export async function resolveAdminContext(
         return null;
     }
 
-    // Join assignment → role in a single query to avoid round-trips.
+    // JOIN assignment → role in a single query to avoid round-trips.
+    // ORDER BY assigned_at DESC ensures deterministic behavior for users
+    // with a historical duplicate assignment; LIMIT 1 caps the result set.
     const row = await db
         .prepare(
             `SELECT
@@ -86,7 +88,9 @@ export async function resolveAdminContext(
 				r.permissions
 			FROM admin_role_assignments a
 			JOIN admin_roles r ON r.role_name = a.role_name AND r.is_active = 1
-			WHERE a.clerk_user_id = ?`,
+			WHERE a.clerk_user_id = ?
+			ORDER BY a.assigned_at DESC
+			LIMIT 1`,
         )
         .bind(clerkUserId)
         .first<{
@@ -302,7 +306,8 @@ export async function assignRole(
         .prepare(
             `INSERT INTO admin_role_assignments (clerk_user_id, role_name, assigned_by, assigned_at, expires_at)
 			 VALUES (?, ?, ?, ?, ?)
-			 ON CONFLICT(clerk_user_id, role_name) DO UPDATE SET
+			 ON CONFLICT(clerk_user_id) DO UPDATE SET
+				role_name   = excluded.role_name,
 				assigned_by = excluded.assigned_by,
 				assigned_at = excluded.assigned_at,
 				expires_at  = excluded.expires_at

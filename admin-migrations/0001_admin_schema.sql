@@ -27,13 +27,12 @@ CREATE INDEX idx_admin_roles_active ON admin_roles(is_active);
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS admin_role_assignments (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    clerk_user_id   TEXT    NOT NULL,
+    clerk_user_id   TEXT    NOT NULL UNIQUE,     -- one role per user; new assignment replaces old
     role_name       TEXT    NOT NULL,
     assigned_by     TEXT    NOT NULL,          -- clerk_user_id of the assigner
     assigned_at     TEXT    NOT NULL DEFAULT (datetime('now')),
     expires_at      TEXT,                      -- NULL = never expires
-    FOREIGN KEY (role_name) REFERENCES admin_roles(role_name) ON DELETE CASCADE,
-    UNIQUE(clerk_user_id, role_name)
+    FOREIGN KEY (role_name) REFERENCES admin_roles(role_name) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_role_assignments_user   ON admin_role_assignments(clerk_user_id);

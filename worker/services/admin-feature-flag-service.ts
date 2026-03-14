@@ -274,7 +274,10 @@ export async function evaluateFlag(
     if (flag.rollout_percentage >= 100) return true;
     if (flag.rollout_percentage <= 0) return false;
 
-    const seed = context.clerkUserId ? `${flagName}${context.clerkUserId}` : `${flagName}${Math.random()}`;
+    // Anonymous users without a stable identity are not eligible for percentage rollout
+    // to ensure deterministic behavior (no random flicker between requests).
+    if (!context.clerkUserId) return false;
+    const seed = `${flagName}${context.clerkUserId}`;
     const bucket = simpleHash(seed);
     return bucket < flag.rollout_percentage;
 }
