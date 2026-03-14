@@ -1612,3 +1612,77 @@ Deno.test('integration — registerAll with bridge + dependencies', async () => 
     assertEquals(bridgeLog, ['base', 'extended']);
     assertEquals(registry.getPlugins().length, 2);
 });
+
+// ── Code Review Fixes: Additional Tests ──────────────────────────
+
+Deno.test('topologicalSort — throws on missing external dependency', () => {
+    const a: Plugin = {
+        manifest: { name: 'a', version: '1.0.0', dependencies: ['missing-plugin'] },
+    };
+    let threw = false;
+    try {
+        topologicalSort([a]);
+    } catch (e) {
+        threw = true;
+        const msg = (e as Error).message;
+        assertEquals(msg.includes('not in the batch'), true);
+        assertEquals(msg.includes('missing-plugin'), true);
+    }
+    assertEquals(threw, true);
+});
+
+Deno.test('init failure rolls back subsystem entries', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    const plugin: Plugin = {
+        manifest: { name: 'dirty-init', version: '1.0.0' },
+        formatters: [{ format: 'ghost-fmt', formatterClass: class {} as never }],
+        validators: [{
+            name: 'ghost-val',
+            validate: () => ({ valid: true, errorsText: null }),
+        }],
+        parsers: [{
+            name: 'ghost-parser',
+            parse: () => ({ type: 'root' }),
+            supportedSyntaxes: ['adblock'],
+        }],
+        init: async () => {
+            throw new Error('init kaboom');
+        },
+    };
+
+    await assertRejects(
+        () => registry.register(plugin),
+        Error,
+        'init kaboom',
+    );
+
+    // All subsystem maps should be clean
+    assertEquals(registry.getFormatter('ghost-fmt'), undefined);
+    assertEquals(registry.getValidator('ghost-val'), undefined);
+    assertEquals(registry.getParser('ghost-parser'), undefined);
+    assertEquals(registry.getPlugin('dirty-init'), undefined);
+});
+
+Deno.test({
+    name: 'initTimeout — register rejects if init exceeds timeout',
+    sanitizeOps: false,
+    sanitizeResources: false,
+    fn: async () => {
+        const registry = new PluginRegistry(silentLogger);
+
+        const plugin: Plugin = {
+            manifest: { name: 'slow-init', version: '1.0.0' },
+            init: async () => {
+                await new Promise((resolve) => setTimeout(resolve, 5000));
+            },
+        };
+
+        await assertRejects(
+            () => registry.register(plugin, { initTimeout: 50 }),
+            Error,
+            'timed out after 50ms',
+        );
+        assertEquals(registry.getPlugin('slow-init'), undefined);
+    },
+});

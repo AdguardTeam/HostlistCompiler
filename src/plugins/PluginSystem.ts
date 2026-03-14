@@ -353,8 +353,9 @@ export class PluginRegistry {
     /**
      * Registers a plugin, dispatching each slot to its subsystem map.
      * Calls the plugin's `init()` lifecycle hook after registration.
+     * If `init()` throws, all subsystem entries are rolled back.
      */
-    async register(plugin: Plugin): Promise<void> {
+    async register(plugin: Plugin, options?: PluginLoadOptions): Promise<void> {
         const name = plugin.manifest.name;
 
         if (this.plugins.has(name)) {
@@ -521,14 +522,36 @@ export class PluginRegistry {
             }
         }
 
-        // Initialize plugin
+        // Initialize plugin — rollback all subsystem entries on failure
         if (plugin.init) {
             const context: PluginContext = {
                 logger: this.logger,
                 registry: this,
                 compilerVersion: VERSION,
             };
-            await plugin.init(context);
+            try {
+                const initPromise = plugin.init(context);
+                const timeout = options?.initTimeout;
+                if (timeout && timeout > 0) {
+                    let timer: ReturnType<typeof setTimeout>;
+                    const timeoutPromise = new Promise<never>((_, reject) => {
+                        timer = setTimeout(
+                            () => reject(new Error(`Plugin "${name}" init timed out after ${timeout}ms`)),
+                            timeout,
+                        );
+                    });
+                    try {
+                        await Promise.race([initPromise, timeoutPromise]);
+                    } finally {
+                        clearTimeout(timer!);
+                    }
+                } else {
+                    await initPromise;
+                }
+            } catch (err) {
+                this.rollbackSubsystemEntries(plugin);
+                throw err;
+            }
         }
 
         this.plugins.set(name, plugin);
@@ -544,6 +567,31 @@ export class PluginRegistry {
         const sorted = topologicalSort(plugins);
         for (const plugin of sorted) {
             await this.register(plugin);
+        }
+    }
+
+    /**
+     * Remove all subsystem map entries that were added for a plugin.
+     * Used to roll back a partial registration when init() fails.
+     */
+    private rollbackSubsystemEntries(plugin: Plugin): void {
+        for (const t of plugin.transformations ?? []) this.transformations.delete(t.type);
+        for (const d of plugin.downloaders ?? []) {
+            for (const s of d.schemes) this.downloaders.delete(s);
+        }
+        for (const f of plugin.formatters ?? []) {
+            this.formatters.delete(f.format);
+            this.bridge.unregisterFormatter?.(f.format);
+        }
+        for (const v of plugin.validators ?? []) this.validators.delete(v.name);
+        for (const p of plugin.parsers ?? []) this.parsers.delete(p.name);
+        for (const r of plugin.diffReporters ?? []) this.diffReporters.delete(r.name);
+        for (const c of plugin.cacheBackends ?? []) this.cacheBackends.delete(c.name);
+        for (const h of plugin.headerGenerators ?? []) this.headerGenerators.delete(h.name);
+        for (const cr of plugin.conflictResolvers ?? []) this.conflictResolvers.delete(cr.name);
+        for (const eh of plugin.eventHooks ?? []) {
+            this.eventHooks.delete(eh.name);
+            this.bridge.unregisterEventHooks?.(eh.hooks);
         }
     }
 
@@ -907,6 +955,18 @@ export function topologicalSort(plugins: Plugin[]): Plugin[] {
     const byName = new Map<string, Plugin>();
     for (const p of plugins) byName.set(p.manifest.name, p);
 
+    // Validate all declared dependencies exist within the provided set
+    for (const p of plugins) {
+        if (p.manifest.dependencies) {
+            const missing = p.manifest.dependencies.filter((dep) => !byName.has(dep));
+            if (missing.length > 0) {
+                throw new Error(
+                    `Plugin "${p.manifest.name}" depends on plugins not in the batch: ${missing.join(', ')}`,
+                );
+            }
+        }
+    }
+
     const visited = new Set<string>();
     const visiting = new Set<string>();
     const ordered: Plugin[] = [];
@@ -921,8 +981,7 @@ export function topologicalSort(plugins: Plugin[]): Plugin[] {
         const plugin = byName.get(name);
         if (plugin?.manifest.dependencies) {
             for (const dep of plugin.manifest.dependencies) {
-                // Only resolve within the provided set
-                if (byName.has(dep)) visit(dep);
+                visit(dep);
             }
         }
 
