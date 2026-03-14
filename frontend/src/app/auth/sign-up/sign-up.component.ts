@@ -29,9 +29,9 @@ import { ClerkService } from '../../services/clerk.service';
                     </div>
                 } @else {
                     <div class="auth-error" role="alert">
-                        <p>Authentication is not configured.</p>
+                        <p>Authentication is unavailable.</p>
                         <p class="auth-error-detail">
-                            Ensure <code>CLERK_PUBLISHABLE_KEY</code> is set in the worker environment.
+                            Sign-up could not be initialized. Check that <code>CLERK_PUBLISHABLE_KEY</code> is set correctly in the worker environment, or try refreshing the page.
                         </p>
                     </div>
                 }
