@@ -29,6 +29,7 @@ export class ClerkService {
     // Writable signals (private)
     private readonly _isLoaded = signal(false);
     private readonly _isAvailable = signal(false);
+    private readonly _configLoadFailed = signal(false);
     private readonly _user = signal<UserResource | null>(null);
     private readonly _session = signal<SessionResource | null>(null);
 
@@ -36,10 +37,27 @@ export class ClerkService {
     readonly isLoaded = this._isLoaded.asReadonly();
     /** True only when the Clerk SDK loaded successfully (publishable key was valid). */
     readonly isAvailable = this._isAvailable.asReadonly();
+    /**
+     * True when the `/api/clerk-config` fetch failed (network error, timeout, etc.).
+     * Distinct from `isAvailable=false` which means the key is simply not configured.
+     * Consumers can use this to show a "temporarily unavailable" error with a retry hint
+     * rather than implying the auth environment variable is missing.
+     */
+    readonly configLoadFailed = this._configLoadFailed.asReadonly();
     readonly user = this._user.asReadonly();
     readonly session = this._session.asReadonly();
     readonly isSignedIn = computed(() => !!this._user());
     readonly userId = computed(() => this._user()?.id ?? null);
+
+    /**
+     * Mark that the Clerk config fetch itself failed (e.g. network error or timeout
+     * hitting `/api/clerk-config`). This is distinct from the key simply being absent —
+     * consumers can use `configLoadFailed()` to show a transient-error message instead
+     * of an "authentication not configured" fallback.
+     */
+    markConfigLoadFailed(): void {
+        this._configLoadFailed.set(true);
+    }
 
     /**
      * Initialise the Clerk SDK. Called from `provideAppInitializer` in app.config.ts.

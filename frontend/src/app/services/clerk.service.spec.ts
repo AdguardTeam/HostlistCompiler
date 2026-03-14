@@ -37,6 +37,10 @@ describe('ClerkService', () => {
             expect(service.isAvailable()).toBe(false);
         });
 
+        it('should start with configLoadFailed false', () => {
+            expect(service.configLoadFailed()).toBe(false);
+        });
+
         it('should start with isSignedIn false', () => {
             expect(service.isSignedIn()).toBe(false);
         });
@@ -77,6 +81,19 @@ describe('ClerkService', () => {
 
         it('should not set isAvailable when publishableKey is empty', async () => {
             await service.initialize('');
+            expect(service.isAvailable()).toBe(false);
+        });
+
+        it('should set configLoadFailed to true when markConfigLoadFailed() is called', () => {
+            service.markConfigLoadFailed();
+            expect(service.configLoadFailed()).toBe(true);
+        });
+
+        it('should still set isLoaded after markConfigLoadFailed + initialize empty key', async () => {
+            service.markConfigLoadFailed();
+            await service.initialize('');
+            expect(service.configLoadFailed()).toBe(true);
+            expect(service.isLoaded()).toBe(true);
             expect(service.isAvailable()).toBe(false);
         });
 

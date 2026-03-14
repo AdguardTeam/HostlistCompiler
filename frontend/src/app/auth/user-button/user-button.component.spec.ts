@@ -11,6 +11,7 @@ describe('UserButtonComponent', () => {
     let mockClerkService: {
         isLoaded: ReturnType<typeof signal<boolean>>;
         isSignedIn: ReturnType<typeof signal<boolean>>;
+        configLoadFailed: ReturnType<typeof signal<boolean>>;
         mountUserButton: ReturnType<typeof vi.fn>;
         unmountUserButton: ReturnType<typeof vi.fn>;
     };
@@ -19,6 +20,7 @@ describe('UserButtonComponent', () => {
         mockClerkService = {
             isLoaded: signal(true),
             isSignedIn: signal(false),
+            configLoadFailed: signal(false),
             mountUserButton: vi.fn(),
             unmountUserButton: vi.fn(),
         };
@@ -148,6 +150,7 @@ describe('UserButtonComponent', () => {
         const mockClerkNoContainer = {
             isLoaded: signal(true),
             isSignedIn: signal(false),
+            configLoadFailed: signal(false),
             mountUserButton: vi.fn(),
             unmountUserButton: vi.fn(),
         };
@@ -229,5 +232,39 @@ describe('UserButtonComponent', () => {
         compiled = fixture.nativeElement as HTMLElement;
         expect(compiled.querySelector('.user-button-container')).toBeNull();
         expect(compiled.querySelector('.auth-links')).toBeTruthy();
+    });
+
+    it('should show error message when configLoadFailed is true', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isSignedIn.set(false);
+        mockClerkService.configLoadFailed.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-config-error')).toBeTruthy();
+        expect(compiled.querySelector('.auth-links')).toBeNull();
+        expect(compiled.querySelector('.user-button-container')).toBeNull();
+    });
+
+    it('should not show error message when configLoadFailed is false', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isSignedIn.set(false);
+        mockClerkService.configLoadFailed.set(false);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-config-error')).toBeNull();
+        expect(compiled.querySelector('.auth-links')).toBeTruthy();
+    });
+
+    it('should not show error message when user is signed in (even if configLoadFailed)', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isSignedIn.set(true);
+        mockClerkService.configLoadFailed.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.auth-config-error')).toBeNull();
+        expect(compiled.querySelector('.user-button-container')).toBeTruthy();
     });
 });
