@@ -12,14 +12,7 @@
 
 import { assertEquals } from '@std/assert';
 import { SCOPE_REGISTRY, TIER_RATE_LIMITS, TIER_REGISTRY, UserTier } from '../types';
-import {
-    getTierRateLimit,
-    invalidateScopeCache,
-    invalidateTierCache,
-    isTierSufficientDynamic,
-    loadScopeRegistry,
-    loadTierRegistry,
-} from './admin-registry-service';
+import { getTierRateLimit, invalidateScopeCache, invalidateTierCache, isTierSufficientDynamic, loadScopeRegistry, loadTierRegistry } from './admin-registry-service';
 import type { Env } from '../types';
 
 // ============================================================================
@@ -54,7 +47,9 @@ function createMockKV(initialJson?: Record<string, unknown>) {
             store.delete(key);
         },
         // stubs required by KVNamespace interface
-        async list() { return { keys: [], list_complete: true, cacheStatus: null }; },
+        async list() {
+            return { keys: [], list_complete: true, cacheStatus: null };
+        },
         async getWithMetadata<T>(key: string, type?: string) {
             const val = await this.get<T>(key, type);
             return { value: val, metadata: null, cacheStatus: null };
@@ -65,11 +60,17 @@ function createMockKV(initialJson?: Record<string, unknown>) {
 /** A KV mock that always throws on reads (to trigger fallback paths). */
 function createThrowingKV() {
     return {
-        async get(): Promise<never> { throw new Error('KV unavailable'); },
+        async get(): Promise<never> {
+            throw new Error('KV unavailable');
+        },
         async put(): Promise<void> {},
         async delete(): Promise<void> {},
-        async list() { return { keys: [], list_complete: true, cacheStatus: null }; },
-        async getWithMetadata() { return { value: null, metadata: null, cacheStatus: null }; },
+        async list() {
+            return { keys: [], list_complete: true, cacheStatus: null };
+        },
+        async getWithMetadata() {
+            return { value: null, metadata: null, cacheStatus: null };
+        },
     };
 }
 
@@ -82,13 +83,21 @@ type RawRow = Record<string, unknown>;
 function createMockD1WithTiers(tierRows: RawRow[], scopeRows: RawRow[]) {
     function makeStmt(rows: RawRow[]) {
         const stmt = {
-            bind(..._vals: unknown[]) { return stmt; },
-            async first<T>(): Promise<T | null> { return rows[0] as T ?? null; },
+            bind(..._vals: unknown[]) {
+                return stmt;
+            },
+            async first<T>(): Promise<T | null> {
+                return rows[0] as T ?? null;
+            },
             async all<T>(): Promise<{ results: T[]; success: boolean }> {
                 return { results: rows as T[], success: true };
             },
-            async run() { return { success: true, meta: { changes: 0 } }; },
-            async raw<T>(): Promise<T[]> { return []; },
+            async run() {
+                return { success: true, meta: { changes: 0 } };
+            },
+            async raw<T>(): Promise<T[]> {
+                return [];
+            },
         };
         return stmt;
     }
@@ -99,9 +108,15 @@ function createMockD1WithTiers(tierRows: RawRow[], scopeRows: RawRow[]) {
             if (/scope_configs/i.test(sql)) return makeStmt(scopeRows);
             return makeStmt([]);
         },
-        async dump() { return new ArrayBuffer(0); },
-        async batch() { return []; },
-        async exec() { return { count: 0, duration: 0 }; },
+        async dump() {
+            return new ArrayBuffer(0);
+        },
+        async batch() {
+            return [];
+        },
+        async exec() {
+            return { count: 0, duration: 0 };
+        },
     };
 }
 

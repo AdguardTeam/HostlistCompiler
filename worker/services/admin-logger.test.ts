@@ -11,13 +11,7 @@
  */
 
 import { assertEquals } from '@std/assert';
-import {
-    createAdminLogger,
-    createRequestId,
-    sanitizeForLog,
-    startTimer,
-    withAdminTracing,
-} from './admin-logger';
+import { createAdminLogger, createRequestId, sanitizeForLog, startTimer, withAdminTracing } from './admin-logger';
 
 // ============================================================================
 // Helpers
@@ -185,9 +179,7 @@ Deno.test('withAdminTracing - returns result of wrapped fn', async () => {
 
 Deno.test('withAdminTracing - logs start and completion entries', async () => {
     const logger = createAdminLogger('tc123456');
-    const logs = await captureLogAsync(() =>
-        withAdminTracing(logger, 'scope.list', async () => 'done')
-    );
+    const logs = await captureLogAsync(() => withAdminTracing(logger, 'scope.list', async () => 'done'));
     assertEquals(logs.length, 2);
     const start = JSON.parse(logs[0]);
     const end = JSON.parse(logs[1]);
