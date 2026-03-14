@@ -112,6 +112,20 @@ When used with `--config`, these flags are overlaid on top of any `exclusions` /
 
 ---
 
+### Authentication (Queue Mode)
+
+These flags are used when submitting jobs to the remote worker API via `--use-queue`. They are **not required** for local-only compilation. See the [CLI Authentication Guide](../auth/cli-authentication.md) for full details, CI/CD examples, and security best practices.
+
+| Flag | Type | Description |
+|---|---|---|
+| `--api-key <key>` | string | API key for worker API requests (starts with `abc_`) |
+| `--bearer-token <jwt>` | string | Clerk JWT bearer token for worker API requests |
+| `--api-url <url>` | string | Base URL of the worker API [default: `https://adblock-compiler.jayson-knight.workers.dev`] |
+
+> `--api-key` and `--bearer-token` are **mutually exclusive** — choose one per invocation. A warning is emitted if auth flags are used without `--use-queue`.
+
+---
+
 ### Networking
 
 | Flag | Type | Description |
@@ -209,6 +223,21 @@ adblock-compiler -c config.json -o output.txt --name output.txt.bak
 
 ```bash
 adblock-compiler -i extra.txt -o output.txt --append
+```
+
+### Authenticated queue compilation
+
+```bash
+# Submit to remote queue with API key authentication
+adblock-compiler -c config.json -o output.txt \
+  --use-queue \
+  --api-key abc_Xk9mP2nLqR5tV8wZ...
+
+# Use a local dev worker
+adblock-compiler -c config.json -o output.txt \
+  --use-queue \
+  --api-key abc_Xk9mP2nLqR5tV8wZ... \
+  --api-url http://localhost:8787
 ```
 
 ### Custom networking options

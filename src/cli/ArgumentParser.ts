@@ -40,6 +40,10 @@ export interface ParsedArguments {
     timeout?: number;
     retries?: number;
     userAgent?: string;
+    // Authentication (for remote API calls via --use-queue)
+    apiKey?: string;
+    bearerToken?: string;
+    apiUrl?: string;
 }
 
 /**
@@ -54,7 +58,7 @@ export class ArgumentParser {
      */
     public parse(argv: string[]): ParsedArguments {
         const parsed = parseArgs(argv, {
-            string: ['config', 'input-type', 'output', 'priority', 'format', 'name', 'user-agent'],
+            string: ['config', 'input-type', 'output', 'priority', 'format', 'name', 'user-agent', 'api-key', 'bearer-token', 'api-url'],
             boolean: [
                 'verbose',
                 'benchmark',
@@ -137,6 +141,9 @@ export class ArgumentParser {
             timeout: toNum(parsed.timeout, 'timeout'),
             retries: toNum(parsed.retries, 'retries'),
             userAgent: parsed['user-agent'] as string | undefined,
+            apiKey: parsed['api-key'] as string | undefined,
+            bearerToken: parsed['bearer-token'] as string | undefined,
+            apiUrl: (parsed['api-url'] as string | undefined) ?? 'http://localhost:8787',
         };
     }
 
@@ -209,6 +216,12 @@ Networking:
       --retries <n>            Number of HTTP retry attempts
       --user-agent <string>    Custom HTTP User-Agent header
 
+Authentication:
+      --api-key <key>          API key for authenticated worker API requests (abc_ prefix)
+      --bearer-token <token>   Clerk JWT bearer token for authenticated requests
+      --api-url <url>          Base URL for the worker API [default: http://localhost:8787]
+                               Used with --use-queue for remote compilation
+
 Examples:
   adblock-compiler -c config.json -o output.txt
       compile a blocklist and write the output to output.txt
@@ -227,6 +240,12 @@ Examples:
 
   adblock-compiler -c config.json -o output.txt --use-queue --priority high
       queue a compilation job with high priority (async processing)
+
+  adblock-compiler -c config.json -o output.txt --use-queue --api-key abc_mykey123
+      queue a compilation using API key authentication
+
+  adblock-compiler -c config.json -o output.txt --use-queue --bearer-token eyJhbG...
+      queue a compilation using Clerk JWT bearer token
 `);
     }
 

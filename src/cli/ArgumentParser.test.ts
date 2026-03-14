@@ -374,3 +374,65 @@ Deno.test('ArgumentParser - validate should fail with both --stdout and --output
     const error = parser.validate(args);
     assertEquals(error, 'Cannot specify both --stdout and --output');
 });
+
+// ============================================================================
+// Authentication Flag Tests
+// ============================================================================
+
+Deno.test('ArgumentParser - should parse --api-key', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse(['--api-key', 'abc_test123']);
+    assertEquals(result.apiKey, 'abc_test123');
+});
+
+Deno.test('ArgumentParser - should parse --bearer-token', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse(['--bearer-token', 'eyJhbGci...']);
+    assertEquals(result.bearerToken, 'eyJhbGci...');
+});
+
+Deno.test('ArgumentParser - should parse --api-url', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse(['--api-url', 'https://api.example.com']);
+    assertEquals(result.apiUrl, 'https://api.example.com');
+});
+
+Deno.test('ArgumentParser - should parse all auth flags together', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse([
+        '--api-key',
+        'abc_mykey',
+        '--bearer-token',
+        'my.jwt.token',
+        '--api-url',
+        'https://custom.api.dev',
+    ]);
+    assertEquals(result.apiKey, 'abc_mykey');
+    assertEquals(result.bearerToken, 'my.jwt.token');
+    assertEquals(result.apiUrl, 'https://custom.api.dev');
+});
+
+Deno.test('ArgumentParser - auth flags default to undefined except apiUrl', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse(['-i', 'source.txt']);
+    assertEquals(result.apiKey, undefined);
+    assertEquals(result.bearerToken, undefined);
+    assertEquals(result.apiUrl, 'http://localhost:8787');
+});
+
+Deno.test('ArgumentParser - auth flags combined with other flags', () => {
+    const parser = new ArgumentParser();
+    const result = parser.parse([
+        '-i',
+        'source.txt',
+        '-o',
+        'output.txt',
+        '--api-key',
+        'abc_test',
+        '--use-queue',
+    ]);
+    assertEquals(result.input, ['source.txt']);
+    assertEquals(result.output, 'output.txt');
+    assertEquals(result.apiKey, 'abc_test');
+    assertEquals(result.useQueue, true);
+});

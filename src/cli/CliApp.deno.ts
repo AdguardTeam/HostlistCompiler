@@ -81,6 +81,10 @@ interface ICliArgs {
     timeout?: number;
     retries?: number;
     'user-agent'?: string;
+    // Authentication (for remote API calls)
+    'api-key'?: string;
+    'bearer-token'?: string;
+    'api-url'?: string;
 }
 
 /**
@@ -266,6 +270,12 @@ Networking:
       --retries <n>            Number of HTTP retry attempts
       --user-agent <string>    Custom HTTP User-Agent header
 
+Authentication:
+      --api-key <key>          API key for authenticated worker API requests (abc_ prefix)
+      --bearer-token <token>   Clerk JWT bearer token for authenticated requests
+      --api-url <url>          Base URL for the worker API [default: http://localhost:8787]
+                               Used with --use-queue for remote compilation
+
 Examples:
   adblock-compiler -c config.json -o output.txt
       compile a blocklist and write the output to output.txt
@@ -281,6 +291,9 @@ Examples:
 
   adblock-compiler -c config.json -o output.txt --benchmark
       compile and show performance metrics
+
+  adblock-compiler -c config.json -o output.txt --use-queue --api-key abc_mykey123
+      queue a compilation using API key authentication
 `);
     }
 
@@ -289,7 +302,7 @@ Examples:
      */
     private parseArgs(argv: string[]): ICliArgs {
         const parsed = parseArgs(argv, {
-            string: ['config', 'input-type', 'output', 'format', 'name', 'user-agent', 'priority'],
+            string: ['config', 'input-type', 'output', 'format', 'name', 'user-agent', 'priority', 'api-key', 'bearer-token', 'api-url'],
             boolean: [
                 'verbose',
                 'benchmark',
@@ -372,6 +385,9 @@ Examples:
             timeout: toNum(parsed.timeout, 'timeout'),
             retries: toNum(parsed.retries, 'retries'),
             'user-agent': parsed['user-agent'],
+            'api-key': parsed['api-key'],
+            'bearer-token': parsed['bearer-token'],
+            'api-url': parsed['api-url'] ?? 'http://localhost:8787',
         };
     }
 
@@ -582,6 +598,10 @@ Examples:
 
             if (this.args.priority) {
                 this.logger.warn('--priority is only supported via the worker API and will be ignored in standalone CLI mode');
+            }
+
+            if ((this.args['api-key'] || this.args['bearer-token'] || this.args['api-url'] !== 'http://localhost:8787') && !this.args['use-queue']) {
+                this.logger.warn('--api-key, --bearer-token, and --api-url require --use-queue to take effect');
             }
 
             this.logger.info(`Starting @jk-com/adblock-compiler v${VERSION}`);

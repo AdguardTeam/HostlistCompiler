@@ -85,6 +85,7 @@
   - [Admin Access](auth/admin-access.md)
   - [Removing Anonymous Access](auth/removing-anonymous-access.md)
   - [Cloudflare Access](auth/cloudflare-access.md)
+  - [CLI Authentication](auth/cli-authentication.md)
   - [Clerk + Cloudflare Integration](auth/clerk-cloudflare-integration.md)
 - [Security](security/ZERO_TRUST_ARCHITECTURE.md)
   - [Zero Trust Architecture](security/ZERO_TRUST_ARCHITECTURE.md)

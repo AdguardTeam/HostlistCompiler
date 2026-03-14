@@ -168,6 +168,11 @@ Networking:
       --retries <n>            Number of HTTP retry attempts
       --user-agent <string>    Custom HTTP User-Agent header
 
+Authentication (when using --use-queue with a remote API):
+      --api-key <key>          API key (abc_...) for authenticated requests
+      --bearer-token <token>   Clerk JWT Bearer token for authenticated requests
+      --api-url <url>          Worker API base URL [default: http://localhost:8787]
+
 Examples:
   adblock-compiler -c config.json -o output.txt
       compile a blocklist and write the output to output.txt

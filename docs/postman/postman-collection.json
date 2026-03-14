@@ -29,6 +29,18 @@
       "description": "Admin API key for protected admin endpoints (X-Admin-Key header)"
     },
     {
+      "key": "clerkToken",
+      "value": "",
+      "type": "string",
+      "description": "Clerk JWT for authenticated user requests (Bearer token)"
+    },
+    {
+      "key": "userApiKey",
+      "value": "",
+      "type": "string",
+      "description": "User API key with abc_ prefix for API key authentication"
+    },
+    {
       "key": "userId",
       "value": "",
       "type": "string",
@@ -2328,6 +2340,254 @@
               ]
             },
             "description": "Returns the most recent result set written by `POST /api/browser/monitor`. Reads\nthe KV key `browser:monitor:latest` from `COMPILATION_CACHE`.\n\nRequires the `COMPILATION_CACHE` binding.\n"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "description": "User-level authentication endpoints — API key management and webhook receivers. Requires Clerk JWT or API key auth.",
+      "item": [
+        {
+          "name": "List user's API keys",
+          "description": "Lists all API keys belonging to the authenticated user.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "keys"
+              ]
+            },
+            "description": "Lists all API keys belonging to the authenticated user.\nReturns metadata only — never the key hash or plaintext.\nRequires Clerk JWT authentication.\n"
+          }
+        },
+        {
+          "name": "Create API key",
+          "description": "Creates a new API key for the authenticated user.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "keys"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"string\",\n    \"scopes\": [\n        \"compile\"\n    ],\n    \"expiresInDays\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a new API key for the authenticated user.\nThe raw API key (with `abc_` prefix) is returned **only once** — store it securely.\nRequires Clerk JWT authentication.\n"
+          }
+        },
+        {
+          "name": "Update API key",
+          "description": "Updates an API key's name or scopes. Only the key owner can update their own keys.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/keys/:keyId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "keys",
+                ":keyId"
+              ],
+              "variable": [
+                {
+                  "key": "keyId",
+                  "value": "{{keyId}}",
+                  "description": "Path parameter: keyId"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"string\",\n    \"scopes\": [\n        \"compile\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Updates an API key's name or scopes. Only the key owner can update their own keys.\nRequires Clerk JWT authentication.\n"
+          }
+        },
+        {
+          "name": "Revoke API key",
+          "description": "Revokes (soft-deletes) an API key. The key remains in the database for audit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/keys/:keyId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "keys",
+                ":keyId"
+              ],
+              "variable": [
+                {
+                  "key": "keyId",
+                  "value": "{{keyId}}",
+                  "description": "Path parameter: keyId"
+                }
+              ]
+            },
+            "description": "Revokes (soft-deletes) an API key. The key remains in the database for audit\npurposes but is no longer valid for authentication.\nOnly the key owner can revoke their own keys.\n"
+          }
+        },
+        {
+          "name": "Clerk webhook receiver",
+          "description": "Receives Clerk webhook events (user.created, user.updated, user.deleted, session.created).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/webhooks/clerk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "clerk"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"string\",\n    \"data\": {},\n    \"object\": \"event\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Receives Clerk webhook events (user.created, user.updated, user.deleted, session.created).\nVerified via Svix webhook signature. This endpoint is called by Clerk's webhook infrastructure\nand should not be called directly.\n"
           }
         }
       ]
