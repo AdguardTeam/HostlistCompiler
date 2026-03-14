@@ -305,6 +305,8 @@ export interface SubsystemBridge {
         type: string,
         transformation: Transformation,
     ) => void;
+    /** Forward transformation unregistration from `TransformationRegistry` */
+    unregisterTransformation?: (type: string) => void;
 
     // ── Event Hooks ──
     /** Forward event hook registration to `CompilerEventEmitter` */
@@ -575,7 +577,10 @@ export class PluginRegistry {
      * Used to roll back a partial registration when init() fails.
      */
     private rollbackSubsystemEntries(plugin: Plugin): void {
-        for (const t of plugin.transformations ?? []) this.transformations.delete(t.type);
+        for (const t of plugin.transformations ?? []) {
+            this.transformations.delete(t.type);
+            this.bridge.unregisterTransformation?.(t.type);
+        }
         for (const d of plugin.downloaders ?? []) {
             for (const s of d.schemes) this.downloaders.delete(s);
         }
@@ -612,6 +617,7 @@ export class PluginRegistry {
         if (plugin.transformations) {
             for (const t of plugin.transformations) {
                 this.transformations.delete(t.type);
+                this.bridge.unregisterTransformation?.(t.type);
             }
         }
 
