@@ -202,12 +202,12 @@
         "noUnusedParameters": true
     },
     "allowScripts": [
-        "npm:@prisma/engines@7.3.0",
+        "npm:@prisma/engines@7.5.0",
         "npm:core-js-pure@3.47.0",
         "npm:esbuild@0.27.0",
         "npm:esbuild@0.27.3",
         "npm:fsevents@2.3.3",
-        "npm:prisma@7.3.0",
+        "npm:prisma@7.5.0",
         "npm:sharp@0.33.5",
         "npm:sharp@0.34.5",
         "npm:workerd@1.20251210.0",
