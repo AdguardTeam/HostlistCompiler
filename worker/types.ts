@@ -123,7 +123,7 @@ export enum UserTier {
 export interface ITierConfig {
     /** Numeric rank for ordering comparisons (higher = more privileged) */
     readonly order: number;
-    /** Requests per minute allowed for this tier */
+    /** Maximum requests per 60-second sliding window for this tier */
     readonly rateLimit: number;
     /** Human-readable display name */
     readonly displayName: string;
@@ -146,7 +146,7 @@ export const TIER_REGISTRY: Readonly<Record<UserTier, ITierConfig>> = {
 } as const;
 
 /**
- * Rate limits per tier (requests per minute).
+ * Rate limits per tier (requests per 60-second sliding window).
  * @deprecated Use {@link TIER_REGISTRY}[tier].rateLimit instead. Kept for backward compatibility.
  */
 export const TIER_RATE_LIMITS: Readonly<Record<UserTier, number>> = {

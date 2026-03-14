@@ -1,25 +1,36 @@
 import { TestBed } from '@angular/core/testing';
 import { PLATFORM_ID, provideZonelessChangeDetection } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ClerkService } from './clerk.service';
+import { ClerkAppearanceService } from './clerk-appearance.service';
+
+const MOCK_APPEARANCE = { variables: { colorPrimary: '#b45309' }, elements: { card: {} } };
+
+function makeMockAppearanceService() {
+    return { buildAppearance: vi.fn().mockReturnValue(MOCK_APPEARANCE) };
+}
 
 describe('ClerkService', () => {
     let service: ClerkService;
 
     describe('on browser platform', () => {
+        let mockAppearanceService: ReturnType<typeof makeMockAppearanceService>;
+
         beforeEach(() => {
+            mockAppearanceService = makeMockAppearanceService();
             TestBed.configureTestingModule({
                 providers: [
                     provideZonelessChangeDetection(),
                     { provide: PLATFORM_ID, useValue: 'browser' },
-                    {
-                        provide: DOCUMENT,
+                    { provide: DOCUMENT,
                         useValue: {
                             defaultView: globalThis,
                             createElement: () => ({}),
                             querySelector: () => null,
                         },
                     },
+                    { provide: ClerkAppearanceService, useValue: mockAppearanceService },
                 ],
             });
             service = TestBed.inject(ClerkService);
@@ -97,6 +108,69 @@ describe('ClerkService', () => {
             expect(service.user()).toBeNull();
             expect(service.session()).toBeNull();
         });
+
+        describe('mount calls pass appearance', () => {
+            beforeEach(() => {
+                // Inject a stub clerkInstance with mount/unmount spies
+                (service as any).clerkInstance = {
+                    mountSignIn: vi.fn(),
+                    mountSignUp: vi.fn(),
+                    mountUserButton: vi.fn(),
+                };
+            });
+
+            it('mountSignIn should call buildAppearance and pass appearance', () => {
+                const el = document.createElement('div') as HTMLDivElement;
+                service.mountSignIn(el);
+
+                expect(mockAppearanceService.buildAppearance).toHaveBeenCalledTimes(1);
+                expect((service as any).clerkInstance.mountSignIn).toHaveBeenCalledWith(
+                    el,
+                    expect.objectContaining({ appearance: MOCK_APPEARANCE }),
+                );
+            });
+
+            it('mountSignIn should preserve fallbackRedirectUrl alongside appearance', () => {
+                const el = document.createElement('div') as HTMLDivElement;
+                service.mountSignIn(el, '/dashboard');
+
+                expect((service as any).clerkInstance.mountSignIn).toHaveBeenCalledWith(
+                    el,
+                    { fallbackRedirectUrl: '/dashboard', appearance: MOCK_APPEARANCE },
+                );
+            });
+
+            it('mountSignIn without fallbackRedirectUrl should not include that key', () => {
+                const el = document.createElement('div') as HTMLDivElement;
+                service.mountSignIn(el);
+
+                const callArg = (service as any).clerkInstance.mountSignIn.mock.calls[0][1];
+                expect(callArg).not.toHaveProperty('fallbackRedirectUrl');
+                expect(callArg).toHaveProperty('appearance', MOCK_APPEARANCE);
+            });
+
+            it('mountSignUp should call buildAppearance and pass appearance', () => {
+                const el = document.createElement('div') as HTMLDivElement;
+                service.mountSignUp(el);
+
+                expect(mockAppearanceService.buildAppearance).toHaveBeenCalledTimes(1);
+                expect((service as any).clerkInstance.mountSignUp).toHaveBeenCalledWith(
+                    el,
+                    expect.objectContaining({ appearance: MOCK_APPEARANCE }),
+                );
+            });
+
+            it('mountUserButton should call buildAppearance and pass appearance', () => {
+                const el = document.createElement('div') as HTMLDivElement;
+                service.mountUserButton(el);
+
+                expect(mockAppearanceService.buildAppearance).toHaveBeenCalledTimes(1);
+                expect((service as any).clerkInstance.mountUserButton).toHaveBeenCalledWith(
+                    el,
+                    expect.objectContaining({ appearance: MOCK_APPEARANCE }),
+                );
+            });
+        });
     });
 
     describe('on server platform (SSR)', () => {
@@ -113,6 +187,7 @@ describe('ClerkService', () => {
                             querySelector: () => null,
                         },
                     },
+                    { provide: ClerkAppearanceService, useValue: makeMockAppearanceService() },
                 ],
             });
             service = TestBed.inject(ClerkService);

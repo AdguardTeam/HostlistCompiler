@@ -93,4 +93,20 @@ describe('authInterceptor', () => {
         expect(req.request.headers.has('Authorization')).toBe(false);
         req.flush({});
     });
+
+    it('should propagate error when getToken rejects', async () => {
+        isSignedInSignal.set(true);
+        mockGetToken.mockRejectedValue(new Error('Session expired'));
+
+        let caughtError: Error | undefined;
+        http.get('/api/keys').subscribe({
+            error: (err: Error) => { caughtError = err; },
+        });
+
+        // Allow the microtask (rejected Promise) to resolve
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(caughtError).toBeDefined();
+        expect(caughtError!.message).toContain('Session token refresh failed');
+    });
 });
