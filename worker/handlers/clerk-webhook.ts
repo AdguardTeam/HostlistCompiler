@@ -114,6 +114,12 @@ function toDisplayName(data: ClerkUserEventData, fallbackEmail: string | null): 
  * Returns `true` for known transient D1/SQLite conditions that are safe to retry.
  * Permanent errors (constraint violations, schema mismatches, auth failures) return
  * `false` so they are re-thrown immediately without incurring unnecessary retry delay.
+ *
+ * Note: a generic `d1_error` prefix is intentionally NOT matched here — Cloudflare
+ * wraps both transient *and* permanent SQLite errors under `D1_ERROR`, so matching
+ * the prefix alone would retry UNIQUE_CONSTRAINT, SQLITE_SCHEMA, and other
+ * non-recoverable failures.  The specific sub-patterns below cover the transient
+ * conditions we actually want to retry.
  */
 function isTransientD1Error(err: unknown): boolean {
     const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
@@ -123,7 +129,8 @@ function isTransientD1Error(err: unknown): boolean {
         msg.includes('sqlite_locked') ||
         msg.includes('connection reset') ||
         msg.includes('network error') ||
-        msg.includes('d1_error')
+        msg.includes('service temporarily unavailable') ||
+        msg.includes('too many requests')
     );
 }
 
