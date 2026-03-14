@@ -2822,7 +2822,7 @@ components:
                     minItems: 1
                     default:
                         - compile
-                    description: Permissions granted to this key (defaults to ["compile"])
+                    description: 'Permissions granted to this key (defaults to ["compile"])'
                 expiresInDays:
                     type: integer
                     minimum: 1
@@ -3738,5 +3738,7 @@ components:
             type: http
             scheme: bearer
             bearerFormat: ApiKey
-            description: User API key with `abc_` prefix. Pass the key as a Bearer token in the Authorization header (e.g. `Authorization: Bearer abc_...`).
+            description: >-
+                User API key with abc_ prefix. Pass the key as a Bearer token in the Authorization header (e.g.
+                Authorization: Bearer abc_...).
 security: []
