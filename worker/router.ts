@@ -183,7 +183,17 @@ const routes: Route[] = [
         handler: async (_req, env, params) => handleQueueResults(params.pathParams.requestId, env),
     },
 
-    // Compilation endpoints
+    // ──────────────────────────────────────────────────────────────────
+    // Compilation endpoints — intentionally anonymous-accessible.
+    //
+    // Design decision: The compiler is the core public utility of this
+    // service. Compilation does NOT require authentication (no Clerk JWT
+    // or API key). Access is controlled via Turnstile (bot protection)
+    // and tiered rate limiting (anonymous callers get the lowest limit).
+    // Authenticated users automatically receive higher rate limits based
+    // on their tier (Free → Pro → Admin) through the shared rate-limit
+    // middleware.
+    // ──────────────────────────────────────────────────────────────────
     {
         method: 'POST',
         pattern: '/compile',

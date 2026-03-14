@@ -388,3 +388,29 @@ Deno.test('handleClerkWebhook - returns 500 when prisma upsert throws', async ()
     const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
     assertEquals(res.status, 500);
 });
+
+Deno.test('handleClerkWebhook - retries transient D1 failure and succeeds', async () => {
+    // First call throws, second succeeds — proves retry works
+    let callCount = 0;
+    const retryPrisma: PrismaLike = {
+        user: {
+            async upsert() {
+                callCount++;
+                if (callCount === 1) throw new Error('D1_ERROR: database is locked');
+                return { id: 'uuid-retry-ok' };
+            },
+            async deleteMany() {
+                return { count: 0 };
+            },
+        },
+        async $disconnect() {/* noop */},
+    };
+    const mockVerify = () => makeUserCreatedEvent();
+    const req = makeSvixRequest(makeUserCreatedEvent());
+    const res = await handleClerkWebhook(req, makeEnv(), retryPrisma, mockVerify);
+    assertEquals(res.status, 200);
+    assertEquals(callCount, 2, 'upsert should have been called twice (1 failure + 1 success)');
+    const body = await res.json() as { success: boolean; userId: string };
+    assertEquals(body.success, true);
+    assertEquals(body.userId, 'uuid-retry-ok');
+});

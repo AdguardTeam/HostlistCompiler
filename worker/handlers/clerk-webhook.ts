@@ -107,6 +107,31 @@ function toDisplayName(data: ClerkUserEventData, fallbackEmail: string | null): 
 }
 
 // ---------------------------------------------------------------------------
+// D1 retry helper (transient failure resilience)
+// ---------------------------------------------------------------------------
+
+/**
+ * Retry an async D1 operation with exponential backoff.
+ * D1 can return transient errors (e.g. connection resets, busy database).
+ * Clerk will also retry the webhook, but retrying locally first avoids
+ * unnecessary latency and webhook queue pressure.
+ */
+async function withD1Retry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDelayMs = 100): Promise<T> {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+            return await fn();
+        } catch (err) {
+            lastError = err;
+            if (attempt < maxAttempts - 1) {
+                await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
+            }
+        }
+    }
+    throw lastError;
+}
+
+// ---------------------------------------------------------------------------
 // Prisma abstraction (allows injection for unit testing)
 // ---------------------------------------------------------------------------
 
@@ -319,6 +344,7 @@ export async function handleClerkWebhook(
     let prisma: PrismaLike | null = null;
     try {
         prisma = testPrisma ?? new D1UserStore(db);
+        const store = prisma; // const binding for closures (TS narrowing)
 
         switch (event.type) {
             case 'user.created':
@@ -333,33 +359,35 @@ export async function handleClerkWebhook(
                 const meta = data.public_metadata ?? {};
                 const lastSignInAt = data.last_sign_in_at ? new Date(data.last_sign_in_at) : null;
 
-                const user = await prisma.user.upsert({
-                    where: { clerkUserId: data.id },
-                    create: {
-                        email: email ?? null,
-                        clerkUserId: data.id,
-                        displayName: toDisplayName(data, email),
-                        firstName: data.first_name ?? null,
-                        lastName: data.last_name ?? null,
-                        imageUrl: data.image_url ?? null,
-                        emailVerified: isEmailVerified(data),
-                        tier: validateTier(meta['tier']) ?? UserTier.Free,
-                        role: validateRole(meta['role']) ?? 'user',
-                        lastSignInAt,
-                    },
-                    update: {
-                        // Only update email/emailVerified if the event includes an email address;
-                        // leave the existing DB values intact when email_addresses is empty.
-                        ...(email !== null && { email, emailVerified: isEmailVerified(data) }),
-                        displayName: toDisplayName(data, email),
-                        firstName: data.first_name ?? null,
-                        lastName: data.last_name ?? null,
-                        imageUrl: data.image_url ?? null,
-                        tier: validateTier(meta['tier']),
-                        role: validateRole(meta['role']),
-                        lastSignInAt,
-                    },
-                });
+                const user = await withD1Retry(() =>
+                    store.user.upsert({
+                        where: { clerkUserId: data.id },
+                        create: {
+                            email: email ?? null,
+                            clerkUserId: data.id,
+                            displayName: toDisplayName(data, email),
+                            firstName: data.first_name ?? null,
+                            lastName: data.last_name ?? null,
+                            imageUrl: data.image_url ?? null,
+                            emailVerified: isEmailVerified(data),
+                            tier: validateTier(meta['tier']) ?? UserTier.Free,
+                            role: validateRole(meta['role']) ?? 'user',
+                            lastSignInAt,
+                        },
+                        update: {
+                            // Only update email/emailVerified if the event includes an email address;
+                            // leave the existing DB values intact when email_addresses is empty.
+                            ...(email !== null && { email, emailVerified: isEmailVerified(data) }),
+                            displayName: toDisplayName(data, email),
+                            firstName: data.first_name ?? null,
+                            lastName: data.last_name ?? null,
+                            imageUrl: data.image_url ?? null,
+                            tier: validateTier(meta['tier']),
+                            role: validateRole(meta['role']),
+                            lastSignInAt,
+                        },
+                    })
+                );
 
                 return Response.json(
                     { success: true, event: event.type, userId: user.id },
@@ -368,7 +396,7 @@ export async function handleClerkWebhook(
             }
 
             case 'user.deleted': {
-                const result = await prisma.user.deleteMany({ where: { clerkUserId: event.data.id } });
+                const result = await withD1Retry(() => store.user.deleteMany({ where: { clerkUserId: event.data.id } }));
 
                 return Response.json(
                     { success: true, event: event.type, deleted: result.count > 0 },

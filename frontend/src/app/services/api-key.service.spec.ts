@@ -73,7 +73,7 @@ describe('ApiKeyService', () => {
 
             await tick();
             const req = httpTesting.expectOne('/api/keys');
-            req.error(new ProgressEvent('error'), { status: 500, statusText: 'Server Error' });
+            req.error(new ProgressEvent('error'), { status: 400, statusText: 'Bad Request' });
 
             await promise;
             expect(service.error()).toBeTruthy();
@@ -198,7 +198,7 @@ describe('ApiKeyService', () => {
 
             await tick();
             const req = httpTesting.expectOne('/api/keys/key-1');
-            req.error(new ProgressEvent('error'), { status: 500, statusText: 'Server Error' });
+            req.error(new ProgressEvent('error'), { status: 400, statusText: 'Bad Request' });
 
             const ok = await promise;
             expect(ok).toBe(false);
