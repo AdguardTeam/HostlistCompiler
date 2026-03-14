@@ -1029,7 +1029,7 @@ export const UpdateTierConfigRequestSchema = z.object({
     rate_limit: z.number().int().min(0).optional(),
     display_name: z.string().min(1).max(100).optional(),
     description: z.string().max(500).optional(),
-    features: z.record(z.unknown()).optional(),
+    features: z.record(z.string(), z.unknown()).optional(),
     is_active: z.boolean().optional(),
 });
 export type UpdateTierConfigRequest = z.infer<typeof UpdateTierConfigRequestSchema>;

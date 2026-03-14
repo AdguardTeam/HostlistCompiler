@@ -202,7 +202,7 @@ export const TierConfigSchema = z.object({
     rate_limit: z.number(),
     display_name: z.string(),
     description: z.string(),
-    features: z.record(z.unknown()),
+    features: z.record(z.string(), z.unknown()),
     is_active: z.boolean(),
     created_at: z.string(),
     updated_at: z.string(),
