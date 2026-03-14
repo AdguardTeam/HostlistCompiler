@@ -15,7 +15,8 @@
  */
 
 import { JsonResponse } from '../utils/response.ts';
-import { type IAuthContext, VALID_SCOPES } from '../types.ts';
+import { type IAuthContext } from '../types.ts';
+import { ApiKeyRowSchema, CreateApiKeyRequestSchema, UpdateApiKeyRequestSchema } from '../schemas.ts';
 
 // ---------------------------------------------------------------------------
 // PgPool interface (matches worker/middleware/auth.ts)
@@ -80,25 +81,9 @@ async function hashKey(key: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Request body shapes
-// ---------------------------------------------------------------------------
-
-interface CreateKeyBody {
-    name: string;
-    scopes?: string[];
-    expiresInDays?: number;
-}
-
-interface UpdateKeyBody {
-    name?: string;
-    scopes?: string[];
-}
-
-// ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
 
-const MAX_KEY_NAME_LENGTH = 100;
 const MAX_KEYS_PER_USER = 25;
 
 function requireUserId(authContext: IAuthContext): Response | null {
@@ -106,12 +91,6 @@ function requireUserId(authContext: IAuthContext): Response | null {
         return JsonResponse.forbidden('User identity is not available for this session. Please sign out and sign in again.');
     }
     return null;
-}
-
-function validateScopes(scopes: unknown): string[] | null {
-    if (!Array.isArray(scopes)) return null;
-    const valid = scopes.every((s) => typeof s === 'string' && VALID_SCOPES.includes(s));
-    return valid ? (scopes as string[]) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -135,33 +114,22 @@ export async function handleCreateApiKey(
         return userGuard;
     }
 
-    let body: CreateKeyBody;
+    let rawBody: unknown;
     try {
-        body = await request.json() as CreateKeyBody;
+        rawBody = await request.json();
     } catch {
         return JsonResponse.badRequest('Invalid JSON body');
     }
 
-    // Validate name
-    if (!body.name || typeof body.name !== 'string' || body.name.trim().length === 0) {
-        return JsonResponse.badRequest('name is required');
+    const parsed = CreateApiKeyRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+        return JsonResponse.badRequest(parsed.error.issues[0]?.message ?? 'Invalid request body');
     }
-    if (body.name.length > MAX_KEY_NAME_LENGTH) {
-        return JsonResponse.badRequest(`name must be at most ${MAX_KEY_NAME_LENGTH} characters`);
-    }
-
-    // Validate scopes
-    const scopes = body.scopes ? validateScopes(body.scopes) : ['compile'];
-    if (scopes === null) {
-        return JsonResponse.badRequest(`Invalid scopes — allowed values: ${VALID_SCOPES.join(', ')}`);
-    }
+    const body = parsed.data;
 
     // Validate expiry
     let expiresAt: string | null = null;
     if (body.expiresInDays !== undefined) {
-        if (typeof body.expiresInDays !== 'number' || body.expiresInDays < 1 || body.expiresInDays > 365) {
-            return JsonResponse.badRequest('expiresInDays must be between 1 and 365');
-        }
         const expiry = new Date();
         expiry.setDate(expiry.getDate() + body.expiresInDays);
         expiresAt = expiry.toISOString();
@@ -193,7 +161,7 @@ export async function handleCreateApiKey(
             60, $6, NOW(), NOW()
         ) RETURNING id, key_prefix, name, scopes, rate_limit_per_minute,
                     expires_at, created_at`,
-        [authContext.userId, keyHash, keyPrefix, body.name.trim(), scopes, expiresAt],
+        [authContext.userId, keyHash, keyPrefix, body.name.trim(), body.scopes, expiresAt],
     );
 
     const row = result.rows[0];
@@ -201,15 +169,21 @@ export async function handleCreateApiKey(
         return JsonResponse.serverError('Failed to create API key');
     }
 
+    const rowParse = ApiKeyRowSchema.safeParse(row);
+    if (!rowParse.success) {
+        console.error('[api-keys] CREATE returned unexpected row shape', rowParse.error.issues);
+        return JsonResponse.serverError('Failed to create API key');
+    }
+
     return JsonResponse.success({
-        id: row.id,
+        id: rowParse.data.id,
         key: plaintext, // Plaintext returned only on creation
-        keyPrefix: row.key_prefix,
-        name: row.name,
-        scopes: row.scopes,
-        rateLimitPerMinute: row.rate_limit_per_minute,
-        expiresAt: row.expires_at,
-        createdAt: row.created_at,
+        keyPrefix: rowParse.data.key_prefix,
+        name: rowParse.data.name,
+        scopes: rowParse.data.scopes,
+        rateLimitPerMinute: rowParse.data.rate_limit_per_minute,
+        expiresAt: rowParse.data.expires_at,
+        createdAt: rowParse.data.created_at,
     }, { status: 201 });
 }
 
@@ -304,36 +278,18 @@ export async function handleUpdateApiKey(
         return userGuard;
     }
 
-    let body: UpdateKeyBody;
+    let rawBody: unknown;
     try {
-        body = await request.json() as UpdateKeyBody;
+        rawBody = await request.json();
     } catch {
         return JsonResponse.badRequest('Invalid JSON body');
     }
 
-    if (!body.name && !body.scopes) {
-        return JsonResponse.badRequest('At least one of name or scopes is required');
+    const parsed = UpdateApiKeyRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+        return JsonResponse.badRequest(parsed.error.issues[0]?.message ?? 'Invalid request body');
     }
-
-    // Validate name if provided
-    if (body.name !== undefined) {
-        if (typeof body.name !== 'string' || body.name.trim().length === 0) {
-            return JsonResponse.badRequest('name must be a non-empty string');
-        }
-        if (body.name.length > MAX_KEY_NAME_LENGTH) {
-            return JsonResponse.badRequest(`name must be at most ${MAX_KEY_NAME_LENGTH} characters`);
-        }
-    }
-
-    // Validate scopes if provided
-    let scopes: string[] | undefined;
-    if (body.scopes !== undefined) {
-        const validated = validateScopes(body.scopes);
-        if (validated === null) {
-            return JsonResponse.badRequest(`Invalid scopes — allowed values: ${VALID_SCOPES.join(', ')}`);
-        }
-        scopes = validated;
-    }
+    const body = parsed.data;
 
     const pool = createPool(connectionString);
 
@@ -348,9 +304,9 @@ export async function handleUpdateApiKey(
         paramIndex++;
     }
 
-    if (scopes !== undefined) {
+    if (body.scopes !== undefined) {
         setClauses.push(`scopes = $${paramIndex}`);
-        values.push(scopes);
+        values.push(body.scopes);
         paramIndex++;
     }
 
@@ -369,16 +325,21 @@ export async function handleUpdateApiKey(
         return JsonResponse.notFound('API key not found or already revoked');
     }
 
-    const row = result.rows[0];
+    const rowParse = ApiKeyRowSchema.safeParse(result.rows[0]);
+    if (!rowParse.success) {
+        console.error('[api-keys] UPDATE returned unexpected row shape', rowParse.error.issues);
+        return JsonResponse.serverError('Failed to update API key');
+    }
+
     return JsonResponse.success({
-        id: row.id,
-        keyPrefix: row.key_prefix,
-        name: row.name,
-        scopes: row.scopes,
-        rateLimitPerMinute: row.rate_limit_per_minute,
-        lastUsedAt: row.last_used_at,
-        expiresAt: row.expires_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        id: rowParse.data.id,
+        keyPrefix: rowParse.data.key_prefix,
+        name: rowParse.data.name,
+        scopes: rowParse.data.scopes,
+        rateLimitPerMinute: rowParse.data.rate_limit_per_minute,
+        lastUsedAt: rowParse.data.last_used_at,
+        expiresAt: rowParse.data.expires_at,
+        createdAt: rowParse.data.created_at,
+        updatedAt: rowParse.data.updated_at,
     });
 }

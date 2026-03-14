@@ -8,6 +8,7 @@
 import { assertEquals } from '@std/assert';
 import { handleCreateApiKey, handleCreateUser, handleListApiKeys, handleRevokeApiKey, handleValidateApiKey } from './auth-admin.ts';
 import { authenticateApiKey } from '../middleware/auth.ts';
+import { AuthScope } from '../types.ts';
 import type { HyperdriveBinding } from '../types.ts';
 
 // ============================================================================
@@ -580,7 +581,7 @@ Deno.test('authenticateApiKey - returns error when required scope is missing', a
     const authReq = new Request('https://example.com/admin', {
         headers: { 'Authorization': `Bearer ${rawKey}` },
     });
-    const result = await authenticateApiKey(authReq, MOCK_HYPERDRIVE, createPool, 'admin');
+    const result = await authenticateApiKey(authReq, MOCK_HYPERDRIVE, createPool, AuthScope.Admin);
     assertEquals(result.authenticated, false);
 });
 

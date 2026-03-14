@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 import { ConfigurationSchema, PrioritySchema } from '../src/configuration/schemas.ts';
+import { AuthScope, UserTier } from './types.ts';
 
 // ============================================================================
 // Basic Enums and Constants
@@ -689,3 +690,139 @@ export const WebhookNotifyResponseSchema = z.object({
 // Re-export BaseQueueMessageSchema extension note:
 // The group field is added to queue messages to support grouped job processing.
 // Consumers can use this to batch related jobs or apply shared cancellation.
+
+// ============================================================================
+// Clerk Auth Schemas
+// ============================================================================
+
+/**
+ * A single email address entry in a Clerk user event payload.
+ */
+export const ClerkEmailAddressSchema = z.object({
+    id: z.string().min(1),
+    email_address: z.string().email(),
+    verification: z.object({
+        status: z.enum(['verified', 'unverified', 'failed', 'expired']),
+    }).nullable().optional(),
+});
+
+export type ClerkEmailAddress = z.infer<typeof ClerkEmailAddressSchema>;
+
+/**
+ * Full user data shape sent by Clerk for `user.created` and `user.updated` events.
+ * Uses `.passthrough()` to allow unknown fields Clerk may add in future versions.
+ */
+export const ClerkWebhookUserDataSchema = z.object({
+    id: z.string().min(1),
+    email_addresses: z.array(ClerkEmailAddressSchema).optional(),
+    primary_email_address_id: z.string().nullable().optional(),
+    first_name: z.string().max(100).nullable().optional(),
+    last_name: z.string().max(100).nullable().optional(),
+    image_url: z.string().url().nullable().optional(),
+    public_metadata: z.object({
+        tier: z.nativeEnum(UserTier).optional(),
+        role: z.string().optional(),
+    }).optional(),
+    last_sign_in_at: z.number().int().min(0).nullable().optional(),
+}).passthrough();
+
+export type ClerkWebhookUserData = z.infer<typeof ClerkWebhookUserDataSchema>;
+
+/**
+ * Minimal base schema for any Clerk webhook event.
+ * Accepts unknown event types so the handler can gracefully acknowledge them
+ * (Svix retries on 4xx; unknown-type events should still return 200).
+ */
+export const ClerkWebhookEventBaseSchema = z.object({
+    type: z.string().min(1),
+    data: z.object({ id: z.string().min(1) }).passthrough(),
+});
+
+export type ClerkWebhookEventBase = z.infer<typeof ClerkWebhookEventBaseSchema>;
+
+/**
+ * Strict schema for the three Clerk user lifecycle events this worker handles.
+ * Use for documentation and validation within known-type branches.
+ */
+export const ClerkWebhookEventSchema = z.object({
+    type: z.enum(['user.created', 'user.updated', 'user.deleted']),
+    data: ClerkWebhookUserDataSchema,
+});
+
+export type ClerkWebhookEvent = z.infer<typeof ClerkWebhookEventSchema>;
+
+/**
+ * Shape of a verified Clerk JWT payload after `jwtVerify()` succeeds.
+ * Uses `.passthrough()` so additional JWKS claims do not cause parse failures.
+ */
+export const ClerkJWTClaimsSchema = z.object({
+    sub: z.string().min(1, 'sub (user ID) is required'),
+    iss: z.string().url(),
+    exp: z.number().int().positive(),
+    nbf: z.number().int().min(0).optional(),
+    iat: z.number().int().min(0),
+    azp: z.string().optional(),
+    sid: z.string().optional(),
+    org_id: z.string().optional(),
+    org_role: z.string().optional(),
+    metadata: z.object({
+        tier: z.nativeEnum(UserTier).optional(),
+        role: z.string().optional(),
+    }).optional(),
+}).passthrough();
+
+export type ClerkJWTClaims = z.infer<typeof ClerkJWTClaimsSchema>;
+
+/**
+ * Request body for POST /api/keys (create a new API key).
+ */
+export const CreateApiKeyRequestSchema = z.object({
+    name: z.string().trim().min(1, 'name is required').max(100, 'name must be at most 100 characters'),
+    scopes: z.array(z.nativeEnum(AuthScope)).optional().default([AuthScope.Compile]),
+    expiresInDays: z.number().int().min(1).max(365).optional(),
+});
+
+export type CreateApiKeyRequest = z.infer<typeof CreateApiKeyRequestSchema>;
+
+/**
+ * Request body for PATCH /api/keys/:id (update an existing API key).
+ * At least one of `name` or `scopes` must be present.
+ */
+export const UpdateApiKeyRequestSchema = z.object({
+    name: z.string().trim().min(1, 'name must be a non-empty string').max(100, 'name must be at most 100 characters').optional(),
+    scopes: z.array(z.nativeEnum(AuthScope)).optional(),
+}).refine(
+    (d) => d.name !== undefined || d.scopes !== undefined,
+    { message: 'At least one of name or scopes is required' },
+);
+
+export type UpdateApiKeyRequest = z.infer<typeof UpdateApiKeyRequestSchema>;
+
+/**
+ * A single API key row returned from the `api_keys` table.
+ * Used to validate DB rows before trusting them in business logic.
+ */
+export const ApiKeyRowSchema = z.object({
+    id: z.string().min(1),
+    user_id: z.string().optional(),
+    key_prefix: z.string().optional(),
+    name: z.string().optional(),
+    scopes: z.array(z.nativeEnum(AuthScope)),
+    rate_limit_per_minute: z.number().int().nonnegative(),
+    expires_at: z.string().nullable().optional(),
+    revoked_at: z.string().nullable().optional(),
+    last_used_at: z.string().nullable().optional(),
+    created_at: z.string().optional(),
+    updated_at: z.string().optional(),
+});
+
+export type ApiKeyRow = z.infer<typeof ApiKeyRowSchema>;
+
+/**
+ * A single row from `users` when resolving an API key owner's tier.
+ */
+export const UserTierRowSchema = z.object({
+    tier: z.nativeEnum(UserTier),
+});
+
+export type UserTierRow = z.infer<typeof UserTierRowSchema>;

@@ -22,6 +22,8 @@ import { Webhook } from 'svix';
 import { JsonResponse } from '../utils/response.ts';
 import { UserTier } from '../types.ts';
 import type { Env } from '../types.ts';
+import { ClerkWebhookEventBaseSchema, ClerkWebhookUserDataSchema } from '../schemas.ts';
+import type { ClerkWebhookEventBase, ClerkWebhookUserData } from '../schemas.ts';
 
 // ---------------------------------------------------------------------------
 // Metadata validation helpers
@@ -55,33 +57,25 @@ function validateRole(value: unknown): string | undefined {
 }
 
 // ---------------------------------------------------------------------------
-// Clerk webhook event shapes (subset we care about)
+// Local type definitions and re-exports for webhook event shapes
 // ---------------------------------------------------------------------------
 
-/** @internal Clerk email address shape in webhook payloads. */
+/**
+ * @internal Clerk email address shape in webhook payloads.
+ * Defined locally as an interface; the Zod schema counterpart is
+ * {@link ClerkEmailAddressSchema} in schemas.ts.
+ */
 export interface ClerkEmailAddress {
     readonly email_address: string;
     readonly id: string;
     readonly verification?: { readonly status: string } | null;
 }
 
-/** @internal Clerk user data shape in webhook payloads. */
-export interface ClerkUserEventData {
-    readonly id: string;
-    readonly email_addresses?: readonly ClerkEmailAddress[];
-    readonly primary_email_address_id?: string;
-    readonly first_name?: string | null;
-    readonly last_name?: string | null;
-    readonly image_url?: string | null;
-    readonly public_metadata?: Record<string, unknown>;
-    readonly last_sign_in_at?: number | null;
-}
+/** @internal Clerk user data shape in webhook payloads — re-exported from schemas.ts. */
+export type ClerkUserEventData = ClerkWebhookUserData;
 
-/** @internal Clerk webhook event shape. */
-export interface ClerkWebhookEvent {
-    readonly type: string;
-    readonly data: ClerkUserEventData;
-}
+/** @internal Clerk webhook event shape — re-exported from schemas.ts. */
+export type ClerkWebhookEvent = ClerkWebhookEventBase;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -301,7 +295,13 @@ export async function handleClerkWebhook(
     let event: ClerkWebhookEvent;
     try {
         const svixHeaders = { 'svix-id': svixId, 'svix-timestamp': svixTimestamp, 'svix-signature': svixSignature };
-        event = _testVerify ? _testVerify(rawBody, svixHeaders) : (new Webhook(webhookSecret).verify(rawBody, svixHeaders) as ClerkWebhookEvent);
+        const raw = _testVerify ? _testVerify(rawBody, svixHeaders) : (new Webhook(webhookSecret).verify(rawBody, svixHeaders));
+
+        const parsed = ClerkWebhookEventBaseSchema.safeParse(raw);
+        if (!parsed.success) {
+            return JsonResponse.badRequest('Invalid webhook payload structure');
+        }
+        event = parsed.data;
     } catch {
         return JsonResponse.error('Invalid webhook signature', 401);
     }
@@ -323,20 +323,26 @@ export async function handleClerkWebhook(
         switch (event.type) {
             case 'user.created':
             case 'user.updated': {
-                const email = extractPrimaryEmail(event.data);
-                const meta = event.data.public_metadata ?? {};
-                const lastSignInAt = event.data.last_sign_in_at ? new Date(event.data.last_sign_in_at) : null;
+                const userData = ClerkWebhookUserDataSchema.safeParse(event.data);
+                if (!userData.success) {
+                    return JsonResponse.badRequest('Invalid user event data structure');
+                }
+                const data = userData.data;
+
+                const email = extractPrimaryEmail(data);
+                const meta = data.public_metadata ?? {};
+                const lastSignInAt = data.last_sign_in_at ? new Date(data.last_sign_in_at) : null;
 
                 const user = await prisma.user.upsert({
-                    where: { clerkUserId: event.data.id },
+                    where: { clerkUserId: data.id },
                     create: {
                         email: email ?? null,
-                        clerkUserId: event.data.id,
-                        displayName: toDisplayName(event.data, email),
-                        firstName: event.data.first_name ?? null,
-                        lastName: event.data.last_name ?? null,
-                        imageUrl: event.data.image_url ?? null,
-                        emailVerified: isEmailVerified(event.data),
+                        clerkUserId: data.id,
+                        displayName: toDisplayName(data, email),
+                        firstName: data.first_name ?? null,
+                        lastName: data.last_name ?? null,
+                        imageUrl: data.image_url ?? null,
+                        emailVerified: isEmailVerified(data),
                         tier: validateTier(meta['tier']) ?? UserTier.Free,
                         role: validateRole(meta['role']) ?? 'user',
                         lastSignInAt,
@@ -344,11 +350,11 @@ export async function handleClerkWebhook(
                     update: {
                         // Only update email/emailVerified if the event includes an email address;
                         // leave the existing DB values intact when email_addresses is empty.
-                        ...(email !== null && { email, emailVerified: isEmailVerified(event.data) }),
-                        displayName: toDisplayName(event.data, email),
-                        firstName: event.data.first_name ?? null,
-                        lastName: event.data.last_name ?? null,
-                        imageUrl: event.data.image_url ?? null,
+                        ...(email !== null && { email, emailVerified: isEmailVerified(data) }),
+                        displayName: toDisplayName(data, email),
+                        firstName: data.first_name ?? null,
+                        lastName: data.last_name ?? null,
+                        imageUrl: data.image_url ?? null,
                         tier: validateTier(meta['tier']),
                         role: validateRole(meta['role']),
                         lastSignInAt,

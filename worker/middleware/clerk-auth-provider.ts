@@ -60,6 +60,12 @@ export class ClerkAuthProvider implements IAuthProvider {
             };
         }
 
+        // Defensive guard: ClerkJWTClaimsSchema already enforces sub is non-empty
+        // at the JWT verification layer, but guard here as belt-and-suspenders.
+        if (!jwtResult.claims.sub) {
+            return { valid: false, error: 'Missing user ID in token' };
+        }
+
         const metadata = jwtResult.claims.metadata;
         return {
             valid: true,
