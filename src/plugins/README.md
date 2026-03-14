@@ -5,13 +5,11 @@ The adblock-compiler plugin system provides a **unified architecture** for exten
 ## Quick Start
 
 ```ts
-import { createSimplePlugin, globalRegistry, type Plugin } from './plugins/index.ts';
+import { createSimplePlugin, globalRegistry } from '@jk-com/adblock-compiler';
 
 // Simplest: a transformation plugin
 const myTransform = createSimplePlugin(
     'my-transform',
-    '1.0.0',
-    'lowercase',
     (rules) => rules.map((r) => r.toLowerCase()),
 );
 await globalRegistry.register(myTransform);
@@ -95,8 +93,23 @@ The `SubsystemBridge` connects plugin registration to real subsystem registries 
 ```ts
 const registry = new PluginRegistry(logger, {
     registerFormatter: (format, ctor) => FormatterFactory.register(format, ctor),
+    unregisterFormatter: (format) => FormatterFactory.unregister(format),
     registerTransformation: (type, exec) => transformationRegistry.register(type, exec),
     registerEventHooks: (hooks) => eventEmitter.registerHooks(hooks),
+    unregisterEventHooks: (hooks) => eventEmitter.unregisterHooks(hooks),
+    registerTransformationHooks: (hooks) => hookManager.register(hooks),
+    unregisterTransformationHooks: (hooks) => hookManager.unregister(hooks),
+});
+```
+
+If the bridge is not available at construction time, call `connectBridge()` later. Any plugins already registered before the bridge is connected will be **replayed** to the new bridge callbacks automatically:
+
+```ts
+const registry = new PluginRegistry(logger);
+// ... register plugins early ...
+registry.connectBridge({
+    registerFormatter: (format, ctor) => FormatterFactory.register(format, ctor),
+    // existing formatters are dispatched immediately upon connecting
 });
 ```
 
@@ -107,11 +120,12 @@ The bridge is optional — the registry works standalone for testing.
 Scan a directory for plugin modules:
 
 ```ts
-import { discoverPlugins } from './plugins/index.ts';
+import { discoverPlugins } from '@jk-com/adblock-compiler';
 
 const plugins = await discoverPlugins('./my-plugins', {
     patterns: ['*.ts'],
     recursive: true,
+    onError: (path, err) => console.warn(`Skipping ${path}: ${err.message}`),
 });
 await globalRegistry.registerAll(plugins);
 ```

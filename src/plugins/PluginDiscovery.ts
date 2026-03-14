@@ -18,19 +18,33 @@ export interface DiscoveryOptions extends PluginLoadOptions {
     patterns?: string[];
     /** Whether to recurse into subdirectories */
     recursive?: boolean;
+    /**
+     * Optional callback invoked when a matched plugin file fails to load.
+     * If omitted, load errors are silently ignored.
+     */
+    onError?: (path: string, error: Error) => void;
 }
 
 /**
- * Scan a directory for plugin modules, load each one, and return the
- * resulting {@link Plugin} array (ready for `registerAll()`).
+ * Scan a project-relative directory for plugin modules, load each one, and
+ * return the resulting {@link Plugin} array (ready for `registerAll()`).
  *
- * @param dir - Absolute or project-relative directory path
- * @param options - Discovery options (patterns, recursive, etc.)
+ * **Only project-relative paths are supported** (e.g., `'./plugins'` or
+ * `'plugins'`). Absolute system paths are rejected by the underlying
+ * {@link loadPlugin} loader for security reasons.
+ *
+ * Load errors for matched files are surfaced via the `options.onError`
+ * callback instead of being silently discarded.
+ *
+ * @param dir - Project-relative directory path (e.g. `'./my-plugins'`)
+ * @param options - Discovery options (patterns, recursive, onError, etc.)
  * @returns Array of loaded Plugin objects
  *
  * @example
  * ```ts
- * const plugins = await discoverPlugins('./plugins');
+ * const plugins = await discoverPlugins('./plugins', {
+ *     onError: (p, err) => console.warn(`Skipping ${p}: ${err.message}`),
+ * });
  * await registry.registerAll(plugins);
  * ```
  */
@@ -42,9 +56,13 @@ export async function discoverPlugins(
     const recursive = options?.recursive ?? false;
     const plugins: Plugin[] = [];
 
-    for await (const entry of Deno.readDir(dir)) {
+    // Normalise dir so it always starts with './' exactly once, e.g.
+    // './my-plugins' or 'my-plugins' → './my-plugins'; '../sibling' is left unchanged.
+    const normalised = dir.startsWith('./') || dir.startsWith('../') ? dir : `./${dir}`;
+
+    for await (const entry of Deno.readDir(normalised)) {
         if (entry.isDirectory && recursive) {
-            const sub = await discoverPlugins(`${dir}/${entry.name}`, options);
+            const sub = await discoverPlugins(`${normalised}/${entry.name}`, options);
             plugins.push(...sub);
             continue;
         }
@@ -55,11 +73,15 @@ export async function discoverPlugins(
         // Skip test files
         if (/\.test\.[tj]s$/.test(entry.name)) continue;
 
+        const importPath = `${normalised}/${entry.name}`;
         try {
-            const plugin = await loadPlugin(`./${dir}/${entry.name}`, options);
+            const plugin = await loadPlugin(importPath, options);
             plugins.push(plugin);
-        } catch {
-            // Skip files that aren't valid plugins
+        } catch (err) {
+            options?.onError?.(
+                importPath,
+                err instanceof Error ? err : new Error(String(err)),
+            );
         }
     }
 

@@ -317,6 +317,8 @@ export interface SubsystemBridge {
     // ── Transformation Hooks ──
     /** Forward transformation lifecycle hooks to `TransformationHookManager` */
     registerTransformationHooks?: (hooks: Partial<ICompilerEvents>) => void;
+    /** Forward transformation lifecycle hook removal to `TransformationHookManager` */
+    unregisterTransformationHooks?: (hooks: Partial<ICompilerEvents>) => void;
 }
 
 // ── Plugin Registry ─────────────────────────────────────────────────
@@ -597,6 +599,7 @@ export class PluginRegistry {
         for (const eh of plugin.eventHooks ?? []) {
             this.eventHooks.delete(eh.name);
             this.bridge.unregisterEventHooks?.(eh.hooks);
+            this.bridge.unregisterTransformationHooks?.(eh.hooks);
         }
     }
 
@@ -685,6 +688,7 @@ export class PluginRegistry {
             for (const eh of plugin.eventHooks) {
                 this.eventHooks.delete(eh.name);
                 this.bridge.unregisterEventHooks?.(eh.hooks);
+                this.bridge.unregisterTransformationHooks?.(eh.hooks);
             }
         }
 
@@ -843,9 +847,33 @@ export class PluginRegistry {
     /**
      * Connect or replace the subsystem bridge after construction.
      * Useful when subsystem instances are created after the registry.
+     *
+     * Any plugins already registered before this call are replayed to the
+     * newly connected bridge so that subsystem registries stay in sync.
      */
     connectBridge(bridge: SubsystemBridge): void {
         Object.assign(this.bridge, bridge);
+
+        // Replay currently registered entries to the new bridge callbacks
+        if (bridge.registerFormatter) {
+            for (const f of this.formatters.values()) {
+                bridge.registerFormatter(f.format, f.formatterClass);
+            }
+        }
+
+        if (bridge.registerTransformation) {
+            for (const t of this.transformations.values()) {
+                const wrapper = new PluginTransformationWrapper(t, this.logger);
+                bridge.registerTransformation(t.type, wrapper);
+            }
+        }
+
+        if (bridge.registerEventHooks || bridge.registerTransformationHooks) {
+            for (const eh of this.eventHooks.values()) {
+                bridge.registerEventHooks?.(eh.hooks);
+                bridge.registerTransformationHooks?.(eh.hooks);
+            }
+        }
     }
 
     /**
