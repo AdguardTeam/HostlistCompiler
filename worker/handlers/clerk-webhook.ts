@@ -217,13 +217,13 @@ export async function handleClerkWebhook(
                         lastSignInAt,
                     },
                     update: {
-                        // Only update email if the event includes one; leave existing value intact otherwise
-                        ...(email !== null && { email }),
+                        // Only update email/emailVerified if the event includes an email address;
+                        // leave the existing DB values intact when email_addresses is empty.
+                        ...(email !== null && { email, emailVerified: isEmailVerified(event.data) }),
                         displayName: toDisplayName(event.data, email),
                         firstName: event.data.first_name ?? null,
                         lastName: event.data.last_name ?? null,
                         imageUrl: event.data.image_url ?? null,
-                        emailVerified: isEmailVerified(event.data),
                         tier: validateTier(meta['tier']),
                         role: validateRole(meta['role']),
                         lastSignInAt,
