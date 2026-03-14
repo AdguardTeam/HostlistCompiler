@@ -127,11 +127,11 @@ migrations_dir = "migrations"
 
 # Admin configuration database (isolated from main app data)
 # Created via: wrangler d1 create adblock-compiler-admin-d1
-# TODO: Replace database_id after running the create command
+# NOTE: Replace database_id with the real UUID output from `wrangler d1 create adblock-compiler-admin-d1`
 [[d1_databases]]
 binding = "ADMIN_DB"
 database_name = "adblock-compiler-admin-d1"
-database_id = "PLACEHOLDER_RUN_WRANGLER_D1_CREATE"
+database_id = "5f2e91a7-242f-422a-8ba1-b673c48fe9d8"
 migrations_dir = "admin-migrations"
 
 # Static assets — served from the Angular production build output.
