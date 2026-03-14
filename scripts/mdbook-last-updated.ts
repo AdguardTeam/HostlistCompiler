@@ -21,7 +21,7 @@
 
 // MDBook calls preprocessors with "supports <renderer>" to probe compatibility.
 // Exit 0 means we support all renderers.
-if (Deno.args[0] === "supports") {
+if (Deno.args[0] === 'supports') {
     Deno.exit(0);
 }
 
@@ -39,7 +39,7 @@ interface Chapter {
 
 type BookItem =
     | { Chapter: Chapter }
-    | "Separator"
+    | 'Separator'
     | { PartTitle: string };
 
 interface Book {
@@ -73,17 +73,16 @@ for (const chunk of chunks) {
 const input = new TextDecoder().decode(buf);
 const [context, book]: [PreprocessorContext, Book] = JSON.parse(input);
 
-const bookRoot: string = context.root ?? ".";
-const srcDir: string = context.config?.book?.src ?? "src";
+const bookRoot: string = context.root ?? '.';
+const srcDir: string = context.config?.book?.src ?? 'src';
 
 // ── Build timestamp ───────────────────────────────────────────────────────────
 
 const buildTimestamp = new Date().toISOString();
-const buildDate = buildTimestamp.split("T")[0];
+const buildDate = buildTimestamp.split('T')[0];
 
 const buildInfoPath = `${bookRoot}/docs/theme/build-info.js`;
-const buildInfoContent =
-    `// Auto-generated at build time by scripts/mdbook-last-updated.ts — do not edit\n` +
+const buildInfoContent = `// Auto-generated at build time by scripts/mdbook-last-updated.ts — do not edit\n` +
     `window.__DOCS_BUILD_TIMESTAMP__ = ${JSON.stringify(buildTimestamp)};\n` +
     `window.__DOCS_BUILD_DATE__ = ${JSON.stringify(buildDate)};\n`;
 
@@ -99,23 +98,23 @@ try {
 
 async function getLastCommitDate(relPath: string): Promise<string> {
     try {
-        const cmd = new Deno.Command("git", {
+        const cmd = new Deno.Command('git', {
             args: [
-                "log",
-                "-1",
-                "--format=%ad",
-                "--date=format:%Y-%m-%d",
-                "--",
+                'log',
+                '-1',
+                '--format=%ad',
+                '--date=format:%Y-%m-%d',
+                '--',
                 relPath,
             ],
             cwd: bookRoot,
-            stdout: "piped",
-            stderr: "null", // "null" routes stderr to /dev/null (Deno.CommandOptions literal)
+            stdout: 'piped',
+            stderr: 'null', // "null" routes stderr to /dev/null (Deno.CommandOptions literal)
         });
         const result = await cmd.output();
         return new TextDecoder().decode(result.stdout).trim();
     } catch {
-        return "";
+        return '';
     }
 }
 
@@ -123,7 +122,7 @@ async function getLastCommitDate(relPath: string): Promise<string> {
 
 async function processItems(items: BookItem[]): Promise<void> {
     for (const item of items) {
-        if (typeof item !== "object" || !("Chapter" in item)) continue;
+        if (typeof item !== 'object' || !('Chapter' in item)) continue;
 
         const chapter = item.Chapter;
 
@@ -133,8 +132,7 @@ async function processItems(items: BookItem[]): Promise<void> {
             const lastUpdated = await getLastCommitDate(relPath);
 
             if (lastUpdated) {
-                chapter.content +=
-                    `\n\n<div class="last-updated">Last updated: ${lastUpdated}</div>\n`;
+                chapter.content += `\n\n<div class="last-updated">Last updated: ${lastUpdated}</div>\n`;
             }
         }
 
