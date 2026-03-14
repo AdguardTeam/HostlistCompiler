@@ -22,6 +22,7 @@
 import type { Env, HyperdriveBinding, IAuthProvider } from '../types.ts';
 import { ANONYMOUS_AUTH_CONTEXT, type IAuthContext, type IAuthMiddlewareResult, isTierSufficient, TIER_REGISTRY, UserTier } from '../types.ts';
 import { ClerkAuthProvider } from './clerk-auth-provider.ts';
+import { ApiKeyRowSchema, UserTierRowSchema } from '../schemas.ts';
 
 // ============================================================================
 // Types
@@ -145,7 +146,12 @@ export async function authenticateApiKey(
             return { authenticated: false, error: 'Invalid API key' };
         }
 
-        const apiKey = result.rows[0];
+        const rowParse = ApiKeyRowSchema.safeParse(result.rows[0]);
+        if (!rowParse.success) {
+            console.warn('[auth] Malformed API key DB row:', rowParse.error.issues);
+            return { authenticated: false, error: 'Malformed API key data' };
+        }
+        const apiKey = rowParse.data;
 
         // Check if revoked
         if (apiKey.revoked_at) {
@@ -415,12 +421,13 @@ async function resolveApiKeyOwnerTier(
             [userId],
         );
 
-        if (result.rows.length > 0 && result.rows[0].tier) {
-            const dbTier = result.rows[0].tier as string;
-            // Validate the DB value is a known tier
-            if (Object.values(UserTier).includes(dbTier as UserTier)) {
-                return dbTier as UserTier;
+        if (result.rows.length > 0) {
+            const rowParse = UserTierRowSchema.safeParse(result.rows[0]);
+            if (rowParse.success) {
+                return rowParse.data.tier;
             }
+            // Unknown/invalid tier value — fall back to Free
+            console.warn('[auth] Unrecognised tier value in DB row, defaulting to Free');
         }
         return UserTier.Free;
     } catch {
