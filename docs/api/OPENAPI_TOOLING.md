@@ -64,7 +64,7 @@ deno task openapi:validate
 
 ✅ Request examples: 2 found
 ✅ Contact info provided
-✅ License: GPL-3.0
+✅ License: AGPL-3.0
 
 ============================================================
 VALIDATION RESULTS

@@ -9,7 +9,7 @@ This document provides essential context for AI assistants working with the adbl
 - **Version:** 0.7.12
 - **Runtime:** Deno 2.4+ (primary), Node.js compatible, Cloudflare Workers compatible
 - **Language:** TypeScript (strict mode, 100% type-safe)
-- **License:** GPL-3.0
+- **License:** AGPL-3.0
 - **JSR Package:** `@jk-com/adblock-compiler`
 
 ## Quick Commands
