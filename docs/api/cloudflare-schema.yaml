@@ -48,6 +48,11 @@ tags:
         description: >-
             Endpoints backed by the Cloudflare Browser Rendering binding (`BROWSER`). Used for resolving redirect chains
             and monitoring filter-list source URLs for changes.
+    -
+        name: Authentication
+        description: >-
+            User-level authentication endpoints — API key management and webhook receivers. Requires Clerk JWT or API
+            key auth.
 paths:
     /api:
         get:
@@ -1049,6 +1054,200 @@ paths:
                     $ref: '#/components/responses/UnauthorizedError'
                 '503':
                     $ref: '#/components/responses/ServiceUnavailable'
+    /api/keys:
+        post:
+            tags:
+                - Authentication
+            summary: Create API key
+            description: |
+                Creates a new API key for the authenticated user.
+                The raw API key (with `abc_` prefix) is returned **only once** — store it securely.
+                Requires Clerk JWT authentication.
+            operationId: userCreateApiKey
+            security:
+                -
+                    ClerkJWT: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserCreateApiKeyRequest'
+            responses:
+                '201':
+                    description: API key created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserCreateApiKeyResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequestError'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+        get:
+            tags:
+                - Authentication
+            summary: List user's API keys
+            description: |
+                Lists all API keys belonging to the authenticated user.
+                Returns metadata only — never the key hash or plaintext.
+                Requires Clerk JWT authentication.
+            operationId: userListApiKeys
+            security:
+                -
+                    ClerkJWT: []
+            responses:
+                '200':
+                    description: List of API keys
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserListApiKeysResponse'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+    '/api/keys/{keyId}':
+        delete:
+            tags:
+                - Authentication
+            summary: Revoke API key
+            description: |
+                Revokes (soft-deletes) an API key. The key remains in the database for audit
+                purposes but is no longer valid for authentication.
+                Only the key owner can revoke their own keys.
+            operationId: userRevokeApiKey
+            security:
+                -
+                    ClerkJWT: []
+            parameters:
+                -
+                    name: keyId
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: ID of the API key to revoke
+            responses:
+                '200':
+                    description: API key revoked
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                    message:
+                                        type: string
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '404':
+                    description: API key not found or already revoked
+        patch:
+            tags:
+                - Authentication
+            summary: Update API key
+            description: |
+                Updates an API key's name or scopes. Only the key owner can update their own keys.
+                Requires Clerk JWT authentication.
+            operationId: userUpdateApiKey
+            security:
+                -
+                    ClerkJWT: []
+            parameters:
+                -
+                    name: keyId
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: ID of the API key to update
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserUpdateApiKeyRequest'
+            responses:
+                '200':
+                    description: API key updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserUpdateApiKeyResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequestError'
+                '401':
+                    $ref: '#/components/responses/UnauthorizedError'
+                '404':
+                    description: API key not found or already revoked
+    /api/webhooks/clerk:
+        post:
+            tags:
+                - Authentication
+            summary: Clerk webhook receiver
+            description: |
+                Receives Clerk webhook events (user.created, user.updated, user.deleted, session.created).
+                Verified via Svix webhook signature. This endpoint is called by Clerk's webhook infrastructure
+                and should not be called directly.
+            operationId: clerkWebhook
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            description: Clerk webhook event payload (Svix-signed)
+                            properties:
+                                type:
+                                    type: string
+                                    description: 'Event type (e.g. user.created, user.updated)'
+                                data:
+                                    type: object
+                                    description: Event-specific payload
+                                object:
+                                    type: string
+                                    enum:
+                                        - event
+            parameters:
+                -
+                    name: svix-id
+                    in: header
+                    required: true
+                    schema:
+                        type: string
+                    description: Svix webhook ID
+                -
+                    name: svix-timestamp
+                    in: header
+                    required: true
+                    schema:
+                        type: string
+                    description: Svix webhook timestamp
+                -
+                    name: svix-signature
+                    in: header
+                    required: true
+                    schema:
+                        type: string
+                    description: Svix webhook signature
+            responses:
+                '200':
+                    description: Webhook processed successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                    message:
+                                        type: string
+                '400':
+                    description: Invalid webhook signature or payload
+                '401':
+                    description: Webhook signature verification failed
     /admin/migrate/d1-to-pg:
         post:
             tags:
@@ -2602,6 +2801,161 @@ components:
                         error:
                             type: string
                             description: Present when valid is false
+        UserCreateApiKeyRequest:
+            type: object
+            required:
+                - name
+                - scopes
+            properties:
+                name:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                    description: Human-readable name for the key
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                        enum:
+                            - compile
+                            - validate
+                            - read
+                            - admin
+                    minItems: 1
+                    description: Permissions granted to this key
+                expiresInDays:
+                    type: integer
+                    minimum: 1
+                    maximum: 365
+                    description: Days until expiration (omit for no expiry)
+        UserCreateApiKeyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                id:
+                    type: string
+                    format: uuid
+                key:
+                    type: string
+                    description: The plaintext API key (returned **only once** on creation). Starts with `abc_`.
+                keyPrefix:
+                    type: string
+                    description: First 8 characters of the key (e.g. abc_XXXX)
+                name:
+                    type: string
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                rateLimitPerMinute:
+                    type: integer
+                expiresAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                createdAt:
+                    type: string
+                    format: date-time
+        UserApiKeyInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                keyPrefix:
+                    type: string
+                name:
+                    type: string
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                rateLimitPerMinute:
+                    type: integer
+                lastUsedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                expiresAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                revokedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                isActive:
+                    type: boolean
+                    description: Whether the key is currently usable (not revoked and not expired)
+        UserListApiKeysResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                keys:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserApiKeyInfo'
+                total:
+                    type: integer
+        UserUpdateApiKeyRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                    description: New name for the key
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                        enum:
+                            - compile
+                            - validate
+                            - read
+                            - admin
+                    minItems: 1
+                    description: New scopes for the key
+        UserUpdateApiKeyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                id:
+                    type: string
+                    format: uuid
+                keyPrefix:
+                    type: string
+                name:
+                    type: string
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                rateLimitPerMinute:
+                    type: integer
+                lastUsedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                expiresAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
         MigrationResult:
             type: object
             properties:
@@ -3374,4 +3728,14 @@ components:
             in: header
             name: X-Admin-Key
             description: Admin API key for protected admin endpoints
+        ClerkJWT:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+            description: Clerk-issued JWT for authenticated user requests. Obtain via Clerk sign-in flow.
+        UserApiKey:
+            type: apiKey
+            in: header
+            name: Authorization
+            description: User API key with `abc_` prefix. Send as `Bearer abc_...` in the Authorization header.
 security: []
