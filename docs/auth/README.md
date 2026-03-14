@@ -14,6 +14,7 @@ The adblock-compiler uses [Clerk](https://clerk.com) for user identity managemen
 | [Removing Anonymous Access](removing-anonymous-access.md) | All | Migration plan for mandatory authentication |
 | [Admin Access](admin-access.md) | Operators | Admin endpoint protection and dashboard access |
 | [Cloudflare Access](cloudflare-access.md) | Operators / DevOps | Cloudflare Zero Trust Access setup for admin routes |
+| [CLI Authentication](cli-authentication.md) | CLI Users / DevOps | Using the CLI with authenticated queue endpoints |
 | [Clerk + Cloudflare Integration](clerk-cloudflare-integration.md) | Developers / DevOps | How Clerk integrates with Workers, KV, D1, Hyperdrive, Turnstile |
 
 ## Architecture Overview
