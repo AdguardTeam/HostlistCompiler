@@ -82,7 +82,7 @@ const config = {
     name: 'My Custom Filter List',
     description: 'Blocks ads and trackers',
     homepage: 'https://example.com',
-    license: 'GPL-3.0',
+    license: 'AGPL-3.0',
     version: '1.0.0',
     sources: [
         {
@@ -105,7 +105,7 @@ if (result.success) {
 - `name` (string, required): Filter list name
 - `description` (string, optional): Filter list description
 - `homepage` (string, optional): Filter list homepage URL — **validated as a URL** (must start with `http://` or `https://`)
-- `license` (string, optional): License identifier (e.g., 'GPL-3.0', 'MIT')
+- `license` (string, optional): License identifier (e.g., 'AGPL-3.0', 'MIT')
 - `version` (string, optional): Version string — **must follow semver format** (e.g. `1.0.0` or `1.0`)
 - `sources` (ISource[], required): Array of source configurations (must not be empty)
 - Plus all fields from `SourceSchema` (exclusions, inclusions, transformations)

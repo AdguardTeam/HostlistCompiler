@@ -90,13 +90,13 @@
 
 ---
 
-### 7.3 GPL-3.0 License Compliance Review
+### 7.3 AGPL-3.0 License Compliance Review
 
 - **Milestone:** `rtm`
 - **Labels:** `documentation`
-- **Description:** Verify all dependencies are license-compatible with GPL-3.0.
+- **Description:** Verify all dependencies are license-compatible with AGPL-3.0.
 - **Tasks:**
-  - [ ] Audit all dependencies for license compatibility with GPL-3.0
+  - [ ] Audit all dependencies for license compatibility with AGPL-3.0
   - [ ] Ensure LICENSE file is accurate and present
   - [ ] Add license headers to source files if required by fork/upstream policy
   - [ ] Verify compliance with AdguardTeam/HostlistCompiler upstream requirements

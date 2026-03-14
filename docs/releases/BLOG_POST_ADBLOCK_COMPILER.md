@@ -459,7 +459,7 @@ Here's a complete example: creating a master blocklist from multiple sources:
   "name": "Master Security Blocklist",
   "description": "Comprehensive blocklist combining security, privacy, and tracking filters",
   "homepage": "https://example.com",
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0",
   "version": "1.0.0",
   "sources": [
     {

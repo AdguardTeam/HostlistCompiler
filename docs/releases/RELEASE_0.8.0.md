@@ -307,7 +307,7 @@ Potential additions in future releases:
 **Developed by:** Jayson Knight  
 **Package:** [@jk-com/adblock-compiler](https://jsr.io/@jk-com/adblock-compiler)  
 **Repository:** https://github.com/jaypatrick/adblock-compiler  
-**License:** GPL-3.0
+**License:** AGPL-3.0
 
 **Based on:** [@adguard/hostlist-compiler](https://www.npmjs.com/package/@adguard/hostlist-compiler)
 
