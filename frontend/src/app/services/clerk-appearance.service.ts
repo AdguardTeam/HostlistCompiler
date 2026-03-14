@@ -64,7 +64,15 @@ export class ClerkAppearanceService {
      */
     buildAppearance(): ClerkAppearance {
         const dark = this.themeService.isDark();
-        const token = (name: string): string => this.resolveToken(name, dark);
+
+        // Grab the computed style once and reuse for all token lookups to avoid
+        // repeated style-recalculation triggers (getComputedStyle is not free).
+        const computedStyle =
+            isPlatformBrowser(this.platformId)
+                ? getComputedStyle(this.document.documentElement)
+                : null;
+
+        const token = (name: string): string => this.resolveToken(name, dark, computedStyle);
 
         const outlineVariant = token('--mat-sys-outline-variant');
 
@@ -97,15 +105,19 @@ export class ClerkAppearanceService {
     /**
      * Resolve a CSS custom property value.
      *
-     * In the browser we read from `getComputedStyle(documentElement)` so we
-     * get the correct value for the current theme class on `<body>`.  On the
-     * server we fall back to the hardcoded token maps.
+     * In the browser, accepts a pre-computed `CSSStyleDeclaration` (obtained
+     * once by the caller via `getComputedStyle`) so all tokens in a single
+     * `buildAppearance()` call share the same style snapshot without causing
+     * repeated style recalculations.  On the server `computedStyle` is `null`
+     * and we fall through to the hardcoded token maps.
      */
-    private resolveToken(name: string, dark: boolean): string {
-        if (isPlatformBrowser(this.platformId)) {
-            const computed = getComputedStyle(this.document.documentElement)
-                .getPropertyValue(name)
-                .trim();
+    private resolveToken(
+        name: string,
+        dark: boolean,
+        computedStyle: CSSStyleDeclaration | null,
+    ): string {
+        if (computedStyle) {
+            const computed = computedStyle.getPropertyValue(name).trim();
             if (computed) return computed;
         }
 

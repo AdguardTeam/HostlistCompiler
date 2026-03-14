@@ -1,18 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { PLATFORM_ID, provideZonelessChangeDetection } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ClerkAppearanceService } from './clerk-appearance.service';
 import { ThemeService } from './theme.service';
-
-function makeDocument(cssVars: Record<string, string> = {}) {
-    return {
-        documentElement: {
-            style: {},
-            // Simulate getComputedStyle on the documentElement
-        },
-    };
-}
 
 describe('ClerkAppearanceService', () => {
     describe('on browser platform (light mode)', () => {
@@ -82,20 +73,117 @@ describe('ClerkAppearanceService', () => {
             expect(appearance.baseTheme).toBe('dark');
         });
 
-        it('should include colorPrimary variable', () => {
+        it('should read token values from getComputedStyle in browser', () => {
+            // Stub getComputedStyle to return known CSS custom property values
+            const cssVars: Record<string, string> = {
+                '--mat-sys-primary': '#cc6600',
+                '--mat-sys-surface': '#fafafa',
+                '--mat-sys-surface-container-lowest': '#f0f0f0',
+                '--mat-sys-on-surface': '#222222',
+                '--mat-sys-on-surface-variant': '#555555',
+                '--mat-sys-error': '#ee1111',
+                '--app-success': '#00aa55',
+                '--mat-sys-outline': '#aaaaaa',
+                '--mat-sys-outline-variant': '#dddddd',
+            };
+            const spy = vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: (prop: string) => cssVars[prop] ?? '',
+            } as unknown as CSSStyleDeclaration);
+
             const appearance = service.buildAppearance();
-            // In test env getComputedStyle returns empty string, so we fall back to static values
-            expect(appearance.variables?.['colorPrimary']).toBeTruthy();
+
+            expect(appearance.variables?.['colorPrimary']).toBe('#cc6600');
+            expect(appearance.variables?.['colorBackground']).toBe('#fafafa');
+            expect(appearance.variables?.['colorInputBackground']).toBe('#f0f0f0');
+            expect(appearance.variables?.['colorText']).toBe('#222222');
+            expect(appearance.variables?.['colorTextSecondary']).toBe('#555555');
+            expect(appearance.variables?.['colorInputText']).toBe('#222222');
+            expect(appearance.variables?.['colorDanger']).toBe('#ee1111');
+            expect(appearance.variables?.['colorSuccess']).toBe('#00aa55');
+            expect(appearance.variables?.['colorNeutral']).toBe('#aaaaaa');
+            expect(appearance.elements?.['card']?.['boxShadow']).toContain('#dddddd');
+            expect(appearance.elements?.['card']?.['border']).toContain('#dddddd');
+
+            spy.mockRestore();
         });
 
-        it('should include colorDanger variable', () => {
-            const appearance = service.buildAppearance();
-            expect(appearance.variables?.['colorDanger']).toBeTruthy();
+        it('should call getComputedStyle exactly once per buildAppearance() call', () => {
+            const spy = vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: () => '',
+            } as unknown as CSSStyleDeclaration);
+
+            service.buildAppearance();
+
+            // getComputedStyle should be called only once regardless of how many tokens are resolved
+            expect(spy).toHaveBeenCalledTimes(1);
+
+            spy.mockRestore();
         });
 
-        it('should include colorSuccess variable', () => {
+        it('should fall back to light static values when getComputedStyle returns empty', () => {
+            const spy = vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: () => '',
+            } as unknown as CSSStyleDeclaration);
+
             const appearance = service.buildAppearance();
-            expect(appearance.variables?.['colorSuccess']).toBeTruthy();
+
+            // Falls back to light-mode static values from LIGHT_FALLBACKS
+            expect(appearance.variables?.['colorPrimary']).toBe('#b45309');
+            expect(appearance.variables?.['colorDanger']).toBe('#dc2626');
+
+            spy.mockRestore();
+        });
+
+        it('should trim whitespace from getComputedStyle values', () => {
+            const spy = vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: (prop: string) =>
+                    prop === '--mat-sys-primary' ? '  #b45309  ' : '',
+            } as unknown as CSSStyleDeclaration);
+
+            const appearance = service.buildAppearance();
+
+            expect(appearance.variables?.['colorPrimary']).toBe('#b45309');
+
+            spy.mockRestore();
+        });
+    });
+
+    describe('on browser platform (dark mode)', () => {
+        let service: ClerkAppearanceService;
+        let themeService: ThemeService;
+
+        beforeEach(() => {
+            TestBed.configureTestingModule({
+                providers: [
+                    provideZonelessChangeDetection(),
+                    { provide: PLATFORM_ID, useValue: 'browser' },
+                ],
+            });
+            service = TestBed.inject(ClerkAppearanceService);
+            themeService = TestBed.inject(ThemeService);
+            themeService.toggle(); // enter dark mode
+        });
+
+        afterEach(() => {
+            // Restore light mode so localStorage is clean
+            if (themeService.isDark()) {
+                themeService.toggle();
+            }
+        });
+
+        it('should fall back to dark static values when getComputedStyle returns empty', () => {
+            const spy = vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: () => '',
+            } as unknown as CSSStyleDeclaration);
+
+            const appearance = service.buildAppearance();
+
+            // Falls back to dark-mode static values from DARK_FALLBACKS
+            expect(appearance.variables?.['colorPrimary']).toBe('#f59e0b');
+            expect(appearance.variables?.['colorDanger']).toBe('#f87171');
+            expect(appearance.baseTheme).toBe('dark');
+
+            spy.mockRestore();
         });
     });
 
