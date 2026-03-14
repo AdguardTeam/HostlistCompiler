@@ -133,7 +133,7 @@ Every guard returns a discriminated union:
 
 ```typescript
 type AdminGuardResult =
-    | { authorized: true; context: ResolvedAdminContext }
+    | { authorized: true; adminContext: ResolvedAdminContext }
     | { authorized: false; error: string; status: 401 | 403 };
 ```
 

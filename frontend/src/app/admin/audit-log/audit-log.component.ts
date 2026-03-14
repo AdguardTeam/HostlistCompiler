@@ -268,7 +268,7 @@ export class AuditLogComponent {
         if (this.filterDateFrom) params = params.set('from', this.filterDateFrom);
         if (this.filterDateTo) params = params.set('to', this.filterDateTo);
 
-        this.http.get<AuditLogResponse>('/admin/audit-logs', { params }).subscribe({
+        this.http.get<AuditLogResponse>('/admin/system/audit', { params }).subscribe({
             next: (res) => {
                 this.auditLogs.set(res.items ?? []);
                 this.totalCount.set(res.total ?? 0);
