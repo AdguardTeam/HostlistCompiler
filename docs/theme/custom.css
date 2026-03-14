@@ -113,3 +113,32 @@ code:not(.hljs) {
     background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
     background-size: 28px 28px;
 }
+
+/* ── Last-updated stamp (injected by mdbook-last-updated preprocessor) ── */
+.last-updated {
+    margin-top: 2.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--ink-border, #e5e1da);
+    font-size: 0.78em;
+    color: var(--ink-muted, #6b7280);
+    font-style: italic;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.navy .last-updated,
+.coal .last-updated,
+.ayu .last-updated {
+    border-top-color: var(--ink-border);
+    color: var(--ink-muted);
+}
+
+/* ── Build timestamp badge in menu bar ───────────────────────── */
+#docs-build-timestamp {
+    display: inline-block;
+    font-size: 0.72em;
+    opacity: 0.5;
+    margin-left: 0.6em;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    vertical-align: middle;
+}
