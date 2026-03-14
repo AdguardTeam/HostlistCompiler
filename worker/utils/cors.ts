@@ -14,12 +14,16 @@ import type { Env } from '../types.ts';
  */
 const PUBLIC_ENDPOINT_PREFIXES = [
     '/api/version',
+    '/api/health',
+    '/api/metrics',
+    '/api/turnstile-config',
+    '/api/clerk-config',
+    '/api/deployments',
     '/health',
     '/metrics',
     '/turnstile-config',
     '/clerk-config',
     '/deployments',
-    '/api/deployments',
 ] as const;
 
 /** Fallback origins when CORS_ALLOWED_ORIGINS is not configured */

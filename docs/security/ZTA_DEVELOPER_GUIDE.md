@@ -14,11 +14,13 @@ if (authGuard) return authGuard;
 // 2. Rate limiting — enforce per-tier limits
 const rateLimit = await checkRateLimitTiered(env, ip, authContext);
 if (!rateLimit.allowed) {
-    env.ANALYTICS?.trackSecurityEvent({
+    analytics.trackSecurityEvent({
         eventType: 'rate_limit',
-        endpoint: '/your/endpoint',
-        userId: authContext.userId,
+        path: '/your/endpoint',
+        method: request.method,
+        clientIpHash: AnalyticsService.hashIp(ip),
         tier: authContext.tier,
+        reason: 'rate_limit_exceeded',
     });
     return Response.json({ error: 'Rate limit exceeded' }, { status: 429 });
 }

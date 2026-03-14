@@ -5,7 +5,7 @@
  * are properly gated with authentication, rate limiting, and security
  * event telemetry.
  */
-import { assertEquals, assertExists } from 'https://deno.land/std@0.220.0/assert/mod.ts';
+import { assertEquals, assertExists } from '@std/assert';
 import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
 import type { SecurityEventData } from '../../src/services/AnalyticsService.ts';
 import { requireAuth } from '../middleware/auth.ts';

@@ -143,18 +143,21 @@ export class ApiKeyService {
             const res = validateResponse(UpdateKeyResponseSchema, raw, `PATCH /api/keys/${id}`);
             // Backend returns the updated key fields at the top level alongside success:true
             if (res.id) {
-                const updatedKey: ApiKey = {
-                    id: res.id,
-                    keyPrefix: res.keyPrefix,
-                    name: res.name,
-                    scopes: res.scopes,
-                    rateLimitPerMinute: res.rateLimitPerMinute,
-                    lastUsedAt: res.lastUsedAt,
-                    expiresAt: res.expiresAt,
-                    revokedAt: res.revokedAt,
-                    createdAt: res.createdAt,
-                };
-                this._keys.update((keys) => keys.map((k) => (k.id === id ? updatedKey : k)));
+                this._keys.update((keys) => keys.map((k) => {
+                    if (k.id !== id) return k;
+                    // PATCH response does not include revokedAt — preserve from current state
+                    return {
+                        id: res.id,
+                        keyPrefix: res.keyPrefix,
+                        name: res.name,
+                        scopes: res.scopes,
+                        rateLimitPerMinute: res.rateLimitPerMinute,
+                        lastUsedAt: res.lastUsedAt,
+                        expiresAt: res.expiresAt,
+                        revokedAt: k.revokedAt,
+                        createdAt: res.createdAt,
+                    };
+                }));
             }
             return true;
         } catch (err) {

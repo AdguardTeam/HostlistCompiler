@@ -2989,6 +2989,13 @@ export default {
         // Execute the actual handler, then wrap the response with CORS headers.
         // This ensures every response — success, error, or fallback — has correct CORS.
         const response = await this._handleRequest(request, env, url, pathname);
+
+        // WebSocket upgrade responses (101) must be returned as-is — constructing a new
+        // Response drops the `webSocket` property and breaks the upgrade handshake.
+        if (response.status === 101) {
+            return response;
+        }
+
         const newHeaders = new Headers(response.headers);
         for (const [k, v] of Object.entries(corsHeaders)) {
             newHeaders.set(k, v);
