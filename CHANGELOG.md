@@ -109,6 +109,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.56.4] - 2026-03-14
+
+### Added### Fixed
+
+- address review comments on clerk-webhook upsert (atomic SQL, timestamps, version comment)
+- replace Prisma D1 client with native D1 SQL in webhook handler (#1022)
+
+
 ## [0.56.3] - 2026-03-14
 
 ### Added### Fixed
