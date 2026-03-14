@@ -111,10 +111,30 @@ function toDisplayName(data: ClerkUserEventData, fallbackEmail: string | null): 
 // ---------------------------------------------------------------------------
 
 /**
+ * Returns `true` for known transient D1/SQLite conditions that are safe to retry.
+ * Permanent errors (constraint violations, schema mismatches, auth failures) return
+ * `false` so they are re-thrown immediately without incurring unnecessary retry delay.
+ */
+function isTransientD1Error(err: unknown): boolean {
+    const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+    return (
+        msg.includes('database is locked') ||
+        msg.includes('sqlite_busy') ||
+        msg.includes('sqlite_locked') ||
+        msg.includes('connection reset') ||
+        msg.includes('network error') ||
+        msg.includes('d1_error')
+    );
+}
+
+/**
  * Retry an async D1 operation with exponential backoff.
  * D1 can return transient errors (e.g. connection resets, busy database).
  * Clerk will also retry the webhook, but retrying locally first avoids
  * unnecessary latency and webhook queue pressure.
+ *
+ * Only retries on known transient errors (see {@link isTransientD1Error}).
+ * Permanent failures (constraint violations, etc.) are re-thrown immediately.
  */
 async function withD1Retry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDelayMs = 100): Promise<T> {
     let lastError: unknown;
@@ -122,6 +142,9 @@ async function withD1Retry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDelayMs
         try {
             return await fn();
         } catch (err) {
+            if (!isTransientD1Error(err)) {
+                throw err; // Non-transient — rethrow immediately, no retry delay
+            }
             lastError = err;
             if (attempt < maxAttempts - 1) {
                 await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
@@ -290,6 +313,13 @@ export async function handleClerkWebhook(
      * @internal
      */
     _testVerify?: ((body: string, headers: Record<string, string>) => ClerkWebhookEvent) | null,
+    /**
+     * Override the base retry delay (ms) — for unit testing only.
+     * Set to 0 in tests to avoid real timer delays in the retry path.
+     * Omit in production (defaults to 100 ms).
+     * @internal
+     */
+    _testBaseDelayMs?: number,
 ): Promise<Response> {
     // ---- 1. Validate that the webhook secret is configured ----
     const webhookSecret = env.CLERK_WEBHOOK_SECRET;
@@ -386,8 +416,8 @@ export async function handleClerkWebhook(
                             role: validateRole(meta['role']),
                             lastSignInAt,
                         },
-                    })
-                );
+                    }),
+                undefined, _testBaseDelayMs);
 
                 return Response.json(
                     { success: true, event: event.type, userId: user.id },
@@ -396,7 +426,7 @@ export async function handleClerkWebhook(
             }
 
             case 'user.deleted': {
-                const result = await withD1Retry(() => store.user.deleteMany({ where: { clerkUserId: event.data.id } }));
+                const result = await withD1Retry(() => store.user.deleteMany({ where: { clerkUserId: event.data.id } }), undefined, _testBaseDelayMs);
 
                 return Response.json(
                     { success: true, event: event.type, deleted: result.count > 0 },
