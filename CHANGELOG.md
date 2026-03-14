@@ -113,6 +113,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.59.0] - 2026-03-14
+
+### Added- **auth**: add CLI auth switches, OpenAPI endpoints, and Postman collection (#1002)
+
+### Fixed
+
+- enforce auth mutual exclusion and stricter API key regex
+- quote OpenAPI UserApiKey description to fix YAML parse error
+- address PR review feedback on auth CLI flags, OpenAPI/Cloudflare schemas, and Postman collection
+
+
 ## [0.58.0] - 2026-03-14
 
 ### Added- **zta**: Phase 4 — PR template, CI lint, and security policy (#1025)
