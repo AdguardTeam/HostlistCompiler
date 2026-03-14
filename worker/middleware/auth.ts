@@ -20,9 +20,10 @@
  */
 
 import type { Env, HyperdriveBinding, IAuthProvider } from '../types.ts';
-import { ANONYMOUS_AUTH_CONTEXT, type IAuthContext, type IAuthMiddlewareResult, isTierSufficient, TIER_REGISTRY, UserTier } from '../types.ts';
+import { ANONYMOUS_AUTH_CONTEXT, AuthScope, type IAuthContext, type IAuthMiddlewareResult, isTierSufficient, TIER_REGISTRY, UserTier } from '../types.ts';
 import { ClerkAuthProvider } from './clerk-auth-provider.ts';
 import { ApiKeyRowSchema, UserTierRowSchema } from '../schemas.ts';
+import { z } from 'zod';
 
 // ============================================================================
 // Types
@@ -117,7 +118,7 @@ export async function authenticateApiKey(
     request: Request,
     hyperdrive: HyperdriveBinding,
     createPool: PgPoolFactory,
-    requiredScope?: string,
+    requiredScope?: AuthScope,
 ): Promise<ApiKeyAuthResult> {
     const token = extractBearerToken(request);
     if (!token) {
@@ -208,7 +209,7 @@ export async function authenticateRequest(
     // Try API key auth if Hyperdrive is available
     const token = extractBearerToken(request);
     if (token && env.HYPERDRIVE && createPool) {
-        return authenticateApiKey(request, env.HYPERDRIVE, createPool, 'admin');
+        return authenticateApiKey(request, env.HYPERDRIVE, createPool, AuthScope.Admin);
     }
 
     // Fall back to static ADMIN_KEY
@@ -391,12 +392,13 @@ async function resolveUserIdByClerkId(
     createPool: PgPoolFactory,
 ): Promise<string | null> {
     const pool = createPool(hyperdrive.connectionString);
-    const result = await pool.query<{ id: string }>(
+    const result = await pool.query(
         `SELECT id FROM users WHERE clerk_user_id = $1 LIMIT 1`,
         [clerkUserId],
     );
 
-    return result.rows[0]?.id ?? null;
+    const rowParse = z.object({ id: z.string().min(1) }).safeParse(result.rows[0]);
+    return rowParse.success ? rowParse.data.id : null;
 }
 
 // ---------------------------------------------------------------------------

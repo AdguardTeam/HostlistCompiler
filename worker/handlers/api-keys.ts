@@ -16,7 +16,7 @@
 
 import { JsonResponse } from '../utils/response.ts';
 import { type IAuthContext } from '../types.ts';
-import { CreateApiKeyRequestSchema, UpdateApiKeyRequestSchema } from '../schemas.ts';
+import { CreateApiKeyRequestSchema, UpdateApiKeyRequestSchema, ApiKeyRowSchema } from '../schemas.ts';
 
 // ---------------------------------------------------------------------------
 // PgPool interface (matches worker/middleware/auth.ts)
@@ -169,15 +169,21 @@ export async function handleCreateApiKey(
         return JsonResponse.serverError('Failed to create API key');
     }
 
+    const rowParse = ApiKeyRowSchema.safeParse(row);
+    if (!rowParse.success) {
+        console.error('[api-keys] CREATE returned unexpected row shape', rowParse.error.issues);
+        return JsonResponse.serverError('Failed to create API key');
+    }
+
     return JsonResponse.success({
-        id: row.id,
+        id: rowParse.data.id,
         key: plaintext, // Plaintext returned only on creation
-        keyPrefix: row.key_prefix,
-        name: row.name,
-        scopes: row.scopes,
-        rateLimitPerMinute: row.rate_limit_per_minute,
-        expiresAt: row.expires_at,
-        createdAt: row.created_at,
+        keyPrefix: rowParse.data.key_prefix,
+        name: rowParse.data.name,
+        scopes: rowParse.data.scopes,
+        rateLimitPerMinute: rowParse.data.rate_limit_per_minute,
+        expiresAt: rowParse.data.expires_at,
+        createdAt: rowParse.data.created_at,
     }, { status: 201 });
 }
 
@@ -319,16 +325,21 @@ export async function handleUpdateApiKey(
         return JsonResponse.notFound('API key not found or already revoked');
     }
 
-    const row = result.rows[0];
+    const rowParse = ApiKeyRowSchema.safeParse(result.rows[0]);
+    if (!rowParse.success) {
+        console.error('[api-keys] UPDATE returned unexpected row shape', rowParse.error.issues);
+        return JsonResponse.serverError('Failed to update API key');
+    }
+
     return JsonResponse.success({
-        id: row.id,
-        keyPrefix: row.key_prefix,
-        name: row.name,
-        scopes: row.scopes,
-        rateLimitPerMinute: row.rate_limit_per_minute,
-        lastUsedAt: row.last_used_at,
-        expiresAt: row.expires_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        id: rowParse.data.id,
+        keyPrefix: rowParse.data.key_prefix,
+        name: rowParse.data.name,
+        scopes: rowParse.data.scopes,
+        rateLimitPerMinute: rowParse.data.rate_limit_per_minute,
+        lastUsedAt: rowParse.data.last_used_at,
+        expiresAt: rowParse.data.expires_at,
+        createdAt: rowParse.data.created_at,
+        updatedAt: rowParse.data.updated_at,
     });
 }

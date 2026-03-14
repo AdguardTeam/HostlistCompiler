@@ -804,11 +804,16 @@ export type UpdateApiKeyRequest = z.infer<typeof UpdateApiKeyRequestSchema>;
  */
 export const ApiKeyRowSchema = z.object({
     id: z.string().min(1),
-    user_id: z.string().min(1),
+    user_id: z.string().optional(),
+    key_prefix: z.string().optional(),
+    name: z.string().optional(),
     scopes: z.array(z.nativeEnum(AuthScope)),
     rate_limit_per_minute: z.number().int().nonnegative(),
-    expires_at: z.string().nullable(),
-    revoked_at: z.string().nullable(),
+    expires_at: z.string().nullable().optional(),
+    revoked_at: z.string().nullable().optional(),
+    last_used_at: z.string().nullable().optional(),
+    created_at: z.string().optional(),
+    updated_at: z.string().optional(),
 });
 
 export type ApiKeyRow = z.infer<typeof ApiKeyRowSchema>;
