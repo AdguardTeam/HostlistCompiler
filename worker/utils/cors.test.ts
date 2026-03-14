@@ -84,6 +84,22 @@ Deno.test('isPublicEndpoint - /api/version is public', () => {
     assertEquals(isPublicEndpoint('/api/version'), true);
 });
 
+Deno.test('isPublicEndpoint - /api/health is public', () => {
+    assertEquals(isPublicEndpoint('/api/health'), true);
+});
+
+Deno.test('isPublicEndpoint - /api/metrics is public', () => {
+    assertEquals(isPublicEndpoint('/api/metrics'), true);
+});
+
+Deno.test('isPublicEndpoint - /api/turnstile-config is public', () => {
+    assertEquals(isPublicEndpoint('/api/turnstile-config'), true);
+});
+
+Deno.test('isPublicEndpoint - /api/clerk-config is public', () => {
+    assertEquals(isPublicEndpoint('/api/clerk-config'), true);
+});
+
 Deno.test('isPublicEndpoint - /metrics is public', () => {
     assertEquals(isPublicEndpoint('/metrics'), true);
 });

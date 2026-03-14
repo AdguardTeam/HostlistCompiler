@@ -474,6 +474,11 @@ export async function handleRequest(
 
     // Helper: apply CORS headers to any response
     const withCors = (response: Response): Response => {
+        // WebSocket upgrade responses (101) must be returned as-is — constructing a new
+        // Response drops the `webSocket` property and breaks the upgrade handshake.
+        if (response.status === 101) {
+            return response;
+        }
         const newHeaders = new Headers(response.headers);
         for (const [k, v] of Object.entries(corsHeaders)) {
             newHeaders.set(k, v);

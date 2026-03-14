@@ -43,8 +43,17 @@ export const CreateKeyResponseSchema = z.object({
     createdAt: z.string(),
 });
 
-export const UpdateKeyResponseSchema = ApiKeySchema.extend({
+export const UpdateKeyResponseSchema = z.object({
     success: z.boolean(),
+    id: z.string(),
+    keyPrefix: z.string(),
+    name: z.string(),
+    scopes: z.array(z.string()),
+    rateLimitPerMinute: z.number(),
+    lastUsedAt: z.string().nullable(),
+    expiresAt: z.string().nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
 });
 
 // ---------------------------------------------------------------------------
@@ -53,32 +62,56 @@ export const UpdateKeyResponseSchema = ApiKeySchema.extend({
 
 export const CompileResponseSchema = z.object({
     success: z.boolean(),
-    ruleCount: z.number(),
-    sources: z.number(),
-    transformations: z.array(z.string()),
-    message: z.string(),
     rules: z.array(z.string()).optional(),
-    cached: z.boolean().optional(),
-    benchmark: z
+    ruleCount: z.number().optional(),
+    metrics: z
         .object({
-            duration: z.string(),
-            rulesPerSecond: z.number(),
+            totalDuration: z.number().optional(),
+            sourceCount: z.number().optional(),
+            transformationCount: z.number().optional(),
+            inputRuleCount: z.number().optional(),
+            outputRuleCount: z.number().optional(),
+            phases: z.record(z.string(), z.number()).optional(),
         })
         .optional(),
+    compiledAt: z.string().optional(),
+    previousVersion: z
+        .object({
+            rules: z.array(z.string()),
+            ruleCount: z.number(),
+            compiledAt: z.string(),
+        })
+        .optional(),
+    cached: z.boolean().optional(),
+    deduplicated: z.boolean().optional(),
+    error: z.string().optional(),
 });
 
 export const AsyncCompileResponseSchema = z.object({
     success: z.boolean(),
     requestId: z.string(),
     note: z.string(),
+    message: z.string().optional(),
+    batchSize: z.number().optional(),
+    priority: z.string().optional(),
+    error: z.string().optional(),
+});
+
+export const BatchCompileItemSchema = CompileResponseSchema.extend({
+    id: z.string(),
+});
+
+export const BatchCompileResponseSchema = z.object({
+    success: z.boolean(),
+    results: z.array(BatchCompileItemSchema),
     error: z.string().optional(),
 });
 
 export const ASTResultSchema = z.object({
     success: z.boolean(),
-    ast: z.unknown(),
-    ruleCount: z.number(),
-    parseTime: z.string().optional(),
+    parsedRules: z.unknown(),
+    summary: z.unknown().optional(),
+    error: z.string().optional(),
 });
 
 // ---------------------------------------------------------------------------

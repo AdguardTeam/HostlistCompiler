@@ -168,7 +168,18 @@ describe('ApiKeyService', () => {
             await loadPromise;
 
             // Backend returns updated key fields at top level alongside success:true
-            const updatedRow = { ...MOCK_KEY, name: 'Updated Name' };
+            // Note: PATCH response includes updatedAt but not revokedAt
+            const updatedRow = {
+                id: MOCK_KEY.id,
+                keyPrefix: MOCK_KEY.keyPrefix,
+                name: 'Updated Name',
+                scopes: MOCK_KEY.scopes,
+                rateLimitPerMinute: MOCK_KEY.rateLimitPerMinute,
+                lastUsedAt: MOCK_KEY.lastUsedAt,
+                expiresAt: MOCK_KEY.expiresAt,
+                createdAt: MOCK_KEY.createdAt,
+                updatedAt: '2025-06-01T00:00:00Z',
+            };
             const promise = service.updateKey('key-1', { name: 'Updated Name' });
 
             await tick();
