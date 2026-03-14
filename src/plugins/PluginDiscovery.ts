@@ -90,8 +90,9 @@ export async function discoverPlugins(
 
 /** Minimal glob matcher supporting `*` wildcards. */
 function matchGlob(name: string, pattern: string): boolean {
-    const regex = new RegExp(
-        '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$',
-    );
+    // Escape all regex metacharacters, then translate glob `*` into `.*`.
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regexPattern = escaped.replace(/\\\*/g, '.*');
+    const regex = new RegExp('^' + regexPattern + '$');
     return regex.test(name);
 }
