@@ -112,6 +112,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.58.0] - 2026-03-14
+
+### Added- **zta**: Phase 4 — PR template, CI lint, and security policy (#1025)
+- **zta**: Phase 3 — frontend ZTA hardening with Zod validation (#1025)
+- **zta**: Phase 2 — auth gates, rate limiting, and security telemetry (#1025)
+- **zta**: Phase 1 — centralized CORS with origin allowlist (#1025)
+- **plugins**: Phase 4 — dependency resolution, topological sort, plugin discovery
+- **plugins**: Phase 3 — AGTree parser plugin adapter (#992)
+- **plugins**: add SubsystemBridge for Phase 2 wiring (#992)
+- **plugins**: unified plugin architecture — Phase 1 core API (#992)
+
+### Fixed
+
+- **ci**: exclude comments from secrets lint, add missing CompileResponse fields (#1025)
+- **security**: address code review findings on CORS and CI lint (#1025)
+- **zta**: address PR review comments — CORS prefixes, WebSocket 101, schema alignment, batch API contract
+- **ci**: tighten D1 lint to only flag string interpolation (#1025)
+- **ci**: resolve lint and ZTA lint failures (#1025)
+- **ci**: remove Deno-only discoverPlugins from publish exports
+- address all 5 PR review comments on plugin architecture (#1037)
+- add unregisterTransformation to SubsystemBridge for full rollback
+- address code review findings on plugin architecture (#1037)
+
+
 ## [0.57.0] - 2026-03-14
 
 ### Added- add Zod runtime validation to Clerk auth trust boundaries (#1012)
