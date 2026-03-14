@@ -4,7 +4,23 @@
 
 export { createSimplePlugin, globalRegistry, PluginRegistry, PluginTransformationWrapper } from './PluginSystem.ts';
 
-export type { DownloaderPlugin, Plugin, PluginContext, PluginLoadOptions, PluginManifest, TransformationPlugin } from './PluginSystem.ts';
+export type {
+    CacheBackendPlugin,
+    ConflictResolverPlugin,
+    DiffReporterPlugin,
+    DownloaderPlugin,
+    EventHookPlugin,
+    FormatterPlugin,
+    HeaderGeneratorPlugin,
+    ParsedNode,
+    ParserPlugin,
+    Plugin,
+    PluginContext,
+    PluginLoadOptions,
+    PluginManifest,
+    TransformationPlugin,
+    ValidationPlugin,
+} from './PluginSystem.ts';
 
 /**
  * @deprecated `loadPlugin` has been removed from the public API. Dynamic plugin loading
