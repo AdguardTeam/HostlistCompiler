@@ -43,9 +43,9 @@ jobs:
                     if $skip; then continue; fi
 
                     echo "❌ Wildcard CORS found in: $file"
-                    grep -n "Access-Control-Allow-Origin.*\*" "$file" || true
+                    grep -nE "Access-Control-Allow-Origin.{0,5}\\*" "$file" || true
                     VIOLATIONS=$((VIOLATIONS + 1))
-                  done < <(grep -rl "Access-Control-Allow-Origin.*\*" worker/ --include="*.ts" 2>/dev/null || true)
+                  done < <(grep -rlE "Access-Control-Allow-Origin.{0,5}\\*" worker/ --include="*.ts" 2>/dev/null || true)
 
                   if [ "$VIOLATIONS" -gt 0 ]; then
                     echo ""
@@ -57,17 +57,24 @@ jobs:
             - name: Check for unparameterized D1 queries
               run: |
                   echo "=== Checking for unparameterized D1 queries ==="
-                  # Only flag .prepare() calls that use string interpolation (${...})
+                  # Check 1: .prepare() calls with template literal interpolation
                   # Static backtick strings like prepare(`SELECT ...`) are safe
-                  # migrate.ts is excluded — it validates table names against a fixed allowlist before interpolation
-                  VIOLATIONS=$(grep -rn 'prepare(`' worker/ --include="*.ts" \
+                  # migrate.ts is excluded — it validates table names against a fixed allowlist
+                  V1=$(grep -rn 'prepare(`' worker/ --include="*.ts" \
                     | grep -v '\.test\.' | grep -v '\.spec\.' \
                     | grep -v 'migrate\.ts' \
                     | grep '\${' || true)
 
+                  # Check 2: string concatenation in .prepare() — e.g. prepare("SELECT " + var)
+                  V2=$(grep -rn 'prepare(.*+' worker/ --include="*.ts" \
+                    | grep -v '\.test\.' | grep -v '\.spec\.' \
+                    | grep -v 'migrate\.ts' || true)
+
+                  VIOLATIONS="${V1}${V2}"
+
                   if [ -n "$VIOLATIONS" ]; then
                     echo "$VIOLATIONS"
-                    echo "::error::Found D1 queries with string interpolation. Use .prepare('SELECT ...').bind(param) instead."
+                    echo "::error::Found D1 queries with string interpolation or concatenation. Use .prepare('SELECT ...').bind(param) instead."
                     exit 1
                   fi
                   echo "✅ No unparameterized D1 query violations found"

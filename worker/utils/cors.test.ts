@@ -181,11 +181,11 @@ Deno.test('handleCorsPreflight - omits ACAO for disallowed origin', () => {
     assertEquals(res.headers.get('Access-Control-Allow-Origin'), null);
 });
 
-Deno.test('handleCorsPreflight - allows wildcard when no Origin header (same-origin)', () => {
+Deno.test('handleCorsPreflight - omits ACAO when no Origin header', () => {
     const req = makeRequest();
     const res = handleCorsPreflight(req);
     assertEquals(res.status, 204);
-    assertEquals(res.headers.get('Access-Control-Allow-Origin'), '*');
+    assertEquals(res.headers.get('Access-Control-Allow-Origin'), null);
 });
 
 Deno.test('handleCorsPreflight - includes Authorization in allowed headers', () => {

@@ -107,11 +107,9 @@ export function handleCorsPreflight(request: Request, env?: Env): Response {
 
     if (allowed) {
         headers['Access-Control-Allow-Origin'] = allowed;
-    } else if (!origin) {
-        // No Origin header (e.g. same-origin or non-browser) — allow
-        headers['Access-Control-Allow-Origin'] = '*';
     }
-    // If origin is present but not allowed, omit Access-Control-Allow-Origin
+    // No matching origin (or no Origin header) — omit Access-Control-Allow-Origin.
+    // Browsers always send Origin on preflight; non-browser clients don't need CORS.
 
     return new Response(null, { status: 204, headers });
 }
