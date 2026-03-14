@@ -1,0 +1,112 @@
+name: ZTA Lint
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+
+concurrency:
+    group: zta-lint-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    zta-lint:
+        name: Zero Trust Architecture Lint
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+            - name: Check for wildcard CORS on write/auth endpoints
+              run: |
+                  echo "=== Checking for wildcard CORS in worker code ==="
+                  # Allowlisted files that legitimately use wildcard CORS for public endpoints
+                  ALLOW_FILES="worker/utils/cors.ts"
+
+                  VIOLATIONS=0
+                  while IFS= read -r file; do
+                    # Skip test files — they legitimately assert on wildcard CORS values
+                    if echo "$file" | grep -qE '\.(test|spec)\.ts$'; then continue; fi
+
+                    # Skip the CORS utility itself (it contains the public endpoint wildcard)
+                    skip=false
+                    for af in $ALLOW_FILES; do
+                      if [ "$file" = "$af" ]; then
+                        skip=true
+                        break
+                      fi
+                    done
+                    if $skip; then continue; fi
+
+                    echo "❌ Wildcard CORS found in: $file"
+                    grep -nE "Access-Control-Allow-Origin.{0,5}\\*" "$file" || true
+                    VIOLATIONS=$((VIOLATIONS + 1))
+                  done < <(grep -rlE "Access-Control-Allow-Origin.{0,5}\\*" worker/ --include="*.ts" 2>/dev/null || true)
+
+                  if [ "$VIOLATIONS" -gt 0 ]; then
+                    echo ""
+                    echo "::error::Found $VIOLATIONS file(s) with wildcard CORS outside cors.ts. Use getCorsHeaders() or getPublicCorsHeaders() from worker/utils/cors.ts instead."
+                    exit 1
+                  fi
+                  echo "✅ No wildcard CORS violations found"
+
+            - name: Check for unparameterized D1 queries
+              run: |
+                  echo "=== Checking for unparameterized D1 queries ==="
+                  # Check 1: .prepare() calls with template literal interpolation
+                  # Static backtick strings like prepare(`SELECT ...`) are safe
+                  # migrate.ts is excluded — it validates table names against a fixed allowlist
+                  V1=$(grep -rn 'prepare(`' worker/ --include="*.ts" \
+                    | grep -v '\.test\.' | grep -v '\.spec\.' \
+                    | grep -v 'migrate\.ts' \
+                    | grep '\${' || true)
+
+                  # Check 2: string concatenation in .prepare() — e.g. prepare("SELECT " + var)
+                  V2=$(grep -rn 'prepare(.*+' worker/ --include="*.ts" \
+                    | grep -v '\.test\.' | grep -v '\.spec\.' \
+                    | grep -v 'migrate\.ts' || true)
+
+                  VIOLATIONS="${V1}${V2}"
+
+                  if [ -n "$VIOLATIONS" ]; then
+                    echo "$VIOLATIONS"
+                    echo "::error::Found D1 queries with string interpolation or concatenation. Use .prepare('SELECT ...').bind(param) instead."
+                    exit 1
+                  fi
+                  echo "✅ No unparameterized D1 query violations found"
+
+            - name: Check for secrets in wrangler.toml [vars]
+              run: |
+                  echo "=== Checking for secrets in wrangler.toml [vars] ==="
+                  # Known secret patterns that must NOT appear in [vars]
+                  SECRET_PATTERNS="SECRET_KEY|ADMIN_KEY|JWT_SECRET|WEBHOOK_SECRET|API_SECRET|PRIVATE_KEY|CF_ACCESS_AUD"
+
+                  # Extract [vars] section from wrangler.toml
+                  VARS_SECTION=$(sed -n '/^\[vars\]/,/^\[/p' wrangler.toml 2>/dev/null || true)
+
+                  if [ -n "$VARS_SECTION" ]; then
+                    # Filter out comment lines before checking for secret patterns
+                    VIOLATIONS=$(echo "$VARS_SECTION" | grep -v '^\s*#' | grep -iE "$SECRET_PATTERNS" || true)
+                    if [ -n "$VIOLATIONS" ]; then
+                      echo "$VIOLATIONS"
+                      echo "::error::Found secret values in wrangler.toml [vars]. Use 'wrangler secret put' instead."
+                      exit 1
+                    fi
+                  fi
+                  echo "✅ No secrets in wrangler.toml [vars]"
+
+            - name: Check for localStorage auth token storage
+              run: |
+                  echo "=== Checking for localStorage auth token usage in frontend ==="
+                  VIOLATIONS=$(grep -rn 'localStorage.*token\|localStorage.*jwt\|localStorage.*session\|localStorage.*auth' frontend/src/ --include="*.ts" || true)
+
+                  if [ -n "$VIOLATIONS" ]; then
+                    echo "$VIOLATIONS"
+                    echo "::error::Found auth token storage in localStorage. Use Clerk SDK for auth state management."
+                    exit 1
+                  fi
+                  echo "✅ No localStorage auth token usage found"

@@ -115,7 +115,7 @@ tag = "v2"
 # The worker will fall back to src/version.ts if this is not set
 COMPILER_VERSION = "0.57.0"
 ENVIRONMENT = "production"
-# All other runtime variables (TURNSTILE_*, CLERK_*, ADMIN_KEY, DATABASE_URL, etc.)
+# All other runtime variables (TURNSTILE_*, CLERK_*, ADMIN_KEY, DATABASE_URL, CORS_ALLOWED_ORIGINS, etc.)
 # are managed via the direnv/.envrc system for local dev (.env.local)
 # and via `wrangler secret put` for production deployments.
 

@@ -68,7 +68,8 @@ export type AnalyticsEventType =
     | 'workflow_failed'
     | 'batch_compilation'
     | 'health_check'
-    | 'api_request';
+    | 'api_request'
+    | 'security_event';
 
 /**
  * Base event data common to all analytics events.
@@ -185,6 +186,24 @@ export interface RateLimitEventData extends BaseEventData {
 }
 
 /**
+ * Event data for security events (ZTA telemetry).
+ */
+export interface SecurityEventData extends BaseEventData {
+    /** Type of security event */
+    eventType?: 'auth_failure' | 'rate_limit' | 'turnstile_rejection' | 'cors_rejection' | 'cf_access_denial' | 'size_limit';
+    /** Request path */
+    path?: string;
+    /** HTTP method */
+    method?: string;
+    /** Client IP address (hashed for privacy) */
+    clientIpHash?: string;
+    /** Auth tier of the requester (if known) */
+    tier?: string;
+    /** Reason for the security event */
+    reason?: string;
+}
+
+/**
  * Union type for all event data types.
  */
 export type AnalyticsEventData =
@@ -193,6 +212,7 @@ export type AnalyticsEventData =
     | WorkflowEventData
     | ApiRequestEventData
     | RateLimitEventData
+    | SecurityEventData
     | BaseEventData;
 
 /**
@@ -514,6 +534,22 @@ export class AnalyticsService {
      */
     public trackApiRequest(data: ApiRequestEventData): void {
         this.writeDataPoint('api_request', {
+            ...data,
+            timestamp: data.timestamp ?? new Date().toISOString(),
+        });
+    }
+
+    // =========================================================================
+    // Security event tracking (ZTA telemetry)
+    // =========================================================================
+
+    /**
+     * Tracks a security event for ZTA telemetry.
+     * Emitted on auth failures, rate limit hits, Turnstile rejections, CORS
+     * violations, and CF Access denials.
+     */
+    public trackSecurityEvent(data: SecurityEventData): void {
+        this.writeDataPoint('security_event', {
             ...data,
             timestamp: data.timestamp ?? new Date().toISOString(),
         });

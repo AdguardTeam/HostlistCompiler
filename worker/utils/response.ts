@@ -1,16 +1,13 @@
 /**
  * Standardized response utilities for the Cloudflare Worker.
  * Provides consistent JSON response formatting with CORS headers.
+ *
+ * ZTA: Default headers no longer include wildcard CORS. Callers must
+ * supply CORS headers via {@link getCorsHeaders} or {@link getPublicCorsHeaders}
+ * from `worker/utils/cors.ts` and pass them through {@link ResponseOptions.headers}.
  */
 
 import { ErrorUtils } from '../../src/utils/index.ts';
-
-/**
- * Default CORS headers applied to all responses
- */
-const CORS_HEADERS: Record<string, string> = {
-    'Access-Control-Allow-Origin': '*',
-};
 
 /**
  * Response options for customizing responses
@@ -153,9 +150,9 @@ export const JsonResponse = {
  * Build headers object with CORS and cache control
  */
 function buildHeaders(options: ResponseOptions): Record<string, string> {
-    const headers: Record<string, string> = { ...CORS_HEADERS };
+    const headers: Record<string, string> = {};
 
-    // Add custom headers
+    // Add custom headers (callers inject CORS headers via options.headers)
     if (options.headers) {
         Object.assign(headers, options.headers);
     }
@@ -170,20 +167,6 @@ function buildHeaders(options: ResponseOptions): Record<string, string> {
     }
 
     return headers;
-}
-
-/**
- * CORS preflight response handler
- */
-export function corsPreflightResponse(): Response {
-    return new Response(null, {
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key',
-            'Access-Control-Max-Age': '86400',
-        },
-    });
 }
 
 /**

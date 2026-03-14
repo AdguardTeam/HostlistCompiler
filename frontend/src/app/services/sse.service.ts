@@ -225,16 +225,18 @@ export class SseService {
         if (dataLines.length === 0) return null;
 
         const raw = dataLines.join('\n');
-        let data: T;
+        let data: unknown;
         try {
-            data = JSON.parse(raw) as T;
+            data = JSON.parse(raw);
         } catch {
-            data = raw as unknown as T;
+            // Non-JSON SSE payloads are wrapped in an object rather than
+            // being unsafely cast to T. Consumers should type-guard.
+            data = { raw };
         }
 
         return {
             type: eventType,
-            data,
+            data: data as T,
             timestamp: new Date(),
         };
     }

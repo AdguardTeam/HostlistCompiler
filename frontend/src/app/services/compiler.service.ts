@@ -13,8 +13,15 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from '../tokens';
+import {
+    CompileResponseSchema,
+    AsyncCompileResponseSchema,
+    BatchCompileResponseSchema,
+    ASTResultSchema,
+    validateResponse,
+} from '../schemas/api-responses';
 
 export interface CompileRequest {
     configuration: {
@@ -28,30 +35,44 @@ export interface CompileRequest {
 
 export interface CompileResponse {
     success: boolean;
-    ruleCount: number;
-    sources: number;
-    transformations: string[];
-    message: string;
     rules?: string[];
-    cached?: boolean;
-    benchmark?: {
-        duration: string;
-        rulesPerSecond: number;
+    ruleCount?: number;
+    sources?: number;
+    benchmark?: { duration?: string; startTime?: number; endTime?: number };
+    metrics?: {
+        totalDuration?: number;
+        sourceCount?: number;
+        transformationCount?: number;
+        inputRuleCount?: number;
+        outputRuleCount?: number;
+        phases?: Record<string, number>;
     };
+    compiledAt?: string;
+    previousVersion?: { rules: string[]; ruleCount: number; compiledAt: string };
+    cached?: boolean;
+    deduplicated?: boolean;
+    error?: string;
+}
+
+export interface BatchCompileItem extends CompileResponse {
+    id: string;
 }
 
 export interface AsyncCompileResponse {
     success: boolean;
     requestId: string;
     note: string;
+    message?: string;
+    batchSize?: number;
+    priority?: string;
     error?: string;
 }
 
 export interface ASTResult {
     success: boolean;
-    ast: unknown;
-    ruleCount: number;
-    parseTime?: string;
+    parsedRules: unknown;
+    summary?: unknown;
+    error?: string;
 }
 
 @Injectable({
@@ -73,7 +94,9 @@ export class CompilerService {
             turnstileToken,
         };
 
-        return this.http.post<CompileResponse>(`${this.apiBaseUrl}/compile`, payload);
+        return this.http
+            .post<unknown>(`${this.apiBaseUrl}/compile`, payload)
+            .pipe(map((raw) => validateResponse(CompileResponseSchema, raw, 'POST /compile')));
     }
 
     /** POST /compile/async — queue for background processing, returns requestId */
@@ -88,30 +111,51 @@ export class CompilerService {
             turnstileToken,
         };
 
-        return this.http.post<AsyncCompileResponse>(`${this.apiBaseUrl}/compile/async`, payload);
+        return this.http
+            .post<unknown>(`${this.apiBaseUrl}/compile/async`, payload)
+            .pipe(map((raw) => validateResponse(AsyncCompileResponseSchema, raw, 'POST /compile/async')));
     }
 
-    /** POST /compile/batch — compile multiple configurations in parallel */
-    compileBatch(configurations: CompileRequest['configuration'][], turnstileToken?: string): Observable<CompileResponse[]> {
-        return this.http.post<CompileResponse[]>(`${this.apiBaseUrl}/compile/batch`, {
-            configurations,
+    /** POST /compile/batch — compile multiple configurations in parallel.
+     *
+     * The Worker expects `{ requests: [{ id, configuration, benchmark? }] }` and responds
+     * with `{ success: true, results: [{ id, ...CompilationResult }] }`.
+     */
+    compileBatch(configurations: CompileRequest['configuration'][], turnstileToken?: string): Observable<BatchCompileItem[]> {
+        const requests = configurations.map((configuration, i) => ({
+            id: `batch-${i}`,
+            configuration,
             benchmark: true,
-            turnstileToken,
-        });
+        }));
+        return this.http
+            .post<unknown>(`${this.apiBaseUrl}/compile/batch`, { requests, turnstileToken })
+            .pipe(map((raw) => {
+                const validated = validateResponse(BatchCompileResponseSchema, raw, 'POST /compile/batch');
+                return validated.results;
+            }));
     }
 
-    /** POST /compile/batch/async — queue batch for background processing */
+    /** POST /compile/batch/async — queue batch for background processing.
+     *
+     * The Worker expects `{ requests: [{ id, configuration, benchmark? }], priority? }` and
+     * responds with a 202 `{ success, requestId, batchSize, ... }`.
+     */
     compileBatchAsync(configurations: CompileRequest['configuration'][], turnstileToken?: string): Observable<AsyncCompileResponse> {
-        return this.http.post<AsyncCompileResponse>(`${this.apiBaseUrl}/compile/batch/async`, {
-            configurations,
+        const requests = configurations.map((configuration, i) => ({
+            id: `batch-async-${i}`,
+            configuration,
             benchmark: true,
-            turnstileToken,
-        });
+        }));
+        return this.http
+            .post<unknown>(`${this.apiBaseUrl}/compile/batch/async`, { requests, turnstileToken })
+            .pipe(map((raw) => validateResponse(AsyncCompileResponseSchema, raw, 'POST /compile/batch/async')));
     }
 
     /** POST /ast/parse — parse filter rules into AST */
     astParse(rules: string[]): Observable<ASTResult> {
-        return this.http.post<ASTResult>(`${this.apiBaseUrl}/ast/parse`, { rules });
+        return this.http
+            .post<unknown>(`${this.apiBaseUrl}/ast/parse`, { rules })
+            .pipe(map((raw) => validateResponse(ASTResultSchema, raw, 'POST /ast/parse')));
     }
 
     getAvailableTransformations(): string[] {

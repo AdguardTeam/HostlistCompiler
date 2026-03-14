@@ -455,7 +455,7 @@ export function requireAuth(context: IAuthContext): Response | null {
     if (context.authMethod === 'anonymous') {
         return new Response(
             JSON.stringify({ success: false, error: 'Authentication required' }),
-            { status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+            { status: 401, headers: { 'Content-Type': 'application/json' } },
         );
     }
     return null;
@@ -478,7 +478,7 @@ export function requireTier(context: IAuthContext, minTier: UserTier): Response 
                 success: false,
                 error: `Insufficient tier: requires ${TIER_REGISTRY[minTier].displayName}, current tier is ${TIER_REGISTRY[context.tier].displayName}`,
             }),
-            { status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+            { status: 403, headers: { 'Content-Type': 'application/json' } },
         );
     }
     return null;
@@ -509,7 +509,7 @@ export function requireScope(context: IAuthContext, ...requiredScopes: string[])
     if (context.authMethod === 'anonymous') {
         return new Response(
             JSON.stringify({ success: false, error: 'Authentication required' }),
-            { status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+            { status: 401, headers: { 'Content-Type': 'application/json' } },
         );
     }
 
@@ -521,7 +521,7 @@ export function requireScope(context: IAuthContext, ...requiredScopes: string[])
                 success: false,
                 error: `Missing required scope${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}`,
             }),
-            { status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+            { status: 403, headers: { 'Content-Type': 'application/json' } },
         );
     }
     return null;

@@ -33,11 +33,9 @@ describe('CompilerService', () => {
         const transformations = ['RemoveComments', 'Deduplicate'];
         const mockResponse: CompileResponse = {
             success: true,
+            rules: ['||example.com^'],
             ruleCount: 5000,
-            sources: 1,
-            transformations,
-            message: 'Compilation complete',
-            benchmark: { duration: '42ms', rulesPerSecond: 119047 },
+            compiledAt: '2024-01-01T00:00:00.000Z',
         };
 
         service.compile(urls, transformations).subscribe(result => {
@@ -78,7 +76,7 @@ describe('CompilerService', () => {
             { source: 'https://a.com/1.txt' },
             { source: 'https://b.com/2.txt' },
         ]);
-        req.flush({});
+        req.flush({ success: true, ruleCount: 0, compiledAt: '2024-01-01T00:00:00.000Z' });
     });
 
     it('should POST to /api/compile/async with correct payload', () => {
@@ -108,20 +106,30 @@ describe('CompilerService', () => {
     });
 
     it('should POST to /api/compile/batch with correct payload', () => {
-        const mockResponse = [{ success: true, ruleCount: 100, sources: 1, transformations: [], message: 'OK' }];
         const configurations = [{
             name: 'Test',
             sources: [{ source: 'https://example.com/list.txt' }],
             transformations: ['RemoveComments'],
         }];
+        const mockResponse = {
+            success: true,
+            results: [{ id: 'batch-0', success: true, ruleCount: 100, compiledAt: '2024-01-01T00:00:00.000Z' }],
+        };
 
         service.compileBatch(configurations).subscribe(result => {
-            expect(result).toEqual(mockResponse);
+            expect(result).toEqual(mockResponse.results);
         });
 
         const req = httpTesting.expectOne('/api/compile/batch');
         expect(req.request.method).toBe('POST');
-        expect(req.request.body).toEqual({ configurations, benchmark: true });
+        expect(req.request.body).toEqual({
+            requests: [{
+                id: 'batch-0',
+                configuration: configurations[0],
+                benchmark: true,
+            }],
+            turnstileToken: undefined,
+        });
         req.flush(mockResponse);
     });
 });

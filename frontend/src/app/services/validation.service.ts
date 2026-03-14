@@ -8,8 +8,9 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from '../tokens';
+import { ValidationResultSchema, validateResponse } from '../schemas/api-responses';
 
 export interface ValidationError {
     readonly line: number;
@@ -47,9 +48,11 @@ export class ValidationService {
      * Validate one or more filter rules against the backend parser.
      */
     validate(rules: string[], strict = false): Observable<ValidationResult> {
-        return this.http.post<ValidationResult>(`${this.apiBaseUrl}/validate`, {
-            rules,
-            strict,
-        } satisfies ValidateRequest);
+        return this.http
+            .post<unknown>(`${this.apiBaseUrl}/validate`, {
+                rules,
+                strict,
+            } satisfies ValidateRequest)
+            .pipe(map((raw) => validateResponse(ValidationResultSchema, raw, 'POST /validate')));
     }
 }

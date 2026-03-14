@@ -56,7 +56,7 @@ describe('ValidationService', () => {
 
         const req = httpTesting.expectOne('/api/validate');
         expect(req.request.body.strict).toBe(true);
-        req.flush({});
+        req.flush({ success: true, valid: true, totalRules: 1, validRules: 1, invalidRules: 0, errors: [], warnings: [] });
     });
 
     it('should default strict to false', () => {
@@ -64,7 +64,7 @@ describe('ValidationService', () => {
 
         const req = httpTesting.expectOne('/api/validate');
         expect(req.request.body.strict).toBe(false);
-        req.flush({});
+        req.flush({ success: true, valid: true, totalRules: 1, validRules: 1, invalidRules: 0, errors: [], warnings: [] });
     });
 
     it('should propagate HTTP errors', () => {

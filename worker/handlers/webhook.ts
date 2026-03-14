@@ -156,6 +156,6 @@ export async function handleNotify(request: Request, env: Env): Promise<Response
     const status = overallSuccess ? 200 : 502;
     return Response.json(
         { success: overallSuccess, event: payload.event, deliveries, duration },
-        { status, headers: { 'Access-Control-Allow-Origin': '*' } },
+        { status },
     );
 }
