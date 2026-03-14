@@ -17,8 +17,9 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import type { JWTVerifyGetKey } from 'jose';
 import { ZodError } from 'zod';
-import type { Env, IClerkClaims, IJwtVerificationResult } from '../types.ts';
+import type { Env, IJwtVerificationResult } from '../types.ts';
 import { ClerkJWTClaimsSchema } from '../schemas.ts';
+import type { ClerkJWTClaims } from '../schemas.ts';
 
 // ============================================================================
 // JWKS Cache (module-level singleton per Worker isolate)
@@ -143,9 +144,9 @@ export async function verifyClerkJWT(
             clockTolerance: 5,
         });
 
-        let claims: IClerkClaims;
+        let claims: ClerkJWTClaims;
         try {
-            claims = ClerkJWTClaimsSchema.parse(payload) as IClerkClaims;
+            claims = ClerkJWTClaimsSchema.parse(payload);
         } catch (err) {
             if (err instanceof ZodError) {
                 return { valid: false, error: 'Invalid JWT claims structure' };

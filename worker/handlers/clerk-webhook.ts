@@ -57,25 +57,24 @@ function validateRole(value: unknown): string | undefined {
 }
 
 // ---------------------------------------------------------------------------
-// Clerk webhook event shapes (subset we care about)
+// Local type definitions and re-exports for webhook event shapes
 // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Clerk webhook event shapes
-// Re-exported from schemas.ts for backward compatibility with tests.
-// ---------------------------------------------------------------------------
-
-/** @internal Clerk email address shape in webhook payloads. */
+/**
+ * @internal Clerk email address shape in webhook payloads.
+ * Defined locally as an interface; the Zod schema counterpart is
+ * {@link ClerkEmailAddressSchema} in schemas.ts.
+ */
 export interface ClerkEmailAddress {
     readonly email_address: string;
     readonly id: string;
     readonly verification?: { readonly status: string } | null;
 }
 
-/** @internal Clerk user data shape in webhook payloads. */
+/** @internal Clerk user data shape in webhook payloads — re-exported from schemas.ts. */
 export type ClerkUserEventData = ClerkWebhookUserData;
 
-/** @internal Clerk webhook event shape. */
+/** @internal Clerk webhook event shape — re-exported from schemas.ts. */
 export type ClerkWebhookEvent = ClerkWebhookEventBase;
 
 // ---------------------------------------------------------------------------
