@@ -42,6 +42,10 @@ export class ClerkService {
      * Distinct from `isAvailable=false` which means the key is simply not configured.
      * Consumers can use this to show a "temporarily unavailable" error with a retry hint
      * rather than implying the auth environment variable is missing.
+     *
+     * Cleared automatically when `initialize()` completes successfully so the service
+     * reflects current state rather than historical state (i.e. a successful retry
+     * removes the error indicator).
      */
     readonly configLoadFailed = this._configLoadFailed.asReadonly();
     readonly user = this._user.asReadonly();
@@ -77,9 +81,11 @@ export class ClerkService {
             this.clerkInstance = new ClerkJS(publishableKey);
             await this.clerkInstance.load();
 
-            // Seed initial state
+            // Seed initial state — clear any previous config-load failure since
+            // the SDK loaded successfully (transient error has resolved).
             this._user.set(this.clerkInstance.user ?? null);
             this._session.set(this.clerkInstance.session ?? null);
+            this._configLoadFailed.set(false);
             this._isAvailable.set(true);
             this._isLoaded.set(true);
 
