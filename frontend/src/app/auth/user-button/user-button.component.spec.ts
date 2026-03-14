@@ -272,4 +272,37 @@ describe('UserButtonComponent', () => {
         expect(compiled.querySelector('.auth-config-error')).toBeNull();
         expect(compiled.querySelector('.user-button-container')).toBeTruthy();
     });
+
+    it('should unmount and remount when theme changes while signed in', async () => {
+        // Sign in and wait for the widget to mount
+        mockClerkService.isSignedIn.set(true);
+        TestBed.flushEffects();
+        fixture.detectChanges();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const mountCallsBefore = mockClerkService.mountUserButton.mock.calls.length;
+        expect(mountCallsBefore).toBeGreaterThan(0);
+
+        // Toggle theme while the widget is mounted
+        mockThemeService.isDark.set(true);
+        TestBed.flushEffects();
+
+        // Widget should have been unmounted once and then remounted
+        expect(mockClerkService.unmountUserButton).toHaveBeenCalledTimes(1);
+        expect(mockClerkService.mountUserButton.mock.calls.length).toBeGreaterThan(mountCallsBefore);
+    });
+
+    it('should not remount when theme changes before initial mount', () => {
+        // isSignedIn is false — no container, nothing mounted
+        mockClerkService.isSignedIn.set(false);
+        fixture.detectChanges();
+
+        mockThemeService.isDark.set(true);
+        TestBed.flushEffects();
+
+        // No unmount or mount should occur since the widget was never mounted
+        expect(mockClerkService.unmountUserButton).not.toHaveBeenCalled();
+        // mountUserButton may have been called 0 times from afterNextRender (no container)
+        expect(mockClerkService.mountUserButton).not.toHaveBeenCalled();
+    });
 });
