@@ -487,6 +487,9 @@ export interface Env {
     CF_ACCESS_TEAM_DOMAIN?: string;
     /** Cloudflare Access application audience (AUD) tag */
     CF_ACCESS_AUD?: string;
+    // --- CORS ---
+    /** Comma-separated list of allowed origins for CORS (public, not a secret — set in [vars]) */
+    CORS_ALLOWED_ORIGINS?: string;
 }
 
 // ============================================================================

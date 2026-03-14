@@ -14,6 +14,7 @@
 import type { Env } from './types.ts';
 import { VERSION } from '../src/version.ts';
 import { JsonResponse } from './utils/response.ts';
+import { getCorsHeaders, getPublicCorsHeaders, handleCorsPreflight, isPublicEndpoint } from './utils/cors.ts';
 import { createWorkerErrorReporter } from './utils/errorReporter.ts';
 import { ErrorUtils } from '../src/utils/ErrorUtils.ts';
 import { checkRateLimit, validateRequestSize, verifyAdminAuth, verifyTurnstileToken } from './middleware/index.ts';
@@ -119,18 +120,10 @@ function generateRequestId(prefix: string): string {
 }
 
 /**
- * CORS preflight handler
+ * CORS preflight handler — delegates to the centralized CORS utility.
  */
-function handleCors(): Response {
-    return new Response(null, {
-        status: 204,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Key',
-            'Access-Control-Max-Age': '86400',
-        },
-    });
+function handleCors(request: Request, env: Env): Response {
+    return handleCorsPreflight(request, env);
 }
 
 /**
@@ -473,14 +466,30 @@ export async function handleRequest(
 
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
-        return handleCors();
+        return handleCors(request, env);
     }
+
+    // Determine CORS headers once for the entire request
+    const corsHeaders = isPublicEndpoint(pathname) ? getPublicCorsHeaders() : getCorsHeaders(request, env);
+
+    // Helper: apply CORS headers to any response
+    const withCors = (response: Response): Response => {
+        const newHeaders = new Headers(response.headers);
+        for (const [k, v] of Object.entries(corsHeaders)) {
+            newHeaders.set(k, v);
+        }
+        return new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: newHeaders,
+        });
+    };
 
     // Find matching route
     const match = findRoute(request.method, pathname);
 
     if (!match) {
-        return JsonResponse.error('Not found', 404);
+        return withCors(JsonResponse.error('Not found', 404));
     }
 
     const { route, pathParams } = match;
@@ -500,7 +509,7 @@ export async function handleRequest(
         if (route.validateBodySize) {
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
-                return JsonResponse.error(sizeValidation.error || 'Request body too large', 413);
+                return withCors(JsonResponse.error(sizeValidation.error || 'Request body too large', 413));
             }
         }
 
@@ -508,7 +517,7 @@ export async function handleRequest(
         if (route.rateLimit) {
             const allowed = await checkRateLimit(env, ip);
             if (!allowed) {
-                return JsonResponse.error('Rate limit exceeded', 429);
+                return withCors(JsonResponse.error('Rate limit exceeded', 429));
             }
         }
 
@@ -516,7 +525,7 @@ export async function handleRequest(
         if (route.requireAuth) {
             const auth = await verifyAdminAuth(request, env);
             if (!auth.authorized) {
-                return JsonResponse.error(auth.error || 'Unauthorized', 401);
+                return withCors(JsonResponse.error(auth.error || 'Unauthorized', 401));
             }
         }
 
@@ -527,7 +536,7 @@ export async function handleRequest(
                 if (body.turnstileToken) {
                     const result = await verifyTurnstileToken(env, body.turnstileToken, ip);
                     if (!result.success) {
-                        return JsonResponse.error(result.error || 'Turnstile verification failed', 403);
+                        return withCors(JsonResponse.error(result.error || 'Turnstile verification failed', 403));
                     }
                 }
             } catch {
@@ -542,7 +551,7 @@ export async function handleRequest(
         const duration = performance.now() - startTime;
         await recordMetric(env, pathname, duration, response.ok);
 
-        return response;
+        return withCors(response);
     } catch (error) {
         const duration = performance.now() - startTime;
         const errorObj = ErrorUtils.toError(error);
@@ -559,7 +568,7 @@ export async function handleRequest(
 
         await recordMetric(env, pathname, duration, false, message);
 
-        return JsonResponse.error(message, 500);
+        return withCors(JsonResponse.error(message, 500));
     }
 }
 

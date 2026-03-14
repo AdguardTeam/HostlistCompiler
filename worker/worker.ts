@@ -63,6 +63,7 @@ import { checkRateLimitTiered, validateRequestSize } from './middleware/index.ts
 import { authenticateRequestUnified, requireAuth } from './middleware/auth.ts';
 import { API_DOCS_REDIRECT } from './utils/constants.ts';
 import { JsonResponse } from './utils/response.ts';
+import { getCorsHeaders, getPublicCorsHeaders, handleCorsPreflight, isPublicEndpoint } from './utils/cors.ts';
 import { handleValidateRule } from './handlers/validate-rule.ts';
 import { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, handleRulesUpdate } from './handlers/rules.ts';
 import { handleNotify } from './handlers/webhook.ts';
@@ -294,9 +295,7 @@ function createPayloadTooLargeResponse(error: string): Response {
         },
         {
             status: 413,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-            },
+            headers: {},
         },
     );
 }
@@ -761,7 +760,6 @@ async function handleASTParseRequest(
                 },
                 {
                     status: 400,
-                    headers: { 'Access-Control-Allow-Origin': '*' },
                 },
             );
         }
@@ -777,7 +775,6 @@ async function handleASTParseRequest(
             },
             {
                 headers: {
-                    'Access-Control-Allow-Origin': '*',
                     'Content-Type': 'application/json',
                 },
             },
@@ -791,7 +788,6 @@ async function handleASTParseRequest(
             },
             {
                 status: 500,
-                headers: { 'Access-Control-Allow-Origin': '*' },
             },
         );
     }
@@ -938,7 +934,6 @@ async function handleCompileStream(
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': '*',
         },
     });
 }
@@ -992,7 +987,6 @@ async function handleCompileJson(
             }, {
                 headers: {
                     'X-Request-Deduplication': 'HIT',
-                    'Access-Control-Allow-Origin': '*',
                 },
             });
         }
@@ -1027,7 +1021,6 @@ async function handleCompileJson(
                 }, {
                     headers: {
                         'X-Cache': 'HIT',
-                        'Access-Control-Allow-Origin': '*',
                     },
                 });
             } catch (error) {
@@ -1128,9 +1121,7 @@ async function handleCompileJson(
 
         return Response.json(result, {
             status: 500,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-            },
+            headers: {},
         });
     }
 
@@ -1152,7 +1143,6 @@ async function handleCompileJson(
     return Response.json(result, {
         headers: {
             'X-Cache': 'MISS',
-            'Access-Control-Allow-Origin': '*',
         },
     });
 }
@@ -1331,9 +1321,7 @@ async function handleCompileBatch(
         return Response.json(
             { success: true, results },
             {
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
+                headers: {},
             },
         );
     } catch (error) {
@@ -1382,9 +1370,7 @@ async function handleCompileAsync(
             },
             {
                 status: 202, // Accepted
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
+                headers: {},
             },
         );
     } catch (error) {
@@ -1398,9 +1384,7 @@ async function handleCompileAsync(
             { success: false, error: message },
             {
                 status: 500,
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
+                headers: {},
             },
         );
     }
@@ -1474,9 +1458,7 @@ async function handleCompileBatchAsync(
             },
             {
                 status: 202, // Accepted
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
+                headers: {},
             },
         );
     } catch (error) {
@@ -1490,9 +1472,7 @@ async function handleCompileBatchAsync(
             { success: false, error: message },
             {
                 status: 500,
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
+                headers: {},
             },
         );
     }
@@ -1558,24 +1538,15 @@ function handleInfo(request: Request, env: Env): Response {
     };
 
     return Response.json(info, {
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-        },
+        headers: {},
     });
 }
 
 /**
  * Handle CORS preflight requests.
  */
-function handleCors(): Response {
-    return new Response(null, {
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '86400',
-        },
-    });
+function handleCors(request: Request, env: Env): Response {
+    return handleCorsPreflight(request, env);
 }
 
 /**
@@ -2250,7 +2221,7 @@ async function handleAdminStorageStats(env: Env): Promise<Response> {
     if (!env.DB) {
         return Response.json(
             { success: false, error: 'D1 database not configured' },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2278,13 +2249,12 @@ async function handleAdminStorageStats(env: Env): Promise<Response> {
                 stats,
                 timestamp: new Date().toISOString(),
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2296,7 +2266,7 @@ async function handleAdminClearExpired(env: Env): Promise<Response> {
     if (!env.DB) {
         return Response.json(
             { success: false, error: 'D1 database not configured' },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2314,13 +2284,12 @@ async function handleAdminClearExpired(env: Env): Promise<Response> {
                 deleted,
                 message: `Cleared ${deleted} expired entries`,
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2332,7 +2301,7 @@ async function handleAdminClearCache(env: Env): Promise<Response> {
     if (!env.DB) {
         return Response.json(
             { success: false, error: 'D1 database not configured' },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2350,13 +2319,12 @@ async function handleAdminClearCache(env: Env): Promise<Response> {
                 deleted,
                 message: `Cleared ${deleted} cache entries`,
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2368,7 +2336,7 @@ async function handleAdminExport(env: Env): Promise<Response> {
     if (!env.DB) {
         return Response.json(
             { success: false, error: 'D1 database not configured' },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2389,7 +2357,6 @@ async function handleAdminExport(env: Env): Promise<Response> {
 
         return Response.json(exportData, {
             headers: {
-                'Access-Control-Allow-Origin': '*',
                 'Content-Disposition': `attachment; filename="storage-export-${Date.now()}.json"`,
             },
         });
@@ -2397,7 +2364,7 @@ async function handleAdminExport(env: Env): Promise<Response> {
         const message = error instanceof Error ? error.message : String(error);
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2409,7 +2376,7 @@ async function handleAdminVacuum(env: Env): Promise<Response> {
     if (!env.DB) {
         return Response.json(
             { success: false, error: 'D1 database not configured' },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2421,13 +2388,12 @@ async function handleAdminVacuum(env: Env): Promise<Response> {
                 success: true,
                 message: 'Database vacuum completed',
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2439,7 +2405,7 @@ async function handleAdminListTables(env: Env): Promise<Response> {
     if (!env.DB) {
         return Response.json(
             { success: false, error: 'D1 database not configured' },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2453,13 +2419,12 @@ async function handleAdminListTables(env: Env): Promise<Response> {
                 success: true,
                 tables: result.results || [],
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2471,7 +2436,7 @@ async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
     if (!env.DB) {
         return Response.json(
             { success: false, error: 'D1 database not configured' },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2482,7 +2447,7 @@ async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
         if (!sql || typeof sql !== 'string') {
             return Response.json(
                 { success: false, error: 'Missing or invalid SQL query' },
-                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                { status: 400 },
             );
         }
 
@@ -2491,7 +2456,7 @@ async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
         if (!normalizedSql.startsWith('SELECT')) {
             return Response.json(
                 { success: false, error: 'Only SELECT queries are allowed' },
-                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                { status: 400 },
             );
         }
 
@@ -2512,7 +2477,7 @@ async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
             if (pattern.test(sql)) {
                 return Response.json(
                     { success: false, error: 'Query contains disallowed SQL statements' },
-                    { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    { status: 400 },
                 );
             }
         }
@@ -2526,13 +2491,12 @@ async function handleAdminQuery(request: Request, env: Env): Promise<Response> {
                 rowCount: result.results?.length || 0,
                 meta: result.meta,
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2564,7 +2528,7 @@ async function handleWorkflowCompile(
     if (!env.COMPILATION_WORKFLOW) {
         return Response.json(
             { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2599,7 +2563,6 @@ async function handleWorkflowCompile(
             },
             {
                 status: 202,
-                headers: { 'Access-Control-Allow-Origin': '*' },
             },
         );
     } catch (error) {
@@ -2609,7 +2572,7 @@ async function handleWorkflowCompile(
 
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2624,7 +2587,7 @@ async function handleWorkflowBatchCompile(
     if (!env.BATCH_COMPILATION_WORKFLOW) {
         return Response.json(
             { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2645,7 +2608,7 @@ async function handleWorkflowBatchCompile(
         if (!requests || !Array.isArray(requests) || requests.length === 0) {
             return Response.json(
                 { success: false, error: 'Invalid batch request' },
-                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                { status: 400 },
             );
         }
 
@@ -2675,7 +2638,6 @@ async function handleWorkflowBatchCompile(
             },
             {
                 status: 202,
-                headers: { 'Access-Control-Allow-Origin': '*' },
             },
         );
     } catch (error) {
@@ -2685,7 +2647,7 @@ async function handleWorkflowBatchCompile(
 
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2700,7 +2662,7 @@ async function handleWorkflowCacheWarm(
     if (!env.CACHE_WARMING_WORKFLOW) {
         return Response.json(
             { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2733,7 +2695,6 @@ async function handleWorkflowCacheWarm(
             },
             {
                 status: 202,
-                headers: { 'Access-Control-Allow-Origin': '*' },
             },
         );
     } catch (error) {
@@ -2743,7 +2704,7 @@ async function handleWorkflowCacheWarm(
 
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2758,7 +2719,7 @@ async function handleWorkflowHealthCheck(
     if (!env.HEALTH_MONITORING_WORKFLOW) {
         return Response.json(
             { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2793,7 +2754,6 @@ async function handleWorkflowHealthCheck(
             },
             {
                 status: 202,
-                headers: { 'Access-Control-Allow-Origin': '*' },
             },
         );
     } catch (error) {
@@ -2803,7 +2763,7 @@ async function handleWorkflowHealthCheck(
 
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2834,14 +2794,14 @@ async function handleWorkflowStatus(
         default:
             return Response.json(
                 { success: false, error: `Unknown workflow type: ${workflowType}` },
-                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                { status: 400 },
             );
     }
 
     if (!workflow) {
         return Response.json(
             { success: false, error: WORKFLOW_BINDINGS_NOT_AVAILABLE_ERROR },
-            { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 503 },
         );
     }
 
@@ -2858,14 +2818,13 @@ async function handleWorkflowStatus(
                 output: status.output,
                 error: status.error,
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
 
         return Response.json(
             { success: false, error: message },
-            { status: 404, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 404 },
         );
     }
 }
@@ -2893,14 +2852,13 @@ async function handleWorkflowMetrics(env: Env): Promise<Response> {
                     healthMonitoring: healthMetrics || { totalChecks: 0 },
                 },
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
 
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2940,7 +2898,6 @@ async function handleWorkflowEvents(
                     events: [],
                     message: 'No events found for this workflow',
                 },
-                { headers: { 'Access-Control-Allow-Origin': '*' } },
             );
         }
 
@@ -2969,14 +2926,13 @@ async function handleWorkflowEvents(
                 isComplete,
                 events,
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
 
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -2994,7 +2950,6 @@ async function handleHealthLatest(env: Env): Promise<Response> {
                     success: true,
                     message: 'No health check data available. Run a health check first.',
                 },
-                { headers: { 'Access-Control-Allow-Origin': '*' } },
             );
         }
 
@@ -3003,14 +2958,13 @@ async function handleHealthLatest(env: Env): Promise<Response> {
                 success: true,
                 ...(latest as Record<string, unknown>),
             },
-            { headers: { 'Access-Control-Allow-Origin': '*' } },
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
 
         return Response.json(
             { success: false, error: message },
-            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+            { status: 500 },
         );
     }
 }
@@ -3020,21 +2974,43 @@ async function handleHealthLatest(env: Env): Promise<Response> {
  */
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
-        const requestId = generateRequestId('api');
         const url = new URL(request.url);
         const { pathname } = url;
+
+        // Handle CORS preflight before anything else
+        if (request.method === 'OPTIONS') {
+            return handleCors(request, env);
+        }
+
+        // ZTA: Determine CORS headers once for the entire request.
+        // Public read-only endpoints get wildcard; everything else gets the allowlist.
+        const corsHeaders = isPublicEndpoint(pathname) ? getPublicCorsHeaders() : getCorsHeaders(request, env);
+
+        // Execute the actual handler, then wrap the response with CORS headers.
+        // This ensures every response — success, error, or fallback — has correct CORS.
+        const response = await this._handleRequest(request, env, url, pathname);
+        const newHeaders = new Headers(response.headers);
+        for (const [k, v] of Object.entries(corsHeaders)) {
+            newHeaders.set(k, v);
+        }
+        return new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: newHeaders,
+        });
+    },
+
+    /** @internal Core request handler — called by fetch() which wraps the response with CORS headers. */
+    async _handleRequest(request: Request, env: Env, url: URL, pathname: string): Promise<Response> {
+        const requestId = generateRequestId('api');
         const analytics = createAnalyticsService(env);
         const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-
-        // Handle CORS preflight
-        if (request.method === 'OPTIONS') {
-            return handleCors();
-        }
 
         // Route MCP Agent requests (Playwright Browser Rendering MCP server).
         // Must run before other routing so /agents/* URLs are intercepted correctly.
         const agentResponse = await routeAgentRequest(request, env);
         if (agentResponse) return agentResponse;
+
         if (pathname === '/api' && request.method === 'GET') {
             return handleInfo(request, env);
         }
@@ -3049,7 +3025,7 @@ export default {
                             error: 'D1 database not available',
                             version: env.COMPILER_VERSION || VERSION,
                         },
-                        { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+                        { status: 503 },
                     );
                 }
 
@@ -3065,7 +3041,6 @@ export default {
                     },
                     {
                         headers: {
-                            'Access-Control-Allow-Origin': '*',
                             'Cache-Control': 'public, max-age=60',
                         },
                     },
@@ -3078,7 +3053,7 @@ export default {
                         error: message,
                         version: env.COMPILER_VERSION || VERSION,
                     },
-                    { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    { status: 500 },
                 );
             }
         }
@@ -3092,7 +3067,7 @@ export default {
                             success: false,
                             error: 'D1 database not available',
                         },
-                        { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+                        { status: 503 },
                     );
                 }
 
@@ -3117,7 +3092,6 @@ export default {
                     },
                     {
                         headers: {
-                            'Access-Control-Allow-Origin': '*',
                             'Cache-Control': 'public, max-age=60',
                         },
                     },
@@ -3126,7 +3100,7 @@ export default {
                 const message = error instanceof Error ? error.message : String(error);
                 return Response.json(
                     { success: false, error: message },
-                    { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    { status: 500 },
                 );
             }
         }
@@ -3140,7 +3114,7 @@ export default {
                             success: false,
                             error: 'D1 database not available',
                         },
-                        { status: 503, headers: { 'Access-Control-Allow-Origin': '*' } },
+                        { status: 503 },
                     );
                 }
 
@@ -3153,7 +3127,6 @@ export default {
                     },
                     {
                         headers: {
-                            'Access-Control-Allow-Origin': '*',
                             'Cache-Control': 'public, max-age=60',
                         },
                     },
@@ -3162,7 +3135,7 @@ export default {
                 const message = error instanceof Error ? error.message : String(error);
                 return Response.json(
                     { success: false, error: message },
-                    { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    { status: 500 },
                 );
             }
         }
@@ -3176,7 +3149,6 @@ export default {
                 },
                 {
                     headers: {
-                        'Access-Control-Allow-Origin': '*',
                         'Cache-Control': 'public, max-age=3600',
                     },
                 },
@@ -3189,7 +3161,6 @@ export default {
                 { publishableKey: env.CLERK_PUBLISHABLE_KEY || null },
                 {
                     headers: {
-                        'Access-Control-Allow-Origin': '*',
                         'Cache-Control': 'public, max-age=3600',
                     },
                 },
@@ -3219,7 +3190,6 @@ export default {
             const metrics = await getMetrics(env);
             return Response.json(metrics, {
                 headers: {
-                    'Access-Control-Allow-Origin': '*',
                     'Cache-Control': 'no-cache',
                 },
             });
@@ -3230,7 +3200,6 @@ export default {
             const stats = await getQueueStats(env);
             return Response.json(stats, {
                 headers: {
-                    'Access-Control-Allow-Origin': '*',
                     'Cache-Control': 'no-cache',
                 },
             });
@@ -3244,7 +3213,6 @@ export default {
                 depthHistory: stats.depthHistory || [],
             }, {
                 headers: {
-                    'Access-Control-Allow-Origin': '*',
                     'Cache-Control': 'no-cache',
                 },
             });
@@ -3263,7 +3231,6 @@ export default {
                     {
                         status: 401,
                         headers: {
-                            'Access-Control-Allow-Origin': '*',
                             'WWW-Authenticate': 'X-Admin-Key',
                         },
                     },
@@ -3275,7 +3242,7 @@ export default {
             if (!cfAccess.valid) {
                 return Response.json(
                     { success: false, error: cfAccess.error ?? 'CF Access verification failed' },
-                    { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    { status: 403 },
                 );
             }
 
@@ -3317,7 +3284,7 @@ export default {
             // Unknown admin endpoint
             return Response.json(
                 { success: false, error: 'Unknown admin endpoint' },
-                { status: 404, headers: { 'Access-Control-Allow-Origin': '*' } },
+                { status: 404 },
             );
         }
 
@@ -3330,9 +3297,7 @@ export default {
                     error: 'Invalid request ID',
                 }, {
                     status: 400,
-                    headers: {
-                        'Access-Control-Allow-Origin': '*',
-                    },
+                    headers: {},
                 });
             }
 
@@ -3347,9 +3312,7 @@ export default {
                     status: 'not_found',
                 }, {
                     status: 404,
-                    headers: {
-                        'Access-Control-Allow-Origin': '*',
-                    },
+                    headers: {},
                 });
             }
 
@@ -3366,9 +3329,7 @@ export default {
                     },
                 }, {
                     status: 200, // Still 200 so frontend can handle status
-                    headers: {
-                        'Access-Control-Allow-Origin': '*',
-                    },
+                    headers: {},
                 });
             }
 
@@ -3379,9 +3340,7 @@ export default {
                     status: 'no_cache',
                 }, {
                     status: 200,
-                    headers: {
-                        'Access-Control-Allow-Origin': '*',
-                    },
+                    headers: {},
                 });
             }
 
@@ -3395,9 +3354,7 @@ export default {
                         status: 'cache_miss',
                     }, {
                         status: 200,
-                        headers: {
-                            'Access-Control-Allow-Origin': '*',
-                        },
+                        headers: {},
                     });
                 }
 
@@ -3418,7 +3375,6 @@ export default {
                     },
                 }, {
                     headers: {
-                        'Access-Control-Allow-Origin': '*',
                         'Cache-Control': 'no-cache',
                     },
                 });
@@ -3431,9 +3387,7 @@ export default {
                     status: 'decompress_error',
                 }, {
                     status: 500,
-                    headers: {
-                        'Access-Control-Allow-Origin': '*',
-                    },
+                    headers: {},
                 });
             }
         }
@@ -3451,9 +3405,7 @@ export default {
                     message: `Job ${requestId} marked as cancelled`,
                     note: 'Job may still process if already started',
                 }, {
-                    headers: {
-                        'Access-Control-Allow-Origin': '*',
-                    },
+                    headers: {},
                 });
             }
             return Response.json({
@@ -3461,9 +3413,7 @@ export default {
                 error: 'Invalid request ID',
             }, {
                 status: 400,
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
+                headers: {},
             });
         }
 
@@ -3501,7 +3451,6 @@ export default {
                             'X-RateLimit-Limit': String(rateLimitResult.limit),
                             'X-RateLimit-Remaining': '0',
                             'X-RateLimit-Reset': String(rateLimitResult.resetAt),
-                            'Access-Control-Allow-Origin': '*',
                         },
                     },
                 );
@@ -3525,9 +3474,7 @@ export default {
                             },
                             {
                                 status: 403,
-                                headers: {
-                                    'Access-Control-Allow-Origin': '*',
-                                },
+                                headers: {},
                             },
                         );
                     }
@@ -3614,13 +3561,12 @@ export default {
                         warnings: [],
                         duration,
                     },
-                    { headers: { 'Access-Control-Allow-Origin': '*' } },
                 );
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
                 return Response.json(
                     { success: false, error: message },
-                    { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                    { status: 400 },
                 );
             }
         }
@@ -3782,9 +3728,7 @@ export default {
                             },
                             {
                                 status: 403,
-                                headers: {
-                                    'Access-Control-Allow-Origin': '*',
-                                },
+                                headers: {},
                             },
                         );
                     }
@@ -3822,9 +3766,7 @@ export default {
                             },
                             {
                                 status: 403,
-                                headers: {
-                                    'Access-Control-Allow-Origin': '*',
-                                },
+                                headers: {},
                             },
                         );
                     }
@@ -3871,7 +3813,7 @@ export default {
             }
             return Response.json(
                 { success: false, error: 'Invalid workflow status path. Use /workflow/status/:type/:id' },
-                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                { status: 400 },
             );
         }
 
@@ -3891,7 +3833,7 @@ export default {
             }
             return Response.json(
                 { success: false, error: 'Invalid workflow events path. Use /workflow/events/:workflowId' },
-                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } },
+                { status: 400 },
             );
         }
 
@@ -3902,7 +3844,6 @@ export default {
                     status: 'healthy',
                     version: env.COMPILER_VERSION || VERSION,
                 },
-                { headers: { 'Access-Control-Allow-Origin': '*' } },
             );
         }
 
