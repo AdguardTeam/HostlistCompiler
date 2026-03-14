@@ -291,7 +291,7 @@ export async function handleValidateApiKey(
             scopes: string[];
             expires_at: string | null;
             revoked_at: string | null;
-            user_email: string;
+            user_email: string | null;
         }>(
             `SELECT k.id, k.name, k.key_prefix, k.scopes, k.expires_at, k.revoked_at, u.email as user_email
              FROM api_keys k
