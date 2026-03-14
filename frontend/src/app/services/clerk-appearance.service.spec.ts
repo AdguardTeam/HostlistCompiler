@@ -11,6 +11,7 @@ describe('ClerkAppearanceService', () => {
         let themeService: ThemeService;
 
         beforeEach(() => {
+            localStorage.removeItem('theme');
             TestBed.configureTestingModule({
                 providers: [
                     provideZonelessChangeDetection(),
@@ -19,10 +20,14 @@ describe('ClerkAppearanceService', () => {
             });
             service = TestBed.inject(ClerkAppearanceService);
             themeService = TestBed.inject(ThemeService);
-            // Ensure light mode
+            // Ensure light mode (ThemeService loads from localStorage on construction)
             if (themeService.isDark()) {
                 themeService.toggle();
             }
+        });
+
+        afterEach(() => {
+            localStorage.removeItem('theme');
         });
 
         it('should be created', () => {
@@ -153,6 +158,7 @@ describe('ClerkAppearanceService', () => {
         let themeService: ThemeService;
 
         beforeEach(() => {
+            localStorage.removeItem('theme');
             TestBed.configureTestingModule({
                 providers: [
                     provideZonelessChangeDetection(),
@@ -165,10 +171,8 @@ describe('ClerkAppearanceService', () => {
         });
 
         afterEach(() => {
-            // Restore light mode so localStorage is clean
-            if (themeService.isDark()) {
-                themeService.toggle();
-            }
+            // Clear the persisted theme key to avoid leaking state across test files
+            localStorage.removeItem('theme');
         });
 
         it('should fall back to dark static values when getComputedStyle returns empty', () => {

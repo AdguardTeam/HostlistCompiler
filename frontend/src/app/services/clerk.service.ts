@@ -113,10 +113,10 @@ export class ClerkService {
 
     /** Mount Clerk's pre-built sign-in UI into the given DOM element. */
     mountSignIn(element: HTMLDivElement, fallbackRedirectUrl?: string): void {
-        const appearance = this.clerkAppearanceService.buildAppearance();
-        this.clerkInstance?.mountSignIn(element, {
+        if (!this.clerkInstance) return;
+        this.clerkInstance.mountSignIn(element, {
             ...(fallbackRedirectUrl ? { fallbackRedirectUrl } : {}),
-            appearance,
+            appearance: this.clerkAppearanceService.buildAppearance(),
         });
     }
 
