@@ -28,7 +28,7 @@ datasource db {
 
 model User {
   id            String    @id @default(uuid())
-  email         String    @unique
+  email         String?   @unique
   displayName   String?   @map("display_name")
   role          String    @default("user")
   createdAt     DateTime  @default(now()) @map("created_at")

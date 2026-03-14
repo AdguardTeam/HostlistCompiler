@@ -5,7 +5,7 @@
  *   - Svix signature verification (missing headers, invalid signature)
  *   - user.created / user.updated / user.deleted event handling
  *   - Missing webhook secret configuration
- *   - Missing email in event data
+ *   - Users without email addresses (phone-only, social login, etc.)
  *   - Unknown event types (graceful acknowledgement)
  *
  * Uses an in-memory D1 mock (same shape as D1Database in worker/types.ts).
@@ -29,6 +29,15 @@ interface MockPrismaOptions {
     deleteManyError?: Error;
 }
 
+interface CapturedUpsertArgs {
+    create: Record<string, unknown>;
+    update: Record<string, unknown>;
+}
+
+interface MockPrismaWithCapture extends PrismaLike {
+    capturedUpsertArgs: CapturedUpsertArgs | null;
+}
+
 function createMockPrisma(opts: MockPrismaOptions = {}): PrismaLike {
     return {
         user: {
@@ -45,6 +54,27 @@ function createMockPrisma(opts: MockPrismaOptions = {}): PrismaLike {
             /* noop */
         },
     };
+}
+
+function createCapturingMockPrisma(opts: MockPrismaOptions = {}): MockPrismaWithCapture {
+    const mock: MockPrismaWithCapture = {
+        capturedUpsertArgs: null,
+        user: {
+            async upsert(args: unknown) {
+                if (opts.upsertError) throw opts.upsertError;
+                mock.capturedUpsertArgs = args as CapturedUpsertArgs;
+                return opts.upsertResult ?? { id: 'uuid-mock-1' };
+            },
+            async deleteMany() {
+                if (opts.deleteManyError) throw opts.deleteManyError;
+                return opts.deleteManyResult ?? { count: 1 };
+            },
+        },
+        async $disconnect() {
+            /* noop */
+        },
+    };
+    return mock;
 }
 
 // ============================================================================
@@ -284,13 +314,58 @@ Deno.test('handleClerkWebhook - user.deleted returns deleted=false when user not
     assertEquals(body.deleted, false);
 });
 
-Deno.test('handleClerkWebhook - returns 400 when user.created has no email', async () => {
-    const noEmailEvent = { type: 'user.created', data: { id: 'user_noemail' } };
-    const mockPrisma = createMockPrisma();
-    const mockVerify = () => noEmailEvent as ClerkWebhookEvent;
+Deno.test('handleClerkWebhook - user.created succeeds without email address', async () => {
+    const noEmailEvent: ClerkWebhookEvent = {
+        type: 'user.created',
+        data: {
+            id: 'user_noemail',
+            email_addresses: [],
+            first_name: 'John',
+            last_name: 'Doe',
+            image_url: 'https://img.clerk.com/xxxxxx',
+            public_metadata: {},
+        },
+    };
+    const mockPrisma = createMockPrisma({ upsertResult: { id: 'uuid-noemail-1' } });
+    const mockVerify = () => noEmailEvent;
     const req = makeSvixRequest(noEmailEvent);
     const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
-    assertEquals(res.status, 400);
+    assertEquals(res.status, 200);
+
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.created');
+    assertEquals(body.userId, 'uuid-noemail-1');
+});
+
+Deno.test('handleClerkWebhook - user.updated succeeds without email address and preserves emailVerified', async () => {
+    const noEmailUpdatedEvent: ClerkWebhookEvent = {
+        type: 'user.updated',
+        data: {
+            id: 'user_noemail',
+            email_addresses: [],
+            first_name: 'John',
+            last_name: 'Doe',
+            image_url: 'https://img.clerk.com/xxxxxx',
+            public_metadata: {},
+        },
+    };
+    const mockPrisma = createCapturingMockPrisma({ upsertResult: { id: 'uuid-noemail-2' } });
+    const mockVerify = () => noEmailUpdatedEvent;
+    const req = makeSvixRequest(noEmailUpdatedEvent);
+    const res = await handleClerkWebhook(req, makeEnv(), mockPrisma, mockVerify);
+    assertEquals(res.status, 200);
+
+    const body = await res.json() as Record<string, unknown>;
+    assertEquals(body.success, true);
+    assertEquals(body.event, 'user.updated');
+    assertEquals(body.userId, 'uuid-noemail-2');
+
+    // email and emailVerified must NOT appear in the update payload — they should
+    // be left untouched in the DB when no email_addresses are present.
+    const update = mockPrisma.capturedUpsertArgs?.update ?? {};
+    assertEquals('email' in update, false, 'email should not be in update when email_addresses is empty');
+    assertEquals('emailVerified' in update, false, 'emailVerified should not be in update when email_addresses is empty');
 });
 
 Deno.test('handleClerkWebhook - returns 200 for unknown event type', async () => {

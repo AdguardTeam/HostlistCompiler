@@ -101,10 +101,11 @@ function isEmailVerified(data: ClerkUserEventData): boolean {
 }
 
 /** Build a display name from Clerk event data. */
-function toDisplayName(data: ClerkUserEventData, fallbackEmail: string): string {
+function toDisplayName(data: ClerkUserEventData, fallbackEmail: string | null): string {
     if (data.first_name && data.last_name) return `${data.first_name} ${data.last_name}`;
     if (data.first_name) return data.first_name;
-    return fallbackEmail;
+    if (fallbackEmail) return fallbackEmail;
+    return data.id;
 }
 
 // ---------------------------------------------------------------------------
@@ -198,17 +199,13 @@ export async function handleClerkWebhook(
             case 'user.created':
             case 'user.updated': {
                 const email = extractPrimaryEmail(event.data);
-                if (!email) {
-                    return JsonResponse.badRequest('Missing primary email in Clerk event');
-                }
-
                 const meta = event.data.public_metadata ?? {};
                 const lastSignInAt = event.data.last_sign_in_at ? new Date(event.data.last_sign_in_at) : null;
 
                 const user = await prisma.user.upsert({
                     where: { clerkUserId: event.data.id },
                     create: {
-                        email,
+                        email: email ?? null,
                         clerkUserId: event.data.id,
                         displayName: toDisplayName(event.data, email),
                         firstName: event.data.first_name ?? null,
@@ -220,12 +217,13 @@ export async function handleClerkWebhook(
                         lastSignInAt,
                     },
                     update: {
-                        email,
+                        // Only update email/emailVerified if the event includes an email address;
+                        // leave the existing DB values intact when email_addresses is empty.
+                        ...(email !== null && { email, emailVerified: isEmailVerified(event.data) }),
                         displayName: toDisplayName(event.data, email),
                         firstName: event.data.first_name ?? null,
                         lastName: event.data.last_name ?? null,
                         imageUrl: event.data.image_url ?? null,
-                        emailVerified: isEmailVerified(event.data),
                         tier: validateTier(meta['tier']),
                         role: validateRole(meta['role']),
                         lastSignInAt,

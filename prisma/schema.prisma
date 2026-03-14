@@ -29,7 +29,7 @@ datasource db {
 
 model User {
   id             String    @id @default(uuid()) @db.Uuid
-  email          String    @unique
+  email          String?   @unique
   displayName    String?   @map("display_name")
   role           String    @default("user") // admin | user | readonly
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz

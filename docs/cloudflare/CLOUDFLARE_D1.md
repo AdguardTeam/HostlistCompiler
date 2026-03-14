@@ -340,6 +340,73 @@ for (const entry of data) {
 }
 ```
 
+## Schema Migrations
+
+SQLite (and therefore D1) does not support `ALTER COLUMN` or `DROP NOT NULL` directly. The standard approach is to rebuild the table:
+
+1. Create a new table with the desired schema.
+2. Copy all existing rows.
+3. Drop the original table.
+4. Rename the new table.
+
+Migration files live in `migrations/` and are numbered sequentially (e.g., `0004_users_email_nullable.sql`).
+
+### Applying a migration
+
+```bash
+# Local D1 (development)
+wrangler d1 execute adblock-compiler-d1-database --local \
+  --file=migrations/0004_users_email_nullable.sql
+
+# Remote D1 (production)
+wrangler d1 execute adblock-compiler-d1-database --remote \
+  --file=migrations/0004_users_email_nullable.sql
+```
+
+### Migration: Make `users.email` nullable (0004)
+
+Clerk supports users without email addresses (phone-only, passkey, OAuth without email, and the Clerk dashboard webhook tester). `migrations/0004_users_email_nullable.sql` removes the `NOT NULL` constraint from the `email` column in the `users` table.
+
+> **Note:** The table name is `users` (lowercase), as defined by `@@map("users")` in `prisma/schema.d1.prisma`. Earlier references to a table named `User` in commit messages were incorrect.
+
+```sql
+PRAGMA foreign_keys = OFF;
+
+CREATE TABLE _users_new (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE,          -- was NOT NULL; now nullable
+    display_name TEXT,
+    role TEXT NOT NULL DEFAULT 'user',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    clerk_user_id TEXT UNIQUE,
+    tier TEXT NOT NULL DEFAULT 'free',
+    first_name TEXT,
+    last_name TEXT,
+    image_url TEXT,
+    email_verified INTEGER NOT NULL DEFAULT 0,
+    last_sign_in_at TEXT
+);
+
+INSERT INTO _users_new
+    SELECT id, email, display_name, role, created_at, updated_at,
+           clerk_user_id, tier, first_name, last_name, image_url,
+           email_verified, last_sign_in_at
+    FROM users;
+
+DROP TABLE users;
+
+ALTER TABLE _users_new RENAME TO users;
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_clerk_user_id ON users(clerk_user_id);
+CREATE INDEX IF NOT EXISTS idx_users_tier ON users(tier);
+
+PRAGMA foreign_keys = ON;
+```
+
+Existing user data is safe — all current rows have emails and will be preserved by the `INSERT INTO … SELECT *`.
+
 ## Performance Optimization
 
 ### Indexing Strategy
