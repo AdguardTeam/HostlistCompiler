@@ -4,8 +4,8 @@
 
 export { createSimplePlugin, globalRegistry, PluginRegistry, PluginTransformationWrapper, topologicalSort } from './PluginSystem.ts';
 export { agTreeParserPlugin } from './AGTreeParserPlugin.ts';
-export { discoverPlugins } from './PluginDiscovery.ts';
-export type { DiscoveryOptions } from './PluginDiscovery.ts';
+// discoverPlugins and DiscoveryOptions are Deno-only (depends on PluginLoader.deno.ts).
+// Import directly: import { discoverPlugins } from './plugins/PluginDiscovery.ts'
 
 export type {
     CacheBackendPlugin,

@@ -166,7 +166,7 @@ Deno.test('ASTViewerService - Format AST', () => {
 // parseRuleViaPlugin — array handling and supportedSyntaxes selection
 // ─────────────────────────────────────────────────────────────────────
 
-import { PluginRegistry, type ParsedNode } from '../plugins/PluginSystem.ts';
+import { type ParsedNode, PluginRegistry } from '../plugins/PluginSystem.ts';
 import { silentLogger } from '../utils/index.ts';
 
 Deno.test('parseRuleViaPlugin — falls back when no registry provided', () => {

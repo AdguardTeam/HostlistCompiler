@@ -1797,7 +1797,9 @@ Deno.test('rollback — calls unregisterTransformationHooks when init fails', as
     const plugin: Plugin = {
         manifest: createTestManifest({ name: 'failing-init' }),
         eventHooks: [{ name: 'xhook-fail', hooks: hooks as never }],
-        init: () => { throw new Error('init failure'); },
+        init: () => {
+            throw new Error('init failure');
+        },
     };
 
     await assertRejects(() => registry.register(plugin), Error, 'init failure');
