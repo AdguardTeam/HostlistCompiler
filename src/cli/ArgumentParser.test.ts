@@ -400,9 +400,12 @@ Deno.test('ArgumentParser - should parse --api-url', () => {
 Deno.test('ArgumentParser - should parse all auth flags together', () => {
     const parser = new ArgumentParser();
     const result = parser.parse([
-        '--api-key', 'abc_mykey',
-        '--bearer-token', 'my.jwt.token',
-        '--api-url', 'https://custom.api.dev',
+        '--api-key',
+        'abc_mykey',
+        '--bearer-token',
+        'my.jwt.token',
+        '--api-url',
+        'https://custom.api.dev',
     ]);
     assertEquals(result.apiKey, 'abc_mykey');
     assertEquals(result.bearerToken, 'my.jwt.token');
@@ -420,9 +423,12 @@ Deno.test('ArgumentParser - auth flags default to undefined', () => {
 Deno.test('ArgumentParser - auth flags combined with other flags', () => {
     const parser = new ArgumentParser();
     const result = parser.parse([
-        '-i', 'source.txt',
-        '-o', 'output.txt',
-        '--api-key', 'abc_test',
+        '-i',
+        'source.txt',
+        '-o',
+        'output.txt',
+        '--api-key',
+        'abc_test',
         '--use-queue',
     ]);
     assertEquals(result.input, ['source.txt']);
