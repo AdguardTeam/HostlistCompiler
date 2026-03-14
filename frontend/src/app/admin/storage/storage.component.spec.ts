@@ -27,9 +27,9 @@ function createMockStorageService() {
         getStats: vi.fn(() => NEVER),
         clearCache: vi.fn(() => NEVER),
         clearExpired: vi.fn(() => NEVER),
-        vacuumDb: vi.fn(() => NEVER),
+        vacuum: vi.fn(() => NEVER),
         exportData: vi.fn(() => NEVER),
-        executeQuery: vi.fn(() => NEVER),
+        query: vi.fn(() => NEVER),
     };
 }
 
@@ -64,7 +64,7 @@ describe('StorageComponent', () => {
     }
 
     describe('unauthenticated state', () => {
-        beforeEach(() => setup(false));
+        beforeEach(async () => { await setup(false); });
 
         it('should create', () => {
             expect(component).toBeTruthy();
@@ -82,7 +82,7 @@ describe('StorageComponent', () => {
     });
 
     describe('authenticated state', () => {
-        beforeEach(() => setup(true));
+        beforeEach(async () => { await setup(true); });
 
         it('should show authenticated content', () => {
             const el: HTMLElement = fixture.nativeElement;
@@ -96,7 +96,7 @@ describe('StorageComponent', () => {
     });
 
     describe('authenticate()', () => {
-        beforeEach(() => setup(false));
+        beforeEach(async () => { await setup(false); });
 
         it('should call setKey when keyInput is non-empty', () => {
             component.keyInput = 'my-admin-key';
@@ -118,7 +118,7 @@ describe('StorageComponent', () => {
     });
 
     describe('destructive SQL blocking', () => {
-        beforeEach(() => setup(true));
+        beforeEach(async () => { await setup(true); });
 
         const destructiveStatements = ['DROP TABLE users', 'DELETE FROM logs', 'INSERT INTO t VALUES(1)', 'UPDATE users SET x=1', 'TRUNCATE audit_log', 'ALTER TABLE t ADD COLUMN x'];
 

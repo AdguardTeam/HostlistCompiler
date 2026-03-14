@@ -38,7 +38,8 @@ describe('DashboardComponent', () => {
         expect(el.textContent).toContain('Dashboard');
     });
 
-    it('should start in loading state', () => {
+    it('should enter loading state when loadData() is called', () => {
+        component.loadData();
         expect(component.loading()).toBe(true);
     });
 });

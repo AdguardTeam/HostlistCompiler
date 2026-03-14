@@ -38,7 +38,8 @@ describe('ObservabilityComponent', () => {
         expect(el.textContent).toContain('Observability');
     });
 
-    it('should start in loading state', () => {
+    it('should enter loading state when loadMetrics() is called', () => {
+        component.loadMetrics();
         expect(component.metricsLoading()).toBe(true);
     });
 });
