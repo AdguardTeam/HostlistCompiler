@@ -6,6 +6,7 @@ on:
     paths:
       - 'docs/**'
       - 'book.toml'
+      - 'scripts/mdbook-last-updated.ts'
       - '.github/workflows/mdbook.yml'
   workflow_dispatch:
 
@@ -22,6 +23,8 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
 
       - name: Install mdBook
         run: |

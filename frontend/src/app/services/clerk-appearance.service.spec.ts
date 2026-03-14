@@ -29,7 +29,6 @@ describe('ClerkAppearanceService', () => {
         afterEach(() => {
             localStorage.removeItem('theme');
         });
-
         it('should be created', () => {
             expect(service).toBeTruthy();
         });
