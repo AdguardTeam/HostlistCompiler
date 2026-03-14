@@ -57,12 +57,17 @@ jobs:
             - name: Check for unparameterized D1 queries
               run: |
                   echo "=== Checking for unparameterized D1 queries ==="
-                  # Look for string interpolation in .prepare() calls
-                  VIOLATIONS=$(grep -rn 'prepare(`\|prepare(".*\${' worker/ --include="*.ts" | grep -v '\.test\.' | grep -v '\.spec\.' || true)
+                  # Only flag .prepare() calls that use string interpolation (${...})
+                  # Static backtick strings like prepare(`SELECT ...`) are safe
+                  # migrate.ts is excluded — it validates table names against a fixed allowlist before interpolation
+                  VIOLATIONS=$(grep -rn 'prepare(`' worker/ --include="*.ts" \
+                    | grep -v '\.test\.' | grep -v '\.spec\.' \
+                    | grep -v 'migrate\.ts' \
+                    | grep '\${' || true)
 
                   if [ -n "$VIOLATIONS" ]; then
                     echo "$VIOLATIONS"
-                    echo "::error::Found unparameterized D1 queries. Use .prepare('SELECT ...').bind(param) instead of string interpolation."
+                    echo "::error::Found D1 queries with string interpolation. Use .prepare('SELECT ...').bind(param) instead."
                     exit 1
                   fi
                   echo "✅ No unparameterized D1 query violations found"
