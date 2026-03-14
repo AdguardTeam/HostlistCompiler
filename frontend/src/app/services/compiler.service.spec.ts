@@ -78,7 +78,7 @@ describe('CompilerService', () => {
             { source: 'https://a.com/1.txt' },
             { source: 'https://b.com/2.txt' },
         ]);
-        req.flush({});
+        req.flush({ success: true, ruleCount: 0, sources: 2, transformations: [], message: 'OK' });
     });
 
     it('should POST to /api/compile/async with correct payload', () => {

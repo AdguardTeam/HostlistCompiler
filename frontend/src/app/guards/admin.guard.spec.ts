@@ -1,48 +1,77 @@
 import { TestBed } from '@angular/core/testing';
-import { Component, provideZonelessChangeDetection } from '@angular/core';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { Router, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { provideRouter } from '@angular/router';
-import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { adminGuard } from './admin.guard';
-import { AuthService } from '../services/auth.service';
-
-@Component({ template: '' })
-class StubComponent {}
+import { ClerkService } from '../services/clerk.service';
 
 describe('adminGuard', () => {
-    let auth: AuthService;
+    let mockClerk: {
+        isLoaded: ReturnType<typeof vi.fn>;
+        isSignedIn: ReturnType<typeof vi.fn>;
+        user: ReturnType<typeof vi.fn>;
+    };
+    let router: Router;
+
+    const mockRoute = {} as ActivatedRouteSnapshot;
+    const mockState = { url: '/admin' } as RouterStateSnapshot;
 
     beforeEach(() => {
-        sessionStorage.clear();
+        mockClerk = {
+            isLoaded: vi.fn().mockReturnValue(true),
+            isSignedIn: vi.fn().mockReturnValue(false),
+            user: vi.fn().mockReturnValue(null),
+        };
+
         TestBed.configureTestingModule({
             providers: [
                 provideZonelessChangeDetection(),
-                provideRouter([
-                    { path: '', component: StubComponent },
-                    { path: 'admin', component: StubComponent, canActivate: [adminGuard] },
-                ]),
+                provideRouter([]),
+                { provide: ClerkService, useValue: mockClerk },
             ],
         });
-        auth = TestBed.inject(AuthService);
+
+        router = TestBed.inject(Router);
     });
 
-    afterEach(() => sessionStorage.clear());
+    it('should allow navigation when signed in with admin role', async () => {
+        mockClerk.isSignedIn.mockReturnValue(true);
+        mockClerk.user.mockReturnValue({ publicMetadata: { role: 'admin' } });
 
-    it('should allow navigation when authenticated', () => {
-        auth.setKey('valid-key');
-
-        // The guard is a soft guard — always returns true
-        const result = TestBed.runInInjectionContext(() =>
-            adminGuard({} as unknown as ActivatedRouteSnapshot, {} as unknown as RouterStateSnapshot));
+        const result = await TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
         expect(result).toBe(true);
     });
 
-    it('should allow navigation when not authenticated (soft guard)', () => {
-        // The admin guard is intentionally a soft guard — it always allows
-        // navigation. The AdminComponent handles auth inline.
-        expect(auth.isAuthenticated()).toBe(false);
+    it('should redirect to /sign-in when not signed in', async () => {
+        mockClerk.isSignedIn.mockReturnValue(false);
 
-        const result = TestBed.runInInjectionContext(() =>
-            adminGuard({} as unknown as ActivatedRouteSnapshot, {} as unknown as RouterStateSnapshot));
-        expect(result).toBe(true);
+        const result = await TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+        expect(result).toBeInstanceOf(UrlTree);
+        expect((result as UrlTree).toString()).toContain('/sign-in');
+    });
+
+    it('should redirect to / when signed in but not admin', async () => {
+        mockClerk.isSignedIn.mockReturnValue(true);
+        mockClerk.user.mockReturnValue({ publicMetadata: { role: 'user' } });
+
+        const result = await TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+        expect(result).toBeInstanceOf(UrlTree);
+        expect((result as UrlTree).toString()).toBe('/');
+    });
+
+    it('should redirect to / when signed in with no role metadata', async () => {
+        mockClerk.isSignedIn.mockReturnValue(true);
+        mockClerk.user.mockReturnValue({ publicMetadata: {} });
+
+        const result = await TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+        expect(result).toBeInstanceOf(UrlTree);
+        expect((result as UrlTree).toString()).toBe('/');
+    });
+
+    it('should include returnUrl in sign-in redirect', async () => {
+        mockClerk.isSignedIn.mockReturnValue(false);
+
+        const result = await TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+        expect((result as UrlTree).queryParams['returnUrl']).toBe('/admin');
     });
 });

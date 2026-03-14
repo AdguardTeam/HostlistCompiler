@@ -11,6 +11,12 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import {
+    GetKeysResponseSchema,
+    CreateKeyResponseSchema,
+    UpdateKeyResponseSchema,
+    validateResponse,
+} from '../schemas/api-responses';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,9 +86,10 @@ export class ApiKeyService {
         this._loading.set(true);
         this._error.set(null);
         try {
-            const res = await firstValueFrom(
-                this.http.get<{ success: boolean; keys: ApiKey[]; total: number }>('/api/keys'),
+            const raw = await firstValueFrom(
+                this.http.get<unknown>('/api/keys'),
             );
+            const res = validateResponse(GetKeysResponseSchema, raw, 'GET /api/keys');
             this._keys.set(res.keys ?? []);
         } catch (err) {
             this._error.set(err instanceof Error ? err.message : 'Failed to load API keys');
@@ -95,9 +102,10 @@ export class ApiKeyService {
     async createKey(req: CreateApiKeyRequest): Promise<string | null> {
         this._error.set(null);
         try {
-            const res = await firstValueFrom(
-                this.http.post<CreateApiKeyResponse>('/api/keys', req),
+            const raw = await firstValueFrom(
+                this.http.post<unknown>('/api/keys', req),
             );
+            const res = validateResponse(CreateKeyResponseSchema, raw, 'POST /api/keys');
             // Refresh the list to include the new key
             await this.loadKeys();
             return res.key ?? null;
@@ -129,9 +137,10 @@ export class ApiKeyService {
     async updateKey(id: string, req: UpdateApiKeyRequest): Promise<boolean> {
         this._error.set(null);
         try {
-            const res = await firstValueFrom(
-                this.http.patch<ApiKey & { success: boolean }>(`/api/keys/${id}`, req),
+            const raw = await firstValueFrom(
+                this.http.patch<unknown>(`/api/keys/${id}`, req),
             );
+            const res = validateResponse(UpdateKeyResponseSchema, raw, `PATCH /api/keys/${id}`);
             // Backend returns the updated key fields at the top level alongside success:true
             if (res.id) {
                 const updatedKey: ApiKey = {
