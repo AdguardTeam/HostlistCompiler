@@ -12,6 +12,18 @@
             "value": "https://adblock-compiler.jayson-knight.workers.dev",
             "type": "default",
             "enabled": true
+        },
+        {
+            "key": "clerkToken",
+            "value": "",
+            "type": "secret",
+            "enabled": true
+        },
+        {
+            "key": "userApiKey",
+            "value": "",
+            "type": "secret",
+            "enabled": true
         }
     ],
     "_postman_variable_scope": "environment",

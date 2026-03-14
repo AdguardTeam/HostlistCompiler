@@ -472,6 +472,8 @@ async function generatePostmanCollection(): Promise<void> {
             { key: 'prodUrl', value: prodUrlValue, type: 'string' },
             { key: 'requestId', value: '', type: 'string' },
             { key: 'adminKey', value: '', type: 'string', description: 'Admin API key for protected admin endpoints (X-Admin-Key header)' },
+            { key: 'clerkToken', value: '', type: 'string', description: 'Clerk JWT for authenticated user requests (Bearer token)' },
+            { key: 'userApiKey', value: '', type: 'string', description: 'User API key with abc_ prefix for API key authentication' },
             { key: 'userId', value: '', type: 'string', description: 'User ID captured from Create User response' },
             { key: 'apiKeyPrefix', value: '', type: 'string', description: 'API key prefix captured from Create API Key response' },
         ],
@@ -493,6 +495,8 @@ async function generatePostmanCollection(): Promise<void> {
         values: [
             { key: 'baseUrl', value: baseUrlValue, type: 'default', enabled: true },
             { key: 'prodUrl', value: prodUrlValue, type: 'default', enabled: true },
+            { key: 'clerkToken', value: '', type: 'secret', enabled: true },
+            { key: 'userApiKey', value: '', type: 'secret', enabled: true },
         ],
         _postman_variable_scope: 'environment',
         _postman_exported_using: 'deno task postman:collection',

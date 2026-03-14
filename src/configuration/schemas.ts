@@ -415,6 +415,10 @@ type CliArgumentsOutput = {
     timeout?: number;
     retries?: number;
     userAgent?: string;
+    // Authentication (for remote API calls via --use-queue)
+    apiKey?: string;
+    bearerToken?: string;
+    apiUrl?: string;
 };
 
 type EnvironmentOutput = {
@@ -523,6 +527,10 @@ export const CliArgumentsSchema: z.ZodType<CliArgumentsOutput> = z.object({
     timeout: z.number().int().positive().optional().describe('HTTP request timeout in milliseconds'),
     retries: z.number().int().nonnegative().optional().describe('Number of HTTP retry attempts'),
     userAgent: z.string().optional().describe('Custom HTTP User-Agent header'),
+    // Authentication (for remote API calls via --use-queue)
+    apiKey: z.string().optional().describe('API key for authenticated worker API requests (abc_ prefix)'),
+    bearerToken: z.string().optional().describe('Clerk JWT bearer token for authenticated requests'),
+    apiUrl: z.string().url().optional().describe('Base URL for the worker API'),
 }).refine(
     (args) => args.help || args.version || !!(args.input?.length || args.config),
     {
