@@ -81,6 +81,57 @@ describe('ApiKeyService', () => {
         });
     });
 
+    // ---------------------------------------------------------------------------
+    // TRANSIENT_RETRY semantics
+    // ---------------------------------------------------------------------------
+
+    describe('TRANSIENT_RETRY behavior', () => {
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('should retry a 5xx error and succeed on the first retry', async () => {
+            vi.useFakeTimers();
+
+            const promise = service.loadKeys();
+
+            // Allow the initial HTTP request to be registered
+            await vi.advanceTimersByTimeAsync(0);
+
+            // First attempt — server error triggers retry
+            httpTesting
+                .expectOne('/api/keys')
+                .flush({ error: 'Internal Server Error' }, { status: 500, statusText: 'Internal Server Error' });
+
+            // Advance past the first retry delay (300 ms)
+            await vi.advanceTimersByTimeAsync(400);
+
+            // Second attempt (retry 1) — succeeds
+            httpTesting.expectOne('/api/keys').flush(listResponse([MOCK_KEY]));
+
+            await promise;
+
+            expect(service.keys()).toEqual([MOCK_KEY]);
+            expect(service.error()).toBeNull();
+        });
+
+        it('should NOT retry a 4xx error', async () => {
+            const promise = service.loadKeys();
+
+            await tick();
+
+            // 4xx propagates immediately — retry must not be attempted
+            httpTesting
+                .expectOne('/api/keys')
+                .flush({ error: 'Bad Request' }, { status: 400, statusText: 'Bad Request' });
+
+            await promise;
+
+            expect(service.error()).toBeTruthy();
+            // afterEach httpTesting.verify() confirms no further requests were made
+        });
+    });
+
     describe('createKey', () => {
         it('should POST and return plaintext', async () => {
             // Backend returns the key fields merged at the top level alongside success:true.
