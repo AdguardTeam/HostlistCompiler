@@ -412,12 +412,12 @@ Deno.test('ArgumentParser - should parse all auth flags together', () => {
     assertEquals(result.apiUrl, 'https://custom.api.dev');
 });
 
-Deno.test('ArgumentParser - auth flags default to undefined', () => {
+Deno.test('ArgumentParser - auth flags default to undefined except apiUrl', () => {
     const parser = new ArgumentParser();
     const result = parser.parse(['-i', 'source.txt']);
     assertEquals(result.apiKey, undefined);
     assertEquals(result.bearerToken, undefined);
-    assertEquals(result.apiUrl, undefined);
+    assertEquals(result.apiUrl, 'http://localhost:8787');
 });
 
 Deno.test('ArgumentParser - auth flags combined with other flags', () => {

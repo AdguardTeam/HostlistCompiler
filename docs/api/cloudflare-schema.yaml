@@ -2805,7 +2805,6 @@ components:
             type: object
             required:
                 - name
-                - scopes
             properties:
                 name:
                     type: string
@@ -2818,11 +2817,12 @@ components:
                         type: string
                         enum:
                             - compile
-                            - validate
-                            - read
+                            - rules
                             - admin
                     minItems: 1
-                    description: Permissions granted to this key
+                    default:
+                        - compile
+                    description: Permissions granted to this key (defaults to ["compile"])
                 expiresInDays:
                     type: integer
                     minimum: 1
@@ -2907,6 +2907,7 @@ components:
                     type: integer
         UserUpdateApiKeyRequest:
             type: object
+            minProperties: 1
             properties:
                 name:
                     type: string
@@ -2919,11 +2920,11 @@ components:
                         type: string
                         enum:
                             - compile
-                            - validate
-                            - read
+                            - rules
                             - admin
                     minItems: 1
                     description: New scopes for the key
+            description: At least one of `name` or `scopes` must be provided.
         UserUpdateApiKeyResponse:
             type: object
             properties:
@@ -3734,8 +3735,8 @@ components:
             bearerFormat: JWT
             description: Clerk-issued JWT for authenticated user requests. Obtain via Clerk sign-in flow.
         UserApiKey:
-            type: apiKey
-            in: header
-            name: Authorization
-            description: User API key with `abc_` prefix. Send as `Bearer abc_...` in the Authorization header.
+            type: http
+            scheme: bearer
+            bearerFormat: ApiKey
+            description: User API key with `abc_` prefix. Pass the key as a Bearer token in the Authorization header (e.g. `Authorization: Bearer abc_...`).
 security: []

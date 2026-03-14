@@ -528,7 +528,7 @@ export const CliArgumentsSchema: z.ZodType<CliArgumentsOutput> = z.object({
     retries: z.number().int().nonnegative().optional().describe('Number of HTTP retry attempts'),
     userAgent: z.string().optional().describe('Custom HTTP User-Agent header'),
     // Authentication (for remote API calls via --use-queue)
-    apiKey: z.string().optional().describe('API key for authenticated worker API requests (abc_ prefix)'),
+    apiKey: z.string().regex(/^abc_/, 'API key must start with the "abc_" prefix').optional().describe('API key for authenticated worker API requests (abc_ prefix)'),
     bearerToken: z.string().optional().describe('Clerk JWT bearer token for authenticated requests'),
     apiUrl: z.string().url().optional().describe('Base URL for the worker API'),
 }).refine(
