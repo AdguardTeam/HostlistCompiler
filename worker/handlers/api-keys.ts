@@ -16,7 +16,7 @@
 
 import { JsonResponse } from '../utils/response.ts';
 import { type IAuthContext } from '../types.ts';
-import { CreateApiKeyRequestSchema, UpdateApiKeyRequestSchema, ApiKeyRowSchema } from '../schemas.ts';
+import { ApiKeyRowSchema, CreateApiKeyRequestSchema, UpdateApiKeyRequestSchema } from '../schemas.ts';
 
 // ---------------------------------------------------------------------------
 // PgPool interface (matches worker/middleware/auth.ts)
