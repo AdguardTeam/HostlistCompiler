@@ -425,18 +425,17 @@ jobs:
             - name: Run database migrations
               run: |
                   echo "Running D1 migrations..."
-                  output=$(deno task wrangler d1 migrations apply adblock-compiler-d1-database --remote 2>&1)
-                  exit_code=$?
-                  echo "$output"
-                  if [ $exit_code -ne 0 ]; then
+                  if ! output=$(deno task wrangler d1 migrations apply adblock-compiler-d1-database --remote 2>&1); then
+                      echo "$output"
                       if echo "$output" | grep -qiE 'Authentication error|10000'; then
                           echo ""
                           echo "🔐 CLOUDFLARE_API_TOKEN is missing D1:Edit permission."
                           echo "   Update your API token at: https://dash.cloudflare.com/profile/api-tokens"
                           echo "   Required permissions: D1:Edit (for database migrations)"
                       fi
-                      exit $exit_code
+                      exit 1
                   fi
+                  echo "$output"
                   echo "✅ All migrations applied"
 
             - name: Generate deployment version
