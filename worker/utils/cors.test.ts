@@ -2,14 +2,7 @@
  * Tests for the centralized CORS utility (ZTA Phase 1).
  */
 import { assertEquals, assertExists } from 'jsr:@std/assert';
-import {
-    getCorsHeaders,
-    getPublicCorsHeaders,
-    handleCorsPreflight,
-    isPublicEndpoint,
-    matchOrigin,
-    parseAllowedOrigins,
-} from './cors.ts';
+import { getCorsHeaders, getPublicCorsHeaders, handleCorsPreflight, isPublicEndpoint, matchOrigin, parseAllowedOrigins } from './cors.ts';
 import type { Env } from '../types.ts';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

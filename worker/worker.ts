@@ -3392,8 +3392,20 @@ export default {
             }
         }
 
-        // Handle cancel job endpoint
+        // Handle cancel job endpoint — requires authentication (ZTA Phase 2)
         if (routePath.startsWith('/queue/cancel/') && request.method === 'POST') {
+            const cancelAuthGuard = requireAuth(authContext);
+            if (cancelAuthGuard) {
+                analytics.trackSecurityEvent({
+                    eventType: 'auth_failure',
+                    path: routePath,
+                    method: 'POST',
+                    clientIpHash: AnalyticsService.hashIp(ip),
+                    reason: 'unauthenticated_queue_cancel',
+                });
+                return cancelAuthGuard;
+            }
+
             const requestId = routePath.split('/').pop();
             if (requestId) {
                 await updateQueueStats(env, 'cancelled', 0, 1, {
@@ -3576,8 +3588,28 @@ export default {
             return handleWebSocketUpgrade(request, env);
         }
 
-        // Validate a single rule (POST /api/validate-rule)
+        // Validate a single rule (POST /api/validate-rule) — rate limited (ZTA Phase 2)
         if (routePath === '/validate-rule' && request.method === 'POST') {
+            const validateRl = await checkRateLimitTiered(env, ip, authContext);
+            if (!validateRl.allowed) {
+                analytics.trackSecurityEvent({
+                    eventType: 'rate_limit',
+                    path: '/validate-rule',
+                    method: 'POST',
+                    clientIpHash: AnalyticsService.hashIp(ip),
+                    tier: authContext.tier,
+                    reason: 'validate_rule_rate_limit_exceeded',
+                });
+                return Response.json(
+                    { success: false, error: 'Rate limit exceeded' },
+                    {
+                        status: 429,
+                        headers: {
+                            'Retry-After': String(Math.ceil((validateRl.resetAt - Date.now()) / 1000)),
+                        },
+                    },
+                );
+            }
             const sizeValidation = await validateRequestSize(request, env);
             if (!sizeValidation.valid) {
                 return createPayloadTooLargeResponse(sizeValidation.error || 'Request body too large');
@@ -3781,6 +3813,48 @@ export default {
         // ========================================================================
         // Workflow API Endpoints (Durable execution via Cloudflare Workflows)
         // ========================================================================
+
+        // ========================================================================
+        // Workflow endpoints — require authentication + rate limiting (ZTA Phase 2)
+        // ========================================================================
+
+        if (routePath.startsWith('/workflow/')) {
+            const workflowAuthGuard = requireAuth(authContext);
+            if (workflowAuthGuard) {
+                analytics.trackSecurityEvent({
+                    eventType: 'auth_failure',
+                    path: routePath,
+                    method: request.method,
+                    clientIpHash: AnalyticsService.hashIp(ip),
+                    reason: 'unauthenticated_workflow_access',
+                });
+                return workflowAuthGuard;
+            }
+
+            const workflowRl = await checkRateLimitTiered(env, ip, authContext);
+            if (!workflowRl.allowed) {
+                analytics.trackSecurityEvent({
+                    eventType: 'rate_limit',
+                    path: routePath,
+                    method: request.method,
+                    clientIpHash: AnalyticsService.hashIp(ip),
+                    tier: authContext.tier,
+                    reason: 'workflow_rate_limit_exceeded',
+                });
+                return Response.json(
+                    { success: false, error: 'Rate limit exceeded' },
+                    {
+                        status: 429,
+                        headers: {
+                            'Retry-After': String(Math.ceil((workflowRl.resetAt - Date.now()) / 1000)),
+                            'X-RateLimit-Limit': String(workflowRl.limit),
+                            'X-RateLimit-Remaining': '0',
+                            'X-RateLimit-Reset': String(workflowRl.resetAt),
+                        },
+                    },
+                );
+            }
+        }
 
         // Workflow: Start async compilation
         if (routePath === '/workflow/compile' && request.method === 'POST') {
