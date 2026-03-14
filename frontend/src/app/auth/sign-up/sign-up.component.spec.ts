@@ -3,6 +3,7 @@ import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SignUpComponent } from './sign-up.component';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: boolean; configLoadFailed: boolean }> = {}) {
     return {
@@ -14,19 +15,26 @@ function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: bool
     };
 }
 
+function makeMockTheme(dark = false) {
+    return { isDark: signal(dark) };
+}
+
 describe('SignUpComponent', () => {
     let component: SignUpComponent;
     let fixture: ComponentFixture<SignUpComponent>;
     let mockClerkService: ReturnType<typeof makeMockClerk>;
+    let mockThemeService: ReturnType<typeof makeMockTheme>;
 
     beforeEach(async () => {
         mockClerkService = makeMockClerk();
+        mockThemeService = makeMockTheme();
 
         await TestBed.configureTestingModule({
             imports: [SignUpComponent],
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkService },
+                { provide: ThemeService, useValue: mockThemeService },
             ],
         }).compileComponents();
 
@@ -124,6 +132,7 @@ describe('SignUpComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: clerk },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         }).compileComponents();
 
@@ -150,6 +159,7 @@ describe('SignUpComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: makeMockClerk() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         });
 
@@ -170,6 +180,7 @@ describe('SignUpComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkNoMount },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         });
 
@@ -187,5 +198,45 @@ describe('SignUpComponent', () => {
         expect(authPage).toBeTruthy();
         expect(container).toBeTruthy();
         expect(container?.classList.contains('clerk-container')).toBe(true);
+    });
+
+    it('should unmount and remount when theme changes while mounted', () => {
+        // afterNextRender fired in beforeEach — component is mounted
+        expect(mockClerkService.mountSignUp).toHaveBeenCalledTimes(1);
+
+        // Toggle theme
+        mockThemeService.isDark.set(true);
+        TestBed.flushEffects();
+
+        // Should have unmounted the old widget and remounted with new appearance
+        expect(mockClerkService.unmountSignUp).toHaveBeenCalledTimes(1);
+        expect(mockClerkService.mountSignUp).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not remount when theme changes before initial mount', () => {
+        TestBed.resetTestingModule();
+        const clerk = makeMockClerk({ isLoaded: true, isAvailable: false });
+        const theme = makeMockTheme();
+
+        TestBed.configureTestingModule({
+            imports: [SignUpComponent],
+            providers: [
+                provideZonelessChangeDetection(),
+                { provide: ClerkService, useValue: clerk },
+                { provide: ThemeService, useValue: theme },
+            ],
+        });
+
+        // isAvailable is false → no container → widget never mounted
+        const f = TestBed.createComponent(SignUpComponent);
+        f.detectChanges();
+        expect(clerk.mountSignUp).not.toHaveBeenCalled();
+
+        // Toggling theme with nothing mounted should not call unmount/mount
+        theme.isDark.set(true);
+        TestBed.flushEffects();
+
+        expect(clerk.unmountSignUp).not.toHaveBeenCalled();
+        expect(clerk.mountSignUp).not.toHaveBeenCalled();
     });
 });

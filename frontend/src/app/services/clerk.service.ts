@@ -19,11 +19,13 @@ import { Injectable, inject, signal, computed, PLATFORM_ID } from '@angular/core
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import type { Clerk } from '@clerk/clerk-js';
 import type { UserResource, SessionResource } from '@clerk/shared/types';
+import { ClerkAppearanceService } from './clerk-appearance.service';
 
 @Injectable({ providedIn: 'root' })
 export class ClerkService {
     private readonly platformId = inject(PLATFORM_ID);
     private readonly document = inject(DOCUMENT);
+    private readonly clerkAppearanceService = inject(ClerkAppearanceService);
     private clerkInstance: Clerk | null = null;
 
     // Writable signals (private)
@@ -111,8 +113,11 @@ export class ClerkService {
 
     /** Mount Clerk's pre-built sign-in UI into the given DOM element. */
     mountSignIn(element: HTMLDivElement, fallbackRedirectUrl?: string): void {
-        const props = fallbackRedirectUrl ? { fallbackRedirectUrl } : undefined;
-        this.clerkInstance?.mountSignIn(element, props);
+        const appearance = this.clerkAppearanceService.buildAppearance();
+        this.clerkInstance?.mountSignIn(element, {
+            ...(fallbackRedirectUrl ? { fallbackRedirectUrl } : {}),
+            appearance,
+        });
     }
 
     /** Unmount Clerk's sign-in UI from the given DOM element. */
@@ -122,7 +127,9 @@ export class ClerkService {
 
     /** Mount Clerk's pre-built sign-up UI into the given DOM element. */
     mountSignUp(element: HTMLDivElement): void {
-        this.clerkInstance?.mountSignUp(element);
+        this.clerkInstance?.mountSignUp(element, {
+            appearance: this.clerkAppearanceService.buildAppearance(),
+        });
     }
 
     /** Unmount Clerk's sign-up UI from the given DOM element. */
@@ -132,7 +139,9 @@ export class ClerkService {
 
     /** Mount Clerk's user button (avatar + dropdown) into the given DOM element. */
     mountUserButton(element: HTMLDivElement): void {
-        this.clerkInstance?.mountUserButton(element);
+        this.clerkInstance?.mountUserButton(element, {
+            appearance: this.clerkAppearanceService.buildAppearance(),
+        });
     }
 
     /** Unmount Clerk's user button from the given DOM element. */

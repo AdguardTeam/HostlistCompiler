@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserButtonComponent } from './user-button.component';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 describe('UserButtonComponent', () => {
     let component: UserButtonComponent;
@@ -15,6 +16,7 @@ describe('UserButtonComponent', () => {
         mountUserButton: ReturnType<typeof vi.fn>;
         unmountUserButton: ReturnType<typeof vi.fn>;
     };
+    let mockThemeService: { isDark: ReturnType<typeof signal<boolean>> };
 
     beforeEach(async () => {
         mockClerkService = {
@@ -24,6 +26,7 @@ describe('UserButtonComponent', () => {
             mountUserButton: vi.fn(),
             unmountUserButton: vi.fn(),
         };
+        mockThemeService = { isDark: signal(false) };
 
         await TestBed.configureTestingModule({
             imports: [UserButtonComponent],
@@ -31,6 +34,7 @@ describe('UserButtonComponent', () => {
                 provideZonelessChangeDetection(),
                 provideRouter([]),
                 { provide: ClerkService, useValue: mockClerkService },
+                { provide: ThemeService, useValue: mockThemeService },
             ],
         }).compileComponents();
 
@@ -162,6 +166,7 @@ describe('UserButtonComponent', () => {
                 provideZonelessChangeDetection(),
                 provideRouter([]),
                 { provide: ClerkService, useValue: mockClerkNoContainer },
+                { provide: ThemeService, useValue: { isDark: signal(false) } },
             ],
         });
 
