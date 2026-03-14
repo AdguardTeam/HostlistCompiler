@@ -3,6 +3,7 @@ import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SignUpComponent } from './sign-up.component';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: boolean }> = {}) {
     return {
@@ -11,6 +12,10 @@ function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: bool
         mountSignUp: vi.fn(),
         unmountSignUp: vi.fn(),
     };
+}
+
+function makeMockTheme(dark = false) {
+    return { isDark: signal(dark) };
 }
 
 describe('SignUpComponent', () => {
@@ -26,6 +31,7 @@ describe('SignUpComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkService },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         }).compileComponents();
 
@@ -97,6 +103,7 @@ describe('SignUpComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: clerk },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         }).compileComponents();
 
@@ -123,6 +130,7 @@ describe('SignUpComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: makeMockClerk() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         });
 
@@ -143,6 +151,7 @@ describe('SignUpComponent', () => {
             providers: [
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkNoMount },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         });
 

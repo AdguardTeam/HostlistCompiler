@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SignInComponent } from './sign-in.component';
 import { ClerkService } from '../../services/clerk.service';
+import { ThemeService } from '../../services/theme.service';
 
 /** Build a minimal ActivatedRoute stub with the given query params snapshot. */
 function makeRoute(queryParams: Record<string, string> = {}) {
@@ -17,6 +18,10 @@ function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: bool
         mountSignIn: vi.fn(),
         unmountSignIn: vi.fn(),
     };
+}
+
+function makeMockTheme(dark = false) {
+    return { isDark: signal(dark) };
 }
 
 describe('SignInComponent', () => {
@@ -33,6 +38,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkService },
                 { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         }).compileComponents();
 
@@ -106,6 +112,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: clerkWithReturn },
                 { provide: ActivatedRoute, useValue: routeWithReturn },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         }).compileComponents();
 
@@ -127,6 +134,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: clerk },
                 { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         }).compileComponents();
 
@@ -154,6 +162,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: makeMockClerk() },
                 { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         });
 
@@ -175,6 +184,7 @@ describe('SignInComponent', () => {
                 provideZonelessChangeDetection(),
                 { provide: ClerkService, useValue: mockClerkNoMount },
                 { provide: ActivatedRoute, useValue: makeRoute() },
+                { provide: ThemeService, useValue: makeMockTheme() },
             ],
         });
 

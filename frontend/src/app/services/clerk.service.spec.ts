@@ -2,6 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { PLATFORM_ID, provideZonelessChangeDetection } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { ClerkService } from './clerk.service';
+import { ClerkAppearanceService } from './clerk-appearance.service';
+
+const mockAppearanceService = {
+    buildAppearance: () => ({ variables: {}, elements: {} }),
+};
 
 describe('ClerkService', () => {
     let service: ClerkService;
@@ -12,14 +17,14 @@ describe('ClerkService', () => {
                 providers: [
                     provideZonelessChangeDetection(),
                     { provide: PLATFORM_ID, useValue: 'browser' },
-                    {
-                        provide: DOCUMENT,
+                    { provide: DOCUMENT,
                         useValue: {
                             defaultView: globalThis,
                             createElement: () => ({}),
                             querySelector: () => null,
                         },
                     },
+                    { provide: ClerkAppearanceService, useValue: mockAppearanceService },
                 ],
             });
             service = TestBed.inject(ClerkService);
@@ -113,6 +118,7 @@ describe('ClerkService', () => {
                             querySelector: () => null,
                         },
                     },
+                    { provide: ClerkAppearanceService, useValue: mockAppearanceService },
                 ],
             });
             service = TestBed.inject(ClerkService);
