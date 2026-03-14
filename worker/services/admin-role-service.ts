@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod';
+import type { D1Database } from '../types';
 import type { AdminRoleAssignmentRow, AdminRoleRow, AssignRoleRequest, CreateAdminRoleRequest, ResolvedAdminContext, UpdateAdminRoleRequest } from '../schemas';
 import { AdminRoleAssignmentRowSchema, AdminRoleRowSchema, ResolvedAdminContextSchema } from '../schemas';
 
