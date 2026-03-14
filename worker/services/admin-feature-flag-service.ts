@@ -314,5 +314,5 @@ export async function getAllEnabledFlagNames(db: D1Database): Promise<string[]> 
     const result = await db
         .prepare('SELECT flag_name FROM feature_flags WHERE enabled = 1 ORDER BY flag_name ASC')
         .all<{ flag_name: string }>();
-    return (result.results ?? []).map((r) => r.flag_name);
+    return (result.results ?? []).map((r: { flag_name: string }) => r.flag_name);
 }

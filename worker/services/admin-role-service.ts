@@ -26,7 +26,13 @@ export const CACHE_TTL_SECONDS = 300;
 // Env helper type (accepts the bindings we actually need)
 // ---------------------------------------------------------------------------
 
-interface AdminEnv {
+/**
+ * Minimal env shape accepted by admin role functions.
+ * The middleware casts Env → AdminEnv at the call site to bridge
+ * the D1Database interface mismatch between worker/types.ts and
+ * @cloudflare/workers-types.
+ */
+export interface AdminEnv {
     readonly ADMIN_DB?: D1Database;
     readonly RATE_LIMIT?: KVNamespace;
 }

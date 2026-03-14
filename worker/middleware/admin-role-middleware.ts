@@ -15,7 +15,7 @@
 import type { Env } from '../types.ts';
 import type { ResolvedAdminContext } from '../schemas.ts';
 import { ClerkAuthProvider } from './clerk-auth-provider.ts';
-import { resolveAdminContext } from '../services/admin-role-service.ts';
+import { type AdminEnv, resolveAdminContext } from '../services/admin-role-service.ts';
 
 /* ------------------------------------------------------------------ */
 /*  Re-exported types                                                  */
@@ -95,7 +95,7 @@ async function resolveAuthenticatedAdmin(
     /* 3 — Resolve sub-role + permissions from ADMIN_DB / KV cache. */
     let adminContext: ResolvedAdminContext | null;
     try {
-        adminContext = await resolveAdminContext(env, authResult.providerUserId);
+        adminContext = await resolveAdminContext(env as unknown as AdminEnv, authResult.providerUserId);
     } catch (err) {
         console.error('[admin-role-middleware] Failed to resolve admin context:', err);
         return { ok: false, error: 'Internal error resolving admin context', statusCode: 500 };
