@@ -5,7 +5,7 @@
  *   - If signed in → allows navigation
  *   - If not signed in → redirects to /sign-in with a returnUrl query param
  *
- * Uses a polling approach (50 ms intervals, max 5 s) to wait for Clerk's
+ * Uses a polling approach (50 ms intervals, max 10 s) to wait for Clerk's
  * async load, which is more predictable than effect/computed watching in
  * a guard context.
  */
@@ -18,9 +18,9 @@ export const authGuard: CanActivateFn = async (route, state) => {
     const clerk = inject(ClerkService);
     const router = inject(Router);
 
-    // Wait for Clerk SDK to finish loading (max 5 s)
+    // Wait for Clerk SDK to finish loading (max 10 s — generous for slow networks)
     if (!clerk.isLoaded()) {
-        await waitForClerk(clerk, 5000);
+        await waitForClerk(clerk, 10_000);
     }
 
     if (clerk.isSignedIn()) {
