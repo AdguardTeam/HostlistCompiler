@@ -267,6 +267,56 @@ export interface PluginLoadOptions {
     initTimeout?: number;
 }
 
+// ── Subsystem Bridge ────────────────────────────────────────────────
+
+/**
+ * Bridge interface connecting the plugin registry to concrete subsystem
+ * registries/factories. All fields are optional — when connected, plugin
+ * registrations automatically flow through to the real subsystems.
+ *
+ * This allows `PluginRegistry` to work standalone (for tests) while in
+ * production the bridge wires plugins directly to `FormatterFactory`,
+ * `TransformationRegistry`, `CompilerEventEmitter`, etc.
+ *
+ * @example
+ * ```ts
+ * import { FormatterFactory } from '../formatters/OutputFormatter.ts';
+ * import { PluginRegistry } from './PluginSystem.ts';
+ *
+ * const registry = new PluginRegistry(logger, {
+ *   registerFormatter: (format, ctor) => FormatterFactory.register(format, ctor),
+ *   unregisterFormatter: (format) => FormatterFactory.unregister(format),
+ * });
+ * ```
+ */
+export interface SubsystemBridge {
+    // ── Formatters ──
+    /** Forward formatter registration to `FormatterFactory.register()` */
+    registerFormatter?: (
+        format: string,
+        formatterClass: FormatterConstructor,
+    ) => void;
+    /** Forward formatter unregistration to `FormatterFactory.unregister()` */
+    unregisterFormatter?: (format: string) => void;
+
+    // ── Transformations ──
+    /** Forward transformation registration to `TransformationRegistry.register()` */
+    registerTransformation?: (
+        type: string,
+        transformation: Transformation,
+    ) => void;
+
+    // ── Event Hooks ──
+    /** Forward event hook registration to `CompilerEventEmitter` */
+    registerEventHooks?: (hooks: Partial<ICompilerEvents>) => void;
+    /** Forward event hook unregistration */
+    unregisterEventHooks?: (hooks: Partial<ICompilerEvents>) => void;
+
+    // ── Transformation Hooks ──
+    /** Forward transformation lifecycle hooks to `TransformationHookManager` */
+    registerTransformationHooks?: (hooks: Partial<ICompilerEvents>) => void;
+}
+
 // ── Plugin Registry ─────────────────────────────────────────────────
 
 /**
@@ -274,8 +324,8 @@ export interface PluginLoadOptions {
  * extensions to the appropriate subsystem registries.
  *
  * Each plugin slot type gets its own internal `Map` for O(1) lookups.
- * Subsystem wiring (Phase 2) will add bridge calls to external
- * factories/registries during `register()` and `unregister()`.
+ * When a {@link SubsystemBridge} is provided, registrations automatically
+ * flow through to the real subsystem factories and registries.
  */
 export class PluginRegistry {
     // ── Internal storage ──
@@ -291,9 +341,11 @@ export class PluginRegistry {
     private readonly conflictResolvers = new Map<string, ConflictResolverPlugin>();
     private readonly eventHooks = new Map<string, EventHookPlugin>();
     private readonly logger: ILogger;
+    private readonly bridge: SubsystemBridge;
 
-    constructor(logger?: ILogger) {
+    constructor(logger?: ILogger, bridge?: SubsystemBridge) {
         this.logger = logger ?? defaultLogger;
+        this.bridge = bridge ?? {};
     }
 
     // ── Registration ──
@@ -320,6 +372,17 @@ export class PluginRegistry {
                     );
                 }
                 this.transformations.set(t.type, t);
+                // Bridge to external TransformationRegistry if wired
+                if (this.bridge.registerTransformation) {
+                    const wrapper = new PluginTransformationWrapper(
+                        t,
+                        this.logger,
+                    );
+                    this.bridge.registerTransformation(
+                        t.type,
+                        wrapper,
+                    );
+                }
                 this.logger.debug(`  ↳ transformation: ${t.type}`);
             }
         }
@@ -348,6 +411,7 @@ export class PluginRegistry {
                     );
                 }
                 this.formatters.set(f.format, f);
+                this.bridge.registerFormatter?.(f.format, f.formatterClass);
                 this.logger.debug(`  ↳ formatter: ${f.format}`);
             }
         }
@@ -439,6 +503,8 @@ export class PluginRegistry {
                     );
                 }
                 this.eventHooks.set(eh.name, eh);
+                this.bridge.registerEventHooks?.(eh.hooks);
+                this.bridge.registerTransformationHooks?.(eh.hooks);
                 this.logger.debug(`  ↳ event hook: ${eh.name}`);
             }
         }
@@ -490,6 +556,7 @@ export class PluginRegistry {
         if (plugin.formatters) {
             for (const f of plugin.formatters) {
                 this.formatters.delete(f.format);
+                this.bridge.unregisterFormatter?.(f.format);
             }
         }
 
@@ -539,6 +606,7 @@ export class PluginRegistry {
         if (plugin.eventHooks) {
             for (const eh of plugin.eventHooks) {
                 this.eventHooks.delete(eh.name);
+                this.bridge.unregisterEventHooks?.(eh.hooks);
             }
         }
 
@@ -690,6 +758,82 @@ export class PluginRegistry {
         for (const name of names) {
             await this.unregister(name);
         }
+    }
+
+    // ── Subsystem Integration ──
+
+    /**
+     * Connect or replace the subsystem bridge after construction.
+     * Useful when subsystem instances are created after the registry.
+     */
+    connectBridge(bridge: SubsystemBridge): void {
+        Object.assign(this.bridge, bridge);
+    }
+
+    /**
+     * Run all registered validator plugins against a configuration.
+     * Returns the first failing result, or `{ valid: true }`.
+     */
+    async runValidators(
+        config: IConfiguration,
+    ): Promise<IValidationResult> {
+        for (const validator of this.validators.values()) {
+            const result = await validator.validate(config);
+            if (!result.valid) return result;
+        }
+        return { valid: true, errorsText: null };
+    }
+
+    /**
+     * Format a diff report using a named plugin reporter.
+     * Returns `undefined` if no reporter with that name exists.
+     */
+    formatDiffReport(
+        name: string,
+        report: DiffReport,
+    ): string | Record<string, unknown> | undefined {
+        const reporter = this.diffReporters.get(name);
+        return reporter?.format(report);
+    }
+
+    /**
+     * Create a storage adapter from a named cache backend plugin.
+     * Returns `undefined` if no backend with that name exists.
+     */
+    createStorageAdapter(
+        name: string,
+        options?: Record<string, unknown>,
+    ): IStorageAdapter | undefined {
+        const backend = this.cacheBackends.get(name);
+        return backend?.createAdapter(options);
+    }
+
+    /**
+     * Run all registered header generator plugins and return the
+     * collected header lines.
+     */
+    generatePluginHeaders(
+        config: IConfiguration,
+        options?: HeaderOptions,
+    ): string[] {
+        const lines: string[] = [];
+        for (const gen of this.headerGenerators.values()) {
+            lines.push(...gen.generate(config, options));
+        }
+        return lines;
+    }
+
+    /**
+     * Resolve conflicts using the first registered conflict resolver
+     * plugin (or a named one). Returns `undefined` if none available.
+     */
+    resolveConflicts(
+        conflicts: RuleConflict[],
+        options?: ConflictDetectionOptions,
+        resolverName?: string,
+    ): ConflictDetectionResult | undefined {
+        const resolver = resolverName ? this.conflictResolvers.get(resolverName) : this.conflictResolvers.values().next().value;
+        return resolver?.resolve(conflicts, options);
     }
 }
 

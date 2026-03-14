@@ -18,6 +18,7 @@ export type {
     PluginContext,
     PluginLoadOptions,
     PluginManifest,
+    SubsystemBridge,
     TransformationPlugin,
     ValidationPlugin,
 } from './PluginSystem.ts';

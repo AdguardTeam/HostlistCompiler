@@ -252,6 +252,7 @@ export type {
     PluginContext,
     PluginLoadOptions,
     PluginManifest,
+    SubsystemBridge,
     TransformationPlugin,
     ValidationPlugin,
 } from './plugins/index.ts';

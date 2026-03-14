@@ -1168,3 +1168,222 @@ Deno.test('PluginManifest - dependencies field', async () => {
     assertExists(retrieved);
     assertEquals(retrieved.manifest.dependencies, ['core-plugin', 'parser-plugin']);
 });
+
+// ═════════════════════════════════════════════════════════════════════
+// Phase 2: SubsystemBridge wiring tests
+// ═════════════════════════════════════════════════════════════════════
+
+Deno.test('SubsystemBridge — formatter registration flows to bridge', async () => {
+    const registered: Array<{ format: string; ctor: unknown }> = [];
+    const unregistered: string[] = [];
+
+    const registry = new PluginRegistry(silentLogger, {
+        registerFormatter: (format, ctor) => registered.push({ format, ctor }),
+        unregisterFormatter: (format) => unregistered.push(format),
+    });
+
+    class MarkdownFormatter {}
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'md-fmt' }),
+        formatters: [
+            { format: 'markdown', formatterClass: MarkdownFormatter as never },
+        ],
+    };
+
+    await registry.register(plugin);
+    assertEquals(registered.length, 1);
+    assertEquals(registered[0].format, 'markdown');
+
+    await registry.unregister('md-fmt');
+    assertEquals(unregistered.length, 1);
+    assertEquals(unregistered[0], 'markdown');
+});
+
+Deno.test('SubsystemBridge — transformation registration flows to bridge', async () => {
+    const bridgedTypes: string[] = [];
+
+    const registry = new PluginRegistry(silentLogger, {
+        registerTransformation: (type) => bridgedTypes.push(type),
+    });
+
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'tr-bridge' }),
+        transformations: [{
+            type: 'StripMetadata' as never,
+            name: 'StripMetadata',
+            execute: async (lines: readonly string[]) => lines,
+        }],
+    };
+
+    await registry.register(plugin);
+    assertEquals(bridgedTypes, ['StripMetadata']);
+});
+
+Deno.test('SubsystemBridge — event hook registration flows to bridge', async () => {
+    const registeredHooks: Array<Partial<Record<string, unknown>>> = [];
+    const unregisteredHooks: Array<Partial<Record<string, unknown>>> = [];
+
+    const registry = new PluginRegistry(silentLogger, {
+        registerEventHooks: (hooks) => registeredHooks.push(hooks),
+        unregisterEventHooks: (hooks) => unregisteredHooks.push(hooks),
+    });
+
+    const hooks = { onCompileStart: () => {} };
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'hook-bridge' }),
+        eventHooks: [{ name: 'lifecycle-hooks', hooks: hooks as never }],
+    };
+
+    await registry.register(plugin);
+    assertEquals(registeredHooks.length, 1);
+
+    await registry.unregister('hook-bridge');
+    assertEquals(unregisteredHooks.length, 1);
+});
+
+Deno.test('SubsystemBridge — connectBridge wires late-bound subsystems', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    const registered: string[] = [];
+
+    // Connect bridge after construction
+    registry.connectBridge({
+        registerFormatter: (format) => registered.push(format),
+    });
+
+    class CsvFormatter {}
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'csv-plugin' }),
+        formatters: [{ format: 'csv', formatterClass: CsvFormatter as never }],
+    };
+
+    await registry.register(plugin);
+    assertEquals(registered, ['csv']);
+});
+
+Deno.test('SubsystemBridge — bridge is optional, registry works standalone', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    class PlainFormatter {}
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'standalone-test' }),
+        formatters: [{ format: 'plain', formatterClass: PlainFormatter as never }],
+    };
+
+    // Should not throw even with no bridge
+    await registry.register(plugin);
+    assertEquals(registry.getFormatter('plain')?.format, 'plain');
+    await registry.unregister('standalone-test');
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// Phase 2: Subsystem integration method tests
+// ═════════════════════════════════════════════════════════════════════
+
+Deno.test('runValidators — returns valid when no validators registered', async () => {
+    const registry = new PluginRegistry(silentLogger);
+    const result = await registry.runValidators({} as never);
+    assertEquals(result.valid, true);
+});
+
+Deno.test('runValidators — returns first failing validation', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'val-test' }),
+        validators: [
+            {
+                name: 'check-name',
+                validate: (config) => config.name ? { valid: true, errorsText: null } : { valid: false, errorsText: 'name is required' },
+            },
+        ],
+    };
+
+    await registry.register(plugin);
+
+    const fail = await registry.runValidators({ name: '' } as never);
+    assertEquals(fail.valid, false);
+    assertEquals(fail.errorsText, 'name is required');
+
+    const pass = await registry.runValidators({ name: 'test' } as never);
+    assertEquals(pass.valid, true);
+});
+
+Deno.test('formatDiffReport — formats with named reporter', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'reporter-test' }),
+        diffReporters: [{
+            name: 'csv-reporter',
+            format: (report) => `CSV:${report.summary.addedCount}`,
+        }],
+    };
+
+    await registry.register(plugin);
+
+    const result = registry.formatDiffReport('csv-reporter', {
+        summary: { addedCount: 5, removedCount: 2 },
+    } as never);
+    assertEquals(result, 'CSV:5');
+    assertEquals(registry.formatDiffReport('nonexistent', {} as never), undefined);
+});
+
+Deno.test('createStorageAdapter — creates adapter from backend plugin', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    const mockAdapter = { mock: true };
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'storage-test' }),
+        cacheBackends: [{
+            name: 'memory-store',
+            createAdapter: () => mockAdapter as never,
+        }],
+    };
+
+    await registry.register(plugin);
+    assertExists(registry.createStorageAdapter('memory-store'));
+    assertEquals(registry.createStorageAdapter('nonexistent'), undefined);
+});
+
+Deno.test('generatePluginHeaders — collects lines from all generators', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'header-test' }),
+        headerGenerators: [
+            { name: 'banner', generate: () => ['! Generated by plugin'] },
+            { name: 'timestamp', generate: () => ['! Date: 2025-01-01'] },
+        ],
+    };
+
+    await registry.register(plugin);
+    const lines = registry.generatePluginHeaders({} as never);
+    assertEquals(lines, ['! Generated by plugin', '! Date: 2025-01-01']);
+});
+
+Deno.test('resolveConflicts — delegates to resolver plugin', async () => {
+    const registry = new PluginRegistry(silentLogger);
+
+    const plugin: Plugin = {
+        manifest: createTestManifest({ name: 'resolver-test' }),
+        conflictResolvers: [{
+            name: 'auto-resolve',
+            resolve: (conflicts) => ({
+                conflicts,
+                rulesAnalyzed: conflicts.length,
+                blockingRules: 0,
+                exceptionRules: 0,
+            }),
+        }],
+    };
+
+    await registry.register(plugin);
+    const result = registry.resolveConflicts([{ rule1: 'a', rule2: 'b' }] as never);
+    assertExists(result);
+    assertEquals(result.rulesAnalyzed, 1);
+});
+
+Deno.test('resolveConflicts — returns undefined when no resolver', () => {
+    const registry = new PluginRegistry(silentLogger);
+    assertEquals(registry.resolveConflicts([] as never), undefined);
+});
