@@ -89,7 +89,8 @@ jobs:
                   VARS_SECTION=$(sed -n '/^\[vars\]/,/^\[/p' wrangler.toml 2>/dev/null || true)
 
                   if [ -n "$VARS_SECTION" ]; then
-                    VIOLATIONS=$(echo "$VARS_SECTION" | grep -iE "$SECRET_PATTERNS" || true)
+                    # Filter out comment lines before checking for secret patterns
+                    VIOLATIONS=$(echo "$VARS_SECTION" | grep -v '^\s*#' | grep -iE "$SECRET_PATTERNS" || true)
                     if [ -n "$VIOLATIONS" ]; then
                       echo "$VIOLATIONS"
                       echo "::error::Found secret values in wrangler.toml [vars]. Use 'wrangler secret put' instead."

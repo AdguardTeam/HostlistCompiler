@@ -37,6 +37,8 @@ export interface CompileResponse {
     success: boolean;
     rules?: string[];
     ruleCount?: number;
+    sources?: number;
+    benchmark?: { duration?: string; startTime?: number; endTime?: number };
     metrics?: {
         totalDuration?: number;
         sourceCount?: number;

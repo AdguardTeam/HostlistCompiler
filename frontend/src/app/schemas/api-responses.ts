@@ -64,6 +64,14 @@ export const CompileResponseSchema = z.object({
     success: z.boolean(),
     rules: z.array(z.string()).optional(),
     ruleCount: z.number().optional(),
+    sources: z.number().optional(),
+    benchmark: z
+        .object({
+            duration: z.string().optional(),
+            startTime: z.number().optional(),
+            endTime: z.number().optional(),
+        })
+        .optional(),
     metrics: z
         .object({
             totalDuration: z.number().optional(),
