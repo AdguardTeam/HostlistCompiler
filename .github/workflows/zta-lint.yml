@@ -29,6 +29,9 @@ jobs:
 
                   VIOLATIONS=0
                   while IFS= read -r file; do
+                    # Skip test files — they legitimately assert on wildcard CORS values
+                    if echo "$file" | grep -qE '\.(test|spec)\.ts$'; then continue; fi
+
                     # Skip the CORS utility itself (it contains the public endpoint wildcard)
                     skip=false
                     for af in $ALLOW_FILES; do
