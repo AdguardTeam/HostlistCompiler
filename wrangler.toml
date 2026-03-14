@@ -123,6 +123,7 @@ ENVIRONMENT = "production"
 binding = "DB"
 database_name = "adblock-compiler-d1-database"
 database_id = "3e8e7dfe-3213-452a-a671-6c18e6e74ce5"
+migrations_dir = "migrations"
 
 # Static assets — served from the Angular production build output.
 # Run `npm --prefix frontend run build` to generate assets before deploying.
