@@ -112,17 +112,19 @@ export const appConfig: ApplicationConfig = {
             // Clerk SDK initialisation (browser only, non-fatal)
             // Fetches the publishable key from /api/clerk-config at runtime —
             // mirrors the Turnstile pattern above so no build-time env files are needed.
+            // IMPORTANT: Always call initialize() even when the key is missing/null —
+            // this sets isLoaded=true so the header shows auth links (or an appropriate
+            // fallback) instead of rendering nothing.
+            const clerkService = inject(ClerkService);
             try {
                 const clerkConfig = await firstValueFrom(
                     http.get<{ publishableKey: string | null }>(`${apiBaseUrl}/clerk-config`)
                         .pipe(timeout(5000)),
                 );
-                if (clerkConfig.publishableKey) {
-                    await inject(ClerkService).initialize(clerkConfig.publishableKey);
-                }
+                await clerkService.initialize(clerkConfig.publishableKey ?? '');
             } catch (err) {
-                // Non-fatal: Clerk will be uninitialised if config can't be fetched
                 console.warn('[app.config] Failed to load Clerk config:', err instanceof Error ? err.message : String(err));
+                await clerkService.initialize('');
             }
         }),
     ],

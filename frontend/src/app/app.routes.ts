@@ -37,6 +37,12 @@ export const routes: Routes = [
         loadComponent: () => import('./auth/sign-up/sign-up.component').then((m) => m.SignUpComponent),
         title: 'Sign Up',
     },
+    // Common auth path aliases — redirect to canonical routes so users
+    // arriving via /login, /log-in, /register etc. land on the right page.
+    { path: 'login', redirectTo: 'sign-in' },
+    { path: 'log-in', redirectTo: 'sign-in' },
+    { path: 'register', redirectTo: 'sign-up' },
+    { path: 'signup', redirectTo: 'sign-up' },
     {
         path: 'compiler',
         loadComponent: () => import('./compiler/compiler.component').then((m) => m.CompilerComponent),

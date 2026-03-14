@@ -13,7 +13,7 @@
 
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { from, switchMap } from 'rxjs';
+import { from, switchMap, catchError, throwError } from 'rxjs';
 import { ClerkService } from '../services/clerk.service';
 
 /** Paths that never need a Bearer token. */
@@ -39,8 +39,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return next(req);
     }
 
-    // Get fresh JWT and attach as Bearer header
+    // Get fresh JWT and attach as Bearer header.
+    // catchError is scoped to the getToken() observable only (placed before switchMap)
+    // so HTTP errors from next(...) propagate normally and aren't misreported as token failures.
     return from(clerk.getToken()).pipe(
+        catchError((err) => {
+            console.warn('[authInterceptor] Failed to get session token:', err instanceof Error ? err.message : String(err));
+            return throwError(() => new Error('Session token refresh failed — please sign in again'));
+        }),
         switchMap((token) => {
             if (token) {
                 const authed = req.clone({
