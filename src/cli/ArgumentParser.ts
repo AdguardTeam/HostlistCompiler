@@ -143,7 +143,7 @@ export class ArgumentParser {
             userAgent: parsed['user-agent'] as string | undefined,
             apiKey: parsed['api-key'] as string | undefined,
             bearerToken: parsed['bearer-token'] as string | undefined,
-            apiUrl: parsed['api-url'] as string | undefined,
+            apiUrl: (parsed['api-url'] as string | undefined) ?? 'http://localhost:8787',
         };
     }
 
@@ -219,7 +219,7 @@ Networking:
 Authentication:
       --api-key <key>          API key for authenticated worker API requests (abc_ prefix)
       --bearer-token <token>   Clerk JWT bearer token for authenticated requests
-      --api-url <url>          Base URL for the worker API [default: https://compiler.adguard.com]
+      --api-url <url>          Base URL for the worker API [default: http://localhost:8787]
                                Used with --use-queue for remote compilation
 
 Examples:

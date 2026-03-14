@@ -273,7 +273,7 @@ Networking:
 Authentication:
       --api-key <key>          API key for authenticated worker API requests (abc_ prefix)
       --bearer-token <token>   Clerk JWT bearer token for authenticated requests
-      --api-url <url>          Base URL for the worker API [default: https://compiler.adguard.com]
+      --api-url <url>          Base URL for the worker API [default: http://localhost:8787]
                                Used with --use-queue for remote compilation
 
 Examples:
@@ -387,7 +387,7 @@ Examples:
             'user-agent': parsed['user-agent'],
             'api-key': parsed['api-key'],
             'bearer-token': parsed['bearer-token'],
-            'api-url': parsed['api-url'],
+            'api-url': parsed['api-url'] ?? 'http://localhost:8787',
         };
     }
 
@@ -600,8 +600,8 @@ Examples:
                 this.logger.warn('--priority is only supported via the worker API and will be ignored in standalone CLI mode');
             }
 
-            if ((this.args['api-key'] || this.args['bearer-token']) && !this.args['use-queue']) {
-                this.logger.warn('--api-key and --bearer-token require --use-queue to take effect');
+            if ((this.args['api-key'] || this.args['bearer-token'] || this.args['api-url'] !== 'http://localhost:8787') && !this.args['use-queue']) {
+                this.logger.warn('--api-key, --bearer-token, and --api-url require --use-queue to take effect');
             }
 
             this.logger.info(`Starting @jk-com/adblock-compiler v${VERSION}`);
