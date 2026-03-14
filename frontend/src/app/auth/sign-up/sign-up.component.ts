@@ -20,12 +20,21 @@ import { ClerkService } from '../../services/clerk.service';
                     <mat-spinner diameter="40" />
                 </div>
             } @else if (!clerk.isAvailable()) {
-                <div class="auth-error" role="alert">
-                    <p>Authentication is not configured.</p>
-                    <p class="auth-error-detail">
-                        Ensure <code>CLERK_PUBLISHABLE_KEY</code> is set in the worker environment.
-                    </p>
-                </div>
+                @if (clerk.configLoadFailed()) {
+                    <div class="auth-error" role="alert">
+                        <p>Sign up is temporarily unavailable.</p>
+                        <p class="auth-error-detail">
+                            Authentication service failed to load. Please try refreshing the page.
+                        </p>
+                    </div>
+                } @else {
+                    <div class="auth-error" role="alert">
+                        <p>Authentication is not configured.</p>
+                        <p class="auth-error-detail">
+                            Ensure <code>CLERK_PUBLISHABLE_KEY</code> is set in the worker environment.
+                        </p>
+                    </div>
+                }
             } @else {
                 <div #signUpContainer class="clerk-container"></div>
             }

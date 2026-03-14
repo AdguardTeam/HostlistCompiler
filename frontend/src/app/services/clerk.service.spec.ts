@@ -37,6 +37,10 @@ describe('ClerkService', () => {
             expect(service.isAvailable()).toBe(false);
         });
 
+        it('should start with configLoadFailed false', () => {
+            expect(service.configLoadFailed()).toBe(false);
+        });
+
         it('should start with isSignedIn false', () => {
             expect(service.isSignedIn()).toBe(false);
         });
@@ -77,6 +81,30 @@ describe('ClerkService', () => {
 
         it('should not set isAvailable when publishableKey is empty', async () => {
             await service.initialize('');
+            expect(service.isAvailable()).toBe(false);
+        });
+
+        it('should set configLoadFailed to true when markConfigLoadFailed() is called', () => {
+            service.markConfigLoadFailed();
+            expect(service.configLoadFailed()).toBe(true);
+        });
+
+        it('should not clear configLoadFailed when initialized with empty key (no-op path)', async () => {
+            // initialize('') short-circuits before the success path, so the flag stays true
+            service.markConfigLoadFailed();
+            await service.initialize('');
+            expect(service.configLoadFailed()).toBe(true);
+            expect(service.isLoaded()).toBe(true);
+            expect(service.isAvailable()).toBe(false);
+        });
+
+        it('should not clear configLoadFailed when Clerk SDK import fails (error path)', async () => {
+            // Dynamic import of @clerk/clerk-js fails in the test env — the catch block does
+            // NOT clear configLoadFailed (only the success path does), so the flag stays true.
+            service.markConfigLoadFailed();
+            await service.initialize('pk_test_fake_key_12345');
+            expect(service.configLoadFailed()).toBe(true);
+            expect(service.isLoaded()).toBe(true);
             expect(service.isAvailable()).toBe(false);
         });
 

@@ -20,10 +20,14 @@ import { ClerkService } from '../../services/clerk.service';
         @if (clerk.isSignedIn()) {
             <div #userButtonContainer class="user-button-container"></div>
         } @else if (clerk.isLoaded()) {
-            <nav class="auth-links" aria-label="Authentication">
-                <a routerLink="/sign-in" class="auth-link">Sign in</a>
-                <a routerLink="/sign-up" class="auth-link auth-link--primary">Sign up</a>
-            </nav>
+            @if (clerk.configLoadFailed()) {
+                <span class="auth-config-error" title="Authentication service is temporarily unavailable. Please try refreshing the page.">Sign in unavailable</span>
+            } @else {
+                <nav class="auth-links" aria-label="Authentication">
+                    <a routerLink="/sign-in" class="auth-link">Sign in</a>
+                    <a routerLink="/sign-up" class="auth-link auth-link--primary">Sign up</a>
+                </nav>
+            }
         }
     `,
     styles: [`
@@ -54,6 +58,12 @@ import { ClerkService } from '../../services/clerk.service';
         }
         .auth-link--primary:hover {
             opacity: 0.9;
+        }
+        .auth-config-error {
+            font-size: 0.875rem;
+            color: var(--mat-sys-error, #b00020);
+            padding: 0.375rem 0.75rem;
+            cursor: default;
         }
     `],
 })

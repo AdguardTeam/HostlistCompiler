@@ -4,10 +4,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SignUpComponent } from './sign-up.component';
 import { ClerkService } from '../../services/clerk.service';
 
-function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: boolean }> = {}) {
+function makeMockClerk(overrides: Partial<{ isLoaded: boolean; isAvailable: boolean; configLoadFailed: boolean }> = {}) {
     return {
         isLoaded: signal(overrides.isLoaded ?? true),
         isAvailable: signal(overrides.isAvailable ?? true),
+        configLoadFailed: signal(overrides.configLoadFailed ?? false),
         mountSignUp: vi.fn(),
         unmountSignUp: vi.fn(),
     };
@@ -57,6 +58,32 @@ describe('SignUpComponent', () => {
         expect(compiled.querySelector('.auth-error')).toBeTruthy();
         expect(compiled.querySelector('.clerk-container')).toBeNull();
         expect(compiled.querySelector('.auth-loading')).toBeNull();
+    });
+
+    it('should show "temporarily unavailable" message when configLoadFailed is true', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isAvailable.set(false);
+        mockClerkService.configLoadFailed.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        const error = compiled.querySelector('.auth-error');
+        expect(error).toBeTruthy();
+        expect(error?.textContent).toContain('temporarily unavailable');
+        expect(error?.textContent).not.toContain('CLERK_PUBLISHABLE_KEY');
+    });
+
+    it('should show "not configured" message when not available and configLoadFailed is false', () => {
+        mockClerkService.isLoaded.set(true);
+        mockClerkService.isAvailable.set(false);
+        mockClerkService.configLoadFailed.set(false);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        const error = compiled.querySelector('.auth-error');
+        expect(error).toBeTruthy();
+        expect(error?.textContent).toContain('CLERK_PUBLISHABLE_KEY');
+        expect(error?.textContent).not.toContain('temporarily unavailable');
     });
 
     it('should show Clerk container when loaded and available', () => {
