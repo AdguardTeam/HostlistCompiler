@@ -258,8 +258,8 @@ export interface IClerkClaims {
     readonly iss: string;
     /** Expiration time (Unix timestamp) */
     readonly exp: number;
-    /** Not before time (Unix timestamp) */
-    readonly nbf: number;
+    /** Not before time (Unix timestamp) — optional in some Clerk token configurations */
+    readonly nbf?: number;
     /** Issued at time (Unix timestamp) */
     readonly iat: number;
     /** Authorized party — the origin URL of the requesting application */

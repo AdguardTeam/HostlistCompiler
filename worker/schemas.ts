@@ -805,7 +805,7 @@ export type UpdateApiKeyRequest = z.infer<typeof UpdateApiKeyRequestSchema>;
 export const ApiKeyRowSchema = z.object({
     id: z.string().min(1),
     user_id: z.string().min(1),
-    scopes: z.array(z.string()),
+    scopes: z.array(z.nativeEnum(AuthScope)),
     rate_limit_per_minute: z.number().int().nonnegative(),
     expires_at: z.string().nullable(),
     revoked_at: z.string().nullable(),

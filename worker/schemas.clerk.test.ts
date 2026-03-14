@@ -295,6 +295,30 @@ Deno.test('ApiKeyRowSchema — rejects non-number rate_limit_per_minute', () => 
     assertEquals(ApiKeyRowSchema.safeParse(row).success, false);
 });
 
+Deno.test('ApiKeyRowSchema — rejects invalid scope values', () => {
+    const row = {
+        id: 'uuid-1',
+        user_id: 'user_abc',
+        scopes: ['unknown-scope'],
+        rate_limit_per_minute: 60,
+        expires_at: null,
+        revoked_at: null,
+    };
+    assertEquals(ApiKeyRowSchema.safeParse(row).success, false);
+});
+
+Deno.test('ApiKeyRowSchema — rejects mixed valid and invalid scope values', () => {
+    const row = {
+        id: 'uuid-1',
+        user_id: 'user_abc',
+        scopes: ['compile', 'invalid-scope'],
+        rate_limit_per_minute: 60,
+        expires_at: null,
+        revoked_at: null,
+    };
+    assertEquals(ApiKeyRowSchema.safeParse(row).success, false);
+});
+
 // ============================================================================
 // UserTierRowSchema
 // ============================================================================
