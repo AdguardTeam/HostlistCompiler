@@ -69,6 +69,8 @@ import { handleRulesCreate, handleRulesDelete, handleRulesGet, handleRulesList, 
 import { handleNotify } from './handlers/webhook.ts';
 import { handleClerkWebhook } from './handlers/clerk-webhook.ts';
 import { handleCreateApiKey, handleListApiKeys, handleRevokeApiKey, handleUpdateApiKey } from './handlers/api-keys.ts';
+import { handlePrometheusMetrics } from './handlers/prometheus-metrics.ts';
+import { createDiagnosticsProvider } from './services/diagnostics-factory.ts';
 import { verifyCfAccessJwt } from './middleware/cf-access.ts';
 
 // Import Workflow classes and types
@@ -2986,9 +2988,30 @@ export default {
         // Public read-only endpoints get wildcard; everything else gets the allowlist.
         const corsHeaders = isPublicEndpoint(pathname) ? getPublicCorsHeaders() : getCorsHeaders(request, env);
 
-        // Execute the actual handler, then wrap the response with CORS headers.
-        // This ensures every response — success, error, or fallback — has correct CORS.
-        const response = await this._handleRequest(request, env, url, pathname);
+        // Observability: create a request-scoped diagnostics provider and wrap
+        // the entire handler in a span.  The provider selection is driven by
+        // SENTRY_DSN / OTEL_EXPORTER_OTLP_ENDPOINT Worker secrets so operators
+        // enable backends without code changes.
+        const diagnostics = createDiagnosticsProvider(env);
+        const requestSpan = diagnostics.startSpan(`http.${request.method}`, {
+            url: pathname,
+        });
+
+        let response: Response;
+        try {
+            // Execute the actual handler, then wrap the response with CORS headers.
+            // This ensures every response — success, error, or fallback — has correct CORS.
+            response = await this._handleRequest(request, env, url, pathname);
+        } catch (err) {
+            requestSpan.recordException(err instanceof Error ? err : new Error(String(err)));
+            diagnostics.captureError(err instanceof Error ? err : new Error(String(err)), {
+                url: request.url,
+                method: request.method,
+            });
+            throw err;
+        } finally {
+            requestSpan.end();
+        }
 
         // WebSocket upgrade responses (101) must be returned as-is — constructing a new
         // Response drops the `webSocket` property and breaks the upgrade handshake.
@@ -3191,6 +3214,11 @@ export default {
             return authResult.response;
         }
         const authContext: IAuthContext = authResult.context;
+
+        // Handle Prometheus scrape endpoint (admin-protected; auth handled inside handler)
+        if (routePath === '/metrics/prometheus' && request.method === 'GET') {
+            return handlePrometheusMetrics(request, env);
+        }
 
         // Handle metrics endpoint
         if (routePath === '/metrics' && request.method === 'GET') {

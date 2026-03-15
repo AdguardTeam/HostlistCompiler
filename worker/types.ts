@@ -455,12 +455,21 @@ export interface Env {
     HEALTH_MONITORING_WORKFLOW?: Workflow<HealthMonitoringParams>;
     // Analytics Engine binding (optional - for metrics tracking)
     ANALYTICS_ENGINE?: AnalyticsEngineDataset;
+    // Analytics Engine SQL API credentials (required for GET /metrics/prometheus)
+    // Set as Worker secrets: wrangler secret put ANALYTICS_ACCOUNT_ID
+    //                        wrangler secret put ANALYTICS_API_TOKEN
+    ANALYTICS_ACCOUNT_ID?: string;
+    ANALYTICS_API_TOKEN?: string;
     // Cloudflare Pipelines binding (optional - for metrics/audit log ingestion)
     METRICS_PIPELINE?: PipelineBinding;
     // Error reporting configuration
     ERROR_REPORTER_TYPE?: string; // 'console', 'cloudflare', 'sentry', 'composite'
     SENTRY_DSN?: string; // Sentry Data Source Name (required if using Sentry)
     ERROR_REPORTER_VERBOSE?: string; // 'true' or 'false' for verbose console logging
+    // OpenTelemetry OTLP collector endpoint (required if using OpenTelemetry traces/metrics)
+    // e.g. https://otlp.grafana.net or https://api.honeycomb.io
+    // Set as a Worker secret: wrangler secret put OTEL_EXPORTER_OTLP_ENDPOINT
+    OTEL_EXPORTER_OTLP_ENDPOINT?: string;
     // Browser Rendering binding (for Cloudflare Browser Rendering / Playwright MCP)
     BROWSER?: BrowserWorker;
     // R2 bucket for browser-rendered screenshots (source monitor)

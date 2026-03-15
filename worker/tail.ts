@@ -34,6 +34,12 @@ export interface TailEnv {
     LOG_SINK_TOKEN?: string;
     // Minimum log level to forward to sink ('debug'|'info'|'warn'|'error'), default 'warn'
     LOG_SINK_MIN_LEVEL?: string;
+    /**
+     * Sentry DSN — stored here so the tail worker can optionally
+     * report tail-worker-level errors to Sentry in a future iteration.
+     * TODO: wire Sentry.captureException() into the tail worker catch blocks.
+     */
+    SENTRY_DSN?: string;
 }
 
 /**
@@ -67,6 +73,21 @@ export interface TailException {
 }
 
 /**
+ * Typed output of `createStructuredEvent()`.
+ * Using a concrete type here (rather than `Record<string, unknown>`) keeps
+ * downstream consumers like `formatSlackAlert` type-safe.
+ */
+export interface StructuredTailEvent {
+    timestamp: string;
+    scriptName: string;
+    outcome: TailEvent['outcome'];
+    url: string | undefined;
+    method: string | undefined;
+    logs: Array<{ timestamp: string; level: TailLog['level']; message: unknown[] }>;
+    exceptions: Array<{ timestamp: string; name: string; message: string }>;
+}
+
+/**
  * Format log messages for storage
  */
 export function formatLogMessage(log: TailLog): string {
@@ -97,7 +118,7 @@ export function shouldForwardEvent(event: TailEvent): boolean {
 /**
  * Create a structured event for external systems
  */
-export function createStructuredEvent(event: TailEvent): Record<string, unknown> {
+export function createStructuredEvent(event: TailEvent): StructuredTailEvent {
     return {
         timestamp: new Date(event.eventTimestamp).toISOString(),
         scriptName: event.scriptName || 'adblock-compiler',
@@ -114,6 +135,50 @@ export function createStructuredEvent(event: TailEvent): Record<string, unknown>
             name: exc.name,
             message: exc.message,
         })),
+    };
+}
+
+/**
+ * Format a structured tail event as a Slack Block Kit payload.
+ *
+ * Drop-in replacement for the plain-text JSON body currently sent to
+ * ERROR_WEBHOOK_URL. Slack renders this with colour coding and section blocks.
+ */
+export function formatSlackAlert(event: StructuredTailEvent): Record<string, unknown> {
+    const isError = event.outcome !== 'ok';
+    const colour = isError ? '#E53E3E' : '#38A169';
+    const exceptionList = event.exceptions
+        .map((e) => `• *${e.name}*: ${e.message}`)
+        .join('\n') || '_none_';
+
+    return {
+        attachments: [
+            {
+                color: colour,
+                blocks: [
+                    {
+                        type: 'header',
+                        text: {
+                            type: 'plain_text',
+                            text: `🚨 adblock-compiler: ${event.outcome}`,
+                        },
+                    },
+                    {
+                        type: 'section',
+                        fields: [
+                            { type: 'mrkdwn', text: `*URL*\n${event.url ?? '_unknown_'}` },
+                            { type: 'mrkdwn', text: `*Outcome*\n${event.outcome}` },
+                            { type: 'mrkdwn', text: `*Timestamp*\n${event.timestamp}` },
+                            { type: 'mrkdwn', text: `*Script*\n${event.scriptName ?? 'adblock-compiler'}` },
+                        ],
+                    },
+                    {
+                        type: 'section',
+                        text: { type: 'mrkdwn', text: `*Exceptions*\n${exceptionList}` },
+                    },
+                ],
+            },
+        ],
     };
 }
 
