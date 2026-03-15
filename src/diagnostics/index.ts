@@ -41,3 +41,4 @@ export { SentryDiagnosticsProvider } from './SentryDiagnosticsProvider.ts';
 export type { SentryDiagnosticsProviderOptions } from './SentryDiagnosticsProvider.ts';
 export { OpenTelemetryDiagnosticsProvider } from './OpenTelemetryDiagnosticsProvider.ts';
 export type { OpenTelemetryDiagnosticsProviderOptions } from './OpenTelemetryDiagnosticsProvider.ts';
+export { CompositeDiagnosticsProvider } from './CompositeDiagnosticsProvider.ts';

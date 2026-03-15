@@ -71,8 +71,14 @@ export class SentryDiagnosticsProvider implements IDiagnosticsProvider {
                     release: this.options.release,
                     environment: this.options.environment,
                 });
-            }).catch(() => {
-                // Allow retry on next call if init failed
+            }).catch((err) => {
+                // Log the failure so operators know Sentry is not capturing events,
+                // then allow a retry on the next captureError/startSpan call.
+                // deno-lint-ignore no-console
+                console.warn(
+                    '[SentryDiagnosticsProvider] Sentry.init failed — error capture disabled:',
+                    err instanceof Error ? err.message : String(err),
+                );
                 this.initPromise = null;
             });
         }

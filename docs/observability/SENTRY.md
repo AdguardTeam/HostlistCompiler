@@ -175,11 +175,66 @@ The tail worker (`worker/tail.ts`) already has the `SENTRY_DSN` binding on
 
 ---
 
-## 7. Using `SentryDiagnosticsProvider`
+## 7. Using `SentryDiagnosticsProvider` and the provider factory
 
-`src/diagnostics/SentryDiagnosticsProvider.ts` implements the
-`IDiagnosticsProvider` interface, letting any service capture errors and spans
-without a direct Sentry dependency:
+### Quickstart — use the factory (recommended)
+
+`worker/services/diagnostics-factory.ts` exports `createDiagnosticsProvider(env)`,
+which reads `SENTRY_DSN` and `OTEL_EXPORTER_OTLP_ENDPOINT` from `Env` and
+returns the right provider (or a composite of both) with zero boilerplate:
+
+```typescript
+import { createDiagnosticsProvider } from './services/diagnostics-factory.ts';
+
+export default {
+    async fetch(request, env, ctx) {
+        const diagnostics = createDiagnosticsProvider(env);
+        const span = diagnostics.startSpan('compile');
+        try {
+            // ... business logic ...
+            span.end();
+        } catch (err) {
+            span.recordException(err as Error);
+            diagnostics.captureError(err as Error, { url: request.url });
+            throw err;
+        }
+    },
+};
+```
+
+| Env variables set | Provider returned |
+|-------------------|--------------------|
+| Neither | `ConsoleDiagnosticsProvider` (structured JSON to Workers Logs) |
+| `SENTRY_DSN` only | `SentryDiagnosticsProvider` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` only | `OpenTelemetryDiagnosticsProvider` |
+| Both | `CompositeDiagnosticsProvider([Sentry, OTel])` — both receive every event |
+
+### Extending with extra providers
+
+Pass additional providers as the second argument:
+
+```typescript
+import { createDiagnosticsProvider } from './services/diagnostics-factory.ts';
+import { MyCustomSink } from './my-custom-sink.ts';
+
+const diagnostics = createDiagnosticsProvider(env, [new MyCustomSink()]);
+```
+
+### Using `CompositeDiagnosticsProvider` directly
+
+If you need full control, compose providers manually:
+
+```typescript
+import { CompositeDiagnosticsProvider, SentryDiagnosticsProvider } from '../src/diagnostics/index.ts';
+import { OpenTelemetryDiagnosticsProvider } from '../src/diagnostics/index.ts';
+
+const diagnostics = new CompositeDiagnosticsProvider([
+    new SentryDiagnosticsProvider({ dsn: env.SENTRY_DSN }),
+    new OpenTelemetryDiagnosticsProvider({ serviceName: 'adblock-compiler' }),
+]);
+```
+
+### Manual provider selection (advanced)
 
 ```typescript
 import { SentryDiagnosticsProvider } from '../diagnostics/index.ts';
@@ -191,7 +246,7 @@ const diagnostics = env.SENTRY_DSN
         environment: 'production',
         tracesSampleRate: 0.1,
     })
-    : new NoOpDiagnosticsProvider();
+    : new ConsoleDiagnosticsProvider();
 
 // Capture an error
 try {
@@ -201,31 +256,12 @@ try {
     throw err;
 }
 
-// Start a span (full implementation requires @sentry/cloudflare to be installed)
+// Start a span
 const span = diagnostics.startSpan('compile', { ruleCount: 5000 });
 try {
     // ... timed operation
 } finally {
     span.end();
-}
-```
-
-### Provider selection pattern
-
-```typescript
-import {
-    ConsoleDiagnosticsProvider,
-    NoOpDiagnosticsProvider,
-    SentryDiagnosticsProvider,
-} from '../src/diagnostics/index.ts';
-import type { IDiagnosticsProvider } from '../src/diagnostics/index.ts';
-
-function createDiagnosticsProvider(env: Env): IDiagnosticsProvider {
-    if (env.SENTRY_DSN) {
-        return new SentryDiagnosticsProvider({ dsn: env.SENTRY_DSN });
-    }
-    // Falls back to structured-JSON console output in local dev
-    return new ConsoleDiagnosticsProvider();
 }
 ```
 

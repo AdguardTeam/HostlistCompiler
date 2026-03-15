@@ -466,6 +466,10 @@ export interface Env {
     ERROR_REPORTER_TYPE?: string; // 'console', 'cloudflare', 'sentry', 'composite'
     SENTRY_DSN?: string; // Sentry Data Source Name (required if using Sentry)
     ERROR_REPORTER_VERBOSE?: string; // 'true' or 'false' for verbose console logging
+    // OpenTelemetry OTLP collector endpoint (required if using OpenTelemetry traces/metrics)
+    // e.g. https://otlp.grafana.net or https://api.honeycomb.io
+    // Set as a Worker secret: wrangler secret put OTEL_EXPORTER_OTLP_ENDPOINT
+    OTEL_EXPORTER_OTLP_ENDPOINT?: string;
     // Browser Rendering binding (for Cloudflare Browser Rendering / Playwright MCP)
     BROWSER?: BrowserWorker;
     // R2 bucket for browser-rendered screenshots (source monitor)

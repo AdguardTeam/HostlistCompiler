@@ -57,16 +57,45 @@ wrangler secret put ANALYTICS_API_TOKEN
 Add to `worker/worker.ts` (or `worker/router.ts`) before the catch-all handler:
 
 ```typescript
+import { handlePrometheusMetrics } from './handlers/prometheus-metrics.ts';
+
 if (pathname === '/metrics/prometheus' && request.method === 'GET') {
     return handlePrometheusMetrics(request, env);
 }
 ```
 
-Import at the top of the file:
+---
+
+## Adding custom metrics
+
+Import `registerPrometheusMetric` in any Worker module and call it at module
+load time. The handler iterates the registry on every scrape — no changes to
+`prometheus-metrics.ts` are needed:
 
 ```typescript
-import { handlePrometheusMetrics } from './handlers/prometheus-metrics.ts';
+import { registerPrometheusMetric } from './handlers/prometheus-metric-registry.ts';
+
+// Example: expose active Durable Object count
+registerPrometheusMetric({
+    name: 'adblock_workflow_active',
+    type: 'gauge',
+    help: 'Number of active compilation Durable Objects.',
+    collect: async (env) => countActiveDOs(env),
+});
+
+// Example: a counter with static labels
+registerPrometheusMetric({
+    name: 'adblock_source_fetches',
+    type: 'counter',
+    help: 'Total external source fetches.',
+    labels: { region: 'us-east' },
+    collect: async (env) => getSourceFetchCount(env),
+});
 ```
+
+The `collect` function receives the full Worker `Env` so it can read KV, D1, R2,
+or any other binding. Return `null` to skip emitting the metric for that scrape
+cycle (e.g. when a dependency is not yet configured).
 
 ---
 
