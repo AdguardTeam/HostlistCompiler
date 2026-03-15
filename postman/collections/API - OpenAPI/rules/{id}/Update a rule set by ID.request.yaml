@@ -1,5 +1,5 @@
 $kind: http-request
-url: http://{{baseUrl}}/rules/:id
+url: http://{{baseUrl}}:/rules/:id
 method: PUT
 headers:
   Content-Type: application/json
@@ -10,9 +10,6 @@ pathVariables:
     description: UUID of the rule set
 body:
   type: json
-  content: >-
-    {
-      "value": "reference #/components/schemas/RuleSetUpdateRequest not found in the OpenAPI spec"
-    }
+  content: ""
 examples: ./.resources/Update a rule set by ID.resources/examples
 order: 2000

@@ -1,15 +1,4 @@
 $kind: http-request
-description: >
-  Navigates to a URL using the Cloudflare Browser Rendering binding and returns
-  the
-
-  final canonical URL after all redirects. Useful for discovering the true
-  destination
-
-  of redirect chains or URL shorteners before scheduling a filter-list download.
-
-
-  Requires the `BROWSER` binding to be configured in `wrangler.toml`.
 url: http://{{baseUrl}}/api/browser/resolve-url
 method: POST
 headers:
@@ -17,10 +6,6 @@ headers:
   Accept: application/json
 body:
   type: json
-  content: |-
-    {
-      "url": "https://example.com/redirect-me",
-      "waitUntil": "networkidle"
-    }
+  content: ""
 examples: ./.resources/Resolve canonical URL via browser.resources/examples
 order: 1000

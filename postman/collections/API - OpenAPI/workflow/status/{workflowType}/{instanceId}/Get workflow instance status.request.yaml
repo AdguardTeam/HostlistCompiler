@@ -1,6 +1,5 @@
 $kind: http-request
-description: Returns the current status and output of a workflow instance
-url: http://{{baseUrl}}/workflow/status/:workflowType/:instanceId
+url: http://{{baseUrl}}:/workflow/status/:workflowType/:instanceId
 method: GET
 headers:
   Accept: application/json

@@ -1,5 +1,4 @@
 $kind: http-request
-description: Parses adblock filter rules into an Abstract Syntax Tree representation
 url: http://{{baseUrl}}/ast/parse
 method: POST
 headers:
@@ -7,13 +6,6 @@ headers:
   Accept: application/json
 body:
   type: json
-  content: |-
-    {
-      "rules": [
-        "string",
-        "string"
-      ],
-      "text": "string"
-    }
+  content: ""
 examples: ./.resources/Parse filter rules into AST.resources/examples
 order: 1000

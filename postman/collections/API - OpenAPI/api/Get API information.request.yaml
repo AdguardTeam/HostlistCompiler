@@ -1,5 +1,4 @@
 $kind: http-request
-description: Returns API version, available endpoints, and usage examples
 url: http://{{baseUrl}}/api
 method: GET
 headers:
@@ -8,4 +7,4 @@ body:
   type: text
   content: ""
 examples: ./.resources/Get API information.resources/examples
-order: 1000
+order: 5000

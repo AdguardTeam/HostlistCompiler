@@ -1,6 +1,4 @@
 $kind: http-request
-description: Executes a SELECT-only SQL query against PostgreSQL for debugging
-  (mirrors /admin/storage/query for D1)
 url: http://{{baseUrl}}/admin/pg/query
 method: POST
 headers:
@@ -8,10 +6,7 @@ headers:
   Accept: application/json
 body:
   type: json
-  content: |-
-    {
-      "sql": "string"
-    }
+  content: ""
 auth:
   type: apikey
   credentials:

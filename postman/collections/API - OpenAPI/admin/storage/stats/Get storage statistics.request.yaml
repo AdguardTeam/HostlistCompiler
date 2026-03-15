@@ -1,5 +1,4 @@
 $kind: http-request
-description: Returns database table counts and expired entry counts
 url: http://{{baseUrl}}/admin/storage/stats
 method: GET
 headers:

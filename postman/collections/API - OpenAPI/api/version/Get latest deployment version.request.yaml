@@ -1,5 +1,4 @@
 $kind: http-request
-description: Returns the current version from deployment history
 url: http://{{baseUrl}}/api/version
 method: GET
 headers:

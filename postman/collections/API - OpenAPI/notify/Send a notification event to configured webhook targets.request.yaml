@@ -1,8 +1,4 @@
 $kind: http-request
-description: Delivers a notification event (e.g. error, warning, info) to one or
-  more configured targets — generic HTTP webhook (WEBHOOK_URL), Sentry
-  (SENTRY_DSN), and/or Datadog (DATADOG_API_KEY). At least one target must be
-  configured in the worker environment.
 url: http://{{baseUrl}}/notify
 method: POST
 headers:
@@ -10,10 +6,7 @@ headers:
   Accept: application/json
 body:
   type: json
-  content: >-
-    {
-      "value": "reference #/components/schemas/WebhookNotifyRequest not found in the OpenAPI spec"
-    }
+  content: ""
 examples: ./.resources/Send a notification event to configured webhook
   targets.resources/examples
 order: 1000

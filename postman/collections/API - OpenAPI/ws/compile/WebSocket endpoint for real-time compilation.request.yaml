@@ -1,49 +1,4 @@
 $kind: http-request
-description: >
-  Bidirectional WebSocket connection for real-time compilation with event
-  streaming.
-
-
-  **Client → Server Messages:**
-
-  - `compile` - Start compilation
-
-  - `cancel` - Cancel running compilation
-
-  - `ping` - Heartbeat ping
-
-
-  **Server → Client Messages:**
-
-  - `welcome` - Connection established
-
-  - `pong` - Heartbeat response
-
-  - `compile:started` - Compilation started
-
-  - `event` - Compilation event (source, transformation, progress, diagnostic,
-  cache, network, metric)
-
-  - `compile:complete` - Compilation finished successfully
-
-  - `compile:error` - Compilation failed
-
-  - `compile:cancelled` - Compilation cancelled
-
-  - `error` - Error message
-
-
-  **Features:**
-
-  - Up to 3 concurrent compilations per connection
-
-  - Automatic heartbeat (30s interval)
-
-  - Connection timeout (5 minutes idle)
-
-  - Session-based compilation tracking
-
-  - Cancellation support
 url: http://{{baseUrl}}/ws/compile
 method: GET
 body:

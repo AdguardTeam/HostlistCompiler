@@ -1,5 +1,4 @@
 $kind: http-request
-description: Returns the results of the most recent health monitoring workflow run
 url: http://{{baseUrl}}/health/latest
 method: GET
 headers:

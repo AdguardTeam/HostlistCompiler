@@ -1,5 +1,4 @@
 $kind: http-request
-description: Returns aggregated deployment statistics
 url: http://{{baseUrl}}/api/deployments/stats
 method: GET
 headers:

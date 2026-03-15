@@ -1,6 +1,5 @@
 $kind: http-request
-description: Returns deployment history records
-url: http://{{baseUrl}}/api/deployments?limit=50&version=string&status=string&branch=string
+url: http://{{baseUrl}}:/api/deployments?limit=50&version=string&status=string&branch=string
 method: GET
 headers:
   Accept: application/json
@@ -21,4 +20,4 @@ body:
   type: text
   content: ""
 examples: ./.resources/Get deployment history.resources/examples
-order: 1000
+order: 2000

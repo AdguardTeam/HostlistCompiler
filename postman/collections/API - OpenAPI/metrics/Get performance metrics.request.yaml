@@ -1,5 +1,4 @@
 $kind: http-request
-description: Returns aggregated metrics for the last 30 minutes
 url: http://{{baseUrl}}/metrics
 method: GET
 headers:

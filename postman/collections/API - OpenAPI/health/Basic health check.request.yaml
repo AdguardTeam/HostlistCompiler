@@ -1,5 +1,4 @@
 $kind: http-request
-description: Returns current service health status and version
 url: http://{{baseUrl}}/health
 method: GET
 headers:

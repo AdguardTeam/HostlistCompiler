@@ -18,3 +18,8 @@ cloudResources:
     ../docs/api/cloudflare-schema.yaml: 7e55ba22-cfec-4de1-a062-8d1f102a162f
   collections:
     ../postman/collections/Adblock Compiler API: 566132-71856fbb-b335-4739-9202-a8180441b907
+    ../postman/collections/API - Cloudflare: 566132-22e2790e-da8e-4c09-bfe0-c76212c9484c
+    ../postman/collections/API - OpenAPI: 566132-b4369230-3829-46b5-887d-6d2a2fd905c8
+  environments:
+    ../postman/environments/adblock-compiler-local.environment.yaml: c5d8ec88-2c0c-4b06-b98c-84bc83a2a2f5
+    ../postman/environments/adblock-compiler.environment.yaml: 54f329b9-72ab-42d0-87a5-d1e15b631701

@@ -1,5 +1,4 @@
 $kind: http-request
-description: Returns health and connectivity status of both D1 and PostgreSQL backends
 url: http://{{baseUrl}}/admin/backends
 method: GET
 headers:

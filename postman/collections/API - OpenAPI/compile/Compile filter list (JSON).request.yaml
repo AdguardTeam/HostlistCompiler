@@ -1,9 +1,4 @@
 $kind: http-request
-description: >
-  Compile filter lists and return results as JSON. Results are cached for 1
-  hour.
-
-  Supports request deduplication for concurrent identical requests.
 url: http://{{baseUrl}}/compile
 method: POST
 headers:
@@ -11,23 +6,6 @@ headers:
   Accept: application/json
 body:
   type: json
-  content: |-
-    {
-      "configuration": {
-        "name": "My Filter List",
-        "sources": [
-          {
-            "source": "https://example.com/filters.txt",
-            "transformations": [
-              "RemoveComments",
-              "Validate"
-            ]
-          }
-        ],
-        "transformations": [
-          "Deduplicate"
-        ]
-      }
-    }
+  content: ""
 examples: ./.resources/Compile filter list (JSON).resources/examples
-order: 1000
+order: 4000

@@ -1,5 +1,5 @@
 $kind: http-request
-url: http://{{baseUrl}}/rules/:id
+url: http://{{baseUrl}}:/rules/:id
 method: GET
 headers:
   Accept: application/json
