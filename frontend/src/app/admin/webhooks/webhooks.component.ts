@@ -6,7 +6,8 @@
  * 404 responses (API not yet implemented) with a "Coming soon" message.
  */
 
-import { Component, afterNextRender, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, afterNextRender, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -239,6 +240,7 @@ interface WebhookEventsResponse {
 })
 export class WebhooksComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
 
     readonly events = signal<WebhookEvent[]>([]);
     readonly dlqEvents = signal<WebhookEvent[]>([]);
@@ -257,7 +259,7 @@ export class WebhooksComponent {
         this.loading.set(true);
         this.apiUnavailable.set(false);
 
-        this.http.get<WebhookEventsResponse>('/admin/webhooks/events').subscribe({
+        this.http.get<WebhookEventsResponse>('/admin/webhooks/events').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.events.set(res.items ?? []);
                 this.loading.set(false);
@@ -281,7 +283,7 @@ export class WebhooksComponent {
 
     private loadDlq(): void {
         this.loadingDlq.set(true);
-        this.http.get<WebhookEventsResponse>('/admin/webhooks/events/dlq').subscribe({
+        this.http.get<WebhookEventsResponse>('/admin/webhooks/events/dlq').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.dlqEvents.set(res.items ?? []);
                 this.loadingDlq.set(false);

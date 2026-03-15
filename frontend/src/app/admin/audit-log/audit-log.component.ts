@@ -6,7 +6,8 @@
  * and JSON export of filtered results.
  */
 
-import { Component, afterNextRender, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, afterNextRender, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -234,6 +235,7 @@ interface AuditLogResponse {
 })
 export class AuditLogComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
 
     readonly auditLogs = signal<AuditLogEntry[]>([]);
     readonly loading = signal(false);
@@ -268,7 +270,7 @@ export class AuditLogComponent {
         if (this.filterDateFrom) params = params.set('from', this.filterDateFrom);
         if (this.filterDateTo) params = params.set('to', this.filterDateTo);
 
-        this.http.get<AuditLogResponse>('/admin/system/audit', { params }).subscribe({
+        this.http.get<AuditLogResponse>('/admin/system/audit', { params }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.auditLogs.set(res.items ?? []);
                 this.totalCount.set(res.total ?? 0);

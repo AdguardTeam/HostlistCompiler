@@ -9,7 +9,9 @@
 import {
     Component, afterNextRender, inject, signal,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -304,6 +306,7 @@ interface HealthResponse {
 })
 export class ObservabilityComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
 
     // Metrics state
     readonly metrics = signal<MetricsSummary | null>(null);
@@ -331,7 +334,7 @@ export class ObservabilityComponent {
 
     loadMetrics(): void {
         this.metricsLoading.set(true);
-        this.http.get<{ success: boolean } & MetricsSummary>('/admin/observability/metrics').subscribe({
+        this.http.get<{ success: boolean } & MetricsSummary>('/admin/observability/metrics').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.metrics.set(res);
                 this.metricsAvailable.set(true);
@@ -346,7 +349,7 @@ export class ObservabilityComponent {
 
     loadLogs(): void {
         this.logsLoading.set(true);
-        this.http.get<LogListResponse>('/admin/observability/logs').subscribe({
+        this.http.get<LogListResponse>('/admin/observability/logs').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.allLogs.set(res.items ?? []);
                 this.logsAvailable.set(true);
@@ -364,7 +367,7 @@ export class ObservabilityComponent {
 
     loadHealth(): void {
         this.healthLoading.set(true);
-        this.http.get<HealthResponse>('/health').subscribe({
+        this.http.get<HealthResponse>('/health').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.healthChecks.set(res.checks ?? []);
                 this.healthLoading.set(false);

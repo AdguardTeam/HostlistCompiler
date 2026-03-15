@@ -9,7 +9,9 @@
 import {
     Component, afterNextRender, inject, signal,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -246,6 +248,7 @@ interface ScopeFormData {
 })
 export class ScopesComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
     private readonly snackBar = inject(MatSnackBar);
 
     readonly scopes = signal<ScopeConfig[]>([]);
@@ -264,7 +267,7 @@ export class ScopesComponent {
 
     loadData(): void {
         this.loading.set(true);
-        this.http.get<ScopeListResponse>('/admin/config/scopes').subscribe({
+        this.http.get<ScopeListResponse>('/admin/config/scopes').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.scopes.set(res.items ?? []);
                 this.loading.set(false);
@@ -305,7 +308,7 @@ export class ScopesComponent {
             ? this.http.post('/admin/config/scopes', payload)
             : this.http.patch(`/admin/config/scopes/${this.editingScopeName()}`, payload);
 
-        request.subscribe({
+        request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(
                     this.dialogMode() === 'create' ? 'Scope created' : 'Scope updated',
@@ -335,7 +338,7 @@ export class ScopesComponent {
         if (!scope) return;
 
         this.saving.set(true);
-        this.http.delete(`/admin/config/scopes/${scope.scope_name}`).subscribe({
+        this.http.delete(`/admin/config/scopes/${scope.scope_name}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(`Scope "${scope.scope_name}" deleted`, 'OK', { duration: 3000 });
                 this.saving.set(false);

@@ -9,7 +9,9 @@
 import {
     Component, afterNextRender, inject, signal, computed,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -251,6 +253,7 @@ interface EndpointOverride {
 })
 export class EndpointsComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
     private readonly snackBar = inject(MatSnackBar);
 
     readonly allEndpoints = signal<RegistryEndpoint[]>([]);
@@ -300,7 +303,7 @@ export class EndpointsComponent {
 
     loadData(): void {
         this.loading.set(true);
-        this.http.get<EndpointRegistry>('/assets/endpoint-registry.json').subscribe({
+        this.http.get<EndpointRegistry>('/assets/endpoint-registry.json').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (registry) => {
                 this.allEndpoints.set(registry.endpoints ?? []);
                 this.loading.set(false);
@@ -348,7 +351,7 @@ export class EndpointsComponent {
             is_public: this.overridePublic,
         };
 
-        this.http.post('/admin/config/endpoints/override', body).subscribe({
+        this.http.post('/admin/config/endpoints/override', body).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open('Override saved successfully', 'OK', { duration: 3000 });
                 this.savingOverride.set(false);

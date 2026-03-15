@@ -8,7 +8,9 @@
 import {
     Component, afterNextRender, inject, signal,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -346,6 +348,7 @@ interface UserListResponse {
 })
 export class UsersComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
     private readonly snackBar = inject(MatSnackBar);
 
     readonly users = signal<AdminUser[]>([]);
@@ -383,7 +386,7 @@ export class UsersComponent {
         if (this.filterTier) params = params.set('tier', this.filterTier);
         if (this.filterRole) params = params.set('role', this.filterRole);
 
-        this.http.get<UserListResponse>('/admin/auth/users', { params }).subscribe({
+        this.http.get<UserListResponse>('/admin/auth/users', { params }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.users.set(res.items ?? []);
                 this.totalCount.set(res.total ?? 0);
@@ -440,7 +443,7 @@ export class UsersComponent {
         if (!user) return;
 
         this.saving.set(true);
-        this.http.patch(`/admin/auth/users/${user.clerk_user_id}`, { tier: this.selectedTier }).subscribe({
+        this.http.patch(`/admin/auth/users/${user.clerk_user_id}`, { tier: this.selectedTier }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(`Tier updated to "${this.selectedTier}"`, 'OK', { duration: 3000 });
                 this.saving.set(false);
@@ -467,7 +470,7 @@ export class UsersComponent {
             })
             : this.http.delete(`/admin/roles/assignments/${user.clerk_user_id}`);
 
-        request.subscribe({
+        request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(
                     this.selectedRole ? `Role "${this.selectedRole}" assigned` : 'Role revoked',

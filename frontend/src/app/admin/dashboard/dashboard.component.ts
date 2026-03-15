@@ -9,7 +9,9 @@
 import {
     Component, afterNextRender, inject, signal,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -247,6 +249,7 @@ interface HealthCheck {
 })
 export class DashboardComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
 
     readonly loading = signal(false);
     readonly metricCards = signal<MetricCard[]>([]);
@@ -327,15 +330,15 @@ export class DashboardComponent {
             this.loading.set(false);
         };
 
-        auditLogs$.subscribe({
+        auditLogs$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => { auditData = res; tryFinalize(); },
             error: () => tryFinalize(),
         });
-        tiers$.subscribe({
+        tiers$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => { tiersData = res; tryFinalize(); },
             error: () => tryFinalize(),
         });
-        flags$.subscribe({
+        flags$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => { flagsData = res; tryFinalize(); },
             error: () => tryFinalize(),
         });

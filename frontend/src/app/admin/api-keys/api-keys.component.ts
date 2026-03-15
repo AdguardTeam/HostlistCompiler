@@ -9,7 +9,9 @@
 import {
     Component, afterNextRender, inject, signal, computed,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -342,6 +344,7 @@ type KeyStatus = 'all' | 'active' | 'revoked' | 'expired';
 })
 export class ApiKeysComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
     private readonly snackBar = inject(MatSnackBar);
 
     readonly allKeys = signal<AdminApiKey[]>([]);
@@ -371,7 +374,7 @@ export class ApiKeysComponent {
 
     loadData(): void {
         this.loading.set(true);
-        this.http.get<AdminApiKeyListResponse>('/admin/auth/api-keys').subscribe({
+        this.http.get<AdminApiKeyListResponse>('/admin/auth/api-keys').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.allKeys.set(res.keys ?? []);
                 this.applyFilters();
@@ -437,7 +440,7 @@ export class ApiKeysComponent {
         if (!key) return;
 
         this.saving.set(true);
-        this.http.post('/admin/auth/api-keys/revoke', { id: key.id }).subscribe({
+        this.http.post('/admin/auth/api-keys/revoke', { id: key.id }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(`Key "${key.keyPrefix}" revoked`, 'OK', { duration: 3000 });
                 this.saving.set(false);

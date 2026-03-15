@@ -9,7 +9,9 @@
 import {
     Component, afterNextRender, inject, signal,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -299,6 +301,7 @@ interface AnnouncementFormData {
 })
 export class AnnouncementsComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
     private readonly snackBar = inject(MatSnackBar);
 
     readonly announcements = signal<Announcement[]>([]);
@@ -317,7 +320,7 @@ export class AnnouncementsComponent {
 
     loadData(): void {
         this.loading.set(true);
-        this.http.get<AnnouncementListResponse>('/admin/announcements').subscribe({
+        this.http.get<AnnouncementListResponse>('/admin/announcements').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.announcements.set(res.items ?? []);
                 this.loading.set(false);
@@ -330,7 +333,7 @@ export class AnnouncementsComponent {
     }
 
     toggleActive(ann: Announcement, is_active: boolean): void {
-        this.http.patch(`/admin/announcements/${ann.id}`, { is_active }).subscribe({
+        this.http.patch(`/admin/announcements/${ann.id}`, { is_active }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.announcements.update(items =>
                     items.map(a => a.id === ann.id ? { ...a, is_active } : a),
@@ -384,7 +387,7 @@ export class AnnouncementsComponent {
             ? this.http.post('/admin/announcements', payload)
             : this.http.patch(`/admin/announcements/${this.editingId()}`, payload);
 
-        request.subscribe({
+        request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(
                     this.dialogMode() === 'create' ? 'Announcement created' : 'Announcement updated',
@@ -414,7 +417,7 @@ export class AnnouncementsComponent {
         if (!ann) return;
 
         this.saving.set(true);
-        this.http.delete(`/admin/announcements/${ann.id}`).subscribe({
+        this.http.delete(`/admin/announcements/${ann.id}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(`"${ann.title}" deleted`, 'OK', { duration: 3000 });
                 this.saving.set(false);

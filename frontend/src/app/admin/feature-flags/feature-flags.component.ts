@@ -9,7 +9,9 @@
 import {
     Component, afterNextRender, inject, signal,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -280,6 +282,7 @@ interface FlagFormData {
 })
 export class FeatureFlagsComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
     private readonly snackBar = inject(MatSnackBar);
 
     readonly flags = signal<FeatureFlag[]>([]);
@@ -298,7 +301,7 @@ export class FeatureFlagsComponent {
 
     loadData(): void {
         this.loading.set(true);
-        this.http.get<FeatureFlagListResponse>('/admin/config/feature-flags').subscribe({
+        this.http.get<FeatureFlagListResponse>('/admin/config/feature-flags').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.flags.set(res.items ?? []);
                 this.loading.set(false);
@@ -311,7 +314,7 @@ export class FeatureFlagsComponent {
     }
 
     toggleFlag(flag: FeatureFlag, enabled: boolean): void {
-        this.http.patch(`/admin/config/feature-flags/${flag.id}`, { enabled }).subscribe({
+        this.http.patch(`/admin/config/feature-flags/${flag.id}`, { enabled }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.flags.update(flags =>
                     flags.map(f => f.id === flag.id ? { ...f, enabled } : f),
@@ -365,7 +368,7 @@ export class FeatureFlagsComponent {
             ? this.http.post('/admin/config/feature-flags', payload)
             : this.http.patch(`/admin/config/feature-flags/${this.editingFlagId()}`, payload);
 
-        request.subscribe({
+        request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(
                     this.dialogMode() === 'create' ? 'Flag created' : 'Flag updated',
@@ -395,7 +398,7 @@ export class FeatureFlagsComponent {
         if (!flag) return;
 
         this.saving.set(true);
-        this.http.delete(`/admin/config/feature-flags/${flag.id}`).subscribe({
+        this.http.delete(`/admin/config/feature-flags/${flag.id}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(`Flag "${flag.flag_name}" deleted`, 'OK', { duration: 3000 });
                 this.saving.set(false);

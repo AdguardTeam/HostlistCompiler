@@ -8,7 +8,9 @@
 import {
     Component, afterNextRender, inject, signal,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
@@ -286,6 +288,7 @@ interface TierFormData {
 })
 export class TiersComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
     private readonly snackBar = inject(MatSnackBar);
 
     readonly tiers = signal<TierConfig[]>([]);
@@ -306,7 +309,7 @@ export class TiersComponent {
 
     loadData(): void {
         this.loading.set(true);
-        this.http.get<TierListResponse>('/admin/config/tiers').subscribe({
+        this.http.get<TierListResponse>('/admin/config/tiers').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.tiers.set(res.items ?? []);
                 this.applySorting(res.items ?? []);
@@ -378,7 +381,7 @@ export class TiersComponent {
             ? this.http.post('/admin/config/tiers', payload)
             : this.http.patch(`/admin/config/tiers/${this.editingTierName()}`, payload);
 
-        request.subscribe({
+        request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(
                     this.dialogMode() === 'create' ? 'Tier created' : 'Tier updated',
@@ -408,7 +411,7 @@ export class TiersComponent {
         if (!tier) return;
 
         this.saving.set(true);
-        this.http.delete(`/admin/config/tiers/${tier.tier_name}`).subscribe({
+        this.http.delete(`/admin/config/tiers/${tier.tier_name}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(`Tier "${tier.display_name}" deleted`, 'OK', { duration: 3000 });
                 this.saving.set(false);

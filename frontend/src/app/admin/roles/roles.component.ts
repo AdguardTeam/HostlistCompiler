@@ -9,7 +9,9 @@
 import {
     Component, afterNextRender, inject, signal,
     ChangeDetectionStrategy,
+    DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -354,6 +356,7 @@ interface RoleFormData {
 })
 export class RolesComponent {
     private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
     private readonly snackBar = inject(MatSnackBar);
 
     readonly roles = signal<AdminRole[]>([]);
@@ -388,7 +391,7 @@ export class RolesComponent {
 
     loadData(): void {
         this.loading.set(true);
-        this.http.get<RoleListResponse>('/admin/roles').subscribe({
+        this.http.get<RoleListResponse>('/admin/roles').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => {
                 this.roles.set(res.items ?? []);
                 this.loading.set(false);
@@ -415,7 +418,7 @@ export class RolesComponent {
     loadAssignments(roleName: string): void {
         this.http.get<RoleAssignmentListResponse>('/admin/roles/assignments', {
             params: { role_name: roleName },
-        }).subscribe({
+        }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (res) => this.roleAssignments.set(res.items ?? []),
             error: () => this.roleAssignments.set([]),
         });
@@ -463,7 +466,7 @@ export class RolesComponent {
             ? this.http.post('/admin/roles', payload)
             : this.http.patch(`/admin/roles/${this.formData.role_name}`, payload);
 
-        request.subscribe({
+        request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open(
                     this.dialogMode() === 'create' ? 'Role created' : 'Role updated',
@@ -497,7 +500,7 @@ export class RolesComponent {
         this.http.post('/admin/roles/assignments', {
             clerk_user_id: this.assignUserId.trim(),
             role_name: role.role_name,
-        }).subscribe({
+        }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open('User assigned to role', 'OK', { duration: 3000 });
                 this.saving.set(false);
@@ -513,7 +516,7 @@ export class RolesComponent {
 
     revokeAssignment(assignment: RoleAssignment): void {
         this.saving.set(true);
-        this.http.delete(`/admin/roles/assignments/${assignment.clerk_user_id}`).subscribe({
+        this.http.delete(`/admin/roles/assignments/${assignment.clerk_user_id}`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.snackBar.open('Assignment revoked', 'OK', { duration: 3000 });
                 this.saving.set(false);
