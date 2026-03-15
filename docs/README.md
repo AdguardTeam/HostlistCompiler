@@ -11,6 +11,7 @@ Welcome to the AdBlock Compiler documentation. This directory contains all the d
 
 ```
 docs/
+├── admin/           # Angular admin system (users, flags, tiers, audit logs, RBAC)
 ├── api/             # REST API reference, OpenAPI spec, streaming, and validation
 ├── cloudflare/      # Cloudflare-specific features (Queues, D1, Workflows, Analytics)
 ├── database-setup/  # Database architecture, PostgreSQL, Prisma, and local dev setup
@@ -26,6 +27,16 @@ docs/
 ```
 
 ---
+
+### Admin System
+
+- [Admin Overview](admin/README.md) - Architecture, RBAC, and data flow for the Angular admin panel (`/admin`)
+- [Roles & Permissions](admin/roles-permissions.md) - Built-in roles, permission matrix, and sub-role assignment
+- [Admin API Reference](admin/api-reference.md) - All 27 admin API endpoints with schemas
+- [Database Schema](admin/database-schema.md) - Admin D1 schema (8 tables): roles, flags, tiers, audit logs
+- [Feature Flags](admin/feature-flags.md) - Flag management with tier/user targeting
+- [Observability & Audit](admin/observability.md) - Audit trail, metrics dashboards, and structured logging
+- [Operator Guide](admin/operator-guide.md) - Deploy, configure, and maintain the admin system
 
 ### Getting Started
 
@@ -56,7 +67,7 @@ docs/
 
 - [Cloudflare Overview](cloudflare/README.md) - Cloudflare-specific features index
 - [Worker Overview](../worker/README.md) - Worker implementation and API endpoints
-- [Admin Dashboard](cloudflare/ADMIN_DASHBOARD.md) - Real-time metrics, queue monitoring, and system health
+- [Admin Dashboard (Public)](cloudflare/ADMIN_DASHBOARD.md) - Static public dashboard: real-time metrics, queue monitoring, and tool navigation (served at `/`)
 - [Queue Support](cloudflare/QUEUE_SUPPORT.md) - Async compilation via Cloudflare Queues
 - [Queue Diagnostics](cloudflare/QUEUE_DIAGNOSTICS.md) - Diagnostic events for queue-based compilation
 - [Cloudflare Workflows](cloudflare/CLOUDFLARE_WORKFLOWS.md) - Durable execution for long-running compilations
