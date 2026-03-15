@@ -826,3 +826,314 @@ export const UserTierRowSchema = z.object({
 });
 
 export type UserTierRow = z.infer<typeof UserTierRowSchema>;
+
+// ============================================================================
+// Admin System Schemas — ADMIN_DB trust boundary validation (#1054)
+// ============================================================================
+
+// ---------------------------------------------------------------------------
+// Admin Enums
+// ---------------------------------------------------------------------------
+
+/** Built-in admin role names */
+export const AdminRoleNameSchema = z.enum(['viewer', 'editor', 'super-admin']).describe('Built-in admin role');
+export type AdminRoleName = z.infer<typeof AdminRoleNameSchema>;
+
+/** Granular admin permissions — used in role permission arrays */
+export const AdminPermissionSchema = z.enum([
+    'admin:read',
+    'admin:write',
+    'audit:read',
+    'metrics:read',
+    'config:read',
+    'config:write',
+    'users:read',
+    'users:write',
+    'users:manage',
+    'flags:read',
+    'flags:write',
+    'tiers:read',
+    'tiers:write',
+    'scopes:read',
+    'scopes:write',
+    'endpoints:read',
+    'endpoints:write',
+    'announcements:read',
+    'announcements:write',
+    'roles:read',
+    'roles:write',
+    'roles:assign',
+    'keys:read',
+    'keys:write',
+    'keys:revoke',
+    'storage:read',
+    'storage:write',
+]).describe('Granular admin permission string');
+export type AdminPermission = z.infer<typeof AdminPermissionSchema>;
+
+/** Audit log status */
+export const AuditStatusSchema = z.enum(['success', 'failure', 'denied']).describe('Audit log entry status');
+
+/** Announcement severity */
+export const AnnouncementSeveritySchema = z.enum(['info', 'warning', 'error', 'success']).describe('Announcement severity level');
+
+// ---------------------------------------------------------------------------
+// D1 Row Schemas — validate data coming OUT of Admin D1
+// ---------------------------------------------------------------------------
+
+/** Row from `admin_roles` table */
+export const AdminRoleRowSchema = z.object({
+    id: z.number(),
+    role_name: AdminRoleNameSchema,
+    display_name: z.string(),
+    description: z.string(),
+    permissions: z.string().transform((s) => JSON.parse(s) as string[]),
+    is_active: z.number().transform((n) => n === 1),
+    created_at: z.string(),
+    updated_at: z.string(),
+});
+export type AdminRoleRow = z.infer<typeof AdminRoleRowSchema>;
+
+/** Row from `admin_role_assignments` table */
+export const AdminRoleAssignmentRowSchema = z.object({
+    id: z.number(),
+    clerk_user_id: z.string(),
+    role_name: AdminRoleNameSchema,
+    assigned_by: z.string(),
+    assigned_at: z.string(),
+    expires_at: z.string().nullable(),
+});
+export type AdminRoleAssignmentRow = z.infer<typeof AdminRoleAssignmentRowSchema>;
+
+/** Row from `admin_audit_logs` table */
+export const AdminAuditLogRowSchema = z.object({
+    id: z.number(),
+    actor_id: z.string(),
+    actor_email: z.string().nullable(),
+    action: z.string(),
+    resource_type: z.string(),
+    resource_id: z.string().nullable(),
+    old_values: z.string().nullable().transform((s) => s ? JSON.parse(s) : null),
+    new_values: z.string().nullable().transform((s) => s ? JSON.parse(s) : null),
+    ip_address: z.string().nullable(),
+    user_agent: z.string().nullable(),
+    status: AuditStatusSchema,
+    metadata: z.string().nullable().transform((s) => s ? JSON.parse(s) : null),
+    created_at: z.string(),
+});
+export type AdminAuditLogRow = z.infer<typeof AdminAuditLogRowSchema>;
+
+/** Row from `tier_configs` table */
+export const TierConfigRowSchema = z.object({
+    id: z.number(),
+    tier_name: z.string(),
+    order_rank: z.number(),
+    rate_limit: z.number(),
+    display_name: z.string(),
+    description: z.string(),
+    features: z.string().transform((s) => JSON.parse(s) as Record<string, unknown>),
+    is_active: z.number().transform((n) => n === 1),
+    created_at: z.string(),
+    updated_at: z.string(),
+});
+export type TierConfigRow = z.infer<typeof TierConfigRowSchema>;
+
+/** Row from `scope_configs` table */
+export const ScopeConfigRowSchema = z.object({
+    id: z.number(),
+    scope_name: z.string(),
+    display_name: z.string(),
+    description: z.string(),
+    required_tier: z.string(),
+    is_active: z.number().transform((n) => n === 1),
+    created_at: z.string(),
+    updated_at: z.string(),
+});
+export type ScopeConfigRow = z.infer<typeof ScopeConfigRowSchema>;
+
+/** Row from `endpoint_auth_overrides` table */
+export const EndpointAuthOverrideRowSchema = z.object({
+    id: z.number(),
+    path_pattern: z.string(),
+    method: z.string(),
+    required_tier: z.string().nullable(),
+    required_scopes: z.string().nullable().transform((s) => s ? JSON.parse(s) as string[] : null),
+    is_public: z.number().transform((n) => n === 1),
+    is_active: z.number().transform((n) => n === 1),
+    created_at: z.string(),
+    updated_at: z.string(),
+});
+export type EndpointAuthOverrideRow = z.infer<typeof EndpointAuthOverrideRowSchema>;
+
+/** Row from `feature_flags` table */
+export const FeatureFlagRowSchema = z.object({
+    id: z.number(),
+    flag_name: z.string(),
+    enabled: z.number().transform((n) => n === 1),
+    rollout_percentage: z.number().min(0).max(100),
+    target_tiers: z.string().transform((s) => JSON.parse(s) as string[]),
+    target_users: z.string().transform((s) => JSON.parse(s) as string[]),
+    description: z.string(),
+    created_by: z.string().nullable(),
+    created_at: z.string(),
+    updated_at: z.string(),
+});
+export type FeatureFlagRow = z.infer<typeof FeatureFlagRowSchema>;
+
+/** Row from `admin_announcements` table */
+export const AdminAnnouncementRowSchema = z.object({
+    id: z.number(),
+    title: z.string(),
+    body: z.string(),
+    severity: AnnouncementSeveritySchema,
+    active_from: z.string().nullable(),
+    active_until: z.string().nullable(),
+    is_active: z.number().transform((n) => n === 1),
+    created_by: z.string().nullable(),
+    created_at: z.string(),
+    updated_at: z.string(),
+});
+export type AdminAnnouncementRow = z.infer<typeof AdminAnnouncementRowSchema>;
+
+// ---------------------------------------------------------------------------
+// Admin API Request Schemas — validate data coming IN from API requests
+// ---------------------------------------------------------------------------
+
+/** Create / update an admin role */
+export const CreateAdminRoleRequestSchema = z.object({
+    role_name: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/, 'Role name must be lowercase alphanumeric with hyphens'),
+    display_name: z.string().min(1).max(100),
+    description: z.string().max(500).default(''),
+    permissions: z.array(AdminPermissionSchema).min(1, 'At least one permission is required'),
+});
+export type CreateAdminRoleRequest = z.infer<typeof CreateAdminRoleRequestSchema>;
+
+export const UpdateAdminRoleRequestSchema = z.object({
+    display_name: z.string().min(1).max(100).optional(),
+    description: z.string().max(500).optional(),
+    permissions: z.array(AdminPermissionSchema).min(1).optional(),
+    is_active: z.boolean().optional(),
+});
+export type UpdateAdminRoleRequest = z.infer<typeof UpdateAdminRoleRequestSchema>;
+
+/** Assign / revoke a role to a Clerk user */
+export const AssignRoleRequestSchema = z.object({
+    clerk_user_id: z.string().min(1),
+    role_name: AdminRoleNameSchema,
+    expires_at: z.string().datetime().nullable().optional(),
+});
+export type AssignRoleRequest = z.infer<typeof AssignRoleRequestSchema>;
+
+/** Update tier config */
+export const UpdateTierConfigRequestSchema = z.object({
+    rate_limit: z.number().int().min(0).optional(),
+    display_name: z.string().min(1).max(100).optional(),
+    description: z.string().max(500).optional(),
+    features: z.record(z.string(), z.unknown()).optional(),
+    is_active: z.boolean().optional(),
+});
+export type UpdateTierConfigRequest = z.infer<typeof UpdateTierConfigRequestSchema>;
+
+/** Update scope config */
+export const UpdateScopeConfigRequestSchema = z.object({
+    display_name: z.string().min(1).max(100).optional(),
+    description: z.string().max(500).optional(),
+    required_tier: z.string().min(1).optional(),
+    is_active: z.boolean().optional(),
+});
+export type UpdateScopeConfigRequest = z.infer<typeof UpdateScopeConfigRequestSchema>;
+
+/** Create / update endpoint auth override */
+export const CreateEndpointOverrideRequestSchema = z.object({
+    path_pattern: z.string().min(1).max(200),
+    method: z.string().toUpperCase().default('*'),
+    required_tier: z.string().nullable().optional(),
+    required_scopes: z.array(z.string()).nullable().optional(),
+    is_public: z.boolean().default(false),
+});
+export type CreateEndpointOverrideRequest = z.infer<typeof CreateEndpointOverrideRequestSchema>;
+
+export const UpdateEndpointOverrideRequestSchema = z.object({
+    required_tier: z.string().nullable().optional(),
+    required_scopes: z.array(z.string()).nullable().optional(),
+    is_public: z.boolean().optional(),
+    is_active: z.boolean().optional(),
+});
+export type UpdateEndpointOverrideRequest = z.infer<typeof UpdateEndpointOverrideRequestSchema>;
+
+/** Create / update feature flag */
+export const CreateFeatureFlagRequestSchema = z.object({
+    flag_name: z.string().min(1).max(100).regex(/^[a-z0-9_.-]+$/, 'Flag name must be lowercase with dots, hyphens, or underscores'),
+    enabled: z.boolean().default(false),
+    rollout_percentage: z.number().int().min(0).max(100).default(100),
+    target_tiers: z.array(z.string()).default([]),
+    target_users: z.array(z.string()).default([]),
+    description: z.string().max(500).default(''),
+});
+export type CreateFeatureFlagRequest = z.infer<typeof CreateFeatureFlagRequestSchema>;
+
+export const UpdateFeatureFlagRequestSchema = z.object({
+    enabled: z.boolean().optional(),
+    rollout_percentage: z.number().int().min(0).max(100).optional(),
+    target_tiers: z.array(z.string()).optional(),
+    target_users: z.array(z.string()).optional(),
+    description: z.string().max(500).optional(),
+});
+export type UpdateFeatureFlagRequest = z.infer<typeof UpdateFeatureFlagRequestSchema>;
+
+/** Create / update announcement */
+export const CreateAnnouncementRequestSchema = z.object({
+    title: z.string().min(1).max(200),
+    body: z.string().max(2000).default(''),
+    severity: AnnouncementSeveritySchema.default('info'),
+    active_from: z.string().datetime().nullable().optional(),
+    active_until: z.string().datetime().nullable().optional(),
+});
+export type CreateAnnouncementRequest = z.infer<typeof CreateAnnouncementRequestSchema>;
+
+export const UpdateAnnouncementRequestSchema = z.object({
+    title: z.string().min(1).max(200).optional(),
+    body: z.string().max(2000).optional(),
+    severity: AnnouncementSeveritySchema.optional(),
+    active_from: z.string().datetime().nullable().optional(),
+    active_until: z.string().datetime().nullable().optional(),
+    is_active: z.boolean().optional(),
+});
+export type UpdateAnnouncementRequest = z.infer<typeof UpdateAnnouncementRequestSchema>;
+
+/** Audit log query filters */
+export const AuditLogQuerySchema = z.object({
+    actor_id: z.string().optional(),
+    action: z.string().optional(),
+    resource_type: z.string().optional(),
+    resource_id: z.string().optional(),
+    status: AuditStatusSchema.optional(),
+    since: z.string().datetime().optional(),
+    until: z.string().datetime().optional(),
+    limit: z.number().int().min(1).max(500).default(50),
+    offset: z.number().int().min(0).default(0),
+});
+export type AuditLogQuery = z.infer<typeof AuditLogQuerySchema>;
+
+// ---------------------------------------------------------------------------
+// Admin API Response Schemas — typed responses for admin endpoints
+// ---------------------------------------------------------------------------
+
+/** Standard paginated list response wrapper */
+export const AdminListResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
+    z.object({
+        success: z.literal(true),
+        items: z.array(itemSchema),
+        total: z.number(),
+        limit: z.number(),
+        offset: z.number(),
+    });
+
+/** Resolved admin user context (from KV cache or D1 lookup) */
+export const ResolvedAdminContextSchema = z.object({
+    clerk_user_id: z.string(),
+    role_name: AdminRoleNameSchema,
+    permissions: z.array(AdminPermissionSchema),
+    expires_at: z.string().nullable(),
+});
+export type ResolvedAdminContext = z.infer<typeof ResolvedAdminContextSchema>;

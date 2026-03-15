@@ -79,8 +79,9 @@ export const routes: Routes = [
     {
         path: 'admin',
         loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent),
+        loadChildren: () => import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES),
         title: 'Admin',
-        data: { description: 'Storage administration', metaDescription: 'Adblock Compiler storage administration. Manage KV, R2, and D1 storage backends.' },
+        data: { description: 'Administration', metaDescription: 'Adblock Compiler administration console. Manage users, storage, configuration, and system settings.' },
         canActivate: [() => import('./guards/admin.guard').then((m) => m.adminGuard)],
     },
     {

@@ -36,6 +36,35 @@ import { handleBackendStatus, handlePgClearCache, handlePgClearExpired, handlePg
 import { handleResolveUrl } from './handlers/url-resolver.ts';
 import { handleSourceMonitor } from './handlers/source-monitor.ts';
 import { handleMonitorLatest } from './handlers/monitor-latest.ts';
+import {
+    handleAdminAssignRole,
+    handleAdminCreateAnnouncement,
+    handleAdminCreateEndpointOverride,
+    handleAdminCreateFlag,
+    handleAdminCreateRole,
+    handleAdminDeleteAnnouncement,
+    handleAdminDeleteEndpointOverride,
+    handleAdminDeleteFlag,
+    handleAdminDeleteScope,
+    handleAdminDeleteTier,
+    handleAdminGetMyContext,
+    handleAdminGetMyPermissions,
+    handleAdminListAnnouncements,
+    handleAdminListAssignments,
+    handleAdminListEndpointOverrides,
+    handleAdminListFlags,
+    handleAdminListRoles,
+    handleAdminListScopes,
+    handleAdminListTiers,
+    handleAdminQueryAuditLogs,
+    handleAdminRevokeRole,
+    handleAdminUpdateAnnouncement,
+    handleAdminUpdateEndpointOverride,
+    handleAdminUpdateFlag,
+    handleAdminUpdateRole,
+    handleAdminUpdateScope,
+    handleAdminUpdateTier,
+} from './handlers/admin-handlers.ts';
 
 // Re-export Env type for external use
 export type { Env };
@@ -430,6 +459,186 @@ const routes: Route[] = [
         method: 'GET',
         pattern: '/api/browser/monitor/latest',
         handler: (req, env) => handleMonitorLatest(req, env),
+        requireAuth: true,
+    },
+
+    // ── Admin System endpoints ──
+
+    // Roles — static paths first, then parameterised catch-all
+    {
+        method: 'GET',
+        pattern: '/admin/system/roles/assignments',
+        handler: (req, env, params) => handleAdminListAssignments(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/system/roles/assign',
+        handler: (req, env, params) => handleAdminAssignRole(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'DELETE',
+        pattern: '/admin/system/roles/revoke',
+        handler: (req, env, params) => handleAdminRevokeRole(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'GET',
+        pattern: '/admin/system/roles',
+        handler: (req, env, params) => handleAdminListRoles(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/system/roles',
+        handler: (req, env, params) => handleAdminCreateRole(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'PATCH',
+        pattern: /^\/admin\/system\/roles\/(?<id>[^/]+)$/,
+        handler: (req, env, params) => handleAdminUpdateRole(req, env, params),
+        requireAuth: true,
+    },
+
+    // My Context / My Permissions
+    {
+        method: 'GET',
+        pattern: '/admin/system/my-context',
+        handler: (req, env, params) => handleAdminGetMyContext(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'GET',
+        pattern: '/admin/system/my-permissions',
+        handler: (req, env, params) => handleAdminGetMyPermissions(req, env, params),
+        requireAuth: true,
+    },
+
+    // Tiers
+    {
+        method: 'GET',
+        pattern: '/admin/system/tiers',
+        handler: (req, env, params) => handleAdminListTiers(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'PUT',
+        pattern: /^\/admin\/system\/tiers\/(?<name>[^/]+)$/,
+        handler: (req, env, params) => handleAdminUpdateTier(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'DELETE',
+        pattern: /^\/admin\/system\/tiers\/(?<name>[^/]+)$/,
+        handler: (req, env, params) => handleAdminDeleteTier(req, env, params),
+        requireAuth: true,
+    },
+
+    // Scopes
+    {
+        method: 'GET',
+        pattern: '/admin/system/scopes',
+        handler: (req, env, params) => handleAdminListScopes(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'PUT',
+        pattern: /^\/admin\/system\/scopes\/(?<name>[^/]+)$/,
+        handler: (req, env, params) => handleAdminUpdateScope(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'DELETE',
+        pattern: /^\/admin\/system\/scopes\/(?<name>[^/]+)$/,
+        handler: (req, env, params) => handleAdminDeleteScope(req, env, params),
+        requireAuth: true,
+    },
+
+    // Endpoint Overrides
+    {
+        method: 'GET',
+        pattern: '/admin/system/endpoints',
+        handler: (req, env, params) => handleAdminListEndpointOverrides(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/system/endpoints',
+        handler: (req, env, params) => handleAdminCreateEndpointOverride(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'PUT',
+        pattern: /^\/admin\/system\/endpoints\/(?<id>[^/]+)$/,
+        handler: (req, env, params) => handleAdminUpdateEndpointOverride(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'DELETE',
+        pattern: /^\/admin\/system\/endpoints\/(?<id>[^/]+)$/,
+        handler: (req, env, params) => handleAdminDeleteEndpointOverride(req, env, params),
+        requireAuth: true,
+    },
+
+    // Feature Flags
+    {
+        method: 'GET',
+        pattern: '/admin/system/flags',
+        handler: (req, env, params) => handleAdminListFlags(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/system/flags',
+        handler: (req, env, params) => handleAdminCreateFlag(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'PATCH',
+        pattern: /^\/admin\/system\/flags\/(?<id>[^/]+)$/,
+        handler: (req, env, params) => handleAdminUpdateFlag(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'DELETE',
+        pattern: /^\/admin\/system\/flags\/(?<id>[^/]+)$/,
+        handler: (req, env, params) => handleAdminDeleteFlag(req, env, params),
+        requireAuth: true,
+    },
+
+    // Audit Logs
+    {
+        method: 'GET',
+        pattern: '/admin/system/audit',
+        handler: (req, env, params) => handleAdminQueryAuditLogs(req, env, params),
+        requireAuth: true,
+    },
+
+    // Announcements
+    {
+        method: 'GET',
+        pattern: '/admin/system/announcements',
+        handler: (req, env, params) => handleAdminListAnnouncements(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'POST',
+        pattern: '/admin/system/announcements',
+        handler: (req, env, params) => handleAdminCreateAnnouncement(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'PATCH',
+        pattern: /^\/admin\/system\/announcements\/(?<id>[^/]+)$/,
+        handler: (req, env, params) => handleAdminUpdateAnnouncement(req, env, params),
+        requireAuth: true,
+    },
+    {
+        method: 'DELETE',
+        pattern: /^\/admin\/system\/announcements\/(?<id>[^/]+)$/,
+        handler: (req, env, params) => handleAdminDeleteAnnouncement(req, env, params),
         requireAuth: true,
     },
 ];
