@@ -60,7 +60,7 @@ wrangler secret put CF_ACCESS_AUD          # Application audience tag
 | Clerk `requireAuth()` on admin routes | ✅ Active |
 | Clerk `requireAdminPermission()` on admin routes | ✅ Active |
 | Granular sub-roles (viewer/editor/super-admin) | ✅ Active (Admin D1 + KV) |
-| Audit logging for every admin action | ✅ Active |
+| Audit logging for all write/mutation operations | ✅ Active |
 
 ### How to Become an Admin
 
@@ -80,8 +80,10 @@ wrangler secret put CF_ACCESS_AUD          # Application audience tag
      -d '{"public_metadata": {"tier": "admin", "role": "admin"}}'
    ```
 
-3. **Webhook syncs** — Clerk fires a `user.updated` event → Worker updates the `users` table with `tier = admin`
-4. **Access granted** — Requests with this user's JWT pass `requireAdminPermission()` checks
+3. **JWT claims updated** — Clerk embeds `role: admin` in all subsequent session JWTs automatically
+4. **Access granted** — The `requireAdminPermission()` middleware reads the JWT claims directly to
+   verify `publicMetadata.role === 'admin'`. Note: the webhook handler intentionally ignores
+   `admin` tier/role values — admin access is granted via JWT metadata, not a webhook-driven D1 update.
 5. **Assign sub-role** — Visit `/admin/roles` to assign `editor` or `super-admin` sub-role (defaults to `viewer`)
 
 ### Bootstrap Problem: First Admin
@@ -106,7 +108,7 @@ When setting up a fresh installation with no existing admins:
 
 ## Admin Endpoints Reference
 
-The admin system exposes 27 API endpoints across 8 resource groups. See the [Admin API Reference](../admin/api-reference.md) for the full list with request/response schemas.
+The admin system exposes 27 API endpoints across 10 resource groups. See the [Admin API Reference](../admin/api-reference.md) for the full list with request/response schemas.
 
 **Resource groups:**
 
