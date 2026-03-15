@@ -47,11 +47,11 @@
  * ```
  */
 
-import { CompositeDiagnosticsProvider } from '../../src/diagnostics/CompositeDiagnosticsProvider';
-import { ConsoleDiagnosticsProvider, NoOpDiagnosticsProvider } from '../../src/diagnostics/IDiagnosticsProvider';
-import type { IDiagnosticsProvider } from '../../src/diagnostics/IDiagnosticsProvider';
-import { OpenTelemetryDiagnosticsProvider } from '../../src/diagnostics/OpenTelemetryDiagnosticsProvider';
-import { SentryDiagnosticsProvider } from '../../src/diagnostics/SentryDiagnosticsProvider';
+import { CompositeDiagnosticsProvider } from '../../src/diagnostics/CompositeDiagnosticsProvider.ts';
+import { ConsoleDiagnosticsProvider, NoOpDiagnosticsProvider } from '../../src/diagnostics/IDiagnosticsProvider.ts';
+import type { IDiagnosticsProvider } from '../../src/diagnostics/IDiagnosticsProvider.ts';
+import { OpenTelemetryDiagnosticsProvider } from '../../src/diagnostics/OpenTelemetryDiagnosticsProvider.ts';
+import { SentryDiagnosticsProvider } from '../../src/diagnostics/SentryDiagnosticsProvider.ts';
 import type { Env } from '../types';
 
 // ---------------------------------------------------------------------------
