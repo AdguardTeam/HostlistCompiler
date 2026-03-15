@@ -111,12 +111,30 @@ SENTRY_DSN=https://your-key@oNNNNNN.ingest.sentry.io/your-project-id
 
 ## 5. Activate the Worker wrapper
 
-`worker/services/sentry-init.ts` exports `withSentryWorker()`. The wrapper is
-already imported and called in `worker/worker.ts` but the Sentry path is
-commented out pending SDK installation.
+`worker/services/sentry-init.ts` exports `withSentryWorker()`. This wrapper is
+**not yet wired into `worker/worker.ts`** — you need to add the wrapping
+after installing the SDK.
 
-**After `npm install @sentry/cloudflare`**, uncomment the body in
-`worker/services/sentry-init.ts`:
+**Step 1 — Install the SDK:**
+
+```bash
+npm install @sentry/cloudflare
+```
+
+**Step 2 — Wrap the export default in `worker/worker.ts`:**
+
+```typescript
+import { withSentryWorker } from './services/sentry-init.ts';
+
+// Replace the existing `export default workerHandler;` with:
+export default withSentryWorker(workerHandler, (env) => ({
+    dsn: env.SENTRY_DSN,
+    release: env.COMPILER_VERSION,
+    tracesSampleRate: 0.1,
+}));
+```
+
+**Step 3 — Uncomment the Sentry path in `worker/services/sentry-init.ts`:**
 
 ```typescript
 // Before (stub — active until SDK installed):
@@ -138,18 +156,6 @@ return Sentry.withSentry(
     }),
     handler,
 ).fetch(request, env, ctx);
-```
-
-`worker/worker.ts` already exports the handler wrapped with `withSentryWorker()`:
-
-```typescript
-import { withSentryWorker } from './services/sentry-init.ts';
-
-export default withSentryWorker(workerHandler, (env) => ({
-    dsn: env.SENTRY_DSN,
-    release: env.COMPILER_VERSION,
-    tracesSampleRate: 0.1,
-}));
 ```
 
 > **`tracesSampleRate`** — start at `0.1` (10 %) in production to stay within

@@ -455,6 +455,11 @@ export interface Env {
     HEALTH_MONITORING_WORKFLOW?: Workflow<HealthMonitoringParams>;
     // Analytics Engine binding (optional - for metrics tracking)
     ANALYTICS_ENGINE?: AnalyticsEngineDataset;
+    // Analytics Engine SQL API credentials (required for GET /metrics/prometheus)
+    // Set as Worker secrets: wrangler secret put ANALYTICS_ACCOUNT_ID
+    //                        wrangler secret put ANALYTICS_API_TOKEN
+    ANALYTICS_ACCOUNT_ID?: string;
+    ANALYTICS_API_TOKEN?: string;
     // Cloudflare Pipelines binding (optional - for metrics/audit log ingestion)
     METRICS_PIPELINE?: PipelineBinding;
     // Error reporting configuration

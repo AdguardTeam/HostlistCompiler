@@ -20,7 +20,7 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import type { Env } from '../types.ts';
+import type { Env } from '../types';
 
 export interface SentryWorkerConfig {
     /** Sentry DSN. Leave undefined to disable Sentry (e.g., local dev). */

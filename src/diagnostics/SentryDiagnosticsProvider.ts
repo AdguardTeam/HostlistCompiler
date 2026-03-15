@@ -49,7 +49,9 @@ export interface SentryDiagnosticsProviderOptions {
 
 export class SentryDiagnosticsProvider implements IDiagnosticsProvider {
     private readonly options: Required<SentryDiagnosticsProviderOptions>;
-    private initialised = false;
+    // Shared init promise prevents multiple concurrent Sentry.init() calls
+    // if captureError() is invoked before the first init resolves.
+    private initPromise: Promise<void> | null = null;
 
     constructor(options: SentryDiagnosticsProviderOptions) {
         this.options = {
@@ -60,16 +62,21 @@ export class SentryDiagnosticsProvider implements IDiagnosticsProvider {
         };
     }
 
-    private async ensureInit(): Promise<void> {
-        if (this.initialised) return;
-        const Sentry = await getSentry();
-        Sentry.init({
-            dsn: this.options.dsn,
-            tracesSampleRate: this.options.tracesSampleRate,
-            release: this.options.release,
-            environment: this.options.environment,
-        });
-        this.initialised = true;
+    private ensureInit(): Promise<void> {
+        if (!this.initPromise) {
+            this.initPromise = getSentry().then((Sentry) => {
+                Sentry.init({
+                    dsn: this.options.dsn,
+                    tracesSampleRate: this.options.tracesSampleRate,
+                    release: this.options.release,
+                    environment: this.options.environment,
+                });
+            }).catch(() => {
+                // Allow retry on next call if init failed
+                this.initPromise = null;
+            });
+        }
+        return this.initPromise;
     }
 
     captureError(error: Error, context?: Record<string, unknown>): void {

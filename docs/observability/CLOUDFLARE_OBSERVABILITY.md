@@ -107,7 +107,10 @@ Jaeger, Honeycomb, etc.):
 ```typescript
 import { OpenTelemetryDiagnosticsProvider } from '../src/diagnostics/index.ts';
 
-const diagnostics = new OpenTelemetryDiagnosticsProvider('adblock-compiler');
+const diagnostics = new OpenTelemetryDiagnosticsProvider({
+    serviceName: 'adblock-compiler',
+    serviceVersion: env.COMPILER_VERSION,
+});
 ```
 
 Configure the OTLP endpoint via the standard `OTEL_EXPORTER_OTLP_ENDPOINT`
@@ -150,7 +153,7 @@ curl "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/analy
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "SELECT blob1 AS event_type, count() AS total FROM adguard-compiler-analytics-engine WHERE timestamp > NOW() - INTERVAL '\''24'\'' HOUR GROUP BY blob1 ORDER BY total DESC LIMIT 20"
+    "query": "SELECT index1 AS event_type, count() AS total FROM `adguard-compiler-analytics-engine` WHERE timestamp > NOW() - INTERVAL '\''24'\'' HOUR GROUP BY index1 ORDER BY total DESC LIMIT 20"
   }'
 ```
 
@@ -159,24 +162,24 @@ curl "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/analy
 ```sql
 -- Compilation error rate (last 24 h)
 SELECT
-    countIf(blob1 = 'compilation_success') AS successes,
-    countIf(blob1 = 'compilation_error')   AS errors,
-    round(countIf(blob1 = 'compilation_error') / count() * 100, 2) AS error_rate_pct
+    countIf(index1 = 'compilation_success') AS successes,
+    countIf(index1 = 'compilation_error')   AS errors,
+    round(countIf(index1 = 'compilation_error') / count() * 100, 2) AS error_rate_pct
 FROM `adguard-compiler-analytics-engine`
 WHERE timestamp > NOW() - INTERVAL '24' HOUR;
 
 -- Cache hit rate (last 1 h)
 SELECT
-    countIf(blob1 = 'cache_hit')  AS hits,
-    countIf(blob1 = 'cache_miss') AS misses,
-    round(countIf(blob1 = 'cache_hit') / count() * 100, 2) AS hit_rate_pct
+    countIf(index1 = 'cache_hit')  AS hits,
+    countIf(index1 = 'cache_miss') AS misses,
+    round(countIf(index1 = 'cache_hit') / count() * 100, 2) AS hit_rate_pct
 FROM `adguard-compiler-analytics-engine`
 WHERE timestamp > NOW() - INTERVAL '1' HOUR;
 
 -- Top rate-limited IPs (last 1 h)
 SELECT blob2 AS client_ip, count() AS events
 FROM `adguard-compiler-analytics-engine`
-WHERE blob1 = 'rate_limit_exceeded'
+WHERE index1 = 'rate_limit_exceeded'
   AND timestamp > NOW() - INTERVAL '1' HOUR
 GROUP BY client_ip
 ORDER BY events DESC

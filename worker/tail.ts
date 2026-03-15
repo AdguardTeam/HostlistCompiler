@@ -73,6 +73,21 @@ export interface TailException {
 }
 
 /**
+ * Typed output of `createStructuredEvent()`.
+ * Using a concrete type here (rather than `Record<string, unknown>`) keeps
+ * downstream consumers like `formatSlackAlert` type-safe.
+ */
+export interface StructuredTailEvent {
+    timestamp: string;
+    scriptName: string;
+    outcome: TailEvent['outcome'];
+    url: string | undefined;
+    method: string | undefined;
+    logs: Array<{ timestamp: string; level: TailLog['level']; message: unknown[] }>;
+    exceptions: Array<{ timestamp: string; name: string; message: string }>;
+}
+
+/**
  * Format log messages for storage
  */
 export function formatLogMessage(log: TailLog): string {
@@ -103,7 +118,7 @@ export function shouldForwardEvent(event: TailEvent): boolean {
 /**
  * Create a structured event for external systems
  */
-export function createStructuredEvent(event: TailEvent): Record<string, unknown> {
+export function createStructuredEvent(event: TailEvent): StructuredTailEvent {
     return {
         timestamp: new Date(event.eventTimestamp).toISOString(),
         scriptName: event.scriptName || 'adblock-compiler',
@@ -129,10 +144,10 @@ export function createStructuredEvent(event: TailEvent): Record<string, unknown>
  * Drop-in replacement for the plain-text JSON body currently sent to
  * ERROR_WEBHOOK_URL. Slack renders this with colour coding and section blocks.
  */
-export function formatSlackAlert(event: ReturnType<typeof createStructuredEvent>): Record<string, unknown> {
+export function formatSlackAlert(event: StructuredTailEvent): Record<string, unknown> {
     const isError = event.outcome !== 'ok';
     const colour = isError ? '#E53E3E' : '#38A169';
-    const exceptionList = (event.exceptions as { name: string; message: string }[])
+    const exceptionList = event.exceptions
         .map((e) => `• *${e.name}*: ${e.message}`)
         .join('\n') || '_none_';
 

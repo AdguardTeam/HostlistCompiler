@@ -17,16 +17,16 @@ pull 24-hour rolling metrics from Cloudflare Analytics Engine.
 
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
-| `adblock_requests_total` | counter | — | Total API requests (24 h) |
-| `adblock_errors_total` | counter | — | Total errors (24 h) |
-| `adblock_error_rate` | gauge | — | Error rate as a fraction (0–1) |
-| `adblock_latency_avg_ms` | gauge | — | Average response latency (ms) |
-| `adblock_latency_p95_ms` | gauge | — | p95 response latency (ms) |
+| `adblock_compilation_requests_total` | counter | — | Total compilation requests (24 h) |
+| `adblock_compilation_errors_total` | counter | — | Total compilation errors (24 h) |
+| `adblock_compilation_error_rate` | gauge | — | Compilation error rate (0–1) over 24 h |
+| `adblock_compilation_latency_avg_ms` | gauge | — | Average compilation latency (ms) |
+| `adblock_compilation_latency_p95_ms` | gauge | — | p95 compilation latency (ms) |
 | `adblock_cache_hits_total` | counter | — | Cache hits (24 h) |
 | `adblock_cache_misses_total` | counter | — | Cache misses (24 h) |
-| `adblock_cache_hit_rate` | gauge | — | Cache hit rate (0–1) |
-| `adblock_rate_limit_events_total` | counter | — | Rate-limit events (24 h) |
-| `adblock_source_errors_total` | counter | — | External source fetch errors (24 h) |
+| `adblock_cache_hit_rate` | gauge | — | Cache hit rate (0–1) over 24 h |
+| `adblock_rate_limit_events_total` | counter | — | Rate-limit exceeded events (24 h) |
+| `adblock_source_fetch_errors_total` | counter | — | External source fetch errors (24 h) |
 
 ---
 
@@ -87,17 +87,17 @@ Add a new Prometheus data source in Grafana:
 ### Example Grafana dashboard panels
 
 ```promql
-# Request rate (per minute)
-rate(adblock_requests_total[5m]) * 60
+# Request rate (per minute, 5-min window)
+rate(adblock_compilation_requests_total[5m]) * 60
 
 # Error rate percentage
-adblock_error_rate * 100
+adblock_compilation_error_rate * 100
 
 # Cache hit rate percentage
 adblock_cache_hit_rate * 100
 
 # p95 latency
-adblock_latency_p95_ms
+adblock_compilation_latency_p95_ms
 ```
 
 ---
@@ -105,12 +105,13 @@ adblock_latency_p95_ms
 ## Fallback behaviour
 
 When `ANALYTICS_ACCOUNT_ID` or `ANALYTICS_API_TOKEN` are absent the endpoint
-returns zeroed metrics (all values `0`) with a `# HELP` comment indicating
+returns zeroed metrics (all values `0`) with a `# note:` comment indicating
 the degraded state. This prevents scraper failures during initial rollout.
 
 ```
-# HELP adblock_requests_total Total API requests (last 24 hours)
-# TYPE adblock_requests_total counter
-adblock_requests_total 0
-# note: ANALYTICS_ACCOUNT_ID or ANALYTICS_API_TOKEN not configured
+# HELP adblock_compilation_requests_total Total number of compilation requests in the last 24 hours.
+# TYPE adblock_compilation_requests_total counter
+adblock_compilation_requests_total 0
+...
+# note: ANALYTICS_ACCOUNT_ID or ANALYTICS_API_TOKEN not configured — all values are zero
 ```

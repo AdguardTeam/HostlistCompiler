@@ -19,6 +19,7 @@
  */
 
 import type { Env } from '../types.ts';
+import { AnalyticsService } from '../../src/services/AnalyticsService.ts';
 import { verifyAdminAuth } from '../middleware/index.ts';
 
 // ---------------------------------------------------------------------------
@@ -37,6 +38,8 @@ interface MetricsSummary {
     cacheHitRate: number;
     rateLimitEvents: number;
     sourceErrors: number;
+    /** True when ANALYTICS_ACCOUNT_ID or ANALYTICS_API_TOKEN are missing. */
+    secretsMissing?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -75,11 +78,8 @@ async function queryAnalyticsEngine(
  * Fetch a summary of the last 24 hours from Analytics Engine.
  */
 async function fetchMetricsSummary(env: Env): Promise<MetricsSummary> {
-    // TODO(#analytics-secrets): Store your account ID and API token as Worker secrets:
-    //   wrangler secret put ANALYTICS_ACCOUNT_ID
-    //   wrangler secret put ANALYTICS_API_TOKEN
-    const accountId = (env as unknown as Record<string, string>).ANALYTICS_ACCOUNT_ID;
-    const apiToken = (env as unknown as Record<string, string>).ANALYTICS_API_TOKEN;
+    const accountId = env.ANALYTICS_ACCOUNT_ID;
+    const apiToken = env.ANALYTICS_API_TOKEN;
 
     if (!accountId || !apiToken) {
         // Fall back to zeroed summary when secrets are not yet configured
@@ -95,6 +95,7 @@ async function fetchMetricsSummary(env: Env): Promise<MetricsSummary> {
             cacheHitRate: 0,
             rateLimitEvents: 0,
             sourceErrors: 0,
+            secretsMissing: true,
         };
     }
 
@@ -173,9 +174,11 @@ function gauge(name: string, help: string, value: number, labels?: Record<string
 
 function counter(name: string, help: string, value: number, labels?: Record<string, string>): string {
     const labelStr = labels ? '{' + Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',') + '}' : '';
+    // HELP and TYPE must reference the full metric name including _total suffix
+    // per the Prometheus text format spec (section 2.3).
     return [
-        `# HELP ${name} ${help}`,
-        `# TYPE ${name} counter`,
+        `# HELP ${name}_total ${help}`,
+        `# TYPE ${name}_total counter`,
         `${name}_total${labelStr} ${value}`,
     ].join('\n');
 }
@@ -195,6 +198,13 @@ function counter(name: string, help: string, value: number, labels?: Record<stri
 export async function handlePrometheusMetrics(request: Request, env: Env): Promise<Response> {
     const auth = await verifyAdminAuth(request, env);
     if (!auth.authorized) {
+        // ZTA: emit security event for auth failures on this endpoint
+        new AnalyticsService(env.ANALYTICS_ENGINE).trackSecurityEvent({
+            eventType: 'auth_failure',
+            path: '/metrics/prometheus',
+            method: request.method,
+            reason: auth.error ?? 'Unauthorized',
+        });
         return new Response(auth.error ?? 'Unauthorized', { status: 401 });
     }
 
@@ -251,6 +261,8 @@ export async function handlePrometheusMetrics(request: Request, env: Env): Promi
             'Total source fetch errors in the last 24 hours.',
             metrics.sourceErrors,
         ),
+        // Indicate degraded mode to operators when secrets are not configured
+        ...(metrics.secretsMissing ? ['# note: ANALYTICS_ACCOUNT_ID or ANALYTICS_API_TOKEN not configured — all values are zero'] : []),
         // Trailing newline required by Prometheus spec
         '',
     ];
