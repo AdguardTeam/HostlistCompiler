@@ -4,26 +4,35 @@ How admin endpoints are protected and how to configure admin access.
 
 ## Current Admin Authentication
 
-Admin routes (`/admin/storage/*`) currently use a **dual-layer** authentication system:
+Admin routes use **Clerk JWT-based authentication** as the primary layer, with optional Cloudflare Access as defense-in-depth. The `/admin/*` Angular panel and all backing API endpoints are fully protected.
 
-### Layer 1: Static Admin Key (Legacy)
+### Layer 1: Clerk JWT (Primary)
 
-Admin requests must include the `X-Admin-Key` header:
+Admin requests require a valid Clerk JWT with `publicMetadata.role === 'admin'`. The Angular admin panel attaches this automatically via the HTTP interceptor. For API access:
+
+```bash
+# Obtain a session token from Clerk, then:
+curl -X GET https://adblock-compiler.jayson-knight.workers.dev/admin/roles/me \
+  -H "Authorization: Bearer <clerk-session-jwt>"
+```
+
+Within the admin system, a **granular sub-role** (`viewer` / `editor` / `super-admin`) is resolved from the Admin D1 database and cached in KV. Endpoints enforce the required permission via `requireAdminPermission('...')` middleware.
+
+### Layer 2: Static Admin Key (Legacy, for `/admin/storage/*` only)
+
+The legacy storage endpoints retain `X-Admin-Key` header support for backward compatibility:
 
 ```bash
 curl -X GET https://adblock-compiler.jayson-knight.workers.dev/admin/storage/stats \
   -H "X-Admin-Key: your-admin-key-here"
 ```
 
-The key is compared using constant-time comparison (`timingSafeCompare`) to prevent timing attacks.
-
 **Configuration:**
 ```bash
 wrangler secret put ADMIN_KEY
-# Enter your chosen admin key
 ```
 
-### Layer 2: Cloudflare Access (Defense-in-Depth)
+### Layer 3: Cloudflare Access (Defense-in-Depth)
 
 When configured, admin routes also require a valid Cloudflare Access JWT:
 
@@ -38,31 +47,20 @@ wrangler secret put CF_ACCESS_TEAM_DOMAIN  # e.g., "mycompany"
 wrangler secret put CF_ACCESS_AUD          # Application audience tag
 ```
 
-## Migration to Clerk-Based Admin Auth
+## Clerk-Based Admin Auth
 
-> **Status**: Planned — the Clerk tier system is built, but admin routes haven't been migrated yet.
+> **Status**: ✅ Complete — shipped in PR #1058 (v0.60.0)
 
 ### Current State
 
 | Feature | Status |
 |---------|--------|
-| `ADMIN_KEY` static key | ✅ Active (legacy) |
+| `ADMIN_KEY` static key | ✅ Active (legacy, storage endpoints only) |
 | CF Access verification | ✅ Active (when configured) |
-| Clerk `requireAuth()` on admin routes | ❌ Not yet wired |
-| Clerk `requireTier(Admin)` on admin routes | ❌ Not yet wired |
-| `requireScope(admin)` on admin routes | ❌ Not yet wired |
-
-### Target State
-
-After migration, admin routes will use Clerk tier-based auth:
-
-```
-Request → Clerk JWT verify → requireAuth() → requireTier(Admin)
-                                                    │
-                                        Optional: CF Access verify
-```
-
-The `ADMIN_KEY` environment variable will be deprecated and eventually removed.
+| Clerk `requireAuth()` on admin routes | ✅ Active |
+| Clerk `requireAdminPermission()` on admin routes | ✅ Active |
+| Granular sub-roles (viewer/editor/super-admin) | ✅ Active (Admin D1 + KV) |
+| Audit logging for every admin action | ✅ Active |
 
 ### How to Become an Admin
 
@@ -83,13 +81,14 @@ The `ADMIN_KEY` environment variable will be deprecated and eventually removed.
    ```
 
 3. **Webhook syncs** — Clerk fires a `user.updated` event → Worker updates the `users` table with `tier = admin`
-4. **Access granted** — Future requests with this user's JWT will pass `requireTier(Admin)` checks
+4. **Access granted** — Requests with this user's JWT pass `requireAdminPermission()` checks
+5. **Assign sub-role** — Visit `/admin/roles` to assign `editor` or `super-admin` sub-role (defaults to `viewer`)
 
 ### Bootstrap Problem: First Admin
 
 When setting up a fresh installation with no existing admins:
 
-1. **Option A (Recommended)**: Use the Clerk dashboard directly — it doesn't require admin auth to access. Set `tier: admin` on your user in the Clerk dashboard UI.
+1. **Option A (Recommended)**: Use the Clerk dashboard directly — it doesn't require admin auth to access. Set `tier: admin, role: admin` on your user in the Clerk dashboard UI.
 
 2. **Option B**: Use the Clerk Backend API with your `CLERK_SECRET_KEY`:
    ```bash
@@ -100,35 +99,42 @@ When setting up a fresh installation with no existing admins:
    # Set admin tier
    curl -X PATCH https://api.clerk.com/v1/users/{your_user_id}/metadata \
      -H "Authorization: Bearer sk_live_..." \
-     -d '{"public_metadata": {"tier": "admin"}}'
+     -d '{"public_metadata": {"tier": "admin", "role": "admin"}}'
    ```
 
-3. **Option C (Legacy)**: Use the `ADMIN_KEY` for initial setup, then migrate to Clerk auth.
+3. **Option C (Legacy)**: Use the `ADMIN_KEY` for initial storage endpoint access, then migrate to Clerk auth.
 
 ## Admin Endpoints Reference
 
-All admin endpoints are under `/admin/storage/`:
+The admin system exposes 27 API endpoints across 8 resource groups. See the [Admin API Reference](../admin/api-reference.md) for the full list with request/response schemas.
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/admin/storage/stats` | GET | Storage statistics (counts, expired entries) |
-| `/admin/storage/clear-expired` | POST | Remove expired storage and cache entries |
-| `/admin/storage/clear-cache` | POST | Clear the filter cache |
-| `/admin/storage/export` | GET | Export all storage data |
-| `/admin/storage/vacuum` | POST | Run SQLite VACUUM on D1 database |
-| `/admin/storage/tables` | GET | List all D1 database tables |
-| `/admin/storage/query` | POST | Execute a read-only SQL query |
+**Resource groups:**
 
-### Example: Get Storage Stats
+| Group | Base Path | Description |
+|-------|-----------|-------------|
+| Roles | `/admin/roles` | Role definitions, assignments, permission resolution |
+| Users | `/admin/users` | User management, tier editing, suspension |
+| Tiers | `/admin/config/tiers` | Runtime-editable tier registry |
+| Scopes | `/admin/config/scopes` | Runtime-editable scope registry |
+| Endpoints | `/admin/config/endpoints` | Per-endpoint auth overrides |
+| Feature Flags | `/admin/config/flags` | Flag CRUD + rollout controls |
+| Audit Logs | `/admin/audit-logs` | Immutable audit trail (paginated, filtered) |
+| API Keys | `/admin/keys` | Cross-user key management + revocation |
+| Announcements | `/admin/announcements` | System banner management |
+| Storage | `/admin/storage/*` | Legacy storage tools (stats, export, query) |
+
+### Example: Get Current User Permissions
 
 ```bash
-# Using ADMIN_KEY (current)
-curl -X GET https://your-worker.workers.dev/admin/storage/stats \
-  -H "X-Admin-Key: your-admin-key"
-
-# Using Clerk JWT (after migration)
-curl -X GET https://your-worker.workers.dev/admin/storage/stats \
+# Using Clerk JWT (current)
+curl -X GET https://your-worker.workers.dev/admin/roles/me \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
+
+# Response
+{
+  "role": "editor",
+  "permissions": ["admin:read", "config:write", "users:read", "flags:write"]
+}
 ```
 
 ## Cloudflare Access Setup (Recommended)
