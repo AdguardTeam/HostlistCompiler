@@ -1,6 +1,8 @@
-# Admin Dashboard
+# Public Dashboard
 
-The Adblock Compiler Admin Dashboard is the main landing page that provides a centralized control panel for managing, testing, and monitoring the filter list compilation service.
+> **Note:** This document covers the static public dashboard served at `/` (the filter compiler UI, metrics, and tool navigation). The production Angular admin panel at `/admin` is a separate, auth-protected system — see the [Admin System documentation](../admin/README.md).
+
+The Adblock Compiler Public Dashboard is the main landing page that provides a centralized control panel for managing, testing, and monitoring the filter list compilation service.
 
 ## Overview
 
@@ -259,4 +261,4 @@ Potential additions to the dashboard:
 - [ ] Job scheduling interface
 - [ ] Real-time WebSocket connection status
 - [ ] Filter list library management
-- [ ] User authentication for admin features
+- [x] User authentication for admin features — implemented in the Angular admin panel (`/admin`, PR #1058)

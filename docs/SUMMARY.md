@@ -76,8 +76,6 @@
   - [Lighthouse CI](reference/LIGHTHOUSE_CI.md)
   - [AI Assistant Guide](reference/claude.md)
   - [Version Management](reference/VERSION_MANAGEMENT.md)
-- [Authentication](auth/README.md)
-  - [Removing Anonymous Access](auth/removing-anonymous-access.md)
 - [Releases](releases/README.md)
   - [v0.8.0 Release Notes](releases/RELEASE_0.8.0.md)
   - [Blog Post](releases/BLOG_POST_ADBLOCK_COMPILER.md)
