@@ -163,9 +163,7 @@ async function fetchMetricsSummary(env: Env): Promise<MetricsSummary> {
 // ---------------------------------------------------------------------------
 
 function gauge(name: string, help: string, value: number, labels?: Record<string, string>): string {
-    const labelStr = labels
-        ? '{' + Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',') + '}'
-        : '';
+    const labelStr = labels ? '{' + Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',') + '}' : '';
     return [
         `# HELP ${name} ${help}`,
         `# TYPE ${name} gauge`,
@@ -174,9 +172,7 @@ function gauge(name: string, help: string, value: number, labels?: Record<string
 }
 
 function counter(name: string, help: string, value: number, labels?: Record<string, string>): string {
-    const labelStr = labels
-        ? '{' + Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',') + '}'
-        : '';
+    const labelStr = labels ? '{' + Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',') + '}' : '';
     return [
         `# HELP ${name} ${help}`,
         `# TYPE ${name} counter`,

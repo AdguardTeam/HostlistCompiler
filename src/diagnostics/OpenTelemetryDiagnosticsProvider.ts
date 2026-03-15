@@ -13,8 +13,8 @@
  *   const provider = new OpenTelemetryDiagnosticsProvider({ serviceName: 'adblock-compiler' });
  */
 
-import { trace, SpanStatusCode } from '@opentelemetry/api';
-import type { Tracer, Span as OtelSpan } from '@opentelemetry/api';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
+import type { Span as OtelSpan, Tracer } from '@opentelemetry/api';
 import type { IDiagnosticsProvider, ISpan } from './IDiagnosticsProvider.ts';
 
 export interface OpenTelemetryDiagnosticsProviderOptions {
