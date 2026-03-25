@@ -71,4 +71,24 @@ describe('Configuration', () => {
         expect(ret.valid).toBe(false);
         expect(ret.errorsText).toBeTruthy();
     });
+
+    it('test ValidateAllowTLD transformation in configuration', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: [
+                        'ValidateAllowTLD',
+                    ],
+                },
+            ],
+            transformations: [
+                'ValidateAllowTLD',
+            ],
+        });
+
+        expect(ret.valid).toBe(true);
+        expect(ret.errorsText).toBeNull();
+    });
 });

@@ -2,6 +2,7 @@ const removeComments = require('./remove-comments');
 const removeModifiers = require('./remove-modifiers');
 const { validate } = require('./validate');
 const { validateAllowIp } = require('./validate-allow-ip');
+const { validateAllowTLD } = require('./validate-allow-tld');
 const exclude = require('./exclude');
 const include = require('./include');
 const deduplicate = require('./deduplicate');
@@ -21,6 +22,7 @@ const TRANSFORMATIONS = Object.freeze({
     RemoveModifiers: 'RemoveModifiers',
     Validate: 'Validate',
     ValidateAllowIp: 'ValidateAllowIp',
+    ValidateAllowTLD: 'ValidateAllowTLD',
     Deduplicate: 'Deduplicate',
     InvertAllow: 'InvertAllow',
     RemoveEmptyLines: 'RemoveEmptyLines',
@@ -80,6 +82,9 @@ async function transform(rules, configuration, transformations) {
     }
     if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowIp) !== -1) {
         transformed = validateAllowIp(transformed);
+    }
+    if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowTLD) !== -1) {
+        transformed = validateAllowTLD(transformed);
     }
     if (transformations.indexOf(TRANSFORMATIONS.Deduplicate) !== -1) {
         transformed = deduplicate(transformed);

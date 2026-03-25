@@ -14,6 +14,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [RemoveModifiers](#remove-modifiers)
   - [Validate](#validate)
   - [ValidateAllowIp](#validate-allow-ip)
+  - [ValidateAllowTLD](#validate-allow-tld)
   - [Deduplicate](#deduplicate)
   - [InvertAllow](#invertallow)
   - [RemoveEmptyLines](#removeemptylines)
@@ -162,8 +163,8 @@ Here is an example:
 Rules in HOSTS syntax: `/hosts.txt`
 
 ```txt
-0.0.0.0 ads.example.com  
-0.0.0.0 tracking.example1.com  
+0.0.0.0 ads.example.com
+0.0.0.0 tracking.example1.com
 0.0.0.0 example.com
 ```
 
@@ -195,7 +196,7 @@ Configuration of the final list:
 Final filter output of `/hosts.txt` after applying the `Compress` transformation and exclusions:
 
 ```txt
-||ads.example.com^  
+||ads.example.com^
 ||tracking.example1.com^
 ```
 
@@ -310,11 +311,13 @@ Here is the full list of transformations that are available:
 1. `RemoveModifiers`
 1. `Validate`
 1. `ValidateAllowIp`
+1. `ValidateAllowTLD`
 1. `Deduplicate`
 1. `InvertAllow`
 1. `RemoveEmptyLines`
 1. `TrimLines`
 1. `InsertFinalNewLine`
+1. `ConvertToAscii`
 
 Please note that these transformations are are always applied in the order specified here.
 
@@ -364,12 +367,21 @@ So here's what it does:
   Examples:
   - `||*.org^` - this rule will be removed
   - `||*.org^$denyallow=example.com` - this rule will be kept because it has a limiting modifier
+  If such rules must be saved, use [ValidateAllowTLD](#validate-allow-tld).
 
 If there are comments preceding the invalid rule, they will be removed as well.
 
 ### <a name="validate-allow-ip"></a> ValidateAllowIp
 
 This transformation exactly repeats the behavior of [Validate](#validate), but leaves the IP addresses in the lists.
+
+### <a name="validate-allow-tld"></a> ValidateAllowTLD
+
+This transformation exactly repeats the behavior of [Validate](#validate), but leaves rules that match whole public suffixes (e.g. `||hl.cn^`, `||org^`) in the list.
+
+It still filters out invalid syntax rules and unsupported modifiers, but does not reject public-suffix rules unless the rule itself is malformed.
+
+> **Note:** `ValidateAllowIp` and `ValidateAllowTLD` should not be combined for enabling both IP and TLD rules in one pass. Each transformation runs its own validator (`allowIP` / `allowTLD`) and effectively intersects results. A dedicated combined mode is required for “allow both IP and TLD” behavior.
 
 ### <a name="deduplicate"></a> Deduplicate
 

@@ -56,6 +56,19 @@ dupl1
         expect(filtered).toEqual(['rule1', 'dupl1', '||185.149.120.173^']);
     });
 
+    // TODO: Delete this test when ValidateAllowIp and ValidateAllowTLD support a combined mode.
+    it('ValidateAllowIp and ValidateAllowTLD are not compatible when used together', async () => {
+        const rules = `||185.149.120.173^
+||hl.cn^
+||example.com^`.split(/\r?\n/);
+
+        const filteredIpThenTld = await transform(rules, {}, ['ValidateAllowIp', 'ValidateAllowTLD']);
+        const filteredTldThenIp = await transform(rules, {}, ['ValidateAllowTLD', 'ValidateAllowIp']);
+
+        expect(filteredIpThenTld).toEqual(['||example.com^']);
+        expect(filteredTldThenIp).toEqual(['||example.com^']);
+    });
+
     it('simple transformations with removeModifiers', async () => {
         const rules = `! test comment
 rule1

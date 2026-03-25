@@ -8,6 +8,7 @@ const DOMAIN_PREFIX = '||';
 const DOMAIN_SEPARATOR = '^';
 const WILDCARD = '*';
 const WILDCARD_DOMAIN_PART = '*.';
+const EXACT_DOMAIN_PATTERN = /^(?:\|\|)?(?:\*\.|\.)?([a-zA-Z0-9.-]+)\^(?:\|)?$/;
 
 // TODO: Remove lodash from the project if possible
 
@@ -50,7 +51,7 @@ const MAX_PATTERN_LENGTH = 5;
  * @param {boolean} hasLimitModifier - flag to determine if the rule has a limit modifier, e.g. denyallow
  * @returns {boolean} true if the hostname is okay to be in the blocklist.
  */
-function validHostname(hostname, ruleText, allowedIP, hasLimitModifier) {
+function validHostname(hostname, ruleText, allowedIP, hasLimitModifier, allowTLD) {
     const result = tldts.parse(hostname);
 
     if (!result.hostname) {
@@ -63,12 +64,23 @@ function validHostname(hostname, ruleText, allowedIP, hasLimitModifier) {
         return false;
     }
 
-    if (result.hostname === result.publicSuffix && !hasLimitModifier) {
+    if (result.hostname === result.publicSuffix && !hasLimitModifier && !allowTLD) {
         consola.debug(`matching the whole public suffix ${hostname} is not allowed: ${ruleText}`);
         return false;
     }
 
     return true;
+}
+
+/**
+ * Extracts a domain-like pattern from rules such as ||org^, ||*.org^, .org^ or *.org^.
+ *
+ * @param {string} pattern - adblock rule pattern without modifiers
+ * @returns {string|null} normalized hostname to validate or null if the pattern does not match
+ */
+function extractDomainPattern(pattern) {
+    const match = pattern.match(EXACT_DOMAIN_PATTERN);
+    return match ? match[1] : null;
 }
 
 /**
@@ -116,7 +128,7 @@ function validEtcHostsRule(ruleText, allowIP) {
  * @param {boolean} allowedIP - flag to determine if IP validation is allowed
  * @returns {boolean} - adblock-style rule
  */
-function validAdblockRule(ruleText, allowedIP) {
+function validAdblockRule(ruleText, allowedIP, allowTLD) {
     let props;
     try {
         props = ruleUtils.loadAdblockRuleProperties(ruleText);
@@ -182,6 +194,11 @@ function validAdblockRule(ruleText, allowedIP) {
         return false;
     }
 
+    const exactDomainPattern = extractDomainPattern(props.pattern);
+    if (exactDomainPattern) {
+        return validHostname(exactDomainPattern, ruleText, allowedIP, hasLimitModifier, allowTLD);
+    }
+
     // Check if the pattern does not start with the domain prefix and does not contain a domain separator
     if (!_.startsWith(props.pattern, DOMAIN_PREFIX) || sepIdx === -1) {
         return true;
@@ -201,14 +218,14 @@ function validAdblockRule(ruleText, allowedIP) {
         // If it's a wildcard with TLD, validate the cleaned TLD
         if (startsWithWildcard && isOnlyTLD) {
             const cleanedDomain = domainToCheck.replace(WILDCARD_DOMAIN_PART, '');
-            return validHostname(cleanedDomain, ruleText, allowedIP, hasLimitModifier);
+            return validHostname(cleanedDomain, ruleText, allowedIP, hasLimitModifier, allowTLD);
         }
         // If the rule has wildcard characters but is not a TLD (e.g., ||*.example.org^)
         return true;
     }
 
     // Validate the domain
-    if (!validHostname(domainToCheck, ruleText, allowedIP, hasLimitModifier)) {
+    if (!validHostname(domainToCheck, ruleText, allowedIP, hasLimitModifier, allowTLD)) {
         return false;
     }
 
@@ -232,7 +249,7 @@ function validAdblockRule(ruleText, allowedIP) {
  * @param {boolean} allowedIP - flag to determine if IP validation is allowed
  * @returns {boolean} - true if the rule is valid, false otherwise
  */
-function valid(ruleText, allowedIP) {
+function valid(ruleText, allowedIP, allowTLD) {
     if (ruleUtils.isComment(ruleText) || _.isEmpty(_.trim(ruleText))) {
         return true;
     }
@@ -241,7 +258,7 @@ function valid(ruleText, allowedIP) {
         return validEtcHostsRule(ruleText, allowedIP);
     }
 
-    return validAdblockRule(ruleText, allowedIP);
+    return validAdblockRule(ruleText, allowedIP, allowTLD);
 }
 
 /**
@@ -251,8 +268,9 @@ class Validator {
     /**
      * Creates a new rule validator.
      * @param {boolean} allowedIP - Flag indicating whether IP addresses should be considered valid.
+     * @param {boolean} allowTLD - Flag indicating whether rules matching whole public suffix are allowed.
      */
-    constructor(allowedIP) {
+    constructor(allowedIP, allowTLD) {
         /**
        * Indicates that a rule was previously removed (the iteration processed an invalid rule).
        * Used to remove preceding comments or empty lines.
@@ -265,6 +283,12 @@ class Validator {
        * @type {boolean}
        */
         this.allowedIP = allowedIP;
+
+        /**
+       * Flag to allow or disallow validation when hostname equals public suffix.
+       * @type {boolean}
+       */
+        this.allowTLD = allowTLD;
     }
 
     /**
@@ -279,7 +303,7 @@ class Validator {
         // Iterate from the end to the beginning so we can remove
         // preceding comments/empty lines if needed
         for (let i = filtered.length - 1; i >= 0; i -= 1) {
-            const isValidRule = valid(filtered[i], this.allowedIP);
+            const isValidRule = valid(filtered[i], this.allowedIP, this.allowTLD);
             const isCommentOrEmptyLine = ruleUtils.isComment(filtered[i]) || _.isEmpty(filtered[i]);
 
             if (!isValidRule) {
@@ -308,8 +332,9 @@ class Validator {
  * @returns {Array<string>} The filtered list of valid rules.
  */
 function validate(rules) {
-    const validator = new Validator(false);
+    const validator = new Validator(false, false);
     // ip is not allowed for default validation
+    // tld is not allowed for default validation
     return validator.validate(rules);
 }
 

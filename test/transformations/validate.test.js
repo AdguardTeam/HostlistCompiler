@@ -133,4 +133,26 @@ describe('Validate', () => {
             '||*.example.org^',
         ]);
     });
+
+    it('removes whole public suffix variants by default', () => {
+        const rules = `||*.org^
+.org^
+*.org^
+||org^
+||example.org^`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual(['||example.org^']);
+    });
+
+    it('removes whole public suffix exception variants by default', () => {
+        const rules = `@@||*.org^
+@@.org^
+@@*.org^
+@@||org^
+@@||example.org^`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual(['@@||example.org^']);
+    });
 });
