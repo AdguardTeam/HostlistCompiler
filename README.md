@@ -20,7 +20,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [TrimLines](#trimlines)
   - [InsertFinalNewLine](#insertfinalnewline)
   - [ConvertToAscii](#convert-to-ascii)
-- [How to build](#how-to-build)
+- [Documentation](#documentation)
 
 ## <a name="usage"></a> Usage
 
@@ -162,8 +162,8 @@ Here is an example:
 Rules in HOSTS syntax: `/hosts.txt`
 
 ```txt
-0.0.0.0 ads.example.com  
-0.0.0.0 tracking.example1.com  
+0.0.0.0 ads.example.com
+0.0.0.0 tracking.example1.com
 0.0.0.0 example.com
 ```
 
@@ -195,7 +195,7 @@ Configuration of the final list:
 Final filter output of `/hosts.txt` after applying the `Compress` transformation and exclusions:
 
 ```txt
-||ads.example.com^  
+||ads.example.com^
 ||tracking.example1.com^
 ```
 
@@ -525,9 +525,8 @@ Here's what we will have after applying this transformation:
 ||*.xn--1qqw23a^
 ```
 
-## <a name="how-to-build"></a> How to build
+## <a name="documentation"></a> Documentation
 
-- `yarn install` - installs dependencies
-- `yarn lint` - runs eslint
-- `yarn test` - runs tests
-- `node src/cli.js -c examples/sdn/configuration.json -o filter.txt` - runs compiler with the example configuration
+- [Development guide](DEVELOPMENT.md) — how to set up the environment, build, test, and contribute
+- [LLM agent rules](AGENTS.md) — code guidelines and project conventions
+- [Changelog](CHANGELOG.md) — release history
