@@ -305,6 +305,7 @@ import { writeFileSync } from 'fs';
 
 Here is the full list of transformations that are available:
 
+1. `ConvertToAscii`
 1. `RemoveComments`
 1. `Compress`
 1. `RemoveModifiers`
