@@ -54,10 +54,10 @@ Build:
             # Fix mixed logs
             exec 2>&1
 
-            # Fail if version was not incremented
+            # Fail if version was not bumped
             if [ "$(git tag -l "v${bamboo.inject.version}")" ]; then
               echo "Build failed!"
-              echo "Error: Tag v${bamboo.inject.version} already exists. Increment version before build"
+              echo "Error: Tag v${bamboo.inject.version} already exists. Bump the version in package.json before building"
               exit 1
             fi
 

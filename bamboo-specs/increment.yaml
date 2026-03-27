@@ -9,7 +9,7 @@ variables:
 
 stages:
   - Increment:
-      manual: false
+      manual: true
       final: false
       jobs:
         - Increment
