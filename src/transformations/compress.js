@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const consola = require('consola');
 const ruleUtils = require('../rule');
 
@@ -71,7 +70,7 @@ function toAdblockRules(ruleText) {
     // try parsing an adblock rule and check if it can be compressed
     try {
         const props = ruleUtils.loadAdblockRuleProperties(ruleText);
-        if (props.hostname && !props.whitelist && _.isEmpty(props.options)) {
+        if (props.hostname && !props.whitelist && props.options.length === 0) {
             adblockRules.push({
                 ruleText,
                 canCompress: true,

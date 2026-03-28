@@ -1,4 +1,4 @@
-const _ = require('lodash');
+const { escapeRegexp } = require('fast-escape-regexp');
 
 /**
  * Extracts a substring between two tags.
@@ -106,7 +106,7 @@ class Wildcard {
         } else if (str.includes('*')) {
             // Creates a RegExp from the given string, converting asterisks to .* expressions,
             // and escaping all other characters.
-            this.regex = new RegExp(`^${str.split(/\*+/).map(_.escapeRegExp).join('[\\s\\S]*')}$`, 'i');
+            this.regex = new RegExp(`^${str.split(/\*+/).map(escapeRegexp).join('[\\s\\S]*')}$`, 'i');
         }
     }
 
