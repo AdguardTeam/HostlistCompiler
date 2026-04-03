@@ -9,17 +9,18 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [Command-line](#command-line)
   - [API](#api)
 - [Transformations](#transformations)
+  - [ConvertToAscii](#convert-to-ascii)
+  - [TrimLines](#trimlines)
   - [RemoveComments](#remove-comments)
   - [Compress](#compress)
   - [RemoveModifiers](#remove-modifiers)
+  - [InvertAllow](#invertallow)
   - [Validate](#validate)
   - [ValidateAllowIp](#validate-allow-ip)
+  - [ValidateAllowPublicSuffix](#validate-allow-public-suffix)
   - [Deduplicate](#deduplicate)
-  - [InvertAllow](#invertallow)
   - [RemoveEmptyLines](#removeemptylines)
-  - [TrimLines](#trimlines)
   - [InsertFinalNewLine](#insertfinalnewline)
-  - [ConvertToAscii](#convert-to-ascii)
 - [Documentation](#documentation)
 
 ## <a name="usage"></a> Usage
@@ -305,18 +306,66 @@ import { writeFileSync } from 'fs';
 
 Here is the full list of transformations that are available:
 
+1. `ConvertToAscii`
+1. `TrimLines`
 1. `RemoveComments`
 1. `Compress`
 1. `RemoveModifiers`
+1. `InvertAllow`
 1. `Validate`
 1. `ValidateAllowIp`
+1. `ValidateAllowPublicSuffix`
 1. `Deduplicate`
-1. `InvertAllow`
 1. `RemoveEmptyLines`
-1. `TrimLines`
 1. `InsertFinalNewLine`
 
-Please note that these transformations are are always applied in the order specified here.
+Please note that these transformations are always applied in the order specified here.
+
+### <a name="convert-to-ascii"></a> ConvertToAscii
+
+This transformation converts all non-ASCII characters to their ASCII equivalents. It is always performed first.
+
+**Example:**
+
+Original list:
+
+```
+||*.рус^
+||*.कॉम^
+||*.セール^
+```
+
+Here's what we will have after applying this transformation:
+
+```
+||*.xn--p1acf^
+||*.xn--11b4c3d^
+||*.xn--1qqw23a^
+```
+
+### <a name="trimlines"></a> TrimLines
+
+This is a very simple transformation that removes leading and trailing spaces/tabs.
+
+**Example:**
+
+Original list:
+
+```
+rule1
+   rule2
+rule3
+		rule4
+```
+
+Here's what we will have after applying this transformation:
+
+```
+rule1
+rule2
+rule3
+rule4
+```
 
 ### <a name="remove-comments"></a> RemoveComments
 
@@ -347,54 +396,6 @@ Here is the list of modifiers that will be removed:
 > [!CAUTION]
 > Blindly removing `$third-party` from traditional ad blocking rules leads to lots of false-positives.
 >> This is exactly why there is an option to exclude rules - you may need to use it.
-
-### <a name="validate"></a> Validate
-
-This transformation is really crucial if you're using a filter list for a traditional ad blocker as a source.
-
-It removes dangerous or incompatible rules from the list.
-
-So here's what it does:
-
-- Discards domain-specific rules (e.g. `||example.org^$domain=example.com`). You don't want to have domain-specific rules working globally.
-- Discards rules with unsupported modifiers. [Click here](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists#-adblock-style-syntax) to learn more about which modifiers are supported.
-- Discards rules that are too short.
-- Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
-- Removes rules that block entire top-level domains (TLDs) like `||*.org^`, unless they have specific limiting modifiers such as `$denyallow`, `$badfilter`, or `$client`.
-  Examples:
-  - `||*.org^` - this rule will be removed
-  - `||*.org^$denyallow=example.com` - this rule will be kept because it has a limiting modifier
-
-If there are comments preceding the invalid rule, they will be removed as well.
-
-### <a name="validate-allow-ip"></a> ValidateAllowIp
-
-This transformation exactly repeats the behavior of [Validate](#validate), but leaves the IP addresses in the lists.
-
-### <a name="deduplicate"></a> Deduplicate
-
-This transformation simply removes the duplicates from the specified source.
-
-There are two important notes about this transformation:
-
-1. It keeps the original rules order.
-2. It ignores comments. However, if the comments precede the rule that is being removed, the comments will be also removed.
-
-For instance:
-
-```
-! rule1 comment 1
-rule1
-! rule1 comment 2
-rule1
-```
-
-Here's what will be left after the transformation:
-
-```
-! rule1 comment 2
-rule1
-```
 
 ### <a name="invertallow"></a> InvertAllow
 
@@ -429,6 +430,65 @@ Here's what we will have after applying this transformation:
 @@rule2
 ```
 
+### <a name="validate"></a> Validate
+
+This transformation is really crucial if you're using a filter list for a traditional ad blocker as a source.
+
+It removes dangerous or incompatible rules from the list.
+
+So here's what it does:
+
+- Discards domain-specific rules (e.g. `||example.org^$domain=example.com`). You don't want to have domain-specific rules working globally.
+- Discards rules with unsupported modifiers. [Click here](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists#-adblock-style-syntax) to learn more about which modifiers are supported.
+- Discards rules that are too short.
+- Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
+- Removes rules that block entire top-level domains (TLDs) like `||*.org^`, unless they have specific limiting modifiers such as `$denyallow`, `$badfilter`, or `$client`.
+  Examples:
+  - `||*.org^` - this rule will be removed
+  - `||*.org^$denyallow=example.com` - this rule will be kept because it has a limiting modifier
+  If such rules must be saved, use [ValidateAllowPublicSuffix](#validate-allow-public-suffix).
+
+If there are comments preceding the invalid rule, they will be removed as well.
+
+### <a name="validate-allow-ip"></a> ValidateAllowIp
+
+This transformation exactly repeats the behavior of [Validate](#validate), but leaves the IP addresses in the lists.
+
+### <a name="validate-allow-public-suffix"></a> ValidateAllowPublicSuffix
+
+This transformation exactly repeats the behavior of [Validate](#validate), but leaves rules that match whole public suffixes (e.g. `||hl.cn^`, `||org^`) in the list.
+
+It still filters out invalid syntax rules and unsupported modifiers, but does not reject public-suffix rules unless the rule itself is malformed.
+
+> **Note:** Combining any `Validate`, `ValidateAllowIp`, and `ValidateAllowPublicSuffix` in one transformation list is not allowed and will result in an error. Each runs its own validator on the already-filtered output of the previous one, so allow-modes become silently ineffective.
+
+> **Important:** Validation transformations also cannot be used at both source-level and top-level simultaneously. For example, if a source uses `ValidateAllowPublicSuffix` and the top-level configuration uses `Validate`, the compiler will throw an error. This is because the top-level `Validate` would override the source-level validation, making `ValidateAllowPublicSuffix` ineffective. Use validation transformations at only one level.
+
+### <a name="deduplicate"></a> Deduplicate
+
+This transformation simply removes the duplicates from the specified source.
+
+There are two important notes about this transformation:
+
+1. It keeps the original rules order.
+2. It ignores comments. However, if the comments precede the rule that is being removed, the comments will be also removed.
+
+For instance:
+
+```
+! rule1 comment 1
+rule1
+! rule1 comment 2
+rule1
+```
+
+Here's what will be left after the transformation:
+
+```
+! rule1 comment 2
+rule1
+```
+
 ### <a name="removeemptylines"></a> RemoveEmptyLines
 
 This is a very simple transformation that removes empty lines.
@@ -452,30 +512,6 @@ Here's what we will have after applying this transformation:
 rule1
 rule2
 rule3
-```
-
-### <a name="trimlines"></a> TrimLines
-
-This is a very simple transformation that removes leading and trailing spaces/tabs.
-
-**Example:**
-
-Original list:
-
-```
-rule1
-   rule2
-rule3
-		rule4
-```
-
-Here's what we will have after applying this transformation:
-
-```
-rule1
-rule2
-rule3
-rule4
 ```
 
 ### <a name="insertfinalnewline"></a> InsertFinalNewLine
@@ -502,28 +538,6 @@ rule3
 ```
 
 `RemoveEmptyLines` doesn't delete this empty row due to the execution order.
-
-### <a name="convert-to-ascii"></a> ConvertToAscii
-
-This transformation converts all non-ASCII characters to their ASCII equivalents. It is always performed first.
-
-**Example:**
-
-Original list:
-
-```
-||*.рус^
-||*.कॉम^
-||*.セール^
-```
-
-Here's what we will have after applying this transformation:
-
-```
-||*.xn--p1acf^
-||*.xn--11b4c3d^
-||*.xn--1qqw23a^
-```
 
 ## <a name="documentation"></a> Documentation
 

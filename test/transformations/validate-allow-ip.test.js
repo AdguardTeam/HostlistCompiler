@@ -1,6 +1,6 @@
 const { validateAllowIp } = require('../../src/transformations/validate-allow-ip');
 
-describe('validateAllowIp', () => {
+describe('ValidateAllowIp', () => {
     it('simple /etc/hosts rule', () => {
         const rules = '0.0.0.0 example.org'.split(/\r?\n/);
         const filtered = validateAllowIp(rules);
@@ -66,6 +66,49 @@ describe('validateAllowIp', () => {
             '://example.org',
             '||example.org^|',
             '@@||example.org^|$important',
+        ]);
+    });
+
+    it('allows IP-subnet patterns but rejects IP-suffix patterns', () => {
+        // ValidateAllowIp allows IP-subnet patterns (with | or || prefix) because they block specific subnets.
+        // But IP-suffix patterns (no prefix) are ALWAYS rejected because they block unpredictably
+        // (e.g., 1.1^ blocks 1.1.1.1, 1.1.111.1, example1.1).
+        const rules = [
+            // IP-suffix (no prefix) — rejected ALWAYS (blocks unpredictably)
+            '1.1^',
+            '1.1.1^',
+            '1.1.1.1^',
+            '192.168^',
+            '10.0.1^',
+            '192.168.1.1^',
+            // IP-subnet (with prefix) — allowed in ValidateAllowIp
+            '||1.1^',
+            '|1.1^',
+            '||1.1.1^',
+            '|1.1.1^',
+            '||1.1.1.1^',
+            '|1.1.1.1^',
+            '||192.168^',
+            '||10.0.1^',
+            '||192.168.1.1^',
+            // valid domain — kept
+            '||example.org^',
+        ];
+        const filtered = validateAllowIp(rules);
+
+        expect(filtered).toEqual([
+            // IP-subnet patterns are allowed
+            '||1.1^',
+            '|1.1^',
+            '||1.1.1^',
+            '|1.1.1^',
+            '||1.1.1.1^',
+            '|1.1.1.1^',
+            '||192.168^',
+            '||10.0.1^',
+            '||192.168.1.1^',
+            // valid domain
+            '||example.org^',
         ]);
     });
 });

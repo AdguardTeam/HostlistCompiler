@@ -2,14 +2,17 @@ declare module '@adguard/hostlist-compiler' {
     export type SourceType = 'adblock' | 'hosts';
 
     export type Transformation =
+        'ConvertToAscii' |
+        'TrimLines' |
         'RemoveComments' |
         'Compress' |
         'RemoveModifiers' |
-        'Validate' |
-        'Deduplicate' |
         'InvertAllow' |
+        'Validate' |
+        'ValidateAllowIp' |
+        'ValidateAllowPublicSuffix' |
+        'Deduplicate' |
         'RemoveEmptyLines' |
-        'TrimLines' |
         'InsertFinalNewLine';
 
     /** A source for the filter list */

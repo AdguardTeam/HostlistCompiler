@@ -56,6 +56,25 @@ dupl1
         expect(filtered).toEqual(['rule1', 'dupl1', '||185.149.120.173^']);
     });
 
+    it.each([
+        ['Validate + ValidateAllowIp', ['Validate', 'ValidateAllowIp']],
+        ['Validate + ValidateAllowPublicSuffix', ['Validate', 'ValidateAllowPublicSuffix']],
+        ['ValidateAllowIp + ValidateAllowPublicSuffix', ['ValidateAllowIp', 'ValidateAllowPublicSuffix']],
+        [
+            'Validate + ValidateAllowIp + ValidateAllowPublicSuffix',
+            ['Validate', 'ValidateAllowIp', 'ValidateAllowPublicSuffix'],
+        ],
+    ])('throws when incompatible validation transformations are combined: %s', async (_name, transformations) => {
+        const rules = [
+            '||185.149.120.173^',
+            '||hl.cn^',
+            '||example.com^',
+        ];
+
+        await expect(transform(rules, {}, transformations))
+            .rejects.toThrow(`Validation transformations cannot be combined: ${transformations.join(', ')}.`);
+    });
+
     it('simple transformations with removeModifiers', async () => {
         const rules = `! test comment
 rule1

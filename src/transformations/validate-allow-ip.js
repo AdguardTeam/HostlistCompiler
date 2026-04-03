@@ -10,8 +10,9 @@ const { Validator } = require('./validate');
  * @returns {Array<string>} - The filtered array of valid rules, allowing IP addresses.
  */
 function validateAllowIp(rules) {
-    // ip is not allowed by default
-    const validator = new Validator(true);
+    // ip is allowed for this transformation
+    // tld is not allowed by default here
+    const validator = new Validator(true, false);
     return validator.validate(rules);
 }
 module.exports = {

@@ -71,4 +71,68 @@ describe('Configuration', () => {
         expect(ret.valid).toBe(false);
         expect(ret.errorsText).toBeTruthy();
     });
+
+    it('test ValidateAllowPublicSuffix transformation in configuration', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: [
+                        'ValidateAllowPublicSuffix',
+                    ],
+                },
+            ],
+            transformations: [
+                'ValidateAllowPublicSuffix',
+            ],
+        });
+
+        expect(ret.valid).toBe(true);
+        expect(ret.errorsText).toBeNull();
+    });
+
+    it.each([
+        ['Validate', 'ValidateAllowIp'],
+        ['Validate', 'ValidateAllowPublicSuffix'],
+        ['ValidateAllowIp', 'ValidateAllowPublicSuffix'],
+    ])('test incompatible top-level transformations configuration: %s + %s', (first, second) => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    source: 'test.txt',
+                },
+            ],
+            transformations: [
+                first,
+                second,
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).toBeTruthy();
+    });
+
+    it.each([
+        ['Validate', 'ValidateAllowIp'],
+        ['Validate', 'ValidateAllowPublicSuffix'],
+        ['ValidateAllowIp', 'ValidateAllowPublicSuffix'],
+    ])('test incompatible source transformations configuration: %s + %s', (first, second) => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: [
+                        first,
+                        second,
+                    ],
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).toBeTruthy();
+    });
 });

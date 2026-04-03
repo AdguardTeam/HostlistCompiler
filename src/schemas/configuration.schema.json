@@ -37,6 +37,56 @@
     "transformations": {
       "description": "A list of the transformations that will be applied",
       "type": "array",
+      "allOf": [
+        {
+          "not": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "Validate"
+                }
+              },
+              {
+                "contains": {
+                  "const": "ValidateAllowIp"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "Validate"
+                }
+              },
+              {
+                "contains": {
+                  "const": "ValidateAllowPublicSuffix"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "ValidateAllowIp"
+                }
+              },
+              {
+                "contains": {
+                  "const": "ValidateAllowPublicSuffix"
+                }
+              }
+            ]
+          }
+        }
+      ],
       "items": {
         "type": "string",
         "enum": [
@@ -45,6 +95,7 @@
           "Compress",
           "Validate",
           "ValidateAllowIp",
+          "ValidateAllowPublicSuffix",
           "Deduplicate",
           "InvertAllow",
           "RemoveEmptyLines",
@@ -114,6 +165,56 @@
         "transformations": {
           "description": "A list of the transformations that will be applied",
           "type": "array",
+          "allOf": [
+            {
+              "not": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "Validate"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "ValidateAllowIp"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "not": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "Validate"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "ValidateAllowPublicSuffix"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "not": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "ValidateAllowIp"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "ValidateAllowPublicSuffix"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
           "items": {
             "type": "string",
             "enum": [
@@ -122,6 +223,7 @@
               "Compress",
               "Validate",
               "ValidateAllowIp",
+              "ValidateAllowPublicSuffix",
               "Deduplicate",
               "InvertAllow",
               "RemoveEmptyLines",

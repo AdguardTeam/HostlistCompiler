@@ -45,4 +45,68 @@ describe('Hostlist compiler', () => {
 
         scope.done();
     });
+
+    it('throws error when validation transformations are used at both source and top level', async () => {
+        // No need to mock HTTP request - error is thrown before download
+        const configuration = {
+            name: 'Test filter',
+            transformations: ['Validate'],
+            sources: [
+                {
+                    source: 'https://example.org/source.txt',
+                    transformations: ['ValidateAllowPublicSuffix'],
+                },
+            ],
+        };
+
+        await expect(compile(configuration)).rejects.toThrow(
+            /Validation transformations cannot be used at both source and top level/,
+        );
+    });
+
+    it('allows validation transformation at source level only', async () => {
+        const scope = nock('https://example.org')
+            .get('/source.txt')
+            .reply(200, '||org^', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            sources: [
+                {
+                    source: 'https://example.org/source.txt',
+                    transformations: ['ValidateAllowPublicSuffix'],
+                },
+            ],
+        };
+
+        const list = await compile(configuration);
+        expect(list.join('\n')).toContain('||org^');
+
+        scope.done();
+    });
+
+    it('allows validation transformation at top level only', async () => {
+        const scope = nock('https://example.org')
+            .get('/source.txt')
+            .reply(200, '||org^', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            transformations: ['Validate'],
+            sources: [
+                {
+                    source: 'https://example.org/source.txt',
+                },
+            ],
+        };
+
+        const list = await compile(configuration);
+        expect(list.join('\n')).not.toContain('||org^');
+
+        scope.done();
+    });
 });

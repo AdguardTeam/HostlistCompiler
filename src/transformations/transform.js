@@ -2,6 +2,7 @@ const removeComments = require('./remove-comments');
 const removeModifiers = require('./remove-modifiers');
 const { validate } = require('./validate');
 const { validateAllowIp } = require('./validate-allow-ip');
+const { validateAllowPublicSuffix } = require('./validate-allow-public-suffix');
 const exclude = require('./exclude');
 const include = require('./include');
 const deduplicate = require('./deduplicate');
@@ -21,6 +22,7 @@ const TRANSFORMATIONS = Object.freeze({
     RemoveModifiers: 'RemoveModifiers',
     Validate: 'Validate',
     ValidateAllowIp: 'ValidateAllowIp',
+    ValidateAllowPublicSuffix: 'ValidateAllowPublicSuffix',
     Deduplicate: 'Deduplicate',
     InvertAllow: 'InvertAllow',
     RemoveEmptyLines: 'RemoveEmptyLines',
@@ -28,6 +30,32 @@ const TRANSFORMATIONS = Object.freeze({
     InsertFinalNewLine: 'InsertFinalNewLine',
     ConvertToAscii: 'ConvertToAscii',
 });
+
+const VALIDATION_TRANSFORMATIONS = [
+    TRANSFORMATIONS.Validate,
+    TRANSFORMATIONS.ValidateAllowIp,
+    TRANSFORMATIONS.ValidateAllowPublicSuffix,
+];
+
+/**
+ * Throws when multiple validation transformations are selected together.
+ * Combining them causes silent data loss: each validator runs on the already-filtered
+ * output of the previous one, so allow-modes (AllowIp, AllowPublicSuffix) become ineffective.
+ *
+ * TODO: When a combined mode for ValidateAllowIp + ValidateAllowPublicSuffix is implemented
+ *       (see https://github.com/AdguardTeam/HostlistCompiler/issues/126),
+ *       update this check to allow that specific pair and run Validator(true, true) instead.
+ *
+ * @param {Array<string>} transformations - configured transformations.
+ */
+function checkIncompatibleValidationTransformations(transformations) {
+    const selectedValidations = VALIDATION_TRANSFORMATIONS
+        .filter((transformation) => transformations.indexOf(transformation) !== -1);
+
+    if (selectedValidations.length > 1) {
+        throw new Error(`Validation transformations cannot be combined: ${selectedValidations.join(', ')}.`);
+    }
+}
 
 /**
  * Applies the specified transformations to the list of rules in the proper order.
@@ -38,11 +66,13 @@ const TRANSFORMATIONS = Object.freeze({
  * @returns {Promise<Array<string>>} rules after applying all transformations.
  */
 async function transform(rules, configuration, transformations) {
-    // If none specified -- apply all transformationss
+    // If none specified -- apply all transformations
     if (!transformations) {
         // eslint-disable-next-line no-param-reassign
         transformations = [];
     }
+
+    checkIncompatibleValidationTransformations(transformations);
 
     let transformed = rules;
 
@@ -57,6 +87,7 @@ async function transform(rules, configuration, transformations) {
         configuration.inclusions_sources,
     );
 
+    // When updating the list of transformations, be sure to follow the same order in README.md
     if (transformations.indexOf(TRANSFORMATIONS.ConvertToAscii) !== -1) {
         transformed = convertToAscii(transformed);
     }
@@ -80,6 +111,9 @@ async function transform(rules, configuration, transformations) {
     }
     if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowIp) !== -1) {
         transformed = validateAllowIp(transformed);
+    }
+    if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowPublicSuffix) !== -1) {
+        transformed = validateAllowPublicSuffix(transformed);
     }
     if (transformations.indexOf(TRANSFORMATIONS.Deduplicate) !== -1) {
         transformed = deduplicate(transformed);

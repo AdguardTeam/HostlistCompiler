@@ -2,7 +2,7 @@ const _ = require('lodash');
 const consola = require('consola');
 const config = require('./configuration');
 const compileSource = require('./compile-source');
-const { transform } = require('./transformations/transform');
+const { transform, TRANSFORMATIONS } = require('./transformations/transform');
 const packageJson = require('../package.json');
 
 /**
@@ -64,6 +64,46 @@ function prepareSourceHeader(source) {
 }
 
 /**
+ * Checks for conflicting validation transformations across source-level and top-level.
+ * Throws if a validation transformation is used at both levels, as this causes silent data loss.
+ *
+ * @param {*} configuration - compilation configuration.
+ */
+function checkCrossLevelValidationConflicts(configuration) {
+    const VALIDATION_TRANSFORMATIONS = [
+        TRANSFORMATIONS.Validate,
+        TRANSFORMATIONS.ValidateAllowIp,
+        TRANSFORMATIONS.ValidateAllowPublicSuffix,
+    ];
+
+    const topLevelTransformations = configuration.transformations || [];
+    const topLevelValidations = VALIDATION_TRANSFORMATIONS
+        .filter((t) => topLevelTransformations.indexOf(t) !== -1);
+
+    if (topLevelValidations.length === 0) {
+        return;
+    }
+
+    // Check each source for conflicting validations
+    // eslint-disable-next-line no-restricted-syntax
+    for (const source of configuration.sources) {
+        const sourceTransformations = source.transformations || [];
+        const sourceValidations = VALIDATION_TRANSFORMATIONS
+            .filter((t) => sourceTransformations.indexOf(t) !== -1);
+
+        if (sourceValidations.length > 0) {
+            throw new Error(
+                'Validation transformations cannot be used at both source and top level. '
+                + `Source "${source.source}" uses [${sourceValidations.join(', ')}], `
+                + `but top level uses [${topLevelValidations.join(', ')}]. `
+                + 'This causes the source-level validation to be overridden by the top-level one, '
+                + 'making the source-level validation ineffective.',
+            );
+        }
+    }
+}
+
+/**
  * Compiles a filter list using the specified configuration.
  *
  * @param {*} configuration - compilation configuration.
@@ -77,6 +117,8 @@ async function compile(configuration) {
         consola.info(ret.errorsText);
         throw new Error('Failed to validate configuration');
     }
+
+    checkCrossLevelValidationConflicts(configuration);
 
     consola.info(`Configuration: ${JSON.stringify(configuration, 0, 4)}`);
 

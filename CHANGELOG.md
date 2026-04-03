@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-04-02
+
+### Added
+
+- `ValidateAllowPublicSuffix` transformation option that allows rules matching whole public suffixes (e.g. `||hl.cn^`, `||org^`). [#124]
+
+### Changed
+
+- `Validate` now rejects rules matching whole public suffixes consistently across syntactic variants such as `||org^`, `||*.org^`, `.org^`, and `*.org^`. Use `ValidateAllowPublicSuffix` if you need to keep such rules.
+- The compiler now warns when incompatible validation transformations are combined at runtime, and configuration validation rejects combining `Validate`, `ValidateAllowIp`, and `ValidateAllowPublicSuffix` in the same transformations list.
+
+[2.0.0]: https://github.com/AdguardTeam/HostlistCompiler/compare/v1.0.39...v2.0.0
+[#124]: https://github.com/AdguardTeam/HostlistCompiler/issues/124
+
+
 ## [1.0.39] - 2025-03-13
 
 ### Changed
