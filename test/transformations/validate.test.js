@@ -327,4 +327,38 @@ describe('Validate', () => {
             '||a.b.c.d^',
         ]);
     });
+
+    it('rejects unsafe IP patterns without ^ (too wide or ambiguous)', () => {
+        // These patterns don't have ^ but are still dangerous:
+        // - 1-2 octet patterns (too wide)
+        // - 3 octet patterns without trailing dot/wildcard (ambiguous)
+        const rules = [
+            // 1-2 octets — too wide
+            '1.2.',
+            '1.2.*',
+            '||1.2.',
+            '||1.2.*',
+            '192.168',
+            '||192.168',
+            // 3 octets without trailing dot/wildcard — ambiguous
+            '192.168.1',
+            '||192.168.1',
+            '10.0.1',
+            // 3 octets WITH trailing dot/wildcard, no prefix — unsafe (no || means subnet is unanchored)
+            '192.168.1.',
+            '192.168.1.*',
+            '10.10.34.',
+            '10.10.34.*',
+            // 3 octets WITH trailing dot/wildcard, with || prefix — rejected in Validate (IP subnet)
+            '||192.168.1.',
+            '||192.168.1.*',
+            // valid domains — kept
+            '||example.org^',
+        ];
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '||example.org^',
+        ]);
+    });
 });
