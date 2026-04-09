@@ -70,8 +70,9 @@ function isIpSuffixPattern(s) {
     if (s.startsWith('|')) {
         return false;
     }
-    // Must have ^ to be considered a suffix pattern
-    // Patterns without ^ (like 1.1.1.1) are handled by normalization in ValidateAllowIp
+    // Must have ^ to be considered a suffix pattern.
+    // Bare IPs without ^ (like 1.1.1.1) are caught downstream by the tldts.isIp check,
+    // and in ValidateAllowIp they are pre-normalized to ||ip^ by ip-normalize.js.
     if (!s.includes('^')) {
         return false;
     }

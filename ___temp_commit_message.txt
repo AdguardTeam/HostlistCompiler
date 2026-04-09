@@ -1,0 +1,128 @@
+feat(validate): Reject unsafe IP patterns in all validators; normalize IP rules in ValidateAllowIp
+
+Adds unsafe IP pattern detection to the base Validator (used by all three
+validation transformations), and adds IP rule normalization to ValidateAllowIp.
+
+Previously only `isIpSubnetPattern()` and `isIpSuffixPattern()` existed.
+This commit adds `isUnsafeIpPattern()` to catch patterns without `^` that
+are still dangerously wide or ambiguous (e.g. `1.2.`, `192.168.1`).
+All three validators — `Validate`, `ValidateAllowIp`,
+`ValidateAllowPublicSuffix` — now reject these patterns uniformly.
+
+## IP Rule Normalization Table
+
+### 4-octet IP addresses (full IP) — NORMALIZE to ||ip^
+
+| Original Pattern    | Normalized To     | Reason                          |
+|---------------------|-------------------|---------------------------------|
+| `1.1.1.1`           | `||1.1.1.1^`      | Add both separators             |
+| `1.1.1.1^`          | `||1.1.1.1^`      | Add left anchor                 |
+| `|1.1.1.1`          | `||1.1.1.1^`      | Replace | with ||, add ^        |
+| `|1.1.1.1^`         | `||1.1.1.1^`      | Replace | with ||               |
+| `||1.1.1.1`         | `||1.1.1.1^`      | Add right separator             |
+| `||1.1.1.1^`        | (no change)       | Already correct                 |
+
+Modifiers like $important, $client, $denyallow, $badfilter are preserved.
+
+Exception rules (@@) are normalized the same way:
+| Original Pattern    | Normalized To     |
+|---------------------|-------------------|
+| `@@1.1.1.1`         | `@@||1.1.1.1^`    |
+| `@@1.1.1.1^`        | `@@||1.1.1.1^`    |
+| `@@|1.1.1.1`        | `@@||1.1.1.1^`    |
+| `@@|1.1.1.1^`       | `@@||1.1.1.1^`    |
+| `@@||1.1.1.1`       | `@@||1.1.1.1^`    |
+| `@@||1.1.1.1^`      | (no change)       |
+
+### 3-octet IP subnets — ALLOW in ValidateAllowIp (with normalization)
+
+| Original Pattern    | Normalized To     | Reason                          |
+|---------------------|-------------------|---------------------------------|
+| `192.168.1.`        | `||192.168.1.`    | Subnet wildcard, add ||         |
+| `192.168.1.*`       | `||192.168.1.*`   | Subnet wildcard, add ||         |
+| `|192.168.1.`       | `||192.168.1.`    | Replace | with ||             |
+| `|192.168.1.*`      | `||192.168.1.*`   | Replace | with ||             |
+| `||192.168.1.`      | (no change)       | Already has ||                  |
+| `||192.168.1.*`     | (no change)       | Already has ||                  |
+
+### Unsafe IP patterns (no `^`) — REJECT in ALL validators
+
+| Pattern             | Action            | Reason                          |
+|---------------------|-------------------|---------------------------------|
+| `1.2.`              | REJECT            | Too wide (1-2 octets)           |
+| `1.2.*`             | REJECT            | Too wide (1-2 octets)           |
+| `||1.2.`            | REJECT            | Too wide (1-2 octets)           |
+| `192.168`           | REJECT            | Too wide (1-2 octets)           |
+| `192.168.1`         | REJECT            | Ambiguous: matches 192.168.11, etc. |
+| `||192.168.1`       | REJECT            | Ambiguous: matches 192.168.11, etc. |
+
+### IP patterns with `^` and less than 4 octets — REJECT in ALL validators
+
+| Pattern             | Action            | Reason                          |
+|---------------------|-------------------|---------------------------------|
+| `||1^`              | REJECT            | Does not work in AdGuard Home   |
+| `||1.1^`            | REJECT            | Does not work in AdGuard Home   |
+| `||192.168.1^`      | REJECT            | Does not work in AdGuard Home   |
+| `1.1^`              | REJECT            | Does not work in AdGuard Home   |
+| `192.168.1^`        | REJECT            | Does not work in AdGuard Home   |
+
+### 1-2 octet patterns — REJECT in ALL validators (too wide)
+
+| Pattern             | Action            | Reason                          |
+|---------------------|-------------------|---------------------------------|
+| `1.`                | REJECT            | Too wide, use regex instead     |
+| `1.*`               | REJECT            | Too wide, use regex instead     |
+| `1.1.`              | REJECT            | Too wide, use regex instead     |
+| `1.1.*`             | REJECT            | Too wide, use regex instead     |
+| `||1.1.`            | REJECT            | Too wide, use regex instead     |
+
+## Key Points
+
+1. `isUnsafeIpPattern()` is added to the base `Validator` class, so all three
+   validation transformations (`Validate`, `ValidateAllowIp`,
+   `ValidateAllowPublicSuffix`) now reject unsafe patterns consistently, without
+   code duplication.
+
+2. IP normalization (ip-normalize.js) is applied only in `ValidateAllowIp`,
+   before the base validator runs. `Validate` and `ValidateAllowPublicSuffix`
+   do not normalize — they simply reject incomplete IP patterns.
+
+3. Both `|` and `||` are valid left anchors for IP addresses in AdGuard Home
+   (`|1.1.1.1^` works the same as `||1.1.1.1^`). Normalization always
+   produces the canonical `||ip^` form.
+
+4. IP patterns with `^` separator and less than 4 octets do NOT work in
+   AdGuard Home — they are silently ignored, so we reject them in all validators.
+
+5. 3-octet subnet patterns WITHOUT `^` (like `192.168.1.` or `192.168.1.*`)
+   work as wildcard patterns and are allowed in `ValidateAllowIp` only.
+
+6. 3-octet patterns WITHOUT trailing dot/wildcard (like `192.168.1`) are
+   ambiguous (would match `192.168.11`, `192.168.111`, etc.) and rejected
+   by all validators.
+
+7. 1-2 octet patterns are too wide and rejected in all validators — users
+   should use regex rules for such cases.
+
+8. Normalization is logged with `consola.info()` for transparency.
+
+## Files Changed
+
+- `src/transformations/validate.js` — added `isUnsafeIpPattern()`; integrated
+  into `validAdblockRule()` before other IP checks
+- `src/transformations/ip-normalize.js` — new module: `parseIpPattern()`,
+  `normalizeFullIp()`, `check3OctetSubnet()`, `checkTooWidePattern()`,
+  `processIpRule()`, `normalizeIpRules()`
+- `src/transformations/validate-allow-ip.js` — updated to call
+  `normalizeIpRules()` then delegate to `new Validator(true, false)`
+- `test/transformations/validate.test.js` — added tests for unsafe IP patterns
+  and the full IP rejection matrix
+- `test/transformations/ip-normalize.test.js` — new test file covering all
+  normalization and rejection cases, including `@@` exception rules
+- `test/transformations/validate-allow-ip.test.js` — updated to cover
+  normalization behaviour
+- `README.md` — moved "Rejected IP Patterns" into the `Validate` section;
+  updated `ValidateAllowIp` section to document normalization rules
+- `CHANGELOG.md` — added `[Unreleased]` entry describing the new behaviour
+
+Closes #127
