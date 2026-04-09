@@ -138,20 +138,21 @@ function normalizeFullIp(pattern) {
  *   - ||192.168.1^ (with caret - doesn't work in AdGuard Home)
  *
  * @param {string} pattern - The adblock pattern.
- * @returns {object} Result with action and normalized pattern.
+ * @returns {object|null} Result with action and normalized pattern, or null if not applicable.
  *   - action: 'allow', 'normalize', 'reject'
  *   - normalized: the normalized pattern (if action is 'normalize')
  *   - reason: rejection reason (if action is 'reject')
+ *   - null means the pattern is not a 3-octet IP subnet; caller should try the next check.
  */
 function check3OctetSubnet(pattern) {
     const parsed = parseIpPattern(pattern);
     if (!parsed) {
-        return { action: 'skip' };
+        return null;
     }
 
     // Must be exactly 3 octets
     if (parsed.octets.length !== 3) {
-        return { action: 'skip' };
+        return null;
     }
 
     const ip = parsed.octets.join('.');
@@ -189,12 +190,13 @@ function check3OctetSubnet(pattern) {
  * Checks if a pattern is a 1-2 octet pattern (too wide, should be rejected).
  *
  * @param {string} pattern - The adblock pattern.
- * @returns {object} Result with action and reason.
+ * @returns {{action: string, reason: string}|null} Reject result, or null if not applicable.
+ *   - null means the pattern has more than 2 octets; caller should try the next check.
  */
 function checkTooWidePattern(pattern) {
     const parsed = parseIpPattern(pattern);
     if (!parsed) {
-        return { action: 'skip' };
+        return null;
     }
 
     // 1-2 octets are too wide
@@ -205,7 +207,7 @@ function checkTooWidePattern(pattern) {
         };
     }
 
-    return { action: 'skip' };
+    return null;
 }
 
 /**
@@ -247,22 +249,22 @@ function processIpRule(ruleText) {
 
     // Check for too wide patterns (1-2 octets) first
     const tooWide = checkTooWidePattern(pattern);
-    if (tooWide.action === 'reject') {
+    if (tooWide?.action === 'reject') {
         return tooWide;
     }
 
     // Check for 3-octet subnet patterns
     const subnet = check3OctetSubnet(pattern);
-    if (subnet.action === 'reject') {
+    if (subnet?.action === 'reject') {
         return subnet;
     }
-    if (subnet.action === 'normalize') {
+    if (subnet?.action === 'normalize') {
         return {
             action: 'normalize',
             normalized: exceptionPrefix + subnet.normalized + modifiers,
         };
     }
-    if (subnet.action === 'allow') {
+    if (subnet?.action === 'allow') {
         return { action: 'keep' };
     }
 

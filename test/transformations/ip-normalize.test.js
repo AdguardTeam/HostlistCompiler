@@ -176,13 +176,13 @@ describe('ip-normalize', () => {
             expect(result.reason).toContain('does not work');
         });
 
-        it('skips 4-octet patterns', () => {
-            expect(check3OctetSubnet('1.2.3.4')).toEqual({ action: 'skip' });
-            expect(check3OctetSubnet('||1.2.3.4^')).toEqual({ action: 'skip' });
+        it('does not apply to 4-octet patterns', () => {
+            expect(check3OctetSubnet('1.2.3.4')).toBeNull();
+            expect(check3OctetSubnet('||1.2.3.4^')).toBeNull();
         });
 
-        it('skips 2-octet patterns', () => {
-            expect(check3OctetSubnet('192.168.')).toEqual({ action: 'skip' });
+        it('does not apply to non-3-octet patterns', () => {
+            expect(check3OctetSubnet('192.168.')).toBeNull();
         });
     });
 
@@ -200,16 +200,16 @@ describe('ip-normalize', () => {
             expect(checkTooWidePattern('||1.2^').action).toBe('reject');
         });
 
-        it('skips 3-octet patterns', () => {
-            expect(checkTooWidePattern('192.168.1.')).toEqual({ action: 'skip' });
+        it('does not apply to 3-octet patterns', () => {
+            expect(checkTooWidePattern('192.168.1.')).toBeNull();
         });
 
-        it('skips 4-octet patterns', () => {
-            expect(checkTooWidePattern('1.2.3.4')).toEqual({ action: 'skip' });
+        it('does not apply to 4-octet patterns', () => {
+            expect(checkTooWidePattern('1.2.3.4')).toBeNull();
         });
 
-        it('skips non-IP patterns', () => {
-            expect(checkTooWidePattern('example.com')).toEqual({ action: 'skip' });
+        it('does not apply to non-IP patterns', () => {
+            expect(checkTooWidePattern('example.com')).toBeNull();
         });
     });
 
