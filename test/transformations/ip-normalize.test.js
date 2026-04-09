@@ -213,77 +213,35 @@ describe('ip-normalize', () => {
         });
     });
 
+    // processIpRule — only tests logic unique to this function:
+    // @@-prefix handling, $modifier extraction, comments/empty lines, domain passthrough.
+    // Pattern-level normalize/reject/allow decisions are covered by helper tests above.
     describe('processIpRule', () => {
-        it('normalizes 4-octet IP without separators', () => {
-            expect(processIpRule('1.2.3.4')).toEqual({
-                action: 'normalize',
-                normalized: '||1.2.3.4^',
-            });
-        });
-
-        it('normalizes 4-octet IP with modifiers', () => {
-            expect(processIpRule('1.2.3.4$important')).toEqual({
-                action: 'normalize',
-                normalized: '||1.2.3.4^$important',
-            });
-        });
-
-        it('normalizes 3-octet subnet with trailing dot', () => {
-            expect(processIpRule('192.168.1.')).toEqual({
-                action: 'normalize',
-                normalized: '||192.168.1.',
-            });
-        });
-
-        it('keeps already correct 4-octet IP', () => {
-            expect(processIpRule('||1.2.3.4^')).toEqual({ action: 'keep' });
-        });
-
-        it('keeps already correct 3-octet subnet', () => {
-            expect(processIpRule('||192.168.1.')).toEqual({ action: 'keep' });
-            expect(processIpRule('||192.168.1.*')).toEqual({ action: 'keep' });
-        });
-
-        it('rejects 3-octet without trailing dot/wildcard', () => {
-            const result = processIpRule('192.168.1');
-            expect(result.action).toBe('reject');
-        });
-
-        it('rejects 3-octet with ^', () => {
-            const result = processIpRule('||192.168.1^');
-            expect(result.action).toBe('reject');
-        });
-
-        it('rejects 2-octet patterns', () => {
-            expect(processIpRule('192.168.').action).toBe('reject');
-            expect(processIpRule('||192.168^').action).toBe('reject');
-        });
-
-        it('rejects 1-octet patterns', () => {
-            expect(processIpRule('1.').action).toBe('reject');
-            expect(processIpRule('||1^').action).toBe('reject');
-        });
-
-        it('keeps comments', () => {
+        it('keeps comments and empty lines', () => {
             expect(processIpRule('! comment')).toEqual({ action: 'keep' });
             expect(processIpRule('# comment')).toEqual({ action: 'keep' });
-        });
-
-        it('keeps empty lines', () => {
             expect(processIpRule('')).toEqual({ action: 'keep' });
             expect(processIpRule('   ')).toEqual({ action: 'keep' });
         });
 
-        it('keeps exception rules', () => {
-            expect(processIpRule('@@||1.2.3.4^')).toEqual({ action: 'keep' });
+        it('keeps domain rules unchanged', () => {
+            expect(processIpRule('||example.com^')).toEqual({ action: 'keep' });
+            expect(processIpRule('example.com')).toEqual({ action: 'keep' });
         });
 
-        it('normalizes exception rules (@@) with 4-octet IPs', () => {
-            expect(processIpRule('@@1.2.3.4')).toEqual({
+        it('preserves modifiers during normalization', () => {
+            expect(processIpRule('1.2.3.4$important')).toEqual({
                 action: 'normalize',
-                normalized: '@@||1.2.3.4^',
+                normalized: '||1.2.3.4^$important',
             });
-            expect(processIpRule('@@1.2.3.4^')).toEqual({
+            expect(processIpRule('@@1.2.3.4$important')).toEqual({
+                action: 'normalize',
+                normalized: '@@||1.2.3.4^$important',
+            });
+        });
+
+        it('normalizes exception rules (@@)', () => {
+            expect(processIpRule('@@1.2.3.4')).toEqual({
                 action: 'normalize',
                 normalized: '@@||1.2.3.4^',
             });
@@ -295,26 +253,13 @@ describe('ip-normalize', () => {
                 action: 'normalize',
                 normalized: '@@||1.2.3.4^',
             });
-        });
-
-        it('normalizes exception rules (@@) with 3-octet subnets', () => {
             expect(processIpRule('@@192.168.1.')).toEqual({
                 action: 'normalize',
                 normalized: '@@||192.168.1.',
             });
-            expect(processIpRule('@@192.168.1.*')).toEqual({
-                action: 'normalize',
-                normalized: '@@||192.168.1.*',
-            });
+            // already correct — keep as-is
+            expect(processIpRule('@@||1.2.3.4^')).toEqual({ action: 'keep' });
             expect(processIpRule('@@||192.168.1.')).toEqual({ action: 'keep' });
-            expect(processIpRule('@@||192.168.1.*')).toEqual({ action: 'keep' });
-        });
-
-        it('normalizes exception rules (@@) with modifiers', () => {
-            expect(processIpRule('@@1.2.3.4$important')).toEqual({
-                action: 'normalize',
-                normalized: '@@||1.2.3.4^$important',
-            });
         });
 
         it('rejects exception rules (@@) with unsafe patterns', () => {
@@ -323,75 +268,47 @@ describe('ip-normalize', () => {
             expect(processIpRule('@@1.2.').action).toBe('reject');
             expect(processIpRule('@@||10^').action).toBe('reject');
         });
-
-        it('keeps domain rules', () => {
-            expect(processIpRule('||example.com^')).toEqual({ action: 'keep' });
-            expect(processIpRule('example.com')).toEqual({ action: 'keep' });
-        });
     });
 
+    // normalizeIpRules — one integration test with a mixed list covering
+    // normalize, reject, keep, @@, and modifiers in a single scenario.
     describe('normalizeIpRules', () => {
-        it('normalizes multiple IP rules', () => {
+        it('processes a mixed list of rules', () => {
             const rules = [
+                // keep
                 '! comment',
+                '||5.6.7.8^',
+                '||example.com^',
+                // normalize
                 '1.2.3.4',
-                '||5.6.7.8^',
                 '192.168.1.',
-                '||example.com^',
-            ];
-            const result = normalizeIpRules(rules);
-            expect(result).toEqual([
-                '! comment',
-                '||1.2.3.4^',
-                '||5.6.7.8^',
-                '||192.168.1.',
-                '||example.com^',
-            ]);
-        });
-
-        it('removes rejected rules', () => {
-            const rules = [
-                '||1.2.3.4^',
-                '192.168.1', // rejected - ambiguous
-                '||192.168^', // rejected - doesn't work
-                '1.2.', // rejected - too wide
-            ];
-            const result = normalizeIpRules(rules);
-            expect(result).toEqual(['||1.2.3.4^']);
-        });
-
-        it('preserves modifiers during normalization', () => {
-            const rules = [
                 '1.2.3.4$important',
                 '5.6.7.8$client=192.168.1.1',
-                '||9.10.11.12^$denyallow=example.com',
-            ];
-            const result = normalizeIpRules(rules);
-            expect(result).toEqual([
-                '||1.2.3.4^$important',
-                '||5.6.7.8^$client=192.168.1.1',
-                '||9.10.11.12^$denyallow=example.com',
-            ]);
-        });
-
-        it('normalizes and rejects exception rules (@@)', () => {
-            const rules = [
+                // normalize @@
                 '@@1.2.3.4',
                 '@@|5.6.7.8^',
-                '@@||9.10.11.12^',
                 '@@192.168.1.',
-                '@@||10.0.0.',
-                '@@192.168.1', // rejected - ambiguous
-                '@@1.2.', // rejected - too wide
-                '@@||10.0.1^', // rejected - doesn't work
+                // reject
+                '192.168.1',
+                '||192.168^',
+                '1.2.',
+                // reject @@
+                '@@192.168.1',
+                '@@1.2.',
+                '@@||10.0.1^',
             ];
             const result = normalizeIpRules(rules);
             expect(result).toEqual([
+                '! comment',
+                '||5.6.7.8^',
+                '||example.com^',
+                '||1.2.3.4^',
+                '||192.168.1.',
+                '||1.2.3.4^$important',
+                '||5.6.7.8^$client=192.168.1.1',
                 '@@||1.2.3.4^',
                 '@@||5.6.7.8^',
-                '@@||9.10.11.12^',
                 '@@||192.168.1.',
-                '@@||10.0.0.',
             ]);
         });
     });
