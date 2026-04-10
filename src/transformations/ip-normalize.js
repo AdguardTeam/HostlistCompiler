@@ -4,13 +4,15 @@ const { MODIFIER_REGEX, classifyIpPattern, parseIpPattern } = require('../utils'
 /**
  * Action constants for IP rule processing results.
  * Used by check helpers, processIpRule, and normalizeIpRules.
+ * Note: ACTION.REJECT is only returned by helper checks; processIpRule()
+ * itself passes invalid patterns through unchanged and never emits REJECT.
  */
 const ACTION = Object.freeze({
     /** Pattern is valid and already in canonical form — no change needed. */
     KEEP: 'keep',
     /** Pattern needs rewriting to canonical form. */
     NORMALIZE: 'normalize',
-    /** Pattern is invalid but normalizer passes it through (validator rejects). */
+    /** Pattern is invalid at helper level; caller decides whether to keep or reject it. */
     REJECT: 'reject',
     /** Pattern is a valid subnet already in canonical form (||prefix present). */
     ALLOW: 'allow',
