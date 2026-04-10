@@ -1,4 +1,5 @@
 const consola = require('consola');
+const { MODIFIER_REGEX } = require('../utils');
 
 /**
  * Action constants for IP rule processing results.
@@ -256,7 +257,7 @@ function processIpRule(ruleText) {
         // Check if $ is part of a regex or actual modifier separator
         const afterDollar = ruleWithoutException.slice(dollarIdx + 1);
         // Simple heuristic: if it looks like modifiers (alphanumeric, commas, equals, dots for IPs in values)
-        if (/^[a-zA-Z0-9,=~_.-]+$/.test(afterDollar)) {
+        if (MODIFIER_REGEX.test(afterDollar)) {
             pattern = ruleWithoutException.slice(0, dollarIdx);
             modifiers = ruleWithoutException.slice(dollarIdx);
         }

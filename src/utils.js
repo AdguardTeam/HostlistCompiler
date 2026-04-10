@@ -1,6 +1,13 @@
 const _ = require('lodash');
 
 /**
+ * Regex that matches strings that look like adblock rule modifiers
+ * Used to distinguish a real `$modifier` suffix from a `$` that is
+ * part of a regex anchor.
+ */
+const MODIFIER_REGEX = /^[a-zA-Z0-9,=~_.-]+$/;
+
+/**
  * Extracts a substring between two tags.
  *
  * @param {String} str - original string
@@ -137,6 +144,7 @@ class Wildcard {
 }
 
 module.exports = {
+    MODIFIER_REGEX,
     Wildcard,
     splitByDelimiterWithEscapeCharacter,
     substringBetween,

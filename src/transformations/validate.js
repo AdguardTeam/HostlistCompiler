@@ -1,3 +1,9 @@
+const _ = require('lodash');
+const consola = require('consola');
+const tldts = require('tldts');
+const utils = require('../utils');
+const ruleUtils = require('../rule');
+
 /**
  * Checks if a pattern is a 3-octet subnet with trailing dot or wildcard AND a || prefix.
  * These are the only subnet patterns that work in AdGuard Home for ValidateAllowIp.
@@ -165,7 +171,7 @@ function isUnsafeIpPattern(s) {
     const dollarIdx = pattern.lastIndexOf('$');
     if (dollarIdx !== -1) {
         const afterDollar = pattern.slice(dollarIdx + 1);
-        if (/^[a-zA-Z0-9,=~_.-]+$/.test(afterDollar)) {
+        if (utils.MODIFIER_REGEX.test(afterDollar)) {
             pattern = pattern.slice(0, dollarIdx);
         }
     }
@@ -210,12 +216,6 @@ function isUnsafeIpPattern(s) {
 
     return false;
 }
-
-const _ = require('lodash');
-const consola = require('consola');
-const tldts = require('tldts');
-const utils = require('../utils');
-const ruleUtils = require('../rule');
 
 const DOMAIN_PREFIX = '||';
 const DOMAIN_SEPARATOR = '^';
