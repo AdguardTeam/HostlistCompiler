@@ -1,4 +1,43 @@
 /**
+ * Checks if a pattern is a 3-octet subnet with trailing dot or wildcard AND a || prefix.
+ * These are the only subnet patterns that work in AdGuard Home for ValidateAllowIp.
+ * Examples: ||192.168.1. ||192.168.1.*
+ *
+ * @param {string} s - The pattern string to check
+ * @returns {boolean}
+ */
+function is3OctetSubnetWithSuffix(s) {
+    let p = s;
+    // Strip | or || prefix: ||192.168.1. → 192.168.1.
+    if (p.startsWith('||')) {
+        p = p.slice(2);
+    } else if (p.startsWith('|')) {
+        p = p.slice(1);
+    }
+    // Detect and strip trailing wildcard: 192.168.1.* → 192.168.1
+    const hasWildcard = p.endsWith('.*');
+    if (hasWildcard) {
+        p = p.slice(0, -2);
+    }
+    // Detect and strip trailing dot: 192.168.1. → 192.168.1
+    const hasDot = p.endsWith('.');
+    if (hasDot) {
+        p = p.slice(0, -1);
+    }
+    // Without trailing dot or wildcard the pattern is not a usable subnet wildcard.
+    // ||192.168.1^ doesn't work in AdGuard Home; ||192.168.1 is ambiguous — both rejected.
+    if (!hasWildcard && !hasDot) {
+        return false;
+    }
+    // Must be exactly 3 octets after stripping prefix and suffix
+    const parts = p.split('.');
+    if (parts.length !== 3) {
+        return false;
+    }
+    return parts.every((pt) => /^\d{1,3}$/.test(pt) && Number(pt) >= 0 && Number(pt) <= 255);
+}
+
+/**
  * Checks if a pattern is an IP-like subnet with | or || prefix: 1, 2, or 3 octets.
  * These patterns should be rejected in Validate:
  * - With ^ separator (||1^, ||1.1^, ||1.1.2^) — do NOT work
@@ -419,10 +458,14 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         return false;
     }
 
-    // Reject IP-subnet patterns (||1.1^, ||1.1.2^) only in Validate, allow in ValidateAllowIp
-    if (!allowedIP && isIpSubnetPattern(props.pattern)) {
-        consola.debug(`IP-like subnet is not allowed: ${ruleText}`);
-        return false;
+    // Reject IP-subnet patterns (||1.1^, ||1.1.2^, ||1.1.) always, except in ValidateAllowIp
+    // where only 3-octet subnets with trailing dot/wildcard (||192.168.1., ||192.168.1.*) are valid.
+    // 1-2 octet patterns and 3-octet with ^ are rejected even when allowedIP=true.
+    if (isIpSubnetPattern(props.pattern)) {
+        if (!allowedIP || !is3OctetSubnetWithSuffix(props.pattern)) {
+            consola.debug(`IP-like subnet is not allowed: ${ruleText}`);
+            return false;
+        }
     }
 
     // Check for full 4-octet IP addresses (||1.1.1.1^, |1.1.1.1^)

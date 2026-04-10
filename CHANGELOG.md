@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 3-octet patterns with `^` are rejected (e.g. `192.168.1^`, `||192.168.1^`)
   - 3-octet patterns without trailing dot/wildcard are rejected (e.g. `192.168.1`, `||192.168.1`)
   - 1-2 octet patterns are rejected (too wide, use regex instead)
+  - Normalization (`ip-normalize.js`) is now purely a normalization step: it only rewrites valid patterns to canonical form and passes everything else through unchanged. Rejection of invalid patterns is the responsibility of the validator (`validate.js`), eliminating double-rejection.
 
 [#127]: https://github.com/AdguardTeam/HostlistCompiler/issues/127
 

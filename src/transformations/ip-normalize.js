@@ -247,24 +247,16 @@ function processIpRule(ruleText) {
         }
     }
 
-    // Check for too wide patterns (1-2 octets) first
-    const tooWide = checkTooWidePattern(pattern);
-    if (tooWide?.action === 'reject') {
-        return tooWide;
-    }
-
-    // Check for 3-octet subnet patterns
+    // Check for 3-octet subnet patterns (normalize or keep)
     const subnet = check3OctetSubnet(pattern);
-    if (subnet?.action === 'reject') {
-        return subnet;
-    }
     if (subnet?.action === 'normalize') {
         return {
             action: 'normalize',
             normalized: exceptionPrefix + subnet.normalized + modifiers,
         };
     }
-    if (subnet?.action === 'allow') {
+    if (subnet?.action === 'allow' || subnet?.action === 'reject') {
+        // 'allow' — already correct; 'reject' — pass through, validator will handle
         return { action: 'keep' };
     }
 
@@ -293,19 +285,12 @@ function normalizeIpRules(rules) {
     for (const rule of rules) {
         const processed = processIpRule(rule);
 
-        switch (processed.action) {
-            case 'normalize':
-                consola.info(`Normalized IP rule: ${rule} → ${processed.normalized}`);
-                result.push(processed.normalized);
-                break;
-            case 'reject':
-                consola.debug(`Rejected IP rule: ${rule} (${processed.reason})`);
-                // Don't add to result - rule is rejected
-                break;
-            case 'keep':
-            default:
-                result.push(rule);
-                break;
+        if (processed.action === 'normalize') {
+            consola.info(`Normalized IP rule: ${rule} → ${processed.normalized}`);
+            result.push(processed.normalized);
+        } else {
+            // 'keep' — pass through unchanged; validator will reject invalid patterns
+            result.push(rule);
         }
     }
 

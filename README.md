@@ -476,7 +476,7 @@ This transformation extends [Validate](#validate) to allow IP addresses in the l
 
 Modifiers like `$important`, `$client`, `$denyallow`, `$badfilter` are preserved during normalization.
 
-> **Note:** Invalid IP patterns are rejected by the base [Validate](#validate) logic. See [Rejected IP Patterns](#rejected-ip-patterns) for details.
+> **Note:** Invalid IP patterns are rejected solely by the base [Validate](#validate) logic — normalization only converts valid patterns to canonical form and passes everything else through unchanged. See [Rejected IP Patterns](#rejected-ip-patterns) for details.
 
 ### <a name="validate-allow-public-suffix"></a> ValidateAllowPublicSuffix
 

@@ -262,11 +262,14 @@ describe('ip-normalize', () => {
             expect(processIpRule('@@||192.168.1.')).toEqual({ action: 'keep' });
         });
 
-        it('rejects exception rules (@@) with unsafe patterns', () => {
-            expect(processIpRule('@@192.168.1').action).toBe('reject');
-            expect(processIpRule('@@||192.168.1^').action).toBe('reject');
-            expect(processIpRule('@@1.2.').action).toBe('reject');
-            expect(processIpRule('@@||10^').action).toBe('reject');
+        it('does not reject invalid @@-patterns — normalization-only, validateAllowIp will reject', () => {
+            // processIpRule cannot normalize these, so it keeps them unchanged.
+            // Rejection is the sole responsibility of the validator (validate.js),
+            // not of the normalizer — that eliminates double-rejection.
+            expect(processIpRule('@@192.168.1').action).toBe('keep');
+            expect(processIpRule('@@||192.168.1^').action).toBe('keep');
+            expect(processIpRule('@@1.2.').action).toBe('keep');
+            expect(processIpRule('@@||10^').action).toBe('keep');
         });
     });
 
@@ -288,11 +291,12 @@ describe('ip-normalize', () => {
                 '@@1.2.3.4',
                 '@@|5.6.7.8^',
                 '@@192.168.1.',
-                // reject
+                // normalizeIpRules cannot normalize these — passes them through unchanged.
+                // validateAllowIp's validator is the single place responsible for rejecting
+                // invalid patterns (separation of concerns, no double-rejection).
                 '192.168.1',
                 '||192.168^',
                 '1.2.',
-                // reject @@
                 '@@192.168.1',
                 '@@1.2.',
                 '@@||10.0.1^',
@@ -309,6 +313,13 @@ describe('ip-normalize', () => {
                 '@@||1.2.3.4^',
                 '@@||5.6.7.8^',
                 '@@||192.168.1.',
+                // normalizer passes invalid patterns through; validator rejects them
+                '192.168.1',
+                '||192.168^',
+                '1.2.',
+                '@@192.168.1',
+                '@@1.2.',
+                '@@||10.0.1^',
             ]);
         });
     });
