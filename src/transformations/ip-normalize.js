@@ -1,6 +1,21 @@
 const consola = require('consola');
 
 /**
+ * Action constants for IP rule processing results.
+ * Used by check helpers, processIpRule, and normalizeIpRules.
+ */
+const ACTION = Object.freeze({
+    /** Pattern is valid and already in canonical form — no change needed. */
+    KEEP: 'keep',
+    /** Pattern needs rewriting to canonical form. */
+    NORMALIZE: 'normalize',
+    /** Pattern is invalid but normalizer passes it through (validator rejects). */
+    REJECT: 'reject',
+    /** Pattern is a valid subnet already in canonical form (||prefix present). */
+    ALLOW: 'allow',
+});
+
+/**
  * Regex to match a valid IPv4 octet (0-255).
  */
 const OCTET_REGEX = /^\d{1,3}$/;
@@ -139,9 +154,9 @@ function normalizeFullIp(pattern) {
  *
  * @param {string} pattern - The adblock pattern.
  * @returns {object|null} Result with action and normalized pattern, or null if not applicable.
- *   - action: 'allow', 'normalize', 'reject'
- *   - normalized: the normalized pattern (if action is 'normalize')
- *   - reason: rejection reason (if action is 'reject')
+ *   - action: ACTION.ALLOW, ACTION.NORMALIZE, ACTION.REJECT
+ *   - normalized: the normalized pattern (if action is ACTION.NORMALIZE)
+ *   - reason: rejection reason (if action is ACTION.REJECT)
  *   - null means the pattern is not a 3-octet IP subnet; caller should try the next check.
  */
 function check3OctetSubnet(pattern) {
@@ -160,7 +175,7 @@ function check3OctetSubnet(pattern) {
     // 3 octets with ^ - doesn't work in AdGuard Home
     if (parsed.hasCaret) {
         return {
-            action: 'reject',
+            action: ACTION.REJECT,
             reason: '3-octet IP pattern with ^ does not work in AdGuard Home',
         };
     }
@@ -168,20 +183,20 @@ function check3OctetSubnet(pattern) {
     // 3 octets without trailing dot/wildcard - ambiguous
     if (!parsed.hasTrailingDot && !parsed.hasTrailingWildcard) {
         return {
-            action: 'reject',
+            action: ACTION.REJECT,
             reason: '3-octet IP without trailing dot/wildcard is ambiguous (would match 192.168.11, 192.168.111, etc.)',
         };
     }
 
     // Valid 3-octet subnet pattern - normalize to add || if missing
     if (parsed.prefix === '||') {
-        return { action: 'allow' }; // Already has ||
+        return { action: ACTION.ALLOW }; // Already has ||
     }
 
     // Normalize: add || prefix
     const suffix = parsed.hasTrailingWildcard ? '.*' : '.';
     return {
-        action: 'normalize',
+        action: ACTION.NORMALIZE,
         normalized: `||${ip}${suffix}`,
     };
 }
@@ -202,7 +217,7 @@ function checkTooWidePattern(pattern) {
     // 1-2 octets are too wide
     if (parsed.octets.length <= 2) {
         return {
-            action: 'reject',
+            action: ACTION.REJECT,
             reason: `${parsed.octets.length}-octet IP pattern is too wide, use regex instead`,
         };
     }
@@ -215,14 +230,14 @@ function checkTooWidePattern(pattern) {
  *
  * @param {string} ruleText - The full rule text (may include modifiers and @@ prefix).
  * @returns {object} Result object.
- *   - action: 'keep' (no change), 'normalize', 'reject'
- *   - normalized: the normalized rule (if action is 'normalize')
+ *   - action: ACTION.KEEP (no change), ACTION.NORMALIZE
+ *   - normalized: the normalized rule (if action is ACTION.NORMALIZE)
  *   - reason: rejection reason (if action is 'reject')
  */
 function processIpRule(ruleText) {
     // Skip comments and empty lines
     if (!ruleText || ruleText.startsWith('!') || ruleText.startsWith('#') || ruleText.trim() === '') {
-        return { action: 'keep' };
+        return { action: ACTION.KEEP };
     }
 
     // Check for exception rules (@@) - process them too, but preserve @@ prefix
@@ -249,27 +264,27 @@ function processIpRule(ruleText) {
 
     // Check for 3-octet subnet patterns (normalize or keep)
     const subnet = check3OctetSubnet(pattern);
-    if (subnet?.action === 'normalize') {
+    if (subnet?.action === ACTION.NORMALIZE) {
         return {
-            action: 'normalize',
+            action: ACTION.NORMALIZE,
             normalized: exceptionPrefix + subnet.normalized + modifiers,
         };
     }
-    if (subnet?.action === 'allow' || subnet?.action === 'reject') {
-        // 'allow' — already correct; 'reject' — pass through, validator will handle
-        return { action: 'keep' };
+    if (subnet?.action === ACTION.ALLOW || subnet?.action === ACTION.REJECT) {
+        // ALLOW — already correct; REJECT — pass through, validator will handle
+        return { action: ACTION.KEEP };
     }
 
     // Check for full 4-octet IP normalization
     const normalized = normalizeFullIp(pattern);
     if (normalized) {
         return {
-            action: 'normalize',
+            action: ACTION.NORMALIZE,
             normalized: exceptionPrefix + normalized + modifiers,
         };
     }
 
-    return { action: 'keep' };
+    return { action: ACTION.KEEP };
 }
 
 /**
@@ -285,11 +300,11 @@ function normalizeIpRules(rules) {
     for (const rule of rules) {
         const processed = processIpRule(rule);
 
-        if (processed.action === 'normalize') {
+        if (processed.action === ACTION.NORMALIZE) {
             consola.info(`Normalized IP rule: ${rule} → ${processed.normalized}`);
             result.push(processed.normalized);
         } else {
-            // 'keep' — pass through unchanged; validator will reject invalid patterns
+            // KEEP — pass through unchanged; validator will reject invalid patterns
             result.push(rule);
         }
     }
@@ -298,6 +313,7 @@ function normalizeIpRules(rules) {
 }
 
 module.exports = {
+    ACTION,
     parseIpPattern,
     normalizeFullIp,
     check3OctetSubnet,

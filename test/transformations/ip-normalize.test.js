@@ -1,4 +1,5 @@
 const {
+    ACTION,
     parseIpPattern,
     normalizeFullIp,
     check3OctetSubnet,
@@ -128,51 +129,51 @@ describe('ip-normalize', () => {
     describe('check3OctetSubnet', () => {
         it('allows 3-octet with trailing dot', () => {
             expect(check3OctetSubnet('192.168.1.')).toEqual({
-                action: 'normalize',
+                action: ACTION.NORMALIZE,
                 normalized: '||192.168.1.',
             });
         });
 
         it('allows 3-octet with trailing wildcard', () => {
             expect(check3OctetSubnet('192.168.1.*')).toEqual({
-                action: 'normalize',
+                action: ACTION.NORMALIZE,
                 normalized: '||192.168.1.*',
             });
         });
 
         it('allows 3-octet with || and trailing dot', () => {
             expect(check3OctetSubnet('||192.168.1.')).toEqual({
-                action: 'allow',
+                action: ACTION.ALLOW,
             });
         });
 
         it('allows 3-octet with || and trailing wildcard', () => {
             expect(check3OctetSubnet('||192.168.1.*')).toEqual({
-                action: 'allow',
+                action: ACTION.ALLOW,
             });
         });
 
         it('rejects 3-octet without trailing dot/wildcard', () => {
             const result = check3OctetSubnet('192.168.1');
-            expect(result.action).toBe('reject');
+            expect(result.action).toBe(ACTION.REJECT);
             expect(result.reason).toContain('ambiguous');
         });
 
         it('rejects 3-octet with || but no trailing dot/wildcard', () => {
             const result = check3OctetSubnet('||192.168.1');
-            expect(result.action).toBe('reject');
+            expect(result.action).toBe(ACTION.REJECT);
             expect(result.reason).toContain('ambiguous');
         });
 
         it('rejects 3-octet with ^', () => {
             const result = check3OctetSubnet('||192.168.1^');
-            expect(result.action).toBe('reject');
+            expect(result.action).toBe(ACTION.REJECT);
             expect(result.reason).toContain('does not work');
         });
 
         it('rejects 3-octet without || but with ^', () => {
             const result = check3OctetSubnet('192.168.1^');
-            expect(result.action).toBe('reject');
+            expect(result.action).toBe(ACTION.REJECT);
             expect(result.reason).toContain('does not work');
         });
 
@@ -188,16 +189,16 @@ describe('ip-normalize', () => {
 
     describe('checkTooWidePattern', () => {
         it('rejects 1-octet patterns', () => {
-            expect(checkTooWidePattern('1.').action).toBe('reject');
-            expect(checkTooWidePattern('1.*').action).toBe('reject');
-            expect(checkTooWidePattern('||1.').action).toBe('reject');
+            expect(checkTooWidePattern('1.').action).toBe(ACTION.REJECT);
+            expect(checkTooWidePattern('1.*').action).toBe(ACTION.REJECT);
+            expect(checkTooWidePattern('||1.').action).toBe(ACTION.REJECT);
         });
 
         it('rejects 2-octet patterns', () => {
-            expect(checkTooWidePattern('1.2.').action).toBe('reject');
-            expect(checkTooWidePattern('1.2.*').action).toBe('reject');
-            expect(checkTooWidePattern('||1.2.').action).toBe('reject');
-            expect(checkTooWidePattern('||1.2^').action).toBe('reject');
+            expect(checkTooWidePattern('1.2.').action).toBe(ACTION.REJECT);
+            expect(checkTooWidePattern('1.2.*').action).toBe(ACTION.REJECT);
+            expect(checkTooWidePattern('||1.2.').action).toBe(ACTION.REJECT);
+            expect(checkTooWidePattern('||1.2^').action).toBe(ACTION.REJECT);
         });
 
         it('does not apply to 3-octet patterns', () => {
@@ -218,58 +219,58 @@ describe('ip-normalize', () => {
     // Pattern-level normalize/reject/allow decisions are covered by helper tests above.
     describe('processIpRule', () => {
         it('keeps comments and empty lines', () => {
-            expect(processIpRule('! comment')).toEqual({ action: 'keep' });
-            expect(processIpRule('# comment')).toEqual({ action: 'keep' });
-            expect(processIpRule('')).toEqual({ action: 'keep' });
-            expect(processIpRule('   ')).toEqual({ action: 'keep' });
+            expect(processIpRule('! comment')).toEqual({ action: ACTION.KEEP });
+            expect(processIpRule('# comment')).toEqual({ action: ACTION.KEEP });
+            expect(processIpRule('')).toEqual({ action: ACTION.KEEP });
+            expect(processIpRule('   ')).toEqual({ action: ACTION.KEEP });
         });
 
         it('keeps domain rules unchanged', () => {
-            expect(processIpRule('||example.com^')).toEqual({ action: 'keep' });
-            expect(processIpRule('example.com')).toEqual({ action: 'keep' });
+            expect(processIpRule('||example.com^')).toEqual({ action: ACTION.KEEP });
+            expect(processIpRule('example.com')).toEqual({ action: ACTION.KEEP });
         });
 
         it('preserves modifiers during normalization', () => {
             expect(processIpRule('1.2.3.4$important')).toEqual({
-                action: 'normalize',
+                action: ACTION.NORMALIZE,
                 normalized: '||1.2.3.4^$important',
             });
             expect(processIpRule('@@1.2.3.4$important')).toEqual({
-                action: 'normalize',
+                action: ACTION.NORMALIZE,
                 normalized: '@@||1.2.3.4^$important',
             });
         });
 
         it('normalizes exception rules (@@)', () => {
             expect(processIpRule('@@1.2.3.4')).toEqual({
-                action: 'normalize',
+                action: ACTION.NORMALIZE,
                 normalized: '@@||1.2.3.4^',
             });
             expect(processIpRule('@@|1.2.3.4^')).toEqual({
-                action: 'normalize',
+                action: ACTION.NORMALIZE,
                 normalized: '@@||1.2.3.4^',
             });
             expect(processIpRule('@@||1.2.3.4')).toEqual({
-                action: 'normalize',
+                action: ACTION.NORMALIZE,
                 normalized: '@@||1.2.3.4^',
             });
             expect(processIpRule('@@192.168.1.')).toEqual({
-                action: 'normalize',
+                action: ACTION.NORMALIZE,
                 normalized: '@@||192.168.1.',
             });
             // already correct — keep as-is
-            expect(processIpRule('@@||1.2.3.4^')).toEqual({ action: 'keep' });
-            expect(processIpRule('@@||192.168.1.')).toEqual({ action: 'keep' });
+            expect(processIpRule('@@||1.2.3.4^')).toEqual({ action: ACTION.KEEP });
+            expect(processIpRule('@@||192.168.1.')).toEqual({ action: ACTION.KEEP });
         });
 
         it('does not reject invalid @@-patterns — normalization-only, validateAllowIp will reject', () => {
             // processIpRule cannot normalize these, so it keeps them unchanged.
             // Rejection is the sole responsibility of the validator (validate.js),
             // not of the normalizer — that eliminates double-rejection.
-            expect(processIpRule('@@192.168.1').action).toBe('keep');
-            expect(processIpRule('@@||192.168.1^').action).toBe('keep');
-            expect(processIpRule('@@1.2.').action).toBe('keep');
-            expect(processIpRule('@@||10^').action).toBe('keep');
+            expect(processIpRule('@@192.168.1').action).toBe(ACTION.KEEP);
+            expect(processIpRule('@@||192.168.1^').action).toBe(ACTION.KEEP);
+            expect(processIpRule('@@1.2.').action).toBe(ACTION.KEEP);
+            expect(processIpRule('@@||10^').action).toBe(ACTION.KEEP);
         });
     });
 
