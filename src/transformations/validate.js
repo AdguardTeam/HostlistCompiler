@@ -80,7 +80,7 @@ function isIpSubnetPattern(s) {
     // Split into parts
     const parts = pattern.split('.');
 
-    // Must have less than 4 octets
+    // Must have 1, 2, or 3 octets (e.g. 1., 1.1., 1.1.2., 1.1.2^)
     if (parts.length >= 4) {
         return false;
     }
