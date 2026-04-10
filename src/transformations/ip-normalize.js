@@ -118,13 +118,13 @@ function checkTooWidePattern(pattern) {
 }
 
 /**
- * Normalizes an IP rule if needed, or returns null if the rule should be rejected.
+ * Normalizes an IP rule if needed, or keeps it unchanged.
+ * Invalid patterns are passed through for the validator to reject.
  *
  * @param {string} ruleText - The full rule text (may include modifiers and @@ prefix).
  * @returns {object} Result object.
  *   - action: ACTION.KEEP (no change), ACTION.NORMALIZE
  *   - normalized: the normalized rule (if action is ACTION.NORMALIZE)
- *   - reason: rejection reason (if action is 'reject')
  */
 function processIpRule(ruleText) {
     // Skip comments and empty lines
