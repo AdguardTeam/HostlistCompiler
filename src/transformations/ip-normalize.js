@@ -1,5 +1,5 @@
 const consola = require('consola');
-const { MODIFIER_REGEX, parseIpPattern } = require('../utils');
+const { MODIFIER_REGEX, classifyIpPattern, parseIpPattern } = require('../utils');
 
 /**
  * Action constants for IP rule processing results.
@@ -23,26 +23,16 @@ const ACTION = Object.freeze({
  * @returns {string|null} The normalized pattern (||ip^) or null if not applicable.
  */
 function normalizeFullIp(pattern) {
-    const parsed = parseIpPattern(pattern);
-    if (!parsed) {
+    const c = classifyIpPattern(pattern);
+    if (!c || !c.isFullIp) {
         return null;
     }
 
-    // Must be exactly 4 octets
-    if (parsed.octets.length !== 4) {
-        return null;
-    }
-
-    // Must not have trailing dot or wildcard (those are subnet patterns)
-    if (parsed.hasTrailingDot || parsed.hasTrailingWildcard) {
-        return null;
-    }
-
-    const ip = parsed.octets.join('.');
+    const ip = c.octets.join('.');
 
     // Already in correct format ||ip^
-    if (parsed.prefix === '||' && parsed.hasCaret) {
-        return null; // No change needed
+    if (c.prefix === '||' && c.hasCaret) {
+        return null;
     }
 
     // Normalize to ||ip^
@@ -70,20 +60,15 @@ function normalizeFullIp(pattern) {
  *   - null means the pattern is not a 3-octet IP subnet; caller should try the next check.
  */
 function check3OctetSubnet(pattern) {
-    const parsed = parseIpPattern(pattern);
-    if (!parsed) {
+    const c = classifyIpPattern(pattern);
+    if (!c || c.octetCount !== 3) {
         return null;
     }
 
-    // Must be exactly 3 octets
-    if (parsed.octets.length !== 3) {
-        return null;
-    }
-
-    const ip = parsed.octets.join('.');
+    const ip = c.octets.join('.');
 
     // 3 octets with ^ - doesn't work in AdGuard Home
-    if (parsed.hasCaret) {
+    if (c.hasCaret) {
         return {
             action: ACTION.REJECT,
             reason: '3-octet IP pattern with ^ does not work in AdGuard Home',
@@ -91,7 +76,7 @@ function check3OctetSubnet(pattern) {
     }
 
     // 3 octets without trailing dot/wildcard - ambiguous
-    if (!parsed.hasTrailingDot && !parsed.hasTrailingWildcard) {
+    if (!c.hasTrailingDot && !c.hasTrailingWildcard) {
         return {
             action: ACTION.REJECT,
             reason: '3-octet IP without trailing dot/wildcard is ambiguous (would match 192.168.11, 192.168.111, etc.)',
@@ -99,12 +84,14 @@ function check3OctetSubnet(pattern) {
     }
 
     // Valid 3-octet subnet pattern - normalize to add || if missing
-    if (parsed.prefix === '||') {
-        return { action: ACTION.ALLOW }; // Already has ||
+    if (c.prefix === '||') {
+        return {
+            action: ACTION.ALLOW,
+        };
     }
 
     // Normalize: add || prefix
-    const suffix = parsed.hasTrailingWildcard ? '.*' : '.';
+    const suffix = c.hasTrailingWildcard ? '.*' : '.';
     return {
         action: ACTION.NORMALIZE,
         normalized: `||${ip}${suffix}`,
@@ -119,20 +106,15 @@ function check3OctetSubnet(pattern) {
  *   - null means the pattern has more than 2 octets; caller should try the next check.
  */
 function checkTooWidePattern(pattern) {
-    const parsed = parseIpPattern(pattern);
-    if (!parsed) {
+    const c = classifyIpPattern(pattern);
+    if (!c || !c.isTooWide) {
         return null;
     }
 
-    // 1-2 octets are too wide
-    if (parsed.octets.length <= 2) {
-        return {
-            action: ACTION.REJECT,
-            reason: `${parsed.octets.length}-octet IP pattern is too wide, use regex instead`,
-        };
-    }
-
-    return null;
+    return {
+        action: ACTION.REJECT,
+        reason: `${c.octetCount}-octet IP pattern is too wide, use regex instead`,
+    };
 }
 
 /**

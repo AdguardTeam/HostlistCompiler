@@ -13,34 +13,9 @@ const ruleUtils = require('../rule');
  * @returns {boolean}
  */
 function is3OctetSubnetWithSuffix(s) {
-    let p = s;
-    // Strip | or || prefix: ||192.168.1. → 192.168.1.
-    if (p.startsWith('||')) {
-        p = p.slice(2);
-    } else if (p.startsWith('|')) {
-        p = p.slice(1);
-    }
-    // Detect and strip trailing wildcard: 192.168.1.* → 192.168.1
-    const hasWildcard = p.endsWith('.*');
-    if (hasWildcard) {
-        p = p.slice(0, -2);
-    }
-    // Detect and strip trailing dot: 192.168.1. → 192.168.1
-    const hasDot = p.endsWith('.');
-    if (hasDot) {
-        p = p.slice(0, -1);
-    }
-    // Without trailing dot or wildcard the pattern is not a usable subnet wildcard.
-    // ||192.168.1^ doesn't work in AdGuard Home; ||192.168.1 is ambiguous — both rejected.
-    if (!hasWildcard && !hasDot) {
-        return false;
-    }
-    // Must be exactly 3 octets after stripping prefix and suffix
-    const parts = p.split('.');
-    if (parts.length !== 3) {
-        return false;
-    }
-    return parts.every((pt) => /^\d{1,3}$/.test(pt) && Number(pt) >= 0 && Number(pt) <= 255);
+    const c = utils.classifyIpPattern(s);
+    // Valid 3-octet subnet: ||prefix, trailing dot or wildcard, no caret
+    return c !== null && c.octetCount === 3 && c.isSubnetWildcard && !c.hasCaret && c.prefix === '||';
 }
 
 /**
@@ -57,47 +32,8 @@ function is3OctetSubnetWithSuffix(s) {
  * @returns {boolean} True if the pattern is an IP subnet pattern, false otherwise
  */
 function isIpSubnetPattern(s) {
-    // Must have | or || prefix to be a subnet pattern (left-anchored)
-    if (!s.startsWith('|')) {
-        return false;
-    }
-
-    // Remove prefixes (||, |)
-    let pattern = s;
-    if (pattern.startsWith('||')) {
-        pattern = pattern.slice(2);
-    } else if (pattern.startsWith('|')) {
-        pattern = pattern.slice(1);
-    }
-
-    // Check for trailing wildcard (.*)
-    if (pattern.endsWith('.*')) {
-        pattern = pattern.slice(0, -2);
-    }
-
-    // Remove ^ and | at the end
-    pattern = pattern.replace(/\^\|?$/, '');
-
-    // Remove trailing dot if present
-    if (pattern.endsWith('.')) {
-        pattern = pattern.slice(0, -1);
-    }
-
-    // Split into parts
-    const parts = pattern.split('.');
-
-    // Must have 1, 2, or 3 octets (e.g. 1., 1.1., 1.1.2., 1.1.2^)
-    if (parts.length >= 4) {
-        return false;
-    }
-
-    // All parts must be numbers 0-255
-    if (!parts.every((p) => /^\d{1,3}$/.test(p) && Number(p) >= 0 && Number(p) <= 255)) {
-        return false;
-    }
-
-    // This is an IP subnet pattern
-    return true;
+    const c = utils.classifyIpPattern(s);
+    return c !== null && c.prefix !== '' && c.octetCount < 4;
 }
 
 /**
@@ -111,29 +47,8 @@ function isIpSubnetPattern(s) {
  * @returns {boolean} True if the pattern is an IP suffix pattern, false otherwise
  */
 function isIpSuffixPattern(s) {
-    // Must NOT have | or || prefix (otherwise it's a subnet pattern, not a suffix)
-    if (s.startsWith('|')) {
-        return false;
-    }
-    // Must have ^ to be considered a suffix pattern.
-    // Bare IPs without ^ (like 1.1.1.1) are caught downstream by the tldts.isIp check,
-    // and in ValidateAllowIp they are pre-normalized to ||ip^ by ip-normalize.js.
-    if (!s.includes('^')) {
-        return false;
-    }
-    // Remove ^ and | at the end
-    let pattern = s.replace(/\^\|?$/, '');
-    // Remove trailing dot if present
-    if (pattern.endsWith('.')) {
-        pattern = pattern.slice(0, -1);
-    }
-    // Must have 2, 3, or 4 octets
-    const parts = pattern.split('.');
-    if (parts.length < 2 || parts.length > 4) {
-        return false;
-    }
-    // All parts must be numbers 0-255
-    return parts.every((p) => /^\d{1,3}$/.test(p) && Number(p) >= 0 && Number(p) <= 255);
+    const c = utils.classifyIpPattern(s);
+    return c !== null && c.prefix === '' && c.hasCaret && c.octetCount >= 2;
 }
 
 /**
@@ -153,30 +68,25 @@ function isUnsafeIpPattern(s) {
         return false;
     }
 
-    // props.pattern from parseRuleTokens already has @@ and $modifiers stripped,
-    // so we can pass the pattern directly to parseIpPattern.
-    const parsed = utils.parseIpPattern(s);
-    if (!parsed) {
+    const c = utils.classifyIpPattern(s);
+    if (!c) {
         return false;
     }
 
     // 1-2 octets are always too wide
-    if (parsed.octets.length <= 2) {
+    if (c.isTooWide) {
         return true;
     }
 
     // 3 octets without trailing dot/wildcard are ambiguous
-    if (parsed.octets.length === 3 && !parsed.hasTrailingDot && !parsed.hasTrailingWildcard) {
+    if (c.isAmbiguous3Octet) {
         return true;
     }
 
-    // 3-octet subnet patterns without anchor prefix (e.g. 10.10.34., 10.10.34.*)
-    // are unsafe in all validators.
+    // 3-octet subnet without anchor prefix (e.g. 10.10.34., 10.10.34.*)
     // Patterns with `||` prefix are handled by isIpSubnetPattern; in ValidateAllowIp,
     // prefix-less ones are pre-normalized to `||ip.` by ip-normalize.js before reaching here.
-    if (parsed.octets.length === 3
-        && (parsed.hasTrailingDot || parsed.hasTrailingWildcard)
-        && parsed.prefix === '') {
+    if (c.octetCount === 3 && c.isSubnetWildcard && c.prefix === '') {
         return true;
     }
 

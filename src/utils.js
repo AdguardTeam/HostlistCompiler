@@ -233,9 +233,44 @@ class Wildcard {
     }
 }
 
+/**
+ * Classifies an IP-like adblock pattern into categories used by validators and normalizers.
+ * Returns null when the pattern cannot be parsed as an IP-like pattern.
+ *
+ * @param {string} pattern - The adblock pattern to classify.
+ * @returns {{ prefix: string, octets: string[],
+ *             hasTrailingDot: boolean, hasTrailingWildcard: boolean,
+ *             hasCaret: boolean, hasCaretPipe: boolean,
+ *             octetCount: number, isFullIp: boolean,
+ *             isSubnetWildcard: boolean, isAmbiguous3Octet: boolean,
+ *             isTooWide: boolean }|null}
+ */
+function classifyIpPattern(pattern) {
+    const parsed = parseIpPattern(pattern);
+    if (!parsed) {
+        return null;
+    }
+
+    return {
+        ...parsed,
+        octetCount: parsed.octets.length,
+        isFullIp: parsed.octets.length === 4
+            && !parsed.hasTrailingDot
+            && !parsed.hasTrailingWildcard,
+        isSubnetWildcard: parsed.octets.length < 4
+            && (parsed.hasTrailingDot || parsed.hasTrailingWildcard),
+        isAmbiguous3Octet: parsed.octets.length === 3
+            && !parsed.hasTrailingDot
+            && !parsed.hasTrailingWildcard
+            && !parsed.hasCaret,
+        isTooWide: parsed.octets.length <= 2,
+    };
+}
+
 module.exports = {
     MODIFIER_REGEX,
     parseIpPattern,
+    classifyIpPattern,
     Wildcard,
     splitByDelimiterWithEscapeCharacter,
     substringBetween,
