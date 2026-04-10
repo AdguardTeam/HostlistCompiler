@@ -141,6 +141,20 @@ describe('ip-normalize', () => {
             });
         });
 
+        it('normalizes 3-octet with single | and trailing dot', () => {
+            expect(check3OctetSubnet('|192.168.1.')).toEqual({
+                action: ACTION.NORMALIZE,
+                normalized: '||192.168.1.',
+            });
+        });
+
+        it('normalizes 3-octet with single | and trailing wildcard', () => {
+            expect(check3OctetSubnet('|192.168.1.*')).toEqual({
+                action: ACTION.NORMALIZE,
+                normalized: '||192.168.1.*',
+            });
+        });
+
         it('allows 3-octet with || and trailing dot', () => {
             expect(check3OctetSubnet('||192.168.1.')).toEqual({
                 action: ACTION.ALLOW,
@@ -238,6 +252,17 @@ describe('ip-normalize', () => {
             expect(processIpRule('@@1.2.3.4$important')).toEqual({
                 action: ACTION.NORMALIZE,
                 normalized: '@@||1.2.3.4^$important',
+            });
+        });
+
+        it('normalizes single-pipe 3-octet subnet to ||', () => {
+            expect(processIpRule('|192.168.1.')).toEqual({
+                action: ACTION.NORMALIZE,
+                normalized: '||192.168.1.',
+            });
+            expect(processIpRule('|192.168.1.*')).toEqual({
+                action: ACTION.NORMALIZE,
+                normalized: '||192.168.1.*',
             });
         });
 
