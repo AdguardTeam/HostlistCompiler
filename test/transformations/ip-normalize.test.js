@@ -108,6 +108,14 @@ describe('ip-normalize', () => {
             expect(normalizeFullIp('|1.2.3.4^')).toBe('||1.2.3.4^');
         });
 
+        it('normalizes IP with ^|', () => {
+            expect(normalizeFullIp('1.2.3.4^|')).toBe('||1.2.3.4^');
+        });
+
+        it('normalizes IP with | and ^|', () => {
+            expect(normalizeFullIp('|1.2.3.4^|')).toBe('||1.2.3.4^');
+        });
+
         it('normalizes IP with only ||', () => {
             expect(normalizeFullIp('||1.2.3.4')).toBe('||1.2.3.4^');
         });
@@ -266,6 +274,20 @@ describe('ip-normalize', () => {
             });
         });
 
+        it('normalizes IP rules with ^|', () => {
+            expect(processIpRule('1.2.3.4^|')).toEqual({
+                action: ACTION.NORMALIZE,
+                normalized: '||1.2.3.4^',
+            });
+            expect(processIpRule('|1.2.3.4^|')).toEqual({
+                action: ACTION.NORMALIZE,
+                normalized: '||1.2.3.4^',
+            });
+            expect(processIpRule('||1.2.3.4^|')).toEqual({
+                action: ACTION.KEEP,
+            });
+        });
+
         it('normalizes exception rules (@@)', () => {
             expect(processIpRule('@@1.2.3.4')).toEqual({
                 action: ACTION.NORMALIZE,
@@ -310,17 +332,21 @@ describe('ip-normalize', () => {
                 '||example.com^',
                 // normalize
                 '1.2.3.4',
+                '1.2.3.4^|',
                 '192.168.1.',
                 '1.2.3.4$important',
                 '5.6.7.8$client=192.168.1.1',
+                '|1.2.3.4^|',
                 // normalize @@
                 '@@1.2.3.4',
+                '@@1.2.3.4^|',
                 '@@|5.6.7.8^',
                 '@@192.168.1.',
                 // normalizeIpRules cannot normalize these — passes them through unchanged.
                 // validateAllowIp's validator is the single place responsible for rejecting
                 // invalid patterns (separation of concerns, no double-rejection).
                 '192.168.1',
+                '||1.2.3.4^|',
                 '||192.168^',
                 '1.2.',
                 '@@192.168.1',
@@ -333,14 +359,18 @@ describe('ip-normalize', () => {
                 '||5.6.7.8^',
                 '||example.com^',
                 '||1.2.3.4^',
+                '||1.2.3.4^',
                 '||192.168.1.',
                 '||1.2.3.4^$important',
                 '||5.6.7.8^$client=192.168.1.1',
+                '||1.2.3.4^',
+                '@@||1.2.3.4^',
                 '@@||1.2.3.4^',
                 '@@||5.6.7.8^',
                 '@@||192.168.1.',
                 // normalizer passes invalid patterns through; validator rejects them
                 '192.168.1',
+                '||1.2.3.4^|',
                 '||192.168^',
                 '1.2.',
                 '@@192.168.1',
