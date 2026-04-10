@@ -153,64 +153,30 @@ function isUnsafeIpPattern(s) {
         return false;
     }
 
-    // Remove prefixes (||, |, @@)
-    let pattern = s;
-    if (pattern.startsWith('@@')) {
-        pattern = pattern.slice(2);
-    }
-    let hasAnchorPrefix = false;
-    if (pattern.startsWith('||')) {
-        hasAnchorPrefix = true;
-        pattern = pattern.slice(2);
-    } else if (pattern.startsWith('|')) {
-        hasAnchorPrefix = true;
-        pattern = pattern.slice(1);
-    }
-
-    // Remove modifiers
-    const dollarIdx = pattern.lastIndexOf('$');
-    if (dollarIdx !== -1) {
-        const afterDollar = pattern.slice(dollarIdx + 1);
-        if (utils.MODIFIER_REGEX.test(afterDollar)) {
-            pattern = pattern.slice(0, dollarIdx);
-        }
-    }
-
-    // Check for trailing wildcard (.*)
-    const hasTrailingWildcard = pattern.endsWith('.*');
-    if (hasTrailingWildcard) {
-        pattern = pattern.slice(0, -2);
-    }
-
-    // Check for trailing dot
-    const hasTrailingDot = pattern.endsWith('.');
-    if (hasTrailingDot) {
-        pattern = pattern.slice(0, -1);
-    }
-
-    // Split into parts
-    const parts = pattern.split('.');
-
-    // All parts must be valid octets (0-255)
-    if (!parts.every((p) => /^\d{1,3}$/.test(p) && Number(p) >= 0 && Number(p) <= 255)) {
+    // props.pattern from parseRuleTokens already has @@ and $modifiers stripped,
+    // so we can pass the pattern directly to parseIpPattern.
+    const parsed = utils.parseIpPattern(s);
+    if (!parsed) {
         return false;
     }
 
     // 1-2 octets are always too wide
-    if (parts.length <= 2) {
+    if (parsed.octets.length <= 2) {
         return true;
     }
 
     // 3 octets without trailing dot/wildcard are ambiguous
-    if (parts.length === 3 && !hasTrailingDot && !hasTrailingWildcard) {
+    if (parsed.octets.length === 3 && !parsed.hasTrailingDot && !parsed.hasTrailingWildcard) {
         return true;
     }
 
     // 3-octet subnet patterns without anchor prefix (e.g. 10.10.34., 10.10.34.*)
-    // are unsafe in all validators. Patterns with || prefix are handled by
-    // isIpSubnetPattern; in ValidateAllowIp, prefix-less ones are pre-normalized
-    // to ||ip. by ip-normalize.js before reaching the validator.
-    if (parts.length === 3 && (hasTrailingDot || hasTrailingWildcard) && !hasAnchorPrefix) {
+    // are unsafe in all validators.
+    // Patterns with `||` prefix are handled by isIpSubnetPattern; in ValidateAllowIp,
+    // prefix-less ones are pre-normalized to `||ip.` by ip-normalize.js before reaching here.
+    if (parsed.octets.length === 3
+        && (parsed.hasTrailingDot || parsed.hasTrailingWildcard)
+        && parsed.prefix === '') {
         return true;
     }
 

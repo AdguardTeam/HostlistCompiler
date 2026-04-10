@@ -1,5 +1,5 @@
 const consola = require('consola');
-const { MODIFIER_REGEX } = require('../utils');
+const { MODIFIER_REGEX, parseIpPattern } = require('../utils');
 
 /**
  * Action constants for IP rule processing results.
@@ -15,97 +15,6 @@ const ACTION = Object.freeze({
     /** Pattern is a valid subnet already in canonical form (||prefix present). */
     ALLOW: 'allow',
 });
-
-/**
- * Regex to match a valid IPv4 octet (0-255).
- */
-const OCTET_REGEX = /^\d{1,3}$/;
-
-/**
- * Checks if a string is a valid IPv4 octet (0-255).
- *
- * @param {string} s - The string to check.
- * @returns {boolean} True if valid octet.
- */
-function isValidOctet(s) {
-    if (!OCTET_REGEX.test(s)) {
-        return false;
-    }
-    const num = Number(s);
-    return num >= 0 && num <= 255;
-}
-
-/**
- * Parses an IP-like pattern and extracts its components.
- *
- * @param {string} pattern - The adblock pattern (without modifiers).
- * @returns {object|null} Parsed components or null if not an IP pattern.
- *   - prefix: '', '|', or '||'
- *   - octets: array of octet strings
- *   - hasTrailingDot: boolean
- *   - hasTrailingWildcard: boolean (ends with .*)
- *   - hasCaret: boolean (ends with ^)
- *   - hasCaretPipe: boolean (ends with ^|)
- */
-function parseIpPattern(pattern) {
-    let remaining = pattern;
-    let prefix = '';
-
-    // Extract prefix
-    if (remaining.startsWith('||')) {
-        prefix = '||';
-        remaining = remaining.slice(2);
-    } else if (remaining.startsWith('|')) {
-        prefix = '|';
-        remaining = remaining.slice(1);
-    }
-
-    // Check for ^| or ^ suffix
-    let hasCaret = false;
-    let hasCaretPipe = false;
-    if (remaining.endsWith('^|')) {
-        hasCaretPipe = true;
-        hasCaret = true;
-        remaining = remaining.slice(0, -2);
-    } else if (remaining.endsWith('^')) {
-        hasCaret = true;
-        remaining = remaining.slice(0, -1);
-    }
-
-    // Check for trailing wildcard (.*)
-    let hasTrailingWildcard = false;
-    if (remaining.endsWith('.*')) {
-        hasTrailingWildcard = true;
-        remaining = remaining.slice(0, -2);
-    }
-
-    // Check for trailing dot
-    let hasTrailingDot = false;
-    if (remaining.endsWith('.')) {
-        hasTrailingDot = true;
-        remaining = remaining.slice(0, -1);
-    }
-
-    // Split into octets
-    const parts = remaining.split('.');
-    if (parts.length === 0 || parts.length > 4) {
-        return null;
-    }
-
-    // All parts must be valid octets
-    if (!parts.every(isValidOctet)) {
-        return null;
-    }
-
-    return {
-        prefix,
-        octets: parts,
-        hasTrailingDot,
-        hasTrailingWildcard,
-        hasCaret,
-        hasCaretPipe,
-    };
-}
 
 /**
  * Determines if a pattern is a full 4-octet IP address that needs normalization.
