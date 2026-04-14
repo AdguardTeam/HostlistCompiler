@@ -121,7 +121,7 @@ describe('ValidateAllowIp', () => {
             '||192.168.1.1^',
             '||1.2.3.4^',
             '||1.2.3.4^',
-            '||1.2.3.4^|',
+            '||1.2.3.4^',
             // 3-octet subnet wildcards (all prefix forms normalized to ||)
             '||192.168.1.',
             '||192.168.1.*',

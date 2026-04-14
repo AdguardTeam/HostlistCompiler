@@ -32,8 +32,8 @@ function normalizeFullIp(pattern) {
 
     const ip = c.octets.join('.');
 
-    // Already in correct format ||ip^
-    if (c.prefix === '||' && c.hasCaret) {
+    // Already in correct format ||ip^ (||ip^| is not a non-canonical variant)
+    if (c.prefix === '||' && c.hasCaret && !c.hasCaretPipe) {
         return null;
     }
 
@@ -182,7 +182,7 @@ function processIpRule(ruleText) {
 }
 
 /**
- * Processes a list of rules, normalizing IP rules and rejecting invalid ones.
+ * Processes a list of rules, normalizing IP rules and passing invalid ones through unchanged.
  *
  * @param {string[]} rules - Array of rules.
  * @returns {string[]} Processed rules with normalization applied.

@@ -284,7 +284,8 @@ describe('ip-normalize', () => {
                 normalized: '||1.2.3.4^',
             });
             expect(processIpRule('||1.2.3.4^|')).toEqual({
-                action: ACTION.KEEP,
+                action: ACTION.NORMALIZE,
+                normalized: '||1.2.3.4^',
             });
         });
 
@@ -346,7 +347,7 @@ describe('ip-normalize', () => {
                 // validateAllowIp's validator is the single place responsible for rejecting
                 // invalid patterns (separation of concerns, no double-rejection).
                 '192.168.1',
-                '||1.2.3.4^|',
+                '||1.2.3.4^',
                 '||192.168^',
                 '1.2.',
                 '@@192.168.1',
@@ -370,7 +371,7 @@ describe('ip-normalize', () => {
                 '@@||192.168.1.',
                 // normalizer passes invalid patterns through; validator rejects them
                 '192.168.1',
-                '||1.2.3.4^|',
+                '||1.2.3.4^',
                 '||192.168^',
                 '1.2.',
                 '@@192.168.1',

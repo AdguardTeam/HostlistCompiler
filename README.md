@@ -443,7 +443,7 @@ So here's what it does:
 - Discards rules that are too short.
 - Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
 
-  **<a name="rejected-ip-patterns"></a>Rejected IP Patterns**
+#### <a name="rejected-ip-patterns"></a>Rejected IP Patterns
 
   The following IP patterns are rejected by all validation transformations (`Validate`, `ValidateAllowIp`, `ValidateAllowPublicSuffix`) as they are either unsafe or ambiguous:
 

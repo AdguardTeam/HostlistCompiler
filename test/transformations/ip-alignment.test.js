@@ -27,7 +27,7 @@ const CASES = [
     ['1.2.3.4^', '||1.2.3.4^', false, true],
     ['1.2.3.4^|', '||1.2.3.4^', false, true],
     ['|1.2.3.4^|', '||1.2.3.4^', false, true],
-    ['||1.2.3.4^|', null, false, true],
+    ['||1.2.3.4^|', '||1.2.3.4^', false, true],
     // 3-octet subnets with || — normalizer keeps them as-is
     ['||192.168.1.', null, false, true],
     ['||192.168.1.*', null, false, true],
