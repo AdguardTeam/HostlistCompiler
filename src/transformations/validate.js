@@ -318,6 +318,15 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         return false;
     }
 
+    // `denyallow` is only meaningful for domain-based rules.
+    // IP-like patterns with `denyallow` do not behave as expected, so reject them.
+    const hasDenyallowModifier = props.options
+        && props.options.some((option) => option.name === 'denyallow');
+    if (hasDenyallowModifier && utils.classifyIpPattern(props.pattern)) {
+        consola.debug(`denyallow is not supported for IP patterns: ${ruleText}`);
+        return false;
+    }
+
     // 3.5. Check if the base pattern is an IP address or IP-like pattern.
 
     // Reject IP-suffix patterns (1.1^, 1.1.1^, 1.1.1.1^) ALWAYS — they match string endings unpredictably

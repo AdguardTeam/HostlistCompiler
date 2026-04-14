@@ -46,6 +46,8 @@ describe('ValidateAllowIp', () => {
 ||example.org^$third-party
 ||example.org^$important
 ||*.ga^$denyallow=example1.ga|example2.ga
+1.1.1.1$denyallow=001114.cn
+||1.1.1.1^$denyallow=001114.cn
 ://ww4.$denyallow=ww4.example.com
 ://example.org
 ||example.org^|

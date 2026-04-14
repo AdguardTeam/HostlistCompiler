@@ -1,5 +1,6 @@
 const consola = require('consola');
-const { MODIFIER_REGEX, classifyIpPattern, parseIpPattern } = require('../utils');
+const ruleUtils = require('../rule');
+const { classifyIpPattern, parseIpPattern } = require('../utils');
 
 /**
  * Action constants for IP rule processing results.
@@ -134,34 +135,16 @@ function processIpRule(ruleText) {
         return { action: ACTION.KEEP };
     }
 
-    // Check for exception rules (@@) - process them too, but preserve @@ prefix
-    let exceptionPrefix = '';
-    let ruleWithoutException = ruleText;
-    if (ruleText.startsWith('@@')) {
-        exceptionPrefix = '@@';
-        ruleWithoutException = ruleText.slice(2);
-    }
-
-    // Extract pattern and modifiers
-    let pattern = ruleWithoutException;
-    let modifiers = '';
-    const dollarIdx = ruleWithoutException.lastIndexOf('$');
-    if (dollarIdx !== -1) {
-        // Check if $ is part of a regex or actual modifier separator
-        const afterDollar = ruleWithoutException.slice(dollarIdx + 1);
-        // Simple heuristic: if it looks like modifiers (alphanumeric, commas, equals, dots for IPs in values)
-        if (MODIFIER_REGEX.test(afterDollar)) {
-            pattern = ruleWithoutException.slice(0, dollarIdx);
-            modifiers = ruleWithoutException.slice(dollarIdx);
-        }
-    }
+    const ruleProps = ruleUtils.loadAdblockRuleProperties(ruleText);
+    const { pattern } = ruleProps;
 
     // Check for 3-octet subnet patterns (normalize or keep)
     const subnet = check3OctetSubnet(pattern);
     if (subnet?.action === ACTION.NORMALIZE) {
+        ruleProps.pattern = subnet.normalized;
         return {
             action: ACTION.NORMALIZE,
-            normalized: exceptionPrefix + subnet.normalized + modifiers,
+            normalized: ruleUtils.adblockRuleToString(ruleProps),
         };
     }
     if (subnet?.action === ACTION.ALLOW || subnet?.action === ACTION.REJECT) {
@@ -172,9 +155,10 @@ function processIpRule(ruleText) {
     // Check for full 4-octet IP normalization
     const normalized = normalizeFullIp(pattern);
     if (normalized) {
+        ruleProps.pattern = normalized;
         return {
             action: ACTION.NORMALIZE,
-            normalized: exceptionPrefix + normalized + modifiers,
+            normalized: ruleUtils.adblockRuleToString(ruleProps),
         };
     }
 
