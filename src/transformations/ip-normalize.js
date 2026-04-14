@@ -5,16 +5,12 @@ const { classifyIpPattern, parseIpPattern } = require('../utils');
 /**
  * Action constants for IP rule processing results.
  * Used by check helpers, processIpRule, and normalizeIpRules.
- * Note: ACTION.REJECT is only returned by helper checks; processIpRule()
- * itself passes invalid patterns through unchanged and never emits REJECT.
  */
 const ACTION = Object.freeze({
     /** Pattern is valid and already in canonical form — no change needed. */
     KEEP: 'keep',
     /** Pattern needs rewriting to canonical form. */
     NORMALIZE: 'normalize',
-    /** Pattern is invalid at helper level; caller decides whether to keep or reject it. */
-    REJECT: 'reject',
     /** Pattern is a valid subnet already in canonical form (||prefix present). */
     ALLOW: 'allow',
 });
@@ -51,16 +47,16 @@ function normalizeFullIp(pattern) {
  *   - ||192.168.1. (with prefix)
  *   - ||192.168.1.* (with prefix)
  *
- * Invalid 3-octet patterns:
+ * Invalid 3-octet patterns (returned as null — caller treats as pass-through):
  *   - 192.168.1 (no trailing dot/wildcard - ambiguous)
  *   - ||192.168.1^ (with caret - doesn't work in AdGuard Home)
  *
  * @param {string} pattern - The adblock pattern.
  * @returns {object|null} Result with action and normalized pattern, or null if not applicable.
- *   - action: ACTION.ALLOW, ACTION.NORMALIZE, ACTION.REJECT
+ *   - action: ACTION.ALLOW, ACTION.NORMALIZE
  *   - normalized: the normalized pattern (if action is ACTION.NORMALIZE)
- *   - reason: rejection reason (if action is ACTION.REJECT)
- *   - null means the pattern is not a 3-octet IP subnet; caller should try the next check.
+ *   - null means the pattern is not a 3-octet IP subnet, or is an invalid 3-octet pattern;
+ *     caller should pass it through unchanged.
  */
 function check3OctetSubnet(pattern) {
     const c = classifyIpPattern(pattern);
@@ -70,20 +66,14 @@ function check3OctetSubnet(pattern) {
 
     const ip = c.octets.join('.');
 
-    // 3 octets with ^ - doesn't work in AdGuard Home
+    // 3 octets with ^ - doesn't work in AdGuard Home; pass through for validator
     if (c.hasCaret) {
-        return {
-            action: ACTION.REJECT,
-            reason: '3-octet IP pattern with ^ does not work in AdGuard Home',
-        };
+        return null;
     }
 
-    // 3 octets without trailing dot/wildcard - ambiguous
+    // 3 octets without trailing dot/wildcard - ambiguous; pass through for validator
     if (!c.hasTrailingDot && !c.hasTrailingWildcard) {
-        return {
-            action: ACTION.REJECT,
-            reason: '3-octet IP without trailing dot/wildcard is ambiguous (would match 192.168.11, 192.168.111, etc.)',
-        };
+        return null;
     }
 
     // Valid 3-octet subnet pattern - normalize to add || if missing
@@ -98,25 +88,6 @@ function check3OctetSubnet(pattern) {
     return {
         action: ACTION.NORMALIZE,
         normalized: `||${ip}${suffix}`,
-    };
-}
-
-/**
- * Checks if a pattern is a 1-2 octet pattern (too wide, should be rejected).
- *
- * @param {string} pattern - The adblock pattern.
- * @returns {{action: string, reason: string}|null} Reject result, or null if not applicable.
- *   - null means the pattern has more than 2 octets; caller should try the next check.
- */
-function checkTooWidePattern(pattern) {
-    const c = classifyIpPattern(pattern);
-    if (!c || !c.isTooWide) {
-        return null;
-    }
-
-    return {
-        action: ACTION.REJECT,
-        reason: `${c.octetCount}-octet IP pattern is too wide, use regex instead`,
     };
 }
 
@@ -147,8 +118,8 @@ function processIpRule(ruleText) {
             normalized: ruleUtils.adblockRuleToString(ruleProps),
         };
     }
-    if (subnet?.action === ACTION.ALLOW || subnet?.action === ACTION.REJECT) {
-        // ALLOW — already correct; REJECT — pass through, validator will handle
+    if (subnet?.action === ACTION.ALLOW) {
+        // Already in canonical form — no change needed
         return { action: ACTION.KEEP };
     }
 
@@ -195,7 +166,6 @@ module.exports = {
     parseIpPattern,
     normalizeFullIp,
     check3OctetSubnet,
-    checkTooWidePattern,
     processIpRule,
     normalizeIpRules,
 };

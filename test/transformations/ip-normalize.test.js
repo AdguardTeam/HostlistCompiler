@@ -3,7 +3,6 @@ const {
     parseIpPattern,
     normalizeFullIp,
     check3OctetSubnet,
-    checkTooWidePattern,
     processIpRule,
     normalizeIpRules,
 } = require('../../src/transformations/ip-normalize');
@@ -175,30 +174,6 @@ describe('ip-normalize', () => {
             });
         });
 
-        it('rejects 3-octet without trailing dot/wildcard', () => {
-            const result = check3OctetSubnet('192.168.1');
-            expect(result.action).toBe(ACTION.REJECT);
-            expect(result.reason).toContain('ambiguous');
-        });
-
-        it('rejects 3-octet with || but no trailing dot/wildcard', () => {
-            const result = check3OctetSubnet('||192.168.1');
-            expect(result.action).toBe(ACTION.REJECT);
-            expect(result.reason).toContain('ambiguous');
-        });
-
-        it('rejects 3-octet with ^', () => {
-            const result = check3OctetSubnet('||192.168.1^');
-            expect(result.action).toBe(ACTION.REJECT);
-            expect(result.reason).toContain('does not work');
-        });
-
-        it('rejects 3-octet without || but with ^', () => {
-            const result = check3OctetSubnet('192.168.1^');
-            expect(result.action).toBe(ACTION.REJECT);
-            expect(result.reason).toContain('does not work');
-        });
-
         it('does not apply to 4-octet patterns', () => {
             expect(check3OctetSubnet('1.2.3.4')).toBeNull();
             expect(check3OctetSubnet('||1.2.3.4^')).toBeNull();
@@ -206,33 +181,6 @@ describe('ip-normalize', () => {
 
         it('does not apply to non-3-octet patterns', () => {
             expect(check3OctetSubnet('192.168.')).toBeNull();
-        });
-    });
-
-    describe('checkTooWidePattern', () => {
-        it('rejects 1-octet patterns', () => {
-            expect(checkTooWidePattern('1.').action).toBe(ACTION.REJECT);
-            expect(checkTooWidePattern('1.*').action).toBe(ACTION.REJECT);
-            expect(checkTooWidePattern('||1.').action).toBe(ACTION.REJECT);
-        });
-
-        it('rejects 2-octet patterns', () => {
-            expect(checkTooWidePattern('1.2.').action).toBe(ACTION.REJECT);
-            expect(checkTooWidePattern('1.2.*').action).toBe(ACTION.REJECT);
-            expect(checkTooWidePattern('||1.2.').action).toBe(ACTION.REJECT);
-            expect(checkTooWidePattern('||1.2^').action).toBe(ACTION.REJECT);
-        });
-
-        it('does not apply to 3-octet patterns', () => {
-            expect(checkTooWidePattern('192.168.1.')).toBeNull();
-        });
-
-        it('does not apply to 4-octet patterns', () => {
-            expect(checkTooWidePattern('1.2.3.4')).toBeNull();
-        });
-
-        it('does not apply to non-IP patterns', () => {
-            expect(checkTooWidePattern('example.com')).toBeNull();
         });
     });
 

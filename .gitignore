@@ -12,3 +12,5 @@ examples/whitelist/filter.txt
 
 .npmrc
 *.tgz
+_temp_compiler_tests
+REVIEW_FIXES.md
