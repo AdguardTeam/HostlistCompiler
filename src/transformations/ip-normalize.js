@@ -7,11 +7,19 @@ const { classifyIpPattern, parseIpPattern } = require('../utils');
  * Used by check helpers, processIpRule, and normalizeIpRules.
  */
 const ACTION = Object.freeze({
-    /** Pattern is valid and already in canonical form — no change needed. */
+    /**
+     * Pattern is valid and already in canonical form — no change needed.
+     */
     KEEP: 'keep',
-    /** Pattern needs rewriting to canonical form. */
+
+    /**
+     * Pattern needs rewriting to canonical form.
+     */
     NORMALIZE: 'normalize',
-    /** Pattern is a valid subnet already in canonical form (||prefix present). */
+
+    /**
+     * Pattern is a valid subnet already in canonical form (||prefix present).
+     */
     ALLOW: 'allow',
 });
 
