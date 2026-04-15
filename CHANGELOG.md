@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `ValidateAllowIp` now normalizes incomplete IP rules to the safe format `||ip^`. [#127]
-  - 4-octet IPs without proper separators (e.g. `1.2.3.4`, `1.2.3.4^`, `|1.2.3.4^`) are normalized to `||1.2.3.4^`
-  - 3-octet subnet wildcards (e.g. `192.168.1.`, `192.168.1.*`) are allowed with `||` prefix
-  - 3-octet patterns with `^` are rejected (e.g. `192.168.1^`, `||192.168.1^`)
-  - 3-octet patterns without trailing dot/wildcard are rejected (e.g. `192.168.1`, `||192.168.1`)
-  - 1-2 octet patterns are rejected (too wide, use regex instead)
-  - Normalization (`ip-normalize.js`) is now purely a normalization step: it only rewrites valid patterns to canonical form and passes everything else through unchanged. Rejection of invalid patterns is the responsibility of the validator (`validate.js`), eliminating double-rejection.
+`ValidateAllowIp` now normalizes incomplete IP rules to the safe format `||ip^`. [#127]
+    - 4-octet IPs without proper separators (e.g. `1.2.3.4`, `1.2.3.4^`, `|1.2.3.4^`) are normalized to `||1.2.3.4^`
+    - 3-octet subnet wildcards (e.g. `192.168.1.`, `192.168.1.*`) are allowed with `||` prefix
+    - 3-octet patterns with `^` are rejected (e.g. `192.168.1^`, `||192.168.1^`)
+    - 3-octet patterns without trailing dot/wildcard are rejected (e.g. `192.168.1`, `||192.168.1`)
+    - 1-2 octet patterns are rejected (too wide, use regex instead)
+    - Normalization (`ip-normalize.js`) is now purely a normalization step: it only rewrites valid patterns to canonical form and passes everything else through unchanged. Rejection of invalid patterns is the responsibility of the validator (`validate.js`), eliminating double-rejection.
 
 [2.1.0]: https://github.com/AdguardTeam/HostlistCompiler/compare/v2.0.0...v2.1.0
 [#127]: https://github.com/AdguardTeam/HostlistCompiler/issues/127
