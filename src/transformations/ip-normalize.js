@@ -2,6 +2,9 @@ const consola = require('consola');
 const ruleUtils = require('../rule');
 const { classifyIpPattern, parseIpPattern } = require('../utils');
 
+// Prefix for canonical IP/domain patterns
+const IP_PREFIX = '||';
+
 /**
  * Action constants for IP rule processing results.
  * Used by check helpers, processIpRule, and normalizeIpRules.
@@ -38,7 +41,7 @@ function normalizeFullIp(pattern) {
     const ip = c.octets.join('.');
 
     // Already in correct format ||ip^ (||ip^| is not a non-canonical variant)
-    if (c.prefix === '||' && c.hasCaret && !c.hasCaretPipe) {
+    if (c.prefix === IP_PREFIX && c.hasCaret && !c.hasCaretPipe) {
         return null;
     }
 
@@ -85,7 +88,7 @@ function check3OctetSubnet(pattern) {
     }
 
     // Valid 3-octet subnet pattern - normalize to add || if missing
-    if (c.prefix === '||') {
+    if (c.prefix === IP_PREFIX) {
         return {
             action: ACTION.ALLOW,
         };

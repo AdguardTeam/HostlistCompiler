@@ -1,5 +1,8 @@
 const _ = require('lodash');
 
+// Prefix for canonical IP/domain patterns
+const IP_PREFIX = '||';
+
 /**
  * Regex that matches strings that look like adblock rule modifiers
  * Used to distinguish a real `$modifier` suffix from a `$` that is
@@ -42,8 +45,8 @@ function parseIpPattern(pattern) {
     let prefix = '';
 
     // Extract prefix
-    if (remaining.startsWith('||')) {
-        prefix = '||';
+    if (remaining.startsWith(IP_PREFIX)) {
+        prefix = IP_PREFIX;
         remaining = remaining.slice(2);
     } else if (remaining.startsWith('|')) {
         prefix = '|';

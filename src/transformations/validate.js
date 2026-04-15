@@ -4,6 +4,12 @@ const tldts = require('tldts');
 const utils = require('../utils');
 const ruleUtils = require('../rule');
 
+// Prefix and separators for domain patterns
+const DOMAIN_PREFIX = '||';
+const DOMAIN_SEPARATOR = '^';
+const WILDCARD = '*';
+const WILDCARD_DOMAIN_PART = '*.';
+
 /**
  * Checks if a pattern is a 3-octet subnet with trailing dot or wildcard AND a || prefix.
  * These are the only subnet patterns that work in AdGuard Home for ValidateAllowIp.
@@ -15,7 +21,7 @@ const ruleUtils = require('../rule');
 function is3OctetSubnetWithSuffix(s) {
     const c = utils.classifyIpPattern(s);
     // Valid 3-octet subnet: ||prefix, trailing dot or wildcard, no caret
-    return c !== null && c.octetCount === 3 && c.isSubnetWildcard && !c.hasCaret && c.prefix === '||';
+    return c !== null && c.octetCount === 3 && c.isSubnetWildcard && !c.hasCaret && c.prefix === DOMAIN_PREFIX;
 }
 
 /**
@@ -93,12 +99,6 @@ function isUnsafeIpPattern(s) {
     return false;
 }
 
-const DOMAIN_PREFIX = '||';
-const DOMAIN_SEPARATOR = '^';
-const WILDCARD = '*';
-const WILDCARD_DOMAIN_PART = '*.';
-// Matches exact domain-style adblock patterns: ||example.org^, *.org^, .org^, ||org^
-// Each part explained:
 const EXACT_DOMAIN_PATTERN = new RegExp(
     // optional || prefix: matches ||example.org^, does not require it for .org^ or *.org^
     '^(?:\\|\\|)?'
