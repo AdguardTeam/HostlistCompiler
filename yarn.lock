@@ -3697,17 +3697,17 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-tldts-core@^5.7.8:
-  version "5.7.8"
-  resolved "https://registry.yarnpkg.com/tldts-core/-/tldts-core-5.7.8.tgz#8c441951e4c6157d45f84219c8c41483a8d5ee90"
-  integrity sha512-F0A6r4fGkAdyPpTWN3elMVMsflmJGs26v9KzUCM1M7ZzMPiwQ2uk7VgiQHO+ge8WVgSSx96jFn9h30Vqeci8Ig==
+tldts-core@^7.0.28:
+  version "7.0.28"
+  resolved "https://registry.yarnpkg.com/tldts-core/-/tldts-core-7.0.28.tgz#28c256edae2ed177b2a8338a51caf81d41580ecf"
+  integrity sha512-7W5Efjhsc3chVdFhqtaU0KtK32J37Zcr9RKtID54nG+tIpcY79CQK/veYPODxtD/LJ4Lue66jvrQzIX2Z2/pUQ==
 
-tldts@^5.6.10:
-  version "5.7.8"
-  resolved "https://registry.yarnpkg.com/tldts/-/tldts-5.7.8.tgz#3a3e698c65bbeed7d6e5f0899aeb325a41f69dab"
-  integrity sha512-2/VUpIQi9DbkewZytQZycA4xbo5dIHBgSTr93B1NZSkyHF3+gonOuC/0adesjOcCgrq0UEZ/Hh8yPgBxhan9cg==
+tldts@7.0.28:
+  version "7.0.28"
+  resolved "https://registry.yarnpkg.com/tldts/-/tldts-7.0.28.tgz#5a5bb26ef3f70008d88c6e53ff58cd59ed8d4c68"
+  integrity sha512-+Zg3vWhRUv8B1maGSTFdev9mjoo8Etn2Ayfs4cnjlD3CsGkxXX4QyW3j2WJ0wdjYcYmy7Lx2RDsZMhgCWafKIw==
   dependencies:
-    tldts-core "^5.7.8"
+    tldts-core "^7.0.28"
 
 tmpl@1.0.5:
   version "1.0.5"

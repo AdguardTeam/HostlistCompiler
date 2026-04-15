@@ -99,6 +99,9 @@ function isUnsafeIpPattern(s) {
     return false;
 }
 
+const HOSTNAME_ALNUM_PATTERN = /[a-zA-Z0-9]/;
+// Matches exact domain-style adblock patterns: ||example.org^, *.org^, .org^, ||org^
+// Each part explained:
 const EXACT_DOMAIN_PATTERN = new RegExp(
     // optional || prefix: matches ||example.org^, does not require it for .org^ or *.org^
     '^(?:\\|\\|)?'
@@ -166,13 +169,19 @@ const MAX_PATTERN_LENGTH = 5;
 function validHostname(hostname, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix) {
     const result = tldts.parse(hostname);
 
-    if (!result.hostname) {
-        consola.debug(`invalid hostname ${hostname} in the rule: ${ruleText}`);
+    // tldts v7 may return a non-null hostname for malformed inputs consisting only of dots
+    // (".." => hostname: "."). Reject any hostname that does not contain at least one
+    // alphanumeric character, since real hostnames always have one.
+    // This is separate from the adblock-style `checkChars` filter in validAdblockRule(),
+    // which rejects raw Unicode patterns before they reach this function. Raw Unicode
+    // adblock rules are expected to pass through ConvertToAscii before validation.
+    if (!result.hostname || !HOSTNAME_ALNUM_PATTERN.test(result.hostname)) {
+        consola.debug(`malformed hostname ${hostname} in the rule: ${ruleText}`);
         return false;
     }
 
     if (!allowedIP && result.isIp) {
-        consola.debug(`invalid hostname ${hostname} in the rule: ${ruleText}`);
+        consola.debug(`IP address ${hostname} is not allowed in the rule: ${ruleText}`);
         return false;
     }
 

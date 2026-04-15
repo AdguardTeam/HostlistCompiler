@@ -17,8 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - 1-2 octet patterns are rejected (too wide, use regex instead)
     - Normalization (`ip-normalize.js`) is now purely a normalization step: it only rewrites valid patterns to canonical form and passes everything else through unchanged. Rejection of invalid patterns is the responsibility of the validator (`validate.js`), eliminating double-rejection.
 
+### Fixed
+
+- `ValidateAllowPublicSuffix` was letting through terminated ICANN TLDs (e.g. `xn--jlq61u9w7b`) because `tldts` v5.x had stale Public Suffix List data. Updated `tldts` from v5 to v7 which has the current PSL. [#128]
+- Hardened `validHostname()` to reject hostnames that do not contain any alphanumeric character (e.g. `..`), covering a behavioral change in `tldts` v7.
+
 [2.1.0]: https://github.com/AdguardTeam/HostlistCompiler/compare/v2.0.0...v2.1.0
 [#127]: https://github.com/AdguardTeam/HostlistCompiler/issues/127
+[#128]: https://github.com/AdguardTeam/HostlistCompiler/issues/128
 
 ## [2.0.0] - 2026-04-02
 
