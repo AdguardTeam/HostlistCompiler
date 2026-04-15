@@ -11,6 +11,7 @@ declare module '@adguard/hostlist-compiler' {
         'Validate' |
         'ValidateAllowIp' |
         'ValidateAllowPublicSuffix' |
+        'ValidateAllowIpAndPublicSuffix' |
         'Deduplicate' |
         'RemoveEmptyLines' |
         'InsertFinalNewLine';

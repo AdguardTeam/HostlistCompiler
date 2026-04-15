@@ -95,7 +95,10 @@ describe('Configuration', () => {
     it.each([
         ['Validate', 'ValidateAllowIp'],
         ['Validate', 'ValidateAllowPublicSuffix'],
+        ['Validate', 'ValidateAllowIpAndPublicSuffix'],
         ['ValidateAllowIp', 'ValidateAllowPublicSuffix'],
+        ['ValidateAllowIp', 'ValidateAllowIpAndPublicSuffix'],
+        ['ValidateAllowPublicSuffix', 'ValidateAllowIpAndPublicSuffix'],
     ])('test incompatible top-level transformations configuration: %s + %s', (first, second) => {
         const ret = config.validateConfiguration({
             name: 'test',
@@ -117,7 +120,10 @@ describe('Configuration', () => {
     it.each([
         ['Validate', 'ValidateAllowIp'],
         ['Validate', 'ValidateAllowPublicSuffix'],
+        ['Validate', 'ValidateAllowIpAndPublicSuffix'],
         ['ValidateAllowIp', 'ValidateAllowPublicSuffix'],
+        ['ValidateAllowIp', 'ValidateAllowIpAndPublicSuffix'],
+        ['ValidateAllowPublicSuffix', 'ValidateAllowIpAndPublicSuffix'],
     ])('test incompatible source transformations configuration: %s + %s', (first, second) => {
         const ret = config.validateConfiguration({
             name: 'test',

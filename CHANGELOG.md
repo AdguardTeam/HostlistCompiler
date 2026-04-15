@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026.04.15
+
+### Added
+
+- `ValidateAllowIpAndPublicSuffix` validation that keeps both IP address rules and rules matching whole public suffixes (e.g. `||185.149.120.173^`, `.org^`). [#126]
+
+[2.2.0]: https://github.com/AdguardTeam/HostlistCompiler/compare/v2.1.0...v2.2.0
+[#126]: https://github.com/AdguardTeam/HostlistCompiler/issues/126
+
 ## [2.1.0] - 2026.04.16
 
 ### Changed
