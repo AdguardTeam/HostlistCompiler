@@ -59,7 +59,13 @@ dupl1
     it.each([
         ['Validate + ValidateAllowIp', ['Validate', 'ValidateAllowIp']],
         ['Validate + ValidateAllowPublicSuffix', ['Validate', 'ValidateAllowPublicSuffix']],
+        ['Validate + ValidateAllowIpAndPublicSuffix', ['Validate', 'ValidateAllowIpAndPublicSuffix']],
         ['ValidateAllowIp + ValidateAllowPublicSuffix', ['ValidateAllowIp', 'ValidateAllowPublicSuffix']],
+        ['ValidateAllowIp + ValidateAllowIpAndPublicSuffix', ['ValidateAllowIp', 'ValidateAllowIpAndPublicSuffix']],
+        [
+            'ValidateAllowPublicSuffix + ValidateAllowIpAndPublicSuffix',
+            ['ValidateAllowPublicSuffix', 'ValidateAllowIpAndPublicSuffix'],
+        ],
         [
             'Validate + ValidateAllowIp + ValidateAllowPublicSuffix',
             ['Validate', 'ValidateAllowIp', 'ValidateAllowPublicSuffix'],

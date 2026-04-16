@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.1.0] - 2026-04-16
 
+### Added
+
+- `ValidateAllowIpAndPublicSuffix` validation that keeps both IP address rules and rules matching whole public suffixes (e.g. `||185.149.120.173^`, `.org^`). [#126]
+
 ### Changed
 
 `ValidateAllowIp` now normalizes incomplete IP rules to the safe format `||ip^`. [#127]
@@ -23,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hardened `validHostname()` to reject hostnames that do not contain any alphanumeric character (e.g. `..`), covering a behavioral change in `tldts` v7.
 
 [2.1.0]: https://github.com/AdguardTeam/HostlistCompiler/compare/v2.0.0...v2.1.0
+[#126]: https://github.com/AdguardTeam/HostlistCompiler/issues/126
 [#127]: https://github.com/AdguardTeam/HostlistCompiler/issues/127
 [#128]: https://github.com/AdguardTeam/HostlistCompiler/issues/128
 
