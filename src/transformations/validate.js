@@ -39,7 +39,14 @@ function is3OctetSubnetWithSuffix(s) {
  */
 function isIpSubnetPattern(s) {
     const c = utils.classifyIpPattern(s);
-    return c !== null && c.prefix !== '' && c.octetCount < 4;
+    if (!c || c.prefix === '') {
+        return false;
+    }
+    if (c.octetCount < 4) {
+        return true;
+    }
+    // 4-octet with trailing dot or wildcard is a malformed IP pattern (not a complete address)
+    return c.hasTrailingDot || c.hasTrailingWildcard;
 }
 
 /**
@@ -89,10 +96,12 @@ function isUnsafeIpPattern(s) {
         return true;
     }
 
-    // 3-octet subnet without anchor prefix (e.g. 10.10.34., 10.10.34.*)
+    // 3 or 4-octet with trailing dot or wildcard, no prefix (e.g. 10.10.34., 10.10.34.*, 1.2.3.4., 1.2.3.4.*)
     // Patterns with `||` prefix are handled by isIpSubnetPattern; in ValidateAllowIp,
-    // prefix-less ones are pre-normalized to `||ip.` by ip-normalize.js before reaching here.
-    if (c.octetCount === 3 && c.isSubnetWildcard && c.prefix === '') {
+    // prefix-less 3-octet ones are pre-normalized to `||ip.` by ip-normalize.js before reaching here.
+    if ((c.octetCount === 3 || c.octetCount === 4)
+        && (c.hasTrailingDot || c.hasTrailingWildcard)
+        && c.prefix === '') {
         return true;
     }
 

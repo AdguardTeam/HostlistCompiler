@@ -354,6 +354,13 @@ describe('Validate', () => {
             // 3 octets WITH trailing dot/wildcard, with || prefix — rejected in Validate (IP subnet)
             '||192.168.1.',
             '||192.168.1.*',
+            // 4 octets WITH trailing dot or wildcard — malformed IP, rejected in all validators
+            '1.2.3.4.',
+            '1.2.3.4.*',
+            '|1.2.3.4.',
+            '|1.2.3.4.*',
+            '||1.2.3.4.',
+            '||1.2.3.4.*',
             // valid domains — kept
             '||example.org^',
         ];
@@ -362,5 +369,19 @@ describe('Validate', () => {
         expect(filtered).toEqual([
             '||example.org^',
         ]);
+    });
+
+    it('allows domains with IP-like subdomains', () => {
+        // Patterns like ||1.2.3.4.example.com^ are valid domain rules, not IP patterns.
+        // parseIpPattern returns null for them (> 4 parts or non-numeric labels),
+        // so they pass through all IP checks and are validated as regular domain rules.
+        const rules = [
+            '||1-2-3-4.example.com^',
+            '||111.22.33.44.host.example.com^',
+            '||111.22.33.44.ll.host.example.com^',
+        ];
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual(rules);
     });
 });
