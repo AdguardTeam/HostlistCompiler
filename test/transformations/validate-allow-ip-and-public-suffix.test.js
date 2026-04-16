@@ -151,7 +151,7 @@ describe('ValidateAllowIpAndPublicSuffix', () => {
         ]);
     });
 
-    it('remove preceding comments for invalid rules', () => {
+    it('removes preceding comments for invalid rules', () => {
         const rules = `! rule comment
 
 ||invalid/rule
