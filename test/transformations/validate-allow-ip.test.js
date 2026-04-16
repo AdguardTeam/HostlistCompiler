@@ -109,6 +109,11 @@ describe('ValidateAllowIp', () => {
             // 2-octet patterns — rejected (too wide)
             '||1.1.',
             '1.1.',
+            // 4-octet with trailing dot or wildcard — rejected (malformed IP, not a complete address)
+            '1.2.3.4.',
+            '1.2.3.4.*',
+            '||1.2.3.4.',
+            '||1.2.3.4.*',
             // valid domain — kept
             '||example.org^',
         ];
