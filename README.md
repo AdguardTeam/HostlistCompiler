@@ -18,6 +18,7 @@ This is a simple tool that makes it easier to compile a [hosts blocklist](https:
   - [Validate](#validate)
   - [ValidateAllowIp](#validate-allow-ip)
   - [ValidateAllowPublicSuffix](#validate-allow-public-suffix)
+  - [ValidateAllowIpAndPublicSuffix](#validate-allow-ip-and-public-suffix)
   - [Deduplicate](#deduplicate)
   - [RemoveEmptyLines](#removeemptylines)
   - [InsertFinalNewLine](#insertfinalnewline)
@@ -315,6 +316,7 @@ Here is the full list of transformations that are available:
 1. `Validate`
 1. `ValidateAllowIp`
 1. `ValidateAllowPublicSuffix`
+1. `ValidateAllowIpAndPublicSuffix`
 1. `Deduplicate`
 1. `RemoveEmptyLines`
 1. `InsertFinalNewLine`
@@ -442,17 +444,41 @@ So here's what it does:
 - Discards rules with unsupported modifiers. [Click here](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists#-adblock-style-syntax) to learn more about which modifiers are supported.
 - Discards rules that are too short.
 - Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
+
+#### <a name="rejected-ip-patterns"></a>Rejected IP Patterns
+
+  The following IP patterns are rejected by all validation transformations (`Validate`, `ValidateAllowIp`, `ValidateAllowPublicSuffix`, `ValidateAllowIpAndPublicSuffix`) as they are either unsafe or ambiguous:
+
+  - `||192.168.1^` — 3-octet with `^` - does not work
+  - `192.168.1` — Ambiguous: would match `192.168.11`, `192.168.111`, etc.
+  - `1.2.` or `1.2.*` — Too wide (1-2 octets), use regex instead
+
 - Removes rules that block entire top-level domains (TLDs) like `||*.org^`, unless they have specific limiting modifiers such as `$denyallow`, `$badfilter`, or `$client`.
   Examples:
   - `||*.org^` - this rule will be removed
   - `||*.org^$denyallow=example.com` - this rule will be kept because it has a limiting modifier
-  If such rules must be saved, use [ValidateAllowPublicSuffix](#validate-allow-public-suffix).
+  If such rules must be saved, use [ValidateAllowPublicSuffix](#validate-allow-public-suffix) or [ValidateAllowIpAndPublicSuffix](#validate-allow-ip-and-public-suffix).
 
 If there are comments preceding the invalid rule, they will be removed as well.
 
 ### <a name="validate-allow-ip"></a> ValidateAllowIp
 
-This transformation exactly repeats the behavior of [Validate](#validate), but leaves the IP addresses in the lists.
+This transformation extends [Validate](#validate) to allow IP addresses in the lists. It also **normalizes IP rules** in Adblock-style to the safe format `||ip^`.
+
+#### IP Rule Normalization
+
+- `1.2.3.4` → `||1.2.3.4^` (add both separators)
+- `1.2.3.4^` → `||1.2.3.4^` (add left anchor)
+- `|1.2.3.4` → `||1.2.3.4^` (replace `|` with `||`, add `^`)
+- `|1.2.3.4^` → `||1.2.3.4^` (replace `|` with `||`)
+- `||1.2.3.4` → `||1.2.3.4^` (add right separator)
+- `||1.2.3.4^` → (no change, already canonical)
+- `192.168.1.` → `||192.168.1.` (3-octet subnet wildcard)
+- `192.168.1.*` → `||192.168.1.*` (3-octet subnet wildcard)
+
+Modifiers like `$important`, `$client`, `$denyallow`, `$badfilter` are preserved during normalization.
+
+> **Note:** Invalid IP patterns are rejected solely by the base [Validate](#validate) logic — normalization only converts valid patterns to canonical form and passes everything else through unchanged. See [Rejected IP Patterns](#rejected-ip-patterns) for details.
 
 ### <a name="validate-allow-public-suffix"></a> ValidateAllowPublicSuffix
 
@@ -460,9 +486,17 @@ This transformation exactly repeats the behavior of [Validate](#validate), but l
 
 It still filters out invalid syntax rules and unsupported modifiers, but does not reject public-suffix rules unless the rule itself is malformed.
 
-> **Note:** Combining any `Validate`, `ValidateAllowIp`, and `ValidateAllowPublicSuffix` in one transformation list is not allowed and will result in an error. Each runs its own validator on the already-filtered output of the previous one, so allow-modes become silently ineffective.
+> **Note:** Combining any `Validate`, `ValidateAllowIp`, `ValidateAllowPublicSuffix`, and `ValidateAllowIpAndPublicSuffix` in one transformation list is not allowed and will result in an error. Each runs its own validator on the already-filtered output of the previous one, so allow-modes become silently ineffective.
 
 > **Important:** Validation transformations also cannot be used at both source-level and top-level simultaneously. For example, if a source uses `ValidateAllowPublicSuffix` and the top-level configuration uses `Validate`, the compiler will throw an error. This is because the top-level `Validate` would override the source-level validation, making `ValidateAllowPublicSuffix` ineffective. Use validation transformations at only one level.
+
+### <a name="validate-allow-ip-and-public-suffix"></a> ValidateAllowIpAndPublicSuffix
+
+This transformation combines the behavior of [ValidateAllowIp](#validate-allow-ip) and [ValidateAllowPublicSuffix](#validate-allow-public-suffix). It allows both IP addresses and public suffix rules in the list.
+
+Like `ValidateAllowIp`, it normalizes incomplete IP rules to the safe format `||ip^` before validation. See [IP Rule Normalization](#ip-rule-normalization) for details.
+
+Like `ValidateAllowPublicSuffix`, it keeps rules that match whole public suffixes (e.g. `||hl.cn^`, `||org^`).
 
 ### <a name="deduplicate"></a> Deduplicate
 

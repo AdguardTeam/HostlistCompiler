@@ -261,4 +261,24 @@ describe('validateAllowPublicSuffix', () => {
             '@@.xyz123notreal.org^',
         ]);
     });
+
+    it('rejects terminated/unknown IDN TLDs (xn-- prefixed) not in ICANN list', () => {
+        // xn--jlq61u9w7b (.蔚来) was terminated by ICANN in 2024.
+        // tldts reports it as non-ICANN public suffix, so whole-TLD rules should be rejected
+        // just like any other unknown single-label pattern.
+        const rules = [
+            '||*.xn--jlq61u9w7b^', // terminated IDN TLD — rejected
+            '||xn--jlq61u9w7b^', // same, without wildcard — rejected
+            '.xn--jlq61u9w7b^', // same, dot-prefix — rejected
+            '*.xn--jlq61u9w7b^', // same, wildcard-prefix — rejected
+            '.xn--p1acf^', // .рус — real ICANN TLD — kept
+            '||*.xn--p1acf^', // .рус — real ICANN TLD — kept
+        ];
+        const filtered = validateAllowPublicSuffix(rules);
+
+        expect(filtered).toEqual([
+            '.xn--p1acf^',
+            '||*.xn--p1acf^',
+        ]);
+    });
 });

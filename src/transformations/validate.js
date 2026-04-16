@@ -1,36 +1,52 @@
+const _ = require('lodash');
+const consola = require('consola');
+const tldts = require('tldts');
+const utils = require('../utils');
+const ruleUtils = require('../rule');
+
+// Prefix and separators for domain patterns
+const DOMAIN_PREFIX = '||';
+const DOMAIN_SEPARATOR = '^';
+const WILDCARD = '*';
+const WILDCARD_DOMAIN_PART = '*.';
+
 /**
- * Checks if a pattern is an IP-like subnet with | or || prefix: 2 or 3 octets.
- * Examples: ||1.1^, ||1.1.2^, |1.1^, ||192.168^
- * These patterns block IP subnets (left-anchored) and should be rejected in Validate,
- * but allowed in ValidateAllowIp.
+ * Checks if a pattern is a 3-octet subnet with trailing dot or wildcard AND a || prefix.
+ * These are the only subnet patterns that work in AdGuard Home for ValidateAllowIp.
+ * Examples: ||192.168.1. ||192.168.1.*
+ *
+ * @param {string} s - The pattern string to check
+ * @returns {boolean}
+ */
+function is3OctetSubnetWithSuffix(s) {
+    const c = utils.classifyIpPattern(s);
+    // Valid 3-octet subnet: ||prefix, trailing dot or wildcard, no caret
+    return c !== null && c.octetCount === 3 && c.isSubnetWildcard && !c.hasCaret && c.prefix === DOMAIN_PREFIX;
+}
+
+/**
+ * Checks if a pattern is an IP-like subnet with | or || prefix: 1, 2, or 3 octets.
+ * These patterns should be rejected in Validate:
+ * - With ^ separator (||1^, ||1.1^, ||1.1.2^) — do NOT work
+ * - With trailing dot (||1.1., ||1.1.2.) — IP wildcard patterns
+ * - With trailing wildcard (||1.1.*, ||1.1.2.*) — IP wildcard patterns
+ *
+ * In ValidateAllowIp, 3-octet wildcards (||192.168.1., ||192.168.1.*) are allowed,
+ * but 1-2 octet patterns are still rejected as too wide.
+ *
  * @param {string} s - The pattern string to check
  * @returns {boolean} True if the pattern is an IP subnet pattern, false otherwise
  */
 function isIpSubnetPattern(s) {
-    // Must have | or || prefix to be a subnet pattern (left-anchored)
-    if (!s.startsWith('|')) {
+    const c = utils.classifyIpPattern(s);
+    if (!c || c.prefix === '') {
         return false;
     }
-    // Remove prefixes (||, |)
-    let pattern = s;
-    if (pattern.startsWith('||')) {
-        pattern = pattern.slice(2);
-    } else if (pattern.startsWith('|')) {
-        pattern = pattern.slice(1);
+    if (c.octetCount < 4) {
+        return true;
     }
-    // Remove ^ and | at the end
-    pattern = pattern.replace(/\^\|?$/, '');
-    // Remove trailing dot if present
-    if (pattern.endsWith('.')) {
-        pattern = pattern.slice(0, -1);
-    }
-    // Must have 2 or 3 octets (1.1 or 1.1.2)
-    const parts = pattern.split('.');
-    if (parts.length !== 2 && parts.length !== 3) {
-        return false;
-    }
-    // All parts must be numbers 0-255
-    return parts.every((p) => /^\d{1,3}$/.test(p) && Number(p) >= 0 && Number(p) <= 255);
+    // 4-octet with trailing dot or wildcard is a malformed IP pattern (not a complete address)
+    return c.hasTrailingDot || c.hasTrailingWildcard;
 }
 
 /**
@@ -38,38 +54,61 @@ function isIpSubnetPattern(s) {
  * Examples: 1.1^, 1.1.1^, 1.1.1.1^, 192.168^
  * These patterns match string endings and block unpredictably (e.g., 1.1^ blocks 1.1.1.1, 1.1.111.1, example1.1).
  * They should ALWAYS be rejected (in both Validate and ValidateAllowIp).
+ * Note: In ValidateAllowIp, these patterns are normalized to ||ip^ before validation,
+ * so this function mainly catches patterns that slip through normalization.
  * @param {string} s - The pattern string to check
  * @returns {boolean} True if the pattern is an IP suffix pattern, false otherwise
  */
 function isIpSuffixPattern(s) {
-    // Must NOT have | or || prefix (otherwise it's a subnet pattern, not a suffix)
-    if (s.startsWith('|')) {
-        return false;
-    }
-    // Remove ^ and | at the end
-    let pattern = s.replace(/\^\|?$/, '');
-    // Remove trailing dot if present
-    if (pattern.endsWith('.')) {
-        pattern = pattern.slice(0, -1);
-    }
-    // Must have 2, 3, or 4 octets
-    const parts = pattern.split('.');
-    if (parts.length < 2 || parts.length > 4) {
-        return false;
-    }
-    // All parts must be numbers 0-255
-    return parts.every((p) => /^\d{1,3}$/.test(p) && Number(p) >= 0 && Number(p) <= 255);
+    const c = utils.classifyIpPattern(s);
+    return c !== null && c.prefix === '' && c.hasCaret && c.octetCount >= 2;
 }
-const _ = require('lodash');
-const consola = require('consola');
-const tldts = require('tldts');
-const utils = require('../utils');
-const ruleUtils = require('../rule');
 
-const DOMAIN_PREFIX = '||';
-const DOMAIN_SEPARATOR = '^';
-const WILDCARD = '*';
-const WILDCARD_DOMAIN_PART = '*.';
+/**
+ * Checks if a pattern is an unsafe/ambiguous IP pattern that should be rejected.
+ * These are patterns WITHOUT ^ that look like partial IPs:
+ * - 1-2 octet patterns (1.2., 1.2.*, 192.168) — too wide
+ * - 3 octet patterns without trailing dot/wildcard (192.168.1) — ambiguous
+ *
+ * These should be rejected in ALL validators (Validate, ValidateAllowIp, ValidateAllowPublicSuffix).
+ *
+ * @param {string} s - The pattern string to check
+ * @returns {boolean} True if the pattern is unsafe, false otherwise
+ */
+function isUnsafeIpPattern(s) {
+    // Skip if has ^ (handled by isIpSuffixPattern)
+    if (s.includes('^')) {
+        return false;
+    }
+
+    const c = utils.classifyIpPattern(s);
+    if (!c) {
+        return false;
+    }
+
+    // 1-2 octets are always too wide
+    if (c.isTooWide) {
+        return true;
+    }
+
+    // 3 octets without trailing dot/wildcard are ambiguous
+    if (c.isAmbiguous3Octet) {
+        return true;
+    }
+
+    // 3 or 4-octet with trailing dot or wildcard, no prefix (e.g. 10.10.34., 10.10.34.*, 1.2.3.4., 1.2.3.4.*)
+    // Patterns with `||` prefix are handled by isIpSubnetPattern; in ValidateAllowIp,
+    // prefix-less 3-octet ones are pre-normalized to `||ip.` by ip-normalize.js before reaching here.
+    if ((c.octetCount === 3 || c.octetCount === 4)
+        && (c.hasTrailingDot || c.hasTrailingWildcard)
+        && c.prefix === '') {
+        return true;
+    }
+
+    return false;
+}
+
+const HOSTNAME_ALNUM_PATTERN = /[a-zA-Z0-9]/;
 // Matches exact domain-style adblock patterns: ||example.org^, *.org^, .org^, ||org^
 // Each part explained:
 const EXACT_DOMAIN_PATTERN = new RegExp(
@@ -139,13 +178,19 @@ const MAX_PATTERN_LENGTH = 5;
 function validHostname(hostname, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix) {
     const result = tldts.parse(hostname);
 
-    if (!result.hostname) {
-        consola.debug(`invalid hostname ${hostname} in the rule: ${ruleText}`);
+    // tldts v7 may return a non-null hostname for malformed inputs consisting only of dots
+    // (".." => hostname: "."). Reject any hostname that does not contain at least one
+    // alphanumeric character, since real hostnames always have one.
+    // This is separate from the adblock-style `checkChars` filter in validAdblockRule(),
+    // which rejects raw Unicode patterns before they reach this function. Raw Unicode
+    // adblock rules are expected to pass through ConvertToAscii before validation.
+    if (!result.hostname || !HOSTNAME_ALNUM_PATTERN.test(result.hostname)) {
+        consola.debug(`malformed hostname ${hostname} in the rule: ${ruleText}`);
         return false;
     }
 
     if (!allowedIP && result.isIp) {
-        consola.debug(`invalid hostname ${hostname} in the rule: ${ruleText}`);
+        consola.debug(`IP address ${hostname} is not allowed in the rule: ${ruleText}`);
         return false;
     }
 
@@ -291,6 +336,15 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         return false;
     }
 
+    // `denyallow` is only meaningful for domain-based rules.
+    // IP-like patterns with `denyallow` do not behave as expected, so reject them.
+    const hasDenyallowModifier = props.options
+        && props.options.some((option) => option.name === 'denyallow');
+    if (hasDenyallowModifier && utils.classifyIpPattern(props.pattern)) {
+        consola.debug(`denyallow is not supported for IP patterns: ${ruleText}`);
+        return false;
+    }
+
     // 3.5. Check if the base pattern is an IP address or IP-like pattern.
 
     // Reject IP-suffix patterns (1.1^, 1.1.1^, 1.1.1.1^) ALWAYS — they match string endings unpredictably
@@ -300,10 +354,21 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         return false;
     }
 
-    // Reject IP-subnet patterns (||1.1^, ||1.1.2^) only in Validate, allow in ValidateAllowIp
-    if (!allowedIP && isIpSubnetPattern(props.pattern)) {
-        consola.debug(`IP-like subnet is not allowed: ${ruleText}`);
+    // Reject unsafe IP patterns (1.2., 1.2.*, 192.168.1) ALWAYS — too wide or ambiguous
+    // These don't have ^ so they slip through isIpSuffixPattern
+    if (isUnsafeIpPattern(props.pattern)) {
+        consola.debug(`Unsafe IP pattern is not allowed (too wide or ambiguous): ${ruleText}`);
         return false;
+    }
+
+    // Reject IP-subnet patterns (||1.1^, ||1.1.2^, ||1.1.) always, except in ValidateAllowIp
+    // where only 3-octet subnets with trailing dot/wildcard (||192.168.1., ||192.168.1.*) are valid.
+    // 1-2 octet patterns and 3-octet with ^ are rejected even when allowedIP=true.
+    if (isIpSubnetPattern(props.pattern)) {
+        if (!allowedIP || !is3OctetSubnetWithSuffix(props.pattern)) {
+            consola.debug(`IP-like subnet is not allowed: ${ruleText}`);
+            return false;
+        }
     }
 
     // Check for full 4-octet IP addresses (||1.1.1.1^, |1.1.1.1^)

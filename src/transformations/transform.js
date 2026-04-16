@@ -3,6 +3,7 @@ const removeModifiers = require('./remove-modifiers');
 const { validate } = require('./validate');
 const { validateAllowIp } = require('./validate-allow-ip');
 const { validateAllowPublicSuffix } = require('./validate-allow-public-suffix');
+const { validateAllowIpAndPublicSuffix } = require('./validate-allow-ip-and-public-suffix');
 const exclude = require('./exclude');
 const include = require('./include');
 const deduplicate = require('./deduplicate');
@@ -23,6 +24,7 @@ const TRANSFORMATIONS = Object.freeze({
     Validate: 'Validate',
     ValidateAllowIp: 'ValidateAllowIp',
     ValidateAllowPublicSuffix: 'ValidateAllowPublicSuffix',
+    ValidateAllowIpAndPublicSuffix: 'ValidateAllowIpAndPublicSuffix',
     Deduplicate: 'Deduplicate',
     InvertAllow: 'InvertAllow',
     RemoveEmptyLines: 'RemoveEmptyLines',
@@ -35,16 +37,13 @@ const VALIDATION_TRANSFORMATIONS = [
     TRANSFORMATIONS.Validate,
     TRANSFORMATIONS.ValidateAllowIp,
     TRANSFORMATIONS.ValidateAllowPublicSuffix,
+    TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix,
 ];
 
 /**
  * Throws when multiple validation transformations are selected together.
  * Combining them causes silent data loss: each validator runs on the already-filtered
  * output of the previous one, so allow-modes (AllowIp, AllowPublicSuffix) become ineffective.
- *
- * TODO: When a combined mode for ValidateAllowIp + ValidateAllowPublicSuffix is implemented
- *       (see https://github.com/AdguardTeam/HostlistCompiler/issues/126),
- *       update this check to allow that specific pair and run Validator(true, true) instead.
  *
  * @param {Array<string>} transformations - configured transformations.
  */
@@ -114,6 +113,9 @@ async function transform(rules, configuration, transformations) {
     }
     if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowPublicSuffix) !== -1) {
         transformed = validateAllowPublicSuffix(transformed);
+    }
+    if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix) !== -1) {
+        transformed = validateAllowIpAndPublicSuffix(transformed);
     }
     if (transformations.indexOf(TRANSFORMATIONS.Deduplicate) !== -1) {
         transformed = deduplicate(transformed);

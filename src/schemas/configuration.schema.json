@@ -85,6 +85,54 @@
               }
             ]
           }
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "Validate"
+                }
+              },
+              {
+                "contains": {
+                  "const": "ValidateAllowIpAndPublicSuffix"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "ValidateAllowIp"
+                }
+              },
+              {
+                "contains": {
+                  "const": "ValidateAllowIpAndPublicSuffix"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "ValidateAllowPublicSuffix"
+                }
+              },
+              {
+                "contains": {
+                  "const": "ValidateAllowIpAndPublicSuffix"
+                }
+              }
+            ]
+          }
         }
       ],
       "items": {
@@ -96,6 +144,7 @@
           "Validate",
           "ValidateAllowIp",
           "ValidateAllowPublicSuffix",
+          "ValidateAllowIpAndPublicSuffix",
           "Deduplicate",
           "InvertAllow",
           "RemoveEmptyLines",
@@ -213,6 +262,54 @@
                   }
                 ]
               }
+            },
+            {
+              "not": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "Validate"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "ValidateAllowIpAndPublicSuffix"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "not": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "ValidateAllowIp"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "ValidateAllowIpAndPublicSuffix"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "not": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "ValidateAllowPublicSuffix"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "ValidateAllowIpAndPublicSuffix"
+                    }
+                  }
+                ]
+              }
             }
           ],
           "items": {
@@ -224,6 +321,7 @@
               "Validate",
               "ValidateAllowIp",
               "ValidateAllowPublicSuffix",
+              "ValidateAllowIpAndPublicSuffix",
               "Deduplicate",
               "InvertAllow",
               "RemoveEmptyLines",

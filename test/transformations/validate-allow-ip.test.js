@@ -46,6 +46,8 @@ describe('ValidateAllowIp', () => {
 ||example.org^$third-party
 ||example.org^$important
 ||*.ga^$denyallow=example1.ga|example2.ga
+1.1.1.1$denyallow=001114.cn
+||1.1.1.1^$denyallow=001114.cn
 ://ww4.$denyallow=ww4.example.com
 ://example.org
 ||example.org^|
@@ -69,44 +71,70 @@ describe('ValidateAllowIp', () => {
         ]);
     });
 
-    it('allows IP-subnet patterns but rejects IP-suffix patterns', () => {
-        // ValidateAllowIp allows IP-subnet patterns (with | or || prefix) because they block specific subnets.
-        // But IP-suffix patterns (no prefix) are ALWAYS rejected because they block unpredictably
-        // (e.g., 1.1^ blocks 1.1.1.1, 1.1.111.1, example1.1).
+    it('normalizes and validates IP patterns', () => {
+        // ValidateAllowIp now normalizes incomplete IP rules to ||ip^ format
+        // and rejects patterns that don't work in AdGuard Home.
         const rules = [
-            // IP-suffix (no prefix) — rejected ALWAYS (blocks unpredictably)
+            // IP-suffix (no prefix) with ^ — normalized to ||ip^ for 4 octets
+            '1.1.1.1^',
+            '192.168.1.1^',
+            // IP-suffix (no prefix) with ^ — rejected for <4 octets (doesn't work)
             '1.1^',
             '1.1.1^',
-            '1.1.1.1^',
             '192.168^',
             '10.0.1^',
-            '192.168.1.1^',
-            // IP-subnet (with prefix) — allowed in ValidateAllowIp
+            // IP-subnet with ^ and <4 octets — rejected (doesn't work in AdGuard Home)
             '||1.1^',
             '|1.1^',
             '||1.1.1^',
             '|1.1.1^',
-            '||1.1.1.1^',
-            '|1.1.1.1^',
             '||192.168^',
             '||10.0.1^',
+            // Full 4-octet IPs — normalized to ||ip^
+            '||1.1.1.1^',
+            '|1.1.1.1^',
             '||192.168.1.1^',
+            '1.2.3.4^|',
+            '|1.2.3.4^|',
+            '||1.2.3.4^|',
+            // 3-octet subnet wildcards — allowed (all prefix forms normalize to ||)
+            '||192.168.1.',
+            '||192.168.1.*',
+            '|192.168.1.',
+            '|192.168.1.*',
+            '192.168.1.',
+            // 3-octet without trailing dot — rejected (ambiguous)
+            '192.168.1',
+            '||192.168.1',
+            // 2-octet patterns — rejected (too wide)
+            '||1.1.',
+            '1.1.',
+            // 4-octet with trailing dot or wildcard — rejected (malformed IP, not a complete address)
+            '1.2.3.4.',
+            '1.2.3.4.*',
+            '||1.2.3.4.',
+            '||1.2.3.4.*',
             // valid domain — kept
             '||example.org^',
         ];
         const filtered = validateAllowIp(rules);
 
         expect(filtered).toEqual([
-            // IP-subnet patterns are allowed
-            '||1.1^',
-            '|1.1^',
-            '||1.1.1^',
-            '|1.1.1^',
+            // 4-octet IPs normalized to ||ip^
             '||1.1.1.1^',
-            '|1.1.1.1^',
-            '||192.168^',
-            '||10.0.1^',
             '||192.168.1.1^',
+            '||1.1.1.1^',
+            '||1.1.1.1^',
+            '||192.168.1.1^',
+            '||1.2.3.4^',
+            '||1.2.3.4^',
+            '||1.2.3.4^',
+            // 3-octet subnet wildcards (all prefix forms normalized to ||)
+            '||192.168.1.',
+            '||192.168.1.*',
+            '||192.168.1.',
+            '||192.168.1.*',
+            '||192.168.1.',
             // valid domain
             '||example.org^',
         ]);

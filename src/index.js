@@ -74,6 +74,7 @@ function checkCrossLevelValidationConflicts(configuration) {
         TRANSFORMATIONS.Validate,
         TRANSFORMATIONS.ValidateAllowIp,
         TRANSFORMATIONS.ValidateAllowPublicSuffix,
+        TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix,
     ];
 
     const topLevelTransformations = configuration.transformations || [];
