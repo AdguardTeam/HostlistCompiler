@@ -1,5 +1,13 @@
 # Hostlist compiler
 
+> **This repository has moved to GitHub.**
+>
+> The project is now maintained at
+> [AdGuardSoftwareLimited/filters-hostlist-compiler][new-repo].
+> Please use GitHub for the latest code, issues, and pull requests.
+
+[new-repo]: https://github.com/AdGuardSoftwareLimited/filters-hostlist-compiler
+
 [![NPM](https://nodei.co/npm/@adguard/hostlist-compiler.png?compact=true)](https://www.npmjs.com/package/@adguard/hostlist-compiler/)
 
 This is a simple tool that makes it easier to compile a [hosts blocklist](https://adguard-dns.io/kb/general/dns-filtering-syntax/) compatible with AdGuard Home or any other AdGuard product with **DNS filtering**.
