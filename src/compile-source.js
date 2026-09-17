@@ -1,5 +1,5 @@
 const consola = require('consola');
-const { FiltersDownloader } = require('@adguard/filters-downloader');
+const { download } = require('./download');
 const { transform } = require('./transformations/transform');
 
 /**
@@ -21,7 +21,7 @@ const { transform } = require('./transformations/transform');
  */
 async function compileSource(source) {
     consola.info(`Start compiling ${source.source}`);
-    let rules = await FiltersDownloader.download(source.source, {}, { allowEmptyResponse: true });
+    let rules = await download(source.source);
     consola.info(`Original length is ${rules.length}`);
 
     rules = await transform(rules, source, source.transformations);

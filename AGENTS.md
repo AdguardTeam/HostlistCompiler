@@ -61,9 +61,10 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │   ├── cli.js                  # CLI entry point (hashbang, yargs, config loading)
 │   ├── index.js                # Library entry point: compile(configuration)
 │   ├── index.d.ts              # TypeScript type declarations for consumers
-│   ├── compile-source.js       # Downloads and compiles a single source
+│   ├── compile-source.js       # Compiles a single source
 │   ├── configuration.js        # Configuration validation (AJV + schema)
-│   ├── filter.js               # Include/exclude wildcard filtering, downloads
+│   ├── download.js             # Central download layer (wraps FiltersDownloader)
+│   ├── filter.js               # Include/exclude wildcard filtering
 │   ├── rule.js                 # Rule parsing (adblock, /etc/hosts)
 │   ├── ip-normalize.js         # Internal helper: IP rule normalization (used by transformations)
 │   ├── utils.js                # String, IP, and wildcard utilities
@@ -193,6 +194,8 @@ Transformations (src/transformations/*.js)
     ↓
 Rule parsing (src/rule.js)   Filtering (src/filter.js)   Utilities (src/utils.js)
     ↓
+Central download layer (src/download.js) (used by compile-source.js and filter.js)
+    ↓
 @adguard/filters-downloader (external package, downloads sources and includes)
 ```
 
@@ -232,10 +235,6 @@ Universal design principles the codebase should follow:
   the default transformation pipeline and the `hosts` input type instead of
   delegating to a lower layer.
   <!-- AG-58264 -->
-- Network I/O in the filtering layer: `src/filter.js` downloads exclusion and
-  inclusion sources directly, duplicating the download call in
-  `src/compile-source.js`; there is no central download layer.
-  <!-- AG-58265 -->
 - Validation-conflict rules are enforced in three places (JSON schema,
   `transform.js`, `index.js`), which can drift out of sync.
   <!-- AG-58267 -->
