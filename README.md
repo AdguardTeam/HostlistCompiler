@@ -94,6 +94,11 @@ Convert and compress one or more `/etc/hosts`-syntax blocklists to
 hostlist-compiler -i hosts.txt -i hosts2.txt -o output.txt
 ```
 
+The quick conversion applies a default set of transformations to convert
+`/etc/hosts` rules to AdGuard syntax: `RemoveComments`, `Deduplicate`,
+`Compress`, `Validate`, `TrimLines`, `InsertFinalNewLine`. To control the
+pipeline explicitly, use a [configuration file](#configuration) instead.
+
 ### Build a Configurable Blocklist from Multiple Sources
 
 Prepare the list configuration (read more about that

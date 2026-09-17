@@ -1,4 +1,37 @@
 const config = require('../src/configuration');
+const { TRANSFORMATIONS } = require('../src/transformations/transform');
+
+describe('createConfiguration', () => {
+    it('test createConfiguration with default source type and pipeline', () => {
+        const configuration = config.createConfiguration(['hosts.txt', 'hosts2.txt']);
+
+        expect(configuration.name).toBe('Blocklist');
+        expect(configuration.sources).toEqual([
+            { source: 'hosts.txt', type: 'hosts' },
+            { source: 'hosts2.txt', type: 'hosts' },
+        ]);
+        expect(configuration.transformations).toEqual([
+            TRANSFORMATIONS.RemoveComments,
+            TRANSFORMATIONS.Deduplicate,
+            TRANSFORMATIONS.Compress,
+            TRANSFORMATIONS.Validate,
+            TRANSFORMATIONS.TrimLines,
+            TRANSFORMATIONS.InsertFinalNewLine,
+        ]);
+
+        const ret = config.validateConfiguration(configuration);
+        expect(ret.valid).toBe(true);
+        expect(ret.errorsText).toBeNull();
+    });
+
+    it('test createConfiguration with the specified source type', () => {
+        const configuration = config.createConfiguration(['rules.txt'], { type: 'adblock' });
+
+        expect(configuration.sources).toEqual([
+            { source: 'rules.txt', type: 'adblock' },
+        ]);
+    });
+});
 
 describe('Configuration', () => {
     it('test invalid configuration', () => {

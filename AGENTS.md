@@ -62,7 +62,7 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │   ├── index.js                # Library entry point: compile(configuration)
 │   ├── index.d.ts              # TypeScript type declarations for consumers
 │   ├── compile-source.js       # Downloads and compiles a single source
-│   ├── configuration.js        # Configuration validation (AJV + schema)
+│   ├── configuration.js        # Configuration creation and validation (AJV + schema)
 │   ├── filter.js               # Include/exclude wildcard filtering, downloads
 │   ├── rule.js                 # Rule parsing (adblock, /etc/hosts)
 │   ├── utils.js                # String, IP, and wildcard utilities
@@ -184,7 +184,7 @@ CLI entry (src/cli.js)
     ↓
 Library entry / orchestration (src/index.js)
     ↓
-Configuration validation (src/configuration.js, src/schemas/configuration.schema.json)
+Configuration creation and validation (src/configuration.js, src/schemas/configuration.schema.json)
 Per-source compilation (src/compile-source.js)
     ↓
 Transformation pipeline (src/transformations/transform.js)
@@ -228,10 +228,6 @@ Universal design principles the codebase should follow:
 - Each item below is tracked in the issue tracker (see the `AG-…` comment on
   the item). Remove an entry as soon as it is fixed, so this list never drifts
   out of sync.
-- Business logic in the CLI layer: `createConfig()` in `src/cli.js` hardcodes
-  the default transformation pipeline and the `hosts` input type instead of
-  delegating to a lower layer.
-  <!-- AG-58264 -->
 - Network I/O in the filtering layer: `src/filter.js` downloads exclusion and
   inclusion sources directly, duplicating the download call in
   `src/compile-source.js`; there is no central download layer.
@@ -319,11 +315,14 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
   `whitelist`) and are used for manual testing.
 - Keep documentation in sync with code: update `README.md` when adding or
   reordering transformations (the transformation order in `README.md` MUST
-  match `src/transformations/transform.js`), update `CHANGELOG.md` for
-  user-facing changes, update `src/schemas/configuration.schema.json` when
-  adding configuration options, update `src/index.d.ts` when changing the
-  public API, and update `DEPLOYMENT.md` when changing the Dockerfile, CI
-  workflows, or deployment setup.
+  match `src/transformations/transform.js`), the default quick-conversion
+  pipeline documented in the `README.md` "Quick Hosts Conversion" section MUST
+  match `DEFAULT_TRANSFORMATIONS` in `src/transformations/transform.js`,
+  update `CHANGELOG.md` for user-facing changes, update
+  `src/schemas/configuration.schema.json` when adding configuration options,
+  update `src/index.d.ts` when changing the public API, and update
+  `DEPLOYMENT.md` when changing the Dockerfile, CI workflows, or deployment
+  setup.
 - No secrets or credentials are used anywhere in the project; configuration
   files are committed to the repository.
 

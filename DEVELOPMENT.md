@@ -175,10 +175,12 @@ the [Contribution Instructions section of AGENTS.md](AGENTS.md#contribution-inst
    signature.
 2. Register the transformation in `src/transformations/transform.js` — the order there determines execution order, not
    the order in the configuration.
-3. Apply the documentation-sync rules from [AGENTS.md](AGENTS.md#configuration--documentation) (JSON schema,
+3. If the transformation should be part of the quick `-i` conversion pipeline, add it to
+   `DEFAULT_TRANSFORMATIONS` in `src/transformations/transform.js`.
+4. Apply the documentation-sync rules from [AGENTS.md](AGENTS.md#configuration--documentation) (JSON schema,
    `src/index.d.ts`, the order list in `README.md`, `CHANGELOG.md`).
-4. Create a test file in `test/transformations/`.
-5. Run `pnpm lint && pnpm test`.
+5. Create a test file in `test/transformations/`.
+6. Run `pnpm lint && pnpm test`.
 
 ### Updating the Configuration Schema
 

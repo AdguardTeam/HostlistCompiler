@@ -3,6 +3,7 @@
 const fs = require('fs').promises;
 const consola = require('consola');
 const compile = require('./index');
+const { createConfiguration } = require('./configuration');
 const packageJson = require('../package.json');
 
 // Version is not stored in the repo: CI stamps it into package.json at build
@@ -78,46 +79,18 @@ async function readConfig() {
 }
 
 /**
- * Creates a configuration object for the specified blocklist source.
- * We assume that the input is a /etc/hosts file.
- *
- * @returns {Object} configuration object.
+ * Runs the compiler: builds the configuration from the CLI options (or reads
+ * it from the config file) and writes the compiled list to the output file.
  */
-function createConfig() {
-    const inputType = argv['input-type'] || 'hosts';
-
-    consola.debug(`Creating configuration for input ${argv.input} of type ${inputType}`);
-
-    const config = {
-        name: 'Blocklist',
-        sources: [],
-        transformations: [
-            'RemoveComments',
-            'Deduplicate',
-            'Compress',
-            'Validate',
-            'TrimLines',
-            'InsertFinalNewLine',
-        ],
-    };
-
-    argv.input.forEach((input) => {
-        config.sources.push({
-            source: input,
-            type: inputType,
-        });
-    });
-
-    return config;
-}
-
 async function main() {
     try {
         if (!argv.input && !argv.config) {
             throw new Error('Either --input or --config must be specified');
         }
 
-        const config = argv.input ? createConfig() : await readConfig();
+        const config = argv.input
+            ? createConfiguration(argv.input, { type: argv['input-type'] })
+            : await readConfig();
 
         consola.debug(`Configuration: ${JSON.stringify(config, 0, 4)}`);
 

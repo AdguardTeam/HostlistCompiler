@@ -12,3 +12,5 @@ examples/whitelist/filter.txt
 
 .npmrc
 *.tgz
+
+.sdd/
