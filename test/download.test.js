@@ -3,7 +3,7 @@ const mock = require('mock-fs');
 const path = require('path');
 const { download } = require('../src/download');
 
-const testDirPath = path.resolve(__dirname, 'test/dir');
+const testDirPath = path.resolve(__dirname, 'dir');
 
 describe('Download', () => {
     afterEach(() => {
@@ -34,6 +34,19 @@ describe('Download', () => {
         });
 
         const rules = await download(path.join(testDirPath, 'rules.txt'));
+
+        expect(rules).toEqual(['rule1', 'rule2']);
+    });
+
+    it('resolves !#include directives in a local file source', async () => {
+        mock({
+            [testDirPath]: {
+                'main.txt': 'rule1\n!#include included.txt',
+                'included.txt': 'rule2\n',
+            },
+        });
+
+        const rules = await download(path.join(testDirPath, 'main.txt'));
 
         expect(rules).toEqual(['rule1', 'rule2']);
     });
