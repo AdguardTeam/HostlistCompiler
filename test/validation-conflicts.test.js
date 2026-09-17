@@ -1,4 +1,5 @@
 const Ajv = require('ajv');
+const { TRANSFORMATIONS } = require('../src/transformations/enum');
 const {
     VALIDATION_TRANSFORMATIONS,
     checkIncompatibleValidationTransformations,
@@ -116,5 +117,13 @@ describe('Validation conflicts', () => {
 
     it('keeps the list of validation transformations frozen', () => {
         expect(Object.isFrozen(VALIDATION_TRANSFORMATIONS)).toBe(true);
+    });
+
+    it('derives each validation transformation from the TRANSFORMATIONS enum', () => {
+        const transformationNames = Object.values(TRANSFORMATIONS);
+
+        VALIDATION_TRANSFORMATIONS.forEach((name) => {
+            expect(transformationNames).toContain(name);
+        });
     });
 });

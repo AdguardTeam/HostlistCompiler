@@ -13,26 +13,8 @@ const removeEmptyLines = require('./remove-empty-lines');
 const trimLines = require('./trim-lines');
 const insertFinalNewLine = require('./insert-final-newline');
 const convertToAscii = require('./covert-to-ascii');
+const { TRANSFORMATIONS } = require('./enum');
 const { checkIncompatibleValidationTransformations } = require('../validation-conflicts');
-
-/**
- * Enum with all available transformations
- */
-const TRANSFORMATIONS = Object.freeze({
-    RemoveComments: 'RemoveComments',
-    Compress: 'Compress',
-    RemoveModifiers: 'RemoveModifiers',
-    Validate: 'Validate',
-    ValidateAllowIp: 'ValidateAllowIp',
-    ValidateAllowPublicSuffix: 'ValidateAllowPublicSuffix',
-    ValidateAllowIpAndPublicSuffix: 'ValidateAllowIpAndPublicSuffix',
-    Deduplicate: 'Deduplicate',
-    InvertAllow: 'InvertAllow',
-    RemoveEmptyLines: 'RemoveEmptyLines',
-    TrimLines: 'TrimLines',
-    InsertFinalNewLine: 'InsertFinalNewLine',
-    ConvertToAscii: 'ConvertToAscii',
-});
 
 /**
  * Applies the specified transformations to the list of rules in the proper order.

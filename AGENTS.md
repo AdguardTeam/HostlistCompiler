@@ -70,7 +70,8 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │   ├── utils.js                # String, IP, and wildcard utilities
 │   ├── schemas/                # Configuration schema (conflict rules from validation-conflicts.js)
 │   └── transformations/        # 15 transformations + fixed-order pipeline
-│       ├── transform.js        # Pipeline orchestrator (TRANSFORMATIONS enum)
+│       ├── enum.js             # TRANSFORMATIONS enum (single source of truth for transformation names)
+│       ├── transform.js        # Pipeline orchestrator
 │       ├── exclude.js          # Exclusion rules (async, ungated)
 │       ├── include.js          # Inclusion rules (async, ungated)
 │       └── # ... (13 simple transforms: compress, validate, deduplicate, etc.)
@@ -222,7 +223,11 @@ Universal design principles the codebase should follow:
 - **Single Source of Truth for Conflict Rules** — validation-conflict rules
   (the list of validation transformations and their incompatibilities) live in
   `src/validation-conflicts.js`; the schema conflict rules and the runtime
-  checks are generated from that module, so they cannot drift apart.
+  checks are generated from that module, so they cannot drift apart. The list
+  itself is derived from the `TRANSFORMATIONS` enum in
+  `src/transformations/enum.js` — the single source of truth for
+  transformation names — so renaming or adding a transformation in the enum is
+  picked up everywhere automatically.
 - **Observability Built-in** — all logging goes through `consola`; see the
   logging and error-handling rules in [Code Quality](#code-quality).
 - **Keep It Boring** — plain CommonJS modules, no framework magic, simple

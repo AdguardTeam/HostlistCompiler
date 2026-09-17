@@ -4,14 +4,18 @@
  * This module is the single source of truth for the validation-conflict rules:
  * the runtime checks (used by `transform.js` and `index.js`) and the
  * JSON-schema conflict rules (used by `schemas/configuration.schema.js`) are
- * all derived from `VALIDATION_TRANSFORMATIONS`, so they cannot drift apart.
+ * all derived from `VALIDATION_TRANSFORMATIONS`, which is itself derived from
+ * the `TRANSFORMATIONS` enum (`transformations/enum.js`), the single source of
+ * truth for transformation names, so they cannot drift apart.
  */
 
+const { TRANSFORMATIONS } = require('./transformations/enum');
+
 const VALIDATION_TRANSFORMATIONS = Object.freeze([
-    'Validate',
-    'ValidateAllowIp',
-    'ValidateAllowPublicSuffix',
-    'ValidateAllowIpAndPublicSuffix',
+    TRANSFORMATIONS.Validate,
+    TRANSFORMATIONS.ValidateAllowIp,
+    TRANSFORMATIONS.ValidateAllowPublicSuffix,
+    TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix,
 ]);
 
 /**

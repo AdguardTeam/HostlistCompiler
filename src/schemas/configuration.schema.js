@@ -1,38 +1,25 @@
 /* eslint-disable max-len -- schema descriptions are long human-readable strings */
 
+const { TRANSFORMATIONS } = require('../transformations/enum');
 const { buildSchemaConflictRules } = require('../validation-conflicts');
 
 /**
- * A list of the transformations that will be applied. The conflict rules are
- * generated from src/validation-conflicts.js, the single source of truth for
- * validation-conflict rules, so the schema cannot drift from the runtime checks.
+ * A list of the transformations that will be applied. The accepted names are
+ * derived from the `TRANSFORMATIONS` enum and the conflict rules are generated
+ * from src/validation-conflicts.js, so the schema cannot drift from the code.
  */
-const TRANSFORMATIONS = {
+const transformations = {
     description: 'A list of the transformations that will be applied',
     type: 'array',
     allOf: buildSchemaConflictRules(),
     items: {
         type: 'string',
-        enum: [
-            'RemoveComments',
-            'RemoveModifiers',
-            'Compress',
-            'Validate',
-            'ValidateAllowIp',
-            'ValidateAllowPublicSuffix',
-            'ValidateAllowIpAndPublicSuffix',
-            'Deduplicate',
-            'InvertAllow',
-            'RemoveEmptyLines',
-            'TrimLines',
-            'InsertFinalNewLine',
-            'ConvertToAscii',
-        ],
+        enum: Object.values(TRANSFORMATIONS),
     },
 };
 
 const schema = {
-    $id: 'https://adguarad.com/hostlist-compiler.configuration.schema.json',
+    $id: 'https://adguard.com/hostlist-compiler.configuration.schema',
     $schema: 'http://json-schema.org/draft-07/schema#',
     title: 'Hostlist compiler configuration',
     description: 'Configuration for the hostlist compiler',
@@ -67,7 +54,7 @@ const schema = {
                 $ref: '#/definitions/source',
             },
         },
-        transformations: TRANSFORMATIONS,
+        transformations,
         exclusions: {
             description: 'A list of rules (or wildcards) to exclude from the source.',
             type: 'array',
@@ -125,7 +112,7 @@ const schema = {
                         'hosts',
                     ],
                 },
-                transformations: TRANSFORMATIONS,
+                transformations,
                 exclusions: {
                     description: 'A list of rules (or wildcards) to exclude from the source.',
                     type: 'array',
