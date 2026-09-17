@@ -35,22 +35,11 @@ function createConfiguration(inputs, options = {}) {
             source: input,
             type,
         })),
-        transformations: DEFAULT_TRANSFORMATIONS,
+        transformations: [...DEFAULT_TRANSFORMATIONS],
     };
 }
 
 module.exports = {
-    /**
-     * Creates a configuration object for the quick conversion mode (the CLI `-i`
-     * option): compiles the specified sources with the default transformation
-     * pipeline.
-     *
-     * @param {Array<string>} inputs - list of the source paths or URLs.
-     * @param {Object} [options] - optional overrides.
-     * @param {string} [options.type] - type of the input sources (`adblock` or
-     * `hosts`), defaults to `hosts`.
-     * @returns {Object} configuration object.
-     */
     createConfiguration,
     /**
      * Validates the specified configuration object

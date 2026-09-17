@@ -1,5 +1,5 @@
 const config = require('../src/configuration');
-const { TRANSFORMATIONS } = require('../src/transformations/transform');
+const { DEFAULT_TRANSFORMATIONS, TRANSFORMATIONS } = require('../src/transformations/transform');
 
 describe('createConfiguration', () => {
     it('test createConfiguration with default source type and pipeline', () => {
@@ -30,6 +30,17 @@ describe('createConfiguration', () => {
         expect(configuration.sources).toEqual([
             { source: 'rules.txt', type: 'adblock' },
         ]);
+    });
+
+    it('test createConfiguration returns an independent transformations copy', () => {
+        const configuration = config.createConfiguration(['hosts.txt']);
+
+        // Each config must own its pipeline, so customizing it later cannot
+        // leak into other configs or the frozen default constant.
+        expect(configuration.transformations).not.toBe(DEFAULT_TRANSFORMATIONS);
+        configuration.transformations.push('ConvertToAscii');
+        expect(config.createConfiguration(['hosts.txt']).transformations).toEqual(DEFAULT_TRANSFORMATIONS);
+        expect(configuration.transformations).not.toEqual(DEFAULT_TRANSFORMATIONS);
     });
 });
 
