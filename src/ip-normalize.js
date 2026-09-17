@@ -1,6 +1,6 @@
 const consola = require('consola');
-const ruleUtils = require('../rule');
-const { classifyIpPattern, parseIpPattern } = require('../utils');
+const ruleUtils = require('./rule');
+const { classifyIpPattern, parseIpPattern } = require('./utils');
 
 // Prefix for canonical IP/domain patterns
 const IP_PREFIX = '||';

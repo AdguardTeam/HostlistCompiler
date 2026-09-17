@@ -5,7 +5,7 @@
  * ValidateAllowIp to ensure all three agree — and to catch any future
  * divergence caused by editing one module without updating the others.
  */
-const { ACTION, processIpRule } = require('../../src/transformations/ip-normalize');
+const { ACTION, processIpRule } = require('../../src/ip-normalize');
 const { validate } = require('../../src/transformations/validate');
 const { validateAllowIp } = require('../../src/transformations/validate-allow-ip');
 
