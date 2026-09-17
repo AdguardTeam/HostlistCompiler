@@ -66,8 +66,9 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │   ├── filter.js               # Include/exclude wildcard filtering, downloads
 │   ├── rule.js                 # Rule parsing (adblock, /etc/hosts)
 │   ├── ip-normalize.js         # Internal helper: IP rule normalization (used by transformations)
+│   ├── validation-conflicts.js # Single source of truth for validation-conflict rules
 │   ├── utils.js                # String, IP, and wildcard utilities
-│   ├── schemas/                # JSON schema for configuration validation
+│   ├── schemas/                # Configuration schema (conflict rules from validation-conflicts.js)
 │   └── transformations/        # 15 transformations + fixed-order pipeline
 │       ├── transform.js        # Pipeline orchestrator (TRANSFORMATIONS enum)
 │       ├── exclude.js          # Exclusion rules (async, ungated)
@@ -184,7 +185,7 @@ CLI entry (src/cli.js)
     ↓
 Library entry / orchestration (src/index.js)
     ↓
-Configuration validation (src/configuration.js, src/schemas/configuration.schema.json)
+Configuration validation (src/configuration.js, src/schemas/configuration.schema.js)
 Per-source compilation (src/compile-source.js)
     ↓
 Transformation pipeline (src/transformations/transform.js)
@@ -218,6 +219,10 @@ Universal design principles the codebase should follow:
   JSON schema; incompatible transformation combinations are rejected at
   runtime and in the schema. Less critical at compile time: the project is
   plain JavaScript, so runtime validation carries this burden.
+- **Single Source of Truth for Conflict Rules** — validation-conflict rules
+  (the list of validation transformations and their incompatibilities) live in
+  `src/validation-conflicts.js`; the schema conflict rules and the runtime
+  checks are generated from that module, so they cannot drift apart.
 - **Observability Built-in** — all logging goes through `consola`; see the
   logging and error-handling rules in [Code Quality](#code-quality).
 - **Keep It Boring** — plain CommonJS modules, no framework magic, simple
@@ -236,9 +241,6 @@ Universal design principles the codebase should follow:
   inclusion sources directly, duplicating the download call in
   `src/compile-source.js`; there is no central download layer.
   <!-- AG-58265 -->
-- Validation-conflict rules are enforced in three places (JSON schema,
-  `transform.js`, `index.js`), which can drift out of sync.
-  <!-- AG-58267 -->
 - `ajv-errors` is declared in `package.json` but never imported in `src/`.
   <!-- AG-58268 -->
 
@@ -306,7 +308,7 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
 ### Configuration & Documentation
 
 - The compiler is controlled by a JSON configuration object validated against
-  `src/schemas/configuration.schema.json` (draft-07) via AJV; unknown keys are
+  `src/schemas/configuration.schema.js` (draft-07) via AJV; unknown keys are
   rejected (`additionalProperties: false`).
 - Runtime behavior is selected via CLI flags (`-c` config file, `-i` quick
   hosts conversion, `-o` output file, `-v` verbose logging); there is no
@@ -316,7 +318,7 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
 - Keep documentation in sync with code: update `README.md` when adding or
   reordering transformations (the transformation order in `README.md` MUST
   match `src/transformations/transform.js`), update `CHANGELOG.md` for
-  user-facing changes, update `src/schemas/configuration.schema.json` when
+  user-facing changes, update `src/schemas/configuration.schema.js` when
   adding configuration options, update `src/index.d.ts` when changing the
   public API, and update `DEPLOYMENT.md` when changing the Dockerfile, CI
   workflows, or deployment setup.

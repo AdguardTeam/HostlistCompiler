@@ -13,6 +13,7 @@ const removeEmptyLines = require('./remove-empty-lines');
 const trimLines = require('./trim-lines');
 const insertFinalNewLine = require('./insert-final-newline');
 const convertToAscii = require('./covert-to-ascii');
+const { checkIncompatibleValidationTransformations } = require('../validation-conflicts');
 
 /**
  * Enum with all available transformations
@@ -32,29 +33,6 @@ const TRANSFORMATIONS = Object.freeze({
     InsertFinalNewLine: 'InsertFinalNewLine',
     ConvertToAscii: 'ConvertToAscii',
 });
-
-const VALIDATION_TRANSFORMATIONS = [
-    TRANSFORMATIONS.Validate,
-    TRANSFORMATIONS.ValidateAllowIp,
-    TRANSFORMATIONS.ValidateAllowPublicSuffix,
-    TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix,
-];
-
-/**
- * Throws when multiple validation transformations are selected together.
- * Combining them causes silent data loss: each validator runs on the already-filtered
- * output of the previous one, so allow-modes (AllowIp, AllowPublicSuffix) become ineffective.
- *
- * @param {Array<string>} transformations - configured transformations.
- */
-function checkIncompatibleValidationTransformations(transformations) {
-    const selectedValidations = VALIDATION_TRANSFORMATIONS
-        .filter((transformation) => transformations.indexOf(transformation) !== -1);
-
-    if (selectedValidations.length > 1) {
-        throw new Error(`Validation transformations cannot be combined: ${selectedValidations.join(', ')}.`);
-    }
-}
 
 /**
  * Applies the specified transformations to the list of rules in the proper order.
