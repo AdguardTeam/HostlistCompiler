@@ -1,5 +1,5 @@
 const { Validator } = require('./validate');
-const { normalizeIpRules } = require('./ip-normalize');
+const { normalizeIpRules } = require('../ip-normalize');
 
 /**
  * Validates a list of rules and allows IP validation.

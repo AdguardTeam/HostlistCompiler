@@ -65,13 +65,13 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │   ├── configuration.js        # Configuration validation (AJV + schema)
 │   ├── filter.js               # Include/exclude wildcard filtering, downloads
 │   ├── rule.js                 # Rule parsing (adblock, /etc/hosts)
+│   ├── ip-normalize.js         # Internal helper: IP rule normalization (used by transformations)
 │   ├── utils.js                # String, IP, and wildcard utilities
 │   ├── schemas/                # JSON schema for configuration validation
 │   └── transformations/        # 15 transformations + fixed-order pipeline
 │       ├── transform.js        # Pipeline orchestrator (TRANSFORMATIONS enum)
 │       ├── exclude.js          # Exclusion rules (async, ungated)
 │       ├── include.js          # Inclusion rules (async, ungated)
-│       ├── ip-normalize.js     # Internal helper, not a configurable transform
 │       └── # ... (13 simple transforms: compress, validate, deduplicate, etc.)
 ├── test/                       # Jest test suites mirroring src/
 │   ├── resources/              # Test fixture files
@@ -236,10 +236,6 @@ Universal design principles the codebase should follow:
   inclusion sources directly, duplicating the download call in
   `src/compile-source.js`; there is no central download layer.
   <!-- AG-58265 -->
-- `src/transformations/ip-normalize.js` is an internal helper that sits in the
-  transformations directory but is not a configurable transformation (absent
-  from the `TRANSFORMATIONS` enum and the schema).
-  <!-- AG-58266 -->
 - Validation-conflict rules are enforced in three places (JSON schema,
   `transform.js`, `index.js`), which can drift out of sync.
   <!-- AG-58267 -->

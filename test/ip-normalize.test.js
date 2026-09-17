@@ -5,7 +5,7 @@ const {
     check3OctetSubnet,
     processIpRule,
     normalizeIpRules,
-} = require('../../src/transformations/ip-normalize');
+} = require('../src/ip-normalize');
 
 describe('ip-normalize', () => {
     describe('parseIpPattern', () => {
