@@ -280,6 +280,10 @@ Universal design principles the codebase should follow:
   ranges). When adding or updating a dependency, pin it to the version
   resolved in `pnpm-lock.yaml`; never lower a version below what the lockfile
   currently resolves to.
+- **Do not commit the `packageManager` field** — pnpm 10 auto-adds it to
+  `package.json` when pnpm commands are run. The `engines.pnpm` field is the
+  single source of truth for the pnpm version; revert `packageManager` before
+  committing if pnpm added it.
 - **Prefer vanilla solutions** — use the language's standard library and
   built-in APIs when they adequately solve the problem. Only add a dependency
   when it provides significant value over a vanilla implementation.
