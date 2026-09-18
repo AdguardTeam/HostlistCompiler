@@ -39,8 +39,7 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 - **Primary Dependencies**:
     - `@adguard/filters-downloader` — resolves `!#include` directives and
       downloads remote sources
-    - `ajv` / `ajv-errors` / `better-ajv-errors` — JSON schema validation for
-      configuration
+    - `ajv` / `better-ajv-errors` — JSON schema validation for configuration
     - `lodash` — utility functions
     - `tldts` — TLD parsing for domain validation
     - `yargs` — CLI argument parsing
@@ -239,8 +238,6 @@ Universal design principles the codebase should follow:
 - Validation-conflict rules are enforced in three places (JSON schema,
   `transform.js`, `index.js`), which can drift out of sync.
   <!-- AG-58267 -->
-- `ajv-errors` is declared in `package.json` but never imported in `src/`.
-  <!-- AG-58268 -->
 
 ### Code Quality
 
