@@ -65,11 +65,12 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │   ├── filter.js               # Include/exclude wildcard filtering, downloads
 │   ├── rule.js                 # Rule parsing (adblock, /etc/hosts)
 │   ├── ip-normalize.js         # Internal helper: IP rule normalization (used by transformations)
-│   ├── validation-conflicts.js # Single source of truth for validation-conflict rules
+│   ├── source-types.js         # Source-type vocabulary (SOURCE_TYPES) for the schema and the CLI
+│   ├── validation-conflicts.js # Validation-conflict rules (runtime checks + generated schema fragments)
 │   ├── utils.js                # String, IP, and wildcard utilities
-│   ├── schemas/                # Configuration schema (conflict rules from validation-conflicts.js)
+│   ├── schemas/                # Configuration schema (transformation names + conflict rules)
 │   └── transformations/        # 15 transformations + fixed-order pipeline
-│       ├── enum.js             # TRANSFORMATIONS enum (single source of truth for transformation names)
+│       ├── enum.js             # TRANSFORMATIONS enum + VALIDATION_TRANSFORMATIONS (single source of truth)
 │       ├── transform.js        # Pipeline orchestrator
 │       ├── exclude.js          # Exclusion rules (async, ungated)
 │       ├── include.js          # Inclusion rules (async, ungated)
@@ -219,14 +220,22 @@ Universal design principles the codebase should follow:
   JSON schema; incompatible transformation combinations are rejected at
   runtime and in the schema. Less critical at compile time: the project is
   plain JavaScript, so runtime validation carries this burden.
+- **Single Source of Truth for Transformation Names** — the `TRANSFORMATIONS`
+  enum in `src/transformations/enum.js` is the single source of truth for
+  transformation *names*: the configuration schema's accepted names and the
+  validation-conflict rules are derived from it, so renaming a transformation
+  in the enum updates those automatically. Registering a *new* transformation
+  is still a multi-step process — the pipeline dispatch in
+  `src/transformations/transform.js`, the exported `Transformation` type in
+  `src/index.d.ts` and the order list in `README.md` are updated by hand, as
+  documented in DEVELOPMENT.md.
 - **Single Source of Truth for Conflict Rules** — validation-conflict rules
-  (the list of validation transformations and their incompatibilities) live in
+  (which validation transformations conflict, and at which levels) live in
   `src/validation-conflicts.js`; the schema conflict rules and the runtime
   checks are generated from that module, so they cannot drift apart. The list
-  itself is derived from the `TRANSFORMATIONS` enum in
-  `src/transformations/enum.js` — the single source of truth for
-  transformation names — so renaming or adding a transformation in the enum is
-  picked up everywhere automatically.
+  of validation transformations (`VALIDATION_TRANSFORMATIONS`) is defined next
+  to the enum in `src/transformations/enum.js`, so adding a validation
+  transformation is a single-file change and cannot be forgotten.
 - **Observability Built-in** — all logging goes through `consola`; see the
   logging and error-handling rules in [Code Quality](#code-quality).
 - **Keep It Boring** — plain CommonJS modules, no framework magic, simple
@@ -321,9 +330,11 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
   reordering transformations (the transformation order in `README.md` MUST
   match `src/transformations/transform.js`), update `CHANGELOG.md` for
   user-facing changes, update `src/schemas/configuration.schema.js` when
-  adding configuration options, update `src/index.d.ts` when changing the
-  public API, and update `DEPLOYMENT.md` when changing the Dockerfile, CI
-  workflows, or deployment setup.
+  adding configuration options (transformation names come from
+  `src/transformations/enum.js`, source types from `src/source-types.js`),
+  update `src/index.d.ts` when changing the public API, and update
+  `DEPLOYMENT.md` when changing the Dockerfile, CI workflows, or deployment
+  setup.
 - No secrets or credentials are used anywhere in the project; configuration
   files are committed to the repository.
 

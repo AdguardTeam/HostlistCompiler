@@ -4,19 +4,23 @@
  * This module is the single source of truth for the validation-conflict rules:
  * the runtime checks (used by `transform.js` and `index.js`) and the
  * JSON-schema conflict rules (used by `schemas/configuration.schema.js`) are
- * all derived from `VALIDATION_TRANSFORMATIONS`, which is itself derived from
- * the `TRANSFORMATIONS` enum (`transformations/enum.js`), the single source of
- * truth for transformation names, so they cannot drift apart.
+ * all derived from `VALIDATION_TRANSFORMATIONS`, which is defined next to the
+ * `TRANSFORMATIONS` enum in `transformations/enum.js`, so they cannot drift
+ * apart.
  */
 
-const { TRANSFORMATIONS } = require('./transformations/enum');
+const { VALIDATION_TRANSFORMATIONS } = require('./transformations/enum');
 
-const VALIDATION_TRANSFORMATIONS = Object.freeze([
-    TRANSFORMATIONS.Validate,
-    TRANSFORMATIONS.ValidateAllowIp,
-    TRANSFORMATIONS.ValidateAllowPublicSuffix,
-    TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix,
-]);
+/**
+ * Returns the validation transformations selected in the given list.
+ *
+ * @param {Array<string>} transformations - a transformations list.
+ * @returns {Array<string>} the selected validation transformations.
+ */
+function getSelectedValidationTransformations(transformations) {
+    return VALIDATION_TRANSFORMATIONS
+        .filter((transformation) => transformations.indexOf(transformation) !== -1);
+}
 
 /**
  * Throws when multiple validation transformations are selected together.
@@ -26,8 +30,7 @@ const VALIDATION_TRANSFORMATIONS = Object.freeze([
  * @param {Array<string>} transformations - configured transformations.
  */
 function checkIncompatibleValidationTransformations(transformations) {
-    const selectedValidations = VALIDATION_TRANSFORMATIONS
-        .filter((transformation) => transformations.indexOf(transformation) !== -1);
+    const selectedValidations = getSelectedValidationTransformations(transformations);
 
     if (selectedValidations.length > 1) {
         throw new Error(`Validation transformations cannot be combined: ${selectedValidations.join(', ')}.`);
@@ -42,8 +45,7 @@ function checkIncompatibleValidationTransformations(transformations) {
  */
 function checkCrossLevelValidationConflicts(configuration) {
     const topLevelTransformations = configuration.transformations || [];
-    const topLevelValidations = VALIDATION_TRANSFORMATIONS
-        .filter((t) => topLevelTransformations.indexOf(t) !== -1);
+    const topLevelValidations = getSelectedValidationTransformations(topLevelTransformations);
 
     if (topLevelValidations.length === 0) {
         return;
@@ -53,8 +55,7 @@ function checkCrossLevelValidationConflicts(configuration) {
     // eslint-disable-next-line no-restricted-syntax
     for (const source of configuration.sources) {
         const sourceTransformations = source.transformations || [];
-        const sourceValidations = VALIDATION_TRANSFORMATIONS
-            .filter((t) => sourceTransformations.indexOf(t) !== -1);
+        const sourceValidations = getSelectedValidationTransformations(sourceTransformations);
 
         if (sourceValidations.length > 0) {
             throw new Error(
@@ -98,7 +99,6 @@ function buildSchemaConflictRules() {
 }
 
 module.exports = {
-    VALIDATION_TRANSFORMATIONS,
     checkIncompatibleValidationTransformations,
     checkCrossLevelValidationConflicts,
     buildSchemaConflictRules,

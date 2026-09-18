@@ -1,6 +1,7 @@
 /* eslint-disable max-len -- schema descriptions are long human-readable strings */
 
 const { TRANSFORMATIONS } = require('../transformations/enum');
+const { SOURCE_TYPES } = require('../source-types');
 const { buildSchemaConflictRules } = require('../validation-conflicts');
 
 /**
@@ -17,6 +18,28 @@ const transformations = {
         enum: Object.values(TRANSFORMATIONS),
     },
 };
+
+/**
+ * A JSON-schema fragment for a configuration property that is a list of strings.
+ *
+ * @param {string} description - human-readable description of the property.
+ * @returns {Object} the JSON-schema fragment (type: 'array', items: string).
+ */
+function stringArray(description) {
+    return {
+        description,
+        type: 'array',
+        items: {
+            type: 'string',
+        },
+    };
+}
+
+// Shared between the top level and the source level, like `transformations`.
+const exclusions = stringArray('A list of rules (or wildcards) to exclude from the source.');
+const exclusionsSources = stringArray('An array of exclusions sources.');
+const inclusions = stringArray("A list of wildcards to include from the source. All rules that don't match these wildcards won't be included.");
+const inclusionsSources = stringArray('A list of files with inclusions.');
 
 const schema = {
     $id: 'https://adguard.com/hostlist-compiler.configuration.schema',
@@ -55,34 +78,10 @@ const schema = {
             },
         },
         transformations,
-        exclusions: {
-            description: 'A list of rules (or wildcards) to exclude from the source.',
-            type: 'array',
-            items: {
-                type: 'string',
-            },
-        },
-        exclusions_sources: {
-            description: 'An array of exclusions sources.',
-            type: 'array',
-            items: {
-                type: 'string',
-            },
-        },
-        inclusions: {
-            description: "A list of wildcards to include from the source. All rules that don't match these wildcards won't be included.",
-            type: 'array',
-            items: {
-                type: 'string',
-            },
-        },
-        inclusions_sources: {
-            description: 'A list of files with inclusions.',
-            type: 'array',
-            items: {
-                type: 'string',
-            },
-        },
+        exclusions,
+        exclusions_sources: exclusionsSources,
+        inclusions,
+        inclusions_sources: inclusionsSources,
     },
     required: [
         'name',
@@ -107,40 +106,13 @@ const schema = {
                 type: {
                     description: 'Type of the source',
                     type: 'string',
-                    enum: [
-                        'adblock',
-                        'hosts',
-                    ],
+                    enum: Object.values(SOURCE_TYPES),
                 },
                 transformations,
-                exclusions: {
-                    description: 'A list of rules (or wildcards) to exclude from the source.',
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                    },
-                },
-                exclusions_sources: {
-                    description: 'An array of exclusions sources.',
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                    },
-                },
-                inclusions: {
-                    description: "A list of wildcards to include from the source. All rules that don't match these wildcards won't be included.",
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                    },
-                },
-                inclusions_sources: {
-                    description: 'A list of files with inclusions.',
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                    },
-                },
+                exclusions,
+                exclusions_sources: exclusionsSources,
+                inclusions,
+                inclusions_sources: inclusionsSources,
             },
             required: [
                 'source',

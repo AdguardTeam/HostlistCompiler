@@ -1,7 +1,6 @@
 const Ajv = require('ajv');
-const { TRANSFORMATIONS } = require('../src/transformations/enum');
+const { TRANSFORMATIONS, VALIDATION_TRANSFORMATIONS } = require('../src/transformations/enum');
 const {
-    VALIDATION_TRANSFORMATIONS,
     checkIncompatibleValidationTransformations,
     checkCrossLevelValidationConflicts,
     buildSchemaConflictRules,
@@ -16,8 +15,16 @@ describe('Validation conflicts', () => {
             ['ValidateAllowIp', 'ValidateAllowPublicSuffix'],
             ['ValidateAllowIp', 'ValidateAllowIpAndPublicSuffix'],
             ['ValidateAllowPublicSuffix', 'ValidateAllowIpAndPublicSuffix'],
-            ['Validate', 'ValidateAllowIp', 'ValidateAllowPublicSuffix'],
-        ])('throws when incompatible validation transformations are combined: %s', (...transformations) => {
+        ])('throws when incompatible validation transformations are combined: %s + %s', (first, second) => {
+            const transformations = [first, second];
+
+            expect(() => checkIncompatibleValidationTransformations(transformations))
+                .toThrow(`Validation transformations cannot be combined: ${transformations.join(', ')}.`);
+        });
+
+        it('throws when three validation transformations are combined', () => {
+            const transformations = ['Validate', 'ValidateAllowIp', 'ValidateAllowPublicSuffix'];
+
             expect(() => checkIncompatibleValidationTransformations(transformations))
                 .toThrow(`Validation transformations cannot be combined: ${transformations.join(', ')}.`);
         });
@@ -115,11 +122,14 @@ describe('Validation conflicts', () => {
         });
     });
 
-    it('keeps the list of validation transformations frozen', () => {
+    it('keeps every validation transformation frozen', () => {
         expect(Object.isFrozen(VALIDATION_TRANSFORMATIONS)).toBe(true);
     });
 
-    it('derives each validation transformation from the TRANSFORMATIONS enum', () => {
+    it('keeps every validation transformation a member of the TRANSFORMATIONS enum', () => {
+        // Regression guard: VALIDATION_TRANSFORMATIONS is built from TRANSFORMATIONS.*
+        // references (see src/transformations/enum.js), so a hand-typed literal or a
+        // renamed enum key would produce an entry that is not a member of the enum.
         const transformationNames = Object.values(TRANSFORMATIONS);
 
         VALIDATION_TRANSFORMATIONS.forEach((name) => {

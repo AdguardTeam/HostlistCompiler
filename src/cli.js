@@ -3,6 +3,7 @@
 const fs = require('fs').promises;
 const consola = require('consola');
 const compile = require('./index');
+const { SOURCE_TYPES } = require('./source-types');
 const packageJson = require('../package.json');
 
 // Version is not stored in the repo: CI stamps it into package.json at build
@@ -84,7 +85,7 @@ async function readConfig() {
  * @returns {Object} configuration object.
  */
 function createConfig() {
-    const inputType = argv['input-type'] || 'hosts';
+    const inputType = argv['input-type'] || SOURCE_TYPES.HOSTS;
 
     consola.debug(`Creating configuration for input ${argv.input} of type ${inputType}`);
 

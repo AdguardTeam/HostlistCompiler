@@ -178,8 +178,8 @@ the [Contribution Instructions section of AGENTS.md](AGENTS.md#contribution-inst
 3. Register the transformation in `src/transformations/transform.js` — the order there determines execution order, not
    the order in the configuration.
 4. If the new transformation is a *validation* transformation, also add it to `VALIDATION_TRANSFORMATIONS` in
-   `src/validation-conflicts.js` — the runtime conflict checks and the generated schema conflict rules are derived
-   from that list.
+   `src/transformations/enum.js` — it sits right below the enum, so adding a validator is a single-file change; the
+   runtime conflict checks and the generated schema conflict rules are derived from that list.
 5. Apply the documentation-sync rules from [AGENTS.md](AGENTS.md#configuration--documentation)
    (`src/schemas/configuration.schema.js`, `src/index.d.ts`, the order list in `README.md`, `CHANGELOG.md`).
 6. Create a test file in `test/transformations/`.
@@ -193,7 +193,8 @@ When adding or changing configuration fields, follow the documentation-sync rule
 1. Update the schema — it is a JS module, `src/schemas/configuration.schema.js`, not a JSON file. If the change
    touches transformation names, update the `TRANSFORMATIONS` enum in `src/transformations/enum.js` instead (the
    schema derives them from it); if it touches transformation conflicts, update `VALIDATION_TRANSFORMATIONS` in
-   `src/validation-conflicts.js` (the schema conflict rules are generated from it).
+   `src/transformations/enum.js` (the schema conflict rules are generated from it); if it touches source types,
+   update `SOURCE_TYPES` in `src/source-types.js` (the schema derives the `type` enum from it).
 2. Update the corresponding TypeScript types in `src/index.d.ts`.
 3. Add test cases in `test/configuration.test.js`.
 
