@@ -39,8 +39,7 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 - **Primary Dependencies**:
     - `@adguard/filters-downloader` — resolves `!#include` directives and
       downloads remote sources
-    - `ajv` / `ajv-errors` / `better-ajv-errors` — JSON schema validation for
-      configuration
+    - `ajv` / `better-ajv-errors` — JSON schema validation for configuration
     - `lodash` — utility functions
     - `tldts` — TLD parsing for domain validation
     - `yargs` — CLI argument parsing
@@ -246,8 +245,6 @@ Universal design principles the codebase should follow:
   inclusion sources directly, duplicating the download call in
   `src/compile-source.js`; there is no central download layer.
   <!-- AG-58265 -->
-- `ajv-errors` is declared in `package.json` but never imported in `src/`.
-  <!-- AG-58268 -->
 
 ### Code Quality
 
