@@ -1,4 +1,38 @@
-const { transform } = require('../../src/transformations/transform');
+const {
+    transform,
+    TRANSFORMATIONS,
+    DEFAULT_TRANSFORMATIONS,
+} = require('../../src/transformations/transform');
+
+describe('DEFAULT_TRANSFORMATIONS', () => {
+    it('is frozen', () => {
+        expect(Object.isFrozen(DEFAULT_TRANSFORMATIONS)).toBe(true);
+    });
+
+    it('contains the default pipeline for the quick conversion mode', () => {
+        expect(DEFAULT_TRANSFORMATIONS).toEqual([
+            TRANSFORMATIONS.RemoveComments,
+            TRANSFORMATIONS.Deduplicate,
+            TRANSFORMATIONS.Compress,
+            TRANSFORMATIONS.Validate,
+            TRANSFORMATIONS.TrimLines,
+            TRANSFORMATIONS.InsertFinalNewLine,
+        ]);
+    });
+
+    it('converts /etc/hosts rules to a valid adblock list', async () => {
+        const rules = [
+            '0.0.0.0 example.com',
+            '0.0.0.0 example.com',
+            '! comment',
+            '',
+        ];
+
+        const filtered = await transform(rules, {}, DEFAULT_TRANSFORMATIONS);
+
+        expect(filtered).toEqual(['||example.com^', '']);
+    });
+});
 
 describe('Transform', () => {
     it('no transformations', async () => {

@@ -33,6 +33,19 @@ const TRANSFORMATIONS = Object.freeze({
     ConvertToAscii: 'ConvertToAscii',
 });
 
+/**
+ * The default transformation pipeline for the quick conversion mode (the CLI
+ * `-i` option): converts /etc/hosts rules to AdGuard-syntax rules.
+ */
+const DEFAULT_TRANSFORMATIONS = Object.freeze([
+    TRANSFORMATIONS.RemoveComments,
+    TRANSFORMATIONS.Deduplicate,
+    TRANSFORMATIONS.Compress,
+    TRANSFORMATIONS.Validate,
+    TRANSFORMATIONS.TrimLines,
+    TRANSFORMATIONS.InsertFinalNewLine,
+]);
+
 const VALIDATION_TRANSFORMATIONS = [
     TRANSFORMATIONS.Validate,
     TRANSFORMATIONS.ValidateAllowIp,
@@ -132,4 +145,5 @@ async function transform(rules, configuration, transformations) {
 module.exports = {
     transform,
     TRANSFORMATIONS,
+    DEFAULT_TRANSFORMATIONS,
 };
