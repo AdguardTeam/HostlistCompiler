@@ -8,8 +8,8 @@
  */
 const TRANSFORMATIONS = Object.freeze({
     RemoveComments: 'RemoveComments',
-    Compress: 'Compress',
     RemoveModifiers: 'RemoveModifiers',
+    Compress: 'Compress',
     Validate: 'Validate',
     ValidateAllowIp: 'ValidateAllowIp',
     ValidateAllowPublicSuffix: 'ValidateAllowPublicSuffix',

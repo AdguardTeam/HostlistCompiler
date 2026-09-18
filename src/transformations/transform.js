@@ -91,5 +91,4 @@ async function transform(rules, configuration, transformations) {
 
 module.exports = {
     transform,
-    TRANSFORMATIONS,
 };

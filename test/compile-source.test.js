@@ -2,7 +2,7 @@ const nock = require('nock');
 const mock = require('mock-fs');
 const path = require('path');
 const compileSource = require('../src/compile-source');
-const { TRANSFORMATIONS } = require('../src/transformations/transform');
+const { TRANSFORMATIONS } = require('../src/transformations/enum');
 
 const testDirPath = path.resolve(__dirname, 'test/dir');
 const exclusionsFilePath = path.resolve(testDirPath, 'exclusions.txt');

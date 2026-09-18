@@ -6,8 +6,6 @@
  * derived from `SOURCE_TYPES`, so they cannot drift apart. The `SourceType`
  * union in `src/index.d.ts` is a type declaration and cannot consume runtime
  * values — keep it in sync with this module.
- *
- * @typedef {'adblock' | 'hosts'} SourceType
  */
 const SOURCE_TYPES = Object.freeze({
     ADBLOCK: 'adblock',

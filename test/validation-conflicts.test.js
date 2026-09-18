@@ -98,12 +98,15 @@ describe('Validation conflicts', () => {
 
     describe('buildSchemaConflictRules', () => {
         it('generates a rule for each unordered pair of validation transformations', () => {
-            const expectedPairs = [];
-            VALIDATION_TRANSFORMATIONS.forEach((first, index) => {
-                VALIDATION_TRANSFORMATIONS.slice(index + 1).forEach((second) => {
-                    expectedPairs.push([first, second]);
-                });
-            });
+            // A literal list, independent of the implementation's pairing logic.
+            const expectedPairs = [
+                ['Validate', 'ValidateAllowIp'],
+                ['Validate', 'ValidateAllowPublicSuffix'],
+                ['Validate', 'ValidateAllowIpAndPublicSuffix'],
+                ['ValidateAllowIp', 'ValidateAllowPublicSuffix'],
+                ['ValidateAllowIp', 'ValidateAllowIpAndPublicSuffix'],
+                ['ValidateAllowPublicSuffix', 'ValidateAllowIpAndPublicSuffix'],
+            ];
 
             const generatedPairs = buildSchemaConflictRules().map((rule) => rule.not.allOf
                 .map((part) => part.contains.const));
