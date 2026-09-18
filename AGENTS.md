@@ -199,8 +199,9 @@ Central download layer (src/download.js) (used by compile-source.js and filter.j
 ```
 
 Each layer may call the layers below it; no layer depends on a layer above it.
-`utils.js` is the leaf module (only depends on `lodash`); there are no circular
-dependencies.
+`utils.js` and `download.js` are the leaf modules (they depend only on external
+packages — `lodash` and `@adguard/filters-downloader` respectively); there are
+no circular dependencies.
 
 Universal design principles the codebase should follow:
 
