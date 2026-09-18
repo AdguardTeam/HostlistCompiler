@@ -232,10 +232,6 @@ Universal design principles the codebase should follow:
   the item). Remove an entry as soon as it is fixed, so this list never drifts
   out of sync.
 
-- Validation-conflict rules are enforced in three places (JSON schema,
-  `transform.js`, `index.js`), which can drift out of sync.
-  <!-- AG-58267 -->
-
 ### Code Quality
 
 - **ESLint airbnb-base** rules apply — run `pnpm lint:code` to check; the
