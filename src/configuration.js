@@ -1,9 +1,10 @@
 const Ajv = require('ajv');
 const betterAjvErrors = require('better-ajv-errors');
+const { SOURCE_TYPES } = require('./source-types');
 const { DEFAULT_TRANSFORMATIONS } = require('./transformations/transform');
 
 const ajv = new Ajv({ allErrors: true, jsonPointers: true });
-const schema = require('./schemas/configuration.schema.json');
+const schema = require('./schemas/configuration.schema');
 
 /**
  * Creates a configuration object for the quick conversion mode (the CLI `-i`
@@ -15,14 +16,14 @@ const schema = require('./schemas/configuration.schema.json');
  * defaults to `hosts`.
  * @returns {Object} configuration object.
  */
-function createConfiguration(inputs, type = 'hosts') {
+function createConfiguration(inputs, type = SOURCE_TYPES.HOSTS) {
     return {
         name: 'Blocklist',
         sources: inputs.map((input) => ({
             source: input,
             // An empty string (e.g. the CLI flag `-t ''`) must fall back to
             // the default type, like the old `argv['input-type'] || 'hosts'`.
-            type: type || 'hosts',
+            type: type || SOURCE_TYPES.HOSTS,
         })),
         transformations: [...DEFAULT_TRANSFORMATIONS],
     };

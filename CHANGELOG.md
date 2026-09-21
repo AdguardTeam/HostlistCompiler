@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The internal configuration schema moved from `src/schemas/configuration.schema.json` to
+  `src/schemas/configuration.schema.js`; the documented API is unchanged.
+
 ### Deprecated
 
 ### Removed

@@ -13,25 +13,8 @@ const removeEmptyLines = require('./remove-empty-lines');
 const trimLines = require('./trim-lines');
 const insertFinalNewLine = require('./insert-final-newline');
 const convertToAscii = require('./covert-to-ascii');
-
-/**
- * Enum with all available transformations
- */
-const TRANSFORMATIONS = Object.freeze({
-    RemoveComments: 'RemoveComments',
-    Compress: 'Compress',
-    RemoveModifiers: 'RemoveModifiers',
-    Validate: 'Validate',
-    ValidateAllowIp: 'ValidateAllowIp',
-    ValidateAllowPublicSuffix: 'ValidateAllowPublicSuffix',
-    ValidateAllowIpAndPublicSuffix: 'ValidateAllowIpAndPublicSuffix',
-    Deduplicate: 'Deduplicate',
-    InvertAllow: 'InvertAllow',
-    RemoveEmptyLines: 'RemoveEmptyLines',
-    TrimLines: 'TrimLines',
-    InsertFinalNewLine: 'InsertFinalNewLine',
-    ConvertToAscii: 'ConvertToAscii',
-});
+const { TRANSFORMATIONS } = require('./enum');
+const { checkIncompatibleValidationTransformations } = require('../validation-conflicts');
 
 /**
  * The default transformation pipeline for the quick conversion mode (the CLI
@@ -46,28 +29,31 @@ const DEFAULT_TRANSFORMATIONS = Object.freeze([
     TRANSFORMATIONS.InsertFinalNewLine,
 ]);
 
-const VALIDATION_TRANSFORMATIONS = [
-    TRANSFORMATIONS.Validate,
-    TRANSFORMATIONS.ValidateAllowIp,
-    TRANSFORMATIONS.ValidateAllowPublicSuffix,
-    TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix,
-];
-
 /**
- * Throws when multiple validation transformations are selected together.
- * Combining them causes silent data loss: each validator runs on the already-filtered
- * output of the previous one, so allow-modes (AllowIp, AllowPublicSuffix) become ineffective.
+ * The transformations in their fixed execution order, paired with their implementations.
  *
- * @param {Array<string>} transformations - configured transformations.
+ * When adding a transformation: add it to the `TRANSFORMATIONS` enum in
+ * `enum.js`, then register it here (order matters — it is the execution order
+ * and MUST match the order list in README.md). A test in `transform.test.js`
+ * asserts this list covers every entry of the enum and pins its order, so a
+ * forgotten branch or an accidental reorder fails the suite instead of being
+ * silently skipped.
  */
-function checkIncompatibleValidationTransformations(transformations) {
-    const selectedValidations = VALIDATION_TRANSFORMATIONS
-        .filter((transformation) => transformations.indexOf(transformation) !== -1);
-
-    if (selectedValidations.length > 1) {
-        throw new Error(`Validation transformations cannot be combined: ${selectedValidations.join(', ')}.`);
-    }
-}
+const TRANSFORMATIONS_IN_ORDER = [
+    [TRANSFORMATIONS.ConvertToAscii, convertToAscii],
+    [TRANSFORMATIONS.TrimLines, trimLines],
+    [TRANSFORMATIONS.RemoveComments, removeComments],
+    [TRANSFORMATIONS.Compress, compress],
+    [TRANSFORMATIONS.RemoveModifiers, removeModifiers],
+    [TRANSFORMATIONS.InvertAllow, invertAllow],
+    [TRANSFORMATIONS.Validate, validate],
+    [TRANSFORMATIONS.ValidateAllowIp, validateAllowIp],
+    [TRANSFORMATIONS.ValidateAllowPublicSuffix, validateAllowPublicSuffix],
+    [TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix, validateAllowIpAndPublicSuffix],
+    [TRANSFORMATIONS.Deduplicate, deduplicate],
+    [TRANSFORMATIONS.RemoveEmptyLines, removeEmptyLines],
+    [TRANSFORMATIONS.InsertFinalNewLine, insertFinalNewLine],
+];
 
 /**
  * Applies the specified transformations to the list of rules in the proper order.
@@ -99,51 +85,17 @@ async function transform(rules, configuration, transformations) {
         configuration.inclusions_sources,
     );
 
-    // When updating the list of transformations, be sure to follow the same order in README.md
-    if (transformations.indexOf(TRANSFORMATIONS.ConvertToAscii) !== -1) {
-        transformed = convertToAscii(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.TrimLines) !== -1) {
-        transformed = trimLines(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.RemoveComments) !== -1) {
-        transformed = removeComments(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.Compress) !== -1) {
-        transformed = compress(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.RemoveModifiers) !== -1) {
-        transformed = removeModifiers(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.InvertAllow) !== -1) {
-        transformed = invertAllow(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.Validate) !== -1) {
-        transformed = validate(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowIp) !== -1) {
-        transformed = validateAllowIp(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowPublicSuffix) !== -1) {
-        transformed = validateAllowPublicSuffix(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix) !== -1) {
-        transformed = validateAllowIpAndPublicSuffix(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.Deduplicate) !== -1) {
-        transformed = deduplicate(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.RemoveEmptyLines) !== -1) {
-        transformed = removeEmptyLines(transformed);
-    }
-    if (transformations.indexOf(TRANSFORMATIONS.InsertFinalNewLine) !== -1) {
-        transformed = insertFinalNewLine(transformed);
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [name, apply] of TRANSFORMATIONS_IN_ORDER) {
+        if (transformations.indexOf(name) !== -1) {
+            transformed = apply(transformed);
+        }
     }
     return transformed;
 }
 
 module.exports = {
     transform,
-    TRANSFORMATIONS,
     DEFAULT_TRANSFORMATIONS,
+    TRANSFORMATIONS_IN_ORDER,
 };

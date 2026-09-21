@@ -66,10 +66,13 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │   ├── filter.js               # Include/exclude wildcard filtering
 │   ├── rule.js                 # Rule parsing (adblock, /etc/hosts)
 │   ├── ip-normalize.js         # Internal helper: IP rule normalization (used by transformations)
+│   ├── source-types.js         # Source-type vocabulary (SOURCE_TYPES) for the schema and the CLI
+│   ├── validation-conflicts.js # Validation-conflict rules (runtime checks + generated schema fragments)
 │   ├── utils.js                # String, IP, and wildcard utilities
-│   ├── schemas/                # JSON schema for configuration validation
+│   ├── schemas/                # Configuration schema (transformation names + conflict rules)
 │   └── transformations/        # 15 transformations + fixed-order pipeline
-│       ├── transform.js        # Pipeline orchestrator (TRANSFORMATIONS enum)
+│       ├── enum.js             # TRANSFORMATIONS enum + VALIDATION_TRANSFORMATIONS (single source of truth)
+│       ├── transform.js        # Pipeline orchestrator
 │       ├── exclude.js          # Exclusion rules (async, ungated)
 │       ├── include.js          # Inclusion rules (async, ungated)
 │       └── # ... (13 simple transforms: compress, validate, deduplicate, etc.)
@@ -184,7 +187,7 @@ CLI entry (src/cli.js)
     ↓
 Library entry / orchestration (src/index.js)
     ↓
-Configuration creation and validation (src/configuration.js, src/schemas/configuration.schema.json)
+Configuration creation and validation (src/configuration.js, src/schemas/configuration.schema.js)
 Per-source compilation (src/compile-source.js)
     ↓
 Transformation pipeline (src/transformations/transform.js)
@@ -221,20 +224,27 @@ Universal design principles the codebase should follow:
   JSON schema; incompatible transformation combinations are rejected at
   runtime and in the schema. Less critical at compile time: the project is
   plain JavaScript, so runtime validation carries this burden.
+- **Single Source of Truth for Transformation Names** — the `TRANSFORMATIONS`
+  enum in `src/transformations/enum.js` is the single source of truth for
+  transformation *names*: the configuration schema's accepted names and the
+  validation-conflict rules are derived from it, so renaming a transformation
+  in the enum updates those automatically. Registering a *new* transformation
+  is still a multi-step process — add the enum entry (`enum.js`), register the
+  implementation in the pipeline (`src/transformations/transform.js`), and
+  update the exported `Transformation` type (`src/index.d.ts`) and the order
+  list (`README.md`) by hand; a test asserts the pipeline covers every enum
+  entry. The steps are documented in DEVELOPMENT.md.
+- **Single Source of Truth for Conflict Rules** — validation-conflict rules
+  (which validation transformations conflict, and at which levels) live in
+  `src/validation-conflicts.js`; the schema conflict rules and the runtime
+  checks are generated from that module, so they cannot drift apart. The list
+  of validation transformations (`VALIDATION_TRANSFORMATIONS`) is defined next
+  to the enum in `src/transformations/enum.js`, so the conflict-rule side of
+  adding a validator is a single-file change.
 - **Observability Built-in** — all logging goes through `consola`; see the
   logging and error-handling rules in [Code Quality](#code-quality).
 - **Keep It Boring** — plain CommonJS modules, no framework magic, simple
   synchronous or async transformation functions.
-
-**Known exclusions** (to be fixed):
-
-- Each item below is tracked in the issue tracker (see the `AG-…` comment on
-  the item). Remove an entry as soon as it is fixed, so this list never drifts
-  out of sync.
-
-- Validation-conflict rules are enforced in three places (JSON schema,
-  `transform.js`, `index.js`), which can drift out of sync.
-  <!-- AG-58267 -->
 
 ### Code Quality
 
@@ -304,7 +314,7 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
 ### Configuration & Documentation
 
 - The compiler is controlled by a JSON configuration object validated against
-  `src/schemas/configuration.schema.json` (draft-07) via AJV; unknown keys are
+  `src/schemas/configuration.schema.js` (draft-07) via AJV; unknown keys are
   rejected (`additionalProperties: false`).
 - Runtime behavior is selected via CLI flags (`-c` config file, `-i` quick
   hosts conversion, `-o` output file, `-v` verbose logging); there is no
@@ -317,10 +327,11 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
   pipeline documented in the `README.md` "Quick Hosts Conversion" section MUST
   match `DEFAULT_TRANSFORMATIONS` in `src/transformations/transform.js`,
   update `CHANGELOG.md` for user-facing changes, update
-  `src/schemas/configuration.schema.json` when adding configuration options,
-  update `src/index.d.ts` when changing the public API, and update
-  `DEPLOYMENT.md` when changing the Dockerfile, CI workflows, or deployment
-  setup.
+  `src/schemas/configuration.schema.js` when adding configuration options
+  (transformation names come from `src/transformations/enum.js`, source types
+  from `src/source-types.js`), update `src/index.d.ts` when changing the
+  public API, and update `DEPLOYMENT.md` when changing the Dockerfile, CI
+  workflows, or deployment setup.
 - No secrets or credentials are used anywhere in the project; configuration
   files are committed to the repository.
 

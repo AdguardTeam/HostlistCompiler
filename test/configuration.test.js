@@ -1,5 +1,7 @@
 const config = require('../src/configuration');
-const { DEFAULT_TRANSFORMATIONS, TRANSFORMATIONS } = require('../src/transformations/transform');
+const { DEFAULT_TRANSFORMATIONS } = require('../src/transformations/transform');
+const { TRANSFORMATIONS } = require('../src/transformations/enum');
+const schema = require('../src/schemas/configuration.schema');
 
 describe('createConfiguration', () => {
     it('test createConfiguration with default source type and pipeline', () => {
@@ -48,6 +50,30 @@ describe('createConfiguration', () => {
 });
 
 describe('Configuration', () => {
+    it('renders the transformations allowed-values in the original schema order', () => {
+        // Pins the declaration order of the TRANSFORMATIONS enum: the schema's
+        // items.enum is Object.values(TRANSFORMATIONS), and that order is what
+        // the unknown-transformation error renders as the allowed-values list.
+        const expected = [
+            'RemoveComments',
+            'RemoveModifiers',
+            'Compress',
+            'Validate',
+            'ValidateAllowIp',
+            'ValidateAllowPublicSuffix',
+            'ValidateAllowIpAndPublicSuffix',
+            'Deduplicate',
+            'InvertAllow',
+            'RemoveEmptyLines',
+            'TrimLines',
+            'InsertFinalNewLine',
+            'ConvertToAscii',
+        ];
+
+        expect(schema.properties.transformations.items.enum).toEqual(expected);
+        expect(schema.definitions.source.properties.transformations.items.enum).toEqual(expected);
+    });
+
     it('test invalid configuration', () => {
         const ret = config.validateConfiguration({
             name: 'test',

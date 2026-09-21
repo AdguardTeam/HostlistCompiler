@@ -1,6 +1,8 @@
 declare module '@adguard/hostlist-compiler' {
+    // Keep in sync with SOURCE_TYPES in src/source-types.js (type declarations cannot consume runtime values).
     export type SourceType = 'adblock' | 'hosts';
 
+    // Keep in sync with TRANSFORMATIONS in src/transformations/enum.js (type declarations cannot consume runtime values).
     export type Transformation =
         'ConvertToAscii' |
         'TrimLines' |
