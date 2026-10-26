@@ -77,6 +77,7 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │       ├── include.js          # Inclusion rules (async, ungated)
 │       └── # ... (13 simple transforms: compress, validate, deduplicate, etc.)
 ├── test/                       # Jest test suites mirroring src/
+│   ├── helpers/                # Shared test helpers (HTTP mocking)
 │   ├── resources/              # Test fixture files
 │   └── transformations/        # Transformation-specific tests
 ├── examples/                   # Example configurations (sdn, energized, china, whitelist)
@@ -269,8 +270,8 @@ Universal design principles the codebase should follow:
 
 - **Framework**: Jest, running in Node environment with `--runInBand
   --detectOpenHandles` and `silent: true`.
-- **Mocking**: `mock-fs` for filesystem mocks, `nock` for HTTP request
-  interception.
+- **Mocking**: `mock-fs` for filesystem mocks, `undici` MockAgent for HTTP
+  request interception.
 - Test files follow the naming convention `<module>.test.js` under `test/`,
   mirroring the structure of `src/`.
 - Each transformation has its own test file under `test/transformations/`.

@@ -1,6 +1,6 @@
-const nock = require('nock');
 const mock = require('mock-fs');
 const path = require('path');
+const mockHttp = require('../helpers/http-mock');
 const include = require('../../src/transformations/include');
 
 const testDirPath = path.resolve(__dirname, 'test/dir');
@@ -41,7 +41,7 @@ describe('Exclusions', () => {
 
     it('inclusions sources', async () => {
         // Mock inclusions sources
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/inclusions.txt')
             .reply(200, 'rule1', {
                 'Content-Type': 'text/plain',

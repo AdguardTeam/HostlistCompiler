@@ -1,6 +1,6 @@
-const nock = require('nock');
 const mock = require('mock-fs');
 const path = require('path');
+const mockHttp = require('./helpers/http-mock');
 const compileSource = require('../src/compile-source');
 const { TRANSFORMATIONS } = require('../src/transformations/enum');
 
@@ -14,7 +14,7 @@ describe('Source compiler', () => {
     });
 
     it('compile a simple URL source', async () => {
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/filter.txt')
             .reply(200, 'testrule', {
                 'Content-Type': 'text/plain',
@@ -58,7 +58,7 @@ describe('Source compiler', () => {
 ||invalidrule/test
 @@||rule3
 ||rule4`;
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/filter.txt')
             .reply(200, rules, {
                 'Content-Type': 'text/plain',
@@ -106,7 +106,7 @@ describe('Source compiler', () => {
  test1.com
 
   test2.com`;
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/test-filter.txt')
             .reply(200, testList, {
                 'Content-Type': 'text/plain',
@@ -143,7 +143,7 @@ describe('Source compiler', () => {
 ||*.ευ^
         ||*.ελ^
 ||*.հայ^`;
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/test-filter.txt')
             .reply(200, testList, {
                 'Content-Type': 'text/plain',
@@ -193,7 +193,7 @@ describe('Source compiler', () => {
     });
 
     it('compile the empty external source', async () => {
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/empty.txt')
             .reply(200, '', {
                 'Content-Type': 'text/plain',

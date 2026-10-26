@@ -1,6 +1,6 @@
-const nock = require('nock');
 const mock = require('mock-fs');
 const path = require('path');
+const mockHttp = require('./helpers/http-mock');
 const { download } = require('../src/download');
 
 const testDirPath = path.resolve(__dirname, 'dir');
@@ -12,7 +12,7 @@ describe('Download', () => {
     });
 
     it('downloads a remote URL source', async () => {
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/filter.txt')
             .reply(200, 'rule1\nrule2\nrule3\n', {
                 'Content-Type': 'text/plain',
@@ -64,7 +64,7 @@ describe('Download', () => {
     });
 
     it('downloads an empty remote source', async () => {
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/empty.txt')
             .reply(200, '', {
                 'Content-Type': 'text/plain',
@@ -79,7 +79,7 @@ describe('Download', () => {
     });
 
     it('throws an error when the source cannot be downloaded', async () => {
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/missing.txt')
             .reply(404, 'Not Found', {
                 'Content-Type': 'text/plain',

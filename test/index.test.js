@@ -1,11 +1,11 @@
-const nock = require('nock');
 const consola = require('consola');
+const mockHttp = require('./helpers/http-mock');
 const compile = require('../src/index');
 
 describe('Hostlist compiler', () => {
     it('compile from multiple sources', async () => {
         // Prepare source 1
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/source1.txt')
             .reply(200, '||example.org', {
                 'Content-Type': 'text/plain',
@@ -65,7 +65,7 @@ describe('Hostlist compiler', () => {
     });
 
     it('allows validation transformation at source level only', async () => {
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/source.txt')
             .reply(200, '||org^', {
                 'Content-Type': 'text/plain',
@@ -88,7 +88,7 @@ describe('Hostlist compiler', () => {
     });
 
     it('allows validation transformation at top level only', async () => {
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/source.txt')
             .reply(200, '||org^', {
                 'Content-Type': 'text/plain',

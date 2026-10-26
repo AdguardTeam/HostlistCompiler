@@ -34,7 +34,7 @@ Hostlist Compiler. For code guidelines and architectural decisions, see [AGENTS.
 ## Prerequisites
 
 - **Node.js 22.22.2 or newer** — required by the `engines` field in `package.json`; the CI pipeline and the
-  Docker image build with Node 22.
+  Docker image build with Node 22. Node.js 23.x is not supported by `@adguard/filters-downloader` 3.x.
 - **pnpm 10.x** — required by the `engines` field in `package.json` (use the exact version pinned there if pnpm
   reports a mismatch). Install with `npm install -g pnpm@10`.
 - **Git** — for cloning the repository and managing branches.
@@ -234,9 +234,9 @@ by the `prepare-release` and `publish-release` GitHub Actions workflows.
 
 ### Tests Hang or Time Out
 
-Tests run with `--runInBand --detectOpenHandles`. If a test hangs, an HTTP mock (`nock`) was probably not set up
-correctly or a filesystem mock (`mock-fs`) was not restored. Check that `nock.cleanAll()` and `mock.restore()` are
-called in `afterEach` or `afterAll`.
+Tests run with `--runInBand --detectOpenHandles`. If a test hangs, an HTTP mock (`undici` MockAgent) was probably
+not set up correctly or a filesystem mock (`mock-fs`) was not restored. Check that each mock scope's `done()`
+assertion runs and that `mock.restore()` is called in `afterEach` or `afterAll`.
 
 ### ESLint Cache Issues
 
@@ -251,7 +251,8 @@ pnpm lint
 ### Network Errors When Running the Compiler
 
 Remote filter lists are downloaded by `@adguard/filters-downloader`. Behind a proxy or firewall, sources may fail
-to download. Use local file paths in your configuration for offline development.
+to download. To use the standard proxy environment variables with the Node.js native `fetch`, set
+`NODE_USE_ENV_PROXY=1`. Use local file paths in your configuration for offline development.
 
 ### pnpm Version Mismatch
 

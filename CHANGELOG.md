@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated `@adguard/filters-downloader` to `3.0.0-beta.0`. This version removes
+  `axios` and uses native `fetch` in Node.js. It requires Node.js 22.21+ or 24+,
+  and environment proxy variables now require `NODE_USE_ENV_PROXY=1`. [#130]
 - The internal configuration schema moved from `src/schemas/configuration.schema.json` to
   `src/schemas/configuration.schema.js`; the documented API is unchanged.
 
@@ -59,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#126]: https://github.com/AdguardTeam/HostlistCompiler/issues/126
 [#127]: https://github.com/AdguardTeam/HostlistCompiler/issues/127
 [#128]: https://github.com/AdguardTeam/HostlistCompiler/issues/128
+[#130]: https://github.com/AdguardTeam/HostlistCompiler/issues/130
 
 ## [2.0.0] - 2026-04-02
 

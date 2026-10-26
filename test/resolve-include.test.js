@@ -1,5 +1,5 @@
-const nock = require('nock');
 const consola = require('consola');
+const mockHttp = require('./helpers/http-mock');
 const compile = require('../src/index');
 
 describe('Hostlist compiler', () => {
@@ -20,7 +20,7 @@ last.include.com
 non/valid_rule`;
 
         // Prepare source
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/source1.txt')
             .reply(200, filterContent1, {
                 'Content-Type': 'text/plain',
@@ -96,7 +96,7 @@ exclude.com
 non/valid_rule`;
 
         // Prepare source
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/source1.txt')
             .reply(200, filterContent1, {
                 'Content-Type': 'text/plain',
@@ -209,7 +209,7 @@ non/valid_rule`;
 ||sub_test_final`;
 
         // Prepare source
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/testdir/source1.txt')
             .reply(200, filterContent1, {
                 'Content-Type': 'text/plain',
@@ -268,7 +268,7 @@ exclude.com
 !#include https://example1.org/source.txt`;
 
         // Prepare source
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/source1.txt')
             .reply(200, filterContent1, {
                 'Content-Type': 'text/plain',
@@ -303,7 +303,7 @@ exclude.com
 !#include https://example.org/source.txt`;
 
         // Prepare source
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/source1.txt')
             .reply(200, filterContent, {
                 'Content-Type': 'text/plain',
@@ -356,7 +356,7 @@ exclude.com
 
     it('should compile source with empty source', async () => {
         // Prepare source
-        const scope = nock('https://example.org')
+        const scope = mockHttp('https://example.org')
             .get('/source.txt')
             .reply(200, '', {
                 'Content-Type': 'text/plain',
