@@ -34,7 +34,7 @@
     "undici": "7.30.1"
   },
   "dependencies": {
-    "@adguard/filters-downloader": "3.0.0-beta.0",
+    "@adguard/filters-downloader": "3.0.0",
     "ajv": "6.12.6",
     "better-ajv-errors": "0.6.7",
     "consola": "2.11.3",
