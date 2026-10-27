@@ -76,8 +76,8 @@ or message queue dependencies. The only infrastructure requirement is:
 | ------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | **Outbound HTTPS access** | Yes      | Downloading remote filter sources and `!#include` directives via `@adguard/filters-downloader` |
 
-Remote sources are downloaded over HTTPS with `axios` (inside
-`@adguard/filters-downloader`), and the downloaded content is compiled
+Remote sources are downloaded over HTTPS with the Node.js native `fetch`
+(inside `@adguard/filters-downloader`), and the downloaded content is compiled
 entirely in memory — nothing is persisted between runs. The Docker base image
 (`adguard/node-ssh:22.22--0`) includes everything else needed to run the CLI.
 

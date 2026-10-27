@@ -144,8 +144,8 @@ Run only tests matching a name pattern:
 npx jest --testNamePattern="compress" --runInBand
 ```
 
-The test setup (Jest flags, `silent` mode, `mock-fs`/`nock` mocking, fixture files) is described in the
-[Testing section of AGENTS.md](AGENTS.md#testing).
+The test setup (Jest flags, `silent` mode, `mock-fs`/`undici` MockAgent mocking, fixture files) is
+described in the [Testing section of AGENTS.md](AGENTS.md#testing).
 
 ### Linting
 
