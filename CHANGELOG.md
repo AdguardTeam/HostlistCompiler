@@ -12,8 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated [@adguard/filters-downloader] to v3.0.0. This version removes
-  `axios` and uses native `fetch` in Node.js. It requires Node.js 22.21+ or 24+,
-  and environment proxy variables now require `NODE_USE_ENV_PROXY=1`. [#130]
+  `axios` and uses native `fetch` in Node.js. It requires Node.js 22.22.2 or
+  newer, and Node.js 23.x is not supported. Environment proxy variables now
+  require `NODE_USE_ENV_PROXY=1`. [#130]
+- **Breaking:** sources with credentials in the URL
+  (e.g. `https://user:password@example.org/list.txt`) no longer work, because
+  native `fetch` rejects URLs with credentials. This affects `sources` and
+  `!#include` directives. [#130]
+- Remote bodies that look like JSON (e.g. `[]`, `123`, `{"a":1}`) are now
+  treated as plain text instead of failing with
+  `filter.trim is not a function`. A source that points to a JSON file now
+  adds its content to the list. [#130]
 - The internal configuration schema moved from `src/schemas/configuration.schema.json` to
   `src/schemas/configuration.schema.js`; the documented API is unchanged.
 
