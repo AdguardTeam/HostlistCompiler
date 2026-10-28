@@ -32,7 +32,7 @@ async function include(rules, inclusions, inclusionsSources) {
         return included;
     });
 
-    consola.info(`Included ${rules.length} rules`);
+    consola.info(`Included ${filtered.length} rules`);
     return filtered;
 }
 
