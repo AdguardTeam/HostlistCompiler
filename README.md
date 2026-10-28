@@ -86,6 +86,13 @@ hostlist-compiler -c configuration.json -o output.txt
 
 The compiler exits with code `0` on success and `1` on failure; errors are printed to stderr.
 
+### Proxy
+
+To download sources through a proxy, set `NODE_USE_ENV_PROXY=1` together with
+the standard `HTTPS_PROXY` (or `HTTP_PROXY`) and `NO_PROXY` environment
+variables. The Node.js native `fetch` ignores these variables unless
+`NODE_USE_ENV_PROXY=1` is set.
+
 ### Quick Hosts Conversion
 
 Convert and compress one or more `/etc/hosts`-syntax blocklists to

@@ -62,24 +62,28 @@ to prevent redundant CI runs when a new push arrives for the same ref.
 
 ## Environment Variables
 
-The compiler reads **no environment variables at runtime**. All CI/CD
-configuration (such as npm publish tokens, Octopass, and Slack webhooks) is
-handled by the shared workflows and does not require per-project
-configuration.
+The compiler reads **no environment variables at runtime**. To download
+sources through a proxy, set `NODE_USE_ENV_PROXY=1` together with the
+standard `HTTPS_PROXY` (or `HTTP_PROXY`) and `NO_PROXY` variables. The
+Node.js native `fetch` ignores these variables unless `NODE_USE_ENV_PROXY=1`
+is set. All CI/CD configuration (such as npm publish tokens, Octopass, and
+Slack webhooks) is handled by the shared workflows and does not require
+per-project configuration.
 
 ## Infrastructure Dependencies
 
 The compiler is a **stateless CLI tool and library** with no database, cache,
 or message queue dependencies. The only infrastructure requirement is:
 
-| Dependency                | Required | Purpose                                                                                        |
-| ------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
-| **Outbound HTTPS access** | Yes      | Downloading remote filter sources and `!#include` directives via `@adguard/filters-downloader` |
+| Dependency                  | Required | Purpose                                                                                        |
+| --------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| **Outbound HTTP(S) access** | Yes      | Downloading remote filter sources and `!#include` directives via `@adguard/filters-downloader` |
 
-Remote sources are downloaded over HTTPS with the Node.js native `fetch`
-(inside `@adguard/filters-downloader`), and the downloaded content is compiled
-entirely in memory — nothing is persisted between runs. The Docker base image
-(`adguard/node-ssh:22.22--0`) includes everything else needed to run the CLI.
+Remote sources are downloaded over HTTP or HTTPS with the Node.js native
+`fetch` (inside `@adguard/filters-downloader`), and the downloaded content is
+compiled entirely in memory — nothing is persisted between runs. The Docker
+base image (`adguard/node-ssh:22.22--0`) includes everything else needed to
+run the CLI.
 
 ## Logging
 
@@ -113,7 +117,7 @@ code 1.
 The compiler downloads filter lists at runtime from the URLs configured in
 the compiler configuration (`sources`) and resolved `!#include` directives.
 These URLs are user-defined — there are no hardcoded external services — but
-the deployment environment must allow outbound HTTPS requests so that remote
+the deployment environment must allow outbound HTTP(S) requests so that remote
 sources can be fetched.
 
 ## Error Reporting
