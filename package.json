@@ -38,7 +38,7 @@
     "ajv": "6.12.6",
     "better-ajv-errors": "0.6.7",
     "consola": "2.11.3",
-    "lodash": "4.17.15",
+    "lodash": "4.17.21",
     "tldts": "7.0.28",
     "yargs": "15.3.0"
   }

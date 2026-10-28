@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Updated lodash to 4.17.21 to fix the ReDoS in `_.trim`
+  (GHSA-29mw-wpgm-hmr9).
+
 ## [2.1.1] - 2026-08-21
 
 ## [2.1.0] - 2026-04-16
