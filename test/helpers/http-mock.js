@@ -13,15 +13,26 @@ const {
 } = require('undici');
 
 const originalFetch = global.fetch;
-const mockAgent = new MockAgent();
 
-setGlobalDispatcher(mockAgent);
-mockAgent.disableNetConnect();
 global.fetch = undiciFetch;
 
-afterAll(async () => {
-    global.fetch = originalFetch;
+let mockAgent;
+
+// Create an agent per test, so `assertNoPendingInterceptors()` only sees the
+// interceptors of the current test. A failed test cannot break the `done()`
+// assertions of the later tests in the same file.
+beforeEach(() => {
+    mockAgent = new MockAgent();
+    mockAgent.disableNetConnect();
+    setGlobalDispatcher(mockAgent);
+});
+
+afterEach(async () => {
     await mockAgent.close();
+});
+
+afterAll(() => {
+    global.fetch = originalFetch;
 });
 
 /**
