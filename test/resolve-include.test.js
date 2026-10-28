@@ -289,7 +289,7 @@ exclude.com
 
         await expect(async () => {
             await compile(configuration);
-        }).rejects.toThrow(Error);
+        }).rejects.toThrow('Include url is rejected with origin');
 
         scope.done();
     });
