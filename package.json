@@ -18,7 +18,7 @@
     "compile": "node src/cli.js"
   },
   "engines": {
-    "node": ">=22.22.2",
+    "node": "^22.22.2 || >=24.0.0",
     "pnpm": ">=10.33.4 <11"
   },
   "devDependencies": {
