@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- CLI to print the original network error (`cause`) when a compile fails.
+
 ### Security
 
 - Updated lodash to 4.17.21 to fix the ReDoS in `_.trim`
