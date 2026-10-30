@@ -7,7 +7,7 @@ const include = require('../../src/transformations/include');
 const testDirPath = path.resolve(__dirname, 'test/dir');
 const inclusionsFilePath = path.resolve(testDirPath, 'inclusions.txt');
 
-describe('Exclusions', () => {
+describe('Inclusions', () => {
     afterEach(() => {
         // make sure FS is restored after running tests
         mock.restore();

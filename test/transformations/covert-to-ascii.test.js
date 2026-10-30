@@ -1,6 +1,6 @@
 const convertToAscii = require('../../src/transformations/covert-to-ascii');
 
-describe('Exclusions', () => {
+describe('ConvertToAscii', () => {
     it('convert non latin symbols in full domain to punycode', () => {
         const rules = `||*.рус^$denyallow=example.com
 ||*.कॉम^$denyallow=example.com
