@@ -62,7 +62,7 @@ to prevent redundant CI runs when a new push arrives for the same ref.
 
 ## Environment Variables
 
-The compiler reads **no environment variables at runtime**. To download
+The compiler defines **no environment variables of its own**. To download
 sources through a proxy, set `NODE_USE_ENV_PROXY=1` together with the
 standard `HTTPS_PROXY` (or `HTTP_PROXY`) and `NO_PROXY` variables. The
 Node.js native `fetch` ignores these variables unless `NODE_USE_ENV_PROXY=1`
