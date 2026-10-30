@@ -21,8 +21,8 @@ importers:
         specifier: 2.11.3
         version: 2.11.3
       lodash:
-        specifier: 4.17.15
-        version: 4.17.15
+        specifier: 4.17.21
+        version: 4.17.21
       tldts:
         specifier: 7.0.28
         version: 7.0.28
@@ -1469,8 +1469,8 @@ packages:
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
 
-  lodash@4.17.15:
-    resolution: {integrity: sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==}
+  lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
@@ -3828,7 +3828,7 @@ snapshots:
 
   lodash.merge@4.6.2: {}
 
-  lodash@4.17.15: {}
+  lodash@4.17.21: {}
 
   lru-cache@5.1.1:
     dependencies:
