@@ -64,11 +64,12 @@ to prevent redundant CI runs when a new push arrives for the same ref.
 
 The compiler defines **no environment variables of its own**. To download
 sources through a proxy, set `NODE_USE_ENV_PROXY=1` together with the
-standard `HTTPS_PROXY` (or `HTTP_PROXY`) and `NO_PROXY` variables. The
-Node.js native `fetch` ignores these variables unless `NODE_USE_ENV_PROXY=1`
-is set. All CI/CD configuration (such as npm publish tokens, Octopass, and
-Slack webhooks) is handled by the shared workflows and does not require
-per-project configuration.
+`HTTP_PROXY` (also used for `https://` when `HTTPS_PROXY` is unset),
+`HTTPS_PROXY`, and `NO_PROXY` variables. The Node.js native `fetch` ignores
+these variables unless `NODE_USE_ENV_PROXY=1` is set. All CI/CD
+configuration (such as npm publish tokens, Octopass, and Slack webhooks) is
+handled by the shared workflows and does not require per-project
+configuration.
 
 ## Infrastructure Dependencies
 

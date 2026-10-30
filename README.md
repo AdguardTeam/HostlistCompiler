@@ -89,9 +89,9 @@ The compiler exits with code `0` on success and `1` on failure; errors are print
 ### Proxy
 
 To download sources through a proxy, set `NODE_USE_ENV_PROXY=1` together with
-the standard `HTTPS_PROXY` (or `HTTP_PROXY`) and `NO_PROXY` environment
-variables. The Node.js native `fetch` ignores these variables unless
-`NODE_USE_ENV_PROXY=1` is set.
+the `HTTP_PROXY` (also used for `https://` when `HTTPS_PROXY` is unset),
+`HTTPS_PROXY`, and `NO_PROXY` environment variables. The Node.js native
+`fetch` ignores these variables unless `NODE_USE_ENV_PROXY=1` is set.
 
 ### Quick Hosts Conversion
 
