@@ -101,6 +101,9 @@ async function main() {
         consola.info('Finished compiling');
     } catch (ex) {
         consola.error(ex);
+        if (ex.cause) {
+            consola.error(ex.cause);
+        }
         process.exit(1);
     }
 }
