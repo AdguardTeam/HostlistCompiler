@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Source URL credentials no longer appear in the compiled list, the logs, or
+  the validation conflict error messages.
 - Updated lodash to 4.17.21 to fix the ReDoS in `_.trim`
   (GHSA-29mw-wpgm-hmr9).
 - The password in a filter URL no longer appears in

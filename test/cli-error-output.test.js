@@ -32,6 +32,40 @@ describe('CLI error output', () => {
         stderrSpy.mockRestore();
     });
 
+    it('does not print source credentials in the verbose configuration dump', async () => {
+        process.argv = [
+            'node',
+            'cli',
+            '-v',
+            '-i',
+            'https://user:secret@example.org/hosts.txt',
+            '-o',
+            'output.txt',
+        ];
+
+        let stdoutOutput = '';
+        const originalLevel = consola.level;
+        const stdoutSpy = jest.spyOn(consola.stdout, 'write').mockImplementation((chunk) => {
+            stdoutOutput += chunk.toString();
+            return true;
+        });
+
+        try {
+            // eslint-disable-next-line global-require
+            require('../src/index').mockRejectedValue(new Error('compile failed'));
+
+            // eslint-disable-next-line global-require
+            require('../src/cli');
+            await new Promise((resolve) => { setImmediate(resolve); });
+
+            expect(stdoutOutput).toContain('https://example.org/hosts.txt');
+            expect(stdoutOutput).not.toContain('secret');
+        } finally {
+            stdoutSpy.mockRestore();
+            consola.level = originalLevel;
+        }
+    });
+
     it('prints every error in the cause chain', async () => {
         const networkError = new Error('connect ECONNREFUSED 127.0.0.1:443');
         const fetchError = new TypeError('fetch failed');

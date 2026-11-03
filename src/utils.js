@@ -170,6 +170,101 @@ function splitByDelimiterWithEscapeCharacter(
 }
 
 /**
+ * Removes the userinfo component (the `user:password@` part) from a URL.
+ *
+ * The function does string surgery on the authority component, so the rest of
+ * the URL stays byte-identical. It does not parse and re-serialize the URL
+ * with `URL`, because that normalizes the URL.
+ *
+ * @param {String} url - URL that may contain credentials.
+ * @returns {String} the URL without the userinfo component, or the input
+ * unchanged when it is not a URL or has no userinfo.
+ */
+function stripUrlCredentials(url) {
+    if (!_.isString(url)) {
+        return url;
+    }
+
+    const schemeEnd = url.indexOf('://');
+    if (schemeEnd === -1) {
+        return url;
+    }
+
+    const authorityStart = schemeEnd + 3;
+    const authorityEndOffset = url.slice(authorityStart).search(/[/\\?#]/);
+    const authorityEnd = authorityEndOffset === -1
+        ? url.length
+        : authorityStart + authorityEndOffset;
+    const authority = url.slice(authorityStart, authorityEnd);
+    const userinfoEnd = authority.lastIndexOf('@');
+
+    if (userinfoEnd === -1) {
+        return url;
+    }
+
+    return url.slice(0, authorityStart)
+        + authority.slice(userinfoEnd + 1)
+        + url.slice(authorityEnd);
+}
+
+/**
+ * Returns a deep copy of a configuration with credentials removed from every
+ * URL-ish field. The original configuration is not modified.
+ *
+ * @param {Object} configuration - compilation configuration.
+ * @returns {Object} sanitized deep copy of the configuration.
+ */
+function stripConfigurationCredentials(configuration) {
+    const sanitized = _.cloneDeep(configuration);
+
+    if (!_.isObject(sanitized)) {
+        return sanitized;
+    }
+
+    if (_.isString(sanitized.homepage)) {
+        sanitized.homepage = stripUrlCredentials(sanitized.homepage);
+    }
+
+    const sanitizeSourcesList = (list) => {
+        if (Array.isArray(list)) {
+            return list.map((item) => stripUrlCredentials(item));
+        }
+        return list;
+    };
+
+    if (Array.isArray(sanitized.exclusions_sources)) {
+        sanitized.exclusions_sources = sanitizeSourcesList(sanitized.exclusions_sources);
+    }
+    if (Array.isArray(sanitized.inclusions_sources)) {
+        sanitized.inclusions_sources = sanitizeSourcesList(sanitized.inclusions_sources);
+    }
+
+    if (Array.isArray(sanitized.sources)) {
+        sanitized.sources = sanitized.sources.map((source) => {
+            if (!_.isObject(source)) {
+                return source;
+            }
+
+            const sanitizedSource = { ...source };
+
+            if (_.isString(sanitizedSource.source)) {
+                sanitizedSource.source = stripUrlCredentials(sanitizedSource.source);
+            }
+            if (Array.isArray(sanitizedSource.exclusions_sources)) {
+                sanitizedSource.exclusions_sources = sanitizeSourcesList(sanitizedSource.exclusions_sources);
+            }
+            if (Array.isArray(sanitizedSource.inclusions_sources)) {
+                sanitizedSource.inclusions_sources = sanitizeSourcesList(sanitizedSource.inclusions_sources);
+            }
+
+            return sanitizedSource;
+        });
+    }
+
+    return sanitized;
+}
+
+/**
  * Wildcard is used by the exclusions transformation.
  */
 class Wildcard {
@@ -277,4 +372,6 @@ module.exports = {
     Wildcard,
     splitByDelimiterWithEscapeCharacter,
     substringBetween,
+    stripUrlCredentials,
+    stripConfigurationCredentials,
 };

@@ -46,6 +46,69 @@ describe('Hostlist compiler', () => {
         scope.done();
     });
 
+    it('does not expose source credentials in the compiled list or logs', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/source.txt', { Authorization: 'Basic dXNlcjpzZWNyZXQ=' })
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            sources: [
+                {
+                    source: 'https://user:secret@example.org/source.txt',
+                },
+            ],
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            const list = await compile(configuration);
+            const compiledList = list.join('\n');
+
+            expect(compiledList).toContain('! Source: https://example.org/source.txt');
+            expect(compiledList).not.toContain('secret');
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('secret');
+            });
+
+            const configurationMessage = infoMessages
+                .find((message) => message.startsWith('Configuration:'));
+            expect(configurationMessage).toContain('https://example.org/source.txt');
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('does not modify the configuration passed to compile', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/source.txt')
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            sources: [
+                {
+                    source: 'https://user:secret@example.org/source.txt',
+                },
+            ],
+        };
+
+        await compile(configuration);
+
+        expect(configuration.sources[0].source).toBe('https://user:secret@example.org/source.txt');
+
+        scope.done();
+    });
+
     it('throws error when validation transformations are used at both source and top level', async () => {
         // No need to mock HTTP request - error is thrown before download
         const configuration = {

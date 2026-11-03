@@ -56,6 +56,28 @@ describe('Validation conflicts', () => {
             );
         });
 
+        it('does not include source credentials in the conflict error', () => {
+            const configuration = {
+                transformations: ['Validate'],
+                sources: [
+                    {
+                        source: 'https://user:secret@example.org/test.txt',
+                        transformations: ['ValidateAllowPublicSuffix'],
+                    },
+                ],
+            };
+
+            let message = '';
+            try {
+                checkCrossLevelValidationConflicts(configuration);
+            } catch (error) {
+                message = error.message;
+            }
+
+            expect(message).toContain('Source "https://example.org/test.txt"');
+            expect(message).not.toContain('secret');
+        });
+
         it('does not throw when a validation transformation is used at source level only', () => {
             const configuration = {
                 sources: [

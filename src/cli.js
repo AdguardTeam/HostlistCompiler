@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const consola = require('consola');
 const compile = require('./index');
 const { createConfiguration } = require('./configuration');
+const { stripConfigurationCredentials } = require('./utils');
 const packageJson = require('../package.json');
 
 // Version is not stored in the repo: CI stamps it into package.json at build
@@ -134,7 +135,8 @@ async function main() {
             ? createConfiguration(argv.input, argv['input-type'])
             : await readConfig();
 
-        consola.debug(`Configuration: ${JSON.stringify(config, 0, 4)}`);
+        const sanitizedConfig = stripConfigurationCredentials(config);
+        consola.debug(`Configuration: ${JSON.stringify(sanitizedConfig, 0, 4)}`);
 
         const lines = await compile(config);
 

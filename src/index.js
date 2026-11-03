@@ -4,6 +4,10 @@ const config = require('./configuration');
 const compileSource = require('./compile-source');
 const { transform } = require('./transformations/transform');
 const { checkCrossLevelValidationConflicts } = require('./validation-conflicts');
+const {
+    stripUrlCredentials,
+    stripConfigurationCredentials,
+} = require('./utils');
 const packageJson = require('../package.json');
 
 // Version is not stored in the repo: CI stamps it into package.json at build
@@ -63,7 +67,7 @@ function prepareSourceHeader(source) {
     if (!_.isEmpty(source.name)) {
         lines.push(`! Source name: ${source.name}`);
     }
-    lines.push(`! Source: ${source.source}`);
+    lines.push(`! Source: ${stripUrlCredentials(source.source)}`);
     lines.push('!');
     return lines;
 }
@@ -85,7 +89,8 @@ async function compile(configuration) {
 
     checkCrossLevelValidationConflicts(configuration);
 
-    consola.info(`Configuration: ${JSON.stringify(configuration, 0, 4)}`);
+    const sanitizedConfiguration = stripConfigurationCredentials(configuration);
+    consola.info(`Configuration: ${JSON.stringify(sanitizedConfiguration, 0, 4)}`);
 
     // This will be the final list of rules
     let finalList = [];

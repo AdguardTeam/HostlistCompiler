@@ -1,3 +1,4 @@
+const consola = require('consola');
 const mock = require('mock-fs');
 const path = require('path');
 const mockHttp = require('./helpers/http-mock');
@@ -30,6 +31,54 @@ describe('Source compiler', () => {
         expect(rules).toContain('testrule');
 
         // Make sure scope URLs were requested
+        scope.done();
+    });
+
+    it('downloads a credentialed source and sends Basic authorization', async () => {
+        const authorization = `Basic ${Buffer.from('user:secret').toString('base64')}`;
+        const scope = mockHttp('https://example.org')
+            .get('/filter.txt', { Authorization: authorization })
+            .reply(200, 'testrule', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://user:secret@example.org/filter.txt',
+        };
+
+        const rules = await compileSource(source);
+        expect(rules).toContain('testrule');
+
+        scope.done();
+    });
+
+    it('does not expose source credentials in logs', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/filter.txt')
+            .reply(200, 'testrule', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://user:secret@example.org/filter.txt',
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            await compileSource(source);
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('secret');
+            });
+            expect(infoMessages).toContain('Start compiling https://example.org/filter.txt');
+        } finally {
+            infoSpy.mockRestore();
+        }
+
         scope.done();
     });
 
