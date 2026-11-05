@@ -208,35 +208,32 @@ function stripUrlCredentials(url) {
 }
 
 /**
- * Returns a deep copy of a configuration with credentials removed from every
+ * Returns a copy of a configuration with credentials removed from every
  * URL-ish field. The original configuration is not modified.
  *
  * @param {Object} configuration - compilation configuration.
- * @returns {Object} sanitized deep copy of the configuration.
+ * @returns {Object} sanitized copy of the configuration.
  */
 function stripConfigurationCredentials(configuration) {
-    const sanitized = _.cloneDeep(configuration);
-
-    if (!_.isObject(sanitized)) {
-        return sanitized;
+    if (!_.isPlainObject(configuration)) {
+        return configuration;
     }
+
+    // A shallow copy is enough: every changed field is rebuilt below, so the
+    // original configuration keeps its nested objects.
+    const sanitized = { ...configuration };
 
     if (_.isString(sanitized.homepage)) {
         sanitized.homepage = stripUrlCredentials(sanitized.homepage);
     }
 
-    const sanitizeSourcesList = (list) => {
-        if (Array.isArray(list)) {
-            return list.map((item) => stripUrlCredentials(item));
-        }
-        return list;
-    };
-
     if (Array.isArray(sanitized.exclusions_sources)) {
-        sanitized.exclusions_sources = sanitizeSourcesList(sanitized.exclusions_sources);
+        sanitized.exclusions_sources = sanitized.exclusions_sources
+            .map((source) => stripUrlCredentials(source));
     }
     if (Array.isArray(sanitized.inclusions_sources)) {
-        sanitized.inclusions_sources = sanitizeSourcesList(sanitized.inclusions_sources);
+        sanitized.inclusions_sources = sanitized.inclusions_sources
+            .map((source) => stripUrlCredentials(source));
     }
 
     if (Array.isArray(sanitized.sources)) {
@@ -251,10 +248,12 @@ function stripConfigurationCredentials(configuration) {
                 sanitizedSource.source = stripUrlCredentials(sanitizedSource.source);
             }
             if (Array.isArray(sanitizedSource.exclusions_sources)) {
-                sanitizedSource.exclusions_sources = sanitizeSourcesList(sanitizedSource.exclusions_sources);
+                sanitizedSource.exclusions_sources = sanitizedSource.exclusions_sources
+                    .map((item) => stripUrlCredentials(item));
             }
             if (Array.isArray(sanitizedSource.inclusions_sources)) {
-                sanitizedSource.inclusions_sources = sanitizeSourcesList(sanitizedSource.inclusions_sources);
+                sanitizedSource.inclusions_sources = sanitizedSource.inclusions_sources
+                    .map((item) => stripUrlCredentials(item));
             }
 
             return sanitizedSource;

@@ -76,7 +76,7 @@ describe('stripUrlCredentials', () => {
 });
 
 describe('stripConfigurationCredentials', () => {
-    it('returns a sanitized deep copy without changing the original configuration', () => {
+    it('returns a sanitized copy without changing the original configuration', () => {
         const configuration = {
             name: 'Test filter',
             homepage: 'https://user:secret@example.org/',
