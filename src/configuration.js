@@ -2,6 +2,7 @@ const Ajv = require('ajv');
 const betterAjvErrors = require('better-ajv-errors');
 const { SOURCE_TYPES } = require('./source-types');
 const { DEFAULT_TRANSFORMATIONS } = require('./transformations/transform');
+const { stripConfigurationCredentials } = require('./utils');
 
 const ajv = new Ajv({ allErrors: true, jsonPointers: true });
 const schema = require('./schemas/configuration.schema');
@@ -42,7 +43,16 @@ module.exports = {
         const valid = validate(configuration);
         return {
             valid,
-            errorsText: valid ? null : betterAjvErrors(schema, configuration, validate.errors),
+            // better-ajv-errors embeds the configuration in the message, so
+            // build the message from a sanitized copy. The validation itself
+            // still runs against the original configuration.
+            errorsText: valid
+                ? null
+                : betterAjvErrors(
+                    schema,
+                    stripConfigurationCredentials(configuration),
+                    validate.errors,
+                ),
         };
     },
 };

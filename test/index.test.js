@@ -55,6 +55,7 @@ describe('Hostlist compiler', () => {
 
         const configuration = {
             name: 'Test filter',
+            homepage: 'https://user:secret@example.org/',
             sources: [
                 {
                     source: 'https://user:secret@example.org/source.txt',
@@ -69,6 +70,7 @@ describe('Hostlist compiler', () => {
             const compiledList = list.join('\n');
 
             expect(compiledList).toContain('! Source: https://example.org/source.txt');
+            expect(compiledList).toContain('! Homepage: https://example.org/');
             expect(compiledList).not.toContain('secret');
 
             const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
@@ -79,11 +81,41 @@ describe('Hostlist compiler', () => {
             const configurationMessage = infoMessages
                 .find((message) => message.startsWith('Configuration:'));
             expect(configurationMessage).toContain('https://example.org/source.txt');
+            expect(configurationMessage).toContain('https://example.org/');
         } finally {
             infoSpy.mockRestore();
         }
 
         scope.done();
+    });
+
+    it('does not expose source credentials when the configuration is invalid', async () => {
+        const configuration = {
+            name: 'Test filter',
+            sources: [
+                {
+                    source: 'https://user:secret@example.org/source.txt',
+                    transformations: ['NoSuchTransformation'],
+                },
+            ],
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            await expect(compile(configuration)).rejects.toThrow('Failed to validate configuration');
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('secret');
+            });
+
+            const validationMessage = infoMessages
+                .find((message) => message.includes('ENUM should be equal to one of the allowed values'));
+            expect(validationMessage).toContain('https://example.org/source.txt');
+        } finally {
+            infoSpy.mockRestore();
+        }
     });
 
     it('does not modify the configuration passed to compile', async () => {

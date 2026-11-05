@@ -145,6 +145,24 @@ describe('Configuration', () => {
         expect(ret.errorsText).toBeTruthy();
     });
 
+    it('does not include source credentials in a validation error', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    source: 'https://user:secret@example.org/source.txt',
+                    transformations: [
+                        'NoSuchTransformation',
+                    ],
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('https://example.org/source.txt');
+    });
+
     it('test ValidateAllowPublicSuffix transformation in configuration', () => {
         const ret = config.validateConfiguration({
             name: 'test',

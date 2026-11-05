@@ -34,7 +34,7 @@ function prepareHeader(configuration) {
         lines.push(`! Version: ${configuration.version}`);
     }
     if (!_.isEmpty(configuration.homepage)) {
-        lines.push(`! Homepage: ${configuration.homepage}`);
+        lines.push(`! Homepage: ${stripUrlCredentials(configuration.homepage)}`);
     }
     if (!_.isEmpty(configuration.license)) {
         lines.push(`! License: ${configuration.license}`);
