@@ -52,7 +52,8 @@ describe('CLI error output', () => {
 
         try {
             // eslint-disable-next-line global-require
-            require('../src/index').mockRejectedValue(new Error('compile failed'));
+            const compileMock = require('../src/index');
+            compileMock.mockRejectedValue(new Error('compile failed'));
 
             // eslint-disable-next-line global-require
             require('../src/cli');
@@ -60,6 +61,11 @@ describe('CLI error output', () => {
 
             expect(stdoutOutput).toContain('https://example.org/hosts.txt');
             expect(stdoutOutput).not.toContain('secret');
+            // The download needs the original credentials, so compile must get
+            // the unsanitized configuration.
+            expect(compileMock).toHaveBeenCalledWith(expect.objectContaining({
+                sources: [{ source: 'https://user:secret@example.org/hosts.txt', type: 'hosts' }],
+            }));
         } finally {
             stdoutSpy.mockRestore();
             consola.level = originalLevel;
