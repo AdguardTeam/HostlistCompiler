@@ -100,6 +100,40 @@ describe('Download', () => {
         scope.done();
     });
 
+    it.each([
+        ['a triple slash', 'https:///user:secret@example.invalid/list.txt'],
+        ['a single slash', 'http:/user:secret@example.invalid/list.txt'],
+        ['no slashes', 'https:user:secret@example.invalid/list.txt'],
+        ['backslashes', 'https:\\user:secret@example.invalid\\list.txt'],
+    ])('does not leak credentials from a source with %s into the error chain', async (_, source) => {
+        const error = await download(source).catch((ex) => ex);
+
+        const messages = [];
+        const logged = new Set();
+        const collect = (current) => {
+            if (current === null || current === undefined || logged.has(current)) {
+                return;
+            }
+
+            if (typeof current === 'object') {
+                logged.add(current);
+            }
+
+            messages.push(String(current.message || current));
+
+            if (Array.isArray(current.errors)) {
+                current.errors.forEach(collect);
+            }
+
+            collect(current.cause);
+        };
+        collect(error);
+
+        expect(error.message).not.toContain('secret');
+        expect(error.stack).not.toContain('secret');
+        expect(messages.join('\n')).not.toContain('secret');
+    });
+
     it('downloads a local file source', async () => {
         mock({
             [testDirPath]: {

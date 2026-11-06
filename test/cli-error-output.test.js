@@ -172,6 +172,73 @@ describe('CLI error output', () => {
         expect(exitSpy).toHaveBeenCalledWith(1);
     });
 
+    it('does not print credentials from a malformed source URL in an error', async () => {
+        const innerError = new TypeError(
+            'Request cannot be constructed from a URL that includes credentials: '
+            + 'https:///user:secret@example.org/list.txt',
+        );
+        const error = new Error("Failed to request url 'http:/user:secret@example.org/list.txt'");
+        error.cause = innerError;
+
+        // eslint-disable-next-line global-require
+        require('../src/index').mockRejectedValue(error);
+
+        // eslint-disable-next-line global-require
+        require('../src/cli');
+        await new Promise((resolve) => { setImmediate(resolve); });
+
+        expect(stderrOutput).not.toContain('secret');
+        expect(stderrOutput).toContain('https:///example.org/list.txt');
+        expect(stderrOutput).toContain('http:/example.org/list.txt');
+        expect(exitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('does not print credentials from a URL object key in the verbose dump', async () => {
+        process.argv = [
+            'node',
+            'cli',
+            '-v',
+            '-c',
+            'config.json',
+            '-o',
+            'output.txt',
+        ];
+
+        const accessSpy = jest.spyOn(fs.promises, 'access').mockResolvedValue();
+        const readFileSpy = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(Buffer.from(JSON.stringify({
+            name: 'test',
+            sources: [{ source: 'test.txt' }],
+            'https://user:secret@example.org/key.txt': 'value',
+        })));
+        const writeFileSpy = jest.spyOn(fs.promises, 'writeFile').mockResolvedValue();
+
+        let stdoutOutput = '';
+        const originalLevel = consola.level;
+        const stdoutSpy = jest.spyOn(consola.stdout, 'write').mockImplementation((chunk) => {
+            stdoutOutput += chunk.toString();
+            return true;
+        });
+
+        try {
+            // eslint-disable-next-line global-require
+            const compileMock = require('../src/index');
+            compileMock.mockResolvedValue([]);
+
+            // eslint-disable-next-line global-require
+            require('../src/cli');
+            await new Promise((resolve) => { setImmediate(resolve); });
+
+            expect(stdoutOutput).toContain('"https://example.org/key.txt"');
+            expect(stdoutOutput).not.toContain('secret');
+        } finally {
+            stdoutSpy.mockRestore();
+            accessSpy.mockRestore();
+            readFileSpy.mockRestore();
+            writeFileSpy.mockRestore();
+            consola.level = originalLevel;
+        }
+    });
+
     it('prints a cause that is not an error object', async () => {
         const error = new Error('Failed to request url https://example.org/hosts.txt');
         error.cause = 'connection reset';
