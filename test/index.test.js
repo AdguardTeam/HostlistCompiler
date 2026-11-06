@@ -80,8 +80,8 @@ describe('Hostlist compiler', () => {
 
             const configurationMessage = infoMessages
                 .find((message) => message.startsWith('Configuration:'));
-            expect(configurationMessage).toContain('https://example.org/source.txt');
-            expect(configurationMessage).toContain('https://example.org/');
+            expect(configurationMessage).toContain('"source": "https://example.org/source.txt"');
+            expect(configurationMessage).toContain('"homepage": "https://example.org/"');
         } finally {
             infoSpy.mockRestore();
         }
