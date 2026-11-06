@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 const utils = require('../src/utils');
 
 const { Wildcard } = utils;
@@ -46,6 +47,18 @@ describe('stripUrlCredentials', () => {
             'http:/example.org/list.txt',
         ],
         [
+            'https:user:secret@example.org/list.txt',
+            'https:example.org/list.txt',
+        ],
+        [
+            'https:\\user:secret@example.org\\list.txt',
+            'https:\\example.org\\list.txt',
+        ],
+        [
+            'https:\\\\user:secret@example.org\\list.txt',
+            'https:\\\\example.org\\list.txt',
+        ],
+        [
             'HTTPS://user:secret@example.org/list.txt',
             'HTTPS://example.org/list.txt',
         ],
@@ -74,12 +87,40 @@ describe('stripUrlCredentials', () => {
             'https://example.org/list@with@at.txt',
         ],
         [
+            'https://example.org/a//b@c',
+            'https://example.org/a//b@c',
+        ],
+        [
+            "https://user:p'ss@example.org/list.txt",
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p"s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p<s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p>s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
             'user:secret@example.org/list.txt',
             'user:secret@example.org/list.txt',
         ],
         [
             'test/dir/list.txt',
             'test/dir/list.txt',
+        ],
+        [
+            'C:\\user:secret@example.org\\list.txt',
+            'C:\\user:secret@example.org\\list.txt',
         ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlCredentials(url)).toBe(expected);
@@ -88,6 +129,70 @@ describe('stripUrlCredentials', () => {
     it('returns a non-string value unchanged', () => {
         expect(utils.stripUrlCredentials(undefined)).toBeUndefined();
         expect(utils.stripUrlCredentials(null)).toBeNull();
+    });
+
+    it('does not treat a double slash inside a path as a new URL', () => {
+        const text = 'https://example.org/a//b@c';
+
+        expect(utils.stripUrlCredentials(text)).toBe(text);
+        expect(utils.stripUrlCredentials(`${text} and https://user:secret@example.net/x`))
+            .toBe(`${text} and https://example.net/x`);
+    });
+
+    it('handles long strings without a URL scheme in linear time', () => {
+        const text = 'a'.repeat(100_000);
+        const startedAt = performance.now();
+
+        expect(utils.stripUrlCredentials(text)).toBe(text);
+        expect(performance.now() - startedAt).toBeLessThan(1000);
+    });
+});
+
+describe('stripUrlValueCredentials', () => {
+    it.each([
+        [
+            'https://user:secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p s s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p"s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            "https://user:p'ss@example.org/list.txt",
+            'https://example.org/list.txt',
+        ],
+        [
+            '//user:p s s@example.org/list.txt',
+            '//example.org/list.txt',
+        ],
+        [
+            'https:user:p s s@example.org/list.txt',
+            'https:example.org/list.txt',
+        ],
+        [
+            'https:\\user:p s s@example.org\\list.txt',
+            'https:\\example.org\\list.txt',
+        ],
+        [
+            'https://example.org/a//b@c',
+            'https://example.org/a//b@c',
+        ],
+        [
+            'C:\\user:secret@example.org\\list.txt',
+            'C:\\user:secret@example.org\\list.txt',
+        ],
+    ])('strips credentials from %s', (url, expected) => {
+        expect(utils.stripUrlValueCredentials(url)).toBe(expected);
+    });
+
+    it('returns a non-string value unchanged', () => {
+        expect(utils.stripUrlValueCredentials(undefined)).toBeUndefined();
+        expect(utils.stripUrlValueCredentials(null)).toBeNull();
     });
 });
 
@@ -122,6 +227,40 @@ describe('stripConfigurationCredentials', () => {
 
         expect(configuration.homepage).toBe('https://user:secret@example.org/');
         expect(configuration.sources[0].source).toBe('https://user:secret@example.org/list.txt');
+    });
+
+    it('sanitizes known URL fields with whitespace and quotes in userinfo', () => {
+        const configuration = {
+            homepage: 'https://user:p s s@example.org/',
+            sources: [
+                {
+                    source: 'https://user:p s s@example.org/list.txt',
+                    exclusions_sources: ['https://user:p s s@example.org/exclusions.txt'],
+                    inclusions_sources: ['https://user:p"s@example.org/inclusions.txt'],
+                },
+            ],
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.homepage).toBe('https://example.org/');
+        expect(sanitized.sources[0].source).toBe('https://example.org/list.txt');
+        expect(sanitized.sources[0].exclusions_sources).toEqual(['https://example.org/exclusions.txt']);
+        expect(sanitized.sources[0].inclusions_sources).toEqual(['https://example.org/inclusions.txt']);
+        expect(configuration.homepage).toBe('https://user:p s s@example.org/');
+    });
+
+    it('sanitizes URL object keys', () => {
+        const configuration = {
+            'https://user:secret@example.org/key.txt': 'value',
+            'https://user:p"s@example.org/other.txt': 'value',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized['https://example.org/key.txt']).toBe('value');
+        expect(sanitized['https://example.org/other.txt']).toBe('value');
+        expect(configuration['https://user:secret@example.org/key.txt']).toBe('value');
     });
 
     it('sanitizes every string in malformed configuration shapes', () => {
@@ -169,6 +308,63 @@ describe('stripConfigurationCredentials', () => {
 
         expect(sanitized.sources[0].source).toBe('https://example.org/list.txt');
         expect(configuration.sources[0].source).toBe('https://user:secret@example.org/list.txt');
+    });
+
+    it('sanitizes a configuration that is itself a class instance', () => {
+        class Configuration {
+            constructor() {
+                this.sources = [
+                    { source: 'https://user:secret@example.org/list.txt' },
+                ];
+            }
+        }
+
+        const configuration = new Configuration();
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized).toBeInstanceOf(Configuration);
+        expect(sanitized.sources[0].source).toBe('https://example.org/list.txt');
+        expect(configuration.sources[0].source).toBe('https://user:secret@example.org/list.txt');
+    });
+});
+
+describe('stripErrorCredentials', () => {
+    it('sanitizes the message, stack, and cause chain in place', () => {
+        const aggregateError = new global.AggregateError([
+            new Error('aggregate https://user:secret@example.net/aggregate.txt'),
+        ]);
+        const innerError = new Error('inner https:///user:secret@example.org/inner.txt');
+        innerError.cause = aggregateError;
+
+        const error = new Error('outer https://user:secret@example.org/outer.txt');
+        error.stack = 'Error: outer https://user:secret@example.org/outer.txt\n    at test';
+        error.cause = innerError;
+
+        const sanitized = utils.stripErrorCredentials(error);
+
+        expect(sanitized).toBe(error);
+        expect(error.message).toBe('outer https://example.org/outer.txt');
+        expect(error.stack).toBe('Error: outer https://example.org/outer.txt\n    at test');
+        expect(error.cause.message).toBe('inner https:///example.org/inner.txt');
+        expect(error.cause.cause.errors[0].message).toBe('aggregate https://example.net/aggregate.txt');
+        expect(JSON.stringify(error, Object.getOwnPropertyNames(error))).not.toContain('secret');
+    });
+
+    it('sanitizes a string cause and a string in the errors array', () => {
+        const error = new Error('outer');
+        error.cause = 'cause https://user:secret@example.org/cause.txt';
+        error.errors = ['aggregate https://user:secret@example.net/aggregate.txt'];
+
+        utils.stripErrorCredentials(error);
+
+        expect(error.cause).toBe('cause https://example.org/cause.txt');
+        expect(error.errors).toEqual(['aggregate https://example.net/aggregate.txt']);
+    });
+
+    it('returns primitive values unchanged', () => {
+        expect(utils.stripErrorCredentials('https://user:secret@example.org/')).toBe('https://user:secret@example.org/');
+        expect(utils.stripErrorCredentials(undefined)).toBeUndefined();
+        expect(utils.stripErrorCredentials(null)).toBeNull();
     });
 });
 

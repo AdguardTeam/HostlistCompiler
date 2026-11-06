@@ -82,6 +82,36 @@ describe('Source compiler', () => {
         scope.done();
     });
 
+    it('does not expose credentials with whitespace in logs', async () => {
+        const authorization = `Basic ${Buffer.from('user:p s s').toString('base64')}`;
+        const scope = mockHttp('https://example.org')
+            .get('/filter.txt', { Authorization: authorization })
+            .reply(200, 'testrule', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://user:p s s@example.org/filter.txt',
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            await compileSource(source);
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('p s s');
+            });
+            expect(infoMessages).toContain('Start compiling https://example.org/filter.txt');
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
     it('compile a simple file source', async () => {
         mock({
             'test/dir': {

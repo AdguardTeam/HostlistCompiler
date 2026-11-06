@@ -10,7 +10,7 @@
  */
 
 const { VALIDATION_TRANSFORMATIONS } = require('./transformations/enum');
-const { stripUrlCredentials } = require('./utils');
+const { stripUrlValueCredentials } = require('./utils');
 
 /**
  * Returns the validation transformations selected in the given list.
@@ -61,7 +61,7 @@ function checkCrossLevelValidationConflicts(configuration) {
         if (sourceValidations.length > 0) {
             throw new Error(
                 'Validation transformations cannot be used at both source and top level. '
-                + `Source "${stripUrlCredentials(source.source)}" uses [${sourceValidations.join(', ')}], `
+                + `Source "${stripUrlValueCredentials(source.source)}" uses [${sourceValidations.join(', ')}], `
                 + `but top level uses [${topLevelValidations.join(', ')}]. `
                 + 'This causes the source-level validation to be overridden by the top-level one, '
                 + 'making the source-level validation ineffective.',

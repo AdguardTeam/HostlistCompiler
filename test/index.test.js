@@ -89,6 +89,43 @@ describe('Hostlist compiler', () => {
         scope.done();
     });
 
+    it('does not expose credentials with whitespace in the homepage or logs', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/source.txt')
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            homepage: 'https://user:p s s@example.org/',
+            sources: [
+                {
+                    source: 'https://example.org/source.txt',
+                },
+            ],
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            const list = await compile(configuration);
+            const compiledList = list.join('\n');
+
+            expect(compiledList).toContain('! Homepage: https://example.org/');
+            expect(compiledList).not.toContain('p s s');
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('p s s');
+            });
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
     it('does not expose source credentials when the configuration is invalid', async () => {
         const configuration = {
             name: 'Test filter',

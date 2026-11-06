@@ -6,6 +6,7 @@ const { transform } = require('./transformations/transform');
 const { checkCrossLevelValidationConflicts } = require('./validation-conflicts');
 const {
     stripUrlCredentials,
+    stripUrlValueCredentials,
     stripConfigurationCredentials,
 } = require('./utils');
 const packageJson = require('../package.json');
@@ -34,7 +35,7 @@ function prepareHeader(configuration) {
         lines.push(`! Version: ${configuration.version}`);
     }
     if (!_.isEmpty(configuration.homepage)) {
-        lines.push(`! Homepage: ${stripUrlCredentials(configuration.homepage)}`);
+        lines.push(`! Homepage: ${stripUrlValueCredentials(configuration.homepage)}`);
     }
     if (!_.isEmpty(configuration.license)) {
         lines.push(`! License: ${configuration.license}`);
@@ -67,7 +68,7 @@ function prepareSourceHeader(source) {
     if (!_.isEmpty(source.name)) {
         lines.push(`! Source name: ${source.name}`);
     }
-    lines.push(`! Source: ${stripUrlCredentials(source.source)}`);
+    lines.push(`! Source: ${stripUrlValueCredentials(source.source)}`);
     lines.push('!');
     return lines;
 }
@@ -90,7 +91,10 @@ async function compile(configuration) {
     checkCrossLevelValidationConflicts(configuration);
 
     const sanitizedConfiguration = stripConfigurationCredentials(configuration);
-    consola.info(`Configuration: ${JSON.stringify(sanitizedConfiguration, 0, 4)}`);
+    // `JSON.stringify` can render values that the deep copy does not see, such
+    // as object keys and `toJSON` results, so sanitize the rendered text too.
+    const configurationDump = stripUrlCredentials(JSON.stringify(sanitizedConfiguration, 0, 4));
+    consola.info(`Configuration: ${configurationDump}`);
 
     // This will be the final list of rules
     let finalList = [];
