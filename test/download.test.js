@@ -121,6 +121,21 @@ describe('Download', () => {
             'https:\\user:secret@example.invalid\\list.txt',
             'https:\\example.invalid\\list.txt',
         ],
+        [
+            'a quote in the username',
+            "https:///o'brien:secret@example.invalid/list.txt",
+            'https:///example.invalid/list.txt',
+        ],
+        [
+            'a space in the username',
+            'https:///John Smith:secret@example.invalid/list.txt',
+            'https:///example.invalid/list.txt',
+        ],
+        [
+            'a password that starts with a space',
+            'https:///user: secret@example.invalid/list.txt',
+            'https:///example.invalid/list.txt',
+        ],
     ])('does not leak credentials from a source with %s into the error chain', async (_, source, sanitizedSource) => {
         const error = await download(source).catch((ex) => ex);
 
@@ -165,6 +180,17 @@ describe('Download', () => {
         expect(error.message).toContain('https:///example.invalid/list.txt');
         expect(error.stack).not.toContain(password);
         expect(String(error.cause && (error.cause.message || error.cause))).not.toContain(password);
+    });
+
+    it('does not leak the part of a password after a literal @ and a space', async () => {
+        // The generic scanner uses the first `@` with a prose guard, so it
+        // leaves `s s@...` behind. The exact source replacement must run first.
+        const source = 'https:///user:p@s s@example.invalid/list.txt';
+        const error = await download(source).catch((ex) => ex);
+
+        expect(error.message).not.toContain('s s');
+        expect(error.message).toContain('https:///example.invalid/list.txt');
+        expect(error.stack).not.toContain('s s');
     });
 
     it('downloads a local file source', async () => {
