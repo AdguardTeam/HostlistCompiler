@@ -112,6 +112,27 @@ describe('Source compiler', () => {
         scope.done();
     });
 
+    it('does not expose credentials in a prefixed source log', async () => {
+        const source = {
+            name: 'test source',
+            source: ' https://user:secret@example.org/filter.txt',
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            await expect(compileSource(source)).rejects.toThrow();
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('secret');
+            });
+            expect(infoMessages).toContain('Start compiling  https://example.org/filter.txt');
+        } finally {
+            infoSpy.mockRestore();
+        }
+    });
+
     it('compile a simple file source', async () => {
         mock({
             'test/dir': {

@@ -206,6 +206,30 @@ describe('Configuration', () => {
         expect(ret.errorsText).toContain('https://example.org/');
     });
 
+    it('does not include credentials with whitespace in userinfo from a malformed source', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: ['https://user:p s s@example.org/source.txt'],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('p s s');
+        expect(ret.errorsText).toContain('https://example.org/source.txt');
+    });
+
+    it('does not include credentials from a prefixed homepage', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            homepage: ' https://user:secret@example.org/',
+            sources: ['test.txt'],
+            transformations: ['NoSuchTransformation'],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('https://example.org/');
+    });
+
     it('does not include credentials from a URL object key in a validation error', () => {
         const ret = config.validateConfiguration({
             name: 'test',

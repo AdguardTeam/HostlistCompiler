@@ -44,21 +44,6 @@ const URL_AUTHORITY_TERMINATOR_REGEX = /[\s"'<>]/;
 const URL_PATH_TERMINATOR_REGEX = /[\s"<>]/;
 
 /**
- * Configuration keys whose values are URLs. The whole value is a URL, so the
- * aggressive single-value parser applies even when userinfo contains
- * whitespace or quotes.
- */
-const URL_CONFIGURATION_KEYS = new Set([
-    'source',
-    'url',
-    'homepage',
-    'exclusions_sources',
-    'inclusion_sources',
-    'inclusions_sources',
-    'exclusion_sources',
-]);
-
-/**
  * Checks if a string is a valid IPv4 octet (0-255).
  *
  * @param {string} s - The string to check.
@@ -268,28 +253,31 @@ function endsUrlPath(char) {
 }
 
 /**
- * Checks whether the authority terminator at the given position belongs to
- * userinfo. The downloader accepts quotes and whitespace in userinfo, so a
- * terminator is part of the URL when an `@` follows before the next
- * terminator or authority delimiter.
+ * Checks whether the text before the first `@` in an authority looks like
+ * userinfo rather than prose that follows a URL. Prose can contain whitespace
+ * and an email-like `@`, so a colon that starts a password is the signal.
  *
- * @param {String} text - the string being scanned.
- * @param {Number} index - index of the terminator.
- * @returns {Boolean} true if an `@` follows before the authority ends.
+ * `user:p s s` is userinfo, and `https://example.org is maintained by
+ * user@example.com` is prose. A colon that is followed by whitespace starts a
+ * label in prose, not a password.
+ *
+ * @param {String} value - the authority text before the first `@`.
+ * @returns {Boolean} true if the text looks like userinfo.
  */
-function hasUserinfoSeparator(text, index) {
-    for (let i = index + 1; i < text.length; i += 1) {
-        const char = text[i];
+function looksLikeUserinfo(value) {
+    const firstTerminator = value.search(URL_AUTHORITY_TERMINATOR_REGEX);
 
-        if (char === '@') {
-            return true;
-        }
-        if (endsUrlAuthority(char) || endsUrlAuthorityBeforeUserinfo(char)) {
-            return false;
-        }
+    if (firstTerminator === -1) {
+        return true;
     }
 
-    return false;
+    const colonIndex = value.indexOf(':');
+
+    if (colonIndex === -1 || colonIndex > firstTerminator) {
+        return false;
+    }
+
+    return !/\s/.test(value[colonIndex + 1]);
 }
 
 /**
@@ -317,6 +305,10 @@ function readUrlStartAt(text, index) {
             const scheme = schemeMatch[0].slice(0, -1).toLowerCase();
             const isHttp = scheme === 'http' || scheme === 'https';
             const hasBackslash = slashes.includes('\\');
+            // A single-letter scheme is a Windows drive letter in a local
+            // path such as `C:/user@corp/list.txt`, not a URL. No registered
+            // URL scheme is a single letter.
+            const isWindowsDriveLetter = scheme.length === 1;
 
             // A scheme without slashes is only a URL for HTTP(S): the URL
             // parser normalizes `https:user:pass@host` to a URL with
@@ -324,7 +316,8 @@ function readUrlStartAt(text, index) {
             // URL from text such as `note:value`. Backslashes are accepted
             // only for HTTP(S), so a Windows path such as `C:\dir` is not
             // treated as a URL.
-            if ((slashCount > 0 && (isHttp || !hasBackslash)) || (slashCount === 0 && isHttp)) {
+            if (!isWindowsDriveLetter
+                && ((slashCount > 0 && (isHttp || !hasBackslash)) || (slashCount === 0 && isHttp))) {
                 return { prefixEnd: schemeEnd + slashCount, nextIndex: schemeEnd + slashCount };
             }
 
@@ -385,36 +378,42 @@ function findUrlStart(text, from) {
  * authority, the index where it ends, and the index where the URL ends.
  */
 function readUrlAuthority(text, start) {
-    let index = start;
-    let hasUserinfo = false;
+    let authorityEnd = start;
 
-    while (index < text.length) {
-        const char = text[index];
+    while (authorityEnd < text.length && !endsUrlAuthority(text[authorityEnd])) {
+        authorityEnd += 1;
+    }
 
-        if (endsUrlAuthority(char)) {
+    // The first `@` shows where userinfo could end. `looksLikeUserinfo()`
+    // rejects prose that follows a URL and contains an email address.
+    let firstUserinfoEnd = -1;
+    for (let i = start; i < authorityEnd; i += 1) {
+        if (text[i] === '@') {
+            firstUserinfoEnd = i;
             break;
-        }
-
-        if (char === '@') {
-            hasUserinfo = true;
-            index += 1;
-        } else if (endsUrlAuthorityBeforeUserinfo(char)) {
-            if (!hasUserinfo && hasUserinfoSeparator(text, index)) {
-                index += 1;
-            } else {
-                break;
-            }
-        } else {
-            index += 1;
         }
     }
 
-    const rawEnd = index;
-    const rawAuthority = text.slice(start, rawEnd);
-    const userinfoEnd = rawAuthority.lastIndexOf('@');
-    const value = userinfoEnd === -1
-        ? rawAuthority
-        : rawAuthority.slice(userinfoEnd + 1);
+    let userinfoEnd = -1;
+    if (firstUserinfoEnd !== -1 && looksLikeUserinfo(text.slice(start, firstUserinfoEnd))) {
+        // Userinfo can contain quote and whitespace characters, but the host
+        // cannot. The separator is the last `@` before the first terminator
+        // after the first `@`.
+        let terminator = firstUserinfoEnd + 1;
+        while (terminator < authorityEnd && !endsUrlAuthorityBeforeUserinfo(text[terminator])) {
+            terminator += 1;
+        }
+        userinfoEnd = text.lastIndexOf('@', terminator - 1);
+    }
+
+    const authorityStart = userinfoEnd === -1 ? start : userinfoEnd + 1;
+    let rawEnd = authorityStart;
+
+    while (rawEnd < authorityEnd && !endsUrlAuthorityBeforeUserinfo(text[rawEnd])) {
+        rawEnd += 1;
+    }
+
+    const value = text.slice(authorityStart, rawEnd);
 
     let urlEnd = rawEnd;
     if (rawEnd < text.length && endsUrlAuthority(text[rawEnd])) {
@@ -476,7 +475,14 @@ function stripUrlCredentials(url) {
  * Unlike `stripUrlCredentials()`, this function treats the whole string as a
  * URL, so the authority ends only at `/`, `\`, `?`, or `#`, exactly as in the
  * downloader. It accepts whitespace and quotes inside userinfo, so use it for
- * known URL values such as `source` and `homepage`, not for arbitrary text.
+ * known URL values such as `source` and `homepage`.
+ *
+ * Leading whitespace is kept, so a value such as
+ * ` https://user:password@example.org/` is sanitized without changing its
+ * prefix. When the value does not start with a URL, or when the text before
+ * the first `@` looks like prose, the function falls back to the scanner. The
+ * scanner also covers any text after the first URL, so prefixed values such as
+ * `See https://user:password@example.org/` are sanitized too.
  *
  * @param {String} url - URL value.
  * @returns {String} the URL without the userinfo component, or the input
@@ -487,9 +493,14 @@ function stripUrlValueCredentials(url) {
         return url;
     }
 
-    const start = readUrlStartAt(url, 0);
-    if (start === null || start.prefixEnd === null) {
+    const valueStart = url.search(/\S/);
+    if (valueStart === -1) {
         return url;
+    }
+
+    const start = readUrlStartAt(url, valueStart);
+    if (start === null || start.prefixEnd === null) {
+        return stripUrlCredentials(url);
     }
 
     const { prefixEnd } = start;
@@ -500,15 +511,45 @@ function stripUrlValueCredentials(url) {
     }
 
     const authority = url.slice(prefixEnd, authorityEnd);
-    const userinfoEnd = authority.lastIndexOf('@');
+    const firstUserinfoEnd = authority.indexOf('@');
 
-    if (userinfoEnd === -1) {
-        return url;
+    if (firstUserinfoEnd === -1 || !looksLikeUserinfo(authority.slice(0, firstUserinfoEnd))) {
+        return stripUrlCredentials(url);
     }
 
-    return url.slice(0, prefixEnd)
+    const userinfoEnd = authority.lastIndexOf('@');
+    const sanitized = url.slice(0, prefixEnd)
         + authority.slice(userinfoEnd + 1)
         + url.slice(authorityEnd);
+
+    // The value can have more text after the first URL. The scanner covers
+    // later URLs and does not rescan a consumed path, query, or fragment.
+    return stripUrlCredentials(sanitized);
+}
+
+/**
+ * Replaces known raw values in a string and then removes URL credentials.
+ *
+ * The replacement runs first because the generic scanner stops userinfo at
+ * the second quote or whitespace character, while the downloader accepts both
+ * in userinfo. A caller that knows the exact source URL can therefore sanitize
+ * it with the whole-value parser before the scanner runs.
+ *
+ * @param {String} value - the string to sanitize.
+ * @param {Array<Array<String>>} replacements - pairs of a raw value and its
+ * sanitized replacement.
+ * @returns {String} the sanitized string.
+ */
+function sanitizeErrorString(value, replacements) {
+    let result = value;
+
+    replacements.forEach(([raw, sanitized]) => {
+        if (_.isString(raw) && raw !== sanitized) {
+            result = result.split(raw).join(sanitized);
+        }
+    });
+
+    return stripUrlCredentials(result);
 }
 
 /**
@@ -517,89 +558,44 @@ function stripUrlValueCredentials(url) {
  * preserved.
  *
  * @param {*} error - the error to sanitize.
+ * @param {Array<Array<String>>} [replacements] - pairs of a raw value and its
+ * sanitized replacement, applied before the generic scan.
  * @param {WeakSet<Object>} [seen] - objects that have already been visited.
  * @returns {*} the sanitized error.
  */
-function stripErrorCredentials(error, seen = new WeakSet()) {
+function stripErrorCredentials(error, replacements = [], seen = new WeakSet()) {
     if (!_.isObject(error) || seen.has(error)) {
         return error;
     }
     seen.add(error);
 
     if (_.isString(error.message)) {
-        Object.assign(error, { message: stripUrlCredentials(error.message) });
+        Object.assign(error, { message: sanitizeErrorString(error.message, replacements) });
     }
     if (_.isString(error.stack)) {
-        Object.assign(error, { stack: stripUrlCredentials(error.stack) });
+        Object.assign(error, { stack: sanitizeErrorString(error.stack, replacements) });
     }
     if (_.isString(error.path)) {
-        Object.assign(error, { path: stripUrlCredentials(error.path) });
+        Object.assign(error, { path: sanitizeErrorString(error.path, replacements) });
     }
 
     if (Array.isArray(error.errors)) {
         Object.assign(error, {
             errors: error.errors.map((cause) => (
                 _.isString(cause)
-                    ? stripUrlCredentials(cause)
-                    : stripErrorCredentials(cause, seen)
+                    ? sanitizeErrorString(cause, replacements)
+                    : stripErrorCredentials(cause, replacements, seen)
             )),
         });
     }
 
     if (_.isString(error.cause)) {
-        Object.assign(error, { cause: stripUrlCredentials(error.cause) });
+        Object.assign(error, { cause: sanitizeErrorString(error.cause, replacements) });
     } else {
-        stripErrorCredentials(error.cause, seen);
+        stripErrorCredentials(error.cause, replacements, seen);
     }
 
     return error;
-}
-
-/**
- * Sanitizes a known URL value, including arrays of URLs.
- *
- * @param {*} value - URL value or an array of URL values.
- * @param {WeakSet<Object>} seen - objects that have already been visited.
- * @returns {*} sanitized value.
- */
-function sanitizeKnownUrlValue(value, seen) {
-    if (_.isString(value)) {
-        return stripUrlValueCredentials(value);
-    }
-    if (Array.isArray(value)) {
-        if (seen.has(value)) {
-            return value;
-        }
-        seen.add(value);
-
-        return value.map((item) => sanitizeKnownUrlValue(item, seen));
-    }
-
-    return value;
-}
-
-/**
- * Sanitizes the values of known URL configuration keys in place.
- *
- * @param {*} value - configuration value to walk.
- * @param {WeakSet<Object>} seen - objects that have already been visited.
- */
-function sanitizeKnownUrlValues(value, seen) {
-    if (!_.isObject(value) || seen.has(value)) {
-        return;
-    }
-    seen.add(value);
-
-    Object.entries(value).forEach(([key, child]) => {
-        let sanitizedChild = child;
-
-        if (URL_CONFIGURATION_KEYS.has(key)) {
-            sanitizedChild = sanitizeKnownUrlValue(child, seen);
-            Object.assign(value, { [key]: sanitizedChild });
-        }
-
-        sanitizeKnownUrlValues(sanitizedChild, seen);
-    });
 }
 
 /**
@@ -641,11 +637,13 @@ function sanitizeConfigurationKeys(value, seen) {
  * @returns {*} sanitized copy of the configuration.
  */
 function stripConfigurationCredentials(configuration) {
+    // Every string goes through the whole-value parser: it keeps whitespace
+    // and quotes in userinfo and falls back to the scanner for prefixed values
+    // and values with more text after the URL.
     const sanitized = _.cloneDeepWith(configuration, (value) => (
-        _.isString(value) ? stripUrlCredentials(value) : undefined
+        _.isString(value) ? stripUrlValueCredentials(value) : undefined
     ));
 
-    sanitizeKnownUrlValues(sanitized, new WeakSet());
     sanitizeConfigurationKeys(sanitized, new WeakSet());
 
     return sanitized;

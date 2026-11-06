@@ -126,6 +126,48 @@ describe('Hostlist compiler', () => {
         scope.done();
     });
 
+    it.each([
+        ['a leading space', ' https://user:secret@example.org/', ' https://example.org/'],
+        ['a tab', '\thttps://user:secret@example.org/', '\thttps://example.org/'],
+        ['angle brackets', '<https://user:secret@example.org/>', '<https://example.org/>'],
+        ['a double quote', '"https://user:secret@example.org/"', '"https://example.org/"'],
+    ])('does not expose credentials in a homepage with %s', async (_, homepage, sanitizedHomepage) => {
+        const scope = mockHttp('https://example.org')
+            .get('/source.txt')
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            homepage,
+            sources: [
+                {
+                    source: 'https://example.org/source.txt',
+                },
+            ],
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            const list = await compile(configuration);
+            const compiledList = list.join('\n');
+
+            expect(compiledList).toContain(`! Homepage: ${sanitizedHomepage}`);
+            expect(compiledList).not.toContain('secret');
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('secret');
+            });
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
     it('does not expose source credentials when the configuration is invalid', async () => {
         const configuration = {
             name: 'Test filter',

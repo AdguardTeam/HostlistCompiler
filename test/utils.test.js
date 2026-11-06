@@ -122,6 +122,58 @@ describe('stripUrlCredentials', () => {
             'C:\\user:secret@example.org\\list.txt',
             'C:\\user:secret@example.org\\list.txt',
         ],
+        [
+            'C:/user@corp/list.txt',
+            'C:/user@corp/list.txt',
+        ],
+        [
+            'c:/user:secret@corp/list.txt',
+            'c:/user:secret@corp/list.txt',
+        ],
+        [
+            'ftp:/user:secret@example.org/list.txt',
+            'ftp:/example.org/list.txt',
+        ],
+        [
+            'ftp://user:secret@example.org/list.txt',
+            'ftp://example.org/list.txt',
+        ],
+        [
+            'https://user:p s s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            ' https:///user:p s s@example.invalid/list.txt',
+            ' https:///example.invalid/list.txt',
+        ],
+        [
+            'https://user:p"s s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p"q"@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://example.org is maintained by user@example.com',
+            'https://example.org is maintained by user@example.com',
+        ],
+        [
+            'https://example.org, see foo@bar.com',
+            'https://example.org, see foo@bar.com',
+        ],
+        [
+            'https://user:secret@example.org and a@b',
+            'https://example.org and a@b',
+        ],
+        [
+            'https://user:secret@example.org and https://other:secret@example.net/x',
+            'https://example.org and https://example.net/x',
+        ],
+        [
+            'https://user:secret@example.org and https://other:secret@example.net',
+            'https://example.org and https://example.net',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlCredentials(url)).toBe(expected);
     });
@@ -140,11 +192,12 @@ describe('stripUrlCredentials', () => {
     });
 
     it('handles long strings without a URL scheme in linear time', () => {
-        const text = 'a'.repeat(100_000);
-        const startedAt = performance.now();
+        // A quadratic scan needs about 19 seconds for this input and fails
+        // the Jest timeout. The test uses a duration-independent check so a
+        // loaded CI runner cannot fail it.
+        const text = 'a'.repeat(200_000);
 
         expect(utils.stripUrlCredentials(text)).toBe(text);
-        expect(performance.now() - startedAt).toBeLessThan(1000);
     });
 });
 
@@ -185,6 +238,50 @@ describe('stripUrlValueCredentials', () => {
         [
             'C:\\user:secret@example.org\\list.txt',
             'C:\\user:secret@example.org\\list.txt',
+        ],
+        [
+            'C:/user@corp/list.txt',
+            'C:/user@corp/list.txt',
+        ],
+        [
+            ' https://user:secret@example.org/list.txt',
+            ' https://example.org/list.txt',
+        ],
+        [
+            '\thttps://user:secret@example.org/list.txt',
+            '\thttps://example.org/list.txt',
+        ],
+        [
+            '<https://user:secret@example.org/>',
+            '<https://example.org/>',
+        ],
+        [
+            '"https://user:secret@example.org/"',
+            '"https://example.org/"',
+        ],
+        [
+            'See https://user:secret@example.org/list.txt',
+            'See https://example.org/list.txt',
+        ],
+        [
+            'https://user:p"s s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p"q"@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p\t s@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://example.org is maintained by user@example.com',
+            'https://example.org is maintained by user@example.com',
+        ],
+        [
+            'https://example.org, see foo@bar.com',
+            'https://example.org, see foo@bar.com',
         ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlValueCredentials(url)).toBe(expected);
@@ -291,6 +388,27 @@ describe('stripConfigurationCredentials', () => {
         });
         expect(configuration.homepage[0]).toBe('https://user:secret@example.org/');
         expect(configuration.sources[1].url).toBe('https://user:secret@example.org/misspelled.txt');
+    });
+
+    it('sanitizes a malformed source string with whitespace in userinfo', () => {
+        const configuration = {
+            sources: ['https://user:p s s@example.org/source.txt'],
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.sources).toEqual(['https://example.org/source.txt']);
+        expect(configuration.sources[0]).toBe('https://user:p s s@example.org/source.txt');
+    });
+
+    it('does not change prose that starts with a URL', () => {
+        const configuration = {
+            description: 'https://example.org is maintained by user@example.com',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.description).toBe(configuration.description);
     });
 
     it('sanitizes strings in class instances', () => {
