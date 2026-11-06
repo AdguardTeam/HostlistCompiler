@@ -217,6 +217,70 @@ describe('Configuration', () => {
         expect(ret.errorsText).toContain('https://example.org/source.txt');
     });
 
+    it.each([
+        ['a quote in the username', "https://o'brien:secret@example.org/source.txt"],
+        ['a space in the username', 'https://John Smith:secret@example.org/source.txt'],
+        ['a space after the password colon', 'https://user: secret@example.org/source.txt'],
+        ['a literal @ and a space in the password', 'https://user:p@s s@example.org/source.txt'],
+    ])('does not include credentials with %s from a malformed source', (_, source) => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [source],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).not.toContain('p@s s');
+        expect(ret.errorsText).toContain('https://example.org/source.txt');
+    });
+
+    it('does not include credentials from a quote username in a misspelled key', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    url: "https://o'brien:secret@example.org",
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('https://example.org');
+    });
+
+    it('does not include a password with a leading space in a misspelled key', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    url: 'https://user: secret@example.org',
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('https://example.org');
+    });
+
+    it('keeps prose that looks like a port in a validation error', () => {
+        const description = 'https://example.org:8080 by admin@example.com';
+        const ret = config.validateConfiguration({
+            name: 'test',
+            description,
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: ['NoSuchTransformation'],
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).toContain(description);
+    });
+
     it('does not include credentials from a prefixed homepage', () => {
         const ret = config.validateConfiguration({
             name: 'test',
@@ -257,6 +321,22 @@ describe('Configuration', () => {
         expect(ret.valid).toBe(false);
         expect(ret.errorsText).not.toContain('secret');
         expect(ret.errorsText).toContain('https://example.org/');
+    });
+
+    it('does not include a quote username from a serialized object without a path', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            homepage: {
+                toJSON() {
+                    return "https://o'brien:secret@example.org";
+                },
+            },
+            sources: ['test.txt'],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('https://example.org');
     });
 
     it('does not include credentials from a URL object in a validation error', () => {

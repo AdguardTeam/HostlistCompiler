@@ -6,7 +6,7 @@ const { transform } = require('./transformations/transform');
 const { checkCrossLevelValidationConflicts } = require('./validation-conflicts');
 const {
     stripUrlCredentials,
-    stripUrlValueCredentials,
+    stripKnownUrlCredentials,
     stripConfigurationCredentials,
 } = require('./utils');
 const packageJson = require('../package.json');
@@ -35,7 +35,7 @@ function prepareHeader(configuration) {
         lines.push(`! Version: ${configuration.version}`);
     }
     if (!_.isEmpty(configuration.homepage)) {
-        lines.push(`! Homepage: ${stripUrlValueCredentials(configuration.homepage)}`);
+        lines.push(`! Homepage: ${stripKnownUrlCredentials(configuration.homepage)}`);
     }
     if (!_.isEmpty(configuration.license)) {
         lines.push(`! License: ${configuration.license}`);
@@ -68,7 +68,7 @@ function prepareSourceHeader(source) {
     if (!_.isEmpty(source.name)) {
         lines.push(`! Source name: ${source.name}`);
     }
-    lines.push(`! Source: ${stripUrlValueCredentials(source.source)}`);
+    lines.push(`! Source: ${stripKnownUrlCredentials(source.source)}`);
     lines.push('!');
     return lines;
 }

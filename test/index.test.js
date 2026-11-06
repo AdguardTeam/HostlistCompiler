@@ -131,6 +131,9 @@ describe('Hostlist compiler', () => {
         ['a tab', '\thttps://user:secret@example.org/', '\thttps://example.org/'],
         ['angle brackets', '<https://user:secret@example.org/>', '<https://example.org/>'],
         ['a double quote', '"https://user:secret@example.org/"', '"https://example.org/"'],
+        ['a quote in the username', "https://o'brien:secret@example.org", 'https://example.org'],
+        ['a space in the username', 'https://John Smith:secret@example.org', 'https://example.org'],
+        ['a space after the password colon', 'https://user: secret@example.org', 'https://example.org'],
     ])('does not expose credentials in a homepage with %s', async (_, homepage, sanitizedHomepage) => {
         const scope = mockHttp('https://example.org')
             .get('/source.txt')
@@ -155,6 +158,43 @@ describe('Hostlist compiler', () => {
             const compiledList = list.join('\n');
 
             expect(compiledList).toContain(`! Homepage: ${sanitizedHomepage}`);
+            expect(compiledList).not.toContain('secret');
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('secret');
+            });
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('does not expose a quote in a source username in the compiled list or logs', async () => {
+        const authorization = `Basic ${Buffer.from("o'brien:secret").toString('base64')}`;
+        const scope = mockHttp('https://example.org')
+            .get('/source.txt', { Authorization: authorization })
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            sources: [
+                {
+                    source: "https://o'brien:secret@example.org/source.txt",
+                },
+            ],
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            const list = await compile(configuration);
+            const compiledList = list.join('\n');
+
+            expect(compiledList).toContain('! Source: https://example.org/source.txt');
             expect(compiledList).not.toContain('secret');
 
             const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));

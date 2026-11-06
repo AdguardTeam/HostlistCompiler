@@ -95,6 +95,14 @@ describe('stripUrlCredentials', () => {
             'https://example.org/list.txt',
         ],
         [
+            '"https://o\'brien:secret@example.org"',
+            '"https://example.org"',
+        ],
+        [
+            '<https://John Smith:secret@example.org>',
+            '<https://example.org>',
+        ],
+        [
             'https://user:p"s@example.org/list.txt',
             'https://example.org/list.txt',
         ],
@@ -174,6 +182,18 @@ describe('stripUrlCredentials', () => {
             'https://user:secret@example.org and https://other:secret@example.net',
             'https://example.org and https://example.net',
         ],
+        [
+            'https://user:secret@example.org and a@b',
+            'https://example.org and a@b',
+        ],
+        [
+            'https://example.org:8080 by admin@example.com',
+            'https://example.org:8080 by admin@example.com',
+        ],
+        [
+            'https://example.org:8080 by admin@example.com/path',
+            'https://example.org:8080 by admin@example.com/path',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlCredentials(url)).toBe(expected);
     });
@@ -192,12 +212,15 @@ describe('stripUrlCredentials', () => {
     });
 
     it('handles long strings without a URL scheme in linear time', () => {
-        // A quadratic scan needs about 19 seconds for this input and fails
-        // the Jest timeout. The test uses a duration-independent check so a
-        // loaded CI runner cannot fail it.
+        // Jest does not fail a synchronous test that runs past its timeout,
+        // so the test needs a wall-clock bound. The bound is generous: a
+        // quadratic scan needs about 19 seconds for this input, while a linear
+        // scan takes milliseconds. A loaded runner cannot fail the bound.
         const text = 'a'.repeat(200_000);
+        const startedAt = Date.now();
 
         expect(utils.stripUrlCredentials(text)).toBe(text);
+        expect(Date.now() - startedAt).toBeLessThan(3000);
     });
 });
 
@@ -283,6 +306,46 @@ describe('stripUrlValueCredentials', () => {
             'https://example.org, see foo@bar.com',
             'https://example.org, see foo@bar.com',
         ],
+        [
+            "https://o'brien:secret@example.org/list.txt",
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://John Smith:secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user: secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            "https://o'brien:secret@example.org",
+            'https://example.org',
+        ],
+        [
+            'https://John Smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user: secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://example.org team: contact@example.com',
+            'https://example.org team: contact@example.com',
+        ],
+        [
+            'https://example.org:8080 by admin@example.com',
+            'https://example.org:8080 by admin@example.com',
+        ],
+        [
+            'https://example.org:8080 by admin@example.com/path',
+            'https://example.org:8080 by admin@example.com/path',
+        ],
+        [
+            'https://user:secret@example.org and a@b',
+            'https://example.org and a@b',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlValueCredentials(url)).toBe(expected);
     });
@@ -290,6 +353,78 @@ describe('stripUrlValueCredentials', () => {
     it('returns a non-string value unchanged', () => {
         expect(utils.stripUrlValueCredentials(undefined)).toBeUndefined();
         expect(utils.stripUrlValueCredentials(null)).toBeNull();
+    });
+});
+
+describe('stripKnownUrlCredentials', () => {
+    it.each([
+        [
+            'https://user:secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            "https://o'brien:secret@example.org/list.txt",
+            'https://example.org/list.txt',
+        ],
+        [
+            "https://o'brien:secret@example.org",
+            'https://example.org',
+        ],
+        [
+            'https://John Smith:secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://John Smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user: secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user: secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:p@s s@example.invalid/list.txt',
+            'https://example.invalid/list.txt',
+        ],
+        [
+            ' https://user:p s s@example.invalid/list.txt',
+            ' https://example.invalid/list.txt',
+        ],
+        [
+            '<https://user:p"s s@example.org/>',
+            '<https://example.org/>',
+        ],
+        [
+            'See https://user:p"q"@example.org/list.txt',
+            'See https://example.org/list.txt',
+        ],
+        [
+            'https://example.org:8080/list.txt',
+            'https://example.org:8080/list.txt',
+        ],
+        [
+            'C:\\user:secret@example.org\\list.txt',
+            'C:\\user:secret@example.org\\list.txt',
+        ],
+        [
+            'C:/user@corp/list.txt',
+            'C:/user@corp/list.txt',
+        ],
+    ])('strips credentials from %s', (url, expected) => {
+        expect(utils.stripKnownUrlCredentials(url)).toBe(expected);
+    });
+
+    it('returns a non-string value unchanged', () => {
+        expect(utils.stripKnownUrlCredentials(undefined)).toBeUndefined();
+        expect(utils.stripKnownUrlCredentials(null)).toBeNull();
     });
 });
 
@@ -345,6 +480,38 @@ describe('stripConfigurationCredentials', () => {
         expect(sanitized.sources[0].exclusions_sources).toEqual(['https://example.org/exclusions.txt']);
         expect(sanitized.sources[0].inclusions_sources).toEqual(['https://example.org/inclusions.txt']);
         expect(configuration.homepage).toBe('https://user:p s s@example.org/');
+    });
+
+    it('sanitizes known URL fields with a quote or space in the username', () => {
+        const configuration = {
+            homepage: "https://o'brien:secret@example.org",
+            sources: [
+                {
+                    source: 'https://John Smith:secret@example.org/list.txt',
+                },
+            ],
+            exclusions_sources: ['https://user: secret@example.org/exclusions.txt'],
+            inclusions_sources: 'https://user:p@s s@example.org/inclusions.txt',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.homepage).toBe('https://example.org');
+        expect(sanitized.sources[0].source).toBe('https://example.org/list.txt');
+        expect(sanitized.exclusions_sources).toEqual(['https://example.org/exclusions.txt']);
+        expect(sanitized.inclusions_sources).toBe('https://example.org/inclusions.txt');
+        expect(configuration.homepage).toBe("https://o'brien:secret@example.org");
+        expect(configuration.sources[0].source).toBe('https://John Smith:secret@example.org/list.txt');
+    });
+
+    it('keeps prose that looks like a port', () => {
+        const configuration = {
+            description: 'https://example.org:8080 by admin@example.com',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.description).toBe(configuration.description);
     });
 
     it('sanitizes URL object keys', () => {
@@ -477,6 +644,16 @@ describe('stripErrorCredentials', () => {
 
         expect(error.cause).toBe('cause https://example.org/cause.txt');
         expect(error.errors).toEqual(['aggregate https://example.net/aggregate.txt']);
+    });
+
+    it('applies exact replacements before the generic scan', () => {
+        const raw = 'https:///user:p@s s@example.invalid/list.txt';
+        const sanitized = 'https:///example.invalid/list.txt';
+        const error = new Error(`Failed to request url '${raw}'`);
+
+        utils.stripErrorCredentials(error, [[raw, sanitized]]);
+
+        expect(error.message).toBe(`Failed to request url '${sanitized}'`);
     });
 
     it('returns primitive values unchanged', () => {

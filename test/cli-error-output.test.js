@@ -87,6 +87,7 @@ describe('CLI error output', () => {
         const accessSpy = jest.spyOn(fs.promises, 'access').mockResolvedValue();
         const readFileSpy = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(Buffer.from(JSON.stringify({
             name: 'test',
+            homepage: "https://o'brien:secret@example.org",
             sources: [
                 {
                     source: 'test.txt',
@@ -114,6 +115,7 @@ describe('CLI error output', () => {
 
             expect(stdoutOutput).toContain('"exclusion_sources": [');
             expect(stdoutOutput).toContain('https://example.org/exclusions.txt');
+            expect(stdoutOutput).toContain('"homepage": "https://example.org"');
             expect(stdoutOutput).not.toContain('secret');
         } finally {
             stdoutSpy.mockRestore();

@@ -78,6 +78,28 @@ describe('Validation conflicts', () => {
             expect(message).not.toContain('secret');
         });
 
+        it('does not include a quote or space in the username in the conflict error', () => {
+            const configuration = {
+                transformations: ['Validate'],
+                sources: [
+                    {
+                        source: "https://o'brien:secret@example.org/test.txt",
+                        transformations: ['ValidateAllowPublicSuffix'],
+                    },
+                ],
+            };
+
+            let message = '';
+            try {
+                checkCrossLevelValidationConflicts(configuration);
+            } catch (error) {
+                message = error.message;
+            }
+
+            expect(message).toContain('Source "https://example.org/test.txt"');
+            expect(message).not.toContain('secret');
+        });
+
         it('does not include credentials from a prefixed source in the conflict error', () => {
             const configuration = {
                 transformations: ['Validate'],
