@@ -38,6 +38,22 @@ describe('stripUrlCredentials', () => {
             'https://example.org/list.txt',
         ],
         [
+            '//user:secret@example.org/list.txt',
+            '//example.org/list.txt',
+        ],
+        [
+            'http:/user:secret@example.org/list.txt',
+            'http:/example.org/list.txt',
+        ],
+        [
+            'HTTPS://user:secret@example.org/list.txt',
+            'HTTPS://example.org/list.txt',
+        ],
+        [
+            'See https://user:secret@example.org/list.txt and https://other:secret@example.net/other.txt',
+            'See https://example.org/list.txt and https://example.net/other.txt',
+        ],
+        [
             'https://user:secret@example.org:8443/list.txt',
             'https://example.org:8443/list.txt',
         ],
@@ -96,6 +112,7 @@ describe('stripConfigurationCredentials', () => {
 
         expect(sanitized).not.toBe(configuration);
         expect(sanitized).not.toEqual(configuration);
+        expect(sanitized.name).toBe('Test filter');
         expect(sanitized.homepage).toBe('https://example.org/');
         expect(sanitized.exclusions_sources).toEqual(['https://example.org/exclusions.txt']);
         expect(sanitized.inclusions_sources).toEqual(['https://example.org/inclusions.txt']);
@@ -104,6 +121,53 @@ describe('stripConfigurationCredentials', () => {
         expect(sanitized.sources[0].inclusions_sources).toEqual(['https://example.org/source-inclusions.txt']);
 
         expect(configuration.homepage).toBe('https://user:secret@example.org/');
+        expect(configuration.sources[0].source).toBe('https://user:secret@example.org/list.txt');
+    });
+
+    it('sanitizes every string in malformed configuration shapes', () => {
+        const configuration = {
+            homepage: ['https://user:secret@example.org/'],
+            exclusions_sources: 'https://user:secret@example.org/exclusions.txt',
+            sources: [
+                'https://user:secret@example.org/source.txt',
+                {
+                    url: 'https://user:secret@example.org/misspelled.txt',
+                    source: ['https://user:secret@example.org/source-array.txt'],
+                },
+            ],
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized).toEqual({
+            homepage: ['https://example.org/'],
+            exclusions_sources: 'https://example.org/exclusions.txt',
+            sources: [
+                'https://example.org/source.txt',
+                {
+                    url: 'https://example.org/misspelled.txt',
+                    source: ['https://example.org/source-array.txt'],
+                },
+            ],
+        });
+        expect(configuration.homepage[0]).toBe('https://user:secret@example.org/');
+        expect(configuration.sources[1].url).toBe('https://user:secret@example.org/misspelled.txt');
+    });
+
+    it('sanitizes strings in class instances', () => {
+        class Source {
+            constructor(source) {
+                this.source = source;
+            }
+        }
+
+        const configuration = {
+            sources: [new Source('https://user:secret@example.org/list.txt')],
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.sources[0].source).toBe('https://example.org/list.txt');
         expect(configuration.sources[0].source).toBe('https://user:secret@example.org/list.txt');
     });
 });

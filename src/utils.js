@@ -16,6 +16,14 @@ const MODIFIER_REGEX = /^[a-zA-Z0-9,=~_.-]+$/;
 const OCTET_REGEX = /^\d{1,3}$/;
 
 /**
+ * Regex to find URL-like parts in a string. It matches an optional scheme
+ * followed by one or more slashes, or a scheme-relative URL with two or more
+ * slashes. The capture group holds the authority component, which stops at
+ * the path, query, fragment, or whitespace.
+ */
+const URL_AUTHORITY_REGEX = /(?:[a-z][a-z0-9+.-]*:\/+|\/{2,})([^/\\?#\s<>"']*)/gi;
+
+/**
  * Checks if a string is a valid IPv4 octet (0-255).
  *
  * @param {string} s - The string to check.
@@ -170,97 +178,48 @@ function splitByDelimiterWithEscapeCharacter(
 }
 
 /**
- * Removes the userinfo component (the `user:password@` part) from a URL.
+ * Removes the userinfo component (the `user:password@` part) from every URL in
+ * a string.
  *
  * The function does string surgery on the authority component, so the rest of
  * the URL stays byte-identical. It does not parse and re-serialize the URL
- * with `URL`, because that normalizes the URL.
+ * with `URL`, because that normalizes the URL. It recognizes an optional
+ * scheme followed by one or more slashes and scheme-relative URLs that start
+ * with two or more slashes.
  *
- * @param {String} url - URL that may contain credentials.
- * @returns {String} the URL without the userinfo component, or the input
- * unchanged when it is not a URL or has no userinfo.
+ * @param {String} url - string that may contain URLs with credentials.
+ * @returns {String} the string without the userinfo components, or the input
+ * unchanged when it has no URL with userinfo.
  */
 function stripUrlCredentials(url) {
     if (!_.isString(url)) {
         return url;
     }
 
-    const schemeEnd = url.indexOf('://');
-    if (schemeEnd === -1) {
-        return url;
-    }
+    return url.replace(URL_AUTHORITY_REGEX, (match, authority) => {
+        const userinfoEnd = authority.lastIndexOf('@');
 
-    const authorityStart = schemeEnd + 3;
-    const authorityEndOffset = url.slice(authorityStart).search(/[/\\?#]/);
-    const authorityEnd = authorityEndOffset === -1
-        ? url.length
-        : authorityStart + authorityEndOffset;
-    const authority = url.slice(authorityStart, authorityEnd);
-    const userinfoEnd = authority.lastIndexOf('@');
+        if (userinfoEnd === -1) {
+            return match;
+        }
 
-    if (userinfoEnd === -1) {
-        return url;
-    }
-
-    return url.slice(0, authorityStart)
-        + authority.slice(userinfoEnd + 1)
-        + url.slice(authorityEnd);
+        const prefix = match.slice(0, match.length - authority.length);
+        return prefix + authority.slice(userinfoEnd + 1);
+    });
 }
 
 /**
- * Returns a copy of a configuration with credentials removed from every
- * URL-ish field. The original configuration is not modified.
+ * Returns a deep copy of a configuration with credentials removed from every
+ * string, including strings in malformed configurations and class instances.
+ * The original configuration is not modified.
  *
- * @param {Object} configuration - compilation configuration.
- * @returns {Object} sanitized copy of the configuration.
+ * @param {*} configuration - compilation configuration.
+ * @returns {*} sanitized copy of the configuration.
  */
 function stripConfigurationCredentials(configuration) {
-    if (!_.isPlainObject(configuration)) {
-        return configuration;
-    }
-
-    // A shallow copy is enough: every changed field is rebuilt below, so the
-    // original configuration keeps its nested objects.
-    const sanitized = { ...configuration };
-
-    if (_.isString(sanitized.homepage)) {
-        sanitized.homepage = stripUrlCredentials(sanitized.homepage);
-    }
-
-    if (Array.isArray(sanitized.exclusions_sources)) {
-        sanitized.exclusions_sources = sanitized.exclusions_sources
-            .map((source) => stripUrlCredentials(source));
-    }
-    if (Array.isArray(sanitized.inclusions_sources)) {
-        sanitized.inclusions_sources = sanitized.inclusions_sources
-            .map((source) => stripUrlCredentials(source));
-    }
-
-    if (Array.isArray(sanitized.sources)) {
-        sanitized.sources = sanitized.sources.map((source) => {
-            if (!_.isObject(source)) {
-                return source;
-            }
-
-            const sanitizedSource = { ...source };
-
-            if (_.isString(sanitizedSource.source)) {
-                sanitizedSource.source = stripUrlCredentials(sanitizedSource.source);
-            }
-            if (Array.isArray(sanitizedSource.exclusions_sources)) {
-                sanitizedSource.exclusions_sources = sanitizedSource.exclusions_sources
-                    .map((item) => stripUrlCredentials(item));
-            }
-            if (Array.isArray(sanitizedSource.inclusions_sources)) {
-                sanitizedSource.inclusions_sources = sanitizedSource.inclusions_sources
-                    .map((item) => stripUrlCredentials(item));
-            }
-
-            return sanitizedSource;
-        });
-    }
-
-    return sanitized;
+    return _.cloneDeepWith(configuration, (value) => (
+        _.isString(value) ? stripUrlCredentials(value) : undefined
+    ));
 }
 
 /**

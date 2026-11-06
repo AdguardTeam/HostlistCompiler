@@ -163,6 +163,49 @@ describe('Configuration', () => {
         expect(ret.errorsText).toContain('https://example.org/source.txt');
     });
 
+    it.each([
+        [
+            'a misspelled key',
+            {
+                name: 'test',
+                sources: [
+                    {
+                        source: 'test.txt',
+                        exclusion_sources: ['https://user:secret@example.org/exclusions.txt'],
+                    },
+                ],
+            },
+        ],
+        [
+            'a string instead of a sources array',
+            {
+                name: 'test',
+                sources: 'https://user:secret@example.org/source.txt',
+            },
+        ],
+        [
+            'a string instead of a source object',
+            {
+                name: 'test',
+                sources: ['https://user:secret@example.org/source.txt'],
+            },
+        ],
+        [
+            'an array instead of a homepage string',
+            {
+                name: 'test',
+                homepage: ['https://user:secret@example.org/'],
+                sources: ['test.txt'],
+            },
+        ],
+    ])('does not include credentials in a validation error for %s', (_, configuration) => {
+        const ret = config.validateConfiguration(configuration);
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('https://example.org/');
+    });
+
     it('test ValidateAllowPublicSuffix transformation in configuration', () => {
         const ret = config.validateConfiguration({
             name: 'test',
