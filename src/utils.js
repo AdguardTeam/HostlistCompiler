@@ -271,17 +271,47 @@ function endsUrlPath(char) {
 }
 
 /**
+ * Checks whether a token looks like a host: a dotted name, `localhost`, or an
+ * IP literal. The port heuristic uses this to tell a port from a password.
+ *
+ * @param {String} value - token before a colon.
+ * @returns {Boolean} true if the token looks like a host.
+ */
+function looksLikeHost(value) {
+    if (value.startsWith('[') && value.endsWith(']')) {
+        const inner = value.slice(1, -1);
+        return inner.includes(':') && /^[0-9a-f:.]+$/i.test(inner);
+    }
+
+    if (value.toLowerCase() === 'localhost') {
+        return true;
+    }
+
+    const octets = value.split('.');
+    if (octets.length === 4 && octets.every(isValidOctet)) {
+        return true;
+    }
+
+    return /^(?:[a-z0-9-]+\.)+[a-z0-9-]+$/i.test(value);
+}
+
+/**
  * Checks whether the text before the first `@` in an authority contains a
  * port. A port looks like a password, so a URL followed by prose such as
  * `https://example.org:8080 by admin@example.com` must stay unchanged. The
- * port can be followed by a terminator or by punctuation.
+ * port can be followed by a terminator or by punctuation, and the text before
+ * the colon must look like a host. Otherwise a numeric password followed by
+ * punctuation, such as `https://user:1234, secret@example.org`, would be
+ * mistaken for a port.
  *
  * @param {String} value - the authority text before the first `@`.
  * @returns {Boolean} true if the text contains a port followed by a terminator
  * or punctuation.
  */
 function looksLikePort(value) {
-    return /:\d+(?=[\s"'<>,.;:!?()[\]{}])/.test(value);
+    const ports = value.match(/(?:\[[0-9a-f:.]+\]|[^\s"'<>/:]+):\d+(?=[\s"'<>,.;:!?()[\]{}])/gi) || [];
+
+    return ports.some((port) => looksLikeHost(port.slice(0, port.lastIndexOf(':'))));
 }
 
 /**
@@ -369,10 +399,17 @@ function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd) {
         return false;
     }
 
-    // A password that starts with a space is userinfo only when the username
-    // has no space. Otherwise the value can be prose such as
-    // `https://example.org team: contact@example.com`.
-    if (rawAfterColon !== afterColon && /\s/.test(beforeFirstUserinfoEnd.slice(0, colonIndex))) {
+    // A password that starts with a space is userinfo only when the text
+    // before the colon does not start with a host. Otherwise the value can be
+    // prose such as `https://example.org team: contact@example.com`. A username
+    // such as `John Smith` does not start with a host, so
+    // `https://John Smith: secret@example.org` is userinfo.
+    const beforeColon = beforeFirstUserinfoEnd.slice(0, colonIndex);
+    const firstWord = beforeColon.trim().split(/\s+/, 1)[0];
+
+    if (rawAfterColon !== afterColon
+        && /\s/.test(beforeColon)
+        && looksLikeHost(firstWord)) {
         return false;
     }
 
@@ -850,9 +887,115 @@ function sanitizeKnownUrlFields(value, seen) {
 }
 
 /**
+ * Configuration keys allowed at the root level.
+ */
+const CONFIGURATION_KEYS = new Set([
+    'name',
+    'description',
+    'homepage',
+    'license',
+    'version',
+    'sources',
+    'transformations',
+    'exclusions',
+    'exclusions_sources',
+    'inclusions',
+    'inclusions_sources',
+]);
+
+/**
+ * Configuration keys allowed in a source object.
+ */
+const SOURCE_KEYS = new Set([
+    'name',
+    'source',
+    'type',
+    'transformations',
+    'exclusions',
+    'exclusions_sources',
+    'inclusions',
+    'inclusions_sources',
+]);
+
+/**
+ * Sanitizes every string under a value with the strict parser. Unknown
+ * configuration keys are rejected by the schema, so their values are more
+ * likely misplaced URLs than prose.
+ *
+ * @param {*} value - value under an unknown key.
+ * @param {WeakSet<Object>} seen - objects that have already been visited.
+ * @returns {*} sanitized value.
+ */
+function sanitizeUnknownValue(value, seen) {
+    if (_.isString(value)) {
+        return stripKnownUrlCredentials(value);
+    }
+
+    if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+            Object.assign(value, { [index]: sanitizeUnknownValue(item, seen) });
+        });
+        return value;
+    }
+
+    if (_.isObject(value) && !seen.has(value)) {
+        seen.add(value);
+        Object.entries(value).forEach(([key, child]) => {
+            Object.assign(value, { [key]: sanitizeUnknownValue(child, seen) });
+        });
+    }
+
+    return value;
+}
+
+/**
+ * Applies the strict parser to strings under keys that the configuration
+ * schema does not allow at the current level.
+ *
+ * @param {*} value - configuration value to walk.
+ * @param {Set<String>} allowedKeys - keys allowed at this level.
+ * @param {WeakSet<Object>} seen - objects that have already been visited.
+ */
+function sanitizeUnknownKeyValues(value, allowedKeys, seen) {
+    if (Array.isArray(value)) {
+        value.forEach((item) => sanitizeUnknownKeyValues(item, allowedKeys, seen));
+        return;
+    }
+
+    if (!_.isObject(value) || seen.has(value)) {
+        return;
+    }
+    seen.add(value);
+
+    Object.entries(value).forEach(([key, child]) => {
+        if (!allowedKeys.has(key)) {
+            Object.assign(value, { [key]: sanitizeUnknownValue(child, seen) });
+            return;
+        }
+
+        if (key === 'sources') {
+            if (Array.isArray(child)) {
+                child.forEach((item) => sanitizeUnknownKeyValues(item, SOURCE_KEYS, seen));
+            } else if (_.isObject(child)) {
+                sanitizeUnknownKeyValues(child, SOURCE_KEYS, seen);
+            }
+            return;
+        }
+
+        if (Array.isArray(child)) {
+            child.forEach((item) => sanitizeUnknownKeyValues(item, allowedKeys, seen));
+        } else {
+            sanitizeUnknownKeyValues(child, allowedKeys, seen);
+        }
+    });
+}
+
+/**
  * Returns a deep copy of a configuration with credentials removed from every
  * string, including strings in malformed configurations and class instances.
- * The original configuration is not modified.
+ * The copy runs the generic parser on every string, the strict parser on known
+ * URL fields and on values under unknown keys, and rewrites URL-like object
+ * keys. The original configuration is not modified.
  *
  * @param {*} configuration - compilation configuration.
  * @returns {*} sanitized copy of the configuration.
@@ -868,6 +1011,9 @@ function stripConfigurationCredentials(configuration) {
     // Known URL fields use the strict parser: the downloader treats a quote or
     // a space in the username as part of the userinfo.
     sanitizeKnownUrlFields(sanitized, new WeakSet());
+    // The schema rejects unknown keys, so a value under such a key is more
+    // likely a misplaced URL than prose.
+    sanitizeUnknownKeyValues(sanitized, CONFIGURATION_KEYS, new WeakSet());
     sanitizeConfigurationKeys(sanitized, new WeakSet());
 
     return sanitized;

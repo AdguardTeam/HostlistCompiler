@@ -332,6 +332,67 @@ describe('Configuration', () => {
         expect(ret.errorsText).toContain('https://example.org');
     });
 
+    it('does not include credentials from a value under an unknown key', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    url: 'https://John Smith: secret@example.org',
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('https://example.org');
+    });
+
+    it('does not include a numeric password from a value under an unknown key', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [{ source: 'test.txt' }],
+            unknown: 'https://user:1234, secret@example.org/list.txt',
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('https://example.org/list.txt');
+    });
+
+    it('does not include free-text credentials from a validation error', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            description: 'Mirror https://John Smith: secret@example.org',
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: ['NoSuchTransformation'],
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('secret');
+        expect(ret.errorsText).toContain('Mirror https://example.org');
+    });
+
+    it('keeps prose with a label after a URL in a validation error', () => {
+        const description = 'https://example.org team: contact@example.com';
+        const ret = config.validateConfiguration({
+            name: 'test',
+            description,
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: ['NoSuchTransformation'],
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).toContain(description);
+    });
+
     it('does not include credentials from a prefixed homepage', () => {
         const ret = config.validateConfiguration({
             name: 'test',

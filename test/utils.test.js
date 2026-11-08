@@ -187,12 +187,40 @@ describe('stripUrlCredentials', () => {
             'https://example.org and a@b',
         ],
         [
+            'https://John Smith: secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'See https://John Smith: secret@example.org',
+            'See https://example.org',
+        ],
+        [
+            'https://user:1234, secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:1234, secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'See https://user:1234, secret@example.org/list.txt',
+            'See https://example.org/list.txt',
+        ],
+        [
             'https://example.org:8080 by admin@example.com',
             'https://example.org:8080 by admin@example.com',
         ],
         [
             'https://example.org:8080 by admin@example.com/path',
             'https://example.org:8080 by admin@example.com/path',
+        ],
+        [
+            'https://localhost:8080, contact admin@example.com',
+            'https://localhost:8080, contact admin@example.com',
+        ],
+        [
+            'https://192.168.1.1:8080, contact admin@example.com',
+            'https://192.168.1.1:8080, contact admin@example.com',
         ],
         [
             'Mirror at https://example.org:8080, contact admin@example.com',
@@ -370,12 +398,40 @@ describe('stripUrlValueCredentials', () => {
             'https://example.org team: contact@example.com',
         ],
         [
+            'https://John Smith: secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'See https://John Smith: secret@example.org',
+            'See https://example.org',
+        ],
+        [
+            'https://user:1234, secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:1234, secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'See https://user:1234, secret@example.org/list.txt',
+            'See https://example.org/list.txt',
+        ],
+        [
             'https://example.org:8080 by admin@example.com',
             'https://example.org:8080 by admin@example.com',
         ],
         [
             'https://example.org:8080 by admin@example.com/path',
             'https://example.org:8080 by admin@example.com/path',
+        ],
+        [
+            'https://localhost:8080, contact admin@example.com',
+            'https://localhost:8080, contact admin@example.com',
+        ],
+        [
+            'https://192.168.1.1:8080, contact admin@example.com',
+            'https://192.168.1.1:8080, contact admin@example.com',
         ],
         [
             'Mirror at https://example.org:8080, contact admin@example.com',
@@ -621,6 +677,77 @@ describe('stripConfigurationCredentials', () => {
         const sanitized = utils.stripConfigurationCredentials(configuration);
 
         expect(sanitized.description).toBe(configuration.description);
+    });
+
+    it('keeps prose with a port on a host-like token and punctuation', () => {
+        const configuration = {
+            description: 'Mirror at https://example.org:8080, contact admin@example.com',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.description).toBe(configuration.description);
+    });
+
+    it('keeps prose that starts a label after a URL', () => {
+        const configuration = {
+            description: 'https://example.org team: contact@example.com',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.description).toBe(configuration.description);
+    });
+
+    it('sanitizes a description with a space in the username and after the password colon', () => {
+        const configuration = {
+            description: 'Mirror https://John Smith: secret@example.org',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.description).toBe('Mirror https://example.org');
+    });
+
+    it('sanitizes a description with a numeric password followed by punctuation', () => {
+        const configuration = {
+            description: 'Mirror https://user:1234, secret@example.org/list.txt',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.description).toBe('Mirror https://example.org/list.txt');
+    });
+
+    it('sanitizes values under unknown keys with the strict parser', () => {
+        const configuration = {
+            name: 'test',
+            sources: [
+                {
+                    url: 'https://John Smith: secret@example.org',
+                },
+            ],
+            unknown: 'https://user:1234, secret@example.org/list.txt',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.sources[0].url).toBe('https://example.org');
+        expect(sanitized.unknown).toBe('https://example.org/list.txt');
+        expect(configuration.sources[0].url).toBe('https://John Smith: secret@example.org');
+        expect(configuration.unknown).toBe('https://user:1234, secret@example.org/list.txt');
+    });
+
+    it('sanitizes nested values under unknown keys', () => {
+        const configuration = {
+            unknown: {
+                nested: ['https://John Smith: secret@example.org'],
+            },
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.unknown.nested).toEqual(['https://example.org']);
     });
 
     it('sanitizes URL object keys', () => {
