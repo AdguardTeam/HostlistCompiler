@@ -563,6 +563,56 @@ describe('stripConfigurationCredentials', () => {
         expect(configuration.sources[0].source).toBe('https://John Smith:secret@example.org/list.txt');
     });
 
+    it('sanitizes path-less known URL fields with a literal @ in the password', () => {
+        const configuration = {
+            homepage: 'https://user:p@s s@example.org',
+            sources: [
+                {
+                    source: 'https://user:p@s s@example.org',
+                    exclusions_sources: ['https://user:p@s s@example.org'],
+                    inclusions_sources: 'https://user:p@s s@example.org',
+                },
+            ],
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.homepage).toBe('https://example.org');
+        expect(sanitized.sources[0].source).toBe('https://example.org');
+        expect(sanitized.sources[0].exclusions_sources).toEqual(['https://example.org']);
+        expect(sanitized.sources[0].inclusions_sources).toBe('https://example.org');
+        expect(configuration.homepage).toBe('https://user:p@s s@example.org');
+    });
+
+    it('does not change a rendered configuration that has no credentials', () => {
+        const configuration = {
+            homepage: 'https://example.org',
+            exclusions: ['@@||good.example^'],
+            sources: [{ source: 'lists/a.txt' }],
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+        const dump = utils.stripUrlCredentials(JSON.stringify(sanitized, 0, 4));
+
+        expect(dump).toBe(JSON.stringify(configuration, 0, 4));
+    });
+
+    it('sanitizes a credentialed source in a rendered configuration with exclusions', () => {
+        const configuration = {
+            homepage: 'https://example.org',
+            exclusions: ['@@||good.example^'],
+            sources: [{ source: 'https://user:secret@example.org/list.txt' }],
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+        const dump = utils.stripUrlCredentials(JSON.stringify(sanitized, 0, 4));
+
+        expect(dump).toContain('"homepage": "https://example.org"');
+        expect(dump).toContain('"@@||good.example^"');
+        expect(dump).toContain('"source": "https://example.org/list.txt"');
+        expect(dump).not.toContain('secret');
+    });
+
     it('keeps prose that looks like a port', () => {
         const configuration = {
             description: 'https://example.org:8080 by admin@example.com',

@@ -171,6 +171,49 @@ describe('Hostlist compiler', () => {
         scope.done();
     });
 
+    it('does not expose a literal @ password in a path-less homepage', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/source.txt')
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            homepage: 'https://user:p@s s@example.org',
+            exclusions: ['@@||good.example^'],
+            sources: [
+                {
+                    source: 'https://example.org/source.txt',
+                },
+            ],
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            const list = await compile(configuration);
+            const compiledList = list.join('\n');
+
+            expect(compiledList).toContain('! Homepage: https://example.org');
+            expect(compiledList).not.toContain('p@s s');
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('p@s s');
+            });
+
+            const configurationMessage = infoMessages
+                .find((message) => message.startsWith('Configuration:'));
+            expect(configurationMessage).toContain('"homepage": "https://example.org"');
+            expect(configurationMessage).toContain('"@@||good.example^"');
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
     it('does not expose a quote in a source username in the compiled list or logs', async () => {
         const authorization = `Basic ${Buffer.from("o'brien:secret").toString('base64')}`;
         const scope = mockHttp('https://example.org')
@@ -201,6 +244,48 @@ describe('Hostlist compiler', () => {
             infoMessages.forEach((message) => {
                 expect(message).not.toContain('secret');
             });
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('does not expose a literal @ password in a path-less source', async () => {
+        const authorization = `Basic ${Buffer.from('user:p@s s').toString('base64')}`;
+        const scope = mockHttp('https://example.org')
+            .get('/', { Authorization: authorization })
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            sources: [
+                {
+                    source: 'https://user:p@s s@example.org',
+                },
+            ],
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            const list = await compile(configuration);
+            const compiledList = list.join('\n');
+
+            expect(compiledList).toContain('! Source: https://example.org');
+            expect(compiledList).not.toContain('p@s s');
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('p@s s');
+            });
+            expect(infoMessages).toContain('Start compiling https://example.org');
+
+            const configurationMessage = infoMessages
+                .find((message) => message.startsWith('Configuration:'));
+            expect(configurationMessage).toContain('"source": "https://example.org"');
         } finally {
             infoSpy.mockRestore();
         }

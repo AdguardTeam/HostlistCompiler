@@ -122,6 +122,28 @@ describe('Validation conflicts', () => {
             expect(message).not.toContain('secret');
         });
 
+        it('does not include a literal @ password from a path-less source in the conflict error', () => {
+            const configuration = {
+                transformations: ['Validate'],
+                sources: [
+                    {
+                        source: 'https://user:p@s s@example.org',
+                        transformations: ['ValidateAllowPublicSuffix'],
+                    },
+                ],
+            };
+
+            let message = '';
+            try {
+                checkCrossLevelValidationConflicts(configuration);
+            } catch (error) {
+                message = error.message;
+            }
+
+            expect(message).toContain('Source "https://example.org"');
+            expect(message).not.toContain('p@s s');
+        });
+
         it('does not throw when a validation transformation is used at source level only', () => {
             const configuration = {
                 sources: [
