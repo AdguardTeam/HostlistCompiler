@@ -214,6 +214,80 @@ describe('Hostlist compiler', () => {
         scope.done();
     });
 
+    it('does not expose credentials in any header field', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/source.txt')
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Filter https://user:secret@example.org/name',
+            description: 'Mirror https://user:secret@example.org/list.txt',
+            version: '1.0 https://user:secret@example.org/version',
+            license: 'See https://user:secret@example.org/license',
+            sources: [
+                {
+                    name: 'Source https://user:secret@example.org/name',
+                    source: 'https://example.org/source.txt',
+                },
+            ],
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            const list = await compile(configuration);
+            const compiledList = list.join('\n');
+
+            expect(compiledList).toContain('! Title: Filter https://example.org/name');
+            expect(compiledList).toContain('! Description: Mirror https://example.org/list.txt');
+            expect(compiledList).toContain('! Version: 1.0 https://example.org/version');
+            expect(compiledList).toContain('! License: See https://example.org/license');
+            expect(compiledList).toContain('! Source name: Source https://example.org/name');
+            expect(compiledList).not.toContain('secret');
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it.each([
+        [
+            'a space in the username and after the password colon',
+            'Mirror https://John Smith: secret@example.org',
+            'Mirror https://example.org',
+        ],
+        [
+            'a numeric password followed by punctuation',
+            'Mirror https://user:1234, secret@example.org/list.txt',
+            'Mirror https://example.org/list.txt',
+        ],
+    ])('does not expose %s in the description header', async (_, description, sanitized) => {
+        const list = await compile({
+            name: 'Test filter',
+            description,
+            sources: [{ source: 'test/resources/rules.txt' }],
+        });
+        const header = list.slice(0, 10).join('\n');
+
+        expect(header).toContain(`! Description: ${sanitized}`);
+        expect(header).not.toContain('secret');
+    });
+
+    it('keeps prose with a port in the description header', async () => {
+        const description = 'Mirror at https://example.org:8080, contact admin@example.com';
+        const list = await compile({
+            name: 'Test filter',
+            description,
+            sources: [{ source: 'test/resources/rules.txt' }],
+        });
+        const header = list.slice(0, 10).join('\n');
+
+        expect(header).toContain(`! Description: ${description}`);
+    });
+
     it('does not expose a quote in a source username in the compiled list or logs', async () => {
         const authorization = `Basic ${Buffer.from("o'brien:secret").toString('base64')}`;
         const scope = mockHttp('https://example.org')

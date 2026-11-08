@@ -6,6 +6,7 @@ const { transform } = require('./transformations/transform');
 const { checkCrossLevelValidationConflicts } = require('./validation-conflicts');
 const {
     stripUrlCredentials,
+    stripUrlValueCredentials,
     stripKnownUrlCredentials,
     stripConfigurationCredentials,
 } = require('./utils');
@@ -25,20 +26,20 @@ const packageVersion = packageJson.version || '0.0.0';
 function prepareHeader(configuration) {
     const lines = [
         '!',
-        `! Title: ${configuration.name}`,
+        `! Title: ${stripKnownUrlCredentials(configuration.name)}`,
     ];
 
     if (!_.isEmpty(configuration.description)) {
-        lines.push(`! Description: ${configuration.description}`);
+        lines.push(`! Description: ${stripUrlValueCredentials(configuration.description)}`);
     }
     if (!_.isEmpty(configuration.version)) {
-        lines.push(`! Version: ${configuration.version}`);
+        lines.push(`! Version: ${stripKnownUrlCredentials(configuration.version)}`);
     }
     if (!_.isEmpty(configuration.homepage)) {
         lines.push(`! Homepage: ${stripKnownUrlCredentials(configuration.homepage)}`);
     }
     if (!_.isEmpty(configuration.license)) {
-        lines.push(`! License: ${configuration.license}`);
+        lines.push(`! License: ${stripKnownUrlCredentials(configuration.license)}`);
     }
 
     lines.push(`! Last modified: ${(new Date()).toISOString()}`);
@@ -66,7 +67,7 @@ function prepareSourceHeader(source) {
     ];
 
     if (!_.isEmpty(source.name)) {
-        lines.push(`! Source name: ${source.name}`);
+        lines.push(`! Source name: ${stripUrlValueCredentials(source.name)}`);
     }
     lines.push(`! Source: ${stripKnownUrlCredentials(source.source)}`);
     lines.push('!');
