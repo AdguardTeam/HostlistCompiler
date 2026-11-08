@@ -194,6 +194,30 @@ describe('stripUrlCredentials', () => {
             'https://example.org:8080 by admin@example.com/path',
             'https://example.org:8080 by admin@example.com/path',
         ],
+        [
+            'Mirror at https://example.org:8080, contact admin@example.com',
+            'Mirror at https://example.org:8080, contact admin@example.com',
+        ],
+        [
+            'Mirror at https://example.org:8080, contact admin@example.com/path',
+            'Mirror at https://example.org:8080, contact admin@example.com/path',
+        ],
+        [
+            'Mirror at https://example.org:8080. Contact admin@example.com/path',
+            'Mirror at https://example.org:8080. Contact admin@example.com/path',
+        ],
+        [
+            'Mirror at https://example.org:8080; contact admin@example.com/path',
+            'Mirror at https://example.org:8080; contact admin@example.com/path',
+        ],
+        [
+            'Mirror at https://example.org:8080) contact admin@example.com/path',
+            'Mirror at https://example.org:8080) contact admin@example.com/path',
+        ],
+        [
+            'Maintained at https://example.org by john@example.com. Forum: https://forum.example.org/',
+            'Maintained at https://example.org by john@example.com. Forum: https://forum.example.org/',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlCredentials(url)).toBe(expected);
     });
@@ -209,6 +233,17 @@ describe('stripUrlCredentials', () => {
         expect(utils.stripUrlCredentials(text)).toBe(text);
         expect(utils.stripUrlCredentials(`${text} and https://user:secret@example.net/x`))
             .toBe(`${text} and https://example.net/x`);
+    });
+
+    it('does not change a rendered configuration that has no credentials', () => {
+        const configuration = {
+            homepage: 'https://example.org',
+            exclusions: ['@@||good.example^'],
+            sources: [{ source: 'lists/a.txt' }],
+        };
+        const dump = JSON.stringify(configuration);
+
+        expect(utils.stripUrlCredentials(dump)).toBe(dump);
     });
 
     it('handles long strings without a URL scheme in linear time', () => {
@@ -341,6 +376,30 @@ describe('stripUrlValueCredentials', () => {
         [
             'https://example.org:8080 by admin@example.com/path',
             'https://example.org:8080 by admin@example.com/path',
+        ],
+        [
+            'Mirror at https://example.org:8080, contact admin@example.com',
+            'Mirror at https://example.org:8080, contact admin@example.com',
+        ],
+        [
+            'Mirror at https://example.org:8080, contact admin@example.com/path',
+            'Mirror at https://example.org:8080, contact admin@example.com/path',
+        ],
+        [
+            'Mirror at https://example.org:8080. Contact admin@example.com/path',
+            'Mirror at https://example.org:8080. Contact admin@example.com/path',
+        ],
+        [
+            'Mirror at https://example.org:8080; contact admin@example.com/path',
+            'Mirror at https://example.org:8080; contact admin@example.com/path',
+        ],
+        [
+            'Mirror at https://example.org:8080) contact admin@example.com/path',
+            'Mirror at https://example.org:8080) contact admin@example.com/path',
+        ],
+        [
+            'Maintained at https://example.org by john@example.com. Forum: https://forum.example.org/',
+            'Maintained at https://example.org by john@example.com. Forum: https://forum.example.org/',
         ],
         [
             'https://user:secret@example.org and a@b',

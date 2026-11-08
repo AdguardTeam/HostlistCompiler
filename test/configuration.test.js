@@ -281,6 +281,57 @@ describe('Configuration', () => {
         expect(ret.errorsText).toContain(description);
     });
 
+    it.each([
+        'Mirror at https://example.org:8080, contact admin@example.com',
+        'Mirror at https://example.org:8080, contact admin@example.com/path',
+        'Mirror at https://example.org:8080. Contact admin@example.com/path',
+        'Mirror at https://example.org:8080; contact admin@example.com/path',
+        'Mirror at https://example.org:8080) contact admin@example.com/path',
+    ])('keeps prose with a port followed by punctuation in a validation error: %s', (description) => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            description,
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: ['NoSuchTransformation'],
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).toContain(description);
+    });
+
+    it('keeps prose with a later URL in a validation error', () => {
+        const description = 'Maintained at https://example.org by john@example.com. '
+            + 'Forum: https://forum.example.org/';
+        const ret = config.validateConfiguration({
+            name: 'test',
+            description,
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: ['NoSuchTransformation'],
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).toContain(description);
+    });
+
+    it('does not include a literal @ password from a path-less malformed source', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: ['https://user:p@s s@example.org'],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('p@s s');
+        expect(ret.errorsText).toContain('https://example.org');
+    });
+
     it('does not include credentials from a prefixed homepage', () => {
         const ret = config.validateConfiguration({
             name: 'test',

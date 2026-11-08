@@ -273,13 +273,15 @@ function endsUrlPath(char) {
 /**
  * Checks whether the text before the first `@` in an authority contains a
  * port. A port looks like a password, so a URL followed by prose such as
- * `https://example.org:8080 by admin@example.com` must stay unchanged.
+ * `https://example.org:8080 by admin@example.com` must stay unchanged. The
+ * port can be followed by a terminator or by punctuation.
  *
  * @param {String} value - the authority text before the first `@`.
- * @returns {Boolean} true if the text contains a port followed by a terminator.
+ * @returns {Boolean} true if the text contains a port followed by a terminator
+ * or punctuation.
  */
 function looksLikePort(value) {
-    return /:\d+(?=[\s"'<>])/.test(value);
+    return /:\d+(?=[\s"'<>,.;:!?()[\]{}])/.test(value);
 }
 
 /**
@@ -290,7 +292,7 @@ function looksLikePort(value) {
  * `user:p s s` is userinfo, and `https://example.org is maintained by
  * user@example.com` is prose. A colon that is followed by whitespace starts a
  * label in prose, not a password. A colon followed by digits and then a
- * terminator is a port, not a password.
+ * terminator or punctuation is a port, not a password.
  *
  * @param {String} value - the authority text before the first `@`.
  * @returns {Boolean} true if the text looks like userinfo.
@@ -509,8 +511,14 @@ function readUrlAuthority(text, start, mode = URL_AUTHORITY_MODE.VALUE) {
             // A path, query, or fragment shows that the value is a URL, not
             // prose. In that case a quote or a space in the username does not
             // hide the password, unless the text contains a port and then
-            // prose.
-            const hasUrlTail = authorityEnd < text.length;
+            // prose. The tail counts only when the host after the first `@`
+            // runs straight into the path, query, or fragment. Otherwise a
+            // slash later in the text would make prose look like userinfo.
+            const hostMatch = /^[^\s"'<>]*/.exec(text.slice(firstUserinfoEnd + 1, authorityEnd))[0];
+            const hostEnd = firstUserinfoEnd + 1 + hostMatch.length;
+            const hasUrlTail = authorityEnd < text.length
+                && (hostEnd === authorityEnd
+                    || (/["'<>]/.test(text[hostEnd]) && !/[\s"]/.test(beforeFirstUserinfoEnd)));
             const isValueUserinfo = mode === URL_AUTHORITY_MODE.VALUE
                 && (hasUrlTail
                     ? !looksLikePort(beforeFirstUserinfoEnd)
