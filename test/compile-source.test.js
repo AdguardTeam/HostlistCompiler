@@ -112,6 +112,36 @@ describe('Source compiler', () => {
         scope.done();
     });
 
+    it('does not expose a literal @ password in a path-less source', async () => {
+        const authorization = `Basic ${Buffer.from('user:p@s s').toString('base64')}`;
+        const scope = mockHttp('https://example.org')
+            .get('/', { Authorization: authorization })
+            .reply(200, 'testrule', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://user:p@s s@example.org',
+        };
+
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            await compileSource(source);
+
+            const infoMessages = infoSpy.mock.calls.map(([message]) => String(message));
+            infoMessages.forEach((message) => {
+                expect(message).not.toContain('p@s s');
+            });
+            expect(infoMessages).toContain('Start compiling https://example.org');
+        } finally {
+            infoSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
     it('does not expose a quote or space in the username in logs', async () => {
         const authorization = `Basic ${Buffer.from('John Smith:secret').toString('base64')}`;
         const scope = mockHttp('https://example.org')
