@@ -67,6 +67,18 @@ describe('stripUrlCredentials', () => {
             'See https://example.org/list.txt and https://example.net/other.txt',
         ],
         [
+            'https://proxy.example.org/fetch?u=https://user:secret@raw.example.org/list.txt',
+            'https://proxy.example.org/fetch?u=https://raw.example.org/list.txt',
+        ],
+        [
+            'https://proxy.example.org/r/https://user:secret@raw.example.org/list.txt',
+            'https://proxy.example.org/r/https://raw.example.org/list.txt',
+        ],
+        [
+            'https://example.org/a,https://user:secret@raw.example.org/list.txt',
+            'https://example.org/a,https://raw.example.org/list.txt',
+        ],
+        [
             'https://user:secret@example.org:8443/list.txt',
             'https://example.org:8443/list.txt',
         ],
@@ -461,6 +473,18 @@ describe('stripUrlValueCredentials', () => {
             'https://user:secret@example.org and a@b',
             'https://example.org and a@b',
         ],
+        [
+            'https://proxy.example.org/fetch?u=https://user:secret@raw.example.org/list.txt',
+            'https://proxy.example.org/fetch?u=https://raw.example.org/list.txt',
+        ],
+        [
+            'https://proxy.example.org/r/https://user:secret@raw.example.org/list.txt',
+            'https://proxy.example.org/r/https://raw.example.org/list.txt',
+        ],
+        [
+            'https://example.org/a,https://user:secret@raw.example.org/list.txt',
+            'https://example.org/a,https://raw.example.org/list.txt',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlValueCredentials(url)).toBe(expected);
     });
@@ -532,6 +556,18 @@ describe('stripKnownUrlCredentials', () => {
         [
             'C:/user@corp/list.txt',
             'C:/user@corp/list.txt',
+        ],
+        [
+            'https://proxy.example.org/fetch?u=https://user:secret@raw.example.org/list.txt',
+            'https://proxy.example.org/fetch?u=https://raw.example.org/list.txt',
+        ],
+        [
+            'https://proxy.example.org/r/https://user:secret@raw.example.org/list.txt',
+            'https://proxy.example.org/r/https://raw.example.org/list.txt',
+        ],
+        [
+            'https://example.org/a,https://user:secret@raw.example.org/list.txt',
+            'https://example.org/a,https://raw.example.org/list.txt',
         ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripKnownUrlCredentials(url)).toBe(expected);
@@ -912,5 +948,28 @@ describe('substringBetween', () => {
 
         substr = utils.substringBetween('</a>test', '<a>', '</a>');
         expect(substr).toBe(null);
+    });
+});
+
+describe('stripConfigurationCredentials with nested URLs', () => {
+    it('sanitizes a URL nested in another URL with the strict parser', () => {
+        const configuration = {
+            homepage: 'https://proxy.example.org/fetch?u=https://user:secret@raw.example.org/list.txt',
+            sources: [
+                {
+                    source: 'https://proxy.example.org/r/https://user:secret@raw.example.org/list.txt',
+                },
+            ],
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized.homepage).toBe('https://proxy.example.org/fetch?u=https://raw.example.org/list.txt');
+        expect(sanitized.sources[0].source).toBe(
+            'https://proxy.example.org/r/https://raw.example.org/list.txt',
+        );
+        expect(configuration.homepage).toBe(
+            'https://proxy.example.org/fetch?u=https://user:secret@raw.example.org/list.txt',
+        );
     });
 });

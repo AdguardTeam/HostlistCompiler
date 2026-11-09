@@ -38,12 +38,6 @@ const URL_AUTHORITY_END_REGEX = /[/\\?#]/;
 const URL_AUTHORITY_TERMINATOR_REGEX = /[\s"'<>]/;
 
 /**
- * Regex to match a character that ends the path, query, or fragment of a URL.
- * A single quote is a valid path character, so it is not a terminator here.
- */
-const URL_PATH_TERMINATOR_REGEX = /[\s"<>]/;
-
-/**
  * Modes for the authority parser.
  *
  * `VALUE` treats the text before the first `@` as userinfo only when it looks
@@ -258,16 +252,6 @@ function endsUrlAuthority(char) {
  */
 function endsUrlAuthorityBeforeUserinfo(char) {
     return URL_AUTHORITY_TERMINATOR_REGEX.test(char);
-}
-
-/**
- * Checks whether the character ends the path, query, or fragment of a URL.
- *
- * @param {String} char - character to check.
- * @returns {Boolean} true if the character ends the path.
- */
-function endsUrlPath(char) {
-    return URL_PATH_TERMINATOR_REGEX.test(char);
 }
 
 /**
@@ -511,8 +495,8 @@ function findUrlStart(text, from) {
  * @param {String} text - the string being scanned.
  * @param {Number} start - index right after the URL prefix.
  * @param {String} [mode] - one of `URL_AUTHORITY_MODE`. Defaults to `VALUE`.
- * @returns {{ value: String, rawEnd: Number, urlEnd: Number }} the sanitized
- * authority, the index where it ends, and the index where the URL ends.
+ * @returns {{ value: String, rawEnd: Number }} the sanitized authority and the
+ * index where it ends.
  */
 function readUrlAuthority(text, start, mode = URL_AUTHORITY_MODE.VALUE) {
     let authorityEnd = start;
@@ -585,15 +569,7 @@ function readUrlAuthority(text, start, mode = URL_AUTHORITY_MODE.VALUE) {
 
     const value = text.slice(authorityStart, rawEnd);
 
-    let urlEnd = rawEnd;
-    if (rawEnd < text.length && endsUrlAuthority(text[rawEnd])) {
-        urlEnd += 1;
-        while (urlEnd < text.length && !endsUrlPath(text[urlEnd])) {
-            urlEnd += 1;
-        }
-    }
-
-    return { value, rawEnd, urlEnd };
+    return { value, rawEnd };
 }
 
 /**
@@ -631,9 +607,13 @@ function stripUrlCredentialsWithMode(url, mode) {
         const authority = readUrlAuthority(url, prefixEnd, mode);
         result += url.slice(copiedUntil, prefixEnd);
         result += authority.value;
-        result += url.slice(authority.rawEnd, authority.urlEnd);
-        copiedUntil = authority.urlEnd;
-        searchFrom = authority.urlEnd;
+        // Resume the scan at the end of the authority, not at the end of the
+        // URL. A URL can sit inside the path, query, or fragment of another
+        // URL, for example a proxy URL with the target in its query. The rest
+        // of the outer URL is copied by the next iteration or by the final
+        // slice, so nested credentials are not copied verbatim.
+        copiedUntil = authority.rawEnd;
+        searchFrom = authority.rawEnd;
     }
 
     result += url.slice(copiedUntil);
@@ -714,11 +694,11 @@ function stripUrlValueCredentials(url) {
 
     const sanitized = url.slice(0, prefixEnd)
         + authority.value
-        + url.slice(authority.rawEnd, authority.urlEnd)
-        + url.slice(authority.urlEnd);
+        + url.slice(authority.rawEnd);
 
-    // The value can have more text after the first URL. The scanner covers
-    // later URLs and does not rescan a consumed path, query, or fragment.
+    // The value can have more text after the first URL, and the first URL can
+    // contain another URL in its path, query, or fragment. The scanner covers
+    // both.
     return stripUrlCredentials(sanitized);
 }
 
