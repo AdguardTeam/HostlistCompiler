@@ -38,6 +38,17 @@ const URL_AUTHORITY_END_REGEX = /[/\\?#]/;
 const URL_AUTHORITY_TERMINATOR_REGEX = /[\s"'<>]/;
 
 /**
+ * Regex to match a `token:digits` pair that can be a port in the authority
+ * text before the first `@`. The lookahead accepts a terminator or punctuation
+ * after the digits. A bracketed IPv6 literal is matched as one token.
+ *
+ * The lookbehind requires the token to start at a boundary. Without it, the
+ * regex retries from every position inside a long token, for example a long
+ * password, and the scan becomes quadratic.
+ */
+const URL_PORT_REGEX = /(?<![^\s"'<>/:])(?:\[[0-9a-f:.]+\]|[^\s"'<>/:]+):\d+(?=[\s"'<>,.;:!?()[\]{}])/gi;
+
+/**
  * Modes for the authority parser.
  *
  * `VALUE` treats the text before the first `@` as userinfo only when it looks
@@ -293,9 +304,35 @@ function looksLikeHost(value) {
  * or punctuation.
  */
 function looksLikePort(value) {
-    const ports = value.match(/(?:\[[0-9a-f:.]+\]|[^\s"'<>/:]+):\d+(?=[\s"'<>,.;:!?()[\]{}])/gi) || [];
+    const ports = value.match(URL_PORT_REGEX) || [];
 
     return ports.some((port) => looksLikeHost(port.slice(0, port.lastIndexOf(':'))));
+}
+
+/**
+ * Finds the colon that can start a password in the authority text before the
+ * first `@`. A colon inside a bracketed IPv6 literal is part of the host, not
+ * a password.
+ *
+ * @param {String} value - the authority text before the first `@`.
+ * @returns {Number} the index of the password colon, or -1.
+ */
+function indexOfPasswordColon(value) {
+    let inBrackets = false;
+
+    for (let i = 0; i < value.length; i += 1) {
+        const char = value[i];
+
+        if (char === '[') {
+            inBrackets = true;
+        } else if (char === ']') {
+            inBrackets = false;
+        } else if (char === ':' && !inBrackets) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 /**

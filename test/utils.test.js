@@ -322,15 +322,20 @@ describe('stripUrlCredentials', () => {
         expect(utils.stripUrlCredentials(dump)).toBe(dump);
     });
 
-    it('handles long strings without a URL scheme in linear time', () => {
+    it('handles long strings in linear time', () => {
         // Jest does not fail a synchronous test that runs past its timeout,
         // so the test needs a wall-clock bound. The bound is generous: a
         // quadratic scan needs about 19 seconds for this input, while a linear
         // scan takes milliseconds. A loaded runner cannot fail the bound.
-        const text = 'a'.repeat(200_000);
+        // The credentialed URL reaches the port heuristic, which used to retry
+        // from every position inside the long password.
+        const plainText = 'a'.repeat(200_000);
+        const longPassword = 'b'.repeat(200_000);
+        const credentialedUrl = `https://reader:${longPassword}@example.org/list.txt`;
         const startedAt = Date.now();
 
-        expect(utils.stripUrlCredentials(text)).toBe(text);
+        expect(utils.stripUrlCredentials(plainText)).toBe(plainText);
+        expect(utils.stripUrlCredentials(credentialedUrl)).toBe('https://example.org/list.txt');
         expect(Date.now() - startedAt).toBeLessThan(3000);
     });
 });
