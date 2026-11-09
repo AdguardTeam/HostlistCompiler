@@ -812,14 +812,19 @@ describe('stripConfigurationCredentials', () => {
                 },
             ],
             unknown: 'https://user:1234, secret@example.org/list.txt',
+            // A path-less value with a literal `@` and a space in the password
+            // is sanitized only by the strict parser.
+            unknownLiteralAt: 'https://user:p@s s@example.org',
         };
 
         const sanitized = utils.stripConfigurationCredentials(configuration);
 
         expect(sanitized.sources[0].url).toBe('https://example.org');
         expect(sanitized.unknown).toBe('https://example.org/list.txt');
+        expect(sanitized.unknownLiteralAt).toBe('https://example.org');
         expect(configuration.sources[0].url).toBe('https://John Smith: secret@example.org');
         expect(configuration.unknown).toBe('https://user:1234, secret@example.org/list.txt');
+        expect(configuration.unknownLiteralAt).toBe('https://user:p@s s@example.org');
     });
 
     it('sanitizes nested values under unknown keys', () => {
