@@ -318,7 +318,7 @@ function looksLikeUserinfo(value) {
         return true;
     }
 
-    const colonIndex = value.indexOf(':');
+    const colonIndex = indexOfPasswordColon(value);
 
     if (colonIndex === -1 || colonIndex > firstTerminator) {
         return false;
@@ -332,45 +332,28 @@ function looksLikeUserinfo(value) {
 }
 
 /**
- * Checks whether a value without a path, query, or fragment is a URL with
- * userinfo rather than prose. The host must follow the first `@` without a
- * terminator, and the text before the `@` must contain a password colon with a
- * non-whitespace value after it. A password can start with a space when the
- * username has no space.
+ * Checks whether the text before the first `@` is a URL with userinfo rather
+ * than prose. The text must contain a password colon with a non-whitespace
+ * value after it. A port, a label that starts with whitespace, and a host-like
+ * first word followed by a label are prose. A URL can be followed by prose, so
+ * a terminator after the host does not make the text before the `@` prose.
  *
  * This covers `https://o'brien:secret@example.org`,
- * `https://John Smith:secret@example.org`, and
- * `https://user: secret@example.org`. A password that starts with a space is
- * userinfo only when the username has no space, so prose such as
+ * `https://John Smith:secret@example.org`,
+ * `https://user: secret@example.org`, and the same values followed by text
+ * such as `https://John Smith:secret@example.org by admin@example.com`. A
+ * password that starts with a space is userinfo only when the username does
+ * not start with a host, so prose such as
  * `https://example.org team: contact@example.com` stays unchanged.
  *
  * @param {String} text - the string being scanned.
  * @param {Number} start - index right after the URL prefix.
  * @param {Number} firstUserinfoEnd - index of the first `@`.
- * @param {Number} authorityEnd - index where the authority ends.
- * @returns {Boolean} true if the value looks like a URL with userinfo.
+ * @returns {Boolean} true if the text looks like a URL with userinfo.
  */
-function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd) {
-    if (authorityEnd !== text.length) {
-        return false;
-    }
-
-    // Prose after the URL starts a whitespace terminator after the first `@`.
-    // A quote or an angle bracket after the host is a delimiter, for example
-    // in `"https://host"` or `<https://host>`.
-    let terminator = firstUserinfoEnd + 1;
-    while (terminator < authorityEnd && !endsUrlAuthorityBeforeUserinfo(text[terminator])) {
-        terminator += 1;
-    }
-
-    const terminatorIsDelimiter = terminator < authorityEnd && /["'<>]/.test(text[terminator]);
-
-    if (terminator !== authorityEnd && !terminatorIsDelimiter) {
-        return false;
-    }
-
+function looksLikeValueUserinfo(text, start, firstUserinfoEnd) {
     const beforeFirstUserinfoEnd = text.slice(start, firstUserinfoEnd);
-    const colonIndex = beforeFirstUserinfoEnd.indexOf(':');
+    const colonIndex = indexOfPasswordColon(beforeFirstUserinfoEnd);
 
     if (colonIndex === -1) {
         return false;
@@ -383,18 +366,54 @@ function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd) {
         return false;
     }
 
+    if (looksLikePort(beforeFirstUserinfoEnd)) {
+        return false;
+    }
+
     // A password that starts with a space is userinfo only when the text
     // before the colon does not start with a host. Otherwise the value can be
-    // prose such as `https://example.org team: contact@example.com`. A username
-    // such as `John Smith` does not start with a host, so
-    // `https://John Smith: secret@example.org` is userinfo.
+    // prose such as `https://example.org team: contact@example.com` or
+    // `Filter list for Corp. Homepage: https://example.org. Contact:
+    // admin@example.com`. A username such as `John Smith` does not start with a
+    // host, so `https://John Smith: secret@example.org` is userinfo. The host
+    // can be followed by punctuation, for example at the end of a sentence. A
+    // single-label host such as `fileserver` is prose only when punctuation
+    // follows it, because a single label can also be a username.
     const beforeColon = beforeFirstUserinfoEnd.slice(0, colonIndex);
-    const firstWord = beforeColon.trim().split(/\s+/, 1)[0];
+    const firstWordMatch = beforeColon.trim().split(/\s+/, 1)[0];
+    // Keep a bracketed IPv6 literal intact: its closing `]` is part of the
+    // host, not trailing punctuation.
+    const bracketedHostEnd = firstWordMatch.startsWith('[') ? firstWordMatch.indexOf(']') : -1;
+    const firstWord = bracketedHostEnd === -1
+        ? firstWordMatch.replace(/[.,;!?)\]}]+$/, '')
+        : firstWordMatch.slice(0, bracketedHostEnd + 1);
+    const firstWordHadPunctuation = firstWord !== firstWordMatch;
+    const looksLikeProseHost = looksLikeHost(firstWord)
+        || (firstWordHadPunctuation && /^[a-z0-9-]+$/i.test(firstWord));
 
     if (rawAfterColon !== afterColon
         && /\s/.test(beforeColon)
-        && looksLikeHost(firstWord)) {
+        && looksLikeProseHost) {
         return false;
+    }
+
+    // Prose after the URL starts a terminator after the first `@`. The text
+    // between the first `@` and that terminator must not contain another `@`:
+    // a second `@` means the first one was not the end of the userinfo. This
+    // keeps a rendered document such as
+    // `{"homepage":"https://example.org","exclusions":["@@||good.example^"]}`
+    // unchanged.
+    let terminator = firstUserinfoEnd + 1;
+    while (terminator < text.length && !endsUrlAuthorityBeforeUserinfo(text[terminator])) {
+        terminator += 1;
+    }
+
+    if (terminator < text.length) {
+        const host = text.slice(firstUserinfoEnd + 1, terminator);
+
+        if (host.length === 0 || host.includes('@')) {
+            return false;
+        }
     }
 
     return true;
@@ -543,7 +562,7 @@ function readUrlAuthority(text, start, mode = URL_AUTHORITY_MODE.VALUE) {
             const isValueUserinfo = mode === URL_AUTHORITY_MODE.VALUE
                 && (hasUrlTail
                     ? !looksLikePort(beforeFirstUserinfoEnd)
-                    : looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd));
+                    : looksLikeValueUserinfo(text, start, firstUserinfoEnd));
             const isUserinfo = looksLikeUserinfo(beforeFirstUserinfoEnd) || isValueUserinfo;
 
             if (isUserinfo) {

@@ -283,6 +283,16 @@ describe('Hostlist compiler', () => {
             'Mirror https://example.org',
         ],
         [
+            'a space in the username before trailing text',
+            'Mirror https://John Smith:sekret@example.org by admin@example.com',
+            'Mirror https://example.org by admin@example.com',
+        ],
+        [
+            'a quote in the username before trailing text',
+            "Mirror https://o'brien:sekret@example.org by admin@example.com",
+            'Mirror https://example.org by admin@example.com',
+        ],
+        [
             'a numeric password followed by punctuation',
             'Mirror https://user:1234, secret@example.org/list.txt',
             'Mirror https://example.org/list.txt',

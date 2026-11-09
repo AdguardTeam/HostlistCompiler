@@ -258,6 +258,42 @@ describe('stripUrlCredentials', () => {
             'Maintained at https://example.org by john@example.com. Forum: https://forum.example.org/',
             'Maintained at https://example.org by john@example.com. Forum: https://forum.example.org/',
         ],
+        [
+            'https://John Smith:sekret@example.org by admin@example.com',
+            'https://example.org by admin@example.com',
+        ],
+        [
+            "https://o'brien:sekret@example.org by admin@example.com",
+            'https://example.org by admin@example.com',
+        ],
+        [
+            'Filter list for Corp. Homepage: https://example.org. Contact: admin@example.com',
+            'Filter list for Corp. Homepage: https://example.org. Contact: admin@example.com',
+        ],
+        [
+            'Mirror of https://example.org, maintainer: admin@example.com',
+            'Mirror of https://example.org, maintainer: admin@example.com',
+        ],
+        [
+            '(https://example.org) Contact: admin@example.com',
+            '(https://example.org) Contact: admin@example.com',
+        ],
+        [
+            'https://[2001:db8::1] by admin@example.com',
+            'https://[2001:db8::1] by admin@example.com',
+        ],
+        [
+            'https://[2001:db8::1]. Contact: admin@example.com',
+            'https://[2001:db8::1]. Contact: admin@example.com',
+        ],
+        [
+            'https://user:secret@[2001:db8::1] by admin@example.com',
+            'https://[2001:db8::1] by admin@example.com',
+        ],
+        [
+            'https://user:secret@[2001:db8::1]. Contact: admin@example.com',
+            'https://[2001:db8::1]. Contact: admin@example.com',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlCredentials(url)).toBe(expected);
     });
@@ -468,6 +504,42 @@ describe('stripUrlValueCredentials', () => {
         [
             'Maintained at https://example.org by john@example.com. Forum: https://forum.example.org/',
             'Maintained at https://example.org by john@example.com. Forum: https://forum.example.org/',
+        ],
+        [
+            'https://John Smith:sekret@example.org by admin@example.com',
+            'https://example.org by admin@example.com',
+        ],
+        [
+            "https://o'brien:sekret@example.org by admin@example.com",
+            'https://example.org by admin@example.com',
+        ],
+        [
+            'Filter list for Corp. Homepage: https://example.org. Contact: admin@example.com',
+            'Filter list for Corp. Homepage: https://example.org. Contact: admin@example.com',
+        ],
+        [
+            'Mirror of https://example.org, maintainer: admin@example.com',
+            'Mirror of https://example.org, maintainer: admin@example.com',
+        ],
+        [
+            '(https://example.org) Contact: admin@example.com',
+            '(https://example.org) Contact: admin@example.com',
+        ],
+        [
+            'https://[2001:db8::1] by admin@example.com',
+            'https://[2001:db8::1] by admin@example.com',
+        ],
+        [
+            'https://[2001:db8::1]. Contact: admin@example.com',
+            'https://[2001:db8::1]. Contact: admin@example.com',
+        ],
+        [
+            'https://user:secret@[2001:db8::1] by admin@example.com',
+            'https://[2001:db8::1] by admin@example.com',
+        ],
+        [
+            'https://user:secret@[2001:db8::1]. Contact: admin@example.com',
+            'https://[2001:db8::1]. Contact: admin@example.com',
         ],
         [
             'https://user:secret@example.org and a@b',
