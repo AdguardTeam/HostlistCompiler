@@ -5,7 +5,7 @@ const consola = require('consola');
 const compile = require('./index');
 const { createConfiguration } = require('./configuration');
 const {
-    stripConfigurationCredentials,
+    sanitizeConfigurationForLog,
     stripErrorCredentials,
     stripUrlCredentials,
 } = require('./utils');
@@ -140,11 +140,7 @@ async function main() {
             ? createConfiguration(argv.input, argv['input-type'])
             : await readConfig();
 
-        const sanitizedConfig = stripConfigurationCredentials(config);
-        // `JSON.stringify` can render values that the deep copy does not see,
-        // such as object keys and `toJSON` results, so sanitize the rendered
-        // text as well.
-        const sanitizedConfigDump = stripUrlCredentials(JSON.stringify(sanitizedConfig, 0, 4));
+        const sanitizedConfigDump = JSON.stringify(sanitizeConfigurationForLog(config), 0, 4);
         consola.debug(`Configuration: ${sanitizedConfigDump}`);
 
         const lines = await compile(config);

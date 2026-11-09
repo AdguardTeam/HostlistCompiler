@@ -2,10 +2,7 @@ const Ajv = require('ajv');
 const betterAjvErrors = require('better-ajv-errors');
 const { SOURCE_TYPES } = require('./source-types');
 const { DEFAULT_TRANSFORMATIONS } = require('./transformations/transform');
-const {
-    stripConfigurationCredentials,
-    stripUrlCredentials,
-} = require('./utils');
+const { sanitizeConfigurationForLog } = require('./utils');
 
 const ajv = new Ajv({ allErrors: true, jsonPointers: true });
 const schema = require('./schemas/configuration.schema');
@@ -52,12 +49,12 @@ module.exports = {
             errorsText: valid
                 ? null
                 // `better-ajv-errors` renders object keys and `toJSON`
-                // results as well, so sanitize the rendered text too.
-                : stripUrlCredentials(betterAjvErrors(
+                // results as well, so the copy must be JSON-safe.
+                : betterAjvErrors(
                     schema,
-                    stripConfigurationCredentials(configuration),
+                    sanitizeConfigurationForLog(configuration),
                     validate.errors,
-                )),
+                ),
         };
     },
 };

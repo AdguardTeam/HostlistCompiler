@@ -214,6 +214,29 @@ describe('Hostlist compiler', () => {
         scope.done();
     });
 
+    it('does not corrupt the configuration log for a path-less URL and a later email', async () => {
+        const infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+
+        try {
+            await compile({
+                name: 'Test filter',
+                homepage: 'https://example.org',
+                description: 'admin@example.com',
+                sources: [{ source: 'test/resources/rules.txt' }],
+            });
+
+            const configurationMessage = infoSpy.mock.calls
+                .map(([message]) => String(message))
+                .find((message) => message.startsWith('Configuration:'));
+
+            expect(configurationMessage).toContain('"homepage": "https://example.org"');
+            expect(configurationMessage).toContain('"description": "admin@example.com"');
+            expect(configurationMessage).toContain('"source": "test/resources/rules.txt"');
+        } finally {
+            infoSpy.mockRestore();
+        }
+    });
+
     it('does not expose credentials in any header field', async () => {
         const scope = mockHttp('https://example.org')
             .get('/source.txt')

@@ -5,10 +5,9 @@ const compileSource = require('./compile-source');
 const { transform } = require('./transformations/transform');
 const { checkCrossLevelValidationConflicts } = require('./validation-conflicts');
 const {
-    stripUrlCredentials,
     stripUrlValueCredentials,
     stripKnownUrlCredentials,
-    stripConfigurationCredentials,
+    sanitizeConfigurationForLog,
 } = require('./utils');
 const packageJson = require('../package.json');
 
@@ -91,10 +90,7 @@ async function compile(configuration) {
 
     checkCrossLevelValidationConflicts(configuration);
 
-    const sanitizedConfiguration = stripConfigurationCredentials(configuration);
-    // `JSON.stringify` can render values that the deep copy does not see, such
-    // as object keys and `toJSON` results, so sanitize the rendered text too.
-    const configurationDump = stripUrlCredentials(JSON.stringify(sanitizedConfiguration, 0, 4));
+    const configurationDump = JSON.stringify(sanitizeConfigurationForLog(configuration), 0, 4);
     consola.info(`Configuration: ${configurationDump}`);
 
     // This will be the final list of rules

@@ -126,6 +126,53 @@ describe('CLI error output', () => {
         }
     });
 
+    it('does not corrupt the verbose dump for a path-less URL and a later email', async () => {
+        process.argv = [
+            'node',
+            'cli',
+            '-v',
+            '-c',
+            'config.json',
+            '-o',
+            'output.txt',
+        ];
+
+        const accessSpy = jest.spyOn(fs.promises, 'access').mockResolvedValue();
+        const readFileSpy = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(Buffer.from(JSON.stringify({
+            homepage: 'https://example.org',
+            description: 'admin@example.com',
+            sources: [{ source: 'test.txt' }],
+        })));
+        const writeFileSpy = jest.spyOn(fs.promises, 'writeFile').mockResolvedValue();
+
+        let stdoutOutput = '';
+        const originalLevel = consola.level;
+        const stdoutSpy = jest.spyOn(consola.stdout, 'write').mockImplementation((chunk) => {
+            stdoutOutput += chunk.toString();
+            return true;
+        });
+
+        try {
+            // eslint-disable-next-line global-require
+            const compileMock = require('../src/index');
+            compileMock.mockResolvedValue([]);
+
+            // eslint-disable-next-line global-require
+            require('../src/cli');
+            await new Promise((resolve) => { setImmediate(resolve); });
+
+            expect(stdoutOutput).toContain('"homepage": "https://example.org"');
+            expect(stdoutOutput).toContain('"description": "admin@example.com"');
+            expect(stdoutOutput).toContain('"source": "test.txt"');
+        } finally {
+            stdoutSpy.mockRestore();
+            accessSpy.mockRestore();
+            readFileSpy.mockRestore();
+            writeFileSpy.mockRestore();
+            consola.level = originalLevel;
+        }
+    });
+
     it('prints every error in the cause chain', async () => {
         const networkError = new Error('connect ECONNREFUSED 127.0.0.1:443');
         const fetchError = new TypeError('fetch failed');

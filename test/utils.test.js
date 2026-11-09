@@ -1,4 +1,4 @@
-/* eslint-disable max-classes-per-file */
+/* eslint-disable class-methods-use-this, max-classes-per-file */
 const utils = require('../src/utils');
 
 const { Wildcard } = utils;
@@ -676,35 +676,6 @@ describe('stripConfigurationCredentials', () => {
         expect(configuration.homepage).toBe('https://user:p@s s@example.org');
     });
 
-    it('does not change a rendered configuration that has no credentials', () => {
-        const configuration = {
-            homepage: 'https://example.org',
-            exclusions: ['@@||good.example^'],
-            sources: [{ source: 'lists/a.txt' }],
-        };
-
-        const sanitized = utils.stripConfigurationCredentials(configuration);
-        const dump = utils.stripUrlCredentials(JSON.stringify(sanitized, 0, 4));
-
-        expect(dump).toBe(JSON.stringify(configuration, 0, 4));
-    });
-
-    it('sanitizes a credentialed source in a rendered configuration with exclusions', () => {
-        const configuration = {
-            homepage: 'https://example.org',
-            exclusions: ['@@||good.example^'],
-            sources: [{ source: 'https://user:secret@example.org/list.txt' }],
-        };
-
-        const sanitized = utils.stripConfigurationCredentials(configuration);
-        const dump = utils.stripUrlCredentials(JSON.stringify(sanitized, 0, 4));
-
-        expect(dump).toContain('"homepage": "https://example.org"');
-        expect(dump).toContain('"@@||good.example^"');
-        expect(dump).toContain('"source": "https://example.org/list.txt"');
-        expect(dump).not.toContain('secret');
-    });
-
     it('keeps prose that looks like a port', () => {
         const configuration = {
             description: 'https://example.org:8080 by admin@example.com',
@@ -882,6 +853,98 @@ describe('stripConfigurationCredentials', () => {
         expect(sanitized).toBeInstanceOf(Configuration);
         expect(sanitized.sources[0].source).toBe('https://example.org/list.txt');
         expect(configuration.sources[0].source).toBe('https://user:secret@example.org/list.txt');
+    });
+});
+
+describe('sanitizeConfigurationForLog', () => {
+    it('does not change a configuration with a path-less URL and a later email', () => {
+        // Re-scanning the rendered document treated the text between the
+        // path-less homepage and the email as userinfo. The description key
+        // disappeared and the homepage changed.
+        const configuration = {
+            homepage: 'https://example.org',
+            description: 'admin@example.com',
+            sources: [{ source: 'list.txt' }],
+        };
+
+        const sanitized = utils.sanitizeConfigurationForLog(configuration);
+        const dump = JSON.stringify(sanitized, 0, 4);
+
+        expect(dump).toBe(JSON.stringify(configuration, 0, 4));
+    });
+
+    it('does not change a rendered configuration that has no credentials', () => {
+        const configuration = {
+            homepage: 'https://example.org',
+            exclusions: ['@@||good.example^'],
+            sources: [{ source: 'lists/a.txt' }],
+        };
+
+        const dump = JSON.stringify(utils.sanitizeConfigurationForLog(configuration), 0, 4);
+
+        expect(dump).toBe(JSON.stringify(configuration, 0, 4));
+    });
+
+    it('sanitizes a credentialed source in a rendered configuration with exclusions', () => {
+        const configuration = {
+            homepage: 'https://example.org',
+            exclusions: ['@@||good.example^'],
+            sources: [{ source: 'https://user:secret@example.org/list.txt' }],
+        };
+
+        const dump = JSON.stringify(utils.sanitizeConfigurationForLog(configuration), 0, 4);
+
+        expect(dump).toContain('"homepage": "https://example.org"');
+        expect(dump).toContain('"@@||good.example^"');
+        expect(dump).toContain('"source": "https://example.org/list.txt"');
+        expect(dump).not.toContain('secret');
+    });
+
+    it('sanitizes a URL object, a serialized value, and URL-like keys', () => {
+        class Serialized {
+            toJSON() {
+                return 'https://user:secret@example.org/serialized.txt';
+            }
+        }
+
+        const configuration = {
+            homepage: new URL('https://user:secret@example.org/'),
+            description: new Serialized(),
+            'https://user:secret@example.org/key.txt': 'value',
+            sources: [{ source: 'https://example.org/list.txt' }],
+        };
+
+        const dump = JSON.stringify(utils.sanitizeConfigurationForLog(configuration));
+
+        expect(dump).toContain('"homepage":"https://example.org/"');
+        expect(dump).toContain('"description":"https://example.org/serialized.txt"');
+        expect(dump).toContain('"https://example.org/key.txt":"value"');
+        expect(dump).not.toContain('secret');
+    });
+
+    it('sanitizes URL-like keys introduced by toJSON', () => {
+        class Configuration {
+            toJSON() {
+                return {
+                    'https://user:secret@example.org/key.txt': 'value',
+                };
+            }
+        }
+
+        const dump = JSON.stringify(utils.sanitizeConfigurationForLog(new Configuration()));
+
+        expect(dump).toContain('"https://example.org/key.txt":"value"');
+        expect(dump).not.toContain('secret');
+    });
+
+    it('does not change the original configuration', () => {
+        const configuration = {
+            homepage: new URL('https://user:secret@example.org/'),
+        };
+
+        utils.sanitizeConfigurationForLog(configuration);
+
+        expect(configuration.homepage.href).toBe('https://user:secret@example.org/');
     });
 });
 

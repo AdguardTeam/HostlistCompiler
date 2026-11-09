@@ -625,6 +625,12 @@ function stripUrlCredentialsWithMode(url, mode) {
  * a string. Use this for free text and for values of an unknown shape: the
  * function keeps prose that contains an email address unchanged.
  *
+ * Do not scan a rendered document with this function, for example
+ * `JSON.stringify(configuration)`. A path-less URL can make the text up to a
+ * later `@` look like userinfo and corrupt the document. Use
+ * `sanitizeConfigurationForLog()` for a configuration dump or a validation
+ * error.
+ *
  * @param {String} url - string that may contain URLs with credentials.
  * @returns {String} the string without the userinfo components, or the input
  * unchanged when it has no URL with userinfo.
@@ -1000,6 +1006,40 @@ function stripConfigurationCredentials(configuration) {
 }
 
 /**
+ * Returns a JSON-safe copy of a configuration with credentials removed from
+ * every string and object key. Use the copy for the configuration log, the
+ * verbose CLI dump, and validation errors that render the configuration.
+ *
+ * `stripConfigurationCredentials()` works on the object graph, so it cannot see
+ * the strings that a `toJSON()` method or a `URL` object renders, and
+ * `JSON.stringify()` renders object keys without passing them to a replacer.
+ * This function serializes the sanitized copy with a replacer, parses the
+ * result back into plain data, and sanitizes the parsed copy too. The output is
+ * plain JSON data, so a caller can render it without a second scan of the
+ * whole document. A second scan would treat the text between a path-less URL
+ * and a later `@` as userinfo and corrupt the document.
+ *
+ * @param {*} configuration - compilation configuration.
+ * @returns {*} JSON-safe sanitized copy of the configuration.
+ */
+function sanitizeConfigurationForLog(configuration) {
+    const sanitized = stripConfigurationCredentials(configuration);
+    // A replacer sees each rendered string after `toJSON()`, so it also covers
+    // `URL` objects and class instances. Object keys do not reach the replacer.
+    const json = JSON.stringify(sanitized, (key, value) => (
+        _.isString(value) ? stripUrlValueCredentials(value) : value
+    ));
+
+    if (json === undefined) {
+        return sanitized;
+    }
+
+    // The parsed copy is plain data. Run the sanitizer again to reach keys and
+    // known URL fields that `toJSON()` introduced.
+    return stripConfigurationCredentials(JSON.parse(json));
+}
+
+/**
  * Wildcard is used by the exclusions transformation.
  */
 class Wildcard {
@@ -1111,5 +1151,6 @@ module.exports = {
     stripUrlValueCredentials,
     stripKnownUrlCredentials,
     stripConfigurationCredentials,
+    sanitizeConfigurationForLog,
     stripErrorCredentials,
 };

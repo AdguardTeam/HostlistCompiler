@@ -321,6 +321,25 @@ describe('Configuration', () => {
         expect(ret.errorsText).toContain(description);
     });
 
+    it('does not corrupt a validation error with a path-less URL and a later email', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            homepage: 'https://example.org',
+            description: 'admin@example.com',
+            sources: [
+                {
+                    source: 'test.txt',
+                    transformations: ['NoSuchTransformation'],
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).toContain('"homepage":"https://example.org"');
+        expect(ret.errorsText).toContain('"description":"admin@example.com"');
+        expect(ret.errorsText).toContain('"source":"test.txt"');
+    });
+
     it('does not include a literal @ password from a path-less malformed source', () => {
         const ret = config.validateConfiguration({
             name: 'test',
