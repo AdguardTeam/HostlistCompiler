@@ -1209,4 +1209,11 @@ module.exports = {
     stripConfigurationCredentials,
     sanitizeConfigurationForLog,
     stripErrorCredentials,
+    // Exported so a test can pin them to the configuration schema. A key added
+    // to the schema without a matching update here would silently change which
+    // strings use the strict parser.
+    URL_VALUE_FIELDS,
+    URL_LIST_FIELDS,
+    CONFIGURATION_KEYS,
+    SOURCE_KEYS,
 };

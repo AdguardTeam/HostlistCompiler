@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this, max-classes-per-file */
 const utils = require('../src/utils');
+const configurationSchema = require('../src/schemas/configuration.schema');
 
 const { Wildcard } = utils;
 
@@ -1116,5 +1117,20 @@ describe('stripConfigurationCredentials with nested URLs', () => {
         expect(configuration.homepage).toBe(
             'https://proxy.example.org/fetch?u=https://user:secret@raw.example.org/list.txt',
         );
+    });
+});
+
+describe('credential field sets', () => {
+    it('matches the configuration schema key sets', () => {
+        expect([...utils.CONFIGURATION_KEYS].sort())
+            .toEqual(Object.keys(configurationSchema.properties).sort());
+        expect([...utils.SOURCE_KEYS].sort())
+            .toEqual(Object.keys(configurationSchema.definitions.source.properties).sort());
+    });
+
+    it('pins the URL field sets', () => {
+        expect([...utils.URL_VALUE_FIELDS].sort()).toEqual(['homepage', 'source']);
+        expect([...utils.URL_LIST_FIELDS].sort())
+            .toEqual(['exclusions_sources', 'inclusions_sources', 'sources']);
     });
 });
