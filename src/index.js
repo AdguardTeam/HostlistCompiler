@@ -26,20 +26,20 @@ const packageVersion = packageJson.version || '0.0.0';
 function prepareHeader(configuration) {
     const lines = [
         '!',
-        `! Title: ${stripKnownUrlCredentials(configuration.name)}`,
+        `! Title: ${stripUrlValueCredentials(configuration.name)}`,
     ];
 
     if (!_.isEmpty(configuration.description)) {
         lines.push(`! Description: ${stripUrlValueCredentials(configuration.description)}`);
     }
     if (!_.isEmpty(configuration.version)) {
-        lines.push(`! Version: ${stripKnownUrlCredentials(configuration.version)}`);
+        lines.push(`! Version: ${stripUrlValueCredentials(configuration.version)}`);
     }
     if (!_.isEmpty(configuration.homepage)) {
         lines.push(`! Homepage: ${stripKnownUrlCredentials(configuration.homepage)}`);
     }
     if (!_.isEmpty(configuration.license)) {
-        lines.push(`! License: ${stripKnownUrlCredentials(configuration.license)}`);
+        lines.push(`! License: ${stripUrlValueCredentials(configuration.license)}`);
     }
 
     lines.push(`! Last modified: ${(new Date()).toISOString()}`);

@@ -288,6 +288,20 @@ describe('Hostlist compiler', () => {
         expect(header).toContain(`! Description: ${description}`);
     });
 
+    it('keeps prose around a URL in the title, version, and license headers', async () => {
+        const prose = 'https://example.org by admin@example.com';
+        const list = await compile({
+            name: `My list ${prose}`,
+            version: `1.0 ${prose}`,
+            license: `See ${prose}`,
+            sources: [{ source: 'test/resources/rules.txt' }],
+        });
+
+        expect(list).toContain(`! Title: My list ${prose}`);
+        expect(list).toContain(`! Version: 1.0 ${prose}`);
+        expect(list).toContain(`! License: See ${prose}`);
+    });
+
     it('does not expose a quote in a source username in the compiled list or logs', async () => {
         const authorization = `Basic ${Buffer.from("o'brien:secret").toString('base64')}`;
         const scope = mockHttp('https://example.org')
