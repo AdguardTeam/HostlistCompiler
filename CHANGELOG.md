@@ -19,8 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   treated as plain text instead of failing with
   `filter.trim is not a function`. A JSON file served as `text/plain` now
   adds its content to the list. [#130]
-- The internal configuration schema moved from `src/schemas/configuration.schema.json` to
-  `src/schemas/configuration.schema.js`; the documented API is unchanged.
+- The internal configuration schema moved from `src/schemas/configuration.schema.json`
+  to `src/schemas/configuration.schema.js`; the documented API is unchanged.
 
 ### Deprecated
 
