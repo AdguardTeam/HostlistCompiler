@@ -293,6 +293,16 @@ describe('Hostlist compiler', () => {
             'Mirror https://example.org by admin@example.com',
         ],
         [
+            'a whitespace password with a quote in the username',
+            "Mirror https://o'brien:pass phrase@example.org",
+            'Mirror https://example.org',
+        ],
+        [
+            'a whitespace password with a space in the username',
+            'Mirror https://John Smith:pass phrase@example.org',
+            'Mirror https://example.org',
+        ],
+        [
             'a numeric password followed by punctuation',
             'Mirror https://user:1234, secret@example.org/list.txt',
             'Mirror https://example.org/list.txt',
@@ -311,6 +321,23 @@ describe('Hostlist compiler', () => {
 
     it('keeps prose with a port in the description header', async () => {
         const description = 'Mirror at https://example.org:8080, contact admin@example.com';
+        const list = await compile({
+            name: 'Test filter',
+            description,
+            sources: [{ source: 'test/resources/rules.txt' }],
+        });
+        const header = list.slice(0, 10).join('\n');
+
+        expect(header).toContain(`! Description: ${description}`);
+    });
+
+    it.each([
+        'https://example.org for more info, contact admin@example.org/help.',
+        'See https://example.org or mailto:admin@example.com for support',
+        'See https://example.org or e-mail:admin@example.com for support',
+        'See https://example.org or Email:admin@example.com for support',
+        'Homepage "https://example.org". Contact: admin@example.com. Thanks!',
+    ])('keeps prose that follows a path-less URL in the description header: %s', async (description) => {
         const list = await compile({
             name: 'Test filter',
             description,

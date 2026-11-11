@@ -268,6 +268,38 @@ describe('stripUrlCredentials', () => {
             'https://example.org by admin@example.com',
         ],
         [
+            "https://o'brien:pass phrase@example.org",
+            'https://example.org',
+        ],
+        [
+            'https://John Smith:pass phrase@example.org',
+            'https://example.org',
+        ],
+        [
+            "https://o'brien:pass phrase@example.org by admin@example.com",
+            'https://example.org by admin@example.com',
+        ],
+        [
+            'https://example.org for more info, contact admin@example.org/help.',
+            'https://example.org for more info, contact admin@example.org/help.',
+        ],
+        [
+            'See https://example.org or mailto:admin@example.com for support',
+            'See https://example.org or mailto:admin@example.com for support',
+        ],
+        [
+            'See https://example.org or e-mail:admin@example.com for support',
+            'See https://example.org or e-mail:admin@example.com for support',
+        ],
+        [
+            'See https://example.org or Email:admin@example.com for support',
+            'See https://example.org or Email:admin@example.com for support',
+        ],
+        [
+            'Homepage "https://example.org". Contact: admin@example.com. Thanks!',
+            'Homepage "https://example.org". Contact: admin@example.com. Thanks!',
+        ],
+        [
             'Filter list for Corp. Homepage: https://example.org. Contact: admin@example.com',
             'Filter list for Corp. Homepage: https://example.org. Contact: admin@example.com',
         ],
@@ -333,10 +365,20 @@ describe('stripUrlCredentials', () => {
         const plainText = 'a'.repeat(200_000);
         const longPassword = 'b'.repeat(200_000);
         const credentialedUrl = `https://reader:${longPassword}@example.org/list.txt`;
+        // Every URL start used to rescan the rest of the string for the
+        // authority end, and the strict parser scanned back to index 0 when
+        // the input had no `@`. Both scans must use the lookup tables.
+        const repeatedUrlStarts = 'https:a '.repeat(20_000);
+        // The value parser must not scan the text up to a far `@` for every
+        // URL start.
+        const proseWithEmail = `${'https:example.org '.repeat(10_000)}admin@example.com`;
         const startedAt = Date.now();
 
         expect(utils.stripUrlCredentials(plainText)).toBe(plainText);
         expect(utils.stripUrlCredentials(credentialedUrl)).toBe('https://example.org/list.txt');
+        expect(utils.stripUrlCredentials(repeatedUrlStarts)).toBe(repeatedUrlStarts);
+        expect(utils.stripKnownUrlCredentials(repeatedUrlStarts)).toBe(repeatedUrlStarts);
+        expect(utils.stripUrlCredentials(proseWithEmail)).toBe(proseWithEmail);
         expect(Date.now() - startedAt).toBeLessThan(3000);
     });
 });
@@ -520,6 +562,38 @@ describe('stripUrlValueCredentials', () => {
             'https://example.org by admin@example.com',
         ],
         [
+            "https://o'brien:pass phrase@example.org",
+            'https://example.org',
+        ],
+        [
+            'https://John Smith:pass phrase@example.org',
+            'https://example.org',
+        ],
+        [
+            "https://o'brien:pass phrase@example.org by admin@example.com",
+            'https://example.org by admin@example.com',
+        ],
+        [
+            'https://example.org for more info, contact admin@example.org/help.',
+            'https://example.org for more info, contact admin@example.org/help.',
+        ],
+        [
+            'See https://example.org or mailto:admin@example.com for support',
+            'See https://example.org or mailto:admin@example.com for support',
+        ],
+        [
+            'See https://example.org or e-mail:admin@example.com for support',
+            'See https://example.org or e-mail:admin@example.com for support',
+        ],
+        [
+            'See https://example.org or Email:admin@example.com for support',
+            'See https://example.org or Email:admin@example.com for support',
+        ],
+        [
+            'Homepage "https://example.org". Contact: admin@example.com. Thanks!',
+            'Homepage "https://example.org". Contact: admin@example.com. Thanks!',
+        ],
+        [
             'Filter list for Corp. Homepage: https://example.org. Contact: admin@example.com',
             'Filter list for Corp. Homepage: https://example.org. Contact: admin@example.com',
         ],
@@ -570,6 +644,13 @@ describe('stripUrlValueCredentials', () => {
     it('returns a non-string value unchanged', () => {
         expect(utils.stripUrlValueCredentials(undefined)).toBeUndefined();
         expect(utils.stripUrlValueCredentials(null)).toBeNull();
+    });
+
+    it('strips credentials when the path contains @', () => {
+        expect(utils.stripUrlValueCredentials('https://John Smith:secret@example.org/list@with@at.txt'))
+            .toBe('https://example.org/list@with@at.txt');
+        expect(utils.stripUrlValueCredentials("https://o'brien:secret@example.org/list@with@at.txt"))
+            .toBe('https://example.org/list@with@at.txt');
     });
 });
 
