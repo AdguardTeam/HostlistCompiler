@@ -108,6 +108,30 @@ describe('stripUrlCredentials', () => {
             'https://example.org/list.txt',
         ],
         [
+            "https://o'brien:p@ssw0rd@example.org/list.txt",
+            'https://example.org/list.txt',
+        ],
+        [
+            "https://o'brien:p@ssw0rd@example.org",
+            'https://example.org',
+        ],
+        [
+            'https://John Smith:p@ss@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://John Smith:p@ss@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://J. Smith:secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://J. Smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
             '"https://o\'brien:secret@example.org"',
             '"https://example.org"',
         ],
@@ -472,6 +496,54 @@ describe('stripUrlValueCredentials', () => {
         [
             'https://John Smith:secret@example.org/list.txt',
             'https://example.org/list.txt',
+        ],
+        [
+            "https://o'brien:p@ssw0rd@example.org/list.txt",
+            'https://example.org/list.txt',
+        ],
+        [
+            "https://o'brien:p@ssw0rd@example.org",
+            'https://example.org',
+        ],
+        [
+            'https://John Smith:p@ss@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://John Smith:p@ss@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://J. Smith:secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://J. Smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            "https://o'brien:p@ssw0rd@example.org/list.txt",
+            'https://example.org/list.txt',
+        ],
+        [
+            "https://o'brien:p@ssw0rd@example.org",
+            'https://example.org',
+        ],
+        [
+            'https://John Smith:p@ss@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://John Smith:p@ss@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://J. Smith:secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://J. Smith:secret@example.org',
+            'https://example.org',
         ],
         [
             'https://user: secret@example.org/list.txt',

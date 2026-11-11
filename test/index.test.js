@@ -307,6 +307,31 @@ describe('Hostlist compiler', () => {
             'Mirror https://user:1234, secret@example.org/list.txt',
             'Mirror https://example.org/list.txt',
         ],
+        [
+            'an initial-style username with a path',
+            'Mirror https://J. Smith:secret@example.org/list.txt',
+            'Mirror https://example.org/list.txt',
+        ],
+        [
+            'an initial-style username before trailing text',
+            'Mirror https://J. Smith:sekret@example.org by admin@example.com',
+            'Mirror https://example.org by admin@example.com',
+        ],
+        [
+            'a literal @ password with a quote in the username',
+            "Mirror https://o'brien:p@ssw0rd@example.org/list.txt",
+            'Mirror https://example.org/list.txt',
+        ],
+        [
+            'a literal @ password with a space in the username',
+            'Mirror https://John Smith:p@ss@example.org/list.txt',
+            'Mirror https://example.org/list.txt',
+        ],
+        [
+            'a literal @ password in a path-less value',
+            'Mirror https://John Smith:p@ss@example.org',
+            'Mirror https://example.org',
+        ],
     ])('does not expose %s in the description header', async (_, description, sanitized) => {
         const list = await compile({
             name: 'Test filter',

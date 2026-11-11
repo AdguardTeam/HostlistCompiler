@@ -374,24 +374,31 @@ function looksLikeUserinfo(text, start, end, firstTerminator) {
 }
 
 /**
- * Checks whether the first word of a value looks like the host of a URL.
- * Punctuation after the host, for example at the end of a sentence, is
- * ignored. A bracketed IPv6 literal is kept intact, because its closing `]`
- * belongs to the host.
+ * Extracts the first word of a value for host checks. Punctuation after a
+ * host, for example at the end of a sentence, is ignored. A bracketed IPv6
+ * literal is kept intact, because its closing `]` belongs to the host.
+ *
+ * @param {String} value - the text to check.
+ * @returns {String} the first word without trailing punctuation.
+ */
+function firstWordOf(value) {
+    const firstWordMatch = value.trim().split(/\s+/, 1)[0];
+    const bracketedHostEnd = firstWordMatch.startsWith('[') ? firstWordMatch.indexOf(']') : -1;
+
+    return bracketedHostEnd === -1
+        ? firstWordMatch.replace(/[.,;!?)\]}"'>]+$/, '')
+        : firstWordMatch.slice(0, bracketedHostEnd + 1);
+}
+
+/**
+ * Checks whether the first word of a value looks like the host of a URL:
+ * a dotted name, `localhost`, or an IP literal.
  *
  * @param {String} value - the text to check.
  * @returns {Boolean} true if the first word looks like a host.
  */
 function startsWithHost(value) {
-    const firstWordMatch = value.trim().split(/\s+/, 1)[0];
-    const bracketedHostEnd = firstWordMatch.startsWith('[') ? firstWordMatch.indexOf(']') : -1;
-    const firstWord = bracketedHostEnd === -1
-        ? firstWordMatch.replace(/[.,;!?)\]}"'>]+$/, '')
-        : firstWordMatch.slice(0, bracketedHostEnd + 1);
-    const firstWordHadPunctuation = firstWord !== firstWordMatch;
-
-    return looksLikeHost(firstWord)
-        || (firstWordHadPunctuation && /^[a-z0-9-]+$/i.test(firstWord));
+    return looksLikeHost(firstWordOf(value));
 }
 
 /**
@@ -459,11 +466,17 @@ function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd, sca
     // `{"homepage":"https://example.org","exclusions":["@@||good.example^"]}`
     // unchanged.
     const terminator = Math.min(scan.nextTerminators[firstUserinfoEnd + 1], authorityEnd);
+    // When the text after the first `@` runs straight into a path, query, or
+    // fragment, the whole prefix is a URL and the password can contain a
+    // literal `@`. The last `@` before the authority end separates the
+    // userinfo from the host, so an intermediate `@` is not prose.
+    const runsIntoPath = authorityEnd < text.length
+        && scan.nextTerminators[firstUserinfoEnd + 1] >= authorityEnd;
 
     if (terminator < text.length) {
         const host = text.slice(firstUserinfoEnd + 1, terminator);
 
-        if (host.length === 0 || host.includes('@')) {
+        if (host.length === 0 || (host.includes('@') && !runsIntoPath)) {
             return false;
         }
     }
