@@ -362,6 +362,10 @@ describe('Hostlist compiler', () => {
         'See https://example.org or e-mail:admin@example.com for support',
         'See https://example.org or Email:admin@example.com for support',
         'Homepage "https://example.org". Contact: admin@example.com. Thanks!',
+        'Сайт https://фильтры.рф Контакты: пишите на admin@example.org',
+        'List for https://intranet Contact: admin@example.org',
+        'List for https://my_host.org Contact: admin@example.org',
+        'List for https://x Contact: admin@example.org',
     ])('keeps prose that follows a path-less URL in the description header: %s', async (description) => {
         const list = await compile({
             name: 'Test filter',

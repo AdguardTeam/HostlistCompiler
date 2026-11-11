@@ -287,7 +287,9 @@ function looksLikeHost(value) {
         return true;
     }
 
-    return /^(?:[a-z0-9-]+\.)+[a-z0-9-]+$/i.test(value);
+    // Hostnames can be internationalized and can contain underscores, for
+    // example an intranet host such as `my_host.org` or `фильтры.рф`.
+    return /^(?:[\p{L}\p{N}_-]+\.)+[\p{L}\p{N}_-]+$/iu.test(value);
 }
 
 /**
@@ -402,6 +404,19 @@ function startsWithHost(value) {
 }
 
 /**
+ * Checks whether the first word of a value looks like a single-label intranet
+ * host. A dotted name, `localhost`, and an IP literal are handled by
+ * `startsWithHost()`. The word must be lowercase, because a capitalized single
+ * word is a person's name in a username such as `John Smith` or `J. Smith`.
+ *
+ * @param {String} value - the text to check.
+ * @returns {Boolean} true if the first word looks like an intranet host.
+ */
+function startsWithIntranetHost(value) {
+    return /^\p{Ll}[\p{L}\p{N}_-]*$/u.test(firstWordOf(value));
+}
+
+/**
  * Checks whether the text before the first `@` is a URL with userinfo rather
  * than prose. The text must contain a password colon with a value after it. A
  * port, and a host-like first word followed by a label, are prose. A password
@@ -422,8 +437,9 @@ function startsWithHost(value) {
  * @param {Number} start - index right after the URL prefix.
  * @param {Number} firstUserinfoEnd - index of the first `@`.
  * @param {Number} authorityEnd - index where the authority ends.
- * @param {{ nextTerminators: Array<Number>, nextNonWhitespace: Array<Number> }}
- * scan - lookup tables built by `buildAuthorityScan()`.
+ * @param {{ nextTerminators: Array<Number>, nextNonWhitespace: Array<Number>,
+ * nextSpaces: Array<Number>, previousSpaces: Array<Number> }} scan - lookup
+ * tables built by `buildAuthorityScan()`.
  * @returns {Boolean} true if the text looks like a URL with userinfo.
  */
 function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd, scan) {
@@ -453,8 +469,20 @@ function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd, sca
     // host, so this also keeps `https://example.org or mailto:admin@example.com`
     // and `Homepage "https://example.org". Contact: admin@example.com`
     // unchanged. A username such as `John Smith` does not start with a host,
-    // so `https://John Smith: secret@example.org` is still userinfo.
-    if (firstTerminator < colonIndex && startsWithHost(text.slice(start, firstTerminator))) {
+    // so `https://John Smith: secret@example.org` is still userinfo. A
+    // single-label intranet host also requires a label word that does not start
+    // with a lowercase letter, so a lowercase username such as
+    // `https://admin user:secret@example.org` stays userinfo while
+    // `https://x Contact: admin@example.org` and a caseless label such as
+    // `https://x 联系: admin@example.org` are prose.
+    const firstWordEnd = Math.min(scan.nextSpaces[start], firstUserinfoEnd);
+    const firstWord = text.slice(start, firstWordEnd);
+    const label = text.slice(scan.previousSpaces[colonIndex] + 1, colonIndex);
+    const hasLabelWord = label.length > 0 && !/^\p{Ll}/u.test(label);
+    const isProseHost = startsWithHost(firstWord)
+        || (hasLabelWord && startsWithIntranetHost(firstWord));
+
+    if (firstWordEnd < colonIndex && isProseHost) {
         return false;
     }
 
@@ -577,27 +605,39 @@ function findUrlStart(text, from) {
  * many URL starts is scanned in linear time. `authorityEnds[i]` is the first
  * `/`, `\`, `?`, or `#` at or after `i`, `atPositions` holds the sorted
  * positions of every `@`, `nextTerminators[i]` is the first whitespace, quote,
- * or angle bracket at or after `i`, and `nextNonWhitespace[i]` is the first
- * non-whitespace character at or after `i`.
+ * or angle bracket at or after `i`, `nextNonWhitespace[i]` is the first
+ * non-whitespace character at or after `i`, `nextSpaces[i]` is the first
+ * whitespace character at or after `i`, and `previousSpaces[i]` is the last
+ * whitespace character before `i`.
  *
  * @param {String} text - the string being scanned.
  * @returns {{ authorityEnds: Array<Number>, atPositions: Array<Number>,
- * nextTerminators: Array<Number>, nextNonWhitespace: Array<Number> }} the
- * lookup tables.
+ * nextTerminators: Array<Number>, nextNonWhitespace: Array<Number>,
+ * nextSpaces: Array<Number>, previousSpaces: Array<Number> }} the lookup
+ * tables.
  */
 function buildAuthorityScan(text) {
     const authorityEnds = new Array(text.length + 1);
     const nextTerminators = new Array(text.length + 1);
     const nextNonWhitespace = new Array(text.length + 1);
+    const nextSpaces = new Array(text.length + 1);
+    const previousSpaces = new Array(text.length + 1);
     authorityEnds[text.length] = text.length;
     nextTerminators[text.length] = text.length;
     nextNonWhitespace[text.length] = text.length;
+    nextSpaces[text.length] = text.length;
+    previousSpaces[0] = -1;
 
     for (let i = text.length - 1; i >= 0; i -= 1) {
         const char = text[i];
         authorityEnds[i] = endsUrlAuthority(char) ? i : authorityEnds[i + 1];
         nextTerminators[i] = endsUrlAuthorityBeforeUserinfo(char) ? i : nextTerminators[i + 1];
         nextNonWhitespace[i] = /\s/.test(char) ? nextNonWhitespace[i + 1] : i;
+        nextSpaces[i] = /\s/.test(char) ? i : nextSpaces[i + 1];
+    }
+
+    for (let i = 0; i < text.length; i += 1) {
+        previousSpaces[i + 1] = /\s/.test(text[i]) ? i : previousSpaces[i];
     }
 
     const atPositions = [];
@@ -612,6 +652,8 @@ function buildAuthorityScan(text) {
         atPositions,
         nextTerminators,
         nextNonWhitespace,
+        nextSpaces,
+        previousSpaces,
     };
 }
 
@@ -623,7 +665,8 @@ function buildAuthorityScan(text) {
  * @param {Number} start - index right after the URL prefix.
  * @param {String} mode - one of `URL_AUTHORITY_MODE`.
  * @param {{ authorityEnds: Array<Number>, atPositions: Array<Number>,
- * nextTerminators: Array<Number>, nextNonWhitespace: Array<Number> }} scan -
+ * nextTerminators: Array<Number>, nextNonWhitespace: Array<Number>,
+ * nextSpaces: Array<Number>, previousSpaces: Array<Number> }} scan -
  * lookup tables built by `buildAuthorityScan()`.
  * @returns {{ value: String, rawEnd: Number }} the sanitized authority and the
  * index where it ends.

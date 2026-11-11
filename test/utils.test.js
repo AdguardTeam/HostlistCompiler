@@ -132,6 +132,14 @@ describe('stripUrlCredentials', () => {
             'https://example.org',
         ],
         [
+            'https://admin user:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://john smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
             '"https://o\'brien:secret@example.org"',
             '"https://example.org"',
         ],
@@ -202,6 +210,30 @@ describe('stripUrlCredentials', () => {
         [
             'https://example.org is maintained by user@example.com',
             'https://example.org is maintained by user@example.com',
+        ],
+        [
+            'Сайт https://фильтры.рф Контакты: пишите на admin@example.org',
+            'Сайт https://фильтры.рф Контакты: пишите на admin@example.org',
+        ],
+        [
+            'List for https://intranet Contact: admin@example.org',
+            'List for https://intranet Contact: admin@example.org',
+        ],
+        [
+            'List for https://intranet Contact:admin@example.org',
+            'List for https://intranet Contact:admin@example.org',
+        ],
+        [
+            'List for https://my_host.org Contact: admin@example.org',
+            'List for https://my_host.org Contact: admin@example.org',
+        ],
+        [
+            'List for https://x Contact: admin@example.org',
+            'List for https://x Contact: admin@example.org',
+        ],
+        [
+            'List for https://x 联系: admin@example.org',
+            'List for https://x 联系: admin@example.org',
         ],
         [
             'https://example.org, see foo@bar.com',
@@ -486,6 +518,30 @@ describe('stripUrlValueCredentials', () => {
             'https://example.org is maintained by user@example.com',
         ],
         [
+            'Сайт https://фильтры.рф Контакты: пишите на admin@example.org',
+            'Сайт https://фильтры.рф Контакты: пишите на admin@example.org',
+        ],
+        [
+            'List for https://intranet Contact: admin@example.org',
+            'List for https://intranet Contact: admin@example.org',
+        ],
+        [
+            'List for https://intranet Contact:admin@example.org',
+            'List for https://intranet Contact:admin@example.org',
+        ],
+        [
+            'List for https://my_host.org Contact: admin@example.org',
+            'List for https://my_host.org Contact: admin@example.org',
+        ],
+        [
+            'List for https://x Contact: admin@example.org',
+            'List for https://x Contact: admin@example.org',
+        ],
+        [
+            'List for https://x 联系: admin@example.org',
+            'List for https://x 联系: admin@example.org',
+        ],
+        [
             'https://example.org, see foo@bar.com',
             'https://example.org, see foo@bar.com',
         ],
@@ -518,34 +574,6 @@ describe('stripUrlValueCredentials', () => {
             'https://example.org/list.txt',
         ],
         [
-            'https://J. Smith:secret@example.org',
-            'https://example.org',
-        ],
-        [
-            "https://o'brien:p@ssw0rd@example.org/list.txt",
-            'https://example.org/list.txt',
-        ],
-        [
-            "https://o'brien:p@ssw0rd@example.org",
-            'https://example.org',
-        ],
-        [
-            'https://John Smith:p@ss@example.org/list.txt',
-            'https://example.org/list.txt',
-        ],
-        [
-            'https://John Smith:p@ss@example.org',
-            'https://example.org',
-        ],
-        [
-            'https://J. Smith:secret@example.org/list.txt',
-            'https://example.org/list.txt',
-        ],
-        [
-            'https://J. Smith:secret@example.org',
-            'https://example.org',
-        ],
-        [
             'https://user: secret@example.org/list.txt',
             'https://example.org/list.txt',
         ],
@@ -556,6 +584,22 @@ describe('stripUrlValueCredentials', () => {
         [
             'https://John Smith:secret@example.org',
             'https://example.org',
+        ],
+        [
+            'https://J. Smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://admin user:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://john smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://J. Smith:secret@example.org by admin@example.com',
+            'https://example.org by admin@example.com',
         ],
         [
             'https://user: secret@example.org',
@@ -750,6 +794,38 @@ describe('stripKnownUrlCredentials', () => {
         ],
         [
             'https://John Smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            "https://o'brien:p@ssw0rd@example.org/list.txt",
+            'https://example.org/list.txt',
+        ],
+        [
+            "https://o'brien:p@ssw0rd@example.org",
+            'https://example.org',
+        ],
+        [
+            'https://John Smith:p@ss@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://John Smith:p@ss@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://J. Smith:secret@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://J. Smith:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://admin user:secret@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://john smith:secret@example.org',
             'https://example.org',
         ],
         [
