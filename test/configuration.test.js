@@ -378,6 +378,34 @@ describe('Configuration', () => {
         expect(ret.errorsText).toContain('https://example.org/list.txt');
     });
 
+    it('does not throw on an additional property URL key with whitespace in userinfo', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [{ source: 'test.txt' }],
+            'https:John Smith:pa ss@example.org': 'value',
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('pa ss');
+        expect(ret.errorsText).toContain('https:example.org');
+    });
+
+    it('does not throw on a nested additional property URL key with a path', () => {
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    source: 'test.txt',
+                    'https://user:p"s@example.org/key.txt': 'value',
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).not.toContain('p"s');
+        expect(ret.errorsText).toContain('https://example.org/key.txt');
+    });
+
     it('does not include free-text credentials from a validation error', () => {
         const ret = config.validateConfiguration({
             name: 'test',
