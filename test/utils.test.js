@@ -934,6 +934,19 @@ describe('stripConfigurationCredentials', () => {
         expect(configuration['https://user:secret@example.org/key.txt']).toBe('value');
     });
 
+    it('sanitizes URL object keys with whitespace in userinfo', () => {
+        // Keys are never prose, so the strict parser must handle a whitespace
+        // in the username and in the password.
+        const configuration = {
+            'https:John Smith:pa ss@example.org': 'value',
+        };
+
+        const sanitized = utils.stripConfigurationCredentials(configuration);
+
+        expect(sanitized).toEqual({ 'https:example.org': 'value' });
+        expect(configuration['https:John Smith:pa ss@example.org']).toBe('value');
+    });
+
     it('sanitizes every string in malformed configuration shapes', () => {
         const configuration = {
             homepage: ['https://user:secret@example.org/'],

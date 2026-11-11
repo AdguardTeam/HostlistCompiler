@@ -900,7 +900,10 @@ function sanitizeConfigurationKeys(value, seen) {
     seen.add(value);
 
     Object.entries(value).forEach(([key, child]) => {
-        const sanitizedKey = stripUrlValueCredentials(key);
+        // Keys are never prose, so use the strict parser: a URL-like key can
+        // carry whitespace in the username and in the password, which the
+        // prose-tolerant parser would leave untouched.
+        const sanitizedKey = stripKnownUrlCredentials(key);
 
         if (sanitizedKey !== key) {
             Reflect.deleteProperty(value, key);
