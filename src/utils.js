@@ -388,7 +388,7 @@ function firstWordOf(value) {
     const bracketedHostEnd = firstWordMatch.startsWith('[') ? firstWordMatch.indexOf(']') : -1;
 
     return bracketedHostEnd === -1
-        ? firstWordMatch.replace(/[.,;!?)\]}"'>]+$/, '')
+        ? firstWordMatch.replace(/[.,;:!?)\]}"'>]+$/, '')
         : firstWordMatch.slice(0, bracketedHostEnd + 1);
 }
 
@@ -474,15 +474,35 @@ function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd, sca
     // with a lowercase letter, so a lowercase username such as
     // `https://admin user:secret@example.org` stays userinfo while
     // `https://x Contact: admin@example.org` and a caseless label such as
-    // `https://x 联系: admin@example.org` are prose.
+    // `https://x 联系: admin@example.org` are prose. A colon that follows a
+    // host directly is prose only when a label follows it, so
+    // `https://example.org: Contact admin@example.com` and
+    // `https://myhost, contact: admin@example.org` stay unchanged, while
+    // `https://example.org:secret@example.org` is still userinfo.
     const firstWordEnd = Math.min(scan.nextSpaces[start], firstUserinfoEnd);
     const firstWord = text.slice(start, firstWordEnd);
+    const beforeColon = text.slice(start, colonIndex);
+    const beforeColonWord = firstWordOf(beforeColon);
+    const rawBeforeColonWord = beforeColon.trim().split(/\s+/, 1)[0];
+    const hasPunctuatedHost = beforeColonWord !== rawBeforeColonWord
+        && /^[\p{L}\p{N}_-]+$/u.test(beforeColonWord);
     const label = text.slice(scan.previousSpaces[colonIndex] + 1, colonIndex);
     const hasLabelWord = label.length > 0 && !/^\p{Ll}/u.test(label);
-    const isProseHost = startsWithHost(firstWord)
-        || (hasLabelWord && startsWithIntranetHost(firstWord));
+    const colonFollowedByWhitespace = /\s/.test(text[colonIndex + 1]);
+    const afterColonStart = scan.nextNonWhitespace[colonIndex + 1];
+    const afterColonWord = text.slice(
+        afterColonStart,
+        Math.min(scan.nextSpaces[afterColonStart], firstUserinfoEnd),
+    );
+    const hasLabelAfterColon = afterColonWord.length > 0 && !/^\p{Ll}/u.test(afterColonWord);
+    const isProseHost = startsWithHost(beforeColon)
+        || (hasPunctuatedHost && /^\p{Ll}/u.test(label))
+        || (hasLabelWord && startsWithIntranetHost(firstWord))
+        || (colonFollowedByWhitespace
+            && hasLabelAfterColon
+            && startsWithIntranetHost(beforeColon));
 
-    if (firstWordEnd < colonIndex && isProseHost) {
+    if (isProseHost && (firstWordEnd < colonIndex || colonFollowedByWhitespace)) {
         return false;
     }
 
@@ -658,6 +678,76 @@ function buildAuthorityScan(text) {
 }
 
 /**
+ * Checks whether a host token looks like a host. The token can carry a port,
+ * for example `example.org:8080`, and a trailing colon or comma that belongs
+ * to prose, for example `example.org:` in `https://example.org: Contact ...`.
+ *
+ * @param {String} token - the host token.
+ * @returns {Boolean} true if the token looks like a host.
+ */
+function looksLikeHostToken(token) {
+    const hostName = firstWordOf(token).replace(/:\d+$/, '');
+
+    return looksLikeHost(hostName);
+}
+
+/**
+ * Finds the `@` that separates the userinfo from the host in value mode.
+ *
+ * The URL parser and the downloader accept a literal `@` inside a password, so
+ * the first `@` is not always the separator. The function keeps the first `@`
+ * when the token after it looks like a host. Otherwise it scans the later `@`
+ * positions for the first host-like token, so
+ * `https://user:p@ss word@example.org` becomes `https://example.org` instead
+ * of the partial `https://ss word@example.org`.
+ *
+ * A single-label token after the first `@` can be either the rest of a
+ * password or an intranet host followed by prose. Trailing punctuation or a
+ * label colon after the token shows prose, so the first `@` stays the
+ * separator. This keeps `https://user:secret@intranet Contact: admin@...`
+ * unchanged.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} firstUserinfoEnd - index of the first `@` in the authority.
+ * @param {Number} authorityEnd - index where the authority ends.
+ * @param {{ atPositions: Array<Number>, nextTerminators: Array<Number> }} scan -
+ * lookup tables built by `buildAuthorityScan()`.
+ * @returns {Number} the index of the `@` that separates userinfo from the
+ * host.
+ */
+function findValueUserinfoEnd(text, firstUserinfoEnd, authorityEnd, scan) {
+    const firstAtIndex = _.sortedIndex(scan.atPositions, firstUserinfoEnd);
+    const atEndIndex = _.sortedIndex(scan.atPositions, authorityEnd);
+    let fallback = firstUserinfoEnd;
+
+    for (let i = firstAtIndex; i < atEndIndex; i += 1) {
+        const at = scan.atPositions[i];
+        const terminator = Math.min(scan.nextTerminators[at + 1], authorityEnd);
+        const host = text.slice(at + 1, terminator);
+
+        if (looksLikeHostToken(host)) {
+            return at;
+        }
+
+        // A token with `@` sits inside the password, so the host still
+        // follows. An empty token means two adjacent `@` characters.
+        if (host.length > 0 && !host.includes('@')) {
+            const nextAt = i + 1 < atEndIndex ? scan.atPositions[i + 1] : authorityEnd;
+            const between = text.slice(terminator, nextAt);
+            const hasProseLabel = /[.,;:]$/u.test(host) || /\s+\S+:/u.test(between);
+
+            if (hasProseLabel) {
+                return firstUserinfoEnd;
+            }
+
+            fallback = at;
+        }
+    }
+
+    return fallback;
+}
+
+/**
  * Reads the authority component of a URL and splits it into the sanitized
  * value and the end of the URL.
  *
@@ -704,18 +794,16 @@ function readUrlAuthority(text, start, mode, scan) {
             ) || isValueUserinfo;
 
             if (isUserinfo) {
-                // Userinfo can contain quote and whitespace characters, but
-                // the host cannot. The separator is the last `@` before the
-                // first terminator after the first `@`. This also keeps a
-                // later email in prose such as `https://host and a@b` intact.
-                const terminator = Math.min(
-                    scan.nextTerminators[firstUserinfoEnd + 1],
+                // Userinfo can contain quote, whitespace, and `@` characters,
+                // but the host cannot. `findValueUserinfoEnd()` keeps a later
+                // email in prose such as `https://host and a@b` intact and
+                // also handles a literal `@` in a password.
+                userinfoEnd = findValueUserinfoEnd(
+                    text,
+                    firstUserinfoEnd,
                     authorityEnd,
+                    scan,
                 );
-                const lastAt = _.sortedLastIndex(scan.atPositions, terminator - 1) - 1;
-                userinfoEnd = lastAt >= 0 && scan.atPositions[lastAt] >= firstUserinfoEnd
-                    ? scan.atPositions[lastAt]
-                    : firstUserinfoEnd;
             }
         }
     }
@@ -787,6 +875,13 @@ function stripUrlCredentialsWithMode(url, mode) {
  * later `@` look like userinfo and corrupt the document. Use
  * `sanitizeConfigurationForLog()` for a configuration dump or a validation
  * error.
+ *
+ * The parser is a heuristic: it keeps text that reads as prose. Two shapes are
+ * lexically ambiguous and stay unresolved. The value
+ * `https://john Smith: secret@example.org` is kept as prose, so the password
+ * can survive. The value `https://user:secret@intranet by admin@example.com`
+ * is read as a credential, so the prose after the intranet host is removed.
+ * Use `stripKnownUrlCredentials()` for values that must be a URL.
  *
  * @param {String} url - string that may contain URLs with credentials.
  * @returns {String} the string without the userinfo components, or the input

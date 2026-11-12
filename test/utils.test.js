@@ -383,6 +383,34 @@ describe('stripUrlCredentials', () => {
             'https://user:secret@[2001:db8::1]. Contact: admin@example.com',
             'https://[2001:db8::1]. Contact: admin@example.com',
         ],
+        [
+            'https://user:p@ss word@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:p@ss"word@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:p@ss<word@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:p@ss word@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p@ss word@example.org by admin@example.com',
+            'https://example.org by admin@example.com',
+        ],
+        [
+            'https://example.org: Contact admin@example.com',
+            'https://example.org: Contact admin@example.com',
+        ],
+        [
+            'https://myhost, contact: admin@example.org',
+            'https://myhost, contact: admin@example.org',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlCredentials(url)).toBe(expected);
     });
@@ -753,6 +781,34 @@ describe('stripUrlValueCredentials', () => {
             'https://example.org/a,https://user:secret@raw.example.org/list.txt',
             'https://example.org/a,https://raw.example.org/list.txt',
         ],
+        [
+            'https://user:p@ss word@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:p@ss"word@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:p@ss<word@example.org',
+            'https://example.org',
+        ],
+        [
+            'https://user:p@ss word@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://user:p@ss word@example.org by admin@example.com',
+            'https://example.org by admin@example.com',
+        ],
+        [
+            'https://example.org: Contact admin@example.com',
+            'https://example.org: Contact admin@example.com',
+        ],
+        [
+            'https://myhost, contact: admin@example.org',
+            'https://myhost, contact: admin@example.org',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlValueCredentials(url)).toBe(expected);
     });
@@ -767,6 +823,40 @@ describe('stripUrlValueCredentials', () => {
             .toBe('https://example.org/list@with@at.txt');
         expect(utils.stripUrlValueCredentials("https://o'brien:secret@example.org/list@with@at.txt"))
             .toBe('https://example.org/list@with@at.txt');
+    });
+});
+
+describe('credential sanitizer prose families', () => {
+    // One row per host shape and separator. A prose tail after a path-less URL
+    // must stay unchanged, while the same value with userinfo must lose only
+    // the userinfo. The cross product closes the class that single rows missed:
+    // `https://example.org: Contact ...` and
+    // `https://myhost, contact: ...` both regressed while their neighbours
+    // passed.
+    const hosts = [
+        'example.org',
+        'intranet',
+        'my_host.org',
+        'фильтры.рф',
+        '[2001:db8::1]',
+        '127.0.0.1',
+    ];
+    const separators = [' ', ':', ',', ';', '.'];
+    const rows = hosts.flatMap((host) => separators.map((separator) => {
+        const prose = `https://${host}${separator} Contact: admin@example.org`;
+        const credentialed = `https://user:secret@${host}${separator} Contact: admin@example.org`;
+
+        return [host, separator, prose, credentialed];
+    }));
+
+    it.each(rows)('keeps prose after a %s host with the %j separator', (host, separator, prose) => {
+        expect(utils.stripUrlCredentials(prose)).toBe(prose);
+        expect(utils.stripUrlValueCredentials(prose)).toBe(prose);
+    });
+
+    it.each(rows)('redacts userinfo before a %s host with the %j separator', (host, separator, prose, credentialed) => {
+        expect(utils.stripUrlCredentials(credentialed)).toBe(prose);
+        expect(utils.stripUrlValueCredentials(credentialed)).toBe(prose);
     });
 });
 

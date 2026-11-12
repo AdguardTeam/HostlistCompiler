@@ -332,6 +332,21 @@ describe('Hostlist compiler', () => {
             'Mirror https://John Smith:p@ss@example.org',
             'Mirror https://example.org',
         ],
+        [
+            'a literal @ password followed by a space',
+            'Mirror https://user:p@ss word@example.org',
+            'Mirror https://example.org',
+        ],
+        [
+            'a literal @ password followed by a quote',
+            'Mirror https://user:p@ss"word@example.org',
+            'Mirror https://example.org',
+        ],
+        [
+            'a literal @ password followed by an angle bracket',
+            'Mirror https://user:p@ss<word@example.org',
+            'Mirror https://example.org',
+        ],
     ])('does not expose %s in the description header', async (_, description, sanitized) => {
         const list = await compile({
             name: 'Test filter',
@@ -366,6 +381,8 @@ describe('Hostlist compiler', () => {
         'List for https://intranet Contact: admin@example.org',
         'List for https://my_host.org Contact: admin@example.org',
         'List for https://x Contact: admin@example.org',
+        'https://example.org: Contact admin@example.com',
+        'https://myhost, contact: admin@example.org',
     ])('keeps prose that follows a path-less URL in the description header: %s', async (description) => {
         const list = await compile({
             name: 'Test filter',
