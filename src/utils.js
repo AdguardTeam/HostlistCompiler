@@ -58,8 +58,10 @@ const URL_PORT_REGEX = /(?<![^\s"'<>/:])(?:\[[0-9a-f:.]+\]|[^\s"'<>/:]+):\d+(?=[
  * URL, not prose, so a quote or a space in the username does not hide the
  * password.
  *
- * `STRICT` treats everything before the last `@` as userinfo, exactly as the
- * downloader does. Use it only for values that must be a URL.
+ * `STRICT` treats everything before the last `@` in the authority as userinfo,
+ * like the downloader does. It also recognizes malformed values where the
+ * password contains `?` or `#`, because the authority ends before the at sign
+ * there. Use it only for values that must be a URL.
  */
 const URL_AUTHORITY_MODE = {
     VALUE: 'value',
@@ -748,6 +750,93 @@ function findValueUserinfoEnd(text, firstUserinfoEnd, authorityEnd, scan) {
 }
 
 /**
+ * Checks whether the text after an at sign looks like the host and the rest of
+ * a URL. The check tells malformed userinfo from an at sign in a query or a
+ * fragment.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} at - index of the at sign.
+ * @param {{ nextTerminators: Array<Number> }} scan - lookup tables built by
+ * `buildAuthorityScan()`.
+ * @returns {Boolean} true if the text after the at sign looks like a URL.
+ */
+function hasUrlTailAfterAt(text, at, scan) {
+    const tail = text.slice(at + 1, scan.nextTerminators[at + 1]);
+
+    return /^[^/\\?#:]*[.:]/i.test(tail)
+        || /^localhost(?=[/\\?#])/i.test(tail)
+        || /^[^/\\?#:.]+[/\\]/.test(tail);
+}
+
+/**
+ * Checks that the text before an at sign is malformed userinfo whose password
+ * contains `?` or `#`.
+ *
+ * A dotted part before the colon is a host with a port, and `localhost` or an
+ * IPv6 literal is a host, so these values are not userinfo. The password colon
+ * must come before the first `?`, `#`, or whitespace.
+ *
+ * @param {String} userinfo - the text between the URL prefix and the at sign.
+ * @returns {Boolean} true if the text looks like malformed userinfo.
+ */
+function isMalformedStrictUserinfo(userinfo) {
+    const separatorIndex = indexOfPasswordColon(userinfo);
+
+    if (separatorIndex === -1) {
+        return false;
+    }
+
+    const ambiguousIndex = userinfo.search(/[?#\s]/);
+
+    if (ambiguousIndex !== -1 && separatorIndex > ambiguousIndex) {
+        return false;
+    }
+
+    const username = userinfo.slice(0, separatorIndex);
+
+    return !username.includes('.')
+        && username.toLowerCase() !== 'localhost'
+        && !username.startsWith('[');
+}
+
+/**
+ * Finds the at sign that separates malformed userinfo from the host when the
+ * password contains `?` or `#`.
+ *
+ * The authority ends at the first `?` or `#`, before the at sign, so the
+ * normal strict scan does not see the at sign. The downloader recognizes such
+ * values for display redaction. Accept the form only when the password colon
+ * comes before the first `?`, `#`, or whitespace, the part before the colon is
+ * not a host, and the text after the at sign looks like the rest of a URL.
+ * This keeps valid URLs with a port and an at sign in the query or fragment
+ * unchanged.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} start - index right after the URL prefix.
+ * @param {{ atPositions: Array<Number>, nextTerminators: Array<Number> }} scan -
+ * lookup tables built by `buildAuthorityScan()`.
+ * @returns {Number} the index of the at sign, or -1.
+ */
+function findMalformedStrictUserinfoEnd(text, start, scan) {
+    const lastAt = _.sortedLastIndex(scan.atPositions, text.length - 1) - 1;
+
+    for (let i = lastAt; i >= 0; i -= 1) {
+        const at = scan.atPositions[i];
+
+        if (at < start) {
+            break;
+        }
+
+        if (hasUrlTailAfterAt(text, at, scan)
+            && isMalformedStrictUserinfo(text.slice(start, at))) {
+            return at;
+        }
+    }
+
+    return -1;
+}
+
+/**
  * Reads the authority component of a URL and splits it into the sanitized
  * value and the end of the URL.
  *
@@ -766,13 +855,17 @@ function readUrlAuthority(text, start, mode, scan) {
     let userinfoEnd = -1;
 
     if (mode === URL_AUTHORITY_MODE.STRICT) {
-        // The downloader takes everything before the last `@` as userinfo.
-        // Use this only for values that must be a URL, because prose after a
-        // URL can also contain an `@`.
+        // The downloader takes everything before the last `@` in the
+        // authority as userinfo. Use this only for values that must be a URL,
+        // because prose after a URL can also contain an `@`.
         const lastAt = _.sortedLastIndex(scan.atPositions, authorityEnd - 1) - 1;
         userinfoEnd = lastAt >= 0 && scan.atPositions[lastAt] >= start
             ? scan.atPositions[lastAt]
             : -1;
+
+        if (userinfoEnd === -1) {
+            userinfoEnd = findMalformedStrictUserinfoEnd(text, start, scan);
+        }
     } else {
         // The first `@` shows where userinfo could end. `looksLikeUserinfo()`
         // rejects prose that follows a URL and contains an email address.
@@ -809,7 +902,10 @@ function readUrlAuthority(text, start, mode, scan) {
     }
 
     const authorityStart = userinfoEnd === -1 ? start : userinfoEnd + 1;
-    const rawEnd = Math.min(scan.nextTerminators[authorityStart], authorityEnd);
+    const rawEnd = Math.min(
+        scan.nextTerminators[authorityStart],
+        scan.authorityEnds[authorityStart],
+    );
 
     const value = text.slice(authorityStart, rawEnd);
 
@@ -896,9 +992,11 @@ function stripUrlCredentials(url) {
  * such as `source` or `homepage`.
  *
  * Unlike `stripUrlCredentials()`, this function has no prose guard. It treats
- * everything before the last `@` in the authority as userinfo, exactly as the
- * downloader does. Use it for known URL values, where a quote or a space in
- * the username must not hide the password.
+ * everything before the last `@` in the authority as userinfo, like the
+ * downloader does. It also recognizes malformed values where the password
+ * contains `?` or `#`: the authority ends before the at sign there, so the
+ * normal strict scan cannot see it. Use this function for known URL values,
+ * where a quote or a space in the username must not hide the password.
  *
  * @param {String} url - URL value.
  * @returns {String} the URL without the userinfo component, or the input

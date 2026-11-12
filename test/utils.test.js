@@ -970,6 +970,58 @@ describe('stripKnownUrlCredentials', () => {
         expect(utils.stripKnownUrlCredentials(url)).toBe(expected);
     });
 
+    it.each([
+        [
+            'https://user:pa?ss@example.org/f.txt',
+            'https://example.org/f.txt',
+        ],
+        [
+            'https://user:pa#ss@example.org/f.txt',
+            'https://example.org/f.txt',
+        ],
+        [
+            'http://admin:#Secret1@localhost/f.txt',
+            'http://localhost/f.txt',
+        ],
+        [
+            'http://admin:?Secret1@localhost/f.txt',
+            'http://localhost/f.txt',
+        ],
+        [
+            'https://admin:2024#Secret1@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://admin:2024?Secret1@example.org/list.txt',
+            'https://example.org/list.txt',
+        ],
+        [
+            'https://admin:2024#Secret1@fileserver/list.txt',
+            'https://fileserver/list.txt',
+        ],
+        [
+            'https://admin:2024#Secret1@example.org/path@x',
+            'https://example.org/path@x',
+        ],
+        [
+            'https://proxy.example.org/fetch?u=https://user:pa?ss@raw.example.org/list.txt',
+            'https://proxy.example.org/fetch?u=https://raw.example.org/list.txt',
+        ],
+    ])('strips a malformed password that contains ? or #: %s', (url, expected) => {
+        expect(utils.stripKnownUrlCredentials(url)).toBe(expected);
+    });
+
+    it.each([
+        'https://example.org:8080#contact@example.org',
+        'https://example.org:8080?x@y',
+        'https://example.org:?email=user@example.com',
+        'https://localhost:8080#contact@example.org',
+        'https://[::1]:8080#contact@example.org',
+        'https://admin:2024#Secret1@b',
+    ])('keeps a valid url with a port and an at sign in the query or fragment: %s', (url) => {
+        expect(utils.stripKnownUrlCredentials(url)).toBe(url);
+    });
+
     it('returns a non-string value unchanged', () => {
         expect(utils.stripKnownUrlCredentials(undefined)).toBeUndefined();
         expect(utils.stripKnownUrlCredentials(null)).toBeNull();
