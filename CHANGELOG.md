@@ -32,9 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- Credentials in configuration URLs no longer appear in the compiled list
-  (including every header field), the logs, or error messages, including
-  validation, conflict, and download errors.
+- Credentials in URL configuration fields (`source`, `homepage`, and the
+  source lists) no longer appear in the compiled list, the logs, or error
+  messages, including validation, conflict, and download errors. Free-text
+  fields use a prose-aware parser, so a credential that is lexically identical
+  to prose can still survive.
 - Updated lodash to 4.17.21 to fix the ReDoS in `_.trim`
   (GHSA-29mw-wpgm-hmr9).
 - The password in a filter URL no longer appears in

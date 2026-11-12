@@ -273,6 +273,12 @@ Universal design principles the codebase should follow:
   value that must be a URL, and `stripUrlValueCredentials()` for free text. Do
   not re-scan an already rendered document: a path-less URL can make the text
   up to a later `@` look like userinfo.
+- The free-text credential parser is a heuristic: it keeps text that reads as
+  prose. It can keep a credential that is lexically identical to prose, and it
+  can remove prose after a single-label intranet host. Do not add a one-off
+  rule for each reported shape: add a row to the host × separator family in
+  `test/utils.test.js` and document the shape in the `stripUrlCredentials()`
+  JSDoc instead.
 
 ### Testing
 
