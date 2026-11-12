@@ -1071,7 +1071,9 @@ function sanitizeConfigurationKeys(value, seen) {
 }
 
 /**
- * Configuration fields that must contain a URL.
+ * Configuration fields that must contain a URL. A test derives the set from
+ * the `x-credential-url` markers in `src/schemas/configuration.schema.js`, so
+ * a marked schema property without an entry here fails the test.
  */
 const URL_VALUE_FIELDS = new Set([
     'homepage',
@@ -1079,7 +1081,9 @@ const URL_VALUE_FIELDS = new Set([
 ]);
 
 /**
- * Configuration fields that must contain a URL or a list of URLs.
+ * Configuration fields that must contain a URL or a list of URLs. A test
+ * derives the set from the `x-credential-url` markers in
+ * `src/schemas/configuration.schema.js`.
  */
 const URL_LIST_FIELDS = new Set([
     'sources',
@@ -1413,9 +1417,9 @@ module.exports = {
     stripConfigurationCredentials,
     sanitizeConfigurationForLog,
     stripErrorCredentials,
-    // Exported so a test can pin them to the configuration schema. A key added
-    // to the schema without a matching update here would silently change which
-    // strings use the strict parser.
+    // Exported so a test can compare them with the `x-credential-url` markers
+    // in the configuration schema. A marked schema property without a matching
+    // entry would silently change which strings use the strict parser.
     URL_VALUE_FIELDS,
     URL_LIST_FIELDS,
     CONFIGURATION_KEYS,

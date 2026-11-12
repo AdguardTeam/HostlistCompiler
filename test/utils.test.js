@@ -1453,6 +1453,41 @@ describe('stripConfigurationCredentials with nested URLs', () => {
 });
 
 describe('credential field sets', () => {
+    /**
+     * Collects the fields marked with `x-credential-url` in the configuration
+     * schema. The marker is the schema-side source of truth for the strict
+     * credential parser: a new URL property must carry it, and this helper then
+     * requires the matching entry in `src/utils.js`.
+     *
+     * @param {Object} schema - the configuration schema.
+     * @returns {{ value: Array<String>, list: Array<String> }} sorted field
+     * names grouped by marker kind.
+     */
+    function collectCredentialUrlFields(schema) {
+        const value = new Set();
+        const list = new Set();
+        const propertyGroups = [
+            schema.properties,
+            schema.definitions.source.properties,
+        ];
+
+        propertyGroups.forEach((properties) => {
+            Object.entries(properties).forEach(([key, property]) => {
+                if (property['x-credential-url'] === 'value') {
+                    value.add(key);
+                }
+                if (property['x-credential-url'] === 'list') {
+                    list.add(key);
+                }
+            });
+        });
+
+        return {
+            value: [...value].sort(),
+            list: [...list].sort(),
+        };
+    }
+
     it('matches the configuration schema key sets', () => {
         expect([...utils.CONFIGURATION_KEYS].sort())
             .toEqual(Object.keys(configurationSchema.properties).sort());
@@ -1460,9 +1495,10 @@ describe('credential field sets', () => {
             .toEqual(Object.keys(configurationSchema.definitions.source.properties).sort());
     });
 
-    it('pins the URL field sets', () => {
-        expect([...utils.URL_VALUE_FIELDS].sort()).toEqual(['homepage', 'source']);
-        expect([...utils.URL_LIST_FIELDS].sort())
-            .toEqual(['exclusions_sources', 'inclusions_sources', 'sources']);
+    it('matches the URL fields marked in the configuration schema', () => {
+        const marked = collectCredentialUrlFields(configurationSchema);
+
+        expect([...utils.URL_VALUE_FIELDS].sort()).toEqual(marked.value);
+        expect([...utils.URL_LIST_FIELDS].sort()).toEqual(marked.list);
     });
 });
