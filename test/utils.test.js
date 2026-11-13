@@ -411,6 +411,10 @@ describe('stripUrlCredentials', () => {
             'https://myhost, contact: admin@example.org',
             'https://myhost, contact: admin@example.org',
         ],
+        [
+            'https://user, name:secret@example.org',
+            'https://example.org',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlCredentials(url)).toBe(expected);
     });
@@ -456,6 +460,10 @@ describe('stripUrlCredentials', () => {
         // The value parser must not scan the text up to a far `@` for every
         // URL start.
         const proseWithEmail = `${'https:example.org '.repeat(10_000)}admin@example.com`;
+        // The strict malformed-userinfo scan must stay within the value. It
+        // used to walk back to the last `@` in the whole string for every URL
+        // start, which is quadratic on many at signs.
+        const manyAtSigns = 'https:x#a@b '.repeat(20_000);
         const startedAt = Date.now();
 
         expect(utils.stripUrlCredentials(plainText)).toBe(plainText);
@@ -463,6 +471,7 @@ describe('stripUrlCredentials', () => {
         expect(utils.stripUrlCredentials(repeatedUrlStarts)).toBe(repeatedUrlStarts);
         expect(utils.stripKnownUrlCredentials(repeatedUrlStarts)).toBe(repeatedUrlStarts);
         expect(utils.stripUrlCredentials(proseWithEmail)).toBe(proseWithEmail);
+        expect(utils.stripKnownUrlCredentials(manyAtSigns)).toBe(manyAtSigns);
         expect(Date.now() - startedAt).toBeLessThan(3000);
     });
 });
@@ -809,6 +818,10 @@ describe('stripUrlValueCredentials', () => {
             'https://myhost, contact: admin@example.org',
             'https://myhost, contact: admin@example.org',
         ],
+        [
+            'https://user, name:secret@example.org',
+            'https://example.org',
+        ],
     ])('strips credentials from %s', (url, expected) => {
         expect(utils.stripUrlValueCredentials(url)).toBe(expected);
     });
@@ -996,6 +1009,22 @@ describe('stripKnownUrlCredentials', () => {
             'https://example.org/list.txt',
         ],
         [
+            'https://admin:2024#Secret1@b',
+            'https://b',
+        ],
+        [
+            'http://user:#Secret1@fileserver?format=adblock',
+            'http://fileserver?format=adblock',
+        ],
+        [
+            'http://user:?Secret1@fileserver',
+            'http://fileserver',
+        ],
+        [
+            'http://user:#Secret1@fileserver#section',
+            'http://fileserver#section',
+        ],
+        [
             'https://admin:2024#Secret1@fileserver/list.txt',
             'https://fileserver/list.txt',
         ],
@@ -1017,9 +1046,19 @@ describe('stripKnownUrlCredentials', () => {
         'https://example.org:?email=user@example.com',
         'https://localhost:8080#contact@example.org',
         'https://[::1]:8080#contact@example.org',
-        'https://admin:2024#Secret1@b',
+        'https://myhost:8080/path?email=user@example.com',
+        'https://myhost:8080/path#contact@example.org',
     ])('keeps a valid url with a port and an at sign in the query or fragment: %s', (url) => {
         expect(utils.stripKnownUrlCredentials(url)).toBe(url);
+    });
+
+    it('treats a single-label port with a query at sign as userinfo', () => {
+        // A digit-first password and a port are lexically identical. The
+        // query form has no path to tell them apart, so the password form
+        // wins to avoid a leak. The path form is kept by the path bound in
+        // the malformed-userinfo scan.
+        expect(utils.stripKnownUrlCredentials('https://myhost:8080?email=user@example.com'))
+            .toBe('https://example.com');
     });
 
     it('returns a non-string value unchanged', () => {
