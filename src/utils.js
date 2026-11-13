@@ -629,25 +629,28 @@ function findUrlStart(text, from) {
  * positions of every `@`, `nextTerminators[i]` is the first whitespace, quote,
  * or angle bracket at or after `i`, `nextNonWhitespace[i]` is the first
  * non-whitespace character at or after `i`, `nextSpaces[i]` is the first
- * whitespace character at or after `i`, and `previousSpaces[i]` is the last
- * whitespace character before `i`.
+ * whitespace character at or after `i`, `nextPathSeparators[i]` is the first
+ * `/` or `\` at or after `i`, and `previousSpaces[i]` is the last whitespace
+ * character before `i`.
  *
  * @param {String} text - the string being scanned.
  * @returns {{ authorityEnds: Array<Number>, atPositions: Array<Number>,
  * nextTerminators: Array<Number>, nextNonWhitespace: Array<Number>,
- * nextSpaces: Array<Number>, previousSpaces: Array<Number> }} the lookup
- * tables.
+ * nextSpaces: Array<Number>, nextPathSeparators: Array<Number>,
+ * previousSpaces: Array<Number> }} the lookup tables.
  */
 function buildAuthorityScan(text) {
     const authorityEnds = new Array(text.length + 1);
     const nextTerminators = new Array(text.length + 1);
     const nextNonWhitespace = new Array(text.length + 1);
     const nextSpaces = new Array(text.length + 1);
+    const nextPathSeparators = new Array(text.length + 1);
     const previousSpaces = new Array(text.length + 1);
     authorityEnds[text.length] = text.length;
     nextTerminators[text.length] = text.length;
     nextNonWhitespace[text.length] = text.length;
     nextSpaces[text.length] = text.length;
+    nextPathSeparators[text.length] = text.length;
     previousSpaces[0] = -1;
 
     for (let i = text.length - 1; i >= 0; i -= 1) {
@@ -656,6 +659,7 @@ function buildAuthorityScan(text) {
         nextTerminators[i] = endsUrlAuthorityBeforeUserinfo(char) ? i : nextTerminators[i + 1];
         nextNonWhitespace[i] = /\s/.test(char) ? nextNonWhitespace[i + 1] : i;
         nextSpaces[i] = /\s/.test(char) ? i : nextSpaces[i + 1];
+        nextPathSeparators[i] = char === '/' || char === '\\' ? i : nextPathSeparators[i + 1];
     }
 
     for (let i = 0; i < text.length; i += 1) {
@@ -675,6 +679,7 @@ function buildAuthorityScan(text) {
         nextTerminators,
         nextNonWhitespace,
         nextSpaces,
+        nextPathSeparators,
         previousSpaces,
     };
 }
@@ -808,17 +813,35 @@ function isMalformedStrictUserinfo(userinfo) {
  * values for display redaction. Accept the form only when the password colon
  * comes before the first `?`, `#`, or whitespace, the part before the colon is
  * not a host, and the text after the at sign looks like the rest of a URL.
- * This keeps valid URLs with a port and an at sign in the query or fragment
- * unchanged.
+ * A port followed by a path keeps a valid URL with an at sign in the query
+ * unchanged, for example `https://myhost:8080/path?email=user@example.com`.
+ *
+ * The search is bounded by the first value terminator and the first path
+ * separator after the authority end and starts from that bound, so a long
+ * string with many at signs is scanned once per value instead of once per at
+ * sign. The path bound matches the library parser, which stops the malformed
+ * userinfo match at a `/` or `\`.
  *
  * @param {String} text - the string being scanned.
  * @param {Number} start - index right after the URL prefix.
- * @param {{ atPositions: Array<Number>, nextTerminators: Array<Number> }} scan -
- * lookup tables built by `buildAuthorityScan()`.
+ * @param {{ atPositions: Array<Number>, nextTerminators: Array<Number>,
+ * nextPathSeparators: Array<Number> }} scan - lookup tables built by
+ * `buildAuthorityScan()`.
+ * @param {Number} authorityEnd - index where the authority ends.
  * @returns {Number} the index of the at sign, or -1.
  */
-function findMalformedStrictUserinfoEnd(text, start, scan) {
-    const lastAt = _.sortedLastIndex(scan.atPositions, text.length - 1) - 1;
+function findMalformedStrictUserinfoEnd(text, start, scan, authorityEnd) {
+    // Bound the search by the first value terminator and by the first path
+    // separator after the authority end. The library's malformed-userinfo
+    // match stops at a `/` or `\`, so an at sign in a later path is not a
+    // separator. With the single-label tail rule below, an at sign in the
+    // path would otherwise be taken as the separator.
+    const limit = Math.min(
+        scan.nextTerminators[authorityEnd],
+        scan.nextPathSeparators[authorityEnd],
+        text.length,
+    );
+    const lastAt = _.sortedLastIndex(scan.atPositions, limit - 1) - 1;
 
     for (let i = lastAt; i >= 0; i -= 1) {
         const at = scan.atPositions[i];
@@ -845,7 +868,8 @@ function findMalformedStrictUserinfoEnd(text, start, scan) {
  * @param {String} mode - one of `URL_AUTHORITY_MODE`.
  * @param {{ authorityEnds: Array<Number>, atPositions: Array<Number>,
  * nextTerminators: Array<Number>, nextNonWhitespace: Array<Number>,
- * nextSpaces: Array<Number>, previousSpaces: Array<Number> }} scan -
+ * nextSpaces: Array<Number>, nextPathSeparators: Array<Number>,
+ * previousSpaces: Array<Number> }} scan -
  * lookup tables built by `buildAuthorityScan()`.
  * @returns {{ value: String, rawEnd: Number }} the sanitized authority and the
  * index where it ends.
@@ -864,7 +888,7 @@ function readUrlAuthority(text, start, mode, scan) {
             : -1;
 
         if (userinfoEnd === -1) {
-            userinfoEnd = findMalformedStrictUserinfoEnd(text, start, scan);
+            userinfoEnd = findMalformedStrictUserinfoEnd(text, start, scan, authorityEnd);
         }
     } else {
         // The first `@` shows where userinfo could end. `looksLikeUserinfo()`
@@ -997,6 +1021,12 @@ function stripUrlCredentials(url) {
  * contains `?` or `#`: the authority ends before the at sign there, so the
  * normal strict scan cannot see it. Use this function for known URL values,
  * where a quote or a space in the username must not hide the password.
+ *
+ * A single-label host with a port and an at sign in the query but no path is
+ * lexically identical to a digit-first password. The password form wins, so
+ * such a value loses its host to avoid a leak. A path after the port tells the
+ * forms apart, so `https://myhost:8080/path?email=user@example.com` stays
+ * unchanged.
  *
  * @param {String} url - URL value.
  * @returns {String} the URL without the userinfo component, or the input
