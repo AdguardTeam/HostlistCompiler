@@ -478,9 +478,11 @@ function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd, sca
     // `https://x Contact: admin@example.org` and a caseless label such as
     // `https://x 联系: admin@example.org` are prose. A colon that follows a
     // host directly is prose only when a label follows it, so
-    // `https://example.org: Contact admin@example.com` and
-    // `https://myhost, contact: admin@example.org` stay unchanged, while
-    // `https://example.org:secret@example.org` is still userinfo.
+    // `https://example.org: Contact admin@example.com` stays unchanged and
+    // `https://example.org:secret@example.org` is still userinfo. A
+    // punctuated host word is prose only when the label colon is followed by
+    // whitespace too, so `https://myhost, contact: admin@example.org` stays
+    // unchanged while `https://user, name:secret@example.org` is userinfo.
     const firstWordEnd = Math.min(scan.nextSpaces[start], firstUserinfoEnd);
     const firstWord = text.slice(start, firstWordEnd);
     const beforeColon = text.slice(start, colonIndex);
@@ -498,7 +500,7 @@ function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd, sca
     );
     const hasLabelAfterColon = afterColonWord.length > 0 && !/^\p{Ll}/u.test(afterColonWord);
     const isProseHost = startsWithHost(beforeColon)
-        || (hasPunctuatedHost && /^\p{Ll}/u.test(label))
+        || (hasPunctuatedHost && colonFollowedByWhitespace && /^\p{Ll}/u.test(label))
         || (hasLabelWord && startsWithIntranetHost(firstWord))
         || (colonFollowedByWhitespace
             && hasLabelAfterColon
