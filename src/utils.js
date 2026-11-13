@@ -757,9 +757,16 @@ function findValueUserinfoEnd(text, firstUserinfoEnd, authorityEnd, scan) {
 }
 
 /**
- * Checks whether the text after an at sign looks like the host and the rest of
+ * Checks that the text after an at sign looks like the host and the rest of
  * a URL. The check tells malformed userinfo from an at sign in a query or a
  * fragment.
+ *
+ * The host can be followed by a path, a query, a fragment, or the end of the
+ * value. A single-label host in these forms is ambiguous with an at sign in
+ * the query or fragment of a valid URL whose host has no dot, for example
+ * `https://fileserver:?token=a@b`. A credential leak in a published list is
+ * worse than a wrong host in a display message, so the ambiguous form is
+ * treated as userinfo.
  *
  * @param {String} text - the string being scanned.
  * @param {Number} at - index of the at sign.
@@ -772,7 +779,7 @@ function hasUrlTailAfterAt(text, at, scan) {
 
     return /^[^/\\?#:]*[.:]/i.test(tail)
         || /^localhost(?=[/\\?#])/i.test(tail)
-        || /^[^/\\?#:.]+[/\\]/.test(tail);
+        || /^[^/\\?#:.]+(?:[/\\?#]|$)/.test(tail);
 }
 
 /**
