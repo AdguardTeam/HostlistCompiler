@@ -19,8 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   treated as plain text instead of failing with
   `filter.trim is not a function`. A JSON file served as `text/plain` now
   adds its content to the list. [#130]
-- The internal configuration schema moved from `src/schemas/configuration.schema.json` to
-  `src/schemas/configuration.schema.js`; the documented API is unchanged.
+- The internal configuration schema moved from `src/schemas/configuration.schema.json`
+  to `src/schemas/configuration.schema.js`; the documented API is unchanged.
 
 ### Deprecated
 
@@ -32,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Credentials in URL configuration fields (`source`, `homepage`, and the
+  source lists) no longer appear in the compiled list, the logs, or error
+  messages, including validation, conflict, and download errors. Free-text
+  fields use a prose-aware parser, so a credential that is lexically identical
+  to prose can still survive.
 - Updated lodash to 4.17.21 to fix the ReDoS in `_.trim`
   (GHSA-29mw-wpgm-hmr9).
 - The password in a filter URL no longer appears in

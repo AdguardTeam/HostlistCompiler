@@ -4,6 +4,11 @@ const config = require('./configuration');
 const compileSource = require('./compile-source');
 const { transform } = require('./transformations/transform');
 const { checkCrossLevelValidationConflicts } = require('./validation-conflicts');
+const {
+    stripUrlValueCredentials,
+    stripKnownUrlCredentials,
+    sanitizeConfigurationForLog,
+} = require('./utils');
 const packageJson = require('../package.json');
 
 // Version is not stored in the repo: CI stamps it into package.json at build
@@ -20,20 +25,20 @@ const packageVersion = packageJson.version || '0.0.0';
 function prepareHeader(configuration) {
     const lines = [
         '!',
-        `! Title: ${configuration.name}`,
+        `! Title: ${stripUrlValueCredentials(configuration.name)}`,
     ];
 
     if (!_.isEmpty(configuration.description)) {
-        lines.push(`! Description: ${configuration.description}`);
+        lines.push(`! Description: ${stripUrlValueCredentials(configuration.description)}`);
     }
     if (!_.isEmpty(configuration.version)) {
-        lines.push(`! Version: ${configuration.version}`);
+        lines.push(`! Version: ${stripUrlValueCredentials(configuration.version)}`);
     }
     if (!_.isEmpty(configuration.homepage)) {
-        lines.push(`! Homepage: ${configuration.homepage}`);
+        lines.push(`! Homepage: ${stripKnownUrlCredentials(configuration.homepage)}`);
     }
     if (!_.isEmpty(configuration.license)) {
-        lines.push(`! License: ${configuration.license}`);
+        lines.push(`! License: ${stripUrlValueCredentials(configuration.license)}`);
     }
 
     lines.push(`! Last modified: ${(new Date()).toISOString()}`);
@@ -61,9 +66,9 @@ function prepareSourceHeader(source) {
     ];
 
     if (!_.isEmpty(source.name)) {
-        lines.push(`! Source name: ${source.name}`);
+        lines.push(`! Source name: ${stripUrlValueCredentials(source.name)}`);
     }
-    lines.push(`! Source: ${source.source}`);
+    lines.push(`! Source: ${stripKnownUrlCredentials(source.source)}`);
     lines.push('!');
     return lines;
 }
@@ -85,7 +90,8 @@ async function compile(configuration) {
 
     checkCrossLevelValidationConflicts(configuration);
 
-    consola.info(`Configuration: ${JSON.stringify(configuration, 0, 4)}`);
+    const configurationDump = JSON.stringify(sanitizeConfigurationForLog(configuration), 0, 4);
+    consola.info(`Configuration: ${configurationDump}`);
 
     // This will be the final list of rules
     let finalList = [];

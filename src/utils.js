@@ -16,6 +16,59 @@ const MODIFIER_REGEX = /^[a-zA-Z0-9,=~_.-]+$/;
 const OCTET_REGEX = /^\d{1,3}$/;
 
 /**
+ * Sticky regex to match a URL scheme at the current position.
+ */
+const URL_SCHEME_REGEX = /[a-z][a-z0-9+.-]*:/iy;
+
+/**
+ * Sticky regex to match the slashes or backslashes that follow a URL scheme.
+ */
+const URL_SLASHES_REGEX = /[/\\]+/y;
+
+/**
+ * Regex to match a character that ends the authority component of a URL.
+ */
+const URL_AUTHORITY_END_REGEX = /[/\\?#]/;
+
+/**
+ * Regex to match a character that ends the authority component when it is not
+ * part of userinfo. A quote or whitespace inside userinfo is part of the URL,
+ * so the scanner decides whether it ends the URL or not.
+ */
+const URL_AUTHORITY_TERMINATOR_REGEX = /[\s"'<>]/;
+
+/**
+ * Regex to match a `token:digits` pair that can be a port in the authority
+ * text before the first `@`. The lookahead accepts a terminator or punctuation
+ * after the digits. A bracketed IPv6 literal is matched as one token.
+ *
+ * The lookbehind requires the token to start at a boundary. Without it, the
+ * regex retries from every position inside a long token, for example a long
+ * password, and the scan becomes quadratic.
+ */
+const URL_PORT_REGEX = /(?<![^\s"'<>/:])(?:\[[0-9a-f:.]+\]|[^\s"'<>/:]+):\d+(?=[\s"'<>,.;:!?()[\]{}])/gi;
+
+/**
+ * Modes for the authority parser.
+ *
+ * `VALUE` treats the text before the first `@` as userinfo only when it looks
+ * like userinfo, so it does not mangle prose that contains an email address.
+ * It also accepts userinfo when the URL has a path, query, or fragment, or when
+ * the value is a whole URL. The path or value shape shows that the text is a
+ * URL, not prose, so a quote or a space in the username does not hide the
+ * password.
+ *
+ * `STRICT` treats everything before the last `@` in the authority as userinfo,
+ * like the downloader does. It also recognizes malformed values where the
+ * password contains `?` or `#`, because the authority ends before the at sign
+ * there. Use it only for values that must be a URL.
+ */
+const URL_AUTHORITY_MODE = {
+    VALUE: 'value',
+    STRICT: 'strict',
+};
+
+/**
  * Checks if a string is a valid IPv4 octet (0-255).
  *
  * @param {string} s - The string to check.
@@ -170,6 +223,1224 @@ function splitByDelimiterWithEscapeCharacter(
 }
 
 /**
+ * Checks whether a URL scheme can start after the given character. A scheme
+ * cannot start in the middle of a word or another URL, but it can start after
+ * a slash, for example in a path such as `/https://example.org`.
+ *
+ * @param {String|undefined} char - the character before the scheme.
+ * @returns {Boolean} true if a scheme can start after the character.
+ */
+function isSchemeBoundary(char) {
+    return char === undefined || !/[a-z0-9_+.-]/i.test(char);
+}
+
+/**
+ * Checks whether a scheme-relative URL (`//host`) can start after the given
+ * character. A double slash inside a path is not a new URL, so the previous
+ * character must not be a path or scheme character.
+ *
+ * @param {String|undefined} char - the character before the double slash.
+ * @returns {Boolean} true if a scheme-relative URL can start after it.
+ */
+function isProtocolRelativeBoundary(char) {
+    return char === undefined || !/[a-z0-9_+.:/\\-]/i.test(char);
+}
+
+/**
+ * Checks whether the character ends the authority component of a URL.
+ *
+ * @param {String} char - character to check.
+ * @returns {Boolean} true if the character ends the authority.
+ */
+function endsUrlAuthority(char) {
+    return URL_AUTHORITY_END_REGEX.test(char);
+}
+
+/**
+ * Checks whether the character ends the authority component when it is not
+ * part of userinfo.
+ *
+ * @param {String} char - character to check.
+ * @returns {Boolean} true if the character ends the authority.
+ */
+function endsUrlAuthorityBeforeUserinfo(char) {
+    return URL_AUTHORITY_TERMINATOR_REGEX.test(char);
+}
+
+/**
+ * Checks whether a token looks like a host: a dotted name, `localhost`, or an
+ * IP literal. The port heuristic uses this to tell a port from a password.
+ *
+ * @param {String} value - token before a colon.
+ * @returns {Boolean} true if the token looks like a host.
+ */
+function looksLikeHost(value) {
+    if (value.startsWith('[') && value.endsWith(']')) {
+        const inner = value.slice(1, -1);
+        return inner.includes(':') && /^[0-9a-f:.]+$/i.test(inner);
+    }
+
+    if (value.toLowerCase() === 'localhost') {
+        return true;
+    }
+
+    const octets = value.split('.');
+    if (octets.length === 4 && octets.every(isValidOctet)) {
+        return true;
+    }
+
+    // Hostnames can be internationalized and can contain underscores, for
+    // example an intranet host such as `my_host.org` or `фильтры.рф`.
+    return /^(?:[\p{L}\p{N}_-]+\.)+[\p{L}\p{N}_-]+$/iu.test(value);
+}
+
+/**
+ * Checks whether the text before the first `@` in an authority contains a
+ * port. A port looks like a password, so a URL followed by prose such as
+ * `https://example.org:8080 by admin@example.com` must stay unchanged. The
+ * port can be followed by a terminator or by punctuation, and the text before
+ * the colon must look like a host. Otherwise a numeric password followed by
+ * punctuation, such as `https://user:1234, secret@example.org`, would be
+ * mistaken for a port.
+ *
+ * @param {String} value - the authority text before the first `@`.
+ * @returns {Boolean} true if the text contains a port followed by a terminator
+ * or punctuation.
+ */
+function looksLikePort(value) {
+    const ports = value.match(URL_PORT_REGEX) || [];
+
+    return ports.some((port) => looksLikeHost(port.slice(0, port.lastIndexOf(':'))));
+}
+
+/**
+ * Finds the colon that can start a password in the authority text before the
+ * first `@`. A colon inside a bracketed IPv6 literal is part of the host, not
+ * a password.
+ *
+ * @param {String} text - the string to scan.
+ * @param {Number} [start] - the index to start scanning from.
+ * @param {Number} [end] - the index to stop scanning at.
+ * @returns {Number} the index of the password colon, or -1.
+ */
+function indexOfPasswordColon(text, start = 0, end = text.length) {
+    let inBrackets = false;
+
+    for (let i = start; i < end; i += 1) {
+        const char = text[i];
+
+        if (char === '[') {
+            inBrackets = true;
+        } else if (char === ']') {
+            inBrackets = false;
+        } else if (char === ':' && !inBrackets) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/**
+ * Checks whether the text before the first `@` in an authority looks like
+ * userinfo rather than prose that follows a URL. Prose can contain whitespace
+ * and an email-like `@`, so a colon that starts a password is the signal.
+ *
+ * `user:p s s` is userinfo, and `https://example.org is maintained by
+ * user@example.com` is prose. A colon that is followed by whitespace starts a
+ * label in prose, not a password. A colon followed by digits and then a
+ * terminator or punctuation is a port, not a password. This is the fast path;
+ * `looksLikeValueUserinfo()` handles a password with internal whitespace.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} start - index right after the URL prefix.
+ * @param {Number} end - index of the first `@`.
+ * @param {Number} firstTerminator - index of the first whitespace, quote, or
+ * angle bracket after `start`, bounded by `end`.
+ * @returns {Boolean} true if the text looks like userinfo.
+ */
+function looksLikeUserinfo(text, start, end, firstTerminator) {
+    if (firstTerminator >= end) {
+        return true;
+    }
+
+    const colonIndex = indexOfPasswordColon(text, start, end);
+
+    if (colonIndex === -1 || colonIndex > firstTerminator) {
+        return false;
+    }
+
+    if (looksLikePort(text.slice(start, firstTerminator + 1))) {
+        return false;
+    }
+
+    return !/\s/.test(text[colonIndex + 1]);
+}
+
+/**
+ * Extracts the first word of a value for host checks. Punctuation after a
+ * host, for example at the end of a sentence, is ignored. A bracketed IPv6
+ * literal is kept intact, because its closing `]` belongs to the host.
+ *
+ * @param {String} value - the text to check.
+ * @returns {String} the first word without trailing punctuation.
+ */
+function firstWordOf(value) {
+    const firstWordMatch = value.trim().split(/\s+/, 1)[0];
+    const bracketedHostEnd = firstWordMatch.startsWith('[') ? firstWordMatch.indexOf(']') : -1;
+
+    return bracketedHostEnd === -1
+        ? firstWordMatch.replace(/[.,;:!?)\]}"'>]+$/, '')
+        : firstWordMatch.slice(0, bracketedHostEnd + 1);
+}
+
+/**
+ * Checks whether the first word of a value looks like the host of a URL:
+ * a dotted name, `localhost`, or an IP literal.
+ *
+ * @param {String} value - the text to check.
+ * @returns {Boolean} true if the first word looks like a host.
+ */
+function startsWithHost(value) {
+    return looksLikeHost(firstWordOf(value));
+}
+
+/**
+ * Checks whether the first word of a value looks like a single-label intranet
+ * host. A dotted name, `localhost`, and an IP literal are handled by
+ * `startsWithHost()`. The word must be lowercase, because a capitalized single
+ * word is a person's name in a username such as `John Smith` or `J. Smith`.
+ *
+ * @param {String} value - the text to check.
+ * @returns {Boolean} true if the first word looks like an intranet host.
+ */
+function startsWithIntranetHost(value) {
+    return /^\p{Ll}[\p{L}\p{N}_-]*$/u.test(firstWordOf(value));
+}
+
+/**
+ * Checks whether the text before the first `@` is a URL with userinfo rather
+ * than prose. The text must contain a password colon with a value after it. A
+ * port, and a host-like first word followed by a label, are prose. A password
+ * can contain whitespace, so prose is recognized by the text before the colon
+ * rather than by the password. A URL can be followed by prose, so a terminator
+ * after the host does not make the text before the `@` prose.
+ *
+ * This covers `https://o'brien:secret@example.org`,
+ * `https://John Smith:secret@example.org`,
+ * `https://user: secret@example.org`, a password with internal whitespace such
+ * as `https://o'brien:pass phrase@example.org`, and the same values followed by
+ * text such as `https://John Smith:secret@example.org by admin@example.com`.
+ * Prose such as `https://example.org team: contact@example.com`,
+ * `https://example.org or mailto:admin@example.com for support`, and
+ * `Homepage "https://example.org". Contact: admin@example.com` stays unchanged.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} start - index right after the URL prefix.
+ * @param {Number} firstUserinfoEnd - index of the first `@`.
+ * @param {Number} authorityEnd - index where the authority ends.
+ * @param {{ nextTerminators: Array<Number>, nextNonWhitespace: Array<Number>,
+ * nextSpaces: Array<Number>, previousSpaces: Array<Number> }} scan - lookup
+ * tables built by `buildAuthorityScan()`.
+ * @returns {Boolean} true if the text looks like a URL with userinfo.
+ */
+function looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd, scan) {
+    // A port can only be in the host token, which ends at the first
+    // terminator. Checking the whole prefix would scan the rest of the string
+    // for every URL start.
+    const firstTerminator = Math.min(scan.nextTerminators[start], firstUserinfoEnd);
+    // Include the terminator so the port lookahead can see it.
+    const portCandidateEnd = Math.min(firstTerminator + 1, firstUserinfoEnd);
+
+    if (looksLikePort(text.slice(start, portCandidateEnd))) {
+        return false;
+    }
+
+    const colonIndex = indexOfPasswordColon(text, start, firstUserinfoEnd);
+
+    if (colonIndex === -1) {
+        return false;
+    }
+
+    if (scan.nextNonWhitespace[colonIndex + 1] >= firstUserinfoEnd) {
+        return false;
+    }
+
+    // A host-like first word followed by whitespace before the colon makes the
+    // colon a label in prose, whatever follows it. The value starts with the
+    // host, so this also keeps `https://example.org or mailto:admin@example.com`
+    // and `Homepage "https://example.org". Contact: admin@example.com`
+    // unchanged. A username such as `John Smith` does not start with a host,
+    // so `https://John Smith: secret@example.org` is still userinfo. A
+    // single-label intranet host also requires a label word that does not start
+    // with a lowercase letter, so a lowercase username such as
+    // `https://admin user:secret@example.org` stays userinfo while
+    // `https://x Contact: admin@example.org` and a caseless label such as
+    // `https://x 联系: admin@example.org` are prose. A colon that follows a
+    // host directly is prose only when a label follows it, so
+    // `https://example.org: Contact admin@example.com` stays unchanged and
+    // `https://example.org:secret@example.org` is still userinfo. A
+    // punctuated host word is prose only when the label colon is followed by
+    // whitespace too, so `https://myhost, contact: admin@example.org` stays
+    // unchanged while `https://user, name:secret@example.org` is userinfo.
+    const firstWordEnd = Math.min(scan.nextSpaces[start], firstUserinfoEnd);
+    const firstWord = text.slice(start, firstWordEnd);
+    const beforeColon = text.slice(start, colonIndex);
+    const beforeColonWord = firstWordOf(beforeColon);
+    const rawBeforeColonWord = beforeColon.trim().split(/\s+/, 1)[0];
+    const hasPunctuatedHost = beforeColonWord !== rawBeforeColonWord
+        && /^[\p{L}\p{N}_-]+$/u.test(beforeColonWord);
+    const label = text.slice(scan.previousSpaces[colonIndex] + 1, colonIndex);
+    const hasLabelWord = label.length > 0 && !/^\p{Ll}/u.test(label);
+    const colonFollowedByWhitespace = /\s/.test(text[colonIndex + 1]);
+    const afterColonStart = scan.nextNonWhitespace[colonIndex + 1];
+    const afterColonWord = text.slice(
+        afterColonStart,
+        Math.min(scan.nextSpaces[afterColonStart], firstUserinfoEnd),
+    );
+    const hasLabelAfterColon = afterColonWord.length > 0 && !/^\p{Ll}/u.test(afterColonWord);
+    const isProseHost = startsWithHost(beforeColon)
+        || (hasPunctuatedHost && colonFollowedByWhitespace && /^\p{Ll}/u.test(label))
+        || (hasLabelWord && startsWithIntranetHost(firstWord))
+        || (colonFollowedByWhitespace
+            && hasLabelAfterColon
+            && startsWithIntranetHost(beforeColon));
+
+    if (isProseHost && (firstWordEnd < colonIndex || colonFollowedByWhitespace)) {
+        return false;
+    }
+
+    // Prose after the URL starts a terminator after the first `@`. The text
+    // between the first `@` and that terminator must not contain another `@`:
+    // a second `@` means the first one was not the end of the userinfo. The
+    // host cannot contain a path, query, or fragment, so the check stops at
+    // the authority end. This keeps a rendered document such as
+    // `{"homepage":"https://example.org","exclusions":["@@||good.example^"]}`
+    // unchanged.
+    const terminator = Math.min(scan.nextTerminators[firstUserinfoEnd + 1], authorityEnd);
+    // When the text after the first `@` runs straight into a path, query, or
+    // fragment, the whole prefix is a URL and the password can contain a
+    // literal `@`. The last `@` before the authority end separates the
+    // userinfo from the host, so an intermediate `@` is not prose.
+    const runsIntoPath = authorityEnd < text.length
+        && scan.nextTerminators[firstUserinfoEnd + 1] >= authorityEnd;
+
+    if (terminator < text.length) {
+        const host = text.slice(firstUserinfoEnd + 1, terminator);
+
+        if (host.length === 0 || (host.includes('@') && !runsIntoPath)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Reads a URL start at the given position.
+ *
+ * @param {String} text - the string to scan.
+ * @param {Number} index - position to check.
+ * @returns {{ prefixEnd: Number|null, nextIndex: Number }|null} the index
+ * after the URL prefix, the index to resume scanning from when the position
+ * starts a scheme that is not a URL, or null when no URL starts here.
+ */
+function readUrlStartAt(text, index) {
+    const previousChar = index > 0 ? text[index - 1] : undefined;
+
+    if (isSchemeBoundary(previousChar)) {
+        URL_SCHEME_REGEX.lastIndex = index;
+        const schemeMatch = URL_SCHEME_REGEX.exec(text);
+
+        if (schemeMatch) {
+            const schemeEnd = index + schemeMatch[0].length;
+            URL_SLASHES_REGEX.lastIndex = schemeEnd;
+            const slashesMatch = URL_SLASHES_REGEX.exec(text);
+            const slashes = slashesMatch ? slashesMatch[0] : '';
+            const slashCount = slashes.length;
+            const scheme = schemeMatch[0].slice(0, -1).toLowerCase();
+            const isHttp = scheme === 'http' || scheme === 'https';
+            const hasBackslash = slashes.includes('\\');
+            // A single-letter scheme is a Windows drive letter in a local
+            // path such as `C:/user@corp/list.txt`, not a URL. No registered
+            // URL scheme is a single letter.
+            const isWindowsDriveLetter = scheme.length === 1;
+
+            // A scheme without slashes is only a URL for HTTP(S): the URL
+            // parser normalizes `https:user:pass@host` to a URL with
+            // authority. For other schemes, a colon is not enough to tell a
+            // URL from text such as `note:value`. Backslashes are accepted
+            // only for HTTP(S), so a Windows path such as `C:\dir` is not
+            // treated as a URL.
+            if (!isWindowsDriveLetter
+                && ((slashCount > 0 && (isHttp || !hasBackslash)) || (slashCount === 0 && isHttp))) {
+                return { prefixEnd: schemeEnd + slashCount, nextIndex: schemeEnd + slashCount };
+            }
+
+            return { prefixEnd: null, nextIndex: schemeEnd };
+        }
+    }
+
+    if (text[index] === '/' && text[index + 1] === '/') {
+        let end = index + 2;
+        while (text[end] === '/') {
+            end += 1;
+        }
+
+        if (isProtocolRelativeBoundary(previousChar)) {
+            return { prefixEnd: end, nextIndex: end };
+        }
+
+        return { prefixEnd: null, nextIndex: end };
+    }
+
+    return null;
+}
+
+/**
+ * Finds the next URL start in a string and returns the index right after its
+ * scheme and slashes.
+ *
+ * @param {String} text - the string to scan.
+ * @param {Number} from - index to start scanning from.
+ * @returns {Number|null} the index after the URL prefix, or null if there is
+ * no URL start.
+ */
+function findUrlStart(text, from) {
+    let i = from;
+
+    while (i < text.length) {
+        const start = readUrlStartAt(text, i);
+
+        if (start === null) {
+            i += 1;
+        } else if (start.prefixEnd === null) {
+            i = start.nextIndex;
+        } else {
+            return start.prefixEnd;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Builds the lookup tables used by the authority scan, so a long string with
+ * many URL starts is scanned in linear time. `authorityEnds[i]` is the first
+ * `/`, `\`, `?`, or `#` at or after `i`, `atPositions` holds the sorted
+ * positions of every `@`, `nextTerminators[i]` is the first whitespace, quote,
+ * or angle bracket at or after `i`, `nextNonWhitespace[i]` is the first
+ * non-whitespace character at or after `i`, `nextSpaces[i]` is the first
+ * whitespace character at or after `i`, `nextPathSeparators[i]` is the first
+ * `/` or `\` at or after `i`, and `previousSpaces[i]` is the last whitespace
+ * character before `i`.
+ *
+ * @param {String} text - the string being scanned.
+ * @returns {{ authorityEnds: Array<Number>, atPositions: Array<Number>,
+ * nextTerminators: Array<Number>, nextNonWhitespace: Array<Number>,
+ * nextSpaces: Array<Number>, nextPathSeparators: Array<Number>,
+ * previousSpaces: Array<Number> }} the lookup tables.
+ */
+function buildAuthorityScan(text) {
+    const authorityEnds = new Array(text.length + 1);
+    const nextTerminators = new Array(text.length + 1);
+    const nextNonWhitespace = new Array(text.length + 1);
+    const nextSpaces = new Array(text.length + 1);
+    const nextPathSeparators = new Array(text.length + 1);
+    const previousSpaces = new Array(text.length + 1);
+    authorityEnds[text.length] = text.length;
+    nextTerminators[text.length] = text.length;
+    nextNonWhitespace[text.length] = text.length;
+    nextSpaces[text.length] = text.length;
+    nextPathSeparators[text.length] = text.length;
+    previousSpaces[0] = -1;
+
+    for (let i = text.length - 1; i >= 0; i -= 1) {
+        const char = text[i];
+        authorityEnds[i] = endsUrlAuthority(char) ? i : authorityEnds[i + 1];
+        nextTerminators[i] = endsUrlAuthorityBeforeUserinfo(char) ? i : nextTerminators[i + 1];
+        nextNonWhitespace[i] = /\s/.test(char) ? nextNonWhitespace[i + 1] : i;
+        nextSpaces[i] = /\s/.test(char) ? i : nextSpaces[i + 1];
+        nextPathSeparators[i] = char === '/' || char === '\\' ? i : nextPathSeparators[i + 1];
+    }
+
+    for (let i = 0; i < text.length; i += 1) {
+        previousSpaces[i + 1] = /\s/.test(text[i]) ? i : previousSpaces[i];
+    }
+
+    const atPositions = [];
+    for (let i = 0; i < text.length; i += 1) {
+        if (text[i] === '@') {
+            atPositions.push(i);
+        }
+    }
+
+    return {
+        authorityEnds,
+        atPositions,
+        nextTerminators,
+        nextNonWhitespace,
+        nextSpaces,
+        nextPathSeparators,
+        previousSpaces,
+    };
+}
+
+/**
+ * Checks whether a host token looks like a host. The token can carry a port,
+ * for example `example.org:8080`, and a trailing colon or comma that belongs
+ * to prose, for example `example.org:` in `https://example.org: Contact ...`.
+ *
+ * @param {String} token - the host token.
+ * @returns {Boolean} true if the token looks like a host.
+ */
+function looksLikeHostToken(token) {
+    const hostName = firstWordOf(token).replace(/:\d+$/, '');
+
+    return looksLikeHost(hostName);
+}
+
+/**
+ * Finds the `@` that separates the userinfo from the host in value mode.
+ *
+ * The URL parser and the downloader accept a literal `@` inside a password, so
+ * the first `@` is not always the separator. The function keeps the first `@`
+ * when the token after it looks like a host. Otherwise it scans the later `@`
+ * positions for the first host-like token, so
+ * `https://user:p@ss word@example.org` becomes `https://example.org` instead
+ * of the partial `https://ss word@example.org`.
+ *
+ * A single-label token after the first `@` can be either the rest of a
+ * password or an intranet host followed by prose. Trailing punctuation or a
+ * label colon after the token shows prose, so the first `@` stays the
+ * separator. This keeps `https://user:secret@intranet Contact: admin@...`
+ * unchanged.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} firstUserinfoEnd - index of the first `@` in the authority.
+ * @param {Number} authorityEnd - index where the authority ends.
+ * @param {{ atPositions: Array<Number>, nextTerminators: Array<Number> }} scan -
+ * lookup tables built by `buildAuthorityScan()`.
+ * @returns {Number} the index of the `@` that separates userinfo from the
+ * host.
+ */
+function findValueUserinfoEnd(text, firstUserinfoEnd, authorityEnd, scan) {
+    const firstAtIndex = _.sortedIndex(scan.atPositions, firstUserinfoEnd);
+    const atEndIndex = _.sortedIndex(scan.atPositions, authorityEnd);
+    let fallback = firstUserinfoEnd;
+
+    for (let i = firstAtIndex; i < atEndIndex; i += 1) {
+        const at = scan.atPositions[i];
+        const terminator = Math.min(scan.nextTerminators[at + 1], authorityEnd);
+        const host = text.slice(at + 1, terminator);
+
+        if (looksLikeHostToken(host)) {
+            return at;
+        }
+
+        // A token with `@` sits inside the password, so the host still
+        // follows. An empty token means two adjacent `@` characters.
+        if (host.length > 0 && !host.includes('@')) {
+            const nextAt = i + 1 < atEndIndex ? scan.atPositions[i + 1] : authorityEnd;
+            const between = text.slice(terminator, nextAt);
+            const hasProseLabel = /[.,;:]$/u.test(host) || /\s+\S+:/u.test(between);
+
+            if (hasProseLabel) {
+                return firstUserinfoEnd;
+            }
+
+            fallback = at;
+        }
+    }
+
+    return fallback;
+}
+
+/**
+ * Checks that the text after an at sign looks like the host and the rest of
+ * a URL. The check tells malformed userinfo from an at sign in a query or a
+ * fragment.
+ *
+ * The host can be followed by a path, a query, a fragment, or the end of the
+ * value. A single-label host in these forms is ambiguous with an at sign in
+ * the query or fragment of a valid URL whose host has no dot, for example
+ * `https://fileserver:?token=a@b`. A credential leak in a published list is
+ * worse than a wrong host in a display message, so the ambiguous form is
+ * treated as userinfo.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} at - index of the at sign.
+ * @param {{ nextTerminators: Array<Number> }} scan - lookup tables built by
+ * `buildAuthorityScan()`.
+ * @returns {Boolean} true if the text after the at sign looks like a URL.
+ */
+function hasUrlTailAfterAt(text, at, scan) {
+    const tail = text.slice(at + 1, scan.nextTerminators[at + 1]);
+
+    return /^[^/\\?#:]*[.:]/i.test(tail)
+        || /^localhost(?=[/\\?#])/i.test(tail)
+        || /^[^/\\?#:.]+(?:[/\\?#]|$)/.test(tail);
+}
+
+/**
+ * Checks that the text before an at sign is malformed userinfo whose password
+ * contains `?` or `#`.
+ *
+ * A dotted part before the colon is a host with a port, and `localhost` or an
+ * IPv6 literal is a host, so these values are not userinfo. The password colon
+ * must come before the first `?`, `#`, or whitespace.
+ *
+ * @param {String} userinfo - the text between the URL prefix and the at sign.
+ * @returns {Boolean} true if the text looks like malformed userinfo.
+ */
+function isMalformedStrictUserinfo(userinfo) {
+    const separatorIndex = indexOfPasswordColon(userinfo);
+
+    if (separatorIndex === -1) {
+        return false;
+    }
+
+    const ambiguousIndex = userinfo.search(/[?#\s]/);
+
+    if (ambiguousIndex !== -1 && separatorIndex > ambiguousIndex) {
+        return false;
+    }
+
+    const username = userinfo.slice(0, separatorIndex);
+
+    return !username.includes('.')
+        && username.toLowerCase() !== 'localhost'
+        && !username.startsWith('[');
+}
+
+/**
+ * Finds the at sign that separates malformed userinfo from the host when the
+ * password contains `?` or `#`.
+ *
+ * The authority ends at the first `?` or `#`, before the at sign, so the
+ * normal strict scan does not see the at sign. The downloader recognizes such
+ * values for display redaction. Accept the form only when the password colon
+ * comes before the first `?`, `#`, or whitespace, the part before the colon is
+ * not a host, and the text after the at sign looks like the rest of a URL.
+ * A port followed by a path keeps a valid URL with an at sign in the query
+ * unchanged, for example `https://myhost:8080/path?email=user@example.com`.
+ *
+ * The search is bounded by the first value terminator and the first path
+ * separator after the authority end and starts from that bound, so a long
+ * string with many at signs is scanned once per value instead of once per at
+ * sign. The path bound matches the library parser, which stops the malformed
+ * userinfo match at a `/` or `\`.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} start - index right after the URL prefix.
+ * @param {{ atPositions: Array<Number>, nextTerminators: Array<Number>,
+ * nextPathSeparators: Array<Number> }} scan - lookup tables built by
+ * `buildAuthorityScan()`.
+ * @param {Number} authorityEnd - index where the authority ends.
+ * @returns {Number} the index of the at sign, or -1.
+ */
+function findMalformedStrictUserinfoEnd(text, start, scan, authorityEnd) {
+    // Bound the search by the first value terminator and by the first path
+    // separator after the authority end. The library's malformed-userinfo
+    // match stops at a `/` or `\`, so an at sign in a later path is not a
+    // separator. With the single-label tail rule below, an at sign in the
+    // path would otherwise be taken as the separator.
+    const limit = Math.min(
+        scan.nextTerminators[authorityEnd],
+        scan.nextPathSeparators[authorityEnd],
+        text.length,
+    );
+    const lastAt = _.sortedLastIndex(scan.atPositions, limit - 1) - 1;
+
+    for (let i = lastAt; i >= 0; i -= 1) {
+        const at = scan.atPositions[i];
+
+        if (at < start) {
+            break;
+        }
+
+        if (hasUrlTailAfterAt(text, at, scan)
+            && isMalformedStrictUserinfo(text.slice(start, at))) {
+            return at;
+        }
+    }
+
+    return -1;
+}
+
+/**
+ * Reads the authority component of a URL and splits it into the sanitized
+ * value and the end of the URL.
+ *
+ * @param {String} text - the string being scanned.
+ * @param {Number} start - index right after the URL prefix.
+ * @param {String} mode - one of `URL_AUTHORITY_MODE`.
+ * @param {{ authorityEnds: Array<Number>, atPositions: Array<Number>,
+ * nextTerminators: Array<Number>, nextNonWhitespace: Array<Number>,
+ * nextSpaces: Array<Number>, nextPathSeparators: Array<Number>,
+ * previousSpaces: Array<Number> }} scan -
+ * lookup tables built by `buildAuthorityScan()`.
+ * @returns {{ value: String, rawEnd: Number }} the sanitized authority and the
+ * index where it ends.
+ */
+function readUrlAuthority(text, start, mode, scan) {
+    const authorityEnd = scan.authorityEnds[start];
+    let userinfoEnd = -1;
+
+    if (mode === URL_AUTHORITY_MODE.STRICT) {
+        // The downloader takes everything before the last `@` in the
+        // authority as userinfo. Use this only for values that must be a URL,
+        // because prose after a URL can also contain an `@`.
+        const lastAt = _.sortedLastIndex(scan.atPositions, authorityEnd - 1) - 1;
+        userinfoEnd = lastAt >= 0 && scan.atPositions[lastAt] >= start
+            ? scan.atPositions[lastAt]
+            : -1;
+
+        if (userinfoEnd === -1) {
+            userinfoEnd = findMalformedStrictUserinfoEnd(text, start, scan, authorityEnd);
+        }
+    } else {
+        // The first `@` shows where userinfo could end. `looksLikeUserinfo()`
+        // rejects prose that follows a URL and contains an email address.
+        const firstAt = _.sortedIndex(scan.atPositions, start);
+        const firstUserinfoEnd = firstAt < scan.atPositions.length
+            && scan.atPositions[firstAt] < authorityEnd
+            ? scan.atPositions[firstAt]
+            : -1;
+
+        if (firstUserinfoEnd !== -1) {
+            const firstTerminator = Math.min(scan.nextTerminators[start], firstUserinfoEnd);
+            const isValueUserinfo = mode === URL_AUTHORITY_MODE.VALUE
+                && looksLikeValueUserinfo(text, start, firstUserinfoEnd, authorityEnd, scan);
+            const isUserinfo = looksLikeUserinfo(
+                text,
+                start,
+                firstUserinfoEnd,
+                firstTerminator,
+            ) || isValueUserinfo;
+
+            if (isUserinfo) {
+                // Userinfo can contain quote, whitespace, and `@` characters,
+                // but the host cannot. `findValueUserinfoEnd()` keeps a later
+                // email in prose such as `https://host and a@b` intact and
+                // also handles a literal `@` in a password.
+                userinfoEnd = findValueUserinfoEnd(
+                    text,
+                    firstUserinfoEnd,
+                    authorityEnd,
+                    scan,
+                );
+            }
+        }
+    }
+
+    const authorityStart = userinfoEnd === -1 ? start : userinfoEnd + 1;
+    const rawEnd = Math.min(
+        scan.nextTerminators[authorityStart],
+        scan.authorityEnds[authorityStart],
+    );
+
+    const value = text.slice(authorityStart, rawEnd);
+
+    return { value, rawEnd };
+}
+
+/**
+ * Removes the userinfo component from every URL in a string, using the given
+ * authority parser mode.
+ *
+ * The function does string surgery on the authority component, so the rest of
+ * the URL stays byte-identical. It does not parse and re-serialize the URL
+ * with `URL`, because that normalizes the URL. It recognizes an optional
+ * scheme followed by any number of slashes or backslashes, a scheme with no
+ * slashes for HTTP(S), and scheme-relative URLs that start with two or more
+ * slashes.
+ *
+ * @param {String} url - string that may contain URLs with credentials.
+ * @param {String} mode - one of `URL_AUTHORITY_MODE`.
+ * @returns {String} the string without the userinfo components, or the input
+ * unchanged when it has no URL with userinfo.
+ */
+function stripUrlCredentialsWithMode(url, mode) {
+    if (!_.isString(url)) {
+        return url;
+    }
+
+    const scan = buildAuthorityScan(url);
+    let result = '';
+    let copiedUntil = 0;
+    let searchFrom = 0;
+
+    while (searchFrom < url.length) {
+        const prefixEnd = findUrlStart(url, searchFrom);
+
+        if (prefixEnd === null) {
+            break;
+        }
+
+        const authority = readUrlAuthority(url, prefixEnd, mode, scan);
+        result += url.slice(copiedUntil, prefixEnd);
+        result += authority.value;
+        // Resume the scan at the end of the authority, not at the end of the
+        // URL. A URL can sit inside the path, query, or fragment of another
+        // URL, for example a proxy URL with the target in its query. The rest
+        // of the outer URL is copied by the next iteration or by the final
+        // slice, so nested credentials are not copied verbatim.
+        copiedUntil = authority.rawEnd;
+        searchFrom = authority.rawEnd;
+    }
+
+    result += url.slice(copiedUntil);
+    return result;
+}
+
+/**
+ * Removes the userinfo component (the `user:password@` part) from every URL in
+ * a string. Use this for free text and for values of an unknown shape: the
+ * function keeps prose that contains an email address unchanged.
+ *
+ * Do not scan a rendered document with this function, for example
+ * `JSON.stringify(configuration)`. A path-less URL can make the text up to a
+ * later `@` look like userinfo and corrupt the document. Use
+ * `sanitizeConfigurationForLog()` for a configuration dump or a validation
+ * error.
+ *
+ * The parser is a heuristic: it keeps text that reads as prose. Two shapes are
+ * lexically ambiguous and stay unresolved. The value
+ * `https://john Smith: secret@example.org` is kept as prose, so the password
+ * can survive. The value `https://user:secret@intranet by admin@example.com`
+ * is read as a credential, so the prose after the intranet host is removed.
+ * Use `stripKnownUrlCredentials()` for values that must be a URL.
+ *
+ * @param {String} url - string that may contain URLs with credentials.
+ * @returns {String} the string without the userinfo components, or the input
+ * unchanged when it has no URL with userinfo.
+ */
+function stripUrlCredentials(url) {
+    return stripUrlCredentialsWithMode(url, URL_AUTHORITY_MODE.VALUE);
+}
+
+/**
+ * Removes the userinfo component from every URL in a value that must be a URL,
+ * such as `source` or `homepage`.
+ *
+ * Unlike `stripUrlCredentials()`, this function has no prose guard. It treats
+ * everything before the last `@` in the authority as userinfo, like the
+ * downloader does. It also recognizes malformed values where the password
+ * contains `?` or `#`: the authority ends before the at sign there, so the
+ * normal strict scan cannot see it. Use this function for known URL values,
+ * where a quote or a space in the username must not hide the password.
+ *
+ * A single-label host with a port and an at sign in the query but no path is
+ * lexically identical to a digit-first password. The password form wins, so
+ * such a value loses its host to avoid a leak. A path after the port tells the
+ * forms apart, so `https://myhost:8080/path?email=user@example.com` stays
+ * unchanged.
+ *
+ * @param {String} url - URL value.
+ * @returns {String} the URL without the userinfo component, or the input
+ * unchanged when it has no userinfo.
+ */
+function stripKnownUrlCredentials(url) {
+    return stripUrlCredentialsWithMode(url, URL_AUTHORITY_MODE.STRICT);
+}
+
+/**
+ * Removes the userinfo component from a string value whose shape is not known
+ * in advance.
+ *
+ * The function first tries to parse the whole value as a URL. When the URL has
+ * a path, query, or fragment, a quote or a space in the username does not hide
+ * the password. A port followed by prose, such as
+ * `https://example.org:8080 by admin@example.com`, stays unchanged.
+ *
+ * Leading whitespace is kept, so a value such as
+ * ` https://user:password@example.org/` is sanitized without changing its
+ * prefix. When the value does not start with a URL, or when the text before
+ * the first `@` looks like prose, the function falls back to the scanner. The
+ * scanner also covers any text after the first URL, so prefixed values such as
+ * `See https://user:password@example.org/` are sanitized too.
+ *
+ * Use `stripKnownUrlCredentials()` for values that must be a URL, because that
+ * function has no prose guard and strips exactly what the downloader treats as
+ * userinfo.
+ *
+ * @param {String} url - string to sanitize.
+ * @returns {String} the string without the userinfo component, or the input
+ * unchanged when it has no userinfo.
+ */
+function stripUrlValueCredentials(url) {
+    if (!_.isString(url)) {
+        return url;
+    }
+
+    const valueStart = url.search(/\S/);
+    if (valueStart === -1) {
+        return url;
+    }
+
+    const start = readUrlStartAt(url, valueStart);
+    if (start === null || start.prefixEnd === null) {
+        return stripUrlCredentials(url);
+    }
+
+    const { prefixEnd } = start;
+    const authority = readUrlAuthority(
+        url,
+        prefixEnd,
+        URL_AUTHORITY_MODE.VALUE,
+        buildAuthorityScan(url),
+    );
+
+    const sanitized = url.slice(0, prefixEnd)
+        + authority.value
+        + url.slice(authority.rawEnd);
+
+    // The value can have more text after the first URL, and the first URL can
+    // contain another URL in its path, query, or fragment. The scanner covers
+    // both.
+    return stripUrlCredentials(sanitized);
+}
+
+/**
+ * Replaces known raw values in a string and then removes URL credentials.
+ *
+ * The replacement runs first because a password can contain a literal `@`
+ * followed by whitespace. The scanner uses the first `@` with a prose guard, so
+ * it can leave the rest of such a password in the text. A caller that knows the
+ * exact source URL can sanitize it with the strict parser before the scanner
+ * runs.
+ *
+ * @param {String} value - the string to sanitize.
+ * @param {Array<Array<String>>} replacements - pairs of a raw value and its
+ * sanitized replacement.
+ * @returns {String} the sanitized string.
+ */
+function sanitizeErrorString(value, replacements) {
+    let result = value;
+
+    replacements.forEach(([raw, sanitized]) => {
+        if (_.isString(raw) && raw !== sanitized) {
+            result = result.split(raw).join(sanitized);
+        }
+    });
+
+    return stripUrlCredentials(result);
+}
+
+/**
+ * Removes URL credentials from an error and its `cause` and `errors` chains.
+ * The error is modified in place, so its type and stack location are
+ * preserved.
+ *
+ * @param {*} error - the error to sanitize.
+ * @param {Array<Array<String>>} [replacements] - pairs of a raw value and its
+ * sanitized replacement, applied before the generic scan.
+ * @param {WeakSet<Object>} [seen] - objects that have already been visited.
+ * @returns {*} the sanitized error.
+ */
+function stripErrorCredentials(error, replacements = [], seen = new WeakSet()) {
+    if (!_.isObject(error) || seen.has(error)) {
+        return error;
+    }
+    seen.add(error);
+
+    if (_.isString(error.message)) {
+        Object.assign(error, { message: sanitizeErrorString(error.message, replacements) });
+    }
+    if (_.isString(error.stack)) {
+        Object.assign(error, { stack: sanitizeErrorString(error.stack, replacements) });
+    }
+    if (_.isString(error.path)) {
+        Object.assign(error, { path: sanitizeErrorString(error.path, replacements) });
+    }
+
+    if (Array.isArray(error.errors)) {
+        Object.assign(error, {
+            errors: error.errors.map((cause) => (
+                _.isString(cause)
+                    ? sanitizeErrorString(cause, replacements)
+                    : stripErrorCredentials(cause, replacements, seen)
+            )),
+        });
+    }
+
+    if (_.isString(error.cause)) {
+        Object.assign(error, { cause: sanitizeErrorString(error.cause, replacements) });
+    } else {
+        stripErrorCredentials(error.cause, replacements, seen);
+    }
+
+    return error;
+}
+
+/**
+ * Sanitizes URL-like object keys in place, because `cloneDeepWith` visits
+ * values only.
+ *
+ * @param {*} value - configuration value to walk.
+ * @param {WeakSet<Object>} seen - objects that have already been visited.
+ */
+function sanitizeConfigurationKeys(value, seen) {
+    if (!_.isObject(value) || seen.has(value)) {
+        return;
+    }
+    seen.add(value);
+
+    Object.entries(value).forEach(([key, child]) => {
+        // Keys are never prose, so use the strict parser: a URL-like key can
+        // carry whitespace in the username and in the password, which the
+        // prose-tolerant parser would leave untouched.
+        const sanitizedKey = stripKnownUrlCredentials(key);
+
+        if (sanitizedKey !== key) {
+            Reflect.deleteProperty(value, key);
+            Object.defineProperty(value, sanitizedKey, {
+                value: child,
+                enumerable: true,
+                configurable: true,
+                writable: true,
+            });
+        }
+
+        sanitizeConfigurationKeys(child, seen);
+    });
+}
+
+/**
+ * Configuration fields that must contain a URL. A test derives the set from
+ * the `x-credential-url` markers in `src/schemas/configuration.schema.js`, so
+ * a marked schema property without an entry here fails the test.
+ */
+const URL_VALUE_FIELDS = new Set([
+    'homepage',
+    'source',
+]);
+
+/**
+ * Configuration fields that must contain a URL or a list of URLs. A test
+ * derives the set from the `x-credential-url` markers in
+ * `src/schemas/configuration.schema.js`.
+ */
+const URL_LIST_FIELDS = new Set([
+    'sources',
+    'exclusions_sources',
+    'inclusions_sources',
+]);
+
+/**
+ * Sanitizes a known URL field value or a list of URL field values with the
+ * strict parser. Other values are left for the recursive walk.
+ *
+ * @param {*} value - field value.
+ * @returns {*} sanitized field value.
+ */
+function sanitizeKnownUrlField(value) {
+    if (_.isString(value)) {
+        return stripKnownUrlCredentials(value);
+    }
+
+    if (Array.isArray(value)) {
+        return value.map((item) => (
+            _.isString(item) ? stripKnownUrlCredentials(item) : item
+        ));
+    }
+
+    return value;
+}
+
+/**
+ * Sanitizes known URL fields in place with the strict parser. The generic copy
+ * uses a prose guard, so a quote or a space in the username of a `source` or
+ * `homepage` value would survive it. The downloader treats such a value as
+ * userinfo, so the strict parser runs on these fields.
+ *
+ * @param {*} value - configuration value to walk.
+ * @param {WeakSet<Object>} seen - objects that have already been visited.
+ */
+function sanitizeKnownUrlFields(value, seen) {
+    if (!_.isObject(value) || seen.has(value)) {
+        return;
+    }
+    seen.add(value);
+
+    Object.entries(value).forEach(([key, child]) => {
+        if (URL_VALUE_FIELDS.has(key) || URL_LIST_FIELDS.has(key)) {
+            Object.assign(value, { [key]: sanitizeKnownUrlField(child) });
+        }
+
+        sanitizeKnownUrlFields(value[key], seen);
+    });
+}
+
+/**
+ * Configuration keys allowed at the root level.
+ */
+const CONFIGURATION_KEYS = new Set([
+    'name',
+    'description',
+    'homepage',
+    'license',
+    'version',
+    'sources',
+    'transformations',
+    'exclusions',
+    'exclusions_sources',
+    'inclusions',
+    'inclusions_sources',
+]);
+
+/**
+ * Configuration keys allowed in a source object.
+ */
+const SOURCE_KEYS = new Set([
+    'name',
+    'source',
+    'type',
+    'transformations',
+    'exclusions',
+    'exclusions_sources',
+    'inclusions',
+    'inclusions_sources',
+]);
+
+/**
+ * Sanitizes every string under a value with the strict parser. Unknown
+ * configuration keys are rejected by the schema, so their values are more
+ * likely misplaced URLs than prose.
+ *
+ * @param {*} value - value under an unknown key.
+ * @param {WeakSet<Object>} seen - objects that have already been visited.
+ * @returns {*} sanitized value.
+ */
+function sanitizeUnknownValue(value, seen) {
+    if (_.isString(value)) {
+        return stripKnownUrlCredentials(value);
+    }
+
+    if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+            Object.assign(value, { [index]: sanitizeUnknownValue(item, seen) });
+        });
+        return value;
+    }
+
+    if (_.isObject(value) && !seen.has(value)) {
+        seen.add(value);
+        Object.entries(value).forEach(([key, child]) => {
+            Object.assign(value, { [key]: sanitizeUnknownValue(child, seen) });
+        });
+    }
+
+    return value;
+}
+
+/**
+ * Applies the strict parser to strings under keys that the configuration
+ * schema does not allow at the current level.
+ *
+ * @param {*} value - configuration value to walk.
+ * @param {Set<String>} allowedKeys - keys allowed at this level.
+ * @param {WeakSet<Object>} seen - objects that have already been visited.
+ */
+function sanitizeUnknownKeyValues(value, allowedKeys, seen) {
+    if (Array.isArray(value)) {
+        value.forEach((item) => sanitizeUnknownKeyValues(item, allowedKeys, seen));
+        return;
+    }
+
+    if (!_.isObject(value) || seen.has(value)) {
+        return;
+    }
+    seen.add(value);
+
+    Object.entries(value).forEach(([key, child]) => {
+        if (!allowedKeys.has(key)) {
+            Object.assign(value, { [key]: sanitizeUnknownValue(child, seen) });
+            return;
+        }
+
+        if (key === 'sources') {
+            if (Array.isArray(child)) {
+                child.forEach((item) => sanitizeUnknownKeyValues(item, SOURCE_KEYS, seen));
+            } else if (_.isObject(child)) {
+                sanitizeUnknownKeyValues(child, SOURCE_KEYS, seen);
+            }
+            return;
+        }
+
+        if (Array.isArray(child)) {
+            child.forEach((item) => sanitizeUnknownKeyValues(item, allowedKeys, seen));
+        } else {
+            sanitizeUnknownKeyValues(child, allowedKeys, seen);
+        }
+    });
+}
+
+/**
+ * Returns a deep copy of a configuration with credentials removed from every
+ * string, including strings in malformed configurations and class instances.
+ * The copy runs the generic parser on every string, the strict parser on known
+ * URL fields and on values under unknown keys, and rewrites URL-like object
+ * keys. The original configuration is not modified.
+ *
+ * @param {*} configuration - compilation configuration.
+ * @returns {*} sanitized copy of the configuration.
+ */
+function stripConfigurationCredentials(configuration) {
+    // Every string goes through the generic parser first: it keeps whitespace
+    // and quotes in userinfo for URL values and falls back to the scanner for
+    // prefixed values and values with more text after the URL.
+    const sanitized = _.cloneDeepWith(configuration, (value) => (
+        _.isString(value) ? stripUrlValueCredentials(value) : undefined
+    ));
+
+    // Known URL fields use the strict parser: the downloader treats a quote or
+    // a space in the username as part of the userinfo.
+    sanitizeKnownUrlFields(sanitized, new WeakSet());
+    // The schema rejects unknown keys, so a value under such a key is more
+    // likely a misplaced URL than prose.
+    sanitizeUnknownKeyValues(sanitized, CONFIGURATION_KEYS, new WeakSet());
+    sanitizeConfigurationKeys(sanitized, new WeakSet());
+
+    return sanitized;
+}
+
+/**
+ * Returns a JSON-safe copy of a configuration with credentials removed from
+ * every string and object key. Use the copy for the configuration log, the
+ * verbose CLI dump, and validation errors that render the configuration.
+ *
+ * `stripConfigurationCredentials()` works on the object graph, so it cannot see
+ * the strings that a `toJSON()` method or a `URL` object renders, and
+ * `JSON.stringify()` renders object keys without passing them to a replacer.
+ * This function serializes the sanitized copy with a replacer, parses the
+ * result back into plain data, and sanitizes the parsed copy too. The output is
+ * plain JSON data, so a caller can render it without a second scan of the
+ * whole document. A second scan would treat the text between a path-less URL
+ * and a later `@` as userinfo and corrupt the document.
+ *
+ * @param {*} configuration - compilation configuration.
+ * @returns {*} JSON-safe sanitized copy of the configuration.
+ */
+function sanitizeConfigurationForLog(configuration) {
+    const sanitized = stripConfigurationCredentials(configuration);
+    // A replacer sees each rendered string after `toJSON()`, so it also covers
+    // `URL` objects and class instances. Object keys do not reach the replacer.
+    const json = JSON.stringify(sanitized, (key, value) => (
+        _.isString(value) ? stripUrlValueCredentials(value) : value
+    ));
+
+    if (json === undefined) {
+        return sanitized;
+    }
+
+    // The parsed copy is plain data. Run the sanitizer again to reach keys and
+    // known URL fields that `toJSON()` introduced.
+    return stripConfigurationCredentials(JSON.parse(json));
+}
+
+/**
  * Wildcard is used by the exclusions transformation.
  */
 class Wildcard {
@@ -277,4 +1548,17 @@ module.exports = {
     Wildcard,
     splitByDelimiterWithEscapeCharacter,
     substringBetween,
+    stripUrlCredentials,
+    stripUrlValueCredentials,
+    stripKnownUrlCredentials,
+    stripConfigurationCredentials,
+    sanitizeConfigurationForLog,
+    stripErrorCredentials,
+    // Exported so a test can compare them with the `x-credential-url` markers
+    // in the configuration schema. A marked schema property without a matching
+    // entry would silently change which strings use the strict parser.
+    URL_VALUE_FIELDS,
+    URL_LIST_FIELDS,
+    CONFIGURATION_KEYS,
+    SOURCE_KEYS,
 };

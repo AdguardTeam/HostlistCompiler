@@ -1,6 +1,7 @@
 const consola = require('consola');
 const { download } = require('./download');
 const { transform } = require('./transformations/transform');
+const { stripKnownUrlCredentials } = require('./utils');
 
 /**
  * A source configuration. See a better description in README.md
@@ -20,7 +21,7 @@ const { transform } = require('./transformations/transform');
  * @returns {Promise<Array<string>>} array with the source rules
  */
 async function compileSource(source) {
-    consola.info(`Start compiling ${source.source}`);
+    consola.info(`Start compiling ${stripKnownUrlCredentials(source.source)}`);
     let rules = await download(source.source);
     consola.info(`Original length is ${rules.length}`);
 

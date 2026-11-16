@@ -4,6 +4,11 @@ const fs = require('fs').promises;
 const consola = require('consola');
 const compile = require('./index');
 const { createConfiguration } = require('./configuration');
+const {
+    sanitizeConfigurationForLog,
+    stripErrorCredentials,
+    stripUrlCredentials,
+} = require('./utils');
 const packageJson = require('../package.json');
 
 // Version is not stored in the repo: CI stamps it into package.json at build
@@ -91,6 +96,7 @@ async function readConfig() {
  * @param {Error} error - error to log.
  */
 function logError(error) {
+    stripErrorCredentials(error);
     consola.error(error);
 
     const logged = new Set();
@@ -107,7 +113,7 @@ function logError(error) {
         const isAggregate = Array.isArray(cause.errors) && cause.errors.length > 0;
 
         if (!isAggregate || cause.message) {
-            consola.error(`Caused by: ${cause.message || cause}`);
+            consola.error(`Caused by: ${stripUrlCredentials(cause.message || cause)}`);
         }
 
         if (isAggregate) {
@@ -134,7 +140,8 @@ async function main() {
             ? createConfiguration(argv.input, argv['input-type'])
             : await readConfig();
 
-        consola.debug(`Configuration: ${JSON.stringify(config, 0, 4)}`);
+        const sanitizedConfigDump = JSON.stringify(sanitizeConfigurationForLog(config), 0, 4);
+        consola.debug(`Configuration: ${sanitizedConfigDump}`);
 
         const lines = await compile(config);
 

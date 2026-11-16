@@ -68,7 +68,7 @@ inclusion/exclusion rules, and `!#include` directive resolution via
 │   ├── ip-normalize.js         # Internal helper: IP rule normalization (used by transformations)
 │   ├── source-types.js         # Source-type vocabulary (SOURCE_TYPES) for the schema and the CLI
 │   ├── validation-conflicts.js # Validation-conflict rules (runtime checks + generated schema fragments)
-│   ├── utils.js                # String, IP, and wildcard utilities
+│   ├── utils.js                # String, IP, wildcard, and credential-redaction utilities
 │   ├── schemas/                # Configuration schema (transformation names + conflict rules)
 │   └── transformations/        # 15 transformations + fixed-order pipeline
 │       ├── enum.js             # TRANSFORMATIONS enum + VALIDATION_TRANSFORMATIONS (single source of truth)
@@ -265,6 +265,20 @@ Universal design principles the codebase should follow:
   and rule problems.
 - Propagate errors up to the CLI entry point (`src/cli.js`), which catches
   them, logs via `consola.error`, and exits with code 1.
+- Credential-bearing values MUST pass through the `src/utils.js` sanitizers
+  before they reach a header, a log, or an error message. Sanitize the object
+  graph and the rendered form: `JSON.stringify`, `better-ajv-errors` output,
+  and `cause`/`errors` chains. Use `sanitizeConfigurationForLog()` for a
+  configuration dump or a validation error, `stripKnownUrlCredentials()` for a
+  value that must be a URL, and `stripUrlValueCredentials()` for free text. Do
+  not re-scan an already rendered document: a path-less URL can make the text
+  up to a later `@` look like userinfo.
+- The free-text credential parser is a heuristic: it keeps text that reads as
+  prose. It can keep a credential that is lexically identical to prose, and it
+  can remove prose after a single-label intranet host. Do not add a one-off
+  rule for each reported shape: add a row to the host × separator family in
+  `test/utils.test.js` and document the shape in the `stripUrlCredentials()`
+  JSDoc instead.
 
 ### Testing
 
@@ -335,8 +349,11 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
   from `src/source-types.js`), update `src/index.d.ts` when changing the
   public API, and update `DEPLOYMENT.md` when changing the Dockerfile, CI
   workflows, or deployment setup.
-- No secrets or credentials are used anywhere in the project; configuration
-  files are committed to the repository.
+- The repository stores no secrets or credentials of its own and commits all
+  configuration files. A configuration can still contain credentialed source
+  URLs. The compiler sends them to the downloader as Basic auth. It MUST
+  redact them before any log, header, or error output (see the sanitizer rule
+  in [Code Quality](#code-quality)).
 
 ### Markdown Formatting
 

@@ -26,23 +26,26 @@ const transformations = {
  * A JSON-schema fragment for a configuration property that is a list of strings.
  *
  * @param {string} description - human-readable description of the property.
+ * @param {string} [credentialUrl] - `x-credential-url` marker: `'list'` for a
+ * list of URLs that use the strict credential parser.
  * @returns {Object} the JSON-schema fragment (type: 'array', items: string).
  */
-function stringArray(description) {
+function stringArray(description, credentialUrl) {
     return {
         description,
         type: 'array',
         items: {
             type: 'string',
         },
+        ...(credentialUrl ? { 'x-credential-url': credentialUrl } : {}),
     };
 }
 
 // Shared between the top level and the source level, like `transformations`.
 const exclusions = stringArray('A list of rules (or wildcards) to exclude from the source.');
-const exclusionsSources = stringArray('An array of exclusions sources.');
+const exclusionsSources = stringArray('An array of exclusions sources.', 'list');
 const inclusions = stringArray("A list of wildcards to include from the source. All rules that don't match these wildcards won't be included.");
-const inclusionsSources = stringArray('A list of files with inclusions.');
+const inclusionsSources = stringArray('A list of files with inclusions.', 'list');
 
 const schema = {
     $id: 'https://adguard.com/hostlist-compiler.configuration.schema',
@@ -63,6 +66,10 @@ const schema = {
         homepage: {
             description: 'Filter list homepage',
             type: 'string',
+            // The `x-credential-url` marker pins this field to the strict
+            // credential parser in `src/utils.js`. A test derives the parser
+            // field sets from these markers.
+            'x-credential-url': 'value',
         },
         license: {
             description: 'Filter list license',
@@ -79,6 +86,7 @@ const schema = {
             items: {
                 $ref: '#/definitions/source',
             },
+            'x-credential-url': 'list',
         },
         transformations,
         exclusions,
@@ -105,6 +113,7 @@ const schema = {
                     description: 'Path to a file or a URL',
                     type: 'string',
                     minLength: 1,
+                    'x-credential-url': 'value',
                 },
                 type: {
                     description: 'Type of the source',

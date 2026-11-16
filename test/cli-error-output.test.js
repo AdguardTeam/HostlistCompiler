@@ -5,6 +5,7 @@
  * reporter produces. This suite uses the real `consola` and captures its
  * `stderr` stream.
  */
+const fs = require('fs');
 const consola = require('consola');
 
 jest.mock('../src/index', () => jest.fn());
@@ -30,6 +31,146 @@ describe('CLI error output', () => {
         process.argv = originalArgv;
         exitSpy.mockRestore();
         stderrSpy.mockRestore();
+    });
+
+    it('does not print source credentials in the verbose configuration dump', async () => {
+        process.argv = [
+            'node',
+            'cli',
+            '-v',
+            '-i',
+            'https://user:secret@example.org/hosts.txt',
+            '-o',
+            'output.txt',
+        ];
+
+        let stdoutOutput = '';
+        const originalLevel = consola.level;
+        const stdoutSpy = jest.spyOn(consola.stdout, 'write').mockImplementation((chunk) => {
+            stdoutOutput += chunk.toString();
+            return true;
+        });
+
+        try {
+            // eslint-disable-next-line global-require
+            const compileMock = require('../src/index');
+            compileMock.mockRejectedValue(new Error('compile failed'));
+
+            // eslint-disable-next-line global-require
+            require('../src/cli');
+            await new Promise((resolve) => { setImmediate(resolve); });
+
+            expect(stdoutOutput).toContain('https://example.org/hosts.txt');
+            expect(stdoutOutput).not.toContain('secret');
+            // The download needs the original credentials, so compile must get
+            // the unsanitized configuration.
+            expect(compileMock).toHaveBeenCalledWith(expect.objectContaining({
+                sources: [{ source: 'https://user:secret@example.org/hosts.txt', type: 'hosts' }],
+            }));
+        } finally {
+            stdoutSpy.mockRestore();
+            consola.level = originalLevel;
+        }
+    });
+
+    it('does not print credentials from a malformed configuration in the verbose dump', async () => {
+        process.argv = [
+            'node',
+            'cli',
+            '-v',
+            '-c',
+            'config.json',
+            '-o',
+            'output.txt',
+        ];
+
+        const accessSpy = jest.spyOn(fs.promises, 'access').mockResolvedValue();
+        const readFileSpy = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(Buffer.from(JSON.stringify({
+            name: 'test',
+            homepage: "https://o'brien:secret@example.org",
+            sources: [
+                {
+                    source: 'test.txt',
+                    exclusion_sources: ['https://user:secret@example.org/exclusions.txt'],
+                },
+            ],
+        })));
+        const writeFileSpy = jest.spyOn(fs.promises, 'writeFile').mockResolvedValue();
+
+        let stdoutOutput = '';
+        const originalLevel = consola.level;
+        const stdoutSpy = jest.spyOn(consola.stdout, 'write').mockImplementation((chunk) => {
+            stdoutOutput += chunk.toString();
+            return true;
+        });
+
+        try {
+            // eslint-disable-next-line global-require
+            const compileMock = require('../src/index');
+            compileMock.mockResolvedValue([]);
+
+            // eslint-disable-next-line global-require
+            require('../src/cli');
+            await new Promise((resolve) => { setImmediate(resolve); });
+
+            expect(stdoutOutput).toContain('"exclusion_sources": [');
+            expect(stdoutOutput).toContain('https://example.org/exclusions.txt');
+            expect(stdoutOutput).toContain('"homepage": "https://example.org"');
+            expect(stdoutOutput).not.toContain('secret');
+        } finally {
+            stdoutSpy.mockRestore();
+            accessSpy.mockRestore();
+            readFileSpy.mockRestore();
+            writeFileSpy.mockRestore();
+            consola.level = originalLevel;
+        }
+    });
+
+    it('does not corrupt the verbose dump for a path-less URL and a later email', async () => {
+        process.argv = [
+            'node',
+            'cli',
+            '-v',
+            '-c',
+            'config.json',
+            '-o',
+            'output.txt',
+        ];
+
+        const accessSpy = jest.spyOn(fs.promises, 'access').mockResolvedValue();
+        const readFileSpy = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(Buffer.from(JSON.stringify({
+            homepage: 'https://example.org',
+            description: 'admin@example.com',
+            sources: [{ source: 'test.txt' }],
+        })));
+        const writeFileSpy = jest.spyOn(fs.promises, 'writeFile').mockResolvedValue();
+
+        let stdoutOutput = '';
+        const originalLevel = consola.level;
+        const stdoutSpy = jest.spyOn(consola.stdout, 'write').mockImplementation((chunk) => {
+            stdoutOutput += chunk.toString();
+            return true;
+        });
+
+        try {
+            // eslint-disable-next-line global-require
+            const compileMock = require('../src/index');
+            compileMock.mockResolvedValue([]);
+
+            // eslint-disable-next-line global-require
+            require('../src/cli');
+            await new Promise((resolve) => { setImmediate(resolve); });
+
+            expect(stdoutOutput).toContain('"homepage": "https://example.org"');
+            expect(stdoutOutput).toContain('"description": "admin@example.com"');
+            expect(stdoutOutput).toContain('"source": "test.txt"');
+        } finally {
+            stdoutSpy.mockRestore();
+            accessSpy.mockRestore();
+            readFileSpy.mockRestore();
+            writeFileSpy.mockRestore();
+            consola.level = originalLevel;
+        }
     });
 
     it('prints every error in the cause chain', async () => {
@@ -78,6 +219,73 @@ describe('CLI error output', () => {
         expect(stderrOutput).toContain('Caused by: connect ECONNREFUSED 127.0.0.1:443');
         expect(stderrOutput).not.toContain('Caused by: AggregateError');
         expect(exitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('does not print credentials from a malformed source URL in an error', async () => {
+        const innerError = new TypeError(
+            'Request cannot be constructed from a URL that includes credentials: '
+            + 'https:///user:secret@example.org/list.txt',
+        );
+        const error = new Error("Failed to request url 'http:/user:secret@example.org/list.txt'");
+        error.cause = innerError;
+
+        // eslint-disable-next-line global-require
+        require('../src/index').mockRejectedValue(error);
+
+        // eslint-disable-next-line global-require
+        require('../src/cli');
+        await new Promise((resolve) => { setImmediate(resolve); });
+
+        expect(stderrOutput).not.toContain('secret');
+        expect(stderrOutput).toContain('https:///example.org/list.txt');
+        expect(stderrOutput).toContain('http:/example.org/list.txt');
+        expect(exitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('does not print credentials from a URL object key in the verbose dump', async () => {
+        process.argv = [
+            'node',
+            'cli',
+            '-v',
+            '-c',
+            'config.json',
+            '-o',
+            'output.txt',
+        ];
+
+        const accessSpy = jest.spyOn(fs.promises, 'access').mockResolvedValue();
+        const readFileSpy = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(Buffer.from(JSON.stringify({
+            name: 'test',
+            sources: [{ source: 'test.txt' }],
+            'https://user:secret@example.org/key.txt': 'value',
+        })));
+        const writeFileSpy = jest.spyOn(fs.promises, 'writeFile').mockResolvedValue();
+
+        let stdoutOutput = '';
+        const originalLevel = consola.level;
+        const stdoutSpy = jest.spyOn(consola.stdout, 'write').mockImplementation((chunk) => {
+            stdoutOutput += chunk.toString();
+            return true;
+        });
+
+        try {
+            // eslint-disable-next-line global-require
+            const compileMock = require('../src/index');
+            compileMock.mockResolvedValue([]);
+
+            // eslint-disable-next-line global-require
+            require('../src/cli');
+            await new Promise((resolve) => { setImmediate(resolve); });
+
+            expect(stdoutOutput).toContain('"https://example.org/key.txt"');
+            expect(stdoutOutput).not.toContain('secret');
+        } finally {
+            stdoutSpy.mockRestore();
+            accessSpy.mockRestore();
+            readFileSpy.mockRestore();
+            writeFileSpy.mockRestore();
+            consola.level = originalLevel;
+        }
     });
 
     it('prints a cause that is not an error object', async () => {
