@@ -48,6 +48,10 @@ In short:
 | `publish-release.yml` | PR merged to `master` or manual re-run | Tag, build, publish to npm, mirror, draft GitHub Release, notify Slack   |
 | `mirror.yml`          | Push to `master`                       | Mirror commits to `AdguardTeam/HostlistCompiler`                         |
 
+A manual run of `prepare-release.yml` shows the requested tag in the Actions
+run list (for example, `Prepare release v3.0.0-beta.0`), so runs for different
+tags are easy to tell apart.
+
 All workflows reuse the shared pipeline definitions from
 [ext-shared-actions][ext-shared-actions] and [actions][actions]. The
 `publish-release.yml` trigger fires for any closed PR against `master`; the
