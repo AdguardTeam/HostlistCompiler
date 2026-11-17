@@ -331,7 +331,7 @@ describe('Source compiler', () => {
         scope.done();
     });
 
-    it('compile the empty local source', async () => {
+    it('skips an empty local source with a warning', async () => {
         mock({
             'test/dir': {
                 'empty.txt': '',
@@ -348,11 +348,57 @@ describe('Source compiler', () => {
                 TRANSFORMATIONS.TrimLines,
             ],
         };
-        const compiled = await compileSource(source);
-        expect(compiled).toEqual(['']);
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source test/dir/empty.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
     });
 
-    it('compile the empty external source', async () => {
+    it('skips a source that contains only comments and blank lines', async () => {
+        mock({
+            'test/dir': {
+                'comments.txt': [
+                    '! adblock comment',
+                    '# hosts comment',
+                    '#',
+                    '',
+                    '   ',
+                    '    #### section comment',
+                ].join('\n'),
+            },
+        });
+
+        const source = {
+            name: 'test source',
+            source: 'test/dir/comments.txt',
+            transformations: [
+                TRANSFORMATIONS.RemoveComments,
+                TRANSFORMATIONS.RemoveEmptyLines,
+            ],
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source test/dir/comments.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
+    });
+
+    it('skips an empty external source with a warning', async () => {
         const scope = mockHttp('https://example.org')
             .get('/empty.txt')
             .reply(200, '', {
@@ -370,8 +416,44 @@ describe('Source compiler', () => {
                 TRANSFORMATIONS.Compress,
             ],
         };
-        const compiled = await compileSource(source);
-        expect(compiled).toEqual(['']);
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source https://example.org/empty.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('compiles a non-empty source and does not warn about an empty source', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/filter.txt')
+            .reply(200, '! comment\n||rule1^', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/filter.txt',
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual(['! comment', '||rule1^']);
+            expect(warnSpy).not.toHaveBeenCalled();
+        } finally {
+            warnSpy.mockRestore();
+        }
+
         scope.done();
     });
 });

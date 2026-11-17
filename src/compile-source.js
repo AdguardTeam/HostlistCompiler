@@ -1,5 +1,7 @@
+const _ = require('lodash');
 const consola = require('consola');
 const { download } = require('./download');
+const ruleUtils = require('./rule');
 const { transform } = require('./transformations/transform');
 const { stripKnownUrlCredentials } = require('./utils');
 
@@ -15,6 +17,26 @@ const { stripKnownUrlCredentials } = require('./utils');
  */
 
 /**
+ * Checks whether a downloaded source contains no rules.
+ *
+ * A source is empty when it has no entries, or when every entry is blank or
+ * a comment line.
+ *
+ * @param {Array<string>} rules - downloaded source rules.
+ * @returns {boolean} true if the source contains no rules.
+ */
+function isEmptySource(rules) {
+    if (_.isEmpty(rules)) {
+        return true;
+    }
+
+    return rules.every((rule) => {
+        const trimmed = _.trim(rule);
+        return _.isEmpty(trimmed) || ruleUtils.isComment(trimmed);
+    });
+}
+
+/**
  * Compiles an individual source according to it's configuration.
  *
  * @param {ListSource} source - source configuration.
@@ -24,6 +46,11 @@ async function compileSource(source) {
     consola.info(`Start compiling ${stripKnownUrlCredentials(source.source)}`);
     let rules = await download(source.source);
     consola.info(`Original length is ${rules.length}`);
+
+    if (isEmptySource(rules)) {
+        consola.warn(`Source ${stripKnownUrlCredentials(source.source)} is empty and is skipped`);
+        return [];
+    }
 
     rules = await transform(rules, source, source.transformations);
 

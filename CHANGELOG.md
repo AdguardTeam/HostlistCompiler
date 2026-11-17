@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Sources that contain no rules, including empty files and files with only
+  comments and blank lines, are now skipped with a warning instead of
+  silently producing an empty list. [#88]
+
 ### Security
 
 ## [3.0.0-beta.0] - 2026-11-17
@@ -94,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#127]: https://github.com/AdguardTeam/HostlistCompiler/issues/127
 [#128]: https://github.com/AdguardTeam/HostlistCompiler/issues/128
 [#130]: https://github.com/AdguardTeam/HostlistCompiler/issues/130
+[#88]: https://github.com/AdguardTeam/HostlistCompiler/issues/88
 
 ## [2.0.0] - 2026-04-02
 
