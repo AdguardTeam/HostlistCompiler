@@ -230,6 +230,55 @@ function extractDomainPattern(pattern) {
 }
 
 /**
+ * Validates a `||`-prefixed pattern that has no `^` separator.
+ *
+ * In uBO such a pattern can end with a dot, and the dot is not an FQDN marker:
+ * `||roblox.com.` requires at least one more label after `roblox.com`
+ * (`roblox.com.gr`, `roblox.com.br`). DNS-level matching cannot express
+ * "something must follow", so this rule cannot be represented and must be
+ * dropped. If the compiler ignores the dot, the emitted rule over-blocks the
+ * real domain and its subdomains.
+ *
+ * A pattern without a trailing dot, for example `||example.org` or
+ * `||example.org|`, means the domain and its subdomains. DNS can express this,
+ * so validate the hostname in the same way as an anchored rule.
+ *
+ * Patterns with a wildcard stay permissive because DNS cannot check them.
+ *
+ * @param {string} pattern - adblock rule pattern without modifiers
+ * @param {string} ruleText - original rule text (for logging)
+ * @param {boolean} allowedIP - flag to determine if IP validation is allowed
+ * @param {boolean} hasLimitModifier - flag to determine if the rule has a limit modifier
+ * @param {boolean} allowPublicSuffix - flag to determine if matching whole public suffixes is allowed
+ * @returns {boolean} true if the pattern can be represented at DNS level
+ */
+function validDomainPatternWithoutSeparator(
+    pattern,
+    ruleText,
+    allowedIP,
+    hasLimitModifier,
+    allowPublicSuffix,
+) {
+    // Wildcard patterns are intentionally kept permissive, as before this check.
+    if (pattern.includes(WILDCARD)) {
+        return true;
+    }
+
+    let domain = pattern.slice(DOMAIN_PREFIX.length);
+    // Optional rule-end anchor, e.g. `||example.org|`.
+    if (domain.endsWith('|')) {
+        domain = domain.slice(0, -1);
+    }
+
+    if (domain.endsWith('.')) {
+        consola.debug(`The rule ends with a dot and has no ^ separator, DNS cannot represent it: ${ruleText}`);
+        return false;
+    }
+
+    return validHostname(domain, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix);
+}
+
+/**
  * Validates an /etc/hosts rule.
  *
  * We do one very simple thing:
@@ -402,9 +451,26 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         return validHostname(exactDomainPattern, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix);
     }
 
-    // Check if the pattern does not start with the domain prefix and does not contain a domain separator
-    if (!_.startsWith(props.pattern, DOMAIN_PREFIX) || sepIdx === -1) {
+    // Patterns without the domain prefix are not domain-anchored, so domain checks do not apply.
+    if (!_.startsWith(props.pattern, DOMAIN_PREFIX)) {
         return true;
+    }
+
+    // `||`-patterns without a `^` separator need their own check: a trailing dot
+    // cannot be represented at DNS level, and a plain domain must be validated.
+    if (sepIdx === -1) {
+        // An IP-subnet pattern that reaches this point was already accepted above;
+        // this is the ValidateAllowIp 3-octet subnet case, for example `||192.168.1.`.
+        if (isIpSubnetPattern(props.pattern)) {
+            return true;
+        }
+        return validDomainPatternWithoutSeparator(
+            props.pattern,
+            ruleText,
+            allowedIP,
+            hasLimitModifier,
+            allowPublicSuffix,
+        );
     }
 
     // Extract the domain to check from the parsed pattern (not ruleText) to stay consistent

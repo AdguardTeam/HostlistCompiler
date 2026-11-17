@@ -1,4 +1,9 @@
 const { validate } = require('../../src/transformations/validate');
+const { validateAllowIp } = require('../../src/transformations/validate-allow-ip');
+const { validateAllowPublicSuffix } = require('../../src/transformations/validate-allow-public-suffix');
+const {
+    validateAllowIpAndPublicSuffix,
+} = require('../../src/transformations/validate-allow-ip-and-public-suffix');
 
 describe('Validate', () => {
     it('simple /etc/hosts rule', () => {
@@ -383,5 +388,63 @@ describe('Validate', () => {
         const filtered = validate(rules);
 
         expect(filtered).toEqual(rules);
+    });
+
+    it('rejects ||domain. patterns that DNS cannot represent', () => {
+        // In uBO, the trailing dot in `||roblox.com.` requires another label
+        // after the domain (`roblox.com.gr`). DNS cannot express this, so such
+        // a rule must be dropped instead of over-blocking roblox.com.
+        const rules = [
+            '||roblox.com.',
+            '||roblox.com.|',
+            '||roblox.com.$all',
+            '@@||roblox.com.',
+        ];
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([]);
+    });
+
+    it.each([
+        ['Validate', validate],
+        ['ValidateAllowIp', validateAllowIp],
+        ['ValidateAllowPublicSuffix', validateAllowPublicSuffix],
+        ['ValidateAllowIpAndPublicSuffix', validateAllowIpAndPublicSuffix],
+    ])('rejects ||roblox.com. and ||roblox.com.$all in %s', (_name, validator) => {
+        expect(validator(['||roblox.com.', '||roblox.com.$all'])).toEqual([]);
+    });
+
+    it('validates ||domain patterns without ^ instead of passing them unchecked', () => {
+        const rules = [
+            '||example.org',
+            '||example.org|',
+            '||example.org^',
+            '||example.org.^',
+            '||sub.example.org.^',
+            '||ex*.org', // wildcard patterns stay permissive
+            '||xyz123notreal', // single non-PSL label — rejected
+        ];
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '||example.org',
+            '||example.org|',
+            '||example.org^',
+            '||example.org.^',
+            '||sub.example.org.^',
+            '||ex*.org',
+        ]);
+    });
+
+    it('removes comments and empty lines before a dropped ||domain. rule', () => {
+        const rules = `! Badware risks
+! roblox.com. requires a following label
+
+||roblox.com.
+||example.org^`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual(['||example.org^']);
+        expect(filtered).not.toContain('||roblox.com.');
     });
 });

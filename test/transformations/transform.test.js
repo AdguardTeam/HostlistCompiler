@@ -164,6 +164,20 @@ rule2
         expect(filtered).toEqual(['! test comment', 'rule1', '||185.149.120.173^', '||example.com^']);
     });
 
+    it('drops ||domain. rules after removing unsupported modifiers', async () => {
+        // `||roblox.com.$all` becomes `||roblox.com.` after RemoveModifiers.
+        // DNS cannot represent the required following label, so Validate must drop it,
+        // together with the comment and empty line that precede it.
+        const rules = `! Badware risks
+
+||roblox.com.$all
+||example.org^`.split(/\r?\n/);
+        const filtered = await transform(rules, {}, ['RemoveModifiers', 'Validate']);
+
+        expect(filtered).toEqual(['||example.org^']);
+        expect(filtered).not.toContain('||roblox.com.');
+    });
+
     it('simple transformations with ConvertToAscii', async () => {
         const rules = `! test comment
 ||*.рус^

@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `||domain.` rules that have no `^` separator are now rejected instead of
+  emitted as DNS rules that over-block the domain, for example
+  `||roblox.com.` from `||roblox.com.$all`.
+
 ### Security
 
 ## [3.0.0-beta.0] - 2026-11-17
