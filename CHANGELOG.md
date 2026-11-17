@@ -11,20 +11,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated [@adguard/filters-downloader] to v3.0.1. This version removes
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [3.0.0-beta.0] - 2026-11-17
+
+### Changed
+
+- Updated [@adguard/filters-downloader] to v3.1.0. This version removes
   `axios` and downloads filters with native `fetch` in Node.js. It requires
   Node.js 22.22.2 or newer, and Node.js 23.x is not supported. Environment
-  proxy variables now require `NODE_USE_ENV_PROXY=1`. [#130]
+  proxy variables now require `NODE_USE_ENV_PROXY=1`. A relative `!#include`
+  path that leaves the directory of the containing file is now ignored
+  instead of failing the filter update. Credentials from malformed source
+  URLs no longer appear in error messages, stacks, causes, or other error
+  properties. `stripUrlCredentials` is now exported from the package root and
+  the browser entry point. [#130]
 - Remote bodies that look like JSON (e.g. `[]`, `123`, `{"a":1}`) are now
   treated as plain text instead of failing with
   `filter.trim is not a function`. A JSON file served as `text/plain` now
   adds its content to the list. [#130]
 - The internal configuration schema moved from `src/schemas/configuration.schema.json`
   to `src/schemas/configuration.schema.js`; the documented API is unchanged.
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -73,7 +86,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hardened `validHostname()` to reject hostnames that do not contain any
   alphanumeric character (e.g. `..`), covering a behavioral change in `tldts` v7.
 
-[Unreleased]: https://github.com/AdguardTeam/HostlistCompiler/compare/v2.1.1...HEAD
+[Unreleased]: https://github.com/AdguardTeam/HostlistCompiler/compare/v3.0.0-beta.0...HEAD
+[3.0.0-beta.0]: https://github.com/AdguardTeam/HostlistCompiler/compare/v2.1.1...v3.0.0-beta.0
 [2.1.1]: https://github.com/AdguardTeam/HostlistCompiler/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/AdguardTeam/HostlistCompiler/compare/v2.0.0...v2.1.0
 [#126]: https://github.com/AdguardTeam/HostlistCompiler/issues/126
