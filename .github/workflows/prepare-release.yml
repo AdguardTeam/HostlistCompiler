@@ -1,7 +1,9 @@
 name: Prepare release
 
-# The run list shows the requested tag, not just the workflow name.
-run-name: 'Prepare release ${{ inputs.tag }}'
+# The run list shows the requested tag together with the workflow name.
+# `github.workflow` repeats the `name` value from one place, so a rename of the
+# workflow also updates the run name.
+run-name: '${{ github.workflow }} ${{ inputs.tag }}'
 
 description: >-
   Opens a release PR that finalizes CHANGELOG.md for the given tag.
