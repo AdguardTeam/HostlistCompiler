@@ -1,5 +1,8 @@
 name: Prepare release
 
+# The run list shows the requested tag, not just the workflow name.
+run-name: 'Prepare release ${{ inputs.tag }}'
+
 description: >-
   Opens a release PR that finalizes CHANGELOG.md for the given tag.
   After merge, publish-release.yml takes over.
