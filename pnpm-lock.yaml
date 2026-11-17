@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@adguard/filters-downloader':
-        specifier: 3.0.1
-        version: 3.0.1
+        specifier: 3.1.0
+        version: 3.1.0
       ajv:
         specifier: 6.12.6
         version: 6.12.6
@@ -68,8 +68,8 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  '@adguard/filters-downloader@3.0.1':
-    resolution: {integrity: sha512-Z5PclnS6rbYM2BGh1+CDNZSuw9w9frx4FN0MAgDGyAEIRAQHJkmDCy1o9PMu51gXXkYogkoBPWikTUwINMGbkQ==}
+  '@adguard/filters-downloader@3.1.0':
+    resolution: {integrity: sha512-yPIp5tgvbYQpar1WsCqf/pYSYT3OlxFAeBWvaMosOWkFFYrAClcHu8M+FxJg4MIGYrn3GqU7fv8X3vFO1uqMZA==}
     engines: {node: ^22.21.0 || >=24.0.0, pnpm: '>=10.33.4 <11'}
 
   '@ampproject/remapping@2.2.0':
@@ -2059,7 +2059,7 @@ snapshots:
       commander: 11.1.0
       crypto-js: 4.2.0
 
-  '@adguard/filters-downloader@3.0.1':
+  '@adguard/filters-downloader@3.1.0':
     dependencies:
       '@adguard/diff-builder': 1.1.4
       crypto-js: 4.2.0
