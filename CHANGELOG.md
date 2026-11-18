@@ -102,7 +102,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#127]: https://github.com/AdguardTeam/HostlistCompiler/issues/127
 [#128]: https://github.com/AdguardTeam/HostlistCompiler/issues/128
 [#130]: https://github.com/AdguardTeam/HostlistCompiler/issues/130
-[#88]: https://github.com/AdguardTeam/HostlistCompiler/issues/88
 
 ## [2.0.0] - 2026-04-02
 
@@ -231,3 +230,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#69]: https://github.com/AdguardTeam/FiltersCompiler/issues/69
 
 [@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/master/CHANGELOG.md
+[#88]: https://github.com/AdguardTeam/HostlistCompiler/issues/88
