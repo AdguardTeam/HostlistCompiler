@@ -4,6 +4,7 @@ const { download } = require('./download');
 const ruleUtils = require('./rule');
 const { transform } = require('./transformations/transform');
 const { stripKnownUrlCredentials } = require('./utils');
+const { checkIncompatibleValidationTransformations } = require('./validation-conflicts');
 
 /**
  * A source configuration. See a better description in README.md
@@ -37,6 +38,15 @@ function isEmptySource(rules) {
 }
 
 /**
+ * Logs a warning that a source contains no rules.
+ *
+ * @param {ListSource} source - source configuration.
+ */
+function warnEmptySource(source) {
+    consola.warn(`Source ${stripKnownUrlCredentials(source.source)} is empty and is skipped`);
+}
+
+/**
  * Compiles an individual source according to it's configuration.
  *
  * @param {ListSource} source - source configuration.
@@ -48,13 +58,23 @@ async function compileSource(source) {
     consola.info(`Original length is ${rules.length}`);
 
     if (isEmptySource(rules)) {
-        consola.warn(`Source ${stripKnownUrlCredentials(source.source)} is empty and is skipped`);
+        // The configuration schema rejects incompatible validations for the
+        // public `compile()` API. Keep the runtime check here as well so a
+        // direct `compileSource()` call does not bypass it on the early return.
+        checkIncompatibleValidationTransformations(source.transformations || []);
+        warnEmptySource(source);
         return [];
     }
 
     rules = await transform(rules, source, source.transformations);
 
     consola.info(`Length after applying transformations is ${rules.length}`);
+
+    if (isEmptySource(rules)) {
+        warnEmptySource(source);
+        return [];
+    }
+
     return rules;
 }
 

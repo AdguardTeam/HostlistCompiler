@@ -379,10 +379,6 @@ describe('Source compiler', () => {
         const source = {
             name: 'test source',
             source: 'test/dir/comments.txt',
-            transformations: [
-                TRANSFORMATIONS.RemoveComments,
-                TRANSFORMATIONS.RemoveEmptyLines,
-            ],
         };
 
         const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
@@ -424,6 +420,88 @@ describe('Source compiler', () => {
             expect(compiled).toEqual([]);
             expect(warnSpy).toHaveBeenCalledWith(
                 'Source https://example.org/empty.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('does not expose source credentials in an empty-source warning', async () => {
+        const authorization = `Basic ${Buffer.from('user:secret').toString('base64')}`;
+        const scope = mockHttp('https://example.org')
+            .get('/empty.txt', { Authorization: authorization })
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://user:secret@example.org/empty.txt',
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source https://example.org/empty.txt is empty and is skipped',
+            );
+
+            const warningMessages = warnSpy.mock.calls.map(([message]) => String(message));
+            warningMessages.forEach((message) => {
+                expect(message).not.toContain('secret');
+            });
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('checks incompatible validations for an empty source', async () => {
+        mock({
+            'test/dir': {
+                'empty.txt': '',
+            },
+        });
+
+        const source = {
+            name: 'test source',
+            source: 'test/dir/empty.txt',
+            transformations: [
+                TRANSFORMATIONS.Validate,
+                TRANSFORMATIONS.ValidateAllowIp,
+            ],
+        };
+
+        await expect(compileSource(source)).rejects.toThrow(
+            'Validation transformations cannot be combined',
+        );
+    });
+
+    it('warns when transformations remove every rule', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/invalid.txt')
+            .reply(200, '||invalid/rule', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/invalid.txt',
+            transformations: [TRANSFORMATIONS.Validate],
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source https://example.org/invalid.txt is empty and is skipped',
             );
         } finally {
             warnSpy.mockRestore();

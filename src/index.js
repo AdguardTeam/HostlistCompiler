@@ -101,10 +101,13 @@ async function compile(configuration) {
     for (const source of configuration.sources) {
         // eslint-disable-next-line no-await-in-loop
         const sourceRules = await compileSource(source);
-        const sourceHeader = prepareSourceHeader(source);
 
-        finalList = finalList.concat(sourceHeader);
-        finalList = finalList.concat(sourceRules);
+        if (sourceRules.length > 0) {
+            const sourceHeader = prepareSourceHeader(source);
+
+            finalList = finalList.concat(sourceHeader);
+            finalList = finalList.concat(sourceRules);
+        }
     }
 
     // Now let's apply the final transformations to the list
