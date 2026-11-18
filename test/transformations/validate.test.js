@@ -399,6 +399,14 @@ describe('Validate', () => {
             '||roblox.com.|',
             '||roblox.com.$all',
             '@@||roblox.com.',
+            // The dot check runs before the wildcard shortcut, so these shapes
+            // are rejected as well.
+            '||*.roblox.com.',
+            '||*.roblox.com.|',
+            '||*roblox.com.',
+            '||ro*.com.',
+            '||*.co.uk.',
+            '||roblox.com.*.',
         ];
         const filtered = validate(rules);
 
@@ -410,8 +418,8 @@ describe('Validate', () => {
         ['ValidateAllowIp', validateAllowIp],
         ['ValidateAllowPublicSuffix', validateAllowPublicSuffix],
         ['ValidateAllowIpAndPublicSuffix', validateAllowIpAndPublicSuffix],
-    ])('rejects ||roblox.com. and ||roblox.com.$all in %s', (_name, validator) => {
-        expect(validator(['||roblox.com.', '||roblox.com.$all'])).toEqual([]);
+    ])('rejects trailing-dot || patterns in %s', (_name, validator) => {
+        expect(validator(['||roblox.com.', '||roblox.com.$all', '||*.roblox.com.'])).toEqual([]);
     });
 
     it('validates ||domain patterns without ^ instead of passing them unchecked', () => {

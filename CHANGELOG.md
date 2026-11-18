@@ -17,9 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `||domain.` rules that have no `^` separator are now rejected instead of
-  emitted as DNS rules that over-block the domain, for example
-  `||roblox.com.` from `||roblox.com.$all`.
+- `||domain.` rules that have no `^` separator, including wildcard patterns
+  such as `||*.roblox.com.`, are now rejected instead of emitted as DNS rules
+  that over-block the domain, for example `||roblox.com.` from
+  `||roblox.com.$all`. `||domain` rules without `^` are now validated like
+  `||domain^` rules, so whole-public-suffix (`||org`, `||co.uk`) and
+  single-label (`||rule1`) rules are dropped as well.
 
 ### Security
 

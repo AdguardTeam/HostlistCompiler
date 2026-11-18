@@ -243,7 +243,9 @@ function extractDomainPattern(pattern) {
  * `||example.org|`, means the domain and its subdomains. DNS can express this,
  * so validate the hostname in the same way as an anchored rule.
  *
- * Patterns with a wildcard stay permissive because DNS cannot check them.
+ * Patterns with a wildcard stay permissive because DNS cannot check them,
+ * unless they end with a dot: that check is syntactic and does not need a DNS
+ * lookup.
  *
  * @param {string} pattern - adblock rule pattern without modifiers
  * @param {string} ruleText - original rule text (for logging)
@@ -259,20 +261,22 @@ function validDomainPatternWithoutSeparator(
     hasLimitModifier,
     allowPublicSuffix,
 ) {
-    // Wildcard patterns are intentionally kept permissive, as before this check.
-    if (pattern.includes(WILDCARD)) {
-        return true;
-    }
-
     let domain = pattern.slice(DOMAIN_PREFIX.length);
     // Optional rule-end anchor, e.g. `||example.org|`.
     if (domain.endsWith('|')) {
         domain = domain.slice(0, -1);
     }
 
+    // The dot check runs before the wildcard shortcut: it is purely syntactic,
+    // so it also catches patterns such as `||*.roblox.com.`.
     if (domain.endsWith('.')) {
         consola.debug(`The rule ends with a dot and has no ^ separator, DNS cannot represent it: ${ruleText}`);
         return false;
+    }
+
+    // Remaining wildcard shapes are intentionally kept permissive, as before this check.
+    if (pattern.includes(WILDCARD)) {
+        return true;
     }
 
     return validHostname(domain, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix);

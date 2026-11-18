@@ -506,6 +506,14 @@ So here's what it does:
 - Discards rules with unsupported modifiers. Learn more about the
   [supported modifiers](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists#-adblock-style-syntax).
 - Discards rules that are too short.
+- Discards `||domain.` rules that have no `^` separator, because DNS cannot
+  express the label that must follow the domain. For example, `||roblox.com.`
+  (from `||roblox.com.$all`) is discarded instead of over-blocking
+  `roblox.com`. The check also applies to wildcard patterns such as
+  `||*.roblox.com.`.
+- Validates bare `||domain` rules that have no `^` separator like `||domain^`
+  rules. Whole-public-suffix rules (`||org`, `||co.uk`) and single-label rules
+  (`||rule1`) are therefore discarded.
 - Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
 
 #### <a name="rejected-ip-patterns"></a>Rejected IP Patterns
