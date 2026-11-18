@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that over-block the domain, for example `||roblox.com.` from
   `||roblox.com.$all`. `||domain` rules without `^` are now validated like
   `||domain^` rules, so whole-public-suffix (`||org`, `||co.uk`) and
-  single-label (`||rule1`) rules are dropped as well.
+  single-label (`||rule1`) rules are dropped as well. [#129]
 
 ### Security
 
@@ -103,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#126]: https://github.com/AdguardTeam/HostlistCompiler/issues/126
 [#127]: https://github.com/AdguardTeam/HostlistCompiler/issues/127
 [#128]: https://github.com/AdguardTeam/HostlistCompiler/issues/128
+[#129]: https://github.com/AdguardTeam/HostlistCompiler/issues/129
 [#130]: https://github.com/AdguardTeam/HostlistCompiler/issues/130
 
 ## [2.0.0] - 2026-04-02
