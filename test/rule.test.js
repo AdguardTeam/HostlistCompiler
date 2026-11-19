@@ -125,4 +125,15 @@ describe('Rule utils', () => {
         expect(ruleUtils.isJustDomain('||example.org^')).toBe(false);
         expect(ruleUtils.isJustDomain('123 org')).toBe(false);
     });
+
+    it('isAdblockPlusHeader should detect the list format header', () => {
+        expect(ruleUtils.isAdblockPlusHeader('[Adblock Plus 2.0]')).toBe(true);
+        expect(ruleUtils.isAdblockPlusHeader('[Adblock Plus 1.1]')).toBe(true);
+        expect(ruleUtils.isAdblockPlusHeader('[adblock plus 2.0]')).toBe(true);
+
+        expect(ruleUtils.isAdblockPlusHeader('[Adblock Plus]')).toBe(false);
+        expect(ruleUtils.isAdblockPlusHeader('[Adblock Plus 2.0] extra')).toBe(false);
+        expect(ruleUtils.isAdblockPlusHeader('||example.org^')).toBe(false);
+        expect(ruleUtils.isAdblockPlusHeader('! comment')).toBe(false);
+    });
 });

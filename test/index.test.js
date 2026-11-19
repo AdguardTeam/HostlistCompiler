@@ -46,6 +46,49 @@ describe('Hostlist compiler', () => {
         scope.done();
     });
 
+    it('does not emit a source header for an empty source', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/empty.txt')
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            })
+            .get('/source.txt')
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            sources: [
+                {
+                    name: 'empty source',
+                    source: 'https://example.org/empty.txt',
+                },
+                {
+                    name: 'source',
+                    source: 'https://example.org/source.txt',
+                },
+            ],
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const list = await compile(configuration);
+            const compiledList = list.join('\n');
+
+            expect(compiledList).not.toContain('! Source name: empty source');
+            expect(compiledList).not.toContain('! Source: https://example.org/empty.txt');
+            expect(compiledList).toContain('! Source name: source');
+            expect(compiledList).toContain('! Source: https://example.org/source.txt');
+            expect(compiledList).toContain('||example.org');
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
     it('does not expose source credentials in the compiled list or logs', async () => {
         const scope = mockHttp('https://example.org')
             .get('/source.txt', { Authorization: 'Basic dXNlcjpzZWNyZXQ=' })

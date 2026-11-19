@@ -331,7 +331,7 @@ describe('Source compiler', () => {
         scope.done();
     });
 
-    it('compile the empty local source', async () => {
+    it('skips an empty local source with a warning', async () => {
         mock({
             'test/dir': {
                 'empty.txt': '',
@@ -348,11 +348,80 @@ describe('Source compiler', () => {
                 TRANSFORMATIONS.TrimLines,
             ],
         };
-        const compiled = await compileSource(source);
-        expect(compiled).toEqual(['']);
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source test/dir/empty.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
     });
 
-    it('compile the empty external source', async () => {
+    it('skips a source that contains only comments and blank lines', async () => {
+        mock({
+            'test/dir': {
+                'comments.txt': [
+                    '! adblock comment',
+                    '# hosts comment',
+                    '#',
+                    '',
+                    '   ',
+                    '    #### section comment',
+                ].join('\n'),
+            },
+        });
+
+        const source = {
+            name: 'test source',
+            source: 'test/dir/comments.txt',
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source test/dir/comments.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
+    });
+
+    it('skips a source that contains only an Adblock Plus header and comments', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/header.txt')
+            .reply(200, '[Adblock Plus 2.0]\n! Title: header only\n', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/header.txt',
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source https://example.org/header.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('skips an empty external source with a warning', async () => {
         const scope = mockHttp('https://example.org')
             .get('/empty.txt')
             .reply(200, '', {
@@ -370,8 +439,164 @@ describe('Source compiler', () => {
                 TRANSFORMATIONS.Compress,
             ],
         };
-        const compiled = await compileSource(source);
-        expect(compiled).toEqual(['']);
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source https://example.org/empty.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('does not expose source credentials in an empty-source warning', async () => {
+        const authorization = `Basic ${Buffer.from('user:secret').toString('base64')}`;
+        const scope = mockHttp('https://example.org')
+            .get('/empty.txt', { Authorization: authorization })
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://user:secret@example.org/empty.txt',
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source https://example.org/empty.txt is empty and is skipped',
+            );
+
+            const warningMessages = warnSpy.mock.calls.map(([message]) => String(message));
+            warningMessages.forEach((message) => {
+                expect(message).not.toContain('secret');
+            });
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('checks incompatible validations for an empty source', async () => {
+        mock({
+            'test/dir': {
+                'empty.txt': '',
+            },
+        });
+
+        const source = {
+            name: 'test source',
+            source: 'test/dir/empty.txt',
+            transformations: [
+                TRANSFORMATIONS.Validate,
+                TRANSFORMATIONS.ValidateAllowIp,
+            ],
+        };
+
+        await expect(compileSource(source)).rejects.toThrow(
+            'Validation transformations cannot be combined',
+        );
+    });
+
+    it('does not run the transformation pipeline for an empty source', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/empty.txt')
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            });
+
+        const transformMock = jest.fn(() => {
+            throw new Error('The transformation pipeline must not run for an empty source');
+        });
+
+        jest.resetModules();
+        jest.doMock('../src/transformations/transform', () => ({
+            transform: transformMock,
+        }));
+
+        try {
+            // Load a fresh module registry so `compile-source` binds the mock.
+            // eslint-disable-next-line global-require
+            const isolatedCompileSource = require('../src/compile-source');
+            const source = {
+                name: 'test source',
+                source: 'https://example.org/empty.txt',
+                transformations: [TRANSFORMATIONS.TrimLines],
+            };
+
+            const compiled = await isolatedCompileSource(source);
+
+            expect(compiled).toEqual([]);
+            expect(transformMock).not.toHaveBeenCalled();
+        } finally {
+            jest.dontMock('../src/transformations/transform');
+            jest.resetModules();
+        }
+
+        scope.done();
+    });
+
+    it('warns when transformations remove every rule', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/invalid.txt')
+            .reply(200, '||invalid/rule', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/invalid.txt',
+            transformations: [TRANSFORMATIONS.Validate],
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source https://example.org/invalid.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
+    it('compiles a non-empty source and does not warn about an empty source', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/filter.txt')
+            .reply(200, '[Adblock Plus 2.0]\n! comment\n||rule1^', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/filter.txt',
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual(['[Adblock Plus 2.0]', '! comment', '||rule1^']);
+            expect(warnSpy).not.toHaveBeenCalled();
+        } finally {
+            warnSpy.mockRestore();
+        }
+
         scope.done();
     });
 });

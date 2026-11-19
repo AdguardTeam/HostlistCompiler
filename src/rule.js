@@ -24,6 +24,18 @@ function isComment(ruleText) {
         || _.startsWith(ruleText, '####');
 }
 
+// The format header of an Adblock Plus filter list, for example
+// `[Adblock Plus 2.0]`. It is metadata, not a filtering rule.
+const adblockPlusHeaderRegex = /^\[Adblock Plus \d+(?:\.\d+)*\]$/i;
+
+/**
+* @param {String} ruleText - rule to check
+* @returns {Boolean} true if the rule text is an Adblock Plus format header
+*/
+function isAdblockPlusHeader(ruleText) {
+    return adblockPlusHeaderRegex.test(ruleText);
+}
+
 /**
  * @param {String} ruleText - rule to check
  * @returns {Boolean} true if the rule is "allowing"
@@ -305,6 +317,7 @@ function adblockRuleToString(ruleProps) {
 
 module.exports = {
     isComment,
+    isAdblockPlusHeader,
     isAllowRule,
     isJustDomain,
     isEtcHostsRule,

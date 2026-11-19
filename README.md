@@ -195,6 +195,12 @@ Here is an example of this configuration:
   list. All rules that don't match these wildcards won't be included.
 - `inclusions_sources` - (optional) a list of files with inclusions.
 
+Sources that produce no rules are skipped with a warning. This includes an
+empty file, a source whose only lines are blank, compiler-recognized comments,
+or an Adblock Plus format header. It also includes a source whose
+transformations remove every rule. The compiler does not add the skipped
+source or its header to the output, and the build still succeeds.
+
 Here is an example of a minimal configuration:
 
 ```json
