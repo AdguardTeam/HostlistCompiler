@@ -394,6 +394,33 @@ describe('Source compiler', () => {
         }
     });
 
+    it('skips a source that contains only an Adblock Plus header and comments', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/header.txt')
+            .reply(200, '[Adblock Plus 2.0]\n! Title: header only\n', {
+                'Content-Type': 'text/plain',
+            });
+
+        const source = {
+            name: 'test source',
+            source: 'https://example.org/header.txt',
+        };
+
+        const warnSpy = jest.spyOn(consola, 'warn').mockImplementation(() => {});
+
+        try {
+            const compiled = await compileSource(source);
+            expect(compiled).toEqual([]);
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Source https://example.org/header.txt is empty and is skipped',
+            );
+        } finally {
+            warnSpy.mockRestore();
+        }
+
+        scope.done();
+    });
+
     it('skips an empty external source with a warning', async () => {
         const scope = mockHttp('https://example.org')
             .get('/empty.txt')
@@ -513,7 +540,7 @@ describe('Source compiler', () => {
     it('compiles a non-empty source and does not warn about an empty source', async () => {
         const scope = mockHttp('https://example.org')
             .get('/filter.txt')
-            .reply(200, '! comment\n||rule1^', {
+            .reply(200, '[Adblock Plus 2.0]\n! comment\n||rule1^', {
                 'Content-Type': 'text/plain',
             });
 
@@ -526,7 +553,7 @@ describe('Source compiler', () => {
 
         try {
             const compiled = await compileSource(source);
-            expect(compiled).toEqual(['! comment', '||rule1^']);
+            expect(compiled).toEqual(['[Adblock Plus 2.0]', '! comment', '||rule1^']);
             expect(warnSpy).not.toHaveBeenCalled();
         } finally {
             warnSpy.mockRestore();

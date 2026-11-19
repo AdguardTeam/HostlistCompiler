@@ -20,8 +20,8 @@ const { checkIncompatibleValidationTransformations } = require('./validation-con
 /**
  * Checks whether a downloaded source contains no rules.
  *
- * A source is empty when it has no entries, or when every entry is blank or
- * a comment line.
+ * A source is empty when it has no entries, or when every entry is blank,
+ * a comment line, or an Adblock Plus format header.
  *
  * @param {Array<string>} rules - downloaded source rules.
  * @returns {boolean} true if the source contains no rules.
@@ -33,7 +33,9 @@ function isEmptySource(rules) {
 
     return rules.every((rule) => {
         const trimmed = _.trim(rule);
-        return _.isEmpty(trimmed) || ruleUtils.isComment(trimmed);
+        return _.isEmpty(trimmed)
+            || ruleUtils.isComment(trimmed)
+            || ruleUtils.isAdblockPlusHeader(trimmed);
     });
 }
 

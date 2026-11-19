@@ -18,9 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Sources that produce no rules, including empty files, files with only blank
-  lines and compiler-recognized comment lines, and sources whose transformations
-  remove every rule, are now skipped with a warning instead of silently
-  producing an empty list. [#88]
+  lines, compiler-recognized comment lines, an Adblock Plus format header, and
+  files whose rules are all removed by transformations, are now skipped with a
+  warning instead of silently producing an empty list. [#88]
 
 ### Security
 
