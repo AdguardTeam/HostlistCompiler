@@ -509,6 +509,44 @@ describe('Source compiler', () => {
         );
     });
 
+    it('does not run the transformation pipeline for an empty source', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/empty.txt')
+            .reply(200, '', {
+                'Content-Type': 'text/plain',
+            });
+
+        const transformMock = jest.fn(() => {
+            throw new Error('The transformation pipeline must not run for an empty source');
+        });
+
+        jest.resetModules();
+        jest.doMock('../src/transformations/transform', () => ({
+            transform: transformMock,
+        }));
+
+        try {
+            // Load a fresh module registry so `compile-source` binds the mock.
+            // eslint-disable-next-line global-require
+            const isolatedCompileSource = require('../src/compile-source');
+            const source = {
+                name: 'test source',
+                source: 'https://example.org/empty.txt',
+                transformations: [TRANSFORMATIONS.TrimLines],
+            };
+
+            const compiled = await isolatedCompileSource(source);
+
+            expect(compiled).toEqual([]);
+            expect(transformMock).not.toHaveBeenCalled();
+        } finally {
+            jest.dontMock('../src/transformations/transform');
+            jest.resetModules();
+        }
+
+        scope.done();
+    });
+
     it('warns when transformations remove every rule', async () => {
         const scope = mockHttp('https://example.org')
             .get('/invalid.txt')
