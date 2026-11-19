@@ -109,6 +109,9 @@ function isUnsafeIpPattern(s) {
 }
 
 const HOSTNAME_ALNUM_PATTERN = /[a-zA-Z0-9]/;
+// A dot-separated sequence of DNS labels. The last label of a prefix mask ends
+// with a hyphen, so callers remove that hyphen before this check.
+const DNS_NAME_PATTERN = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*$/;
 // Matches exact domain-style adblock patterns: ||example.org^, *.org^, .org^, ||org^
 // Each part explained:
 const EXACT_DOMAIN_PATTERN = new RegExp(
@@ -227,6 +230,84 @@ function extractDomainPattern(pattern) {
     const hostname = match[1];
     // Allow trailing dot as absolute FQDN marker by normalizing it away for validation.
     return hostname.endsWith('.') ? hostname.slice(0, -1) : hostname;
+}
+
+/**
+ * Validates a `||`-prefixed pattern that has no `^` separator.
+ *
+ * Some `||` patterns without `^` are valid non-hostname rules that DNS filters
+ * can represent:
+ *
+ * - A trailing dot (`||popunder.`) means "this name under any TLD": it matches
+ *   `popunder.com`, `popunder.net`, and so on. AdGuard lists use these rules,
+ *   so the validator keeps them.
+ * - A trailing hyphen (`||countly-`) is a label-prefix mask: it matches
+ *   hostnames whose label starts with `countly-`.
+ * - Other wildcard patterns stay permissive, as before this check.
+ * - An end anchor after a dot or a hyphen (`||popunder.|`) can never match a
+ *   hostname, so the validator rejects it.
+ *
+ * A pattern without these shapes, for example `||example.org` or
+ * `||example.org|`, means the domain and its subdomains. DNS can express this,
+ * so validate the hostname in the same way as an anchored rule.
+ *
+ * @param {string} pattern - adblock rule pattern without modifiers
+ * @param {string} ruleText - original rule text (for logging)
+ * @param {boolean} allowedIP - flag to determine if IP validation is allowed
+ * @param {boolean} hasLimitModifier - flag to determine if the rule has a limit modifier
+ * @param {boolean} allowPublicSuffix - flag to determine if matching whole public suffixes is allowed
+ * @returns {boolean} true if the pattern is a valid `||` pattern without `^`
+ */
+function validDomainPatternWithoutSeparator(
+    pattern,
+    ruleText,
+    allowedIP,
+    hasLimitModifier,
+    allowPublicSuffix,
+) {
+    let domain = pattern.slice(DOMAIN_PREFIX.length);
+    // Optional rule-end anchor, e.g. `||example.org|`.
+    const hasEndAnchor = domain.endsWith('|');
+    if (hasEndAnchor) {
+        domain = domain.slice(0, -1);
+    }
+
+    // An end anchor after a dot or a hyphen can never match a hostname: the URL
+    // cannot end there. Reject this shape before the wildcard shortcut.
+    if (hasEndAnchor && (domain.endsWith('.') || domain.endsWith('-'))) {
+        consola.debug(`The rule ends with a dot or hyphen before the end anchor and can never match: ${ruleText}`);
+        return false;
+    }
+
+    // Remaining wildcard shapes are intentionally kept permissive, as before this check.
+    if (pattern.includes(WILDCARD)) {
+        return true;
+    }
+
+    // A trailing dot is a "name under any TLD" rule, not a hostname. Check the
+    // literal labels so that malformed shapes such as `||foo..bar.` are still
+    // rejected. Do not call validHostname(): a single label before the dot is
+    // not a public suffix in this context.
+    if (domain.endsWith('.')) {
+        const name = domain.slice(0, -1);
+        if (!DNS_NAME_PATTERN.test(name)) {
+            consola.debug(`The rule has a malformed name before the trailing dot: ${ruleText}`);
+            return false;
+        }
+        return true;
+    }
+
+    // A trailing hyphen is a label-prefix mask, not a hostname.
+    if (domain.endsWith('-')) {
+        const name = domain.slice(0, -1);
+        if (!DNS_NAME_PATTERN.test(name)) {
+            consola.debug(`The rule has a malformed name before the prefix mask: ${ruleText}`);
+            return false;
+        }
+        return true;
+    }
+
+    return validHostname(domain, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix);
 }
 
 /**
@@ -402,9 +483,27 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         return validHostname(exactDomainPattern, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix);
     }
 
-    // Check if the pattern does not start with the domain prefix and does not contain a domain separator
-    if (!_.startsWith(props.pattern, DOMAIN_PREFIX) || sepIdx === -1) {
+    // Patterns without the domain prefix are not domain-anchored, so domain checks do not apply.
+    if (!_.startsWith(props.pattern, DOMAIN_PREFIX)) {
         return true;
+    }
+
+    // `||`-patterns without a `^` separator need their own check: a complete
+    // hostname must be validated, while valid non-hostname shapes such as
+    // `||popunder.` and `||countly-` stay unchanged.
+    if (sepIdx === -1) {
+        // An IP-subnet pattern that reaches this point was already accepted above;
+        // this is the ValidateAllowIp 3-octet subnet case, for example `||192.168.1.`.
+        if (isIpSubnetPattern(props.pattern)) {
+            return true;
+        }
+        return validDomainPatternWithoutSeparator(
+            props.pattern,
+            ruleText,
+            allowedIP,
+            hasLimitModifier,
+            allowPublicSuffix,
+        );
     }
 
     // Extract the domain to check from the parsed pattern (not ruleText) to stay consistent

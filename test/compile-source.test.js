@@ -213,11 +213,11 @@ describe('Source compiler', () => {
     it('compile a source and apply transformations', async () => {
         // STEP 1: MOCK RULES SOURCE
         const rules = `! this is a source
-||rule1
-||rule2
+||rule1.example.com
+||rule2.example.com
 ||invalidrule/test
-@@||rule3
-||rule4`;
+@@||rule3.example.com
+||rule4.example.com`;
         const scope = mockHttp('https://example.org')
             .get('/filter.txt')
             .reply(200, rules, {
@@ -249,7 +249,7 @@ describe('Source compiler', () => {
         // STEP 4: Compile source
         const compiled = await compileSource(source);
         expect(compiled).toHaveLength(1);
-        expect(compiled).toContain('||rule2');
+        expect(compiled).toContain('||rule2.example.com');
 
         // Make sure scope URLs were requested
         scope.done();

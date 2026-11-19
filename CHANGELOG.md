@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lines, compiler-recognized comment lines, an Adblock Plus format header, and
   files whose rules are all removed by transformations, are now skipped with a
   warning instead of silently producing an empty list. [#88]
+- Complete `||domain` rules that have no `^` separator are now validated like
+  `||domain^` rules, so whole-public-suffix (`||org`, `||co.uk`) and
+  single-label (`||rule1`) rules are dropped. Valid non-hostname patterns
+  without `^` stay unchanged: trailing-dot rules such as `||popunder.`
+  (they match the name under any TLD and AdGuard lists use them),
+  label-prefix masks such as `||countly-`, and wildcard patterns such as
+  `||*.example.org`. [#129]
 
 ### Security
 
@@ -231,3 +238,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/master/CHANGELOG.md
 [#88]: https://github.com/AdguardTeam/HostlistCompiler/issues/88
+[#129]: https://github.com/AdguardTeam/HostlistCompiler/issues/129

@@ -349,6 +349,11 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
   from `src/source-types.js`), update `src/index.d.ts` when changing the
   public API, and update `DEPLOYMENT.md` when changing the Dockerfile, CI
   workflows, or deployment setup.
+- When a change has a related public GitHub issue (for example in the
+  `AdguardTeam/HostlistCompiler` mirror), reference that issue in the
+  `CHANGELOG.md` entry, for example `[#129]`, and place its link definition at
+  the very bottom of `CHANGELOG.md`. A reader of the public changelog must be
+  able to find the problem report.
 - The repository stores no secrets or credentials of its own and commits all
   configuration files. A configuration can still contain credentialed source
   URLs. The compiler sends them to the downloader as Basic auth. It MUST

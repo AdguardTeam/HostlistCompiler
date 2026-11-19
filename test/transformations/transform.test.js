@@ -164,6 +164,29 @@ rule2
         expect(filtered).toEqual(['! test comment', 'rule1', '||185.149.120.173^', '||example.com^']);
     });
 
+    it('keeps trailing-dot and prefix-mask || rules after removing unsupported modifiers', async () => {
+        // `||roblox.com.$all` becomes `||roblox.com.` after RemoveModifiers.
+        // The trailing dot is a valid "name under any TLD" rule, and the
+        // trailing hyphen is a label-prefix mask. Validate keeps both together
+        // with the comment and empty line above them.
+        const rules = `! Badware risks
+
+||roblox.com.$all
+||re-captha-version-$all
+||kmspico-$doc
+||example.org^`.split(/\r?\n/);
+        const filtered = await transform(rules, {}, ['RemoveModifiers', 'Validate']);
+
+        expect(filtered).toEqual([
+            '! Badware risks',
+            '',
+            '||roblox.com.',
+            '||re-captha-version-',
+            '||kmspico-',
+            '||example.org^',
+        ]);
+    });
+
     it('simple transformations with ConvertToAscii', async () => {
         const rules = `! test comment
 ||*.рус^

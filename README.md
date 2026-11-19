@@ -512,6 +512,13 @@ So here's what it does:
 - Discards rules with unsupported modifiers. Learn more about the
   [supported modifiers](https://github.com/AdguardTeam/AdGuardHome/wiki/Hosts-Blocklists#-adblock-style-syntax).
 - Discards rules that are too short.
+- Validates complete `||domain` rules that have no `^` separator like
+  `||domain^` rules. Whole-public-suffix rules (`||org`, `||co.uk`) and
+  single-label rules (`||rule1`) are therefore discarded.
+- Keeps valid non-hostname `||` patterns that have no `^` separator:
+  trailing-dot rules such as `||popunder.` (they match the name under any TLD
+  and AdGuard lists use them), label-prefix masks such as `||countly-`, and
+  wildcard patterns such as `||*.example.org`.
 - Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
 
 #### <a name="rejected-ip-patterns"></a>Rejected IP Patterns

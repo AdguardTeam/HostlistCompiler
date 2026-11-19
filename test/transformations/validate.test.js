@@ -1,4 +1,9 @@
 const { validate } = require('../../src/transformations/validate');
+const { validateAllowIp } = require('../../src/transformations/validate-allow-ip');
+const { validateAllowPublicSuffix } = require('../../src/transformations/validate-allow-public-suffix');
+const {
+    validateAllowIpAndPublicSuffix,
+} = require('../../src/transformations/validate-allow-ip-and-public-suffix');
 
 describe('Validate', () => {
     it('simple /etc/hosts rule', () => {
@@ -383,5 +388,99 @@ describe('Validate', () => {
         const filtered = validate(rules);
 
         expect(filtered).toEqual(rules);
+    });
+
+    it('keeps trailing-dot and prefix-mask || patterns without ^', () => {
+        // A trailing dot means "this name under any TLD". AdGuard lists use
+        // these rules, so the validator must not drop them.
+        const rules = [
+            '||popunder.',
+            '||advertising.civitai.',
+            '||wa.gmx.',
+            '||fxhpaoxqyajvmdg.',
+            // A trailing hyphen is a label-prefix mask, not a hostname.
+            '||countly-',
+            '||re-captha-version-',
+            '||kmspico-',
+            // Wildcard shapes stay permissive.
+            '||*.roblox.com.',
+            '||*roblox.com.',
+            '||ro*.com.',
+            '||*.co.uk.',
+            '||roblox.com.*.',
+            '||adx-*.dbankcloud.',
+            '||bondzgi*.',
+        ];
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual(rules);
+    });
+
+    it.each([
+        ['Validate', validate],
+        ['ValidateAllowIp', validateAllowIp],
+        ['ValidateAllowPublicSuffix', validateAllowPublicSuffix],
+        ['ValidateAllowIpAndPublicSuffix', validateAllowIpAndPublicSuffix],
+    ])('keeps non-hostname || patterns without ^ in %s', (_name, validator) => {
+        const rules = ['||popunder.', '||countly-', '||*.roblox.com.'];
+        expect(validator(rules)).toEqual(rules);
+    });
+
+    it('rejects malformed and dead trailing-dot and prefix-mask || patterns', () => {
+        const rules = [
+            '||foo..bar.',
+            '||-foo.',
+            '||foo-.',
+            // Malformed names before a prefix mask must be rejected by the
+            // prefix-mask branch itself, not by the trailing-dot branch.
+            '||foo..bar-',
+            '||-foo-',
+            '@@||foo..bar.',
+            // An end anchor after a dot or a hyphen can never match a hostname.
+            '||roblox.com.|',
+            '||*.roblox.com.|',
+            '||countly-|',
+        ];
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([]);
+    });
+
+    it('validates complete ||domain patterns without ^ instead of passing them unchecked', () => {
+        const rules = [
+            '||example.org',
+            '||example.org|',
+            '||example.org^',
+            '||example.org.^',
+            '||sub.example.org.^',
+            '||ex*.org', // wildcard patterns stay permissive
+            '||org', // whole public suffix — rejected
+            '||co.uk', // whole public suffix — rejected
+            '||xyz123notreal', // single non-PSL label — rejected
+            '||rule1', // single label — rejected
+            '||localhost', // single label — rejected
+        ];
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual([
+            '||example.org',
+            '||example.org|',
+            '||example.org^',
+            '||example.org.^',
+            '||sub.example.org.^',
+            '||ex*.org',
+        ]);
+    });
+
+    it('removes comments and empty lines before a dropped malformed ||domain. rule', () => {
+        const rules = `! Badware risks
+! malformed trailing-dot rule
+
+||foo..bar.
+||example.org^`.split(/\r?\n/);
+        const filtered = validate(rules);
+
+        expect(filtered).toEqual(['||example.org^']);
+        expect(filtered).not.toContain('||foo..bar.');
     });
 });
