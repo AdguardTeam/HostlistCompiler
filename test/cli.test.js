@@ -1,3 +1,4 @@
+const fs = require('fs');
 const consola = require('consola');
 const compile = require('../src/index');
 
@@ -43,5 +44,45 @@ describe('CLI', () => {
             ['Caused by: connect ECONNREFUSED 127.0.0.1:80'],
         ]);
         expect(exitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('parses repeated --input values with --input-type', async () => {
+        process.argv = [
+            'node',
+            'cli',
+            '-i',
+            'first.txt',
+            '-i',
+            'second.txt',
+            '-t',
+            'adblock',
+            '-o',
+            'output.txt',
+        ];
+        const writeFileSpy = jest.spyOn(fs.promises, 'writeFile').mockResolvedValue();
+
+        try {
+            let compileMock;
+            jest.isolateModules(() => {
+                // eslint-disable-next-line global-require
+                compileMock = require('../src/index');
+                compileMock.mockResolvedValue([]);
+                // Loading the module runs main() with the process.argv prepared above.
+                // eslint-disable-next-line global-require
+                require('../src/cli');
+            });
+            // Let main() settle before asserting on the configuration.
+            await new Promise((resolve) => { setImmediate(resolve); });
+
+            expect(compileMock).toHaveBeenCalledWith(expect.objectContaining({
+                sources: [
+                    { source: 'first.txt', type: 'adblock' },
+                    { source: 'second.txt', type: 'adblock' },
+                ],
+            }));
+            expect(writeFileSpy).toHaveBeenCalledWith('output.txt', '');
+        } finally {
+            writeFileSpy.mockRestore();
+        }
     });
 });

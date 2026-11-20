@@ -31,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Updated `yargs` from 15.3.0 to 17.7.3 and `better-ajv-errors` from 0.6.7
+  to 1.2.0. This removes the vulnerable `y18n` 4.0.0
+  (GHSA-c4w7-xm78-47vh), `yargs-parser` 18.1.0 (GHSA-p9pc-299p-vxgp),
+  `jsonpointer` 4.0.1 (GHSA-282f-qqgm-c34q), and `@babel/runtime` 7.8.4
+  (GHSA-968p-4wvh-cqc8) transitive dependencies, and removes the deprecated
+  `core-js` 3.6.4 dependency. [#36], [#132]
+
 ## [3.0.0] - 2026-11-17
 
 ## [3.0.0-beta.0] - 2026-11-17
@@ -239,3 +246,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/master/CHANGELOG.md
 [#88]: https://github.com/AdguardTeam/HostlistCompiler/issues/88
 [#129]: https://github.com/AdguardTeam/HostlistCompiler/issues/129
+[#36]: https://github.com/AdguardTeam/HostlistCompiler/issues/36
+[#132]: https://github.com/AdguardTeam/HostlistCompiler/issues/132

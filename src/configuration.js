@@ -1,5 +1,6 @@
 const Ajv = require('ajv');
-const betterAjvErrors = require('better-ajv-errors');
+// better-ajv-errors 1.x exposes its renderer as the CommonJS default export.
+const { default: betterAjvErrors } = require('better-ajv-errors');
 const { SOURCE_TYPES } = require('./source-types');
 const { DEFAULT_TRANSFORMATIONS } = require('./transformations/transform');
 const {

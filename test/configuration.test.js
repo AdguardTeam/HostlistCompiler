@@ -82,6 +82,24 @@ describe('Configuration', () => {
         expect(ret.errorsText).toContain('sources');
     });
 
+    it('renders the additional property error with the 1.x wording', () => {
+        // Pins the better-ajv-errors version choice: 2.x and 3.x render
+        // "ADDITIONAL PROPERTY", and the pin exists to keep this text stable.
+        const ret = config.validateConfiguration({
+            name: 'test',
+            sources: [
+                {
+                    source: 'test.txt',
+                    zzz: 1,
+                },
+            ],
+        });
+
+        expect(ret.valid).toBe(false);
+        expect(ret.errorsText).toContain('ADDTIONAL PROPERTY should NOT have additional properties');
+        expect(ret.errorsText).toContain('zzz is not expected to be here!');
+    });
+
     it('test valid configuration', () => {
         const ret = config.validateConfiguration({
             name: 'test',
