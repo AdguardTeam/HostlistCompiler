@@ -443,9 +443,9 @@ Here's what it does:
    redundant.
 
 Hostnames are compared case-insensitively, so rules that differ only in letter
-case are treated as duplicates. The first rule in the list keeps its original
-casing: `||Example.COM^` followed by `||example.com^` compresses to
-`||Example.COM^`.
+case are treated as duplicates. In v3.0.0 and older, the comparison was
+case-sensitive. The first rule in the list keeps its original casing:
+`||Example.COM^` followed by `||example.com^` compresses to `||Example.COM^`.
 
 ### <a name="remove-modifiers"></a> RemoveModifiers
 
