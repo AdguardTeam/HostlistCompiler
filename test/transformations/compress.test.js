@@ -70,6 +70,13 @@ example.net
             .toEqual(['||Example.com^', '||example.NET^']);
     });
 
+    it('does not treat Object.prototype names as existing hostnames', () => {
+        expect(compress(['||CONSTRUCTOR^', '||example.com^']))
+            .toEqual(['||CONSTRUCTOR^', '||example.com^']);
+        expect(compress(['||x.constructor^']))
+            .toEqual(['||x.constructor^']);
+    });
+
     it('wide rule case (not yet handled)', () => {
         const rules = `||example
 ||example.org^`.split(/\r?\n/);

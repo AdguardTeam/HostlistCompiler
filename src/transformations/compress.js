@@ -105,16 +105,20 @@ function toAdblockRules(ruleText) {
  * For instance, "||example.org" blocks "example.org" and all it's subdomains,
  * therefore you don't need additional rules for the subdomains.
  *
+ * Hostnames are compared case-insensitively. The first rule in the list keeps
+ * its original casing, and later rules that differ only in letter case are
+ * discarded as duplicates.
+ *
  * @param {Array<String>} rules - list of rules to compress
  * @returns {Array<String>} compressed list
  */
 function compress(rules) {
-    const byHostname = {};
+    const byHostname = new Set();
     const filtered = [];
 
     // First loop:
     // 1. Transform /etc/hosts rules to adblock-style rules
-    // 2. Fill "byHostname" lookup table
+    // 2. Fill the "byHostname" lookup set
     // 3. Check "byHostname" to eliminate duplicates on the first run
     for (let i = 0; i < rules.length; i += 1) {
         const rule = rules[i];
@@ -124,9 +128,9 @@ function compress(rules) {
                 // Hostnames are case-insensitive, so use a lowercase lookup key
                 // but keep the original rule text and casing.
                 const hostname = adblockRule.hostname.toLowerCase();
-                if (!byHostname[hostname]) {
+                if (!byHostname.has(hostname)) {
                     filtered.push(adblockRule);
-                    byHostname[hostname] = true;
+                    byHostname.add(hostname);
                 }
             } else {
                 filtered.push(adblockRule);
@@ -148,7 +152,7 @@ function compress(rules) {
             // Start iterating from 1 -- don't check the full hostname
             for (let j = 1; j < hostnames.length; j += 1) {
                 const hostname = hostnames[j];
-                if (byHostname[hostname]) {
+                if (byHostname.has(hostname)) {
                     consola.debug(`The rule blocking ${hostname} (from ${rule.originalRuleText}) is redundant`);
                     discard = true;
                     break;
