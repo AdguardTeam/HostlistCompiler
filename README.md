@@ -520,6 +520,18 @@ So here's what it does:
   and AdGuard lists use them), label-prefix masks such as `||countly-`, and
   wildcard patterns such as `||*.example.org`.
 - Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
+- Removes rules that block entire top-level domains (TLDs) like `||*.org^`,
+  unless they have specific limiting modifiers such as `$denyallow`,
+  `$badfilter`, or `$client`. Examples:
+    - `||*.org^` - this rule will be removed
+    - `||*.org^$denyallow=example.com` - this rule will be kept because it
+      has a limiting modifier
+  If such rules must be saved, use
+  [ValidateAllowPublicSuffix](#validate-allow-public-suffix) or
+  [ValidateAllowIpAndPublicSuffix](#validate-allow-ip-and-public-suffix).
+- Discards URL-level rules: a DNS filter matches hostnames only, so a rule
+  with a scheme or a path cannot work. See [URL-Level Rules](#url-level-rules)
+  for details and a workaround.
 
 #### <a name="rejected-ip-patterns"></a>Rejected IP Patterns
 
@@ -531,20 +543,6 @@ The following IP patterns are rejected by all validation transformations
 - `192.168.1` — Ambiguous: would match `192.168.11`, `192.168.111`, etc.
 - `1.2.` or `1.2.*` — Too wide (1-2 octets), use regex instead
 
-- Removes rules that block entire top-level domains (TLDs) like `||*.org^`,
-  unless they have specific limiting modifiers such as `$denyallow`,
-  `$badfilter`, or `$client`. Examples:
-    - `||*.org^` - this rule will be removed
-    - `||*.org^$denyallow=example.com` - this rule will be kept because it
-      has a limiting modifier
-  If such rules must be saved, use
-  [ValidateAllowPublicSuffix](#validate-allow-public-suffix) or
-  [ValidateAllowIpAndPublicSuffix](#validate-allow-ip-and-public-suffix).
-- Discards URL-level rules. A DNS filter matches hostnames only, so a rule
-  with a scheme (`|https://example.org^`), a path (`||example.org/path^`), or
-  a name that contains `_` (`||x_x-example.org^`) cannot work. See
-  [URL-Level Rules](#url-level-rules) for a workaround.
-
 If there are comments preceding the invalid rule, they will be removed as well.
 
 #### <a name="url-level-rules"></a>URL-Level Rules
@@ -554,12 +552,15 @@ The following rules are URL-level rules:
 
 - `|https://*.example.org^` has a scheme.
 - `||example.org/path^` has a path.
-- `/^https?:\/\/ads\./` is a regular expression for URLs.
 - `||x_x-example.org^` has a name that contains `_`, which is not a hostname.
 
 The compiler removes these rules. It does not convert them to domain rules,
 because the conversion widens the match. For example, `||example.org^` blocks
 the domain itself and every request type, not only documents on subdomains.
+
+Regular-expression rules are kept unchanged because the validator does not
+interpret them. A regex such as `/^https?:\/\/ads\./` therefore stays in the
+compiled list.
 
 To keep the blocked domain in a compiled list, add the DNS-level rule to the
 source list or to an extra source:
@@ -568,9 +569,13 @@ source list or to an extra source:
   `||example.org^` (the domain and its subdomains).
 - `||example.org/path^` becomes `||example.org^`.
 
-The compiler writes the reason for each removed rule to the debug log. Run the
-compiler with `--verbose` to see it. The compiler also writes one summary line
-with the number of removed rules for each reason.
+The removal reason for an adblock-style rule is written at the debug log
+level; run the compiler with `--verbose` to see it. Two `/etc/hosts` cases are
+logged more loudly: an unparseable rule at the error level, and a rule with no
+hostnames at the info level.
+
+Each validated source gets its own summary line with the number of removed
+rules for each reason.
 
 ### <a name="validate-allow-ip"></a> ValidateAllowIp
 

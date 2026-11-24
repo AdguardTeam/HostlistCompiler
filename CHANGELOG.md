@@ -9,13 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Validation transformations now write one summary line with the number of
-  removed rules for each reason, for example `Validate removed 3 rules: 1 IP
-  address, 1 unsupported modifier, 1 rule with invalid characters`. [#91]
+- Validation transformations now write a summary line per validated source
+  with the number of removed rules for each reason, for example `Validate
+  removed 3 rules: 1 IP address, 1 unsupported modifier, 1 rule with invalid
+  characters`. [#91]
 
 ### Changed
 
-- The `Validate` documentation now states that URL-level rules are discarded
+- The `Validate` documentation now states which URL-level rules are discarded
   and how to keep the blocked domain in a compiled list. [#91]
 
 ### Deprecated

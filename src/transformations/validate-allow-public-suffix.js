@@ -1,4 +1,5 @@
 const { Validator } = require('./validate');
+const { TRANSFORMATIONS } = require('./enum');
 
 /**
  * Validates a list of rules and allows public suffix matching.
@@ -11,7 +12,7 @@ const { Validator } = require('./validate');
  */
 function validateAllowPublicSuffix(rules) {
     // ip is not allowed by default, but public suffix matching is allowed.
-    const validator = new Validator(false, true, 'ValidateAllowPublicSuffix');
+    const validator = new Validator(false, true, TRANSFORMATIONS.ValidateAllowPublicSuffix);
     return validator.validate(rules);
 }
 

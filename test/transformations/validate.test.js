@@ -1,5 +1,5 @@
 const consola = require('consola');
-const { validate } = require('../../src/transformations/validate');
+const { validate, Validator } = require('../../src/transformations/validate');
 const { validateAllowIp } = require('../../src/transformations/validate-allow-ip');
 const { validateAllowPublicSuffix } = require('../../src/transformations/validate-allow-public-suffix');
 const {
@@ -528,5 +528,12 @@ describe('removal summary', () => {
         validateAllowIp(['||1.1^']);
 
         expect(infoSpy).toHaveBeenCalledWith('ValidateAllowIp removed 1 rule: 1 IP pattern');
+    });
+
+    it('fails loudly when a removal reason has no display name', () => {
+        const validator = new Validator(false, false, 'Validate');
+
+        expect(() => validator.reportRemoved(new Map([['unknownReason', 1]])))
+            .toThrow('Missing display name for the validation removal reason "unknownReason"');
     });
 });

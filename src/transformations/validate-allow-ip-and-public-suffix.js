@@ -1,5 +1,6 @@
 const { Validator } = require('./validate');
 const { normalizeIpRules } = require('../ip-normalize');
+const { TRANSFORMATIONS } = require('./enum');
 
 /**
  * Validates a list of rules, allowing both IP addresses and public suffix matching.
@@ -24,7 +25,7 @@ function validateAllowIpAndPublicSuffix(rules) {
     const normalizedRules = normalizeIpRules(rules);
 
     // Then validate with both IP addresses and public suffixes allowed
-    const validator = new Validator(true, true, 'ValidateAllowIpAndPublicSuffix');
+    const validator = new Validator(true, true, TRANSFORMATIONS.ValidateAllowIpAndPublicSuffix);
     return validator.validate(normalizedRules);
 }
 

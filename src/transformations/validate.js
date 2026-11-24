@@ -3,6 +3,7 @@ const consola = require('consola');
 const tldts = require('tldts');
 const utils = require('../utils');
 const ruleUtils = require('../rule');
+const { TRANSFORMATIONS } = require('./enum');
 
 // Prefix and separators for domain patterns
 const DOMAIN_PREFIX = '||';
@@ -46,15 +47,35 @@ const REASON_NAMES = Object.freeze({
 });
 
 /**
+ * The order of the reasons in the summary line.
+ */
+const REASON_ORDER = Object.freeze(Object.keys(REASON_NAMES));
+
+/**
  * Returns the reason name for the removal summary.
  *
  * @param {string} reason - reason code
  * @param {number} count - number of rules removed for this reason
  * @returns {string} singular or plural reason name
+ * @throws {Error} if the reason has no display name
  */
 function reasonName(reason, count) {
     const names = REASON_NAMES[reason];
+    if (!names) {
+        throw new Error(`Missing display name for the validation removal reason "${reason}"`);
+    }
     return count === 1 ? names[0] : names[1];
+}
+
+/**
+ * Returns the position of a reason in the removal summary line.
+ *
+ * @param {string} reason - reason code
+ * @returns {number} position in the summary line; unknown reasons go last
+ */
+function reasonOrder(reason) {
+    const index = REASON_ORDER.indexOf(reason);
+    return index === -1 ? REASON_ORDER.length : index;
 }
 
 /**
@@ -644,7 +665,7 @@ class Validator {
      * @param {boolean} allowPublicSuffix - Flag indicating whether rules matching whole public suffix are allowed.
      * @param {string} name - Name of the validation transformation, used in the removal summary.
      */
-    constructor(allowedIP, allowPublicSuffix, name = 'Validation') {
+    constructor(allowedIP, allowPublicSuffix, name = TRANSFORMATIONS.Validate) {
         /**
        * Indicates that a rule was previously removed (the iteration processed an invalid rule).
        * Used to remove preceding comments or empty lines.
@@ -682,15 +703,15 @@ class Validator {
             return;
         }
 
-        let total = 0;
-        const details = [];
-        Object.keys(REASON_NAMES).forEach((reason) => {
-            const count = removedByReason.get(reason);
-            if (count) {
-                total += count;
-                details.push(`${count} ${reasonName(reason, count)}`);
-            }
-        });
+        // Derive the total from the populated map so that a reason without a
+        // display name cannot silently reduce the reported number of removals.
+        const entries = [...removedByReason.entries()];
+        const total = entries.reduce((sum, [, count]) => sum + count, 0);
+
+        // Keep the summary order stable: the declaration order of REASON_NAMES.
+        const details = entries
+            .sort(([reasonA], [reasonB]) => reasonOrder(reasonA) - reasonOrder(reasonB))
+            .map(([reason, count]) => `${count} ${reasonName(reason, count)}`);
 
         const ruleWord = total === 1 ? 'rule' : 'rules';
         consola.info(`${this.name} removed ${total} ${ruleWord}: ${details.join(', ')}`);
@@ -740,7 +761,7 @@ class Validator {
  * @returns {Array<string>} The filtered list of valid rules.
  */
 function validate(rules) {
-    const validator = new Validator(false, false, 'Validate');
+    const validator = new Validator(false, false, TRANSFORMATIONS.Validate);
     // ip is not allowed for default validation
     // public suffix matching is not allowed for default validation
     return validator.validate(rules);
