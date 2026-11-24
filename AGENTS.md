@@ -254,6 +254,9 @@ Universal design principles the codebase should follow:
   restated here.
 - Use `lodash` helpers (e.g., `_.startsWith`, `_.isEmpty`, `_.trim`) where they
   are already used — stay consistent with the existing style.
+- Declare regular expressions as named module-level constants (e.g.,
+  `domainRegex` in `src/rule.js`). Do not embed a regex literal in a function
+  body, even if the function uses it only once.
 - Prefer `for...of` loops over `Array.forEach` for async iteration (the
   codebase disables `no-restricted-syntax` where needed).
 - Use JSDoc comments for public functions (parameters and return values), e.g.

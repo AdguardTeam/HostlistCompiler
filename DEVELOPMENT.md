@@ -124,6 +124,12 @@ Make your changes in `src/` and follow the contribution rules in [AGENTS.md](AGE
 add or update tests in `test/` mirroring the source file structure, keep `CHANGELOG.md` up to date for
 user-facing changes, and run the full verification sequence before pushing.
 
+- Declare regular expressions as named module-level constants before the functions that use them. Do not
+  embed a regex literal in a function body, even if the function uses it only once. This project uses
+  module-level constants rather than classes.
+- Keep the pattern and its flags together in the constant, so a reader can check case sensitivity and
+  other flags in one place.
+
 ### Running Tests
 
 Run the full test suite:

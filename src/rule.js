@@ -5,6 +5,9 @@ const utils = require('./utils');
 // eslint-disable-next-line max-len
 const domainRegex = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;
 const etcHostsRegex = /^([a-f0-9.:\][]+)(%[a-z0-9]+)?\s+([^#]+)(#.*)?$/;
+// Matches a complete `||hostname^` adblock rule. Hostnames are
+// case-insensitive, so the pattern accepts uppercase and mixed-case letters.
+const adblockHostnameRegex = /^\|\|([a-z0-9-.]+)\^$/i;
 const domainPatternRegex = /(\*\.|)([^\s^$|=]+(?:\.[^\s^$|=]+)+)/g;
 // eslint-disable-next-line no-control-regex
 const nonAsciiRegexp = /[^\x00-\x7F]/;
@@ -198,7 +201,7 @@ function loadEtcHostsRuleProperties(ruleText) {
  * @returns {String} hostname or null if cannot be extracted
  */
 function extractHostname(pattern) {
-    const match = pattern.match(/^\|\|([a-z0-9-.]+)\^$/i);
+    const match = pattern.match(adblockHostnameRegex);
     const hostname = match ? match[1] : null;
     return hostname || null;
 }
