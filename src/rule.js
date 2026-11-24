@@ -186,18 +186,19 @@ function loadEtcHostsRuleProperties(ruleText) {
  * @property {Array<{{name: string, value: string}}>} options - list of rule modifiers
  * @property {Boolean} whitelist - whether this is an exception rule or not
  * @property {String} hostname - hostname can only be extracted from the rules
- *                               that look like `||[a-z0-9-.]^.*`
+ *                               that look like `||[A-Za-z0-9-.]^.*`
  */
 
 /**
- * Extracts hostname from the adblock rule pattern
+ * Extracts hostname from the adblock rule pattern.
+ * Hostnames are case-insensitive, so uppercase and mixed-case hostnames
+ * are accepted and returned exactly as written in the rule.
  *
  * @param {String} pattern adblock rule pattern string
  * @returns {String} hostname or null if cannot be extracted
  */
 function extractHostname(pattern) {
-    pattern.match(/^||([a-z0-9-.])\^$/);
-    const match = pattern.match(/^\|\|([a-z0-9-.]+)\^$/);
+    const match = pattern.match(/^\|\|([a-z0-9-.]+)\^$/i);
     const hostname = match ? match[1] : null;
     return hostname || null;
 }

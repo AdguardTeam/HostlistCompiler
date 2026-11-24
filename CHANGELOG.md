@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (they match the name under any TLD and AdGuard lists use them),
   label-prefix masks such as `||countly-`, and wildcard patterns such as
   `||*.example.org`. [#129]
+- The `Compress` transformation now compares hostnames case-insensitively,
+  so rules that differ only in letter case are removed as duplicates and
+  mixed-case `||hostname^` rules are compressed. The first rule keeps its
+  original casing. [#59]
 
 ### Security
 
@@ -248,3 +252,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#129]: https://github.com/AdguardTeam/HostlistCompiler/issues/129
 [#36]: https://github.com/AdguardTeam/HostlistCompiler/issues/36
 [#132]: https://github.com/AdguardTeam/HostlistCompiler/issues/132
+[#59]: https://github.com/AdguardTeam/HostlistCompiler/issues/59

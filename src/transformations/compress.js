@@ -121,9 +121,12 @@ function compress(rules) {
         const adblockRules = toAdblockRules(rule);
         adblockRules.forEach((adblockRule) => {
             if (adblockRule.canCompress) {
-                if (!byHostname[adblockRule.hostname]) {
+                // Hostnames are case-insensitive, so use a lowercase lookup key
+                // but keep the original rule text and casing.
+                const hostname = adblockRule.hostname.toLowerCase();
+                if (!byHostname[hostname]) {
                     filtered.push(adblockRule);
-                    byHostname[adblockRule.hostname] = true;
+                    byHostname[hostname] = true;
                 }
             } else {
                 filtered.push(adblockRule);
@@ -140,7 +143,8 @@ function compress(rules) {
         let discard = false;
 
         if (rule.canCompress) {
-            const hostnames = extractHostnames(rule.hostname);
+            // Compare hostnames case-insensitively with the lowercase lookup keys.
+            const hostnames = extractHostnames(rule.hostname.toLowerCase());
             // Start iterating from 1 -- don't check the full hostname
             for (let j = 1; j < hostnames.length; j += 1) {
                 const hostname = hostnames[j];

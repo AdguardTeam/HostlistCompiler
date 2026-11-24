@@ -85,6 +85,29 @@ describe('Rule utils', () => {
         expect(props.ruleText).toBe('@@/example.org$/');
     });
 
+    it('load adblock-style rule properties with mixed-case hostnames', () => {
+        let props = ruleUtils.loadAdblockRuleProperties('||2O7.net^');
+        expect(props.hostname).toBe('2O7.net');
+
+        props = ruleUtils.loadAdblockRuleProperties('||Example.COM^');
+        expect(props.hostname).toBe('Example.COM');
+
+        props = ruleUtils.loadAdblockRuleProperties('@@||Example.COM^');
+        expect(props.whitelist).toBe(true);
+        expect(props.hostname).toBe('Example.COM');
+
+        props = ruleUtils.loadAdblockRuleProperties('||Example.COM^$third-party');
+        expect(props.options).toHaveLength(1);
+        expect(props.options[0].name).toBe('third-party');
+        expect(props.hostname).toBe('Example.COM');
+    });
+
+    it('does not extract hostname from non-hostname rules', () => {
+        expect(ruleUtils.loadAdblockRuleProperties('/example.org$/').hostname).toBe(null);
+        expect(ruleUtils.loadAdblockRuleProperties('||example.org').hostname).toBe(null);
+        expect(ruleUtils.loadAdblockRuleProperties('||*.example.org^').hostname).toBe(null);
+    });
+
     it('findModifier should work', () => {
         const props = ruleUtils.loadAdblockRuleProperties('@@||example.org^$third-party,domain=example.org');
         expect(props.options).toHaveLength(2);

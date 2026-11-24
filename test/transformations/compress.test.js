@@ -36,6 +36,40 @@ example.net
         expect(filtered).toEqual(rules);
     });
 
+    it('compresses mixed-case hostnames case-insensitively', () => {
+        const rules = [
+            '||2o7.net^',
+            '||ziffdavisetech.112.2O7.net^',
+            '||msstonojstemp.112.2O7.net^',
+        ];
+
+        expect(compress(rules)).toEqual(['||2o7.net^']);
+    });
+
+    it('keeps the first occurrence casing for mixed-case duplicates', () => {
+        expect(compress(['||Example.COM^', '||example.com^']))
+            .toEqual(['||Example.COM^']);
+        expect(compress(['||example.com^', '||Example.COM^']))
+            .toEqual(['||example.com^']);
+    });
+
+    it('compresses mixed-case /etc/hosts entries with adblock rules', () => {
+        expect(compress(['0.0.0.0 EXAMPLE.com', '||example.COM^']))
+            .toEqual(['||EXAMPLE.com^']);
+        expect(compress(['||example.COM^', '0.0.0.0 EXAMPLE.com']))
+            .toEqual(['||example.COM^']);
+    });
+
+    it('compresses mixed-case bare domains', () => {
+        expect(compress(['Example.COM', '||example.com^']))
+            .toEqual(['||Example.COM^']);
+    });
+
+    it('keeps differently-cased different hostnames', () => {
+        expect(compress(['||Example.com^', '||example.NET^']))
+            .toEqual(['||Example.com^', '||example.NET^']);
+    });
+
     it('wide rule case (not yet handled)', () => {
         const rules = `||example
 ||example.org^`.split(/\r?\n/);
