@@ -540,8 +540,37 @@ The following IP patterns are rejected by all validation transformations
   If such rules must be saved, use
   [ValidateAllowPublicSuffix](#validate-allow-public-suffix) or
   [ValidateAllowIpAndPublicSuffix](#validate-allow-ip-and-public-suffix).
+- Discards URL-level rules. A DNS filter matches hostnames only, so a rule
+  with a scheme (`|https://example.org^`), a path (`||example.org/path^`), or
+  a name that contains `_` (`||x_x-example.org^`) cannot work. See
+  [URL-Level Rules](#url-level-rules) for a workaround.
 
 If there are comments preceding the invalid rule, they will be removed as well.
+
+#### <a name="url-level-rules"></a>URL-Level Rules
+
+The validation transformations discard a rule that a DNS filter cannot apply.
+The following rules are URL-level rules:
+
+- `|https://*.example.org^` has a scheme.
+- `||example.org/path^` has a path.
+- `/^https?:\/\/ads\./` is a regular expression for URLs.
+- `||x_x-example.org^` has a name that contains `_`, which is not a hostname.
+
+The compiler removes these rules. It does not convert them to domain rules,
+because the conversion widens the match. For example, `||example.org^` blocks
+the domain itself and every request type, not only documents on subdomains.
+
+To keep the blocked domain in a compiled list, add the DNS-level rule to the
+source list or to an extra source:
+
+- `|https://*.example.org^` becomes `||*.example.org^` (subdomains only) or
+  `||example.org^` (the domain and its subdomains).
+- `||example.org/path^` becomes `||example.org^`.
+
+The compiler writes the reason for each removed rule to the debug log. Run the
+compiler with `--verbose` to see it. The compiler also writes one summary line
+with the number of removed rules for each reason.
 
 ### <a name="validate-allow-ip"></a> ValidateAllowIp
 

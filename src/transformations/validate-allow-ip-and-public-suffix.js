@@ -24,7 +24,7 @@ function validateAllowIpAndPublicSuffix(rules) {
     const normalizedRules = normalizeIpRules(rules);
 
     // Then validate with both IP addresses and public suffixes allowed
-    const validator = new Validator(true, true);
+    const validator = new Validator(true, true, 'ValidateAllowIpAndPublicSuffix');
     return validator.validate(normalizedRules);
 }
 

@@ -11,6 +11,53 @@ const WILDCARD = '*';
 const WILDCARD_DOMAIN_PART = '*.';
 
 /**
+ * The reasons why a validation transformation removes a rule.
+ */
+const REASON = Object.freeze({
+    IP_ADDRESS: 'ipAddress',
+    IP_PATTERN: 'ipPattern',
+    PUBLIC_SUFFIX: 'publicSuffix',
+    UNSUPPORTED_MODIFIER: 'unsupportedModifier',
+    TOO_SHORT: 'tooShort',
+    UNPARSEABLE_RULE: 'unparseableRule',
+    MALFORMED_HOSTS_RULE: 'malformedHostsRule',
+    MALFORMED_HOSTNAME: 'malformedHostname',
+    INVALID_CHARACTERS: 'invalidCharacters',
+    MALFORMED_PATTERN: 'malformedPattern',
+    DEAD_PATTERN: 'deadPattern',
+});
+
+/**
+ * The names of the reasons for the removal summary, as `[singular, plural]`.
+ * The declaration order is the order of the summary line.
+ */
+const REASON_NAMES = Object.freeze({
+    [REASON.IP_ADDRESS]: ['IP address', 'IP addresses'],
+    [REASON.IP_PATTERN]: ['IP pattern', 'IP patterns'],
+    [REASON.PUBLIC_SUFFIX]: ['public suffix rule', 'public suffix rules'],
+    [REASON.UNSUPPORTED_MODIFIER]: ['unsupported modifier', 'unsupported modifiers'],
+    [REASON.TOO_SHORT]: ['rule that is too short', 'rules that are too short'],
+    [REASON.UNPARSEABLE_RULE]: ['unparseable rule', 'unparseable rules'],
+    [REASON.MALFORMED_HOSTS_RULE]: ['malformed /etc/hosts rule', 'malformed /etc/hosts rules'],
+    [REASON.MALFORMED_HOSTNAME]: ['malformed hostname', 'malformed hostnames'],
+    [REASON.INVALID_CHARACTERS]: ['rule with invalid characters', 'rules with invalid characters'],
+    [REASON.MALFORMED_PATTERN]: ['malformed pattern', 'malformed patterns'],
+    [REASON.DEAD_PATTERN]: ['rule that can never match', 'rules that can never match'],
+});
+
+/**
+ * Returns the reason name for the removal summary.
+ *
+ * @param {string} reason - reason code
+ * @param {number} count - number of rules removed for this reason
+ * @returns {string} singular or plural reason name
+ */
+function reasonName(reason, count) {
+    const names = REASON_NAMES[reason];
+    return count === 1 ? names[0] : names[1];
+}
+
+/**
  * Checks if a pattern is a 3-octet subnet with trailing dot or wildcard AND a || prefix.
  * These are the only subnet patterns that work in AdGuard Home for ValidateAllowIp.
  * Examples: ||192.168.1. ||192.168.1.*
@@ -176,7 +223,8 @@ const MAX_PATTERN_LENGTH = 5;
  * @param {boolean} allowedIP - flag to determine if IP validation is allowed
  * @param {boolean} hasLimitModifier - flag to determine if the rule has a limit modifier, e.g. denyallow
  * @param {boolean} allowPublicSuffix - flag to determine if matching whole public suffixes is allowed
- * @returns {boolean} true if the hostname is okay to be in the blocklist.
+ * @returns {string|null} null if the hostname is okay to be in the blocklist,
+ *     otherwise the reason why the rule is removed
  */
 function validHostname(hostname, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix) {
     const result = tldts.parse(hostname);
@@ -189,18 +237,18 @@ function validHostname(hostname, ruleText, allowedIP, hasLimitModifier, allowPub
     // adblock rules are expected to pass through ConvertToAscii before validation.
     if (!result.hostname || !HOSTNAME_ALNUM_PATTERN.test(result.hostname)) {
         consola.debug(`malformed hostname ${hostname} in the rule: ${ruleText}`);
-        return false;
+        return REASON.MALFORMED_HOSTNAME;
     }
 
     if (!allowedIP && result.isIp) {
         consola.debug(`IP address ${hostname} is not allowed in the rule: ${ruleText}`);
-        return false;
+        return REASON.IP_ADDRESS;
     }
 
     if (result.hostname === result.publicSuffix && !hasLimitModifier) {
         if (!allowPublicSuffix) {
             consola.debug(`matching the whole public suffix ${hostname} is not allowed: ${ruleText}`);
-            return false;
+            return REASON.PUBLIC_SUFFIX;
         }
         // Even with allowPublicSuffix, reject hostnames that tldts does not recognise
         // as real ICANN or private public suffixes. Without this check, any single-label
@@ -208,11 +256,11 @@ function validHostname(hostname, ruleText, allowedIP, hasLimitModifier, allowPub
         // for unknown labels.
         if (!result.isIcann && !result.isPrivate) {
             consola.debug(`hostname ${hostname} is not a known public suffix: ${ruleText}`);
-            return false;
+            return REASON.PUBLIC_SUFFIX;
         }
     }
 
-    return true;
+    return null;
 }
 
 /**
@@ -256,7 +304,8 @@ function extractDomainPattern(pattern) {
  * @param {boolean} allowedIP - flag to determine if IP validation is allowed
  * @param {boolean} hasLimitModifier - flag to determine if the rule has a limit modifier
  * @param {boolean} allowPublicSuffix - flag to determine if matching whole public suffixes is allowed
- * @returns {boolean} true if the pattern is a valid `||` pattern without `^`
+ * @returns {string|null} null if the pattern is a valid `||` pattern without `^`,
+ *     otherwise the reason why the rule is removed
  */
 function validDomainPatternWithoutSeparator(
     pattern,
@@ -276,12 +325,12 @@ function validDomainPatternWithoutSeparator(
     // cannot end there. Reject this shape before the wildcard shortcut.
     if (hasEndAnchor && (domain.endsWith('.') || domain.endsWith('-'))) {
         consola.debug(`The rule ends with a dot or hyphen before the end anchor and can never match: ${ruleText}`);
-        return false;
+        return REASON.DEAD_PATTERN;
     }
 
     // Remaining wildcard shapes are intentionally kept permissive, as before this check.
     if (pattern.includes(WILDCARD)) {
-        return true;
+        return null;
     }
 
     // A trailing dot is a "name under any TLD" rule, not a hostname. Check the
@@ -292,9 +341,9 @@ function validDomainPatternWithoutSeparator(
         const name = domain.slice(0, -1);
         if (!DNS_NAME_PATTERN.test(name)) {
             consola.debug(`The rule has a malformed name before the trailing dot: ${ruleText}`);
-            return false;
+            return REASON.MALFORMED_HOSTNAME;
         }
-        return true;
+        return null;
     }
 
     // A trailing hyphen is a label-prefix mask, not a hostname.
@@ -302,9 +351,9 @@ function validDomainPatternWithoutSeparator(
         const name = domain.slice(0, -1);
         if (!DNS_NAME_PATTERN.test(name)) {
             consola.debug(`The rule has a malformed name before the prefix mask: ${ruleText}`);
-            return false;
+            return REASON.MALFORMED_HOSTNAME;
         }
-        return true;
+        return null;
     }
 
     return validHostname(domain, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix);
@@ -321,7 +370,8 @@ function validDomainPatternWithoutSeparator(
  * @param {string} ruleText - rule text
  * @param {boolean} allowIP - flag to determine if IP validation is allowed
  * @param {boolean} allowPublicSuffix - flag to determine if matching whole public suffixes is allowed
- * @returns {boolean} true if the rule is a valid /etc/hosts rule
+ * @returns {string|null} null if the rule is a valid /etc/hosts rule,
+ *     otherwise the reason why the rule is removed
  */
 function validEtcHostsRule(ruleText, allowIP, allowPublicSuffix) {
     let props;
@@ -329,18 +379,21 @@ function validEtcHostsRule(ruleText, allowIP, allowPublicSuffix) {
         props = ruleUtils.loadEtcHostsRuleProperties(ruleText);
     } catch (ex) {
         consola.error(`Unexpected incorrect /etc/hosts rule: ${ruleText}: ${ex}`);
-        return false;
+        return REASON.MALFORMED_HOSTS_RULE;
     }
     if (_.isEmpty(props.hostnames)) {
         consola.info(`The rule has no hostnames: ${ruleText}`);
-        return false;
+        return REASON.MALFORMED_HOSTS_RULE;
     }
 
-    if (props.hostnames.some((h) => !validHostname(h, ruleText, allowIP, false, allowPublicSuffix))) {
-        return false;
+    for (let i = 0; i < props.hostnames.length; i += 1) {
+        const reason = validHostname(props.hostnames[i], ruleText, allowIP, false, allowPublicSuffix);
+        if (reason) {
+            return reason;
+        }
     }
 
-    return true;
+    return null;
 }
 
 /**
@@ -355,7 +408,8 @@ function validEtcHostsRule(ruleText, allowIP, allowPublicSuffix) {
  * @param {string} ruleText - rule text
  * @param {boolean} allowedIP - flag to determine if IP validation is allowed
  * @param {boolean} allowPublicSuffix - flag to determine if matching whole public suffixes is allowed
- * @returns {boolean} - adblock-style rule
+ * @returns {string|null} null if the rule is a valid adblock-style rule,
+ *     otherwise the reason why the rule is removed
  */
 function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     let props;
@@ -363,7 +417,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         props = ruleUtils.loadAdblockRuleProperties(ruleText);
     } catch (ex) {
         consola.debug(`This is not a valid adblock rule: ${ruleText}: ${ex}`);
-        return false;
+        return REASON.UNPARSEABLE_RULE;
     }
 
     // need to check if rules with TLD has limit modifier
@@ -375,7 +429,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         for (const option of props.options) {
             if (SUPPORTED_MODIFIERS.indexOf(option.name) === -1) {
                 consola.debug(`Contains unsupported modifier ${option.name}: ${ruleText}`);
-                return false;
+                return REASON.UNSUPPORTED_MODIFIER;
             }
             // if the rule has a limit modifier, TLD as a hostname is allowed
             if (ANY_PATTERN_MODIFIER.includes(option.name)) {
@@ -390,7 +444,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     const exactDomainPattern = extractDomainPattern(props.pattern);
     if (props.pattern.length < MAX_PATTERN_LENGTH && !exactDomainPattern) {
         consola.debug(`The rule is too short: ${ruleText}`);
-        return false;
+        return REASON.TOO_SHORT;
     }
 
     // 3. If checks if the pattern does not contain characters that cannot be in a domain name.
@@ -399,7 +453,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     // Do nothing with regex rules -- they may contain all kinds of special chars
     if (_.startsWith(props.pattern, '/')
         && _.endsWith(props.pattern, '/')) {
-        return true;
+        return null;
     }
 
     // However, regular adblock-style rules if they match a domain name
@@ -414,7 +468,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     const checkChars = /^[a-zA-Z0-9-.*|^]+$/.test(toTest);
     if (!checkChars) {
         consola.debug(`The rule contains characters that cannot be in a domain name: ${ruleText}`);
-        return false;
+        return REASON.INVALID_CHARACTERS;
     }
 
     // `denyallow` is only meaningful for domain-based rules.
@@ -423,7 +477,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         && props.options.some((option) => option.name === 'denyallow');
     if (hasDenyallowModifier && utils.classifyIpPattern(props.pattern)) {
         consola.debug(`denyallow is not supported for IP patterns: ${ruleText}`);
-        return false;
+        return REASON.IP_PATTERN;
     }
 
     // 3.5. Check if the base pattern is an IP address or IP-like pattern.
@@ -432,14 +486,14 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     // Must check BEFORE tldts.isIp because 4-octet suffixes would be recognized as valid IPs
     if (isIpSuffixPattern(props.pattern)) {
         consola.debug(`IP-suffix pattern is not allowed (blocks unpredictably): ${ruleText}`);
-        return false;
+        return REASON.IP_PATTERN;
     }
 
     // Reject unsafe IP patterns (1.2., 1.2.*, 192.168.1) ALWAYS — too wide or ambiguous
     // These don't have ^ so they slip through isIpSuffixPattern
     if (isUnsafeIpPattern(props.pattern)) {
         consola.debug(`Unsafe IP pattern is not allowed (too wide or ambiguous): ${ruleText}`);
-        return false;
+        return REASON.IP_PATTERN;
     }
 
     // Reject IP-subnet patterns (||1.1^, ||1.1.2^, ||1.1.) always, except in ValidateAllowIp
@@ -448,7 +502,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     if (isIpSubnetPattern(props.pattern)) {
         if (!allowedIP || !is3OctetSubnetWithSuffix(props.pattern)) {
             consola.debug(`IP-like subnet is not allowed: ${ruleText}`);
-            return false;
+            return REASON.IP_PATTERN;
         }
     }
 
@@ -464,10 +518,10 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     if (tldts.parse(ipCandidate).isIp) {
         if (!allowedIP) {
             consola.debug(`IP address is not allowed: ${ruleText}`);
-            return false;
+            return REASON.IP_ADDRESS;
         }
         // IP is allowed — no further domain validation needed
-        return true;
+        return null;
     }
 
     // 4. Validate domain name
@@ -476,7 +530,8 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     const wildcardIdx = props.pattern.indexOf(WILDCARD);
     if (sepIdx !== -1 && wildcardIdx !== -1 && wildcardIdx > sepIdx) {
         // Smth like ||example.org^test* -- invalid
-        return false;
+        consola.debug(`The rule has a wildcard after the domain separator: ${ruleText}`);
+        return REASON.MALFORMED_PATTERN;
     }
 
     if (exactDomainPattern) {
@@ -485,7 +540,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
 
     // Patterns without the domain prefix are not domain-anchored, so domain checks do not apply.
     if (!_.startsWith(props.pattern, DOMAIN_PREFIX)) {
-        return true;
+        return null;
     }
 
     // `||`-patterns without a `^` separator need their own check: a complete
@@ -495,7 +550,7 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
         // An IP-subnet pattern that reaches this point was already accepted above;
         // this is the ValidateAllowIp 3-octet subnet case, for example `||192.168.1.`.
         if (isIpSubnetPattern(props.pattern)) {
-            return true;
+            return null;
         }
         return validDomainPatternWithoutSeparator(
             props.pattern,
@@ -524,12 +579,19 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
             return validHostname(cleanedDomain, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix);
         }
         // If the rule has wildcard characters but is not a TLD (e.g., ||*.example.org^)
-        return true;
+        return null;
     }
 
     // Validate the domain
-    if (!validHostname(domainToCheck, ruleText, allowedIP, hasLimitModifier, allowPublicSuffix)) {
-        return false;
+    const domainReason = validHostname(
+        domainToCheck,
+        ruleText,
+        allowedIP,
+        hasLimitModifier,
+        allowPublicSuffix,
+    );
+    if (domainReason) {
+        return domainReason;
     }
 
     // Ensure there's nothing after the domain separator unless it's `^|`
@@ -537,7 +599,14 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
     // unless it's `^|` which is a rather often case
     // ||example.org^| -- valid
     // @@||example.org^|$important -- invalid
-    return !(props.pattern.length > (sepIdx + 1) && props.pattern[sepIdx + 1] !== '|');
+    const hasTrailingCharacters = props.pattern.length > (sepIdx + 1)
+        && props.pattern[sepIdx + 1] !== '|';
+    if (hasTrailingCharacters) {
+        consola.debug(`Unexpected characters after the domain separator: ${ruleText}`);
+        return REASON.MALFORMED_PATTERN;
+    }
+
+    return null;
 }
 
 /**
@@ -551,11 +620,11 @@ function validAdblockRule(ruleText, allowedIP, allowPublicSuffix) {
  * @param {string} ruleText - rule to check
  * @param {boolean} allowedIP - flag to determine if IP validation is allowed
  * @param {boolean} allowPublicSuffix - flag to determine if matching whole public suffixes is allowed
- * @returns {boolean} - true if the rule is valid, false otherwise
+ * @returns {string|null} null if the rule is valid, otherwise the reason why it is removed
  */
 function valid(ruleText, allowedIP, allowPublicSuffix) {
     if (ruleUtils.isComment(ruleText) || _.isEmpty(_.trim(ruleText))) {
-        return true;
+        return null;
     }
 
     if (ruleUtils.isEtcHostsRule(ruleText)) {
@@ -573,8 +642,9 @@ class Validator {
      * Creates a new rule validator.
      * @param {boolean} allowedIP - Flag indicating whether IP addresses should be considered valid.
      * @param {boolean} allowPublicSuffix - Flag indicating whether rules matching whole public suffix are allowed.
+     * @param {string} name - Name of the validation transformation, used in the removal summary.
      */
-    constructor(allowedIP, allowPublicSuffix) {
+    constructor(allowedIP, allowPublicSuffix, name = 'Validation') {
         /**
        * Indicates that a rule was previously removed (the iteration processed an invalid rule).
        * Used to remove preceding comments or empty lines.
@@ -593,6 +663,37 @@ class Validator {
        * @type {boolean}
        */
         this.allowPublicSuffix = allowPublicSuffix;
+
+        /**
+       * Name of the validation transformation, used in the removal summary.
+       * @type {string}
+       */
+        this.name = name;
+    }
+
+    /**
+     * Logs one summary line with the number of removed rules for each reason.
+     *
+     * @param {Map<string, number>} removedByReason - Numbers of removed rules by reason.
+     * @returns {void}
+     */
+    reportRemoved(removedByReason) {
+        if (removedByReason.size === 0) {
+            return;
+        }
+
+        let total = 0;
+        const details = [];
+        Object.keys(REASON_NAMES).forEach((reason) => {
+            const count = removedByReason.get(reason);
+            if (count) {
+                total += count;
+                details.push(`${count} ${reasonName(reason, count)}`);
+            }
+        });
+
+        const ruleWord = total === 1 ? 'rule' : 'rules';
+        consola.info(`${this.name} removed ${total} ${ruleWord}: ${details.join(', ')}`);
     }
 
     /**
@@ -604,14 +705,16 @@ class Validator {
      */
     validate(rules) {
         const filtered = [...rules];
+        const removedByReason = new Map();
         // Iterate from the end to the beginning so we can remove
         // preceding comments/empty lines if needed
         for (let i = filtered.length - 1; i >= 0; i -= 1) {
-            const isValidRule = valid(filtered[i], this.allowedIP, this.allowPublicSuffix);
+            const reason = valid(filtered[i], this.allowedIP, this.allowPublicSuffix);
             const isCommentOrEmptyLine = ruleUtils.isComment(filtered[i]) || _.isEmpty(filtered[i]);
 
-            if (!isValidRule) {
+            if (reason) {
                 // If the rule is invalid, remove it and set the flag to remove preceding lines
+                removedByReason.set(reason, (removedByReason.get(reason) || 0) + 1);
                 this.previousRuleRemoved = true;
                 filtered.splice(i, 1);
             } else if (this.previousRuleRemoved && isCommentOrEmptyLine) {
@@ -624,6 +727,8 @@ class Validator {
             }
         }
 
+        this.reportRemoved(removedByReason);
+
         return filtered;
     }
 }
@@ -635,7 +740,7 @@ class Validator {
  * @returns {Array<string>} The filtered list of valid rules.
  */
 function validate(rules) {
-    const validator = new Validator(false, false);
+    const validator = new Validator(false, false, 'Validate');
     // ip is not allowed for default validation
     // public suffix matching is not allowed for default validation
     return validator.validate(rules);

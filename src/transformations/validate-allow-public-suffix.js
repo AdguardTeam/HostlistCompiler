@@ -11,7 +11,7 @@ const { Validator } = require('./validate');
  */
 function validateAllowPublicSuffix(rules) {
     // ip is not allowed by default, but public suffix matching is allowed.
-    const validator = new Validator(false, true);
+    const validator = new Validator(false, true, 'ValidateAllowPublicSuffix');
     return validator.validate(rules);
 }
 

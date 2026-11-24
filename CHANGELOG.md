@@ -9,7 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Validation transformations now write one summary line with the number of
+  removed rules for each reason, for example `Validate removed 3 rules: 1 IP
+  address, 1 unsupported modifier, 1 rule with invalid characters`. [#91]
+
 ### Changed
+
+- The `Validate` documentation now states that URL-level rules are discarded
+  and how to keep the blocked domain in a compiled list. [#91]
 
 ### Deprecated
 
@@ -245,6 +252,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/master/CHANGELOG.md
 [#88]: https://github.com/AdguardTeam/HostlistCompiler/issues/88
+[#91]: https://github.com/AdguardTeam/HostlistCompiler/issues/91
 [#129]: https://github.com/AdguardTeam/HostlistCompiler/issues/129
 [#36]: https://github.com/AdguardTeam/HostlistCompiler/issues/36
 [#132]: https://github.com/AdguardTeam/HostlistCompiler/issues/132

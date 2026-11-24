@@ -1,3 +1,4 @@
+const consola = require('consola');
 const { validate } = require('../../src/transformations/validate');
 const { validateAllowIp } = require('../../src/transformations/validate-allow-ip');
 const { validateAllowPublicSuffix } = require('../../src/transformations/validate-allow-public-suffix');
@@ -482,5 +483,50 @@ describe('Validate', () => {
 
         expect(filtered).toEqual(['||example.org^']);
         expect(filtered).not.toContain('||foo..bar.');
+    });
+});
+
+describe('removal summary', () => {
+    let infoSpy;
+
+    beforeEach(() => {
+        infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        infoSpy.mockRestore();
+    });
+
+    it('logs the number of removed rules for each reason', () => {
+        const rules = [
+            '||1.1.1.1^',
+            '||example.org^$domain=example.com',
+            '||x_x.example.com^',
+            '||keep.org^',
+        ];
+        validate(rules);
+
+        expect(infoSpy).toHaveBeenCalledTimes(1);
+        expect(infoSpy).toHaveBeenCalledWith(
+            'Validate removed 3 rules: 1 IP address, 1 unsupported modifier, 1 rule with invalid characters',
+        );
+    });
+
+    it('uses the plural form for repeated reasons', () => {
+        validate(['||1.1.1.1^', '||2.2.2.2^']);
+
+        expect(infoSpy).toHaveBeenCalledWith('Validate removed 2 rules: 2 IP addresses');
+    });
+
+    it('does not log a summary when no rule is removed', () => {
+        validate(['||example.org^']);
+
+        expect(infoSpy).not.toHaveBeenCalled();
+    });
+
+    it('names the transformation that removed the rules', () => {
+        validateAllowIp(['||1.1^']);
+
+        expect(infoSpy).toHaveBeenCalledWith('ValidateAllowIp removed 1 rule: 1 IP pattern');
     });
 });
