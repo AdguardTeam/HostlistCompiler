@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `jsonpointer` 4.0.1 (GHSA-282f-qqgm-c34q), and `@babel/runtime` 7.8.4
   (GHSA-968p-4wvh-cqc8) transitive dependencies, and removes the deprecated
   `core-js` 3.6.4 dependency. [#36], [#132]
+- Updated `lodash` from 4.17.21 to 4.18.1. This fixes code injection through
+  `_.template` import key names (GHSA-r5fr-rjxr-66jc) and prototype pollution
+  in `_.unset`, `_.omit`, and `_.pullAt` (GHSA-xxjr-mmjv-4gpg). [#131]
 
 ## [3.0.0] - 2026-11-17
 
@@ -248,3 +251,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#129]: https://github.com/AdguardTeam/HostlistCompiler/issues/129
 [#36]: https://github.com/AdguardTeam/HostlistCompiler/issues/36
 [#132]: https://github.com/AdguardTeam/HostlistCompiler/issues/132
+[#131]: https://github.com/AdguardTeam/HostlistCompiler/issues/131
