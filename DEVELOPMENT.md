@@ -33,7 +33,7 @@ Hostlist Compiler. For code guidelines and architectural decisions, see [AGENTS.
 
 ## Prerequisites
 
-- **Node.js 22.22.2 or newer** — required by the `engines` field in `package.json`; the CI pipeline and the
+- **Node.js 22.23.5 or newer** — required by the `engines` field in `package.json`; the CI pipeline and the
   Docker image build with Node 22. Node.js 23.x is not supported by `@adguard/filters-downloader` 3.x.
 - **pnpm 10.x** — required by the `engines` field in `package.json` (use the exact version pinned there if pnpm
   reports a mismatch). Install with `npm install -g pnpm@10`.
