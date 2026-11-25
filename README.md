@@ -532,6 +532,8 @@ So here's what it does:
 - Discards URL-level rules: a DNS filter matches hostnames only, so a rule
   with a scheme or a path cannot work. See [URL-Level Rules](#url-level-rules)
   for details and a workaround.
+- Discards rules with characters that cannot appear in a hostname, such as
+  `_` in `||x_x-example.org^`.
 
 #### <a name="rejected-ip-patterns"></a>Rejected IP Patterns
 
@@ -552,15 +554,14 @@ The following rules are URL-level rules:
 
 - `|https://*.example.org^` has a scheme.
 - `||example.org/path^` has a path.
-- `||x_x-example.org^` has a name that contains `_`, which is not a hostname.
 
 The compiler removes these rules. It does not convert them to domain rules,
 because the conversion widens the match. For example, `||example.org^` blocks
 the domain itself and every request type, not only documents on subdomains.
 
-Regular-expression rules are kept unchanged because the validator does not
-interpret them. A regex such as `/^https?:\/\/ads\./` therefore stays in the
-compiled list.
+Regular-expression rules are not rejected as URL-level rules; the validator
+does not interpret them. A regex such as `/^https?:\/\/ads\./` is kept,
+although the other validation checks still apply to it.
 
 To keep the blocked domain in a compiled list, add the DNS-level rule to the
 source list or to an extra source:
@@ -574,8 +575,8 @@ level; run the compiler with `--verbose` to see it. Two `/etc/hosts` cases are
 logged more loudly: an unparseable rule at the error level, and a rule with no
 hostnames at the info level.
 
-Each validated source gets its own summary line with the number of removed
-rules for each reason.
+A validated source that loses rules gets one summary line with the number of
+removed rules for each reason; a source with no removals gets none.
 
 ### <a name="validate-allow-ip"></a> ValidateAllowIp
 
