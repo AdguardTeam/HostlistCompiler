@@ -35,7 +35,7 @@ resulting filter list.
 
 ## Installation
 
-Requires Node.js 22.22.2 or newer. Node.js 23.x is not supported by
+Requires Node.js 22.23.5 or newer. Node.js 23.x is not supported by
 `@adguard/filters-downloader` 3.x.
 
 Install the package globally to get the `hostlist-compiler` command:
