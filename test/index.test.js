@@ -645,4 +645,37 @@ describe('Hostlist compiler', () => {
 
         scope.done();
     });
+
+    it('writes the "Last modified" header in UTC ISO 8601', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/source.txt')
+            .reply(200, '||example.org', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            sources: [
+                {
+                    source: 'https://example.org/source.txt',
+                },
+            ],
+        };
+
+        const before = Date.now();
+        const list = await compile(configuration);
+        const after = Date.now();
+
+        const header = list.find((line) => line.startsWith('! Last modified: '));
+        expect(header).toBeDefined();
+
+        const value = header.slice('! Last modified: '.length);
+        expect(value).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+
+        const timestamp = Date.parse(value);
+        expect(timestamp).toBeGreaterThanOrEqual(before);
+        expect(timestamp).toBeLessThanOrEqual(after);
+
+        scope.done();
+    });
 });

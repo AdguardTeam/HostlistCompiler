@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Documented the compiled list header format in `README.md`, including that
+  `Last modified` is the build time in UTC in ISO 8601 format, not the local
+  time of the build machine. [#29]
+
 ### Deprecated
 
 ### Removed
@@ -244,6 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#69]: https://github.com/AdguardTeam/FiltersCompiler/issues/69
 
 [@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/master/CHANGELOG.md
+[#29]: https://github.com/AdguardTeam/HostlistCompiler/issues/29
 [#88]: https://github.com/AdguardTeam/HostlistCompiler/issues/88
 [#129]: https://github.com/AdguardTeam/HostlistCompiler/issues/129
 [#36]: https://github.com/AdguardTeam/HostlistCompiler/issues/36

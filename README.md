@@ -124,6 +124,45 @@ A configurable blocklist can also be built from a remote URL without a configura
 hostlist-compiler -i https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts -o output.txt
 ```
 
+### Compiled List Header
+
+The compiler writes this header to the start of every list:
+
+```text
+!
+! Title: List name
+! Description: List description
+! Version: 1.0.0.0
+! Homepage: https://example.org
+! License: GPLv3
+! Last modified: 2026-11-24T14:33:33.603Z
+!
+! Compiled by @adguard/hostlist-compiler v3.0.0
+!
+```
+
+`Title` always appears. `Description`, `Version`, `Homepage`, and `License` appear only when the matching
+[configuration](#configuration) key is set.
+
+`Last modified` is the build time in UTC, in ISO 8601 format. The trailing `Z` marks UTC, so the value names the same
+instant in every timezone. It is not the local time of the machine that runs the compiler, and a static list cannot
+show the local time of each reader. To show the value in a local timezone, convert it in your own toolchain:
+
+```js
+new Date('2026-11-24T14:33:33.603Z').toLocaleString();
+```
+
+Each source that produces rules adds a header before its rules:
+
+```text
+!
+! Source name: Remote rules
+! Source: https://example.org/rules.txt
+!
+```
+
+`Source name` appears only when the source has a `name` key.
+
 ## Configuration
 
 Configuration defines your filter list sources, and the transformations that are applied to the sources.
