@@ -529,6 +529,21 @@ So here's what it does:
   and AdGuard lists use them), label-prefix masks such as `||countly-`, and
   wildcard patterns such as `||*.example.org`.
 - Discards IP addresses. If you need to keep IP addresses, use [ValidateAllowIp](#validate-allow-ip) instead.
+- Removes rules that block entire top-level domains (TLDs) like `||*.org^`,
+  unless they have specific limiting modifiers such as `$denyallow`,
+  `$badfilter`, or `$client`. Examples:
+    - `||*.org^` - this rule will be removed
+    - `||*.org^$denyallow=example.com` - this rule will be kept because it
+      has a limiting modifier
+  If such rules must be saved, use
+  [ValidateAllowPublicSuffix](#validate-allow-public-suffix) or
+  [ValidateAllowIpAndPublicSuffix](#validate-allow-ip-and-public-suffix).
+- Discards URL-level rules: a DNS filter matches hostnames only, so a rule
+  with a `scheme://` or a path cannot work. See
+  [URL-Level Rules](#url-level-rules) for details and a workaround.
+- Discards rules with characters that cannot appear in a hostname, such as
+  `_` in `||x_x-example.org^`.
+- Removes a comment or an empty line that precedes a removed rule.
 
 #### <a name="rejected-ip-patterns"></a>Rejected IP Patterns
 
@@ -540,17 +555,48 @@ The following IP patterns are rejected by all validation transformations
 - `192.168.1` — Ambiguous: would match `192.168.11`, `192.168.111`, etc.
 - `1.2.` or `1.2.*` — Too wide (1-2 octets), use regex instead
 
-- Removes rules that block entire top-level domains (TLDs) like `||*.org^`,
-  unless they have specific limiting modifiers such as `$denyallow`,
-  `$badfilter`, or `$client`. Examples:
-    - `||*.org^` - this rule will be removed
-    - `||*.org^$denyallow=example.com` - this rule will be kept because it
-      has a limiting modifier
-  If such rules must be saved, use
-  [ValidateAllowPublicSuffix](#validate-allow-public-suffix) or
-  [ValidateAllowIpAndPublicSuffix](#validate-allow-ip-and-public-suffix).
+#### <a name="url-level-rules"></a>URL-Level Rules
 
-If there are comments preceding the invalid rule, they will be removed as well.
+The validation transformations discard a rule that a DNS filter cannot apply.
+The following rules are URL-level rules:
+
+- `|https://*.example.org^` has a scheme.
+- `||example.org/path^` has a path.
+
+The removal summary reports every rule rejected by this check as
+`URL-level rule`.
+
+The compiler removes these rules. It does not convert them to domain rules,
+because the conversion widens the match. For example, `||example.org^` blocks
+the domain itself and every request type, not only HTTPS requests to
+subdomains.
+
+Regular-expression rules are not rejected as URL-level rules; the validator
+does not interpret them. A regex such as `/^https?:\/\/ads\./` is kept. Only
+the supported-modifier and minimum-length checks apply to it; the character,
+URL-level, IP, and hostname checks skip it.
+
+To keep the blocked domain in a compiled list, add the DNS-level rule to the
+source list or to an extra source:
+
+- `|https://*.example.org^` becomes `||*.example.org^` (subdomains only) or
+  `||example.org^` (the domain and its subdomains).
+- `||example.org/path^` becomes `||example.org^`.
+
+The removal reason for an adblock-style rule is written at the debug log
+level; run the compiler with `--verbose` to see it. An unparseable
+`/etc/hosts` rule is logged at the error level.
+
+A validation pass that removes at least one line writes one summary line with
+the number of removed lines for each reason. A rule, a comment, and an empty
+line each count as one line. A comment or an empty line removed with a rule is
+reported under `comment or empty line`. A pass that removes nothing writes no
+line.
+
+When the transformation is configured in a source's `transformations`, each
+source that loses lines gets its own line. When it is configured in the
+top-level `transformations`, which the quick conversion uses, the final list
+gets one line after the last source.
 
 ### <a name="validate-allow-ip"></a> ValidateAllowIp
 
@@ -583,7 +629,11 @@ but leaves rules that match whole public suffixes (e.g. `||hl.cn^`, `||org^`)
 in the list.
 
 It still filters out invalid syntax rules and unsupported modifiers, but does
-not reject public-suffix rules unless the rule itself is malformed.
+not reject rules that match a known public suffix.
+
+A whole-suffix `||name^` rule without a limiting modifier is kept only if the
+name is a known ICANN or private public suffix. The removal summary reports an
+unknown name as `rule for an unknown public suffix`.
 
 > **Note:** Combining any `Validate`, `ValidateAllowIp`,
 > `ValidateAllowPublicSuffix`, and `ValidateAllowIpAndPublicSuffix` in one
