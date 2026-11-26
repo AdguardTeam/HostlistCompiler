@@ -314,14 +314,15 @@ Configuration of the final list:
 }
 ```
 
-Final filter output of `/hosts.txt` after applying the `Compress` transformation and exclusions:
+Final filter output of `/hosts.txt` after applying the `Compress` transformation and exclusions. The list header and
+the source header are omitted here; see [Compiled List Header](#compiled-list-header).
 
 ```text
-||ads.example.com^
 ||tracking.example1.com^
 ```
 
-The last rule now `||example.com^` will correctly match the rule from the exclusion list and will be excluded.
+`Compress` drops `||ads.example.com^` as covered by `||example.com^` before the exclusion runs, and the exclusion
+then removes `||example.com^`, so only `||tracking.example1.com^` remains.
 
 ## API
 
