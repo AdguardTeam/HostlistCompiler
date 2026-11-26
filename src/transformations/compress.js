@@ -3,7 +3,7 @@ const consola = require('consola');
 const ruleUtils = require('../rule');
 
 /**
- * Extracts hostnames up to TLD.
+ * Extracts the hostname and all its parent domains, including the last label.
  * For instance:
  * "example.org" -> ["example.org", "org"]
  * "sub.example.org" -> ["sub.example.org", "example.org", "org"]
@@ -105,25 +105,37 @@ function toAdblockRules(ruleText) {
  * For instance, "||example.org" blocks "example.org" and all it's subdomains,
  * therefore you don't need additional rules for the subdomains.
  *
+ * For the rules that it reduces to a hostname, hostnames are compared
+ * case-insensitively. The first rule in the list keeps its original casing,
+ * and later rules that differ only in letter case are discarded as duplicates.
+ * Exception rules and rules with modifiers are not compressed.
+ *
  * @param {Array<String>} rules - list of rules to compress
  * @returns {Array<String>} compressed list
  */
 function compress(rules) {
-    const byHostname = {};
+    const byHostname = new Set();
     const filtered = [];
 
     // First loop:
     // 1. Transform /etc/hosts rules to adblock-style rules
-    // 2. Fill "byHostname" lookup table
+    // 2. Fill the "byHostname" lookup set
     // 3. Check "byHostname" to eliminate duplicates on the first run
     for (let i = 0; i < rules.length; i += 1) {
         const rule = rules[i];
         const adblockRules = toAdblockRules(rule);
         adblockRules.forEach((adblockRule) => {
             if (adblockRule.canCompress) {
-                if (!byHostname[adblockRule.hostname]) {
+                // Hostnames are case-insensitive, so use a lowercase lookup key
+                // but keep the original rule text and casing.
+                const hostname = adblockRule.hostname.toLowerCase();
+                if (!byHostname.has(hostname)) {
                     filtered.push(adblockRule);
-                    byHostname[adblockRule.hostname] = true;
+                    byHostname.add(hostname);
+                } else {
+                    consola.debug(
+                        `The rule blocking ${hostname} (from ${adblockRule.originalRuleText}) is a duplicate`,
+                    );
                 }
             } else {
                 filtered.push(adblockRule);
@@ -132,33 +144,36 @@ function compress(rules) {
     }
 
     // Second loop:
-    // 1. Extract all hostnames up to TLD+1
+    // 1. Extract the hostname and its parent domains, including the last label
     // 2. Check them against "byHostname" and discard the rule
     // if it's already covered by an existing rule.
-    for (let i = filtered.length - 1; i >= 0; i -= 1) {
+    const compressed = [];
+    for (let i = 0; i < filtered.length; i += 1) {
         const rule = filtered[i];
         let discard = false;
 
         if (rule.canCompress) {
-            const hostnames = extractHostnames(rule.hostname);
-            // Start iterating from 1 -- don't check the full hostname
+            // Compare hostnames case-insensitively with the lowercase lookup keys.
+            const hostnames = extractHostnames(rule.hostname.toLowerCase());
+            // Start iterating from 1 -- don't check the full hostname.
+            // The last label is checked too, so a rule for `com` covers
+            // every hostname under it.
             for (let j = 1; j < hostnames.length; j += 1) {
                 const hostname = hostnames[j];
-                if (byHostname[hostname]) {
+                if (byHostname.has(hostname)) {
                     consola.debug(`The rule blocking ${hostname} (from ${rule.originalRuleText}) is redundant`);
                     discard = true;
                     break;
                 }
             }
         }
-        if (discard) {
-            // Remove the rule
-            filtered.splice(i, 1);
+        if (!discard) {
+            compressed.push(rule);
         }
     }
 
-    consola.info(`The list was compressed from ${rules.length} to ${filtered.length}`);
-    return filtered.map((rule) => rule.ruleText);
+    consola.info(`The list was compressed from ${rules.length} to ${compressed.length}`);
+    return compressed.map((rule) => rule.ruleText);
 }
 
 module.exports = compress;

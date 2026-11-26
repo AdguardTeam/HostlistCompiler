@@ -124,6 +124,9 @@ Make your changes in `src/` and follow the contribution rules in [AGENTS.md](AGE
 add or update tests in `test/` mirroring the source file structure, keep `CHANGELOG.md` up to date for
 user-facing changes, and run the full verification sequence before pushing.
 
+Follow the [AGENTS.md code guidelines](AGENTS.md#code-quality), including the
+rule for regular expressions.
+
 ### Running Tests
 
 Run the full test suite:
