@@ -572,8 +572,9 @@ the domain itself and every request type, not only HTTPS requests to
 subdomains.
 
 Regular-expression rules are not rejected as URL-level rules; the validator
-does not interpret them. A regex such as `/^https?:\/\/ads\./` is kept,
-although the other validation checks still apply to it.
+does not interpret them. A regex such as `/^https?:\/\/ads\./` is kept. Only
+the supported-modifier and minimum-length checks apply to it; the character,
+URL-level, IP, and hostname checks skip it.
 
 To keep the blocked domain in a compiled list, add the DNS-level rule to the
 source list or to an extra source:
