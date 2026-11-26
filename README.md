@@ -146,7 +146,7 @@ The compiler writes this header to the start of every list:
 ```
 
 `Title` always appears. `Description`, `Version`, `Homepage`, and `License` appear only when the matching
-[configuration](#configuration) key is set.
+[configuration](#configuration) key is set to a non-empty value.
 
 `Last modified` is the build time in UTC, in ISO 8601 format. The trailing `Z` marks UTC, so the value names the same
 instant in every timezone. It is not the local time of the machine that runs the compiler, and a static list cannot
