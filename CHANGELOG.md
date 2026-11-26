@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Validation transformations now write a summary line per validated source
-  with the number of removed rules for each reason, for example `Validate
-  removed 3 rules: 1 IP address, 1 unsupported modifier, 1 rule with invalid
-  characters`. [#91]
+- Validation transformations now write a summary line with the number of
+  removed lines for each reason, for example `Validate removed 3 lines: 1 IP
+  address, 1 unsupported modifier, 1 rule with invalid characters`. Comments
+  and empty lines removed with a rule are counted too. [#91]
 
 ### Changed
 
@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `Validate` now keeps the `[Adblock Plus 2.0]` format header instead of
+  counting it as a rule with invalid characters and removing it. [#91]
 - Sources that produce no rules, including empty files, files with only blank
   lines, compiler-recognized comment lines, an Adblock Plus format header, and
   files whose rules are all removed by transformations, are now skipped with a
@@ -253,7 +255,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [@adguard/filters-downloader]: https://github.com/AdguardTeam/FiltersDownloader/blob/master/CHANGELOG.md
 [#88]: https://github.com/AdguardTeam/HostlistCompiler/issues/88
-[#91]: https://github.com/AdguardTeam/HostlistCompiler/issues/91
 [#129]: https://github.com/AdguardTeam/HostlistCompiler/issues/129
 [#36]: https://github.com/AdguardTeam/HostlistCompiler/issues/36
 [#132]: https://github.com/AdguardTeam/HostlistCompiler/issues/132
+[#91]: https://github.com/AdguardTeam/HostlistCompiler/issues/91
