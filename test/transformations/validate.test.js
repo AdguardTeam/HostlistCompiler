@@ -1,4 +1,5 @@
-const { validate } = require('../../src/transformations/validate');
+const consola = require('consola');
+const { validate, Validator } = require('../../src/transformations/validate');
 const { validateAllowIp } = require('../../src/transformations/validate-allow-ip');
 const { validateAllowPublicSuffix } = require('../../src/transformations/validate-allow-public-suffix');
 const {
@@ -23,6 +24,16 @@ describe('Validate', () => {
         expect(filtered).toHaveLength(2);
         expect(filtered).toContain('0.0.0.0 example.org');
         expect(filtered).toContain('0.0.0.0 doubleclick.net doubleclick.com');
+    });
+
+    it('validates uppercase and hostname-less /etc/hosts lines', () => {
+        // An uppercase hexadecimal IPv6 address and a mixed-case hostname.
+        expect(validate(['2001:DB8::1 Example.com']))
+            .toEqual(['2001:DB8::1 Example.com']);
+        // The uppercase adblock-style rule that Compress emits for that line.
+        expect(validate(['||Example.com^'])).toEqual(['||Example.com^']);
+        // A line without a hostname is not a valid /etc/hosts rule.
+        expect(validate(['0.0.0.0  # obsolete'])).toEqual([]);
     });
 
     it('remove preceding comments', () => {
@@ -153,8 +164,9 @@ describe('Validate', () => {
     });
 
     it('removes short ccTLD patterns as public suffixes', () => {
-        // ||uk^ and .uk^ are 4 chars — below MAX_PATTERN_LENGTH, but structurally valid
-        // domain patterns. The length exception must not bypass the public suffix check.
+        // `.uk^` is 4 chars, below MIN_PATTERN_LENGTH (5); `||uk^` is 5 chars.
+        // The short pattern is structurally valid, so the length exception
+        // applies, but the public suffix check must still remove it.
         const rules = [
             '||uk^',
             '.uk^',
@@ -482,5 +494,117 @@ describe('Validate', () => {
 
         expect(filtered).toEqual(['||example.org^']);
         expect(filtered).not.toContain('||foo..bar.');
+    });
+});
+
+describe('removal summary', () => {
+    let infoSpy;
+
+    beforeEach(() => {
+        infoSpy = jest.spyOn(consola, 'info').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        infoSpy.mockRestore();
+    });
+
+    it('logs the number of removed lines for each reason', () => {
+        const rules = [
+            '||1.1.1.1^',
+            '||example.org^$domain=example.com',
+            '||x_x.example.com^',
+            '||keep.org^',
+        ];
+        validate(rules);
+
+        expect(infoSpy).toHaveBeenCalledTimes(1);
+        expect(infoSpy).toHaveBeenCalledWith(
+            'Validate removed 3 lines: 1 IP address, 1 unsupported modifier, 1 rule with invalid characters',
+        );
+    });
+
+    it('uses the plural form for repeated reasons', () => {
+        validate(['||1.1.1.1^', '||2.2.2.2^']);
+
+        expect(infoSpy).toHaveBeenCalledWith('Validate removed 2 lines: 2 IP addresses');
+    });
+
+    it('reports URL-level rules separately', () => {
+        validate(['|https://*.example.org^', '||example.org/path^', '//example.org']);
+
+        expect(infoSpy).toHaveBeenCalledWith('Validate removed 3 lines: 3 URL-level rules');
+    });
+
+    it('reports a rule for an unknown public suffix separately', () => {
+        validateAllowPublicSuffix(['||a^']);
+
+        expect(infoSpy).toHaveBeenCalledWith(
+            'ValidateAllowPublicSuffix removed 1 line: 1 rule for an unknown public suffix',
+        );
+    });
+
+    it('counts a comment or an empty line removed with a rule', () => {
+        validate(['! note', '', '||1.1.1.1^']);
+
+        expect(infoSpy).toHaveBeenCalledWith(
+            'Validate removed 3 lines: 1 IP address, 2 comments or empty lines',
+        );
+    });
+
+    it('keeps a regular-expression URL rule', () => {
+        const rules = [String.raw`/^https?:\/\/ads\./`];
+
+        expect(validate(rules)).toEqual(rules);
+        expect(infoSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the Adblock Plus format header and does not count it', () => {
+        const rules = ['[Adblock Plus 2.0]', '||example.org^'];
+
+        expect(validate(rules)).toEqual(rules);
+        expect(infoSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not log a summary when no rule is removed', () => {
+        validate(['||example.org^']);
+
+        expect(infoSpy).not.toHaveBeenCalled();
+    });
+
+    it('names the transformation that removed the rules', () => {
+        validateAllowIp(['||1.1^']);
+
+        expect(infoSpy).toHaveBeenCalledWith('ValidateAllowIp removed 1 line: 1 IP pattern');
+    });
+
+    it('names ValidateAllowPublicSuffix', () => {
+        validateAllowPublicSuffix(['||1.1.1.1^']);
+
+        expect(infoSpy).toHaveBeenCalledWith(
+            'ValidateAllowPublicSuffix removed 1 line: 1 IP address',
+        );
+    });
+
+    it('names ValidateAllowIpAndPublicSuffix', () => {
+        validateAllowIpAndPublicSuffix(['||example.org^$domain=example.com']);
+
+        expect(infoSpy).toHaveBeenCalledWith(
+            'ValidateAllowIpAndPublicSuffix removed 1 line: 1 unsupported modifier',
+        );
+    });
+
+    it('does not keep the removal state between validate() calls', () => {
+        const validator = new Validator(false, false);
+
+        expect(validator.validate(['||1.1.1.1^'])).toEqual([]);
+        expect(validator.validate(['||ok.org^', '! keep me', '']))
+            .toEqual(['||ok.org^', '! keep me', '']);
+    });
+
+    it('fails loudly when a removal reason has no display name', () => {
+        const validator = new Validator(false, false, 'Validate');
+
+        expect(() => validator.reportRemoved(new Map([['unknownReason', 1]])))
+            .toThrow('Missing display name for the validation removal reason "unknownReason"');
     });
 });

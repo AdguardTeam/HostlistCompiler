@@ -1,5 +1,6 @@
 const { Validator } = require('./validate');
 const { normalizeIpRules } = require('../ip-normalize');
+const { TRANSFORMATIONS } = require('./enum');
 
 /**
  * Validates a list of rules and allows IP validation.
@@ -24,7 +25,7 @@ function validateAllowIp(rules) {
 
     // Then validate with IP addresses allowed
     // tld is not allowed by default here
-    const validator = new Validator(true, false);
+    const validator = new Validator(true, false, TRANSFORMATIONS.ValidateAllowIp);
     return validator.validate(normalizedRules);
 }
 
