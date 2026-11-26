@@ -154,8 +154,9 @@ describe('Validate', () => {
     });
 
     it('removes short ccTLD patterns as public suffixes', () => {
-        // `.uk^` is 4 chars and `||uk^` is 5 chars. Both are at or below MIN_PATTERN_LENGTH,
-        // but structurally valid domain patterns. The length exception must not bypass the public suffix check.
+        // `.uk^` is 4 chars, below MIN_PATTERN_LENGTH (5); `||uk^` is 5 chars.
+        // The short pattern is structurally valid, so the length exception
+        // applies, but the public suffix check must still remove it.
         const rules = [
             '||uk^',
             '.uk^',
