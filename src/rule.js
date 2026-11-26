@@ -4,7 +4,16 @@ const utils = require('./utils');
 
 // eslint-disable-next-line max-len
 const domainRegex = /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/;
-const etcHostsRegex = /^([a-f0-9.:\][]+)(%[a-z0-9]+)?\s+([^#]+)(#.*)?$/;
+// An /etc/hosts line: an address, an optional zone identifier, at least one
+// hostname, and an optional comment. The address is a bracketed IPv6 address,
+// an IPv6 address with a mandatory colon, or an IPv4 address. Uppercase hex
+// digits and an uppercase zone identifier are accepted. A bare hexadecimal
+// word such as `BEEF` is not an address, so a line that starts with one is not
+// an /etc/hosts line.
+const etcHostsRegex = /^(\[[0-9a-f:.]+\]|[0-9a-f:.]*:[0-9a-f:.]+|[0-9.]+)(%[a-z0-9]+)?\s+([^#\s][^#]*?)\s*(#.*)?$/i;
+// Matches a complete `||hostname^` adblock rule. Hostnames are
+// case-insensitive, so the pattern accepts uppercase and mixed-case letters.
+const adblockHostnameRegex = /^\|\|([a-z0-9-.]+)\^$/i;
 const domainPatternRegex = /(\*\.|)([^\s^$|=]+(?:\.[^\s^$|=]+)+)/g;
 // eslint-disable-next-line no-control-regex
 const nonAsciiRegexp = /[^\x00-\x7F]/;
@@ -186,20 +195,20 @@ function loadEtcHostsRuleProperties(ruleText) {
  * @property {Array<{{name: string, value: string}}>} options - list of rule modifiers
  * @property {Boolean} whitelist - whether this is an exception rule or not
  * @property {String} hostname - hostname can only be extracted from the rules
- *                               that look like `||[a-z0-9-.]^.*`
+ *                               that look like `||[A-Za-z0-9-.]^`
  */
 
 /**
- * Extracts hostname from the adblock rule pattern
+ * Extracts hostname from the adblock rule pattern.
+ * Hostnames are case-insensitive, so uppercase and mixed-case hostnames
+ * are accepted and returned exactly as written in the rule.
  *
  * @param {String} pattern adblock rule pattern string
  * @returns {String} hostname or null if cannot be extracted
  */
 function extractHostname(pattern) {
-    pattern.match(/^||([a-z0-9-.])\^$/);
-    const match = pattern.match(/^\|\|([a-z0-9-.]+)\^$/);
-    const hostname = match ? match[1] : null;
-    return hostname || null;
+    const match = pattern.match(adblockHostnameRegex);
+    return match ? match[1] : null;
 }
 
 /**

@@ -87,7 +87,7 @@ or message queue dependencies. The only infrastructure requirement is:
 Remote sources are downloaded over HTTP or HTTPS with the Node.js native
 `fetch` (inside `@adguard/filters-downloader`), and the downloaded content is
 compiled entirely in memory — nothing is persisted between runs. The Docker
-base image (`adguard/node-ssh:22.22--0`) includes everything else needed to
+base image (`adguard/node-ssh:22.23--0`) includes everything else needed to
 run the CLI.
 
 ## Logging
@@ -134,7 +134,7 @@ CLI exits with code 1; when used as a library, errors are surfaced as thrown
 
 ## Docker Build
 
-The `Dockerfile` uses multi-stage builds based on `adguard/node-ssh:22.22--0`
+The `Dockerfile` uses multi-stage builds based on `adguard/node-ssh:22.23--0`
 (Node.js 22, pnpm 10 from the base image; the exact pnpm version is pinned in
 the `engines` field of `package.json`):
 

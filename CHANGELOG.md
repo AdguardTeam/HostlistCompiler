@@ -39,6 +39,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (they match the name under any TLD and AdGuard lists use them),
   label-prefix masks such as `||countly-`, and wildcard patterns such as
   `||*.example.org`. [#129]
+- The `Compress` transformation now compares hostnames case-insensitively
+  for `||hostname^` rules, bare domain names, and `/etc/hosts` lines, so rules
+  that differ only in letter case are removed as duplicates and mixed-case
+  rules are compressed. The first rule keeps its original casing. Exception
+  rules (`@@`) and rules with modifiers (for example, `$important`) are not
+  compressed and stay unchanged. Rules whose hostname label matches an
+  `Object.prototype` property name (for example, `||x.constructor^`) are no
+  longer silently dropped. [#59]
+- `/etc/hosts` lines with an uppercase hexadecimal IPv6 address or zone
+  identifier are now converted to adblock-style rules. A `/etc/hosts` line
+  that has no hostname, for example `0.0.0.0  # obsolete`, no longer stops
+  the compilation. A line whose first token is not an IP address, for
+  example `face example.org`, is no longer treated as an `/etc/hosts` line.
 
 ### Security
 
@@ -48,6 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `jsonpointer` 4.0.1 (GHSA-282f-qqgm-c34q), and `@babel/runtime` 7.8.4
   (GHSA-968p-4wvh-cqc8) transitive dependencies, and removes the deprecated
   `core-js` 3.6.4 dependency. [#36], [#132]
+- Updated `lodash` from 4.17.21 to 4.18.1. This fixes code injection through
+  `_.template` import key names (GHSA-r5fr-rjxr-66jc) and prototype pollution
+  in `_.unset`, `_.omit`, and `_.pullAt` (GHSA-xxjr-mmjv-4gpg). [#131]
 
 ## [3.0.0] - 2026-11-17
 
@@ -260,3 +276,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#36]: https://github.com/AdguardTeam/HostlistCompiler/issues/36
 [#132]: https://github.com/AdguardTeam/HostlistCompiler/issues/132
 [#91]: https://github.com/AdguardTeam/HostlistCompiler/issues/91
+[#131]: https://github.com/AdguardTeam/HostlistCompiler/issues/131
+[#59]: https://github.com/AdguardTeam/HostlistCompiler/issues/59

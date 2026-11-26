@@ -26,6 +26,16 @@ describe('Validate', () => {
         expect(filtered).toContain('0.0.0.0 doubleclick.net doubleclick.com');
     });
 
+    it('validates uppercase and hostname-less /etc/hosts lines', () => {
+        // An uppercase hexadecimal IPv6 address and a mixed-case hostname.
+        expect(validate(['2001:DB8::1 Example.com']))
+            .toEqual(['2001:DB8::1 Example.com']);
+        // The uppercase adblock-style rule that Compress emits for that line.
+        expect(validate(['||Example.com^'])).toEqual(['||Example.com^']);
+        // A line without a hostname is not a valid /etc/hosts rule.
+        expect(validate(['0.0.0.0  # obsolete'])).toEqual([]);
+    });
+
     it('remove preceding comments', () => {
         const rules = `! rule comment
 

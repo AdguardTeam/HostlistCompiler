@@ -33,7 +33,7 @@ Hostlist Compiler. For code guidelines and architectural decisions, see [AGENTS.
 
 ## Prerequisites
 
-- **Node.js 22.22.2 or newer** — required by the `engines` field in `package.json`; the CI pipeline and the
+- **Node.js 22.23.5 or newer** — required by the `engines` field in `package.json`; the CI pipeline and the
   Docker image build with Node 22. Node.js 23.x is not supported by `@adguard/filters-downloader` 3.x.
 - **pnpm 10.x** — required by the `engines` field in `package.json` (use the exact version pinned there if pnpm
   reports a mismatch). Install with `npm install -g pnpm@10`.
@@ -123,6 +123,9 @@ pnpm compile -i hosts.txt -o output.txt
 Make your changes in `src/` and follow the contribution rules in [AGENTS.md](AGENTS.md#contribution-instructions):
 add or update tests in `test/` mirroring the source file structure, keep `CHANGELOG.md` up to date for
 user-facing changes, and run the full verification sequence before pushing.
+
+Follow the [AGENTS.md code guidelines](AGENTS.md#code-quality), including the
+rule for regular expressions.
 
 ### Running Tests
 

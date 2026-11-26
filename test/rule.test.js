@@ -8,11 +8,20 @@ describe('Rule utils', () => {
         expect(ruleUtils.isEtcHostsRule('0.0.0.0 example.org # this is a comment')).toBe(true);
         expect(ruleUtils.isEtcHostsRule('fe80::1%lo0 localhost')).toBe(true);
         expect(ruleUtils.isEtcHostsRule('ff02::3 ip6-allhosts')).toBe(true);
+        expect(ruleUtils.isEtcHostsRule('2001:DB8::1 example.org')).toBe(true);
+        expect(ruleUtils.isEtcHostsRule('fe80::1%ETH0 example.org')).toBe(true);
 
         expect(ruleUtils.isEtcHostsRule('example.org')).toBe(false);
         expect(ruleUtils.isEtcHostsRule('0.0.0.0')).toBe(false);
+        expect(ruleUtils.isEtcHostsRule('0.0.0.0  # obsolete')).toBe(false);
+        expect(ruleUtils.isEtcHostsRule('0.0.0.0   ')).toBe(false);
         expect(ruleUtils.isEtcHostsRule('||example.org^')).toBe(false);
         expect(ruleUtils.isEtcHostsRule('! 0.0.0.0 example.org')).toBe(false);
+        // A bare hexadecimal word is not an IP address, so a two-token line
+        // that starts with one is not an /etc/hosts line.
+        expect(ruleUtils.isEtcHostsRule('BEEF example.org')).toBe(false);
+        expect(ruleUtils.isEtcHostsRule('face example.org')).toBe(false);
+        expect(ruleUtils.isEtcHostsRule('CAFE.BE example.org')).toBe(false);
     });
 
     it('load /etc/hosts rule properties', () => {
@@ -36,6 +45,11 @@ describe('Rule utils', () => {
         expect(props.hostnames).toHaveLength(1);
         expect(props.hostnames[0]).toBe('ip6-allhosts');
         expect(props.ruleText).toBe('ff02::3 ip6-allhosts');
+
+        props = ruleUtils.loadEtcHostsRuleProperties('2001:DB8::1 Example.com');
+        expect(props.hostnames).toHaveLength(1);
+        expect(props.hostnames[0]).toBe('Example.com');
+        expect(props.ruleText).toBe('2001:DB8::1 Example.com');
     });
 
     it('load invalid /etc/hosts rule', () => {
@@ -83,6 +97,29 @@ describe('Rule utils', () => {
         expect(props.pattern).toBe('/example.org$/');
         expect(props.options).toBe(null);
         expect(props.ruleText).toBe('@@/example.org$/');
+    });
+
+    it('load adblock-style rule properties with mixed-case hostnames', () => {
+        let props = ruleUtils.loadAdblockRuleProperties('||2O7.net^');
+        expect(props.hostname).toBe('2O7.net');
+
+        props = ruleUtils.loadAdblockRuleProperties('||Example.COM^');
+        expect(props.hostname).toBe('Example.COM');
+
+        props = ruleUtils.loadAdblockRuleProperties('@@||Example.COM^');
+        expect(props.whitelist).toBe(true);
+        expect(props.hostname).toBe('Example.COM');
+
+        props = ruleUtils.loadAdblockRuleProperties('||Example.COM^$third-party');
+        expect(props.options).toHaveLength(1);
+        expect(props.options[0].name).toBe('third-party');
+        expect(props.hostname).toBe('Example.COM');
+    });
+
+    it('does not extract hostname from non-hostname rules', () => {
+        expect(ruleUtils.loadAdblockRuleProperties('/example.org$/').hostname).toBe(null);
+        expect(ruleUtils.loadAdblockRuleProperties('||example.org').hostname).toBe(null);
+        expect(ruleUtils.loadAdblockRuleProperties('||*.example.org^').hostname).toBe(null);
     });
 
     it('findModifier should work', () => {
