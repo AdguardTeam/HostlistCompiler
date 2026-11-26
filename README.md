@@ -109,6 +109,10 @@ order described in the [Transformations](#transformations) section. To
 control the pipeline explicitly, use a [configuration file](#configuration)
 instead.
 
+The quick conversion does not read a configuration, so the `Title` of its
+compiled list header is always `Blocklist`. Use a configuration file with the
+`name` key to set a title; see [Compiled List Header](#compiled-list-header).
+
 ### Build a Configurable Blocklist from Multiple Sources
 
 Prepare the list configuration (read more about that
