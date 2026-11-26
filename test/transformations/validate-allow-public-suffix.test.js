@@ -72,8 +72,8 @@ describe('validateAllowPublicSuffix', () => {
     });
 
     it('keeps short ccTLD patterns as public suffixes', () => {
-        // ||uk^ and .uk^ are 4 chars — below MAX_PATTERN_LENGTH, but extractDomainPattern
-        // recognises them as valid domain-style patterns so the length check is skipped.
+        // `.uk^` is 4 chars and `||uk^` is 5 chars. Both are at or below MIN_PATTERN_LENGTH,
+        // but extractDomainPattern recognises them as valid domain-style patterns so the length check is skipped.
         const rules = [
             '||uk^',
             '.uk^',
