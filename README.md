@@ -156,7 +156,7 @@ show the local time of each reader. To show the value in a local timezone, conve
 new Date('2026-11-24T14:33:33.603Z').toLocaleString();
 ```
 
-Each source that produces rules adds a header before its rules:
+Each source that produces rules contributes a header:
 
 ```text
 !
@@ -167,11 +167,14 @@ Each source that produces rules adds a header before its rules:
 
 `Source name` appears only when the source has a `name` key.
 
-Because the source header is part of the rule stream, the whole-list filters and transformations apply to it too:
-a top-level `transformations` entry such as `RemoveComments` removes it, a top-level `exclusions` list removes
-every header line it matches, and a top-level `inclusions` list that matches none of the header lines removes the
-whole block. The `-i` quick conversion applies `RemoveComments` by default and therefore writes no source header.
-The list header above is added after the filters and transformations and always survives.
+The list header is written first, then the headers of all sources that produced rules, then the rules. The source
+headers are not part of the rule stream, so the whole-list filters and transformations cannot remove them: a
+top-level `RemoveComments`, `inclusions`, or `exclusions` entry does not affect them. The `-i` quick conversion
+writes a source header for each input that produces rules.
+
+In a list built from more than one source, the source headers are grouped after the list header and do not sit
+directly above the rules of their source. A source whose rules the whole-list filters remove completely keeps its
+header, because the header is not part of the filtered rule stream.
 
 ## Configuration
 

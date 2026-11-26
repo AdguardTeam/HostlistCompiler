@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Source headers now survive the whole-list filters and transformations: a
+  top-level `RemoveComments`, `inclusions`, or `exclusions` entry no longer
+  removes them. The headers are written after the list header and before the
+  rules, and a multi-source list groups them; the `-i` quick conversion output
+  now includes a source header for each input that produces rules.
+
 ### Deprecated
 
 ### Removed

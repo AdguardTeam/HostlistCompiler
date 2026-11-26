@@ -696,4 +696,85 @@ describe('Hostlist compiler', () => {
             jest.useRealTimers();
         }
     });
+
+    it('keeps source headers when RemoveComments runs', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/source1.txt')
+            .reply(200, '! user comment\n||example.org^', {
+                'Content-Type': 'text/plain',
+            })
+            .get('/source2.txt')
+            .reply(200, '||example.com^', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            transformations: ['RemoveComments'],
+            sources: [
+                {
+                    name: 'source 1',
+                    source: 'https://example.org/source1.txt',
+                },
+                {
+                    name: 'source 2',
+                    source: 'https://example.org/source2.txt',
+                },
+            ],
+        };
+
+        const list = await compile(configuration);
+
+        expect(list).not.toContain('! user comment');
+        expect(list).toContain('! Source name: source 1');
+        expect(list).toContain('! Source name: source 2');
+        expect(list).toContain('! Source: https://example.org/source1.txt');
+        expect(list).toContain('! Source: https://example.org/source2.txt');
+
+        const source1Index = list.indexOf('! Source name: source 1');
+        const source2Index = list.indexOf('! Source name: source 2');
+        const rule1Index = list.indexOf('||example.org^');
+        expect(source1Index).toBeLessThan(source2Index);
+        expect(source2Index).toBeLessThan(rule1Index);
+
+        scope.done();
+    });
+
+    it('keeps source headers when whole-list filters run', async () => {
+        const scope = mockHttp('https://example.org')
+            .get('/source1.txt')
+            .reply(200, '||example.org^', {
+                'Content-Type': 'text/plain',
+            })
+            .get('/source2.txt')
+            .reply(200, '||example.com^', {
+                'Content-Type': 'text/plain',
+            });
+
+        const configuration = {
+            name: 'Test filter',
+            inclusions: ['||example.org^'],
+            exclusions: ['Source name'],
+            sources: [
+                {
+                    name: 'source 1',
+                    source: 'https://example.org/source1.txt',
+                },
+                {
+                    name: 'source 2',
+                    source: 'https://example.org/source2.txt',
+                },
+            ],
+        };
+
+        const list = await compile(configuration);
+
+        expect(list).toContain('||example.org^');
+        expect(list).not.toContain('||example.com^');
+        expect(list).toContain('! Source name: source 1');
+        expect(list).toContain('! Source name: source 2');
+        expect(list).toContain('! Source: https://example.org/source2.txt');
+
+        scope.done();
+    });
 });

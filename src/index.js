@@ -93,8 +93,11 @@ async function compile(configuration) {
     const configurationDump = JSON.stringify(sanitizeConfigurationForLog(configuration), 0, 4);
     consola.info(`Configuration: ${configurationDump}`);
 
-    // This will be the final list of rules
+    // These will be the final rules and the headers of the sources that
+    // produced them. Source headers stay out of the rule stream so the
+    // whole-list filters and transformations cannot remove them.
     let finalList = [];
+    let sourceHeaders = [];
 
     // Now go through sources
     // eslint-disable-next-line no-restricted-syntax
@@ -103,9 +106,7 @@ async function compile(configuration) {
         const sourceRules = await compileSource(source);
 
         if (sourceRules.length > 0) {
-            const sourceHeader = prepareSourceHeader(source);
-
-            finalList = finalList.concat(sourceHeader);
+            sourceHeaders = sourceHeaders.concat(prepareSourceHeader(source));
             finalList = finalList.concat(sourceRules);
         }
     }
@@ -115,10 +116,11 @@ async function compile(configuration) {
     const transformations = configuration.transformations || [];
     finalList = await transform(finalList, configuration, transformations);
 
-    // Now prepend the list header and we're good to go
+    // Now prepend the list header and the source headers and we're good to go
     const header = prepareHeader(configuration);
-    consola.info(`Final length of the list is ${header.length + finalList.length}`);
-    return header.concat(finalList);
+    const fullList = header.concat(sourceHeaders, finalList);
+    consola.info(`Final length of the list is ${fullList.length}`);
+    return fullList;
 }
 
 module.exports = compile;
