@@ -647,6 +647,9 @@ describe('Hostlist compiler', () => {
     });
 
     it('writes the "Last modified" header in UTC ISO 8601', async () => {
+        // The suite runs under Europe/Berlin (see
+        // test/helpers/global-setup.js), so a header formatted from the local
+        // wall-clock time does not match this UTC value.
         jest.useFakeTimers({
             now: new Date('2026-11-24T14:33:33.603Z'),
             doNotFake: [
@@ -654,10 +657,6 @@ describe('Hostlist compiler', () => {
                 'nextTick',
                 'performance',
                 'queueMicrotask',
-                'requestAnimationFrame',
-                'cancelAnimationFrame',
-                'requestIdleCallback',
-                'cancelIdleCallback',
                 'setImmediate',
                 'clearImmediate',
                 'setInterval',
@@ -666,6 +665,11 @@ describe('Hostlist compiler', () => {
                 'clearTimeout',
             ],
         });
+
+        // The global setup puts the suite in a zone that differs from UTC at
+        // this instant. Without it, the assertion below would also pass for a
+        // local-time value on a UTC runner.
+        expect(new Date().getTimezoneOffset()).not.toBe(0);
 
         try {
             const scope = mockHttp('https://example.org')
