@@ -25,8 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `Validate` now keeps the `[Adblock Plus 2.0]` format header instead of
-  counting it as a rule with invalid characters and removing it. [#91]
+- Validation transformations now keep the `[Adblock Plus 2.0]` format header
+  instead of counting it as a rule with invalid characters and removing it.
+  [#91]
 - Sources that produce no rules, including empty files, files with only blank
   lines, compiler-recognized comment lines, an Adblock Plus format header, and
   files whose rules are all removed by transformations, are now skipped with a

@@ -554,7 +554,8 @@ The following rules are URL-level rules:
 - `|https://*.example.org^` has a scheme.
 - `||example.org/path^` has a path.
 
-The removal summary counts these rules as `URL-level rule`.
+The removal summary reports every rule rejected by this check as
+`URL-level rule`.
 
 The compiler removes these rules. It does not convert them to domain rules,
 because the conversion widens the match. For example, `||example.org^` blocks
@@ -583,7 +584,7 @@ reported under `comment or empty line`. A pass that removes nothing writes no
 line.
 
 When the transformation is configured in a source's `transformations`, each
-source that loses rules gets its own line. When it is configured in the
+source that loses lines gets its own line. When it is configured in the
 top-level `transformations`, which the quick conversion uses, the final list
 gets one line after the last source.
 
