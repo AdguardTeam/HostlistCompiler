@@ -360,6 +360,11 @@ vulnerabilities, supply chain risks, and long-term maintenance costs.
   `CHANGELOG.md` entry, for example `[#129]`, and place its link definition at
   the very bottom of `CHANGELOG.md`. A reader of the public changelog must be
   able to find the problem report.
+- Write each `CHANGELOG.md` entry for a user: one or two sentences about what
+  changes for them, about as long as the neighboring entries, one bullet per
+  user-visible effect. Do not narrate the old behavior or what did not change,
+  and leave out internal mechanics and follow-up tickets. When an example needs
+  a domain, use `example.com` or `example.org`.
 - The repository stores no secrets or credentials of its own and commits all
   configuration files. A configuration can still contain credentialed source
   URLs. The compiler sends them to the downloader as Basic auth. It MUST
